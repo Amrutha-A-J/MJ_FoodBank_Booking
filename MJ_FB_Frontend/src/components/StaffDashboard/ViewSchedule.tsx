@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser } from '../../api/api';
+import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking } from '../../api/api';
 import type { Slot } from '../../types';
 
 interface Booking {
@@ -36,8 +36,8 @@ export default function ViewSchedule({ token }: { token: string }) {
         getBookings(token),
       ]);
       setSlots(slotsData);
-      const filtered = bookingsData.filter((b: Booking) =>
-        b.date.split('T')[0] === dateStr && b.status === 'approved'
+      const filtered = bookingsData.filter(
+        (b: Booking) => b.date.split('T')[0] === dateStr && ['approved', 'submitted'].includes(b.status)
       );
       setBookings(filtered);
     } catch (err) {
@@ -67,7 +67,26 @@ export default function ViewSchedule({ token }: { token: string }) {
   }, [searchTerm, token, assignSlot]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
+    setCurrentDate(d => {
+      let newDate = new Date(d.getTime() + delta * 86400000);
+      while (
+        newDate.getDay() === 0 ||
+        newDate.getDay() === 6 ||
+        holidays.includes(formatDate(newDate))
+      ) {
+        newDate = new Date(newDate.getTime() + delta * 86400000);
+      }
+      return newDate;
+    });
+  }
+
+  async function approveBooking(id: number) {
+    try {
+      await decideBooking(token, id.toString(), 'approve');
+      await loadData();
+    } catch {
+      setMessage('Failed to approve booking');
+    }
   }
 
   async function assignUser(user: User) {
@@ -92,6 +111,8 @@ export default function ViewSchedule({ token }: { token: string }) {
   const dateStr = formatDate(currentDate);
   const dayName = currentDate.toLocaleDateString(undefined, { weekday: 'long' });
   const isHoliday = holidays.includes(dateStr);
+  const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+  const isClosed = isHoliday || isWeekend;
 
   // prepare slots with lunch break
   const displaySlots: (Slot | { id: string; startTime: string; endTime: string; lunch: true })[] = [];
@@ -112,7 +133,7 @@ export default function ViewSchedule({ token }: { token: string }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <button onClick={() => changeDay(-1)}>Previous</button>
-        <h3>{dateStr} - {dayName}{isHoliday ? ' (Holiday)' : ''}</h3>
+        <h3>{dateStr} - {dayName}{isHoliday ? ' (Holiday)' : isWeekend ? ' (Weekend)' : ''}</h3>
         <button onClick={() => changeDay(1)}>Next</button>
       </div>
       {message && <p style={{ color: 'red' }}>{message}</p>}
@@ -148,11 +169,27 @@ export default function ViewSchedule({ token }: { token: string }) {
                         border: '1px solid #ccc',
                         padding: 8,
                         height: 40,
-                        cursor: booking ? 'default' : 'pointer',
-                        backgroundColor: booking ? '#e0f7e0' : 'transparent',
+                        cursor: booking
+                          ? booking.status === 'submitted'
+                            ? 'pointer'
+                            : 'default'
+                          : isClosed
+                            ? 'not-allowed'
+                            : 'pointer',
+                        backgroundColor: booking
+                          ? booking.status === 'submitted'
+                            ? '#ffe5b4'
+                            : '#e0f7e0'
+                          : 'transparent',
                       }}
                       onClick={() => {
-                        if (!booking) setAssignSlot(slot);
+                        if (booking) {
+                          if (booking.status === 'submitted') approveBooking(booking.id);
+                        } else if (!isClosed) {
+                          setAssignSlot(slot);
+                        } else {
+                          setMessage('Booking not allowed on weekends or holidays');
+                        }
                       }}
                     >
                       {booking ? booking.user_name : ''}
