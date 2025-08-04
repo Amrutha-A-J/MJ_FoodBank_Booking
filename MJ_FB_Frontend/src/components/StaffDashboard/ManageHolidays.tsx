@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getHolidays, addHoliday as apiAddHoliday, removeHoliday as apiRemoveHoliday } from '../../api/api';
 
 export default function ManageHolidays({ token }: { token: string }) {
@@ -6,18 +6,18 @@ export default function ManageHolidays({ token }: { token: string }) {
   const [newDate, setNewDate] = useState('');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    fetchHolidays();
-  }, []);
-
-  async function fetchHolidays() {
+  const fetchHolidays = useCallback(async () => {
     try {
       const data = await getHolidays(token);
       setHolidays(data);
-    } catch (err: any) {
-      setMessage(err.message);
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : String(err));
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    fetchHolidays();
+  }, [fetchHolidays]);
 
   async function addHoliday() {
     if (!newDate) return setMessage('Select a date to add');
@@ -26,8 +26,8 @@ export default function ManageHolidays({ token }: { token: string }) {
       setMessage('Holiday added');
       setNewDate('');
       fetchHolidays();
-    } catch (err: any) {
-      setMessage(err.message);
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -36,8 +36,8 @@ export default function ManageHolidays({ token }: { token: string }) {
       await apiRemoveHoliday(token, date);
       setMessage('Holiday removed');
       fetchHolidays();
-    } catch (err: any) {
-      setMessage(err.message);
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 

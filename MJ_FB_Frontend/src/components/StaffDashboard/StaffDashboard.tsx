@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getBookings, decideBooking } from '../../api/api';
 
 interface Booking {
@@ -26,24 +26,24 @@ export default function StaffDashboard({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
-
-  async function loadBookings() {
+  const loadBookings = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getBookings(token);
+      const data: Booking[] = await getBookings(token);
       console.log('Received bookings:', data);
       setBookings(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching bookings:', err);
-      setError(err.message || 'Failed to load bookings');
+      setError(err instanceof Error ? err.message : 'Failed to load bookings');
     } finally {
       setLoading(false);
     }
-  }
+  }, [token, setError, setLoading]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
 
   async function decide(id: number, decision: 'approve' | 'reject') {
     setLoading(true);
@@ -52,9 +52,9 @@ export default function StaffDashboard({
       await decideBooking(token, id.toString(), decision);
       setMessage(`Booking ${decision}d`);
       await loadBookings();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deciding booking:', err);
-      setError(err.message || 'Failed to process decision');
+      setError(err instanceof Error ? err.message : 'Failed to process decision');
     } finally {
       setLoading(false);
     }

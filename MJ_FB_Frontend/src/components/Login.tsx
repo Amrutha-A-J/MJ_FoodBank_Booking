@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { login } from '../api/api';
+import type { LoginResponse } from '../api/api';
 
-export default function Login({ onLogin }: { onLogin: (user: { token: string; role: string; name: string }) => void }) {
+export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,8 +15,8 @@ export default function Login({ onLogin }: { onLogin: (user: { token: string; ro
       localStorage.setItem('role', user.role);
       localStorage.setItem('name', user.name);
       onLogin(user);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 

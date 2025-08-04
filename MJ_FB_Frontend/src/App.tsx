@@ -6,13 +6,11 @@ import Slots from './components/Slots/Slots';
 import UserBookings from './components/StaffDashboard/StaffBookAppointment';
 import AddUser from './components/StaffDashboard/AddUser';
 import Login from './components/Login';
-
-type Role = 'staff' | 'shopper' | 'delivery';
+import type { Role } from './types';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [role, setRole] = useState<Role>((localStorage.getItem('role') || '') as Role);
-  const [name, setName] = useState(localStorage.getItem('name') || '');
   const [activePage, setActivePage] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,7 +18,6 @@ export default function App() {
   function logout() {
     setToken('');
     setRole('' as Role);
-    setName('');
     localStorage.clear();
   }
 
@@ -57,7 +54,6 @@ export default function App() {
           onLogin={(u) => {
             setToken(u.token);
             setRole(u.role);
-            setName(u.name);
             localStorage.setItem('token', u.token);
             localStorage.setItem('role', u.role);
             localStorage.setItem('name', u.name);
@@ -125,24 +121,24 @@ export default function App() {
           )}
 
           <main>
-            {activePage === 'profile' && <Profile token={token} setError={setError} setLoading={setLoading} />}
+            {activePage === 'profile' && <Profile />}
             {activePage === 'staffDashboard' && role === 'staff' && (
               <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
             )}
             {activePage === 'manageHolidays' && role === 'staff' && (
-              <ManageHolidays token={token} setError={setError} setLoading={setLoading} />
+              <ManageHolidays token={token} />
             )}
             {activePage === 'bookAppointment' && role === 'staff' && (
               <Slots token={token} setError={setError} setLoading={setLoading} />
             )}
             {activePage === 'userBookings' && role === 'staff' && (
-              <UserBookings token={token} setError={setError} setLoading={setLoading} />
+              <UserBookings token={token} />
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <Slots token={token} setError={setError} setLoading={setLoading} />
             )}
             {activePage === 'addUser' && role === 'staff' && (
-              <AddUser token={token} setError={setError} setLoading={setLoading} />
+              <AddUser token={token} />
             )}
           </main>
         </>
