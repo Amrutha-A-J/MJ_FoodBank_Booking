@@ -3,6 +3,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { searchUsers, createBookingForUser, getSlots, getHolidays } from '../../api/api';
 import { toZonedTime } from 'date-fns-tz';
+import type { Slot } from '../../types';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -19,7 +20,7 @@ export default function StaffBookAppointment({ token }: { token: string }) {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const [slots, setSlots] = useState<any[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [holidays, setHolidays] = useState<string[]>([]);
   const [message, setMessage] = useState('');
 
@@ -37,8 +38,8 @@ export default function StaffBookAppointment({ token }: { token: string }) {
     const delayDebounce = setTimeout(() => {
       if (searchTerm.length >= 3) {
         searchUsers(token, searchTerm)
-          .then(data => setUserResults(data.slice(0, 5)))
-          .catch(err => setMessage(err.message || 'Search failed'));
+          .then((data: User[]) => setUserResults(data.slice(0, 5)))
+          .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'));
       } else {
         setUserResults([]);
       }
@@ -53,10 +54,10 @@ export default function StaffBookAppointment({ token }: { token: string }) {
       const dateStr = formatDate(selectedDate);
       getSlots(token, dateStr)
         .then(setSlots)
-        .catch(err => setMessage(err.message || 'Failed to load slots'));
+        .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'));
       setSelectedSlotId(null);
     }
-  }, [selectedDate]);
+  }, [selectedDate, token]);
 
   async function submitBooking() {
     if (!selectedUser || !selectedSlotId || !selectedDate) {
@@ -75,8 +76,9 @@ export default function StaffBookAppointment({ token }: { token: string }) {
       setSelectedUser(null);
       setSelectedDate(null);
       setSelectedSlotId(null);
-    } catch (e: any) {
-      setMessage('Booking failed: ' + e.message);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setMessage('Booking failed: ' + msg);
     }
   }
 

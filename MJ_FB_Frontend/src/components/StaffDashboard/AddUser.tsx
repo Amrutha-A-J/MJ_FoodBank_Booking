@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { addUser } from '../../api/api';
+import type { Role } from '../../types';
 
 export default function AddUser({ token }: { token: string }) {
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'shopper' | 'staff' | 'delivery'>('shopper');
+  const [role, setRole] = useState<Role>('shopper');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');   // ✅ NEW
   const [phone, setPhone] = useState('');         // optional
@@ -22,8 +23,8 @@ export default function AddUser({ token }: { token: string }) {
       setPassword('');
       setPhone('');
       setRole('shopper');
-    } catch (err: any) {
-      setMessage(err.message);
+    } catch (err: unknown) {
+      setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -78,7 +79,7 @@ export default function AddUser({ token }: { token: string }) {
       <div style={{ marginBottom: 8 }}>
         <label>
           Role:{' '}
-          <select value={role} onChange={e => setRole(e.target.value as any)}>
+          <select value={role} onChange={e => setRole(e.target.value as Role)}>
             <option value="shopper">Shopper</option>
             <option value="staff">Staff</option>
             <option value="delivery">Delivery</option>
