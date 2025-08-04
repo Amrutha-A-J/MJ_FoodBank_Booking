@@ -5,6 +5,7 @@ import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
 import bookingsRoutes from './routes/bookings';
 import holidaysRoutes from './routes/holidays';
+import staffRoutes from './routes/staff';
 import { initializeSlots } from './data';
 import pool from './db';
 
@@ -26,6 +27,7 @@ app.use('/users', usersRoutes);
 app.use('/slots', slotsRoutes);
 app.use('/bookings', bookingsRoutes);
 app.use('/holidays', holidaysRoutes);
+app.use('/staff', staffRoutes);
 
 const PORT = 4000;
 
