@@ -184,7 +184,12 @@ export default function ViewSchedule({ token }: { token: string }) {
                         }}
                         onClick={() => {
                           if (booking) {
-                            if (booking.status === 'submitted') approveBooking(booking.id);
+                            if (
+                              booking.status === 'submitted' &&
+                              window.confirm('Approve this booking?')
+                            ) {
+                              approveBooking(booking.id);
+                            }
                           } else if (!isClosed) {
                             setAssignSlot(slot);
                           } else {
