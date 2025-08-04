@@ -28,6 +28,7 @@ export default function SlotBooking({ token, role }: Props) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [holidays, setHolidays] = useState<string[]>([]);
   const [message, setMessage] = useState('');
+  const [dayMessage, setDayMessage] = useState('');
 
   const loggedInName = localStorage.getItem('name') || 'You';
 
@@ -79,23 +80,31 @@ export default function SlotBooking({ token, role }: Props) {
   useEffect(() => {
     if (selectedDate) {
       const dateStr = formatDate(selectedDate);
+      const dayName = toZonedTime(selectedDate, reginaTimeZone).toLocaleDateString('en-US', {
+        weekday: 'long',
+      });
       if (isWeekend(selectedDate)) {
         setSlots([]);
         setSelectedSlotId(null);
-        setMessage('Moose Jaw food bank is closed for Saturday and Sunday');
+        setDayMessage(`Moose Jaw food bank is closed for ${dayName}`);
+        setMessage('');
         return;
       }
       if (isHoliday(selectedDate)) {
         setSlots([]);
         setSelectedSlotId(null);
         const next = getNextAvailableDate(selectedDate);
-        setMessage(`This day is marked as a holiday by staff, next availability is ${formatDate(next)}`);
+        setDayMessage(
+          `This day is marked as a holiday by staff, next availability is ${formatDate(next)}`,
+        );
+        setMessage('');
         return;
       }
       getSlots(token, dateStr)
         .then(setSlots)
         .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'));
       setSelectedSlotId(null);
+      setDayMessage('');
       setMessage('');
     }
   }, [selectedDate, token, holidays, isWeekend, isHoliday, getNextAvailableDate]);
@@ -170,34 +179,50 @@ export default function SlotBooking({ token, role }: Props) {
         }}
       />
 
-      {selectedDate && !isWeekend(selectedDate) && !isHoliday(selectedDate) && (
-        <>
-          <h4>Available Slots on {formatDate(selectedDate)}</h4>
-          <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
-            {slots.map((s) => (
-              <li
-                key={s.id}
-                onClick={() => s.available > 0 && setSelectedSlotId(s.id)}
-                style={{
-                  cursor: s.available > 0 ? 'pointer' : 'not-allowed',
-                  padding: '0.5rem',
-                  margin: '0.3rem 0',
-                  border: selectedSlotId === s.id ? '2px solid blue' : '1px solid #ccc',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  backgroundColor: selectedSlotId === s.id ? '#e0f0ff' : 'transparent',
-                }}
-              >
-                <span>{s.startTime} - {s.endTime}</span>
-                <span>Available: {s.available}</span>
-              </li>
-            ))}
-          </ul>
-          <button disabled={!selectedSlotId} onClick={submitBooking}>
-            {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
-          </button>
-        </>
+      {selectedDate && (
+        <div style={{ width: '100%' }}>
+          {dayMessage ? (
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: '6rem',
+                textAlign: 'center',
+              }}
+            >
+              {dayMessage}
+            </div>
+          ) : (
+            <>
+              <h4>Available Slots on {formatDate(selectedDate)}</h4>
+              <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+                {slots.map((s) => (
+                  <li
+                    key={s.id}
+                    onClick={() => s.available > 0 && setSelectedSlotId(s.id)}
+                    style={{
+                      cursor: s.available > 0 ? 'pointer' : 'not-allowed',
+                      padding: '0.5rem',
+                      margin: '0.3rem 0',
+                      border: selectedSlotId === s.id ? '2px solid blue' : '1px solid #ccc',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      backgroundColor: selectedSlotId === s.id ? '#e0f0ff' : 'transparent',
+                    }}
+                  >
+                    <span>{s.startTime} - {s.endTime}</span>
+                    <span>Available: {s.available}</span>
+                  </li>
+                ))}
+              </ul>
+              <button disabled={!selectedSlotId} onClick={submitBooking}>
+                {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
