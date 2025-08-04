@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { searchUsers, createBookingForUser, getSlots, getHolidays } from '../../api/api';
+import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
 import { toZonedTime } from 'date-fns-tz';
-import type { Slot } from '../../types';
+import type { Slot } from '../types';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -14,7 +14,12 @@ interface User {
   phone?: string;
 }
 
-export default function StaffBookAppointment({ token }: { token: string }) {
+interface Props {
+  token: string;
+  role: 'staff' | 'shopper';
+}
+
+export default function SlotBooking({ token, role }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -24,31 +29,29 @@ export default function StaffBookAppointment({ token }: { token: string }) {
   const [holidays, setHolidays] = useState<string[]>([]);
   const [message, setMessage] = useState('');
 
+  const loggedInName = localStorage.getItem('name') || 'You';
+
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-  // Fetch holidays
   useEffect(() => {
-    getHolidays(token)
-      .then(setHolidays)
-      .catch(() => {});
+    getHolidays(token).then(setHolidays).catch(() => {});
   }, [token]);
 
-  // Debounced user search
   useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (searchTerm.length >= 3) {
-        searchUsers(token, searchTerm)
-          .then((data: User[]) => setUserResults(data.slice(0, 5)))
-          .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'));
-      } else {
-        setUserResults([]);
-      }
-    }, 300);
+    if (role === 'staff') {
+      const delayDebounce = setTimeout(() => {
+        if (searchTerm.length >= 3) {
+          searchUsers(token, searchTerm)
+            .then((data: User[]) => setUserResults(data.slice(0, 5)))
+            .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'));
+        } else {
+          setUserResults([]);
+        }
+      }, 300);
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [searchTerm, token, role]);
 
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm, token]);
-
-  // Fetch slots for selected date
   useEffect(() => {
     if (selectedDate) {
       const dateStr = formatDate(selectedDate);
@@ -60,20 +63,24 @@ export default function StaffBookAppointment({ token }: { token: string }) {
   }, [selectedDate, token]);
 
   async function submitBooking() {
-    if (!selectedUser || !selectedSlotId || !selectedDate) {
-      setMessage('Please select user, date, and time slot');
+    if (!selectedSlotId || !selectedDate) {
+      setMessage('Please select a date and time slot');
       return;
     }
+
     try {
-      await createBookingForUser(
-        token,
-        selectedUser.id,
-        parseInt(selectedSlotId),
-        formatDate(selectedDate),
-        true // isStaffBooking
-      );
-      setMessage('Booking created successfully!');
-      setSelectedUser(null);
+      if (role === 'staff') {
+        if (!selectedUser) {
+          setMessage('Please select a user');
+          return;
+        }
+        await createBookingForUser(token, selectedUser.id, parseInt(selectedSlotId), formatDate(selectedDate), true);
+        setMessage('Booking created successfully!');
+        setSelectedUser(null);
+      } else {
+        await createBooking(token, selectedSlotId, formatDate(selectedDate));
+        setMessage('Booking submitted!');
+      }
       setSelectedDate(null);
       setSelectedSlotId(null);
     } catch (e: unknown) {
@@ -82,7 +89,7 @@ export default function StaffBookAppointment({ token }: { token: string }) {
     }
   }
 
-  if (!selectedUser) {
+  if (role === 'staff' && !selectedUser) {
     return (
       <div>
         <input
@@ -108,12 +115,15 @@ export default function StaffBookAppointment({ token }: { token: string }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3>Booking for: {selectedUser.name}</h3>
+      <h3>
+        {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
+      </h3>
       <Calendar
         onChange={(value) => {
           if (value instanceof Date) setSelectedDate(value);
         }}
         value={selectedDate}
+        calendarType="US"
         tileDisabled={({ date }) => {
           const zoned = toZonedTime(date, reginaTimeZone);
           const day = zoned.getDay();
@@ -149,12 +159,16 @@ export default function StaffBookAppointment({ token }: { token: string }) {
             ))}
           </ul>
           <button disabled={!selectedSlotId} onClick={submitBooking}>
-            Submit Booking
+            {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
           </button>
         </>
       )}
-      <button onClick={() => setSelectedUser(null)}>Back to Search</button>
-      {message && <p style={{ color: message.startsWith('Booking created') ? 'green' : 'red' }}>{message}</p>}
+
+      {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
+      {message && (
+        <p style={{ color: message.startsWith('Booking') ? 'green' : 'red' }}>{message}</p>
+      )}
     </div>
   );
 }
+
