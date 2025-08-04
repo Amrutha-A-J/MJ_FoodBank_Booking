@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { addUser } from '../../api/api';
 
 export default function AddUser({ token }: { token: string }) {
   const [email, setEmail] = useState('');
@@ -14,12 +15,7 @@ export default function AddUser({ token }: { token: string }) {
       return;
     }
     try {
-      const res = await fetch('http://localhost:4000/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: token },
-        body: JSON.stringify({ email, role, name, password, phone }), // ✅ send password & phone
-      });
-      if (!res.ok) throw new Error(await res.text());
+      await addUser(token, name, email, password, role, phone);
       setMessage('User added successfully');
       setEmail('');
       setName('');
