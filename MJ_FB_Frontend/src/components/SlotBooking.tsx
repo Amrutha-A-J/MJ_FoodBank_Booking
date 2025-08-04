@@ -123,7 +123,7 @@ export default function SlotBooking({ token, role }: Props) {
           if (value instanceof Date) setSelectedDate(value);
         }}
         value={selectedDate}
-        calendarType="US"
+        calendarType="gregory"
         tileDisabled={({ date }) => {
           const zoned = toZonedTime(date, reginaTimeZone);
           const day = zoned.getDay();
