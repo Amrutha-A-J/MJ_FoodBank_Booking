@@ -4,6 +4,7 @@ import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageHolidays from './components/StaffDashboard/ManageHolidays';
 import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
+import ViewSchedule from './components/StaffDashboard/ViewSchedule';
 import Login from './components/Login';
 import type { Role } from './types';
 
@@ -30,6 +31,7 @@ export default function App() {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Holidays', id: 'manageHolidays' },
+      { label: 'View Schedule', id: 'viewSchedule' },
       { label: 'User Bookings', id: 'userBookings' },
       { label: 'Add User', id: 'addUser' },
     ]);
@@ -125,6 +127,9 @@ export default function App() {
             )}
             {activePage === 'manageHolidays' && role === 'staff' && (
               <ManageHolidays token={token} />
+            )}
+            {activePage === 'viewSchedule' && role === 'staff' && (
+              <ViewSchedule token={token} />
             )}
             {activePage === 'userBookings' && role === 'staff' && (
               <SlotBooking token={token} role="staff" />
