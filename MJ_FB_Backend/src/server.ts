@@ -6,6 +6,7 @@ import slotsRoutes from './routes/slots';
 import bookingsRoutes from './routes/bookings';
 import holidaysRoutes from './routes/holidays';
 import { initializeSlots } from './data';
+import pool from './db';
 
 dotenv.config();
 
@@ -26,8 +27,21 @@ app.use('/slots', slotsRoutes);
 app.use('/bookings', bookingsRoutes);
 app.use('/holidays', holidaysRoutes);
 
-
 const PORT = 4000;
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+
+async function init() {
+  try {
+    const client = await pool.connect();
+    console.log('✅ Connected to the database successfully!');
+    client.release();
+
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Failed to connect to the database:', err);
+    process.exit(1);
+  }
+}
+
+init();
