@@ -1,0 +1,98 @@
+.slots-container {
+    max-width: 900px;
+    margin: 24px auto;
+    font-family: Arial, sans-serif;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+  
+    display: flex;
+    gap: 32px;
+  }
+  
+  .left-column, .right-column {
+    flex: 1;
+  }
+  
+  .left-column h2,
+  .right-column h2 {
+    color: #ef4444; /* red */
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+  
+  .message {
+    margin-bottom: 12px;
+    color: green;
+    font-weight: bold;
+  }
+  
+  .custom-calendar {
+    border: 1px solid #ef4444;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  
+  /* react-calendar overrides */
+  .react-calendar__tile--active {
+    background: #ef4444 !important;
+    color: white !important;
+    border-radius: 50% !important;
+  }
+  
+  .react-calendar__tile {
+    color: #6b7280;
+  }
+  
+  .slots-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .slot-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  
+  .slot-time {
+    font-weight: 600;
+    color: #ef4444;
+    flex: 1;
+  }
+  
+  .slot-available {
+    margin-right: 16px;
+    color: #666;
+  }
+  .slot-item.selected {
+    background-color: #fee2e2; /* light red highlight */
+    border-color: #ef4444; /* stronger border */
+  }
+  
+  .book-button {
+    border: 2px solid #ef4444;
+    background: white;
+    color: #ef4444;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .book-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .book-button:not(:disabled):hover {
+    background-color: #fee2e2;
+  }
+  

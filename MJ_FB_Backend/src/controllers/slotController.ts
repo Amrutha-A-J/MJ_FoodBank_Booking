@@ -1,0 +1,64 @@
+import { Request, Response } from 'express';
+import pool from '../db';
+
+export async function listSlots(req: Request, res: Response) {
+  const date = req.query.date as string;
+  if (!date) return res.status(400).json({ message: 'Date query parameter required' });
+
+  try {
+    // Parse date in local Regina timezone safely
+    const dateObj = new Date(date + 'T00:00:00-06:00'); // Regina is UTC-6
+    const day = dateObj.getDay(); // Sunday=0, Monday=1, etc.
+
+    // Closed on weekends
+    if (day === 0 || day === 6) return res.json([]);
+
+    const slotsResult = await pool.query('SELECT * FROM slots');
+    let slots = slotsResult.rows;
+
+    if (day !== 3) {
+      // Weekdays except Wednesday: exclude 12:00, 12:30 slots, show from 9:30 to 14:30
+      slots = slots.filter(s =>
+        s.start_time >= '09:30:00' &&
+        s.start_time <= '14:30:00' &&
+        s.start_time !== '12:00:00' &&
+        s.start_time !== '12:30:00'
+      );
+    } else {
+      // Wednesday: exclude 12:00, 12:30, 15:30 slots, show from 9:30 to 18:30
+      slots = slots.filter(s =>
+        s.start_time >= '09:30:00' &&
+        s.start_time <= '18:30:00' &&
+        s.start_time !== '12:00:00' &&
+        s.start_time !== '12:30:00' &&
+        s.start_time !== '15:30:00'
+      );
+    }
+
+    const bookingsResult = await pool.query(
+      `SELECT slot_id, COUNT(*) AS approved_count
+       FROM bookings
+       WHERE status = 'approved' AND date = $1
+       GROUP BY slot_id`,
+      [date]
+    );
+
+    const approvedMap: Record<string, number> = {};
+    for (const row of bookingsResult.rows) {
+      approvedMap[row.slot_id] = Number(row.approved_count);
+    }
+
+    const slotsWithAvailability = slots.map((slot: any) => ({
+      id: slot.id.toString(),
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      maxCapacity: slot.max_capacity,
+      available: slot.max_capacity - (approvedMap[slot.id] || 0),
+    }));
+
+    res.json(slotsWithAvailability);
+  } catch (error) {
+    console.error('Error listing slots:', error);
+    res.status(500).json({ message: 'Database error' });
+  }
+}

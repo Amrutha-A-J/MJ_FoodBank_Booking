@@ -1,0 +1,158 @@
+import { useState, useEffect } from 'react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import { searchUsers, createBookingForUser, getSlots, getHolidays } from '../../api/api';
+import { toZonedTime } from 'date-fns-tz';
+
+const reginaTimeZone = 'America/Regina';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+export default function StaffBookAppointment({ token }: { token: string }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userResults, setUserResults] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [slots, setSlots] = useState<any[]>([]);
+  const [holidays, setHolidays] = useState<string[]>([]);
+  const [message, setMessage] = useState('');
+
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  // Fetch holidays
+  useEffect(() => {
+    getHolidays(token)
+      .then(setHolidays)
+      .catch(() => {});
+  }, [token]);
+
+  // Debounced user search
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchTerm.length >= 3) {
+        searchUsers(token, searchTerm)
+          .then(data => setUserResults(data.slice(0, 5)))
+          .catch(err => setMessage(err.message || 'Search failed'));
+      } else {
+        setUserResults([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm, token]);
+
+  // Fetch slots for selected date
+  useEffect(() => {
+    if (selectedDate) {
+      const dateStr = formatDate(selectedDate);
+      getSlots(token, dateStr)
+        .then(setSlots)
+        .catch(err => setMessage(err.message || 'Failed to load slots'));
+      setSelectedSlotId(null);
+    }
+  }, [selectedDate]);
+
+  async function submitBooking() {
+    if (!selectedUser || !selectedSlotId || !selectedDate) {
+      setMessage('Please select user, date, and time slot');
+      return;
+    }
+    try {
+      await createBookingForUser(
+        token,
+        selectedUser.id,
+        parseInt(selectedSlotId),
+        formatDate(selectedDate),
+        true // isStaffBooking
+      );
+      setMessage('Booking created successfully!');
+      setSelectedUser(null);
+      setSelectedDate(null);
+      setSelectedSlotId(null);
+    } catch (e: any) {
+      setMessage('Booking failed: ' + e.message);
+    }
+  }
+
+  if (!selectedUser) {
+    return (
+      <div>
+        <input
+          type="text"
+          placeholder="Search users by name/email/phone"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
+        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+          {userResults.map(user => (
+            <li key={user.id} style={{ marginBottom: 8 }}>
+              {user.name} ({user.email})
+              <button onClick={() => setSelectedUser(user)} style={{ marginLeft: 8 }}>
+                Book Appointment
+              </button>
+            </li>
+          ))}
+        </ul>
+        {message && <p style={{ color: 'red' }}>{message}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <h3>Booking for: {selectedUser.name}</h3>
+      <Calendar
+        onChange={(value) => {
+          if (value instanceof Date) setSelectedDate(value);
+        }}
+        value={selectedDate}
+        tileDisabled={({ date }) => {
+          const zoned = toZonedTime(date, reginaTimeZone);
+          const day = zoned.getDay();
+          const today = toZonedTime(new Date(), reginaTimeZone);
+          const isPast = zoned < new Date(today.toDateString());
+          const dateStr = formatDate(zoned);
+          return day === 0 || day === 6 || isPast || holidays.includes(dateStr);
+        }}
+      />
+
+      {selectedDate && (
+        <>
+          <h4>Available Slots on {formatDate(selectedDate)}</h4>
+          <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+            {slots.map((s) => (
+              <li
+                key={s.id}
+                onClick={() => s.available > 0 && setSelectedSlotId(s.id)}
+                style={{
+                  cursor: s.available > 0 ? 'pointer' : 'not-allowed',
+                  padding: '0.5rem',
+                  margin: '0.3rem 0',
+                  border: selectedSlotId === s.id ? '2px solid blue' : '1px solid #ccc',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  backgroundColor: selectedSlotId === s.id ? '#e0f0ff' : 'transparent',
+                }}
+              >
+                <span>{s.startTime} - {s.endTime}</span>
+                <span>Available: {s.available}</span>
+              </li>
+            ))}
+          </ul>
+          <button disabled={!selectedSlotId} onClick={submitBooking}>
+            Submit Booking
+          </button>
+        </>
+      )}
+      <button onClick={() => setSelectedUser(null)}>Back to Search</button>
+      {message && <p style={{ color: message.startsWith('Booking created') ? 'green' : 'red' }}>{message}</p>}
+    </div>
+  );
+}
