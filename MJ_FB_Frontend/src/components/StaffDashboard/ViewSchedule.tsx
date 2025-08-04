@@ -25,6 +25,7 @@ export default function ViewSchedule({ token }: { token: string }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
   const [message, setMessage] = useState('');
+  const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -77,12 +78,15 @@ export default function ViewSchedule({ token }: { token: string }) {
     setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
   }
 
-  async function approveBooking(id: number) {
+  async function decideSelected(decision: 'approve' | 'reject') {
+    if (!decisionBooking) return;
     try {
-      await decideBooking(token, id.toString(), 'approve');
+      await decideBooking(token, decisionBooking.id.toString(), decision);
       await loadData();
     } catch {
-      setMessage('Failed to approve booking');
+      setMessage(`Failed to ${decision} booking`);
+    } finally {
+      setDecisionBooking(null);
     }
   }
 
@@ -184,11 +188,8 @@ export default function ViewSchedule({ token }: { token: string }) {
                         }}
                         onClick={() => {
                           if (booking) {
-                            if (
-                              booking.status === 'submitted' &&
-                              window.confirm('Approve this booking?')
-                            ) {
-                              approveBooking(booking.id);
+                            if (booking.status === 'submitted') {
+                              setDecisionBooking(booking);
                             }
                           } else if (!isClosed) {
                             setAssignSlot(slot);
@@ -242,6 +243,32 @@ export default function ViewSchedule({ token }: { token: string }) {
               ))}
             </ul>
             <button onClick={() => { setAssignSlot(null); setSearchTerm(''); }}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {decisionBooking && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: '300px' }}>
+            <h4>Decide Booking</h4>
+            <p>Approve or reject booking for {decisionBooking.user_name}?</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+              <button onClick={() => decideSelected('approve')}>Approve</button>
+              <button onClick={() => decideSelected('reject')}>Reject</button>
+              <button onClick={() => setDecisionBooking(null)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
