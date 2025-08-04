@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getHolidays, addHoliday as apiAddHoliday, removeHoliday as apiRemoveHoliday } from '../../api/api';
 
 export default function ManageHolidays({ token }: { token: string }) {
   const [holidays, setHolidays] = useState<string[]>([]);
@@ -11,11 +12,7 @@ export default function ManageHolidays({ token }: { token: string }) {
 
   async function fetchHolidays() {
     try {
-      const res = await fetch('http://localhost:4000/holidays', {
-        headers: { Authorization: token }
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
+      const data = await getHolidays(token);
       setHolidays(data);
     } catch (err: any) {
       setMessage(err.message);
@@ -25,12 +22,7 @@ export default function ManageHolidays({ token }: { token: string }) {
   async function addHoliday() {
     if (!newDate) return setMessage('Select a date to add');
     try {
-      const res = await fetch('http://localhost:4000/holidays', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: token },
-        body: JSON.stringify({ date: newDate }),
-      });
-      if (!res.ok) throw new Error(await res.text());
+      await apiAddHoliday(token, newDate);
       setMessage('Holiday added');
       setNewDate('');
       fetchHolidays();
@@ -41,11 +33,7 @@ export default function ManageHolidays({ token }: { token: string }) {
 
   async function removeHoliday(date: string) {
     try {
-      const res = await fetch(`http://localhost:4000/holidays/${date}`, {
-        method: 'DELETE',
-        headers: { Authorization: token },
-      });
-      if (!res.ok) throw new Error(await res.text());
+      await apiRemoveHoliday(token, date);
       setMessage('Holiday removed');
       fetchHolidays();
     } catch (err: any) {

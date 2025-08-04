@@ -1,5 +1,6 @@
 // src/api/api.ts
-const API_BASE = 'http://localhost:4000'; // change to Azure URL later
+// Read API base URL from environment or fall back to localhost
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 export async function login(email: string, password: string) {
   const res = await fetch(`${API_BASE}/users/login`, {
