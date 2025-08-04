@@ -2,8 +2,7 @@ import { useState } from 'react';
 import Profile from './components/Profile';
 import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageHolidays from './components/StaffDashboard/ManageHolidays';
-import Slots from './components/Slots/Slots';
-import UserBookings from './components/StaffDashboard/StaffBookAppointment';
+import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
 import Login from './components/Login';
 import type { Role } from './types';
@@ -31,7 +30,6 @@ export default function App() {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Holidays', id: 'manageHolidays' },
-      { label: 'Book Appointment', id: 'bookAppointment' },
       { label: 'User Bookings', id: 'userBookings' },
       { label: 'Add User', id: 'addUser' },
     ]);
@@ -128,14 +126,11 @@ export default function App() {
             {activePage === 'manageHolidays' && role === 'staff' && (
               <ManageHolidays token={token} />
             )}
-            {activePage === 'bookAppointment' && role === 'staff' && (
-              <Slots token={token} setError={setError} setLoading={setLoading} />
-            )}
             {activePage === 'userBookings' && role === 'staff' && (
-              <UserBookings token={token} />
+              <SlotBooking token={token} role="staff" />
             )}
             {activePage === 'slots' && role === 'shopper' && (
-              <Slots token={token} setError={setError} setLoading={setLoading} />
+              <SlotBooking token={token} role="shopper" />
             )}
             {activePage === 'addUser' && role === 'staff' && (
               <AddUser token={token} />
