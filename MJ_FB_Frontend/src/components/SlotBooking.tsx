@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
@@ -33,6 +33,30 @@ export default function SlotBooking({ token, role }: Props) {
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
+  const isWeekend = useCallback((date: Date) => {
+    const day = toZonedTime(date, reginaTimeZone).getDay();
+    return day === 0 || day === 6;
+  }, []);
+
+  const isHoliday = useCallback(
+    (date: Date) => {
+      const zoned = toZonedTime(date, reginaTimeZone);
+      return holidays.includes(formatDate(zoned));
+    },
+    [holidays],
+  );
+
+  const getNextAvailableDate = useCallback(
+    (date: Date) => {
+      const next = new Date(date);
+      do {
+        next.setDate(next.getDate() + 1);
+      } while (isWeekend(next) || isHoliday(next));
+      return next;
+    },
+    [isWeekend, isHoliday],
+  );
+
   useEffect(() => {
     getHolidays(token).then(setHolidays).catch(() => {});
   }, [token]);
@@ -55,12 +79,26 @@ export default function SlotBooking({ token, role }: Props) {
   useEffect(() => {
     if (selectedDate) {
       const dateStr = formatDate(selectedDate);
+      if (isWeekend(selectedDate)) {
+        setSlots([]);
+        setSelectedSlotId(null);
+        setMessage('Moose Jaw food bank is closed for Saturday and Sunday');
+        return;
+      }
+      if (isHoliday(selectedDate)) {
+        setSlots([]);
+        setSelectedSlotId(null);
+        const next = getNextAvailableDate(selectedDate);
+        setMessage(`This day is marked as a holiday by staff, next availability is ${formatDate(next)}`);
+        return;
+      }
       getSlots(token, dateStr)
         .then(setSlots)
         .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'));
       setSelectedSlotId(null);
+      setMessage('');
     }
-  }, [selectedDate, token]);
+  }, [selectedDate, token, holidays, isWeekend, isHoliday, getNextAvailableDate]);
 
   async function submitBooking() {
     if (!selectedSlotId || !selectedDate) {
@@ -126,15 +164,13 @@ export default function SlotBooking({ token, role }: Props) {
         calendarType="gregory"
         tileDisabled={({ date }) => {
           const zoned = toZonedTime(date, reginaTimeZone);
-          const day = zoned.getDay();
           const today = toZonedTime(new Date(), reginaTimeZone);
           const isPast = zoned < new Date(today.toDateString());
-          const dateStr = formatDate(zoned);
-          return day === 0 || day === 6 || isPast || holidays.includes(dateStr);
+          return isPast;
         }}
       />
 
-      {selectedDate && (
+      {selectedDate && !isWeekend(selectedDate) && !isHoliday(selectedDate) && (
         <>
           <h4>Available Slots on {formatDate(selectedDate)}</h4>
           <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
