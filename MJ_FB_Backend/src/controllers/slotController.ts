@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../db';
+import { Slot } from '../models/slot';
 
 export async function listSlots(req: Request, res: Response) {
   const date = req.query.date as string;
@@ -48,7 +49,7 @@ export async function listSlots(req: Request, res: Response) {
       approvedMap[row.slot_id] = Number(row.approved_count);
     }
 
-    const slotsWithAvailability = slots.map((slot: any) => ({
+    const slotsWithAvailability: Slot[] = slots.map((slot: any) => ({
       id: slot.id.toString(),
       startTime: slot.start_time,
       endTime: slot.end_time,

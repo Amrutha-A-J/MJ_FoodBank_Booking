@@ -1,6 +1,8 @@
 export interface Slot {
-    id: string;
-    date: string;  // e.g., "2025-07-21"
-    time: string;  // e.g., "09:30"
-    maxCapacity: number;  // e.g., 4
-  }
+  id: string;
+  startTime: string; // e.g., "09:30"
+  endTime: string;   // e.g., "10:00"
+  maxCapacity: number;
+  available?: number;
+}
+
