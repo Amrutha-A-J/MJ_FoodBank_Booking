@@ -30,6 +30,13 @@ export default function ViewSchedule({ token }: { token: string }) {
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
+    const weekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+    const holiday = holidays.includes(dateStr);
+    if (weekend || holiday) {
+      setSlots([]);
+      setBookings([]);
+      return;
+    }
     try {
       const [slotsData, bookingsData] = await Promise.all([
         getSlots(token, dateStr),
@@ -43,7 +50,7 @@ export default function ViewSchedule({ token }: { token: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, token]);
+  }, [currentDate, token, holidays]);
 
   useEffect(() => {
     getHolidays(token).then(setHolidays).catch(() => {});
@@ -67,17 +74,7 @@ export default function ViewSchedule({ token }: { token: string }) {
   }, [searchTerm, token, assignSlot]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => {
-      let newDate = new Date(d.getTime() + delta * 86400000);
-      while (
-        newDate.getDay() === 0 ||
-        newDate.getDay() === 6 ||
-        holidays.includes(formatDate(newDate))
-      ) {
-        newDate = new Date(newDate.getTime() + delta * 86400000);
-      }
-      return newDate;
-    });
+    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
   }
 
   async function approveBooking(id: number) {
@@ -137,70 +134,74 @@ export default function ViewSchedule({ token }: { token: string }) {
         <button onClick={() => changeDay(1)}>Next</button>
       </div>
       {message && <p style={{ color: 'red' }}>{message}</p>}
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ccc', padding: 8, width: '120px' }}>Time</th>
-            {[1,2,3,4].map(i => (
-              <th key={i} style={{ border: '1px solid #ccc', padding: 8 }}>Slot {i}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {displaySlots.map((slot, idx) => {
-            if ('lunch' in slot) {
+      {isClosed ? (
+        <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
+      ) : (
+        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+          <thead>
+            <tr>
+              <th style={{ border: '1px solid #ccc', padding: 8, width: '120px' }}>Time</th>
+              {[1,2,3,4].map(i => (
+                <th key={i} style={{ border: '1px solid #ccc', padding: 8 }}>Slot {i}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {displaySlots.map((slot, idx) => {
+              if ('lunch' in slot) {
+                return (
+                  <tr key={idx} style={{ backgroundColor: '#f5f5f5' }}>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>12:00 - 13:00</td>
+                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Lunch Break</td>
+                  </tr>
+                );
+              }
+              const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
               return (
-                <tr key={idx} style={{ backgroundColor: '#f5f5f5' }}>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>12:00 - 13:00</td>
-                  <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Lunch Break</td>
+                <tr key={slot.id}>
+                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
+                  {Array.from({ length: 4 }).map((_, i) => {
+                    const booking = slotBookings[i];
+                    return (
+                      <td
+                        key={i}
+                        style={{
+                          border: '1px solid #ccc',
+                          padding: 8,
+                          height: 40,
+                          cursor: booking
+                            ? booking.status === 'submitted'
+                              ? 'pointer'
+                              : 'default'
+                            : isClosed
+                              ? 'not-allowed'
+                              : 'pointer',
+                          backgroundColor: booking
+                            ? booking.status === 'submitted'
+                              ? '#ffe5b4'
+                              : '#e0f7e0'
+                            : 'transparent',
+                        }}
+                        onClick={() => {
+                          if (booking) {
+                            if (booking.status === 'submitted') approveBooking(booking.id);
+                          } else if (!isClosed) {
+                            setAssignSlot(slot);
+                          } else {
+                            setMessage('Booking not allowed on weekends or holidays');
+                          }
+                        }}
+                      >
+                        {booking ? booking.user_name : ''}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
-            }
-            const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
-            return (
-              <tr key={slot.id}>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
-                {Array.from({ length: 4 }).map((_, i) => {
-                  const booking = slotBookings[i];
-                  return (
-                    <td
-                      key={i}
-                      style={{
-                        border: '1px solid #ccc',
-                        padding: 8,
-                        height: 40,
-                        cursor: booking
-                          ? booking.status === 'submitted'
-                            ? 'pointer'
-                            : 'default'
-                          : isClosed
-                            ? 'not-allowed'
-                            : 'pointer',
-                        backgroundColor: booking
-                          ? booking.status === 'submitted'
-                            ? '#ffe5b4'
-                            : '#e0f7e0'
-                          : 'transparent',
-                      }}
-                      onClick={() => {
-                        if (booking) {
-                          if (booking.status === 'submitted') approveBooking(booking.id);
-                        } else if (!isClosed) {
-                          setAssignSlot(slot);
-                        } else {
-                          setMessage('Booking not allowed on weekends or holidays');
-                        }
-                      }}
-                    >
-                      {booking ? booking.user_name : ''}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            })}
+          </tbody>
+        </table>
+      )}
 
       {assignSlot && (
         <div
