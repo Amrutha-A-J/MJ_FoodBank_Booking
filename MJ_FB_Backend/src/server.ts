@@ -1,16 +1,19 @@
 import express from 'express';
 import cors from 'cors'; // add this
+import dotenv from 'dotenv';
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
 import bookingsRoutes from './routes/bookings';
 import holidaysRoutes from './routes/holidays';
 import { initializeSlots } from './data';
 
+dotenv.config();
+
 const app = express();
 
 // ⭐ Add CORS middleware before routes
 app.use(cors({
-  origin: 'http://localhost:5173', // allow your frontend
+  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // allow your frontend
   credentials: true
 }));
 
