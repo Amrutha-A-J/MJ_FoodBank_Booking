@@ -4,6 +4,7 @@ import 'react-calendar/dist/Calendar.css';
 import { getSlots, createBooking, getHolidays } from '../../api/api';
 import './Slots.css';
 import { toZonedTime } from 'date-fns-tz';
+import type { Slot } from '../../types';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -29,7 +30,7 @@ export default function Slots({
   });
 
   const [holidays, setHolidays] = useState<string[]>([]);
-  const [slots, setSlots] = useState<any[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
 
@@ -42,13 +43,14 @@ export default function Slots({
     setLoading?.(true);
     getSlots(token, dateStr)
       .then(setSlots)
-      .catch(err => {
-        setMessage(err.message);
-        setError?.(err.message);
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        setMessage(msg);
+        setError?.(msg);
       })
       .finally(() => setLoading?.(false));
     setSelectedSlotId(null); // reset slot selection when date changes
-  }, [token, selectedDate]);
+  }, [token, selectedDate, setError, setLoading]);
 
   useEffect(() => {
     getHolidays(token)
@@ -68,9 +70,10 @@ export default function Slots({
       setMessage('Booking submitted!');
       getSlots(token, formatDate(selectedDate)).then(setSlots);
       setSelectedSlotId(null);
-    } catch (err: any) {
-      setMessage(err.message);
-      setError?.(err.message);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setMessage(msg);
+      setError?.(msg);
     } finally {
       setLoading?.(false);
     }
