@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../db';
 import { UserRole } from '../data'; // keep only for typing if needed
+import bcrypt from 'bcrypt';
 
 export async function loginUser(req: Request, res: Response) {
   const { email, password } = req.body;
@@ -19,9 +20,8 @@ export async function loginUser(req: Request, res: Response) {
     }
 
     const user = result.rows[0];
-
-    // In production: compare hashed passwords instead
-    if (user.password !== password) {
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -57,11 +57,12 @@ export async function createUser(req: Request, res: Response) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    // Insert user
+    // Insert user with hashed password
+    const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       `INSERT INTO users (name, email, password, role, phone)
        VALUES ($1, $2, $3, $4, $5)`,
-      [name, email, password, role, phone || null]
+      [name, email, hashedPassword, role, phone || null]
     );
 
     res.status(201).json({ message: 'User created' });

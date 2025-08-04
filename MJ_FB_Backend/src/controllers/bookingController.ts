@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../db';
+import bcrypt from 'bcrypt';
 
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
@@ -111,10 +112,11 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
 
     // create dummy user with fake email to avoid conflicts
     const fakeEmail = `walkin_${Date.now()}@dummy.local`;
+    const hashed = await bcrypt.hash('', 10);
     const userRes = await client.query(
       `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, '', 'shopper') RETURNING id`,
-      [name, fakeEmail]
+       VALUES ($1, $2, $3, 'shopper') RETURNING id`,
+      [name, fakeEmail, hashed]
     );
     const newUserId = userRes.rows[0].id;
 
