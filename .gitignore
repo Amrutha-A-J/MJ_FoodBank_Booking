@@ -1,0 +1,73 @@
+# =====================================
+# Node / General
+# =====================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+logs/*.log
+MJ_FB_Backend/logs
+MJ_FB_Frontend/logs
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# =====================================
+# Frontend (React / Vite / CRA)
+# =====================================
+# Build output
+MJ_FB_Frontend/build/
+MJ_FB_Frontend/dist/
+
+# Local IDE settings
+MJ_FB_Frontend/.idea/
+MJ_FB_Frontend/.vscode/
+
+# Cache
+MJ_FB_Frontend/.cache/
+MJ_FB_Frontend/.parcel-cache/
+MJ_FB_Frontend/node_modules/
+
+# Testing
+MJ_FB_Frontend/coverage/
+MJ_FB_Frontend/jest-html-reporters-*.html
+
+# =====================================
+# Backend (Node / Express / PostgreSQL)
+# =====================================
+# Build output (if using TypeScript)
+MJ_FB_Backend/dist/
+MJ_FB_Backend/build/
+
+# Database files (if storing locally for dev)
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
+pgdata/
+
+# Local IDE settings
+MJ_FB_Backend/.idea/
+MJ_FB_Backend/.vscode/
+
+# Cache
+MJ_FB_Backend/.cache/
+MJ_FB_Backend/node_modules/
+
+# Testing
+MJ_FB_Backend/coverage/
