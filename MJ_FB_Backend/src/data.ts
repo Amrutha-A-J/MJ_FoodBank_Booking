@@ -1,3 +1,5 @@
+import { Slot } from './models/slot';
+
 export type UserRole = 'staff' | 'shopper' | 'delivery';
 
 export interface User {
@@ -7,13 +9,6 @@ export interface User {
   password: string;
   role: UserRole;
   phone?: string;
-}
-
-export interface Slot {
-  id: string;
-  startTime: string; // "09:30"
-  endTime: string;   // "10:00"
-  maxCapacity: number;
 }
 
 export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved';
