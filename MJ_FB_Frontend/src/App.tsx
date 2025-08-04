@@ -6,6 +6,7 @@ import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
 import ViewSchedule from './components/StaffDashboard/ViewSchedule';
 import Login from './components/Login';
+import StaffLogin from './components/StaffLogin';
 import type { Role } from './types';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loginMode, setLoginMode] = useState<'user' | 'staff'>('user');
 
   function logout() {
     setToken('');
@@ -50,15 +52,29 @@ export default function App() {
       }}
     >
       {!token ? (
-        <Login
-          onLogin={(u) => {
-            setToken(u.token);
-            setRole(u.role);
-            localStorage.setItem('token', u.token);
-            localStorage.setItem('role', u.role);
-            localStorage.setItem('name', u.name);
-          }}
-        />
+        loginMode === 'user' ? (
+          <Login
+            onLogin={(u) => {
+              setToken(u.token);
+              setRole(u.role);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
+            }}
+            onStaff={() => setLoginMode('staff')}
+          />
+        ) : (
+          <StaffLogin
+            onLogin={(u) => {
+              setToken(u.token);
+              setRole(u.role);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
+            }}
+            onBack={() => setLoginMode('user')}
+          />
+        )
       ) : (
         <>
           <nav

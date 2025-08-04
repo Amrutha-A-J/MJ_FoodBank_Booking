@@ -20,6 +20,51 @@ export async function login(email: string, password: string): Promise<LoginRespo
   return res.json();
 }
 
+export async function staffExists(): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/staff/exists`);
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.exists as boolean;
+}
+
+export async function createAdmin(
+  firstName: string,
+  lastName: string,
+  staffId: string,
+  role: string,
+  email: string,
+  password: string
+) {
+  const res = await fetch(`${API_BASE}/staff/admin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function createStaff(
+  token: string,
+  firstName: string,
+  lastName: string,
+  staffId: string,
+  role: string,
+  email: string,
+  password: string
+) {
+  const res = await fetch(`${API_BASE}/staff`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export async function getSlots(token: string, date?: string) {
     let url = `${API_BASE}/slots`;
     if (date) url += `?date=${encodeURIComponent(date)}`;
