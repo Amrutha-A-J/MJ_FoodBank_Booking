@@ -42,15 +42,7 @@ export default function App() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: '900px',
-        margin: 'auto',
-        padding: 16,
-        fontFamily: 'Arial, sans-serif',
-        boxSizing: 'border-box',
-      }}
-    >
+    <div className="app-container">
       {!token ? (
         loginMode === 'user' ? (
           <Login
@@ -77,61 +69,26 @@ export default function App() {
         )
       ) : (
         <>
-          <nav
-            style={{
-              display: 'flex',
-              gap: 16,
-              marginBottom: 24,
-              borderBottom: '1px solid #ccc',
-              paddingBottom: 8,
-              flexWrap: 'wrap',
-            }}
-            aria-label="Main navigation"
-          >
+          <nav className="navbar" aria-label="Main navigation">
             {navLinks.map(({ label, id }) => (
               <button
                 key={id}
                 onClick={() => handleNavClick(id)}
                 disabled={loading}
                 aria-current={activePage === id ? 'page' : undefined}
-                style={{
-                  backgroundColor: activePage === id ? '#007bff' : 'transparent',
-                  color: activePage === id ? 'white' : 'black',
-                  border: 'none',
-                  padding: '8px 12px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  borderRadius: 4,
-                }}
+                className={activePage === id ? 'active' : undefined}
               >
                 {label}
               </button>
             ))}
 
-            <button
-              onClick={logout}
-              disabled={loading}
-              style={{
-                marginLeft: 'auto',
-                backgroundColor: '#dc3545',
-                color: 'white',
-                border: 'none',
-                padding: '8px 12px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                borderRadius: 4,
-              }}
-            >
+            <button onClick={logout} disabled={loading} className="logout">
               Logout
             </button>
           </nav>
 
           {error && (
-            <div
-              role="alert"
-              style={{
-                color: 'red',
-                marginBottom: 16,
-              }}
-            >
+            <div role="alert" className="error-message">
               {error}
             </div>
           )}
