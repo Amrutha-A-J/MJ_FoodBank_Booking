@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { loginStaff, staffExists, createAdmin } from '../api/api';
+import { loginStaff, staffExists, createStaff } from '../api/api';
 import type { LoginResponse } from '../api/api';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
@@ -24,7 +24,7 @@ export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResp
   return hasStaff ? (
     <StaffLoginForm onLogin={onLogin} error={error} onBack={onBack} />
   ) : (
-    <CreateAdminForm onCreated={() => setHasStaff(true)} error={error} />
+    <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
   );
 }
 
@@ -61,7 +61,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   );
 }
 
-function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => void; error: string }) {
+function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => void; error: string }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -72,8 +72,8 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await createAdmin(firstName, lastName, email, password);
-      setMessage('Admin created. You can login now.');
+      await createStaff(firstName, lastName, 'staff', email, password);
+      setMessage('Staff account created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -82,7 +82,7 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
 
   return (
     <div>
-      <h2>Create Admin Account</h2>
+      <h2>Create Staff Account</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {message && <p style={{ color: 'green' }}>{message}</p>}
       <form onSubmit={submit}>
@@ -90,7 +90,7 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
         <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" />
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
-        <button type="submit">Create Admin</button>
+        <button type="submit">Create Staff</button>
       </form>
     </div>
   );

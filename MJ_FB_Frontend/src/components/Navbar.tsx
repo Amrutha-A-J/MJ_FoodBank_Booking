@@ -6,7 +6,7 @@ type NavbarProps = {
   };
   
   export default function Navbar({ role, name, onPageChange, onLogout }: NavbarProps) {
-    const isStaff = role === 'staff' || role === 'volunteer_coordinator' || role === 'admin';
+  const isStaff = role === 'staff' || role === 'volunteer_coordinator';
     return (
       <nav
         style={{

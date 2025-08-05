@@ -132,7 +132,7 @@ export async function cancelBooking(req: Request, res: Response) {
   const bookingId = req.params.id;
   const requester = req.user;
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
-  const reason = ['staff', 'volunteer_coordinator', 'admin'].includes(requester.role)
+  const reason = ['staff', 'volunteer_coordinator'].includes(requester.role)
     ? (req.body.reason as string) || ''
     : 'user cancelled';
 
@@ -142,7 +142,7 @@ export async function cancelBooking(req: Request, res: Response) {
     const booking = bookingRes.rows[0];
 
     if (
-      !['staff', 'volunteer_coordinator', 'admin'].includes(requester.role) &&
+      !['staff', 'volunteer_coordinator'].includes(requester.role) &&
       booking.user_id !== Number(requester.id)
     ) {
       return res.status(403).json({ message: 'Forbidden' });
@@ -171,10 +171,7 @@ export async function cancelBooking(req: Request, res: Response) {
 
 // --- Staff: create preapproved booking for walk-in user ---
 export async function createPreapprovedBooking(req: Request, res: Response) {
-  if (
-    !req.user ||
-    !['staff', 'volunteer_coordinator', 'admin'].includes(req.user.role)
-  )
+  if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
     return res.status(403).json({ message: 'Forbidden' });
 
   const { name, slotId, requestData, date } = req.body;
@@ -230,10 +227,7 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
 
 // --- Staff: create booking for existing user ---
 export async function createBookingForUser(req: Request, res: Response) {
-  if (
-    !req.user ||
-    !['staff', 'volunteer_coordinator', 'admin'].includes(req.user.role)
-  )
+  if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
     return res.status(403).json({ message: 'Forbidden' });
 
   const { userId, slotId, date, isStaffBooking } = req.body;
@@ -274,7 +268,7 @@ export async function getBookingHistory(req: Request, res: Response) {
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
 
     let userId: number | null = null;
-    if (['staff', 'volunteer_coordinator', 'admin'].includes(requester.role)) {
+    if (['staff', 'volunteer_coordinator'].includes(requester.role)) {
       const paramId = req.query.userId as string;
       if (!paramId) {
         return res.status(400).json({ message: 'userId query parameter required' });

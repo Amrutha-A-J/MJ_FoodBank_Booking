@@ -50,7 +50,7 @@ export default function AddUser({ token }: { token: string }) {
       return;
     }
     try {
-      await createStaff(token, firstName, lastName, staffRole, email, password);
+      await createStaff(firstName, lastName, staffRole, email, password, token);
       setMessage('Staff added successfully');
       setFirstName('');
       setLastName('');
@@ -139,7 +139,6 @@ export default function AddUser({ token }: { token: string }) {
               <select value={staffRole} onChange={e => setStaffRole(e.target.value as StaffRole)}>
                 <option value="staff">Staff</option>
                 <option value="volunteer_coordinator">Volunteer Coordinator</option>
-                <option value="admin">Admin</option>
               </select>
             </label>
           </div>

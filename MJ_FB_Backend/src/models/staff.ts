@@ -1,4 +1,4 @@
-export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
+export type StaffRole = 'staff' | 'volunteer_coordinator';
 
 export interface Staff {
   id: number;

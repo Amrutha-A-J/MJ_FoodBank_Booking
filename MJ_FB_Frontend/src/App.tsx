@@ -17,7 +17,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff'>('user');
-  const isStaff = role === 'staff' || role === 'volunteer_coordinator' || role === 'admin';
+  const isStaff = role === 'staff' || role === 'volunteer_coordinator';
 
   useEffect(() => {
     function handler(e: Event) {
