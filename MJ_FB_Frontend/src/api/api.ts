@@ -58,15 +58,13 @@ export async function staffExists(): Promise<boolean> {
 export async function createAdmin(
   firstName: string,
   lastName: string,
-  staffId: string,
-  role: string,
   email: string,
   password: string
 ) {
   const res = await fetch(`${API_BASE}/staff/admin`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
+    body: JSON.stringify({ firstName, lastName, email, password }),
   });
   return handleResponse(res);
 }
@@ -75,7 +73,6 @@ export async function createStaff(
   token: string,
   firstName: string,
   lastName: string,
-  staffId: string,
   role: string,
   email: string,
   password: string
@@ -86,7 +83,7 @@ export async function createStaff(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
+    body: JSON.stringify({ firstName, lastName, role, email, password }),
   });
   return handleResponse(res);
 }
