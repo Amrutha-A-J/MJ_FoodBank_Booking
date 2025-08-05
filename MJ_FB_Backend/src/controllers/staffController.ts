@@ -33,6 +33,17 @@ export async function createAdmin(req: Request, res: Response) {
       return res.status(400).json({ message: 'Admin already exists' });
     }
 
+    // Prevent duplicate email or staff ID from causing a database error
+    const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const staffIdCheck = await pool.query('SELECT id FROM staff WHERE staff_id = $1', [staffId]);
+    if (staffIdCheck.rowCount && staffIdCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Staff ID already exists' });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
     const userRes = await pool.query(
       `INSERT INTO users (name, email, password, role)
@@ -76,6 +87,16 @@ export async function createStaff(req: Request, res: Response) {
     const adminCheck = await pool.query('SELECT is_admin FROM staff WHERE id = $1', [req.user.id]);
     if (adminCheck.rowCount === 0 || !adminCheck.rows[0].is_admin) {
       return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const staffIdCheck = await pool.query('SELECT id FROM staff WHERE staff_id = $1', [staffId]);
+    if (staffIdCheck.rowCount && staffIdCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Staff ID already exists' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
