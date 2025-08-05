@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
+import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
@@ -36,6 +36,7 @@ export default function ViewSchedule({ token }: { token: string }) {
   const [userResults, setUserResults] = useState<User[]>([]);
   const [message, setMessage] = useState('');
   const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
+  const [decisionReason, setDecisionReason] = useState('');
   const [assignMessage, setAssignMessage] = useState('');
 
   const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
@@ -97,12 +98,26 @@ export default function ViewSchedule({ token }: { token: string }) {
   async function decideSelected(decision: 'approve' | 'reject') {
     if (!decisionBooking) return;
     try {
-      await decideBooking(token, decisionBooking.id.toString(), decision);
+      await decideBooking(token, decisionBooking.id.toString(), decision, decisionReason);
       await loadData();
     } catch {
       setMessage(`Failed to ${decision} booking`);
     } finally {
       setDecisionBooking(null);
+      setDecisionReason('');
+    }
+  }
+
+  async function cancelSelected() {
+    if (!decisionBooking) return;
+    try {
+      await cancelBooking(token, decisionBooking.id.toString(), decisionReason);
+      await loadData();
+    } catch {
+      setMessage('Failed to cancel booking');
+    } finally {
+      setDecisionBooking(null);
+      setDecisionReason('');
     }
   }
 
@@ -210,7 +225,7 @@ export default function ViewSchedule({ token }: { token: string }) {
                           padding: 8,
                           height: 40,
                           cursor: booking
-                            ? booking.status === 'submitted'
+                            ? ['submitted', 'approved'].includes(booking.status)
                               ? 'pointer'
                               : 'default'
                             : isClosed
@@ -224,8 +239,9 @@ export default function ViewSchedule({ token }: { token: string }) {
                         }}
                         onClick={() => {
                           if (booking) {
-                            if (booking.status === 'submitted') {
+                            if (['submitted', 'approved'].includes(booking.status)) {
                               setDecisionBooking(booking);
+                              setDecisionReason('');
                             }
                           } else if (!isClosed) {
                             setAssignSlot(slot);
@@ -299,13 +315,28 @@ export default function ViewSchedule({ token }: { token: string }) {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: '300px' }}>
-            <h4>Decide Booking</h4>
-            <p>Approve or reject booking for {decisionBooking.user_name}?</p>
+          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: '320px' }}>
+            <h4>Manage Booking</h4>
+            <p>
+              {decisionBooking.status === 'submitted'
+                ? `Approve, reject or cancel booking for ${decisionBooking.user_name}?`
+                : `Cancel booking for ${decisionBooking.user_name}?`}
+            </p>
+            <textarea
+              placeholder="Reason"
+              value={decisionReason}
+              onChange={e => setDecisionReason(e.target.value)}
+              style={{ width: '100%', marginTop: 8 }}
+            />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              <button onClick={() => decideSelected('approve')}>Approve</button>
-              <button onClick={() => decideSelected('reject')}>Reject</button>
-              <button onClick={() => setDecisionBooking(null)}>Cancel</button>
+              {decisionBooking.status === 'submitted' && (
+                <>
+                  <button onClick={() => decideSelected('approve')}>Approve</button>
+                  <button onClick={() => decideSelected('reject')}>Reject</button>
+                </>
+              )}
+              <button onClick={cancelSelected}>Cancel Booking</button>
+              <button onClick={() => setDecisionBooking(null)}>Close</button>
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ interface Booking {
   date: string;
   start_time: string;
   end_time: string;
+  reason?: string;
 }
 
 export default function UserHistory({ token }: { token: string }) {
@@ -96,6 +97,7 @@ export default function UserHistory({ token }: { token: string }) {
               <li key={b.id} style={{ marginBottom: 8 }}>
                 <strong>{b.date}</strong>{' '}
                 {b.start_time && b.end_time ? `${b.start_time}-${b.end_time}` : ''} - {b.status}
+                {b.reason && <em> ({b.reason})</em>}
               </li>
             ))}
           </ul>

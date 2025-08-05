@@ -9,4 +9,5 @@ interface Booking {
   slot_id: number | null;
   start_time: string | null;
   end_time: string | null;
+  reason?: string | null;
 }

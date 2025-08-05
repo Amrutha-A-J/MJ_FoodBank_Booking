@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getBookingHistory } from '../api/api';
+import { getBookingHistory, cancelBooking } from '../api/api';
 
 interface Booking {
   id: number;
@@ -7,6 +7,7 @@ interface Booking {
   date: string;
   start_time: string;
   end_time: string;
+  reason?: string;
 }
 
 export default function Profile() {
@@ -30,6 +31,22 @@ export default function Profile() {
     load();
   }, [token, filter]);
 
+  async function handleCancel(id: number, reschedule = false) {
+    const reason = prompt('Please provide a reason');
+    if (reason === null) return;
+    try {
+      await cancelBooking(token, id.toString(), reason);
+      if (reschedule) {
+        window.dispatchEvent(new CustomEvent('navigate', { detail: 'slots' }));
+      } else {
+        const data: Booking[] = await getBookingHistory(token, {});
+        setBookings(data);
+      }
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+    }
+  }
+
   return (
     <div>
       <h2>User Profile</h2>
@@ -45,12 +62,22 @@ export default function Profile() {
       </div>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {bookings.length === 0 && <li>No bookings.</li>}
-        {bookings.map(b => (
-          <li key={b.id} style={{ marginBottom: 8 }}>
-            <strong>{b.date}</strong>{' '}
-            {b.start_time && b.end_time ? `${b.start_time}-${b.end_time}` : ''} - {b.status}
-          </li>
-        ))}
+        {bookings.map(b => {
+          const canModify = ['submitted', 'approved'].includes(b.status) && b.date >= new Date().toISOString().split('T')[0];
+          return (
+            <li key={b.id} style={{ marginBottom: 8 }}>
+              <strong>{b.date}</strong>{' '}
+              {b.start_time && b.end_time ? `${b.start_time}-${b.end_time}` : ''} - {b.status}
+              {b.reason && <em> ({b.reason})</em>}
+              {canModify && (
+                <>
+                  <button style={{ marginLeft: 8 }} onClick={() => handleCancel(b.id)}>Cancel</button>
+                  <button style={{ marginLeft: 4 }} onClick={() => handleCancel(b.id, true)}>Reschedule</button>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

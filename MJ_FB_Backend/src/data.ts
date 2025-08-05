@@ -14,7 +14,7 @@ export interface User {
   bookingCountLastUpdated: string;
 }
 
-export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved';
+export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved' | 'cancelled';
 
 export interface Booking {
   id: string;

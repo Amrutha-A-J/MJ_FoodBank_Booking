@@ -254,14 +254,26 @@ export async function removeBreak(token: string, dayOfWeek: number, slotId: numb
   return handleResponse(res);
 }
 
-export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject') {
+export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject', reason: string) {
   const res = await fetch(`${API_BASE}/bookings/${bookingId}/decision`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: token
     },
-    body: JSON.stringify({ decision }),
+    body: JSON.stringify({ decision, reason }),
+  });
+  return handleResponse(res);
+}
+
+export async function cancelBooking(token: string, bookingId: string, reason: string) {
+  const res = await fetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ reason }),
   });
   return handleResponse(res);
 }
