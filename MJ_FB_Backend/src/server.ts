@@ -10,6 +10,7 @@ import breaksRoutes from './routes/breaks';
 import staffRoutes from './routes/staff';
 import volunteerRolesRoutes from './routes/volunteerRoles';
 import volunteersRoutes from './routes/volunteers';
+import volunteerSlotsRoutes from './routes/volunteerSlots';
 import { initializeSlots } from './data';
 import pool from './db';
 
@@ -36,6 +37,7 @@ app.use('/breaks', breaksRoutes);
 app.use('/staff', staffRoutes);
 app.use('/volunteer-roles', volunteerRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
+app.use('/volunteer-slots', volunteerSlotsRoutes);
 
 const PORT = 4000;
 
