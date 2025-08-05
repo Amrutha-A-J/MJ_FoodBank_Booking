@@ -8,8 +8,12 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   try {
-    if (token.startsWith('staff-')) {
-      const id = token.slice('staff-'.length);
+    const match = token.match(/^(staff|user)[:\-](\d+)$/);
+    if (!match) {
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+    const [, type, id] = match;
+    if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
         [id]
@@ -29,8 +33,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       return next();
     }
 
-    if (token.startsWith('user-')) {
-      const id = token.slice('user-'.length);
+    if (type === 'user') {
       const userRes = await pool.query(
         'SELECT id, first_name, last_name, email, role, phone FROM users WHERE id = $1',
         [id]
