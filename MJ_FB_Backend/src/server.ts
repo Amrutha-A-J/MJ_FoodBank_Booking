@@ -8,6 +8,8 @@ import holidaysRoutes from './routes/holidays';
 import blockedSlotsRoutes from './routes/blockedSlots';
 import breaksRoutes from './routes/breaks';
 import staffRoutes from './routes/staff';
+import volunteerRolesRoutes from './routes/volunteerRoles';
+import volunteersRoutes from './routes/volunteers';
 import { initializeSlots } from './data';
 import pool from './db';
 
@@ -32,6 +34,8 @@ app.use('/holidays', holidaysRoutes);
 app.use('/blocked-slots', blockedSlotsRoutes);
 app.use('/breaks', breaksRoutes);
 app.use('/staff', staffRoutes);
+app.use('/volunteer-roles', volunteerRolesRoutes);
+app.use('/volunteers', volunteersRoutes);
 
 const PORT = 4000;
 
