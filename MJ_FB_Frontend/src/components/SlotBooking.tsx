@@ -145,23 +145,21 @@ export default function SlotBooking({ token, role }: Props) {
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
-        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+        <ul className="user-results">
           {userResults.map(user => (
-            <li key={user.id} style={{ marginBottom: 8 }}>
+            <li key={user.id} className="user-item">
               {user.name} ({user.email})
-              <button onClick={() => setSelectedUser(user)} style={{ marginLeft: 8 }}>
-                Book Appointment
-              </button>
+              <button onClick={() => setSelectedUser(user)}>Book Appointment</button>
             </li>
           ))}
         </ul>
-        {message && <p style={{ color: 'red' }}>{message}</p>}
+        {message && <p className="error-message">{message}</p>}
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="slot-booking">
       <h3>
         {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
       </h3>
@@ -178,39 +176,21 @@ export default function SlotBooking({ token, role }: Props) {
           return isPast;
         }}
       />
-
       {selectedDate && (
-        <div style={{ width: '100%' }}>
+        <div className="slot-day-container">
           {dayMessage ? (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '6rem',
-                textAlign: 'center',
-              }}
-            >
-              {dayMessage}
-            </div>
+            <div className="day-message">{dayMessage}</div>
           ) : (
             <>
               <h4>Available Slots on {formatDate(selectedDate)}</h4>
-              <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
+              <ul className="slot-list">
                 {slots.map((s) => (
                   <li
                     key={s.id}
                     onClick={() => s.available > 0 && setSelectedSlotId(s.id)}
-                    style={{
-                      cursor: s.available > 0 ? 'pointer' : 'not-allowed',
-                      padding: '0.5rem',
-                      margin: '0.3rem 0',
-                      border: selectedSlotId === s.id ? '2px solid blue' : '1px solid #ccc',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      backgroundColor: selectedSlotId === s.id ? '#e0f0ff' : 'transparent',
-                    }}
+                    className={`slot-item ${selectedSlotId === s.id ? 'selected' : ''} ${
+                      s.available > 0 ? '' : 'disabled'
+                    }`}
                   >
                     <span>{s.startTime} - {s.endTime}</span>
                     <span>Available: {s.available}</span>
@@ -227,7 +207,7 @@ export default function SlotBooking({ token, role }: Props) {
 
       {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
       {message && (
-        <p style={{ color: message.startsWith('Booking') ? 'green' : 'red' }}>{message}</p>
+        <p className={message.startsWith('Booking') ? 'success-message' : 'error-message'}>{message}</p>
       )}
     </div>
   );
