@@ -3,6 +3,6 @@ export interface Staff {
   first_name: string;
   last_name: string;
   staff_id: string;
-  role: 'warehouse_lead' | 'pantry_lead' | 'volunteer_lead';
+  role: 'staff' | 'volunteer_coordinator' | 'admin';
   is_admin: boolean;
 }

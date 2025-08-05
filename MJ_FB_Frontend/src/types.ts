@@ -1,5 +1,5 @@
 export type Role = 'staff' | 'shopper' | 'delivery';
-export type StaffRole = 'warehouse_lead' | 'pantry_lead' | 'volunteer_lead';
+export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
 
 export interface Slot {
   id: string;
