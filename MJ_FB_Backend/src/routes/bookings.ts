@@ -6,7 +6,8 @@ import {
   decideBooking,
   createPreapprovedBooking,
   createBookingForUser,   // ✅ make sure to import this controller
-  getBookingHistory
+  getBookingHistory,
+  cancelBooking
 } from '../controllers/bookingController';
 
 const router = express.Router();
@@ -22,6 +23,9 @@ router.get('/history', authMiddleware, getBookingHistory);
 
 // Staff approve/reject booking
 router.post('/:id/decision', authMiddleware, authorizeRoles('staff'), decideBooking);
+
+// Cancel booking (staff or user)
+router.post('/:id/cancel', authMiddleware, cancelBooking);
 
 // Staff create preapproved booking for walk-in users
 router.post('/preapproved', authMiddleware, authorizeRoles('staff'), createPreapprovedBooking);

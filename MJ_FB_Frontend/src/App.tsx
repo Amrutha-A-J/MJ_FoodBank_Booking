@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Profile from './components/Profile';
 import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageAvailability from './components/StaffDashboard/ManageAvailability';
@@ -17,6 +17,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff'>('user');
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail) setActivePage(detail);
+    }
+    window.addEventListener('navigate', handler as EventListener);
+    return () => window.removeEventListener('navigate', handler as EventListener);
+  }, []);
 
   function logout() {
     setToken('');

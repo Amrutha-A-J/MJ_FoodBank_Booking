@@ -87,6 +87,7 @@ export async function listBookings(req: Request, res: Response) {
 export async function decideBooking(req: Request, res: Response) {
   const bookingId = req.params.id;
   const decision = (req.body.decision as string)?.toLowerCase();
+  const reason = (req.body.reason as string) || '';
 
   if (!['approve', 'reject'].includes(decision)) {
     return res.status(400).json({ message: 'Decision must be approve or reject' });
@@ -110,16 +111,53 @@ export async function decideBooking(req: Request, res: Response) {
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
       await checkSlotCapacity(booking.slot_id, booking.date);
-      await pool.query(`UPDATE bookings SET status='approved' WHERE id=$1`, [bookingId]);
+      await pool.query(`UPDATE bookings SET status='approved', request_data=$2 WHERE id=$1`, [bookingId, reason]);
       await updateBookingsThisMonth(booking.user_id);
     } else {
-      await pool.query(`UPDATE bookings SET status='rejected' WHERE id=$1`, [bookingId]);
+      await pool.query(`UPDATE bookings SET status='rejected', request_data=$2 WHERE id=$1`, [bookingId, reason]);
     }
 
     res.json({ message: `Booking ${decision}d` });
   } catch (error: any) {
     console.error('Error deciding booking:', error);
     res.status(400).json({ message: error.message || 'Failed to process decision' });
+  }
+}
+
+// --- Cancel booking (staff or user) ---
+export async function cancelBooking(req: Request, res: Response) {
+  const bookingId = req.params.id;
+  const reason = (req.body.reason as string) || '';
+  const requester = req.user;
+  if (!requester) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    const bookingRes = await pool.query('SELECT * FROM bookings WHERE id=$1', [bookingId]);
+    if (bookingRes.rowCount === 0) return res.status(404).json({ message: 'Booking not found' });
+    const booking = bookingRes.rows[0];
+
+    if (requester.role !== 'staff' && booking.user_id !== Number(requester.id)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    if (!['submitted', 'approved'].includes(booking.status)) {
+      return res.status(400).json({ message: 'Only pending or approved bookings can be cancelled' });
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (booking.date < todayStr) {
+      return res.status(400).json({ message: 'Cannot cancel past bookings' });
+    }
+
+    await pool.query(`UPDATE bookings SET status='cancelled', request_data=$2 WHERE id=$1`, [bookingId, reason]);
+    if (booking.status === 'approved') {
+      await updateBookingsThisMonth(booking.user_id);
+    }
+
+    res.json({ message: 'Booking cancelled' });
+  } catch (error: any) {
+    console.error('Error cancelling booking:', error);
+    res.status(400).json({ message: error.message || 'Failed to cancel booking' });
   }
 }
 
@@ -249,7 +287,7 @@ export async function getBookingHistory(req: Request, res: Response) {
     }
 
     const result = await pool.query(
-      `SELECT b.id, b.status, b.date, b.slot_id, s.start_time, s.end_time
+      `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id
        WHERE ${where}
