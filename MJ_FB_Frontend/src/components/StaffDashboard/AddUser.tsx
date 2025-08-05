@@ -12,7 +12,6 @@ export default function AddUser({ token }: { token: string }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
-  const [staffId, setStaffId] = useState('');
   const [staffRole, setStaffRole] = useState<StaffRole>('staff');
   const [password, setPassword] = useState('');
 
@@ -46,18 +45,17 @@ export default function AddUser({ token }: { token: string }) {
   }
 
   async function submitStaff() {
-    if (!firstName || !lastName || !email || !password || !staffId) {
+    if (!firstName || !lastName || !email || !password) {
       setMessage('All fields required');
       return;
     }
     try {
-      await createStaff(token, firstName, lastName, staffId, staffRole, email, password);
+      await createStaff(token, firstName, lastName, staffRole, email, password);
       setMessage('Staff added successfully');
       setFirstName('');
       setLastName('');
       setEmail('');
       setPassword('');
-      setStaffId('');
       setStaffRole('staff');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -133,12 +131,6 @@ export default function AddUser({ token }: { token: string }) {
             <label>
               Last Name:{' '}
               <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Staff ID:{' '}
-              <input type="text" value={staffId} onChange={e => setStaffId(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>

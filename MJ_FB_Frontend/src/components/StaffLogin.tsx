@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createAdmin } from '../api/api';
 import type { LoginResponse } from '../api/api';
-import type { StaffRole } from '../types';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [checking, setChecking] = useState(true);
@@ -38,7 +37,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
     e.preventDefault();
     try {
       const user = await loginStaff(email, password);
-      if (user.role !== 'staff') {
+      if (user.role === 'shopper' || user.role === 'delivery') {
         setError('Not a staff account');
         return;
       }
@@ -67,15 +66,13 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [staffId, setStaffId] = useState('');
-  const [role, setRole] = useState<StaffRole>('admin');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await createAdmin(firstName, lastName, staffId, role, email, password);
+      await createAdmin(firstName, lastName, email, password);
       setMessage('Admin created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {
@@ -91,12 +88,6 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
       <form onSubmit={submit}>
         <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" />
         <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" />
-        <input value={staffId} onChange={e => setStaffId(e.target.value)} placeholder="Staff ID" />
-        <select value={role} onChange={e => setRole(e.target.value as StaffRole)}>
-          <option value="staff">Staff</option>
-          <option value="volunteer_coordinator">Volunteer Coordinator</option>
-          <option value="admin">Admin</option>
-        </select>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
         <button type="submit">Create Admin</button>
