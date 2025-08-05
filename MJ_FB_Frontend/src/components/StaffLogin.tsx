@@ -68,7 +68,7 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [role, setRole] = useState<StaffRole>('warehouse_lead');
+  const [role, setRole] = useState<StaffRole>('admin');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
 
@@ -93,9 +93,9 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
         <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" />
         <input value={staffId} onChange={e => setStaffId(e.target.value)} placeholder="Staff ID" />
         <select value={role} onChange={e => setRole(e.target.value as StaffRole)}>
-          <option value="warehouse_lead">Warehouse Lead</option>
-          <option value="pantry_lead">Pantry Lead</option>
-          <option value="volunteer_lead">Volunteer Lead</option>
+          <option value="staff">Staff</option>
+          <option value="volunteer_coordinator">Volunteer Coordinator</option>
+          <option value="admin">Admin</option>
         </select>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />

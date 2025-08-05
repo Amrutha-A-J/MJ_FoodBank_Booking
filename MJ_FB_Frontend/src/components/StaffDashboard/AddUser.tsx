@@ -14,7 +14,7 @@ export default function AddUser({ token }: { token: string }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [staffId, setStaffId] = useState('');
-  const [staffRole, setStaffRole] = useState<StaffRole>('warehouse_lead');
+  const [staffRole, setStaffRole] = useState<StaffRole>('staff');
 
   async function submitUser() {
     if (!email || !name || !password) {
@@ -47,7 +47,7 @@ export default function AddUser({ token }: { token: string }) {
       setEmail('');
       setPassword('');
       setStaffId('');
-      setStaffRole('warehouse_lead');
+      setStaffRole('staff');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
@@ -123,9 +123,9 @@ export default function AddUser({ token }: { token: string }) {
             <label>
               Staff Role:{' '}
               <select value={staffRole} onChange={e => setStaffRole(e.target.value as StaffRole)}>
-                <option value="warehouse_lead">Warehouse Lead</option>
-                <option value="pantry_lead">Pantry Lead</option>
-                <option value="volunteer_lead">Volunteer Lead</option>
+                <option value="staff">Staff</option>
+                <option value="volunteer_coordinator">Volunteer Coordinator</option>
+                <option value="admin">Admin</option>
               </select>
             </label>
           </div>
