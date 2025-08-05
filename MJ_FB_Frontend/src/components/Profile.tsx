@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBookingHistory, cancelBooking } from '../api/api';
+import type { Role } from '../types';
 
 interface Booking {
   id: number;
@@ -12,12 +13,13 @@ interface Booking {
 
 export default function Profile() {
   const token = localStorage.getItem('token') || '';
+  const role = (localStorage.getItem('role') || '') as Role;
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
 
   useEffect(() => {
     async function load() {
-      if (!token) return;
+      if (!token || role === 'staff') return;
       const opts: { status?: string; past?: boolean } = {};
       if (filter === 'past') opts.past = true;
       else if (filter !== 'all') opts.status = filter;
@@ -29,7 +31,7 @@ export default function Profile() {
       }
     }
     load();
-  }, [token, filter]);
+  }, [token, role, filter]);
 
   async function handleCancel(id: number, reschedule = false) {
     const reason = prompt('Please provide a reason');
@@ -45,6 +47,15 @@ export default function Profile() {
     } catch (err) {
       console.error('Error cancelling booking:', err);
     }
+  }
+
+  if (role === 'staff') {
+    return (
+      <div>
+        <h2>User Profile</h2>
+        <p>Profile view is only available for shoppers.</p>
+      </div>
+    );
   }
 
   return (
