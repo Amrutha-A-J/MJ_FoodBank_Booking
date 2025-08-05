@@ -34,7 +34,7 @@ export async function createAdmin(req: Request, res: Response) {
     }
 
     // Prevent duplicate email or staff ID from causing a database error
-    const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
     if (emailCheck.rowCount && emailCheck.rowCount > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
@@ -45,17 +45,11 @@ export async function createAdmin(req: Request, res: Response) {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const userRes = await pool.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, 'staff') RETURNING id`,
-      [`${firstName} ${lastName}`, email, hashed]
-    );
-    const userId = userRes.rows[0].id;
 
     await pool.query(
-      `INSERT INTO staff (id, first_name, last_name, staff_id, role, is_admin)
-       VALUES ($1, $2, $3, $4, $5, TRUE)`,
-      [userId, firstName, lastName, staffId, role]
+      `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
+       VALUES ($1, $2, $3, $4, $5, $6, TRUE)`,
+      [firstName, lastName, staffId, role, email, hashed]
     );
 
     res.status(201).json({ message: 'Admin account created' });
@@ -89,7 +83,7 @@ export async function createStaff(req: Request, res: Response) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
     if (emailCheck.rowCount && emailCheck.rowCount > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
@@ -100,17 +94,11 @@ export async function createStaff(req: Request, res: Response) {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const userRes = await pool.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, 'staff') RETURNING id`,
-      [`${firstName} ${lastName}`, email, hashed]
-    );
-    const userId = userRes.rows[0].id;
 
     await pool.query(
-      `INSERT INTO staff (id, first_name, last_name, staff_id, role, is_admin)
-       VALUES ($1, $2, $3, $4, $5, FALSE)`,
-      [userId, firstName, lastName, staffId, role]
+      `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
+       VALUES ($1, $2, $3, $4, $5, $6, FALSE)`,
+      [firstName, lastName, staffId, role, email, hashed]
     );
 
     res.status(201).json({ message: 'Staff created' });

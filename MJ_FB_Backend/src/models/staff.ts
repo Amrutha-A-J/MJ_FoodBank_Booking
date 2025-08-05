@@ -4,5 +4,7 @@ export interface Staff {
   last_name: string;
   staff_id: string;
   role: 'staff' | 'volunteer_coordinator' | 'admin';
+  email: string;
+  password: string;
   is_admin: boolean;
 }
