@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { addUser, createStaff } from '../../api/api';
 import type { Role, StaffRole } from '../../types';
 
-export default function AddUser({ token }: { token: string }) {
+export default function AddUser({ token, role }: { token: string; role: Role }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('shopper');
+  const [userRole, setUserRole] = useState<Role>('shopper');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
 
@@ -26,7 +26,7 @@ export default function AddUser({ token }: { token: string }) {
         firstName,
         lastName,
         clientId,
-        role,
+        userRole,
         password,
         email || undefined,
         phone || undefined
@@ -38,7 +38,7 @@ export default function AddUser({ token }: { token: string }) {
       setEmail('');
       setPhone('');
       setPassword('');
-      setRole('shopper');
+      setUserRole('shopper');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
@@ -65,10 +65,14 @@ export default function AddUser({ token }: { token: string }) {
   return (
     <div>
       <h2>{mode === 'user' ? 'Create User' : 'Create Staff'}</h2>
-      <div style={{ marginBottom: 12 }}>
-        <button onClick={() => setMode('user')}>Create User</button>
-        <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>Create Staff</button>
-      </div>
+      {role === 'admin' && (
+        <div style={{ marginBottom: 12 }}>
+          <button onClick={() => setMode('user')}>Create User</button>
+          <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>
+            Create Staff
+          </button>
+        </div>
+      )}
       {message && <p>{message}</p>}
       {mode === 'user' ? (
         <>
@@ -111,7 +115,7 @@ export default function AddUser({ token }: { token: string }) {
           <div style={{ marginBottom: 8 }}>
             <label>
               Role:{' '}
-              <select value={role} onChange={e => setRole(e.target.value as Role)}>
+              <select value={userRole} onChange={e => setUserRole(e.target.value as Role)}>
                 <option value="shopper">Shopper</option>
                 <option value="delivery">Delivery</option>
               </select>

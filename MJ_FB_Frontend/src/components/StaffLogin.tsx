@@ -38,10 +38,6 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
     e.preventDefault();
     try {
       const user = await loginStaff(email, password);
-      if (user.role !== 'staff') {
-        setError('Not a staff account');
-        return;
-      }
       onLogin(user);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
