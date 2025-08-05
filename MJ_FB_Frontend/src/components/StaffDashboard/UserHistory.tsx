@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { searchUsers, getBookingHistory } from '../../api/api';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const TIMEZONE = 'America/Regina';
 
 interface User {
   id: number;
@@ -13,6 +16,7 @@ interface Booking {
   date: string;
   start_time: string;
   end_time: string;
+  created_at: string;
   reason?: string;
 }
 
@@ -22,6 +26,9 @@ export default function UserHistory({ token }: { token: string }) {
   const [selected, setSelected] = useState<User | null>(null);
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [page, setPage] = useState(1);
+
+  const pageSize = 10;
 
   useEffect(() => {
     if (search.length < 3) {
@@ -45,9 +52,18 @@ export default function UserHistory({ token }: { token: string }) {
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     getBookingHistory(token, opts)
-      .then(data => setBookings(data))
+      .then(data => {
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setBookings(sorted);
+        setPage(1);
+      })
       .catch(err => console.error('Error loading history:', err));
   }, [selected, filter, token]);
+
+  const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
+  const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
@@ -91,16 +107,61 @@ export default function UserHistory({ token }: { token: string }) {
               <option value="past">Past</option>
             </select>
           </div>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {bookings.length === 0 && <li>No bookings.</li>}
-            {bookings.map(b => (
-              <li key={b.id} style={{ marginBottom: 8 }}>
-                <strong>{b.date}</strong>{' '}
-                {b.start_time && b.end_time ? `${b.start_time}-${b.end_time}` : ''} - {b.status}
-                {b.reason && <em> ({b.reason})</em>}
-              </li>
-            ))}
-          </ul>
+          <div className="history-table-container">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginated.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>No bookings.</td>
+                  </tr>
+                )}
+                {paginated.map(b => {
+                  const startTime = formatInTimeZone(
+                    `${b.date}T${b.start_time}`,
+                    TIMEZONE,
+                    'h:mm a'
+                  );
+                  const endTime = formatInTimeZone(
+                    `${b.date}T${b.end_time}`,
+                    TIMEZONE,
+                    'h:mm a'
+                  );
+                  return (
+                    <tr key={b.id}>
+                      <td>{formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')}</td>
+                      <td>{`${startTime} - ${endTime}`}</td>
+                      <td>{b.status}</td>
+                      <td>{b.reason || ''}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                Previous
+              </button>
+              <span>
+                Page {page} of {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
