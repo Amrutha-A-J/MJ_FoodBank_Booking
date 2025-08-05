@@ -87,6 +87,10 @@ export async function createUser(req: Request, res: Response) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
+  if (!['shopper', 'delivery'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role' });
+  }
+
   if (clientId < 1 || clientId > 9999999) {
     return res
       .status(400)

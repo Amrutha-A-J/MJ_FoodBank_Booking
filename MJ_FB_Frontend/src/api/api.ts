@@ -1,6 +1,6 @@
 // src/api/api.ts
 // Read API base URL from environment or fall back to localhost
-import type { Role, UserRole } from '../types';
+import type { Role, UserRole, StaffRole } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
@@ -73,7 +73,7 @@ export async function createStaff(
   token: string,
   firstName: string,
   lastName: string,
-  role: string,
+  role: StaffRole,
   email: string,
   password: string
 ) {
