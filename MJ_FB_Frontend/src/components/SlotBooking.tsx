@@ -62,6 +62,16 @@ export default function SlotBooking({ token, role }: Props) {
     getHolidays(token).then(setHolidays).catch(() => {});
   }, [token]);
 
+  // Automatically choose the first available date (non-weekend and non-holiday)
+  useEffect(() => {
+    const today = toZonedTime(new Date(), reginaTimeZone);
+    let date = new Date(today.toDateString());
+    if (isWeekend(date) || isHoliday(date)) {
+      date = getNextAvailableDate(date);
+    }
+    setSelectedDate(date);
+  }, [holidays, isWeekend, isHoliday, getNextAvailableDate]);
+
   useEffect(() => {
     if (role === 'staff') {
       const delayDebounce = setTimeout(() => {
@@ -173,8 +183,9 @@ export default function SlotBooking({ token, role }: Props) {
           const zoned = toZonedTime(date, reginaTimeZone);
           const today = toZonedTime(new Date(), reginaTimeZone);
           const isPast = zoned < new Date(today.toDateString());
-          return isPast;
+          return isPast || isHoliday(date);
         }}
+        tileClassName={({ date }) => (isHoliday(date) ? 'holiday-tile' : undefined)}
       />
       {selectedDate && (
         <div className="slot-day-container">

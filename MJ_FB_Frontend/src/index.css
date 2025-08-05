@@ -157,6 +157,11 @@ select {
   cursor: not-allowed;
 }
 
+.holiday-tile {
+  background-color: #e0e0e0 !important;
+  color: #666 !important;
+}
+
 .error-message {
   color: red;
   margin-bottom: 1rem;
