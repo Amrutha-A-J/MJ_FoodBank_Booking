@@ -17,6 +17,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff'>('user');
+  const isStaff = role === 'staff' || role === 'volunteer_coordinator' || role === 'admin';
 
   useEffect(() => {
     function handler(e: Event) {
@@ -39,7 +40,7 @@ export default function App() {
   }
 
   let navLinks: { label: string; id: string }[] = [{ label: 'Profile', id: 'profile' }];
-  if (role === 'staff') {
+  if (isStaff) {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Availability', id: 'manageAvailability' },
@@ -109,22 +110,22 @@ export default function App() {
 
           <main>
             {activePage === 'profile' && <Profile />}
-            {activePage === 'staffDashboard' && role === 'staff' && (
+            {activePage === 'staffDashboard' && isStaff && (
               <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
             )}
-            {activePage === 'manageAvailability' && role === 'staff' && (
+            {activePage === 'manageAvailability' && isStaff && (
               <ManageAvailability token={token} />
             )}
-            {activePage === 'viewSchedule' && role === 'staff' && (
+            {activePage === 'viewSchedule' && isStaff && (
               <ViewSchedule token={token} />
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <SlotBooking token={token} role="shopper" />
             )}
-            {activePage === 'addUser' && role === 'staff' && (
+            {activePage === 'addUser' && isStaff && (
               <AddUser token={token} />
             )}
-            {activePage === 'userHistory' && role === 'staff' && (
+            {activePage === 'userHistory' && isStaff && (
               <UserHistory token={token} />
             )}
           </main>

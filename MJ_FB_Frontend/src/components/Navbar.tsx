@@ -6,6 +6,7 @@ type NavbarProps = {
   };
   
   export default function Navbar({ role, name, onPageChange, onLogout }: NavbarProps) {
+    const isStaff = role === 'staff' || role === 'volunteer_coordinator' || role === 'admin';
     return (
       <nav
         style={{
@@ -34,7 +35,7 @@ type NavbarProps = {
             </>
           )}
   
-          {role === 'staff' && (
+          {isStaff && (
             <>
               <button onClick={() => onPageChange('home')} style={buttonStyle}>
                 Pending

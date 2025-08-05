@@ -1,4 +1,9 @@
-export type Role = 'staff' | 'shopper' | 'delivery';
+export type Role =
+  | 'staff'
+  | 'shopper'
+  | 'delivery'
+  | 'volunteer_coordinator'
+  | 'admin';
 export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
 

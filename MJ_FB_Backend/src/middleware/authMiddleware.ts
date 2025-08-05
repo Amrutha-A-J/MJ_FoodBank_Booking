@@ -26,7 +26,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     }
 
     const staffRes = await pool.query(
-      'SELECT id, first_name, last_name, email FROM staff WHERE id = $1',
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
       [token]
     );
 
@@ -36,7 +36,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     req.user = {
       id: staffRes.rows[0].id.toString(),
-      role: 'staff',
+      role: staffRes.rows[0].role,
       name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
       email: staffRes.rows[0].email,
     } as any;
