@@ -10,6 +10,7 @@ import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
+import CoordinatorDashboard from './components/CoordinatorDashboard';
 import type { Role } from './types';
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
   const isStaff = role === 'staff' || role === 'volunteer_coordinator';
+  const isCoordinator = role === 'volunteer_coordinator';
 
   useEffect(() => {
     function handler(e: Event) {
@@ -52,6 +54,9 @@ export default function App() {
       { label: 'Add User', id: 'addUser' },
       { label: 'User History', id: 'userHistory' },
     ]);
+    if (isCoordinator) {
+      navLinks.push({ label: 'Coordinator Dashboard', id: 'coordinatorDashboard' });
+    }
   } else if (role === 'shopper') {
     navLinks = navLinks.concat([
       { label: 'Booking Slots', id: 'slots' },
@@ -154,6 +159,9 @@ export default function App() {
             )}
             {activePage === 'userHistory' && isStaff && (
               <UserHistory token={token} />
+            )}
+            {activePage === 'coordinatorDashboard' && role === 'volunteer_coordinator' && (
+              <CoordinatorDashboard token={token} />
             )}
             {activePage === 'volunteerDashboard' && role === 'volunteer' && (
               <VolunteerDashboard token={token} />

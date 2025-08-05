@@ -139,6 +139,34 @@ export async function listMyVolunteerBookings(req: Request, res: Response) {
   }
 }
 
+export async function listVolunteerBookingsByVolunteer(req: Request, res: Response) {
+  const { volunteer_id } = req.params;
+  try {
+    await ensureVolunteerBookingsTable();
+    const result = await pool.query(
+      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id,
+              vs.slot_date, vs.start_time, vs.end_time,
+              vr.name AS role_name
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.id
+       JOIN volunteer_roles_master vr ON vs.role_id = vr.id
+       WHERE vb.volunteer_id = $1
+       ORDER BY vs.slot_date DESC, vs.start_time DESC`,
+      [volunteer_id]
+    );
+    const bookings = result.rows.map((b: any) => ({
+      ...b,
+      status_color: statusColor(b.status),
+    }));
+    res.json(bookings);
+  } catch (error) {
+    console.error('Error listing volunteer bookings for volunteer:', error);
+    res.status(500).json({
+      message: `Database error listing volunteer bookings for volunteer: ${(error as Error).message}`,
+    });
+  }
+}
+
 export async function updateVolunteerBookingStatus(req: Request, res: Response) {
   const { id } = req.params;
   const { status } = req.body as { status?: string };

@@ -324,4 +324,59 @@ export async function getMyVolunteerBookings(token: string) {
   });
   return handleResponse(res);
 }
+
+export async function getVolunteerRoles(token: string) {
+  const res = await fetch(`${API_BASE}/volunteer-roles`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function getVolunteerBookingsByRole(token: string, roleId: number) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/${roleId}`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerBookingStatus(
+  token: string,
+  bookingId: number,
+  status: 'approved' | 'rejected'
+) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ status }),
+  });
+  return handleResponse(res);
+}
+
+export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function createVolunteer(
+  token: string,
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string
+) {
+  const res = await fetch(`${API_BASE}/volunteers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ firstName, lastName, email, password }),
+  });
+  return handleResponse(res);
+}
   
