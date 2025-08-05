@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import {
   createBooking,
@@ -12,8 +12,28 @@ import {
 
 const router = express.Router();
 
-// Shopper/delivery create own booking
-router.post('/', authMiddleware, authorizeRoles('shopper', 'delivery'), createBooking);
+// Wrapper to handle bookings created by staff or regular users
+const handleCreateBooking = (req: Request, res: Response) => {
+  if (
+    req.user &&
+    ['staff', 'volunteer_coordinator', 'admin'].includes(req.user.role)
+  ) {
+    // Allow staff to create a booking for themselves or another user
+    if (!req.body.userId) {
+      req.body.userId = req.user.id;
+    }
+    return createBookingForUser(req, res);
+  }
+  return createBooking(req, res);
+};
+
+// Shopper/delivery or staff create booking
+router.post(
+  '/',
+  authMiddleware,
+  authorizeRoles('shopper', 'delivery', 'staff', 'volunteer_coordinator', 'admin'),
+  handleCreateBooking
+);
 
 // Staff list all bookings
 router.get(
