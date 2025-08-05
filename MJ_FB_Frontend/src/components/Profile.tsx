@@ -24,7 +24,7 @@ export default function Profile() {
 
   useEffect(() => {
     async function load() {
-      if (!token || ['staff', 'volunteer_coordinator', 'admin'].includes(role)) return;
+      if (!token || ['staff', 'volunteer_coordinator'].includes(role)) return;
       const opts: { status?: string; past?: boolean } = {};
       if (filter === 'past') opts.past = true;
       else if (filter !== 'all') opts.status = filter;
@@ -59,7 +59,7 @@ export default function Profile() {
     }
   }
 
-  if (['staff', 'volunteer_coordinator', 'admin'].includes(role)) {
+  if (['staff', 'volunteer_coordinator'].includes(role)) {
     return (
       <div>
         <h2>User Profile</h2>

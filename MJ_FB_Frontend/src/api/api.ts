@@ -55,34 +55,21 @@ export async function staffExists(): Promise<boolean> {
   return data.exists as boolean;
 }
 
-export async function createAdmin(
-  firstName: string,
-  lastName: string,
-  email: string,
-  password: string
-) {
-  const res = await fetch(`${API_BASE}/staff/admin`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, email, password }),
-  });
-  return handleResponse(res);
-}
-
 export async function createStaff(
-  token: string,
   firstName: string,
   lastName: string,
   role: StaffRole,
   email: string,
-  password: string
+  password: string,
+  token?: string
 ) {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) headers.Authorization = token;
   const res = await fetch(`${API_BASE}/staff`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token,
-    },
+    headers,
     body: JSON.stringify({ firstName, lastName, role, email, password }),
   });
   return handleResponse(res);

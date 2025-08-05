@@ -2,10 +2,9 @@ export type Role =
   | 'staff'
   | 'shopper'
   | 'delivery'
-  | 'volunteer_coordinator'
-  | 'admin';
+  | 'volunteer_coordinator';
 export type UserRole = 'shopper' | 'delivery';
-export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
+export type StaffRole = 'staff' | 'volunteer_coordinator';
 
 export interface Slot {
   id: string;

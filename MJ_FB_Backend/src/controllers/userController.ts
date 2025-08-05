@@ -65,10 +65,7 @@ export async function loginUser(req: Request, res: Response) {
 }
 
 export async function createUser(req: Request, res: Response) {
-  if (
-    !req.user ||
-    !['staff', 'volunteer_coordinator', 'admin'].includes(req.user.role)
-  ) {
+  if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role)) {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
