@@ -126,20 +126,36 @@ export default function UserHistory({ token }: { token: string }) {
                   </tr>
                 )}
                 {paginated.map(b => {
-                  const startTime = formatInTimeZone(
-                    `${b.date}T${b.start_time}`,
-                    TIMEZONE,
-                    'h:mm a'
-                  );
-                  const endTime = formatInTimeZone(
-                    `${b.date}T${b.end_time}`,
-                    TIMEZONE,
-                    'h:mm a'
-                  );
+                  const hasStart = b.date && b.start_time;
+                  const hasEnd = b.date && b.end_time;
+                  const startTime =
+                    hasStart && !isNaN(new Date(`${b.date}T${b.start_time}`).getTime())
+                      ? formatInTimeZone(
+                          `${b.date}T${b.start_time}`,
+                          TIMEZONE,
+                          'h:mm a'
+                        )
+                      : 'N/A';
+                  const endTime =
+                    hasEnd && !isNaN(new Date(`${b.date}T${b.end_time}`).getTime())
+                      ? formatInTimeZone(
+                          `${b.date}T${b.end_time}`,
+                          TIMEZONE,
+                          'h:mm a'
+                        )
+                      : 'N/A';
+                  const formattedDate =
+                    b.date && !isNaN(new Date(b.date).getTime())
+                      ? formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')
+                      : 'N/A';
                   return (
                     <tr key={b.id}>
-                      <td>{formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')}</td>
-                      <td>{`${startTime} - ${endTime}`}</td>
+                      <td>{formattedDate}</td>
+                      <td>
+                        {startTime !== 'N/A' && endTime !== 'N/A'
+                          ? `${startTime} - ${endTime}`
+                          : 'N/A'}
+                      </td>
                       <td>{b.status}</td>
                       <td>{b.reason || ''}</td>
                     </tr>
