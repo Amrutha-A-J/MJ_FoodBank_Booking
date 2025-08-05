@@ -238,13 +238,13 @@ export default function SlotBooking({ token, role }: Props) {
                 {slots.map((s) => (
                   <li
                     key={s.id}
-                    onClick={() => s.available > 0 && setSelectedSlotId(s.id)}
+                    onClick={() => (s.available ?? 0) > 0 && setSelectedSlotId(s.id)}
                     className={`slot-item ${selectedSlotId === s.id ? 'selected' : ''} ${
-                      s.available > 0 ? '' : 'disabled'
+                      (s.available ?? 0) > 0 ? '' : 'disabled'
                     }`}
                   >
                     <span>{s.startTime} - {s.endTime}</span>
-                    <span>Available: {s.available}</span>
+                    <span>Available: {s.available ?? 0}</span>
                   </li>
                 ))}
               </ul>

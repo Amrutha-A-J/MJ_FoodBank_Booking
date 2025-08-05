@@ -176,6 +176,67 @@ export async function getHolidays(token: string) {
     return handleResponse(res);
   }
 
+export async function getAllSlots(token: string) {
+  const res = await fetch(`${API_BASE}/slots/all`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function getBlockedSlots(token: string, date: string) {
+  const res = await fetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function addBlockedSlot(token: string, date: string, slotId: number) {
+  const res = await fetch(`${API_BASE}/blocked-slots`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ date, slotId }),
+  });
+  return handleResponse(res);
+}
+
+export async function removeBlockedSlot(token: string, date: string, slotId: number) {
+  const res = await fetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
+    method: 'DELETE',
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function getBreaks(token: string) {
+  const res = await fetch(`${API_BASE}/breaks`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function addBreak(token: string, dayOfWeek: number, slotId: number) {
+  const res = await fetch(`${API_BASE}/breaks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ dayOfWeek, slotId }),
+  });
+  return handleResponse(res);
+}
+
+export async function removeBreak(token: string, dayOfWeek: number, slotId: number) {
+  const res = await fetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
+    method: 'DELETE',
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
 export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject') {
   const res = await fetch(`${API_BASE}/bookings/${bookingId}/decision`, {
     method: 'POST',

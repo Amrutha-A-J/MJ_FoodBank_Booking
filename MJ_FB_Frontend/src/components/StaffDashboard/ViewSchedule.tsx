@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking } from '../../api/api';
-import type { Slot } from '../../types';
+import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
+import type { Slot, Break } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 interface Booking {
@@ -27,6 +27,9 @@ export default function ViewSchedule({ token }: { token: string }) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<string[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<number[]>([]);
+  const [breaks, setBreaks] = useState<Break[]>([]);
+  const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
@@ -46,11 +49,13 @@ export default function ViewSchedule({ token }: { token: string }) {
       return;
     }
     try {
-      const [slotsData, bookingsData] = await Promise.all([
+      const [slotsData, bookingsData, blockedData] = await Promise.all([
         getSlots(token, dateStr),
         getBookings(token),
+        getBlockedSlots(token, dateStr),
       ]);
       setSlots(slotsData);
+      setBlockedSlots(blockedData);
       const filtered = bookingsData.filter(
         (b: Booking) => b.date.split('T')[0] === dateStr && ['approved', 'submitted'].includes(b.status)
       );
@@ -62,6 +67,8 @@ export default function ViewSchedule({ token }: { token: string }) {
 
   useEffect(() => {
     getHolidays(token).then(setHolidays).catch(() => {});
+    getBreaks(token).then(setBreaks).catch(() => {});
+    getAllSlots(token).then(setAllSlots).catch(() => {});
   }, [token]);
 
   useEffect(() => {
@@ -123,20 +130,23 @@ export default function ViewSchedule({ token }: { token: string }) {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  // prepare slots with lunch break
-  const displaySlots: (Slot | { id: string; startTime: string; endTime: string; lunch: true })[] = [];
-  const sortedSlots = [...slots].sort((a, b) => a.startTime.localeCompare(b.startTime));
-  let lunchInserted = false;
-  for (const s of sortedSlots) {
-    if (!lunchInserted && s.startTime >= '13:00') {
-      displaySlots.push({ id: 'lunch', startTime: '12:00', endTime: '13:00', lunch: true });
-      lunchInserted = true;
-    }
+  const slotMap = new Map(allSlots.map(s => [s.id, s]));
+  const dayBreaks = breaks.filter(b => b.dayOfWeek === reginaDate.getDay());
+  const displaySlots: (
+    Slot & { break?: boolean; blocked?: boolean }
+  )[] = [];
+  for (const b of dayBreaks) {
+    const s = slotMap.get(b.slotId.toString());
+    if (s) displaySlots.push({ ...s, available: 0, break: true });
+  }
+  for (const id of blockedSlots) {
+    const s = slotMap.get(id.toString());
+    if (s) displaySlots.push({ ...s, available: 0, blocked: true });
+  }
+  for (const s of slots) {
     displaySlots.push(s);
   }
-  if (!lunchInserted) {
-    displaySlots.push({ id: 'lunch', startTime: '12:00', endTime: '13:00', lunch: true });
-  }
+  displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   return (
     <div>
@@ -160,11 +170,19 @@ export default function ViewSchedule({ token }: { token: string }) {
           </thead>
           <tbody>
             {displaySlots.map((slot, idx) => {
-              if ('lunch' in slot) {
+              if (slot.break) {
                 return (
-                  <tr key={idx} style={{ backgroundColor: '#f5f5f5' }}>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>12:00 - 13:00</td>
-                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Lunch Break</td>
+                  <tr key={`break-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
+                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Break</td>
+                  </tr>
+                );
+              }
+              if (slot.blocked) {
+                return (
+                  <tr key={`blocked-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
+                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Blocked</td>
                   </tr>
                 );
               }
