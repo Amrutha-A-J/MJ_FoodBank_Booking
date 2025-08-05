@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { addUser, createStaff } from '../../api/api';
-import type { Role, StaffRole } from '../../types';
+import type { UserRole, StaffRole } from '../../types';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<Role>('shopper');
+  const [role, setRole] = useState<UserRole>('shopper');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
 
@@ -113,7 +113,7 @@ export default function AddUser({ token }: { token: string }) {
           <div style={{ marginBottom: 8 }}>
             <label>
               Role:{' '}
-              <select value={role} onChange={e => setRole(e.target.value as Role)}>
+              <select value={role} onChange={e => setRole(e.target.value as UserRole)}>
                 <option value="shopper">Shopper</option>
                 <option value="delivery">Delivery</option>
               </select>

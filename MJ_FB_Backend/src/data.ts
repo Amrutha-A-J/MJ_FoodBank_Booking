@@ -1,18 +1,5 @@
 import { Slot } from './models/slot';
-
-export type UserRole = 'shopper' | 'delivery' | 'staff';
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  clientId: number;
-  role: UserRole;
-  email?: string;
-  phone?: string;
-  bookingsThisMonth: number;
-  bookingCountLastUpdated: string;
-}
+import type { User } from './models/user';
 
 export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved' | 'cancelled';
 
@@ -28,7 +15,7 @@ export interface Booking {
 
 export const users: User[] = [
   {
-    id: '1',
+    id: 1,
     firstName: 'John',
     lastName: 'Shopper',
     clientId: 1001,
@@ -36,9 +23,10 @@ export const users: User[] = [
     email: 'shopper@fb.org',
     bookingsThisMonth: 0,
     bookingCountLastUpdated: new Date().toISOString(),
+    password: '',
   },
   {
-    id: '2',
+    id: 2,
     firstName: 'Dina',
     lastName: 'Delivery',
     clientId: 1002,
@@ -46,6 +34,7 @@ export const users: User[] = [
     email: 'delivery@fb.org',
     bookingsThisMonth: 0,
     bookingCountLastUpdated: new Date().toISOString(),
+    password: '',
   },
 ];
 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import pool from '../db';
-import { UserRole } from '../data'; // keep only for typing if needed
+import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
 
@@ -84,10 +84,23 @@ export async function createUser(req: Request, res: Response) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
+  if (clientId < 1 || clientId > 9999999) {
+    return res
+      .status(400)
+      .json({ message: 'Client ID must be between 1 and 9,999,999' });
+  }
+
   try {
     const check = await pool.query('SELECT id FROM users WHERE client_id = $1', [clientId]);
     if (check.rowCount && check.rowCount > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
+    }
+
+    if (email) {
+      const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
