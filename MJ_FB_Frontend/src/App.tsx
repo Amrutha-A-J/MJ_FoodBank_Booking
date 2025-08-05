@@ -49,7 +49,10 @@ export default function App() {
       { label: 'User History', id: 'userHistory' },
     ]);
   } else if (role === 'shopper') {
-    navLinks = navLinks.concat([{ label: 'Booking Slots', id: 'slots' }]);
+    navLinks = navLinks.concat([
+      { label: 'Booking Slots', id: 'slots' },
+      { label: 'Booking History', id: 'bookingHistory' },
+    ]);
   }
 
   return (
@@ -121,6 +124,12 @@ export default function App() {
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <SlotBooking token={token} role="shopper" />
+            )}
+            {activePage === 'bookingHistory' && role === 'shopper' && (
+              <UserHistory
+                token={token}
+                initialUser={{ id: 0, name: localStorage.getItem('name') || '', client_id: 0 }}
+              />
             )}
             {activePage === 'addUser' && isStaff && (
               <AddUser token={token} />
