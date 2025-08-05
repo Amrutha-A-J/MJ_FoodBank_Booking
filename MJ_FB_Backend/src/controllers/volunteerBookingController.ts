@@ -89,10 +89,10 @@ export async function listVolunteerBookingsByRole(req: Request, res: Response) {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id,
               vs.slot_date, vs.start_time, vs.end_time,
-              u.first_name || ' ' || u.last_name AS volunteer_name
+              v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.id
-       JOIN users u ON vb.volunteer_id = u.id
+       JOIN volunteers v ON vb.volunteer_id = v.id
        WHERE vs.role_id = $1
        ORDER BY vs.slot_date, vs.start_time`,
       [role_id]
