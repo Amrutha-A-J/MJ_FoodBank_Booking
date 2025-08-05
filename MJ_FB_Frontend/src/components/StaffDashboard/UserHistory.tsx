@@ -22,10 +22,16 @@ interface Booking {
   reason?: string;
 }
 
-export default function UserHistory({ token }: { token: string }) {
+export default function UserHistory({
+  token,
+  initialUser,
+}: {
+  token: string;
+  initialUser?: User;
+}) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<User[]>([]);
-  const [selected, setSelected] = useState<User | null>(null);
+  const [selected, setSelected] = useState<User | null>(initialUser || null);
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
@@ -33,6 +39,7 @@ export default function UserHistory({ token }: { token: string }) {
   const pageSize = 10;
 
   useEffect(() => {
+    if (initialUser) return;
     if (search.length < 3) {
       setResults([]);
       return;
@@ -46,11 +53,12 @@ export default function UserHistory({ token }: { token: string }) {
     return () => {
       active = false;
     };
-  }, [search, token]);
+  }, [search, token, initialUser]);
 
   useEffect(() => {
     if (!selected) return;
-    const opts: { status?: string; past?: boolean; userId: number } = { userId: selected.id };
+    const opts: { status?: string; past?: boolean; userId?: number } = {};
+    if (!initialUser) opts.userId = selected.id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     getBookingHistory(token, opts)
@@ -62,43 +70,47 @@ export default function UserHistory({ token }: { token: string }) {
         setPage(1);
       })
       .catch(err => console.error('Error loading history:', err));
-  }, [selected, filter, token]);
+  }, [selected, filter, token, initialUser]);
 
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
-      <h2>User History</h2>
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search by name or client ID"
-      />
-      {results.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {results.map(u => (
-            <li key={u.id}>
-              <button
-                onClick={() => {
-                  setSelected(u);
-                  setSearch(u.name);
-                  setResults([]);
-                }}
-              >
-                {u.name} ({u.client_id})
-              </button>
-            </li>
-          ))}
-        </ul>
+      <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
+      {!initialUser && (
+        <>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or client ID"
+          />
+          {results.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {results.map(u => (
+                <li key={u.id}>
+                  <button
+                    onClick={() => {
+                      setSelected(u);
+                      setSearch(u.name);
+                      setResults([]);
+                    }}
+                  >
+                    {u.name} ({u.client_id})
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
       {selected && (
         <div>
-          <h3>History for {selected.name}</h3>
+          {selected.name && <h3>History for {selected.name}</h3>}
           <div>
-            <label htmlFor="filterStaff">Filter:</label>{' '}
+            <label htmlFor={initialUser ? 'filterUser' : 'filterStaff'}>Filter:</label>{' '}
             <select
-              id="filterStaff"
+              id={initialUser ? 'filterUser' : 'filterStaff'}
               value={filter}
               onChange={e => setFilter(e.target.value)}
             >
