@@ -1,13 +1,10 @@
-import { isStaffRole } from '../types';
-import type { Role } from '../types';
-
 type NavbarProps = {
-    role: Role;
+    role: string;
     name?: string;
     onPageChange: (page: string) => void;
     onLogout: () => void;
   };
-
+  
   export default function Navbar({ role, name, onPageChange, onLogout }: NavbarProps) {
     return (
       <nav
@@ -37,7 +34,7 @@ type NavbarProps = {
             </>
           )}
   
-          {isStaffRole(role) && (
+          {role === 'staff' && (
             <>
               <button onClick={() => onPageChange('home')} style={buttonStyle}>
                 Pending

@@ -1,15 +1,5 @@
-export type Role =
-  | 'staff'
-  | 'shopper'
-  | 'delivery'
-  | 'volunteer_coordinator'
-  | 'admin';
-
+export type Role = 'staff' | 'shopper' | 'delivery';
 export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
-
-export function isStaffRole(role: Role): boolean {
-  return role === 'staff' || role === 'volunteer_coordinator' || role === 'admin';
-}
 
 export interface Slot {
   id: string;

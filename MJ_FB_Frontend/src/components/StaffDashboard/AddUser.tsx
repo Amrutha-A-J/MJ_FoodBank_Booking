@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { addUser, createStaff } from '../../api/api';
 import type { Role, StaffRole } from '../../types';
 
-export default function AddUser({ token, role }: { token: string; role: Role }) {
+export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
-  const [userRole, setUserRole] = useState<Role>('shopper');
+  const [role, setRole] = useState<Role>('shopper');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
+  const [staffId, setStaffId] = useState('');
   const [staffRole, setStaffRole] = useState<StaffRole>('staff');
   const [password, setPassword] = useState('');
 
@@ -26,7 +27,7 @@ export default function AddUser({ token, role }: { token: string; role: Role }) 
         firstName,
         lastName,
         clientId,
-        userRole,
+        role,
         password,
         email || undefined,
         phone || undefined
@@ -38,24 +39,25 @@ export default function AddUser({ token, role }: { token: string; role: Role }) 
       setEmail('');
       setPhone('');
       setPassword('');
-      setUserRole('shopper');
+      setRole('shopper');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
   async function submitStaff() {
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !email || !password || !staffId) {
       setMessage('All fields required');
       return;
     }
     try {
-      await createStaff(token, firstName, lastName, staffRole, email, password);
+      await createStaff(token, firstName, lastName, staffId, staffRole, email, password);
       setMessage('Staff added successfully');
       setFirstName('');
       setLastName('');
       setEmail('');
       setPassword('');
+      setStaffId('');
       setStaffRole('staff');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -65,14 +67,10 @@ export default function AddUser({ token, role }: { token: string; role: Role }) 
   return (
     <div>
       <h2>{mode === 'user' ? 'Create User' : 'Create Staff'}</h2>
-      {role === 'admin' && (
-        <div style={{ marginBottom: 12 }}>
-          <button onClick={() => setMode('user')}>Create User</button>
-          <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>
-            Create Staff
-          </button>
-        </div>
-      )}
+      <div style={{ marginBottom: 12 }}>
+        <button onClick={() => setMode('user')}>Create User</button>
+        <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>Create Staff</button>
+      </div>
       {message && <p>{message}</p>}
       {mode === 'user' ? (
         <>
@@ -115,7 +113,7 @@ export default function AddUser({ token, role }: { token: string; role: Role }) 
           <div style={{ marginBottom: 8 }}>
             <label>
               Role:{' '}
-              <select value={userRole} onChange={e => setUserRole(e.target.value as Role)}>
+              <select value={role} onChange={e => setRole(e.target.value as Role)}>
                 <option value="shopper">Shopper</option>
                 <option value="delivery">Delivery</option>
               </select>
@@ -135,6 +133,12 @@ export default function AddUser({ token, role }: { token: string; role: Role }) 
             <label>
               Last Name:{' '}
               <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
+            </label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>
+              Staff ID:{' '}
+              <input type="text" value={staffId} onChange={e => setStaffId(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>
