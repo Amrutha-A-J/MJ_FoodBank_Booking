@@ -319,24 +319,46 @@ export default function ViewSchedule({ token }: { token: string }) {
             <h4>Manage Booking</h4>
             <p>
               {decisionBooking.status === 'submitted'
-                ? `Approve, reject or cancel booking for ${decisionBooking.user_name}?`
+                ? `Approve or reject booking for ${decisionBooking.user_name}?`
                 : `Cancel booking for ${decisionBooking.user_name}?`}
             </p>
             <textarea
-              placeholder="Reason"
+              placeholder={
+                decisionBooking.status === 'submitted'
+                  ? 'Reason for rejection'
+                  : 'Reason for cancellation'
+              }
               value={decisionReason}
               onChange={e => setDecisionReason(e.target.value)}
               style={{ width: '100%', marginTop: 8 }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              {decisionBooking.status === 'submitted' && (
+              {decisionBooking.status === 'submitted' ? (
                 <>
                   <button onClick={() => decideSelected('approve')}>Approve</button>
                   <button onClick={() => decideSelected('reject')}>Reject</button>
+                  <button
+                    onClick={() => {
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={cancelSelected}>Confirm</button>
+                  <button
+                    onClick={() => {
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </>
               )}
-              <button onClick={cancelSelected}>Cancel Booking</button>
-              <button onClick={() => setDecisionBooking(null)}>Close</button>
             </div>
           </div>
         </div>

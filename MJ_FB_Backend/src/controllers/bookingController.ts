@@ -127,9 +127,9 @@ export async function decideBooking(req: Request, res: Response) {
 // --- Cancel booking (staff or user) ---
 export async function cancelBooking(req: Request, res: Response) {
   const bookingId = req.params.id;
-  const reason = (req.body.reason as string) || '';
   const requester = req.user;
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
+  const reason = requester.role === 'staff' ? (req.body.reason as string) || '' : 'user cancelled';
 
   try {
     const bookingRes = await pool.query('SELECT * FROM bookings WHERE id=$1', [bookingId]);
