@@ -39,9 +39,17 @@ export default function SlotBooking({ token, role }: Props) {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [message, setMessage] = useState('');
   const [dayMessage, setDayMessage] = useState('');
-  const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(
-    Number(localStorage.getItem('bookingsThisMonth') || '0')
-  );
+  const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(() => {
+    const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
+    const storedMonth = localStorage.getItem('bookingsMonth');
+    const storedCount = localStorage.getItem('bookingsThisMonth');
+    if (storedMonth !== currentMonth) {
+      localStorage.setItem('bookingsMonth', currentMonth);
+      localStorage.setItem('bookingsThisMonth', '0');
+      return 0;
+    }
+    return Number(storedCount || '0');
+  });
   const [isLastWeek, setIsLastWeek] = useState(false);
 
   const loggedInName = localStorage.getItem('name') || 'You';
@@ -159,12 +167,20 @@ export default function SlotBooking({ token, role }: Props) {
         if (res.bookingsThisMonth !== undefined) {
           setBookingsThisMonth(res.bookingsThisMonth);
           localStorage.setItem('bookingsThisMonth', res.bookingsThisMonth.toString());
+          const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
+          localStorage.setItem('bookingsMonth', currentMonth);
         }
       }
       setSelectedDate(null);
       setSelectedSlotId(null);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
+      if (/already.*(twice|2)/i.test(msg)) {
+        const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
+        setBookingsThisMonth(2);
+        localStorage.setItem('bookingsThisMonth', '2');
+        localStorage.setItem('bookingsMonth', currentMonth);
+      }
       setMessage('Booking failed: ' + msg);
     }
   }

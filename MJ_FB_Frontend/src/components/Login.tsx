@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
+import { formatInTimeZone } from 'date-fns-tz';
 
 export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginResponse) => void; onStaff: () => void }) {
   const [clientId, setClientId] = useState('');
@@ -16,6 +17,8 @@ export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginRespo
       localStorage.setItem('name', user.name);
       if (user.bookingsThisMonth !== undefined) {
         localStorage.setItem('bookingsThisMonth', user.bookingsThisMonth.toString());
+        const currentMonth = formatInTimeZone(new Date(), 'America/Regina', 'yyyy-MM');
+        localStorage.setItem('bookingsMonth', currentMonth);
       }
       onLogin(user);
     } catch (err: unknown) {

@@ -36,6 +36,7 @@ export default function ViewSchedule({ token }: { token: string }) {
   const [userResults, setUserResults] = useState<User[]>([]);
   const [message, setMessage] = useState('');
   const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
+  const [assignMessage, setAssignMessage] = useState('');
 
   const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
@@ -108,6 +109,7 @@ export default function ViewSchedule({ token }: { token: string }) {
   async function assignUser(user: User) {
     if (!assignSlot) return;
     try {
+      setAssignMessage('');
       await createBookingForUser(
         token,
         user.id,
@@ -120,7 +122,8 @@ export default function ViewSchedule({ token }: { token: string }) {
       await loadData();
     } catch (err) {
       console.error(err);
-      setMessage('Failed to assign user');
+      const msg = err instanceof Error ? err.message : 'Failed to assign user';
+      setAssignMessage(msg);
     }
   }
 
@@ -226,6 +229,7 @@ export default function ViewSchedule({ token }: { token: string }) {
                             }
                           } else if (!isClosed) {
                             setAssignSlot(slot);
+                            setAssignMessage('');
                           } else {
                             setMessage('Booking not allowed on weekends or holidays');
                           }
@@ -275,7 +279,8 @@ export default function ViewSchedule({ token }: { token: string }) {
                 </li>
               ))}
             </ul>
-            <button onClick={() => { setAssignSlot(null); setSearchTerm(''); }}>Close</button>
+            {assignMessage && <p style={{ color: 'red' }}>{assignMessage}</p>}
+            <button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }}>Close</button>
           </div>
         </div>
       )}
