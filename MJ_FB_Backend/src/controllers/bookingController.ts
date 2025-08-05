@@ -87,10 +87,13 @@ export async function listBookings(req: Request, res: Response) {
 export async function decideBooking(req: Request, res: Response) {
   const bookingId = req.params.id;
   const decision = (req.body.decision as string)?.toLowerCase();
-  const reason = (req.body.reason as string) || '';
+  const reason = ((req.body.reason as string) || '').trim();
 
   if (!['approve', 'reject'].includes(decision)) {
     return res.status(400).json({ message: 'Decision must be approve or reject' });
+  }
+  if (decision === 'reject' && !reason) {
+    return res.status(400).json({ message: 'Reason required for rejection' });
   }
 
   try {

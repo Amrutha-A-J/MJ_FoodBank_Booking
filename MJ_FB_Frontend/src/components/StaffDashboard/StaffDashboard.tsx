@@ -47,10 +47,18 @@ export default function StaffDashboard({
   }, [loadBookings]);
 
   async function decide(id: number, decision: 'approve' | 'reject') {
-    setLoading(true);
     setError('');
+    let reason = '';
+    if (decision === 'reject') {
+      reason = window.prompt('Reason for rejection?')?.trim() || '';
+      if (!reason) {
+        setError('Rejection reason is required');
+        return;
+      }
+    }
+    setLoading(true);
     try {
-      await decideBooking(token, id.toString(), decision, '');
+      await decideBooking(token, id.toString(), decision, reason);
       setMessage(`Booking ${decision}d`);
       await loadBookings();
     } catch (err: unknown) {
