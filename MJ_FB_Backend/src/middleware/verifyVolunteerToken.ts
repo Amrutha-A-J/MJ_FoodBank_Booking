@@ -23,7 +23,7 @@ export async function verifyVolunteerToken(
 
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email FROM users WHERE id = $1 AND role = 'volunteer'`,
+      `SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1`,
       [id]
     );
     if (result.rowCount === 0) {
