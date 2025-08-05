@@ -8,6 +8,7 @@ import AddUser from './components/StaffDashboard/AddUser';
 import ViewSchedule from './components/StaffDashboard/ViewSchedule';
 import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
+import VolunteerLogin from './components/VolunteerLogin';
 import type { Role } from './types';
 
 export default function App() {
@@ -16,7 +17,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [loginMode, setLoginMode] = useState<'user' | 'staff'>('user');
+  const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
   const isStaff = role === 'staff' || role === 'volunteer_coordinator';
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function App() {
     <div className="app-container">
       {!token ? (
         loginMode === 'user' ? (
-              <Login
+          <Login
             onLogin={(u) => {
               setToken(u.token);
               setRole(u.role);
@@ -71,8 +72,9 @@ export default function App() {
               }
             }}
             onStaff={() => setLoginMode('staff')}
+            onVolunteer={() => setLoginMode('volunteer')}
           />
-        ) : (
+        ) : loginMode === 'staff' ? (
           <StaffLogin
             onLogin={(u) => {
               setToken(u.token);
@@ -81,6 +83,17 @@ export default function App() {
               localStorage.setItem('role', u.role);
               localStorage.setItem('name', u.name);
               localStorage.removeItem('bookingsThisMonth');
+            }}
+            onBack={() => setLoginMode('user')}
+          />
+        ) : (
+          <VolunteerLogin
+            onLogin={(u) => {
+              setToken(u.token);
+              setRole(u.role);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
             }}
             onBack={() => setLoginMode('user')}
           />

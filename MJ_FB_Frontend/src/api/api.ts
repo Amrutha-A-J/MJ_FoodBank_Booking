@@ -49,6 +49,18 @@ export async function loginStaff(
   return handleResponse(res);
 }
 
+export async function loginVolunteer(
+  email: string,
+  password: string
+): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE}/volunteers/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  return handleResponse(res);
+}
+
 export async function staffExists(): Promise<boolean> {
   const res = await fetch(`${API_BASE}/staff/exists`);
   const data = await handleResponse(res);
