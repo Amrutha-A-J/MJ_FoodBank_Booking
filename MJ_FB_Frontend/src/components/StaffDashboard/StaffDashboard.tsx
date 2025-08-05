@@ -13,6 +13,8 @@ interface Booking {
   slot_id: number;
   start_time: string;
   end_time: string;
+  is_staff_booking: boolean;
+  created_at: string;
 }
 
 export default function StaffDashboard({

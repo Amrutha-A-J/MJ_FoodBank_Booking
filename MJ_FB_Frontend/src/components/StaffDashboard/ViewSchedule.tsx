@@ -10,6 +10,7 @@ interface Booking {
   date: string;
   slot_id: number;
   user_name: string;
+  is_staff_booking: boolean;
 }
 
 interface User {

@@ -17,6 +17,8 @@ interface Booking {
   start_time: string;
   end_time: string;
   created_at: string;
+  slot_id: number;
+  is_staff_booking: boolean;
   reason?: string;
 }
 

@@ -7,8 +7,11 @@ interface Booking {
   id: number;
   status: string;
   date: string;
+  slot_id: number;
   start_time: string;
   end_time: string;
+  created_at: string;
+  is_staff_booking: boolean;
   reason?: string;
 }
 
