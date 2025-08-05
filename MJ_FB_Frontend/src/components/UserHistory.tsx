@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
-import { searchUsers, getBookingHistory } from '../../api/api';
+import {
+  searchUsers,
+  getBookingHistory,
+  cancelBooking,
+  decideBooking,
+} from '../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
+import ConfirmDialog from './ConfirmDialog';
+import type { Role } from '../types';
 
 const TIMEZONE = 'America/Regina';
 
@@ -20,17 +27,49 @@ interface Booking {
   reason?: string;
 }
 
-export default function UserHistory({ token }: { token: string }) {
+export default function UserHistory({ token, role }: { token: string; role: Role }) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<User[]>([]);
   const [selected, setSelected] = useState<User | null>(null);
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
+  const [confirm, setConfirm] = useState<
+    { id: number; action: 'cancel' | 'reject'; reason: string } | null
+  >(null);
 
   const pageSize = 10;
 
+  function openConfirm(id: number, action: 'cancel' | 'reject') {
+    setConfirm({ id, action, reason: '' });
+  }
+
+  async function handleConfirm() {
+    if (!confirm) return;
+    try {
+      if (confirm.action === 'cancel') {
+        await cancelBooking(token, confirm.id.toString(), confirm.reason);
+      } else {
+        await decideBooking(token, confirm.id.toString(), 'reject', confirm.reason);
+      }
+      const opts: { status?: string; past?: boolean; userId?: number } = {};
+      if (role === 'staff' && selected) opts.userId = selected.id;
+      if (filter === 'past') opts.past = true;
+      else if (filter !== 'all') opts.status = filter;
+      const data = await getBookingHistory(token, opts);
+      const sorted = [...data].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setBookings(sorted);
+    } catch (err) {
+      console.error('Error updating booking:', err);
+    } finally {
+      setConfirm(null);
+    }
+  }
+
   useEffect(() => {
+    if (role !== 'staff') return;
     if (search.length < 3) {
       setResults([]);
       return;
@@ -44,11 +83,12 @@ export default function UserHistory({ token }: { token: string }) {
     return () => {
       active = false;
     };
-  }, [search, token]);
+  }, [search, token, role]);
 
   useEffect(() => {
-    if (!selected) return;
-    const opts: { status?: string; past?: boolean; userId: number } = { userId: selected.id };
+    if (role === 'staff' && !selected) return;
+    const opts: { status?: string; past?: boolean; userId?: number } = {};
+    if (role === 'staff' && selected) opts.userId = selected.id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     getBookingHistory(token, opts)
@@ -60,43 +100,47 @@ export default function UserHistory({ token }: { token: string }) {
         setPage(1);
       })
       .catch(err => console.error('Error loading history:', err));
-  }, [selected, filter, token]);
+  }, [selected, filter, token, role]);
 
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
-      <h2>User History</h2>
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search by name or client ID"
-      />
-      {results.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {results.map(u => (
-            <li key={u.id}>
-              <button
-                onClick={() => {
-                  setSelected(u);
-                  setSearch(u.name);
-                  setResults([]);
-                }}
-              >
-                {u.name} ({u.client_id})
-              </button>
-            </li>
-          ))}
-        </ul>
+      <h2>Booking History</h2>
+      {role === 'staff' && (
+        <>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or client ID"
+          />
+          {results.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {results.map(u => (
+                <li key={u.id}>
+                  <button
+                    onClick={() => {
+                      setSelected(u);
+                      setSearch(u.name);
+                      setResults([]);
+                    }}
+                  >
+                    {u.name} ({u.client_id})
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
-      {selected && (
+      {(role === 'staff' ? selected !== null : true) && (
         <div>
-          <h3>History for {selected.name}</h3>
+          {role === 'staff' && selected && <h3>History for {selected.name}</h3>}
           <div>
-            <label htmlFor="filterStaff">Filter:</label>{' '}
+            <label htmlFor="filterHistory">Filter:</label>{' '}
             <select
-              id="filterStaff"
+              id="filterHistory"
               value={filter}
               onChange={e => setFilter(e.target.value)}
             >
@@ -115,12 +159,13 @@ export default function UserHistory({ token }: { token: string }) {
                   <th>Time</th>
                   <th>Status</th>
                   <th>Reason</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={4}>No bookings.</td>
+                    <td colSpan={5}>No bookings.</td>
                   </tr>
                 )}
                 {paginated.map(b => {
@@ -144,12 +189,29 @@ export default function UserHistory({ token }: { token: string }) {
                       ? formatInTimeZone(d, TIMEZONE, 'MMM d, yyyy')
                       : b.date;
                   })();
+                  const showCancel =
+                    role === 'shopper' && ['approved', 'submitted'].includes(b.status);
+                  const staffReject = role === 'staff' && b.status === 'submitted';
+                  const staffCancel = role === 'staff' && b.status === 'approved';
                   return (
                     <tr key={b.id}>
                       <td>{dateCell}</td>
                       <td>{startTime && endTime ? `${startTime} - ${endTime}` : ''}</td>
                       <td>{b.status}</td>
                       <td>{b.reason || ''}</td>
+                      <td>
+                        {(showCancel || staffCancel) && (
+                          <button onClick={() => openConfirm(b.id, 'cancel')}>Cancel</button>
+                        )}
+                        {staffReject && (
+                          <button
+                            onClick={() => openConfirm(b.id, 'reject')}
+                            style={{ marginLeft: showCancel || staffCancel ? 4 : 0 }}
+                          >
+                            Reject
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -173,6 +235,24 @@ export default function UserHistory({ token }: { token: string }) {
             </div>
           )}
         </div>
+      )}
+      {confirm && (
+        <ConfirmDialog
+          message={
+            confirm.action === 'cancel' ? 'Cancel booking?' : 'Reject booking?'
+          }
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirm(null)}
+        >
+          <textarea
+            value={confirm.reason}
+            onChange={e =>
+              setConfirm(c => (c ? { ...c, reason: e.target.value } : c))
+            }
+            placeholder="Reason"
+            style={{ width: '100%' }}
+          />
+        </ConfirmDialog>
       )}
     </div>
   );

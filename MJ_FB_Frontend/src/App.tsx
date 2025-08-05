@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Profile from './components/Profile';
 import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageAvailability from './components/StaffDashboard/ManageAvailability';
-import UserHistory from './components/StaffDashboard/UserHistory';
+import UserHistory from './components/UserHistory';
 import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
 import ViewSchedule from './components/StaffDashboard/ViewSchedule';
@@ -48,7 +48,10 @@ export default function App() {
       { label: 'User History', id: 'userHistory' },
     ]);
   } else if (role === 'shopper') {
-    navLinks = navLinks.concat([{ label: 'Booking Slots', id: 'slots' }]);
+    navLinks = navLinks.concat([
+      { label: 'Booking History', id: 'bookingHistory' },
+      { label: 'Booking Slots', id: 'slots' },
+    ]);
   }
 
   return (
@@ -125,7 +128,10 @@ export default function App() {
               <AddUser token={token} />
             )}
             {activePage === 'userHistory' && role === 'staff' && (
-              <UserHistory token={token} />
+              <UserHistory token={token} role={role} />
+            )}
+            {activePage === 'bookingHistory' && role === 'shopper' && (
+              <UserHistory token={token} role={role} />
             )}
           </main>
         </>
