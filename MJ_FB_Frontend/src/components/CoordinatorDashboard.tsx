@@ -23,7 +23,7 @@ interface UserResult {
 
 interface SlotGroup {
   slot_id: number;
-  slot_date: string;
+  date: string;
   start_time: string;
   end_time: string;
   bookings: VolunteerBookingDetail[];
@@ -36,7 +36,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [slotModal, setSlotModal] = useState<{
     slot_id: number;
-    slot_date: string;
+    date: string;
     start_time: string;
     end_time: string;
     bookings: VolunteerBookingDetail[];
@@ -110,30 +110,34 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setPending(all);
   }
 
-  const grouped = bookings.reduce((acc: Record<number, SlotGroup>, b) => {
-    const slot = acc[b.slot_id] || {
+  const grouped = bookings.reduce((acc: Record<string, SlotGroup>, b) => {
+    const key = `${b.slot_id}-${b.date}`;
+    const slot = acc[key] || {
       slot_id: b.slot_id,
-      slot_date: b.slot_date,
+      date: b.date,
       start_time: b.start_time,
       end_time: b.end_time,
       bookings: [],
     };
     slot.bookings.push(b);
-    acc[b.slot_id] = slot;
+    acc[key] = slot;
     return acc;
-  }, {} as Record<number, SlotGroup>);
+  }, {} as Record<string, SlotGroup>);
   const slotArray: SlotGroup[] = Object.values(grouped);
 
-  async function decide(id: number, status: 'approved' | 'rejected') {
+  async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
       await updateVolunteerBookingStatus(token, id, status);
       if (selectedRole) {
         const data = await getVolunteerBookingsByRole(token, Number(selectedRole));
         setBookings(data);
-        if (slotModal) {
-          const updated = data.filter(b => b.slot_id === slotModal.slot_id);
-          setSlotModal({ ...slotModal, bookings: updated });
-        }
+          if (slotModal) {
+            const updated = data.filter(
+              (b: VolunteerBookingDetail) =>
+                b.slot_id === slotModal.slot_id && b.date === slotModal.date
+            );
+            setSlotModal({ ...slotModal, bookings: updated });
+          }
       }
       if (tab === 'pending') loadPending();
     } catch (e) {
@@ -210,7 +214,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                   style={{ backgroundColor: color, padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
                   onClick={() => setSlotModal(s)}
                 >
-                  {s.slot_date} {formatTime(s.start_time)} - {formatTime(s.end_time)}
+                {s.date} {formatTime(s.start_time)} - {formatTime(s.end_time)}
                 </button>
               );
             })}
@@ -220,7 +224,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 400 }}>
                 <h3>
-                  {slotModal.slot_date} {formatTime(slotModal.start_time)} - {formatTime(slotModal.end_time)}
+                    {slotModal.date} {formatTime(slotModal.start_time)} - {formatTime(slotModal.end_time)}
                 </h3>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                   {slotModal.bookings.map(b => (
@@ -271,7 +275,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                   {history.map(h => (
                     <tr key={h.id}>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.role_name}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.slot_date}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.date}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time)} - {formatTime(h.end_time)}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.status}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>
@@ -281,9 +285,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                             <button onClick={() => decide(h.id, 'rejected')}>Reject</button>
                           </>
                         )}
-                        {h.status === 'approved' && (
-                          <button onClick={() => decide(h.id, 'rejected')}>Cancel</button>
-                        )}
+                          {h.status === 'approved' && (
+                            <button onClick={() => decide(h.id, 'cancelled')}>Cancel</button>
+                          )}
                       </td>
                     </tr>
                   ))}
@@ -331,7 +335,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             {pending.map(p => (
               <li key={p.id} style={{ marginBottom: 12, border: '1px solid #ccc', padding: 8 }}>
                 <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
-                <div><strong>Date:</strong> {p.slot_date}</div>
+                <div><strong>Date:</strong> {p.date}</div>
                 <div><strong>Time:</strong> {formatTime(p.start_time)} - {formatTime(p.end_time)}</div>
                 <div style={{ marginTop: 4 }}>
                   <button onClick={() => decide(p.id, 'approved')}>Approve</button>{' '}

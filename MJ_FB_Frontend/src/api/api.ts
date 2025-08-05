@@ -299,21 +299,25 @@ export async function searchUsers(token: string, search: string) {
     return handleResponse(res);
   }
 
-export async function getVolunteerSlots(token: string) {
-  const res = await fetch(`${API_BASE}/volunteer-slots/mine`, {
+export async function getVolunteerSlots(token: string, date: string) {
+  const res = await fetch(`${API_BASE}/volunteer-slots/mine?date=${date}`, {
     headers: { Authorization: token },
   });
   return handleResponse(res);
 }
 
-export async function requestVolunteerBooking(token: string, slotId: number) {
+export async function requestVolunteerBooking(
+  token: string,
+  slotId: number,
+  date: string
+) {
   const res = await fetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ slotId }),
+    body: JSON.stringify({ slotId, date }),
   });
   return handleResponse(res);
 }
@@ -342,7 +346,7 @@ export async function getVolunteerBookingsByRole(token: string, roleId: number) 
 export async function updateVolunteerBookingStatus(
   token: string,
   bookingId: number,
-  status: 'approved' | 'rejected'
+  status: 'approved' | 'rejected' | 'cancelled'
 ) {
   const res = await fetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
     method: 'PATCH',

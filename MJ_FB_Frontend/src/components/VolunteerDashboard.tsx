@@ -15,9 +15,12 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   const [message, setMessage] = useState('');
   const [tab, setTab] = useState<'slots' | 'history'>('slots');
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
+  const [selectedDate, setSelectedDate] = useState(
+    () => new Date().toISOString().split('T')[0]
+  );
 
   useEffect(() => {
-    getVolunteerSlots(token)
+    getVolunteerSlots(token, selectedDate)
       .then(data => {
         setSlots(data);
         const map = new Map<number, string>();
@@ -27,7 +30,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         if (arr.length > 0) setSelectedRole(arr[0].id);
       })
       .catch(() => {});
-  }, [token]);
+  }, [token, selectedDate]);
 
   useEffect(() => {
     if (tab === 'history') {
@@ -42,10 +45,10 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   async function submitBooking() {
     if (!modalSlot) return;
     try {
-      await requestVolunteerBooking(token, modalSlot.id);
+      await requestVolunteerBooking(token, modalSlot.id, selectedDate);
       setMessage('Request submitted!');
       setModalSlot(null);
-      const updated = await getVolunteerSlots(token);
+      const updated = await getVolunteerSlots(token, selectedDate);
       setSlots(updated);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
@@ -68,7 +71,16 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         <div>
           {roles.length > 0 ? (
             <>
-              <label htmlFor="roleSelect">Role: </label>
+              <label htmlFor="dateSelect">Date: </label>
+              <input
+                type="date"
+                id="dateSelect"
+                value={selectedDate}
+                onChange={e => setSelectedDate(e.target.value)}
+              />
+              <label htmlFor="roleSelect" style={{ marginLeft: 8 }}>
+                Role:{' '}
+              </label>
               <select
                 id="roleSelect"
                 value={selectedRole}
@@ -92,7 +104,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
                 <tbody>
                   {filteredSlots.map(s => (
                     <tr key={s.id}>
-                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{s.slot_date}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{s.date}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>
                         {formatTime(s.start_time)} - {formatTime(s.end_time)}
                       </td>
@@ -139,7 +151,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
             {history.map(h => (
               <tr key={h.id}>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>{h.role_name}</td>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>{h.slot_date}</td>
+                <td style={{ border: '1px solid #ccc', padding: 8 }}>{h.date}</td>
                 <td style={{ border: '1px solid #ccc', padding: 8 }}>
                   {formatTime(h.start_time)} - {formatTime(h.end_time)}
                 </td>
@@ -173,7 +185,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
             <p>
-              Request booking for {modalSlot.slot_date} {formatTime(modalSlot.start_time)} -{' '}
+              Request booking for {modalSlot.date} {formatTime(modalSlot.start_time)} -{' '}
               {formatTime(modalSlot.end_time)}?
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
