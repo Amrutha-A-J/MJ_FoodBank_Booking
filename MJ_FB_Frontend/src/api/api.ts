@@ -88,7 +88,7 @@ export async function createStaff(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       first_name: firstName,
@@ -105,7 +105,7 @@ export async function getSlots(token: string, date?: string) {
     let url = `${API_BASE}/slots`;
     if (date) url += `?date=${encodeURIComponent(date)}`;
     const res = await fetch(url, {
-      headers: { Authorization: token }
+      headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(res);
   }
@@ -125,7 +125,7 @@ export async function addUser(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       firstName,
@@ -145,7 +145,7 @@ export async function addUser(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: token,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ slotId, date, requestData: '' }),
     });
@@ -154,7 +154,7 @@ export async function addUser(
 
 export async function getBookings(token: string) {
   const res = await fetch(`${API_BASE}/bookings`, {
-    headers: { Authorization: token }
+    headers: { Authorization: `Bearer ${token}` }
   });
   return handleResponse(res);
 }
@@ -170,7 +170,7 @@ export async function getBookingHistory(
   const res = await fetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
     {
-      headers: { Authorization: token },
+      headers: { Authorization: `Bearer ${token}` },
     }
   );
   return handleResponse(res);
@@ -178,7 +178,7 @@ export async function getBookingHistory(
 
 export async function getHolidays(token: string) {
     const res = await fetch(`${API_BASE}/holidays`, {
-      headers: { Authorization: token }
+      headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(res); // returns Holiday[]
   }
@@ -188,7 +188,7 @@ export async function getHolidays(token: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: token
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ date, reason })
     });
@@ -198,21 +198,21 @@ export async function getHolidays(token: string) {
   export async function removeHoliday(token: string, date: string) {
     const res = await fetch(`${API_BASE}/holidays/${encodeURIComponent(date)}`, {
       method: 'DELETE',
-      headers: { Authorization: token }
+      headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(res);
   }
 
 export async function getAllSlots(token: string) {
   const res = await fetch(`${API_BASE}/slots/all`, {
-    headers: { Authorization: token },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res);
 }
 
 export async function getBlockedSlots(token: string, date: string) {
   const res = await fetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
-    headers: { Authorization: token },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res); // returns BlockedSlot[]
 }
@@ -222,7 +222,7 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ date, slotId, reason }),
   });
@@ -232,14 +232,14 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
 export async function removeBlockedSlot(token: string, date: string, slotId: number) {
   const res = await fetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
     method: 'DELETE',
-    headers: { Authorization: token },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res);
 }
 
 export async function getBreaks(token: string) {
   const res = await fetch(`${API_BASE}/breaks`, {
-    headers: { Authorization: token },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res); // returns Break[]
 }
@@ -249,7 +249,7 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ dayOfWeek, slotId, reason }),
   });
@@ -259,7 +259,7 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
 export async function removeBreak(token: string, dayOfWeek: number, slotId: number) {
   const res = await fetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
     method: 'DELETE',
-    headers: { Authorization: token },
+    headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res);
 }
@@ -269,7 +269,7 @@ export async function decideBooking(token: string, bookingId: string, decision: 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({ decision, reason }),
   });
@@ -281,7 +281,7 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: token,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(reason ? { reason } : {}),
   });
@@ -290,7 +290,7 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
 
 export async function searchUsers(token: string, search: string) {
     const res = await fetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`, {
-      headers: { Authorization: token }
+      headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(res); // returns array of users
   }
@@ -306,7 +306,7 @@ export async function searchUsers(token: string, search: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: token
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({ userId, slotId, date, isStaffBooking })
     });
