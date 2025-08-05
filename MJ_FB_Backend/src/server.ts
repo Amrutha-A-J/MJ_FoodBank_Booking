@@ -11,6 +11,7 @@ import staffRoutes from './routes/staff';
 import volunteerRolesRoutes from './routes/volunteerRoles';
 import volunteersRoutes from './routes/volunteers';
 import volunteerSlotsRoutes from './routes/volunteerSlots';
+import volunteerBookingsRoutes from './routes/volunteerBookings';
 import { initializeSlots } from './data';
 import pool from './db';
 
@@ -21,7 +22,7 @@ const app = express();
 // ⭐ Add CORS middleware before routes
 app.use(cors({
   origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // allow your frontend
-  credentials: true
+  credentials: true,
 }));
 
 app.use(express.json());
@@ -38,6 +39,7 @@ app.use('/staff', staffRoutes);
 app.use('/volunteer-roles', volunteerRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-slots', volunteerSlotsRoutes);
+app.use('/volunteer-bookings', volunteerBookingsRoutes);
 
 const PORT = 4000;
 

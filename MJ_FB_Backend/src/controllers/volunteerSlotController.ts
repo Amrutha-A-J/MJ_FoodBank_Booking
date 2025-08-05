@@ -145,3 +145,48 @@ export async function deleteVolunteerSlot(req: Request, res: Response) {
   }
 }
 
+
+export async function listVolunteerSlotsForVolunteer(req: Request, res: Response) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    await ensureVolunteerSlotsTable();
+    const volunteerRes = await pool.query(
+      'SELECT trained_areas FROM volunteers WHERE id=$1',
+      [user.id]
+    );
+    if (volunteerRes.rowCount === 0) {
+      return res.json([]);
+    }
+    const trained: number[] = volunteerRes.rows[0].trained_areas || [];
+    if (trained.length === 0) {
+      return res.json([]);
+    }
+    const result = await pool.query(
+      `SELECT vs.id, vs.role_id, vs.slot_date, vs.start_time, vs.end_time, vs.max_volunteers,
+              COALESCE(b.count,0) AS booked
+       FROM volunteer_slots vs
+       LEFT JOIN (
+         SELECT slot_id, COUNT(*) AS count
+         FROM volunteer_bookings
+         WHERE status IN ('pending','approved')
+         GROUP BY slot_id
+       ) b ON vs.id = b.slot_id
+       WHERE vs.role_id = ANY($1)
+       ORDER BY vs.slot_date, vs.start_time`,
+      [trained]
+    );
+    const slots = result.rows.map((row: any) => ({
+      ...row,
+      booked: Number(row.booked),
+      available: row.max_volunteers - Number(row.booked),
+      status: Number(row.booked) >= row.max_volunteers ? 'booked' : 'available',
+    }));
+    res.json(slots);
+  } catch (error) {
+    console.error('Error listing volunteer slots for volunteer:', error);
+    res.status(500).json({
+      message: `Database error listing volunteer slots for volunteer: ${(error as Error).message}`,
+    });
+  }
+}
