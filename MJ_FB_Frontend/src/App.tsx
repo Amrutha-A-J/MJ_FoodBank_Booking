@@ -34,7 +34,6 @@ export default function App() {
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Holidays', id: 'manageHolidays' },
       { label: 'View Schedule', id: 'viewSchedule' },
-      { label: 'User Bookings', id: 'userBookings' },
       { label: 'Add User', id: 'addUser' },
     ]);
   } else if (role === 'shopper') {
@@ -103,9 +102,6 @@ export default function App() {
             )}
             {activePage === 'viewSchedule' && role === 'staff' && (
               <ViewSchedule token={token} />
-            )}
-            {activePage === 'userBookings' && role === 'staff' && (
-              <SlotBooking token={token} role="staff" />
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <SlotBooking token={token} role="shopper" />
