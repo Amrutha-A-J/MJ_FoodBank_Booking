@@ -298,4 +298,30 @@ export async function searchUsers(token: string, search: string) {
     });
     return handleResponse(res);
   }
+
+export async function getVolunteerSlots(token: string) {
+  const res = await fetch(`${API_BASE}/volunteer-slots/mine`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
+
+export async function requestVolunteerBooking(token: string, slotId: number) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ slotId }),
+  });
+  return handleResponse(res);
+}
+
+export async function getMyVolunteerBookings(token: string) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/mine`, {
+    headers: { Authorization: token },
+  });
+  return handleResponse(res);
+}
   

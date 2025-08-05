@@ -29,3 +29,27 @@ export interface BlockedSlot {
   slotId: number;
   reason: string;
 }
+
+export interface VolunteerSlot {
+  id: number;
+  role_id: number;
+  role_name: string;
+  slot_date: string;
+  start_time: string;
+  end_time: string;
+  max_volunteers: number;
+  booked: number;
+  available: number;
+  status: string;
+}
+
+export interface VolunteerBooking {
+  id: number;
+  status: string;
+  slot_id: number;
+  slot_date: string;
+  start_time: string;
+  end_time: string;
+  role_name: string;
+  status_color?: string;
+}

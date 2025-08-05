@@ -9,12 +9,15 @@ import ViewSchedule from './components/StaffDashboard/ViewSchedule';
 import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
+import VolunteerDashboard from './components/VolunteerDashboard';
 import type { Role } from './types';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [role, setRole] = useState<Role>((localStorage.getItem('role') || '') as Role);
-  const [activePage, setActivePage] = useState('profile');
+  const [activePage, setActivePage] = useState(() => {
+    return window.location.pathname === '/volunteer-dashboard' ? 'volunteerDashboard' : 'profile';
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
@@ -54,6 +57,8 @@ export default function App() {
       { label: 'Booking Slots', id: 'slots' },
       { label: 'Booking History', id: 'bookingHistory' },
     ]);
+  } else if (role === 'volunteer') {
+    navLinks = navLinks.concat([{ label: 'Volunteer Dashboard', id: 'volunteerDashboard' }]);
   }
 
   return (
@@ -149,6 +154,9 @@ export default function App() {
             )}
             {activePage === 'userHistory' && isStaff && (
               <UserHistory token={token} />
+            )}
+            {activePage === 'volunteerDashboard' && role === 'volunteer' && (
+              <VolunteerDashboard token={token} />
             )}
           </main>
         </>
