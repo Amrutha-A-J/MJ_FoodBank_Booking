@@ -301,7 +301,7 @@ export async function getBookingHistory(req: Request, res: Response) {
     }
 
     const result = await pool.query(
-      `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time, b.created_at
+      `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time, b.created_at, b.is_staff_booking
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id
        WHERE ${where}

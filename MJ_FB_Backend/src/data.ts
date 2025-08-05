@@ -10,6 +10,8 @@ export interface Booking {
   status: BookingStatus;
   requestData: string;
   date?: string | null; // Add date here
+  isStaffBooking?: boolean;
+  createdAt?: string;
 }
 
 

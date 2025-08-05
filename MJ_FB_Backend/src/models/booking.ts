@@ -9,5 +9,7 @@ interface Booking {
   slot_id: number | null;
   start_time: string | null;
   end_time: string | null;
+  is_staff_booking: boolean;
+  created_at: string;
   reason?: string | null;
 }
