@@ -9,7 +9,9 @@ export async function checkStaffExists(_req: Request, res: Response) {
     res.json({ exists: count > 0 });
   } catch (error) {
     console.error('Error checking staff:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error checking staff: ${(error as Error).message}` });
   }
 }
 
@@ -55,7 +57,9 @@ export async function createAdmin(req: Request, res: Response) {
     res.status(201).json({ message: 'Admin account created' });
   } catch (error) {
     console.error('Error creating admin:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error creating admin: ${(error as Error).message}` });
   }
 }
 
@@ -104,6 +108,8 @@ export async function createStaff(req: Request, res: Response) {
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {
     console.error('Error creating staff:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error creating staff: ${(error as Error).message}` });
   }
 }
