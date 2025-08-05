@@ -16,12 +16,13 @@ export async function checkStaffExists(_req: Request, res: Response) {
 }
 
 export async function createAdmin(req: Request, res: Response) {
-  const { firstName, lastName, email, password } = req.body as {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-  };
+  const { first_name: firstName, last_name: lastName, email, password } =
+    req.body as {
+      first_name: string;
+      last_name: string;
+      email: string;
+      password: string;
+    };
 
   if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
@@ -59,13 +60,14 @@ export async function createStaff(req: Request, res: Response) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { firstName, lastName, role, email, password } = req.body as {
-    firstName: string;
-    lastName: string;
-    role: string;
-    email: string;
-    password: string;
-  };
+  const { first_name: firstName, last_name: lastName, role, email, password } =
+    req.body as {
+      first_name: string;
+      last_name: string;
+      role: string;
+      email: string;
+      password: string;
+    };
 
   if (!firstName || !lastName || !role || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
