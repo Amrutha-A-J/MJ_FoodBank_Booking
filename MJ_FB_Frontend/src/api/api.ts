@@ -18,12 +18,20 @@ export interface LoginResponse {
 
 async function handleResponse(res: Response) {
   if (!res.ok) {
+    // Read the body once and attempt to parse JSON so that we don't try to
+    // consume the response stream multiple times.
+    const text = await res.text();
     let message = res.statusText;
     try {
-      const data = await res.json();
-      message = data.message || data.error || JSON.stringify(data);
+      const data: unknown = JSON.parse(text);
+      if (typeof data === 'object' && data !== null) {
+        const { message: msg, error } = data as { message?: string; error?: string };
+        message = msg || error || JSON.stringify(data);
+      } else {
+        message = text;
+      }
     } catch {
-      message = await res.text();
+      message = text;
     }
     throw new Error(message);
   }
