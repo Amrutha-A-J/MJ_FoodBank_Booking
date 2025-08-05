@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import pool from '../db';
 import { UserRole } from '../data'; // keep only for typing if needed
 import bcrypt from 'bcrypt';
+import { updateBookingsThisMonth } from '../utils/bookingUtils';
 
 export async function loginUser(req: Request, res: Response) {
   const { email, password, clientId } = req.body;
@@ -25,10 +26,12 @@ export async function loginUser(req: Request, res: Response) {
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
+      const bookingsThisMonth = await updateBookingsThisMonth(user.id);
       return res.json({
         token: user.id.toString(),
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
+        bookingsThisMonth,
       });
     }
 

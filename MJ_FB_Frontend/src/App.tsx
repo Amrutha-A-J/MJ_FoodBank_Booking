@@ -44,13 +44,16 @@ export default function App() {
     <div className="app-container">
       {!token ? (
         loginMode === 'user' ? (
-          <Login
+              <Login
             onLogin={(u) => {
               setToken(u.token);
               setRole(u.role);
               localStorage.setItem('token', u.token);
               localStorage.setItem('role', u.role);
               localStorage.setItem('name', u.name);
+              if (u.bookingsThisMonth !== undefined) {
+                localStorage.setItem('bookingsThisMonth', u.bookingsThisMonth.toString());
+              }
             }}
             onStaff={() => setLoginMode('staff')}
           />
@@ -62,6 +65,7 @@ export default function App() {
               localStorage.setItem('token', u.token);
               localStorage.setItem('role', u.role);
               localStorage.setItem('name', u.name);
+              localStorage.removeItem('bookingsThisMonth');
             }}
             onBack={() => setLoginMode('user')}
           />

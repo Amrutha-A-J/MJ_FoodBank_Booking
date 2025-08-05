@@ -8,6 +8,7 @@ export interface LoginResponse {
   token: string;
   role: Role;
   name: string;
+  bookingsThisMonth?: number;
 }
 
 async function handleResponse(res: Response) {

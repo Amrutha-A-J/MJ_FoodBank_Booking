@@ -14,6 +14,9 @@ export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginRespo
       localStorage.setItem('token', user.token);
       localStorage.setItem('role', user.role);
       localStorage.setItem('name', user.name);
+      if (user.bookingsThisMonth !== undefined) {
+        localStorage.setItem('bookingsThisMonth', user.bookingsThisMonth.toString());
+      }
       onLogin(user);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
