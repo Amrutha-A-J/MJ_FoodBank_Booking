@@ -26,7 +26,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     }
 
     const staffRes = await pool.query(
-      'SELECT id, first_name, last_name, email FROM staff WHERE id = $1',
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
       [token]
     );
 
@@ -36,7 +36,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     req.user = {
       id: staffRes.rows[0].id.toString(),
-      role: 'staff',
+      role: staffRes.rows[0].role,
       name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
       email: staffRes.rows[0].email,
     } as any;
@@ -52,7 +52,14 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 export function authorizeRoles(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    if (!allowedRoles.includes(req.user.role)) {
+
+    const expanded = new Set(allowedRoles);
+    if (allowedRoles.includes('staff')) {
+      expanded.add('volunteer_coordinator');
+      expanded.add('admin');
+    }
+
+    if (!expanded.has(req.user.role)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
     next();
