@@ -65,7 +65,13 @@ export async function createAdmin(
   const res = await fetch(`${API_BASE}/staff/admin`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, role, email, password }),
+    body: JSON.stringify({
+      first_name: firstName,
+      last_name: lastName,
+      role,
+      email,
+      password,
+    }),
   });
   return handleResponse(res);
 }
@@ -84,7 +90,13 @@ export async function createStaff(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ firstName, lastName, role, email, password }),
+    body: JSON.stringify({
+      first_name: firstName,
+      last_name: lastName,
+      role,
+      email,
+      password,
+    }),
   });
   return handleResponse(res);
 }
