@@ -71,6 +71,13 @@ export async function createStaff(req: Request, res: Response) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
+  const validRoles = ['staff', 'volunteer_coordinator', 'admin'];
+  if (!validRoles.includes(role)) {
+    return res
+      .status(400)
+      .json({ message: `Invalid role. Allowed roles: ${validRoles.join(', ')}` });
+  }
+
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden' });
