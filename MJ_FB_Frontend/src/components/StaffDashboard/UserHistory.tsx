@@ -124,20 +124,30 @@ export default function UserHistory({ token }: { token: string }) {
                   </tr>
                 )}
                 {paginated.map(b => {
-                  const startTime = formatInTimeZone(
-                    `${b.date}T${b.start_time}`,
-                    TIMEZONE,
-                    'h:mm a'
-                  );
-                  const endTime = formatInTimeZone(
-                    `${b.date}T${b.end_time}`,
-                    TIMEZONE,
-                    'h:mm a'
-                  );
+                  const startDate = b.start_time
+                    ? new Date(`${b.date}T${b.start_time}`)
+                    : null;
+                  const endDate = b.end_time
+                    ? new Date(`${b.date}T${b.end_time}`)
+                    : null;
+                  const startTime =
+                    startDate && !isNaN(startDate.getTime())
+                      ? formatInTimeZone(startDate, TIMEZONE, 'h:mm a')
+                      : '';
+                  const endTime =
+                    endDate && !isNaN(endDate.getTime())
+                      ? formatInTimeZone(endDate, TIMEZONE, 'h:mm a')
+                      : '';
+                  const dateCell = (() => {
+                    const d = new Date(b.date);
+                    return !isNaN(d.getTime())
+                      ? formatInTimeZone(d, TIMEZONE, 'MMM d, yyyy')
+                      : b.date;
+                  })();
                   return (
                     <tr key={b.id}>
-                      <td>{formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')}</td>
-                      <td>{`${startTime} - ${endTime}`}</td>
+                      <td>{dateCell}</td>
+                      <td>{startTime && endTime ? `${startTime} - ${endTime}` : ''}</td>
                       <td>{b.status}</td>
                       <td>{b.reason || ''}</td>
                     </tr>
