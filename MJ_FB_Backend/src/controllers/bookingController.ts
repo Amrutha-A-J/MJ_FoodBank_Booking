@@ -214,3 +214,51 @@ export async function createBookingForUser(req: Request, res: Response) {
     res.status(400).json({ message: error.message || 'Failed to create booking' });
   }
 }
+
+// --- Get booking history (last 6 months) ---
+export async function getBookingHistory(req: Request, res: Response) {
+  try {
+    const requester = req.user;
+    if (!requester) return res.status(401).json({ message: 'Unauthorized' });
+
+    let userId: number | null = null;
+    if (requester.role === 'staff') {
+      const paramId = req.query.userId as string;
+      if (!paramId) {
+        return res.status(400).json({ message: 'userId query parameter required' });
+      }
+      userId = Number(paramId);
+    } else {
+      userId = Number(requester.id);
+    }
+
+    if (!userId) return res.status(400).json({ message: 'Invalid user' });
+
+    const status = (req.query.status as string)?.toLowerCase();
+    const past = req.query.past === 'true';
+
+    const params: any[] = [userId];
+    let where = "b.user_id = $1 AND b.date >= CURRENT_DATE - INTERVAL '6 months'";
+    if (past) {
+      where += ' AND b.date < CURRENT_DATE';
+    }
+    if (status) {
+      const mapped = status === 'pending' ? 'submitted' : status;
+      params.push(mapped);
+      where += ` AND b.status = $${params.length}`;
+    }
+
+    const result = await pool.query(
+      `SELECT b.id, b.status, b.date, b.slot_id, s.start_time, s.end_time
+       FROM bookings b
+       INNER JOIN slots s ON b.slot_id = s.id
+       WHERE ${where}
+       ORDER BY b.date DESC`,
+      params
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching booking history:', error);
+    res.status(500).json({ message: 'Failed to fetch booking history' });
+  }
+}

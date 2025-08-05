@@ -149,6 +149,23 @@ export async function getBookings(token: string) {
   return handleResponse(res);
 }
 
+export async function getBookingHistory(
+  token: string,
+  opts: { status?: string; past?: boolean; userId?: number } = {}
+) {
+  const params = new URLSearchParams();
+  if (opts.status) params.append('status', opts.status);
+  if (opts.past) params.append('past', 'true');
+  if (opts.userId) params.append('userId', String(opts.userId));
+  const res = await fetch(
+    `${API_BASE}/bookings/history?${params.toString()}`,
+    {
+      headers: { Authorization: token },
+    }
+  );
+  return handleResponse(res);
+}
+
 export async function getHolidays(token: string) {
     const res = await fetch(`${API_BASE}/holidays`, {
       headers: { Authorization: token }
