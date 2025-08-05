@@ -14,6 +14,13 @@ export async function listSlots(req: Request, res: Response) {
     // Closed on weekends
     if (day === 0 || day === 6) return res.json([]);
 
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS blocked_slots (date DATE NOT NULL, slot_id INTEGER NOT NULL, PRIMARY KEY (date, slot_id))'
+    );
+    await pool.query(
+      'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, PRIMARY KEY (day_of_week, slot_id))'
+    );
+
     const slotsResult = await pool.query('SELECT * FROM slots');
     let slots = slotsResult.rows;
 
@@ -35,6 +42,13 @@ export async function listSlots(req: Request, res: Response) {
         s.start_time !== '15:30:00'
       );
     }
+
+    const blockedResult = await pool.query('SELECT slot_id FROM blocked_slots WHERE date = $1', [date]);
+    const blockedSet = new Set(blockedResult.rows.map(r => Number(r.slot_id)));
+    const breakResult = await pool.query('SELECT slot_id FROM breaks WHERE day_of_week = $1', [day]);
+    const breakSet = new Set(breakResult.rows.map(r => Number(r.slot_id)));
+
+    slots = slots.filter(s => !blockedSet.has(s.id) && !breakSet.has(s.id));
 
     const bookingsResult = await pool.query(
       `SELECT slot_id, COUNT(*) AS approved_count
@@ -63,5 +77,23 @@ export async function listSlots(req: Request, res: Response) {
     res
       .status(500)
       .json({ message: `Database error listing slots: ${(error as Error).message}` });
+  }
+}
+
+export async function listAllSlots(req: Request, res: Response) {
+  try {
+    const result = await pool.query('SELECT * FROM slots ORDER BY start_time');
+    const slots = result.rows.map((slot: any) => ({
+      id: slot.id.toString(),
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      maxCapacity: slot.max_capacity,
+    }));
+    res.json(slots);
+  } catch (error) {
+    console.error('Error listing all slots:', error);
+    res
+      .status(500)
+      .json({ message: `Database error listing all slots: ${(error as Error).message}` });
   }
 }

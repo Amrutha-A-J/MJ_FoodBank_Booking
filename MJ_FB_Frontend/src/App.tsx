@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Profile from './components/Profile';
 import StaffDashboard from './components/StaffDashboard/StaffDashboard';
-import ManageHolidays from './components/StaffDashboard/ManageHolidays';
+import ManageAvailability from './components/StaffDashboard/ManageAvailability';
 import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
 import ViewSchedule from './components/StaffDashboard/ViewSchedule';
@@ -32,7 +32,7 @@ export default function App() {
   if (role === 'staff') {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
-      { label: 'Manage Holidays', id: 'manageHolidays' },
+      { label: 'Manage Availability', id: 'manageAvailability' },
       { label: 'View Schedule', id: 'viewSchedule' },
       { label: 'Add User', id: 'addUser' },
     ]);
@@ -101,8 +101,8 @@ export default function App() {
             {activePage === 'staffDashboard' && role === 'staff' && (
               <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
             )}
-            {activePage === 'manageHolidays' && role === 'staff' && (
-              <ManageHolidays token={token} />
+            {activePage === 'manageAvailability' && role === 'staff' && (
+              <ManageAvailability token={token} />
             )}
             {activePage === 'viewSchedule' && role === 'staff' && (
               <ViewSchedule token={token} />

@@ -5,5 +5,10 @@ export interface Slot {
   id: string;
   startTime: string;
   endTime: string;
-  available: number;
+  available?: number;
+}
+
+export interface Break {
+  dayOfWeek: number;
+  slotId: number;
 }

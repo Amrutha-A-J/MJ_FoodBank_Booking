@@ -42,8 +42,8 @@ type NavbarProps = {
               <button onClick={() => onPageChange('manual')} style={buttonStyle}>
                 Manual Booking
               </button>
-              <button onClick={() => onPageChange('holidays')} style={buttonStyle}>
-                Holidays
+              <button onClick={() => onPageChange('availability')} style={buttonStyle}>
+                Availability
               </button>
               <button onClick={() => onPageChange('users')} style={buttonStyle}>
                 Users
