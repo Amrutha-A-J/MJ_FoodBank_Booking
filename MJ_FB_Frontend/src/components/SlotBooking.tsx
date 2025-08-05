@@ -141,7 +141,7 @@ export default function SlotBooking({ token, role }: Props) {
       <div>
         <input
           type="text"
-          placeholder="Search users by name/email/phone"
+          placeholder="Search users by name/email/phone/client ID"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />

@@ -1,14 +1,17 @@
 import { Slot } from './models/slot';
 
-export type UserRole = 'staff' | 'shopper' | 'delivery';
+export type UserRole = 'shopper' | 'delivery' | 'staff';
 
 export interface User {
   id: string;
-  name: string;
-  email: string;
-  password: string;
+  firstName: string;
+  lastName: string;
+  clientId: number;
   role: UserRole;
+  email?: string;
   phone?: string;
+  bookingsThisMonth: number;
+  bookingCountLastUpdated: string;
 }
 
 export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved';
@@ -26,25 +29,24 @@ export interface Booking {
 export const users: User[] = [
   {
     id: '1',
-    name: 'Staff User',
-    email: 'staff@fb.org',
-    password: 'staffpass',
-    role: 'staff',
+    firstName: 'John',
+    lastName: 'Shopper',
+    clientId: 1001,
+    role: 'shopper',
+    email: 'shopper@fb.org',
+    bookingsThisMonth: 0,
+    bookingCountLastUpdated: new Date().toISOString(),
   },
   {
-  id: '2',
-  name: 'John Shopper',
-  email: 'shopper@fb.org',
-  password: 'shopperpass',
-  role: 'shopper',
-},
-{
-  id: '3',
-  name: 'Dina Delivery',
-  email: 'delivery@fb.org',
-  password: 'deliverypass',
-  role: 'delivery',
-},
+    id: '2',
+    firstName: 'Dina',
+    lastName: 'Delivery',
+    clientId: 1002,
+    role: 'delivery',
+    email: 'delivery@fb.org',
+    bookingsThisMonth: 0,
+    bookingCountLastUpdated: new Date().toISOString(),
+  },
 ];
 
 export const slots: Slot[] = [];

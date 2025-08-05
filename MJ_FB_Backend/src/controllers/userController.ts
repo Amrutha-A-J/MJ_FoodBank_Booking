@@ -4,37 +4,46 @@ import { UserRole } from '../data'; // keep only for typing if needed
 import bcrypt from 'bcrypt';
 
 export async function loginUser(req: Request, res: Response) {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password required' });
-  }
+  const { email, password, clientId } = req.body;
 
   try {
-    let userQuery = await pool.query(
-      'SELECT id, name, email, password, role FROM users WHERE email = $1',
-      [email]
-    );
-
-    let user = userQuery.rows[0];
-    if (!user) {
-      const staffQuery = await pool.query(
-        `SELECT id, first_name || ' ' || last_name AS name, email, password
-         FROM staff WHERE email = $1`,
-        [email]
+    if (clientId) {
+      const userQuery = await pool.query(
+        `SELECT id, first_name, last_name, role FROM users WHERE client_id = $1`,
+        [clientId]
       );
-      if (staffQuery.rowCount === 0) {
+      if (userQuery.rowCount === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      user = { ...staffQuery.rows[0], role: 'staff' };
+      const user = userQuery.rows[0];
+      return res.json({
+        token: user.id.toString(),
+        role: user.role,
+        name: `${user.first_name} ${user.last_name}`,
+      });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password required' });
+    }
+
+    const staffQuery = await pool.query(
+      `SELECT id, first_name, last_name, email, password, role FROM staff WHERE email = $1`,
+      [email]
+    );
+    if (staffQuery.rowCount === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    const staff = staffQuery.rows[0];
+    const match = await bcrypt.compare(password, staff.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-
-    // Simple token: user.id (for dev only; use JWT in prod)
-    res.json({ token: user.id.toString(), role: user.role, name: user.name });
+    res.json({
+      token: staff.id.toString(),
+      role: staff.role,
+      name: `${staff.first_name} ${staff.last_name}`,
+    });
   } catch (error) {
     console.error('Error logging in:', error);
     res
@@ -48,31 +57,29 @@ export async function createUser(req: Request, res: Response) {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { name, email, password, role, phone } = req.body as {
-    name: string;
-    email: string;
-    password: string;
-    role: UserRole;
+  const { firstName, lastName, email, phone, clientId, role } = req.body as {
+    firstName: string;
+    lastName: string;
+    email?: string;
     phone?: string;
+    clientId: number;
+    role: UserRole;
   };
 
-  if (!name || !email || !password || !role) {
+  if (!firstName || !lastName || !clientId || !role) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
   try {
-    // Check duplicate email
-    const check = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const check = await pool.query('SELECT id FROM users WHERE client_id = $1', [clientId]);
     if (check.rowCount && check.rowCount > 0) {
-      return res.status(400).json({ message: 'Email already exists' });
+      return res.status(400).json({ message: 'Client ID already exists' });
     }
 
-    // Insert user with hashed password
-    const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
-      `INSERT INTO users (name, email, password, role, phone)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [name, email, hashedPassword, role, phone || null]
+      `INSERT INTO users (first_name, last_name, email, phone, client_id, role)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [firstName, lastName, email || null, phone || null, clientId, role]
     );
 
     res.status(201).json({ message: 'User created' });
@@ -86,7 +93,7 @@ export async function createUser(req: Request, res: Response) {
 
 export async function searchUsers(req: Request, res: Response) {
   try {
-    const rawSearch = req.query.search as string || '';
+    const rawSearch = (req.query.search as string) || '';
     const search = rawSearch.trim();
 
     if (search.length < 3) {
@@ -94,15 +101,26 @@ export async function searchUsers(req: Request, res: Response) {
     }
 
     const usersResult = await pool.query(
-      `SELECT id, name, email, phone
+      `SELECT id, first_name, last_name, email, phone, client_id
        FROM users
-       WHERE name ILIKE $1 OR email ILIKE $1 OR phone ILIKE $1
-       ORDER BY name ASC
+       WHERE (first_name || ' ' || last_name) ILIKE $1
+          OR email ILIKE $1
+          OR phone ILIKE $1
+          OR CAST(client_id AS TEXT) ILIKE $1
+       ORDER BY first_name, last_name ASC
        LIMIT 5`,
       [`%${search}%`]
     );
 
-    res.json(usersResult.rows);
+    const formatted = usersResult.rows.map(u => ({
+      id: u.id,
+      name: `${u.first_name} ${u.last_name}`.trim(),
+      email: u.email,
+      phone: u.phone,
+      client_id: u.client_id,
+    }));
+
+    res.json(formatted);
   } catch (error) {
     console.error('Error searching users:', (error as Error).message);
     res

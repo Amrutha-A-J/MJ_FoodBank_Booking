@@ -1,8 +1,11 @@
 export interface User {
   id: string;
-  name: string;
-  email: string;
-  passwordHash: string;
-  role: 'shopper' | 'delivery' | 'staff';
+  firstName: string;
+  lastName: string;
+  email?: string;
   phone?: string;
+  clientId: number;
+  role: 'shopper' | 'delivery';
+  bookingsThisMonth: number;
+  bookingCountLastUpdated: string;
 }

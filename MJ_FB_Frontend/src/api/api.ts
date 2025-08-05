@@ -24,11 +24,12 @@ async function handleResponse(res: Response) {
   return res.json();
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(identifier: string, password?: string): Promise<LoginResponse> {
+  const body = password ? { email: identifier, password } : { clientId: identifier };
   const res = await fetch(`${API_BASE}/users/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(body),
   });
   return handleResponse(res);
 }
@@ -87,10 +88,11 @@ export async function getSlots(token: string, date?: string) {
 // api.ts
 export async function addUser(
   token: string,
-  name: string,
-  email: string,
-  password: string,
+  firstName: string,
+  lastName: string,
+  clientId: string,
   role: string,
+  email?: string,
   phone?: string
 ) {
   const res = await fetch(`${API_BASE}/users`, {
@@ -99,7 +101,7 @@ export async function addUser(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ name, email, password, role, phone }),
+    body: JSON.stringify({ firstName, lastName, clientId: Number(clientId), role, email, phone }),
   });
   return handleResponse(res);
 }

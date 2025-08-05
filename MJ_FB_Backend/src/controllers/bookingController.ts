@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import pool from '../db';
-import bcrypt from 'bcrypt';
 
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
@@ -50,7 +49,7 @@ export async function listBookings(req: Request, res: Response) {
     const result = await pool.query(`
       SELECT 
         b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
-        u.name as user_name, u.email as user_email, u.phone as user_phone,
+        u.first_name || ' ' || u.last_name as user_name, u.email as user_email, u.phone as user_phone,
         s.start_time, s.end_time
       FROM bookings b
       INNER JOIN users u ON b.user_id = u.id
@@ -112,13 +111,15 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
   try {
     await client.query('BEGIN');
 
-    // create dummy user with fake email to avoid conflicts
+    // create dummy user with fake email and generated client ID
     const fakeEmail = `walkin_${Date.now()}@dummy.local`;
-    const hashed = await bcrypt.hash('', 10);
+    const [firstName, ...lastParts] = name.split(' ');
+    const lastName = lastParts.join(' ');
+    const clientId = Math.floor(Math.random() * 9999999) + 1;
     const userRes = await client.query(
-      `INSERT INTO users (name, email, password, role)
-       VALUES ($1, $2, $3, 'shopper') RETURNING id`,
-      [name, fakeEmail, hashed]
+      `INSERT INTO users (first_name, last_name, email, phone, client_id, role)
+       VALUES ($1, $2, $3, NULL, $4, 'shopper') RETURNING id`,
+      [firstName, lastName, fakeEmail, clientId]
     );
     const newUserId = userRes.rows[0].id;
 
