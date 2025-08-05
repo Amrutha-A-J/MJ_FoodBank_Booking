@@ -2,7 +2,12 @@
 // Read API base URL from environment or fall back to localhost
 import type { Role } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+// Allow the API base to be configured via environment variable.  When no
+// explicit base is provided we fall back to a relative `/api` path so that the
+// Vite dev server can proxy requests during development and the same code can
+// run in production where the backend is served from the same origin.
+// Trailing slashes are stripped to avoid `//` in constructed URLs.
+const API_BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '');
 
 export interface LoginResponse {
   token: string;
