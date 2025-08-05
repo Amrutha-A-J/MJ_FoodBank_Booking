@@ -37,7 +37,9 @@ export async function loginUser(req: Request, res: Response) {
     res.json({ token: user.id.toString(), role: user.role, name: user.name });
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error logging in: ${(error as Error).message}` });
   }
 }
 
@@ -76,7 +78,9 @@ export async function createUser(req: Request, res: Response) {
     res.status(201).json({ message: 'User created' });
   } catch (error) {
     console.error('Error creating user:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error creating user: ${(error as Error).message}` });
   }
 }
 
@@ -101,7 +105,9 @@ export async function searchUsers(req: Request, res: Response) {
     res.json(usersResult.rows);
   } catch (error) {
     console.error('Error searching users:', (error as Error).message);
-    res.status(500).json({ message: 'Server error searching users' });
+    res
+      .status(500)
+      .json({ message: `Server error searching users: ${(error as Error).message}` });
   }
 }
 

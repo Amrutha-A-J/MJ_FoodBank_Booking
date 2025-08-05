@@ -60,7 +60,9 @@ export async function listBookings(req: Request, res: Response) {
     res.json(result.rows);
   } catch (error) {
     console.error('Error listing bookings:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error listing bookings: ${(error as Error).message}` });
   }
 }
 

@@ -10,20 +10,32 @@ export interface LoginResponse {
   name: string;
 }
 
+async function handleResponse(res: Response) {
+  if (!res.ok) {
+    let message = res.statusText;
+    try {
+      const data = await res.json();
+      message = data.message || data.error || JSON.stringify(data);
+    } catch {
+      message = await res.text();
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE}/users/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function staffExists(): Promise<boolean> {
   const res = await fetch(`${API_BASE}/staff/exists`);
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
+  const data = await handleResponse(res);
   return data.exists as boolean;
 }
 
@@ -40,8 +52,7 @@ export async function createAdmin(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function createStaff(
@@ -61,8 +72,7 @@ export async function createStaff(
     },
     body: JSON.stringify({ firstName, lastName, staffId, role, email, password }),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function getSlots(token: string, date?: string) {
@@ -71,8 +81,7 @@ export async function getSlots(token: string, date?: string) {
     const res = await fetch(url, {
       headers: { Authorization: token }
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    return handleResponse(res);
   }
 
 // api.ts
@@ -92,9 +101,8 @@ export async function addUser(
     },
     body: JSON.stringify({ name, email, password, role, phone }),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-} 
+  return handleResponse(res);
+}
   
   export async function createBooking(token: string, slotId: string, date: string) {
     const res = await fetch(`${API_BASE}/bookings`, {
@@ -105,24 +113,21 @@ export async function addUser(
       },
       body: JSON.stringify({ slotId, date, requestData: '' }),
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    return handleResponse(res);
   }
 
 export async function getBookings(token: string) {
   const res = await fetch(`${API_BASE}/bookings`, {
     headers: { Authorization: token }
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function getHolidays(token: string) {
     const res = await fetch(`${API_BASE}/holidays`, {
       headers: { Authorization: token }
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json(); // assume returns: string[] of dates like "2025-07-21"
+    return handleResponse(res); // assume returns: string[] of dates like "2025-07-21"
   }
   
   export async function addHoliday(token: string, date: string) {
@@ -134,8 +139,7 @@ export async function getHolidays(token: string) {
       },
       body: JSON.stringify({ date })
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    return handleResponse(res);
   }
   
   export async function removeHoliday(token: string, date: string) {
@@ -143,8 +147,7 @@ export async function getHolidays(token: string) {
       method: 'DELETE',
       headers: { Authorization: token }
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    return handleResponse(res);
   }
 
 export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject') {
@@ -156,16 +159,14 @@ export async function decideBooking(token: string, bookingId: string, decision: 
     },
     body: JSON.stringify({ decision }),
   });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function searchUsers(token: string, search: string) {
     const res = await fetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`, {
       headers: { Authorization: token }
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json(); // returns array of users
+    return handleResponse(res); // returns array of users
   }
   
   export async function createBookingForUser(
@@ -183,7 +184,6 @@ export async function searchUsers(token: string, search: string) {
       },
       body: JSON.stringify({ userId, slotId, date, isStaffBooking })
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    return handleResponse(res);
   }
   

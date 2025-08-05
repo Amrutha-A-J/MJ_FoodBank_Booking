@@ -60,6 +60,8 @@ export async function listSlots(req: Request, res: Response) {
     res.json(slotsWithAvailability);
   } catch (error) {
     console.error('Error listing slots:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error listing slots: ${(error as Error).message}` });
   }
 }

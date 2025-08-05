@@ -40,7 +40,9 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     next();
   } catch (error) {
     console.error('Auth error:', error);
-    res.status(500).json({ message: 'Database error' });
+    res
+      .status(500)
+      .json({ message: `Database error during authentication: ${(error as Error).message}` });
   }
 }
 
