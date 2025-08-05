@@ -3,9 +3,10 @@ import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
   updateVolunteerBookingStatus,
-  searchUsers,
+  searchVolunteers,
   getVolunteerBookingHistory,
   createVolunteer,
+  updateVolunteerTrainedAreas,
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
@@ -15,10 +16,10 @@ interface RoleOption {
   name: string;
 }
 
-interface UserResult {
+interface VolunteerResult {
   id: number;
   name: string;
-  client_id: number;
+  trainedAreas: string[];
 }
 
 interface SlotGroup {
@@ -45,8 +46,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
 
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState<UserResult[]>([]);
-  const [selectedVolunteer, setSelectedVolunteer] = useState<UserResult | null>(null);
+  const [results, setResults] = useState<VolunteerResult[]>([]);
+  const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
+  const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
+  const [editMsg, setEditMsg] = useState('');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
   const [firstName, setFirstName] = useState('');
@@ -55,6 +58,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [trainedArea, setTrainedArea] = useState('');
   const [createMsg, setCreateMsg] = useState('');
 
   useEffect(() => {
@@ -81,7 +85,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       return;
     }
     let active = true;
-    searchUsers(token, search)
+    searchVolunteers(token, search)
       .then(data => {
         if (active) setResults(data);
       })
@@ -145,10 +149,11 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
   }
 
-  async function selectVolunteer(u: UserResult) {
+  async function selectVolunteer(u: VolunteerResult) {
     setSelectedVolunteer(u);
     setResults([]);
     setSearch(u.name);
+    setTrainedEdit(u.trainedAreas || []);
     try {
       const data = await getVolunteerBookingHistory(token, u.id);
       setHistory(data);
@@ -157,9 +162,27 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
   }
 
+  function toggleTrained(name: string, checked: boolean) {
+    setTrainedEdit(prev =>
+      checked ? [...prev, name] : prev.filter(t => t !== name)
+    );
+  }
+
+  async function saveTrainedAreas() {
+    if (!selectedVolunteer) return;
+    try {
+      await updateVolunteerTrainedAreas(token, selectedVolunteer.id, trainedEdit);
+      setEditMsg('Roles updated');
+    } catch (e) {
+      setEditMsg(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   async function submitVolunteer() {
-    if (!firstName || !lastName || !username || !password) {
-      setCreateMsg('First name, last name, username and password required');
+    if (!firstName || !lastName || !username || !password || !trainedArea) {
+      setCreateMsg(
+        'First name, last name, username, password and trained area required'
+      );
       return;
     }
     try {
@@ -169,6 +192,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         lastName,
         username,
         password,
+        trainedArea,
         email || undefined,
         phone || undefined
       );
@@ -179,6 +203,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       setEmail('');
       setPhone('');
       setPassword('');
+      setTrainedArea('');
     } catch (e) {
       setCreateMsg(e instanceof Error ? e.message : String(e));
     }
@@ -248,19 +273,35 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
       {tab === 'search' && (
         <div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or client ID" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search volunteers" />
           {results.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(r => (
                 <li key={r.id}>
-                  <button onClick={() => selectVolunteer(r)}>{r.name} ({r.client_id})</button>
+                  <button onClick={() => selectVolunteer(r)}>{r.name}</button>
                 </li>
               ))}
             </ul>
           )}
           {selectedVolunteer && (
             <div>
-              <h3>History for {selectedVolunteer.name}</h3>
+              <h3>Roles for {selectedVolunteer.name}</h3>
+              <div style={{ marginBottom: 8 }}>
+                {roles.map(r => (
+                  <label key={r.id} style={{ display: 'block' }}>
+                    <input
+                      type="checkbox"
+                      value={r.name}
+                      checked={trainedEdit.includes(r.name)}
+                      onChange={e => toggleTrained(r.name, e.target.checked)}
+                    />{' '}
+                    {r.name}
+                  </label>
+                ))}
+              </div>
+              <button onClick={saveTrainedAreas}>Save Roles</button>
+              {editMsg && <p>{editMsg}</p>}
+              <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
@@ -322,6 +363,23 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>Password: <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>
+              Trained Area:{' '}
+              <select value={trainedArea} onChange={e => setTrainedArea(e.target.value)}>
+                <option value="">Select role</option>
+                {roles
+                  .filter(r =>
+                    ['Warehouse Food Sorter', 'Pantry Greeter'].includes(r.name)
+                  )
+                  .map(r => (
+                    <option key={r.id} value={r.name}>
+                      {r.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
           </div>
           <button onClick={submitVolunteer}>Add Volunteer</button>
           {createMsg && <p>{createMsg}</p>}
