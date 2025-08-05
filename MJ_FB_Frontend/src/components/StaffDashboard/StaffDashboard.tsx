@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getBookings, decideBooking } from '../../api/api';
-import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface Booking {
   id: number;
@@ -50,7 +50,7 @@ export default function StaffDashboard({
     setLoading(true);
     setError('');
     try {
-      await decideBooking(token, id.toString(), decision);
+      await decideBooking(token, id.toString(), decision, '');
       setMessage(`Booking ${decision}d`);
       await loadBookings();
     } catch (err: unknown) {
@@ -63,8 +63,11 @@ export default function StaffDashboard({
 
   const pending = bookings.filter(b => b.status === 'submitted');
   const reginaTimeZone = 'America/Regina';
-  const formatDate = (date: string) =>
-    formatInTimeZone(fromZonedTime(`${date}T00:00:00`, reginaTimeZone), reginaTimeZone, 'yyyy-MM-dd');
+  const formatDate = (dateStr: string) => {
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed.getTime())) return dateStr;
+    return formatInTimeZone(parsed, reginaTimeZone, 'yyyy-MM-dd', {});
+  };
 
   return (
     <div>
