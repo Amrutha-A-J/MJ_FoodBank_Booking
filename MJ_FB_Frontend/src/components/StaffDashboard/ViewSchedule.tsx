@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
-import type { Slot, Break } from '../../types';
+import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { formatTime } from '../../utils/time';
 
 interface Booking {
   id: number;
@@ -26,8 +27,8 @@ export default function ViewSchedule({ token }: { token: string }) {
   });
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [holidays, setHolidays] = useState<string[]>([]);
-  const [blockedSlots, setBlockedSlots] = useState<number[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [breaks, setBreaks] = useState<Break[]>([]);
   const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
@@ -42,7 +43,7 @@ export default function ViewSchedule({ token }: { token: string }) {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-    const holiday = holidays.includes(dateStr);
+    const holiday = holidays.some(h => h.date === dateStr);
     if (weekend || holiday) {
       setSlots([]);
       setBookings([]);
@@ -126,22 +127,21 @@ export default function ViewSchedule({ token }: { token: string }) {
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
   const dayName = formatInTimeZone(currentDate, reginaTimeZone, 'EEEE');
-  const isHoliday = holidays.includes(dateStr);
+  const holidayObj = holidays.find(h => h.date === dateStr);
+  const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
   const slotMap = new Map(allSlots.map(s => [s.id, s]));
   const dayBreaks = breaks.filter(b => b.dayOfWeek === reginaDate.getDay());
-  const displaySlots: (
-    Slot & { break?: boolean; blocked?: boolean }
-  )[] = [];
+  const displaySlots: (Slot & { break?: boolean; blocked?: boolean; reason?: string })[] = [];
   for (const b of dayBreaks) {
     const s = slotMap.get(b.slotId.toString());
-    if (s) displaySlots.push({ ...s, available: 0, break: true });
+    if (s) displaySlots.push({ ...s, available: 0, break: true, reason: b.reason });
   }
-  for (const id of blockedSlots) {
-    const s = slotMap.get(id.toString());
-    if (s) displaySlots.push({ ...s, available: 0, blocked: true });
+  for (const b of blockedSlots) {
+    const s = slotMap.get(b.slotId.toString());
+    if (s) displaySlots.push({ ...s, available: 0, blocked: true, reason: b.reason });
   }
   for (const s of slots) {
     displaySlots.push(s);
@@ -152,7 +152,14 @@ export default function ViewSchedule({ token }: { token: string }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <button onClick={() => changeDay(-1)}>Previous</button>
-        <h3>{dateStr} - {dayName}{isHoliday ? ' (Holiday)' : isWeekend ? ' (Weekend)' : ''}</h3>
+        <h3>
+          {dateStr} - {dayName}
+          {isHoliday
+            ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
+            : isWeekend
+              ? ' (Weekend)'
+              : ''}
+        </h3>
         <button onClick={() => changeDay(1)}>Next</button>
       </div>
       {message && <p style={{ color: 'red' }}>{message}</p>}
@@ -173,23 +180,23 @@ export default function ViewSchedule({ token }: { token: string }) {
               if (slot.break) {
                 return (
                   <tr key={`break-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
-                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Break</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
+                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Break{slot.reason ? ` - ${slot.reason}` : ''}</td>
                   </tr>
                 );
               }
               if (slot.blocked) {
                 return (
                   <tr key={`blocked-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
-                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Blocked</td>
+                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
+                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Blocked{slot.reason ? ` - ${slot.reason}` : ''}</td>
                   </tr>
                 );
               }
               const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
               return (
                 <tr key={slot.id}>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{slot.startTime} - {slot.endTime}</td>
+                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
                   {Array.from({ length: 4 }).map((_, i) => {
                     const booking = slotBookings[i];
                     return (
