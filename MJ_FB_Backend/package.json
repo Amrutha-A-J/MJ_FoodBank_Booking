@@ -21,7 +21,7 @@
     "dev": "ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "node --test -r ts-node/register test/**/*.test.ts"
   },
   "keywords": [],
   "author": "",
