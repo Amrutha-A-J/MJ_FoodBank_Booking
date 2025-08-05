@@ -3,7 +3,7 @@ import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
 
-export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginResponse) => void; onStaff: () => void }) {
+export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (user: LoginResponse) => void; onStaff: () => void; onVolunteer: () => void }) {
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,7 +28,10 @@ export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginRespo
 
   return (
     <div>
-      <a onClick={onStaff} style={{ cursor: 'pointer' }}>Staff Login</a>
+      <div>
+        <a onClick={onStaff} style={{ cursor: 'pointer', marginRight: '10px' }}>Staff Login</a>
+        <a onClick={onVolunteer} style={{ cursor: 'pointer' }}>Volunteer Login</a>
+      </div>
       <h2>User Login</h2>
       {error && <p style={{color:'red'}}>{error}</p>}
       <form onSubmit={handleSubmit}>
