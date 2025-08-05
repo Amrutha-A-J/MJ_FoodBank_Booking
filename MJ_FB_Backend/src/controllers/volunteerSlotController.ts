@@ -163,9 +163,10 @@ export async function listVolunteerSlotsForVolunteer(req: Request, res: Response
       return res.json([]);
     }
     const result = await pool.query(
-      `SELECT vs.id, vs.role_id, vs.slot_date, vs.start_time, vs.end_time, vs.max_volunteers,
+      `SELECT vs.id, vs.role_id, vr.name AS role_name, vs.slot_date, vs.start_time, vs.end_time, vs.max_volunteers,
               COALESCE(b.count,0) AS booked
        FROM volunteer_slots vs
+       JOIN volunteer_roles_master vr ON vs.role_id = vr.id
        LEFT JOIN (
          SELECT slot_id, COUNT(*) AS count
          FROM volunteer_bookings
