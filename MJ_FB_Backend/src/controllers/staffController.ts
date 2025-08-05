@@ -49,7 +49,7 @@ export async function createAdmin(req: Request, res: Response) {
 
     await pool.query(
       `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
-       VALUES ($1, $2, $3, 'admin', $4, $5, TRUE)`,
+       VALUES ($1, $2, $3, 'staff', $4, $5, TRUE)`,
       [firstName, lastName, staffId, email, hashed]
     );
 
