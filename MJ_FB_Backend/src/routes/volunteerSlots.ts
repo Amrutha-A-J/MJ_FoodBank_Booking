@@ -7,15 +7,13 @@ import {
   listVolunteerSlotsForVolunteer,
 } from '../controllers/volunteerSlotController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { verifyVolunteerToken } from '../middleware/verifyVolunteerToken';
 
 const router = express.Router();
 
-router.get('/', authMiddleware, (req, res) => {
-  if (req.user && req.user.role === 'volunteer_coordinator') {
-    return listVolunteerSlots(req, res);
-  }
-  return listVolunteerSlotsForVolunteer(req, res);
-});
+router.get('/', authMiddleware, authorizeRoles('volunteer_coordinator'), listVolunteerSlots);
+
+router.get('/mine', verifyVolunteerToken, listVolunteerSlotsForVolunteer);
 
 router.post('/', authMiddleware, authorizeRoles('volunteer_coordinator'), addVolunteerSlot);
 router.put('/:id', authMiddleware, authorizeRoles('volunteer_coordinator'), updateVolunteerSlot);
