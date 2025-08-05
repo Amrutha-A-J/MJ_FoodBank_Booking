@@ -67,7 +67,6 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [staffId, setStaffId] = useState('');
   const [role, setRole] = useState<StaffRole>('admin');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
@@ -75,7 +74,7 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await createAdmin(firstName, lastName, staffId, role, email, password);
+      await createAdmin(firstName, lastName, role, email, password);
       setMessage('Admin created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {
@@ -91,7 +90,6 @@ function CreateAdminForm({ onCreated, error: initError }: { onCreated: () => voi
       <form onSubmit={submit}>
         <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="First name" />
         <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Last name" />
-        <input value={staffId} onChange={e => setStaffId(e.target.value)} placeholder="Staff ID" />
         <select value={role} onChange={e => setRole(e.target.value as StaffRole)}>
           <option value="staff">Staff</option>
           <option value="volunteer_coordinator">Volunteer Coordinator</option>

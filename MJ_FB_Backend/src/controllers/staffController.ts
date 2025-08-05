@@ -16,15 +16,14 @@ export async function checkStaffExists(_req: Request, res: Response) {
 }
 
 export async function createAdmin(req: Request, res: Response) {
-  const { firstName, lastName, staffId, email, password } = req.body as {
+  const { firstName, lastName, email, password } = req.body as {
     firstName: string;
     lastName: string;
-    staffId: string;
     email: string;
     password: string;
   };
 
-  if (!firstName || !lastName || !staffId || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
@@ -34,16 +33,16 @@ export async function createAdmin(req: Request, res: Response) {
       return res.status(400).json({ message: 'Admin already exists' });
     }
 
-    // Prevent duplicate email or staff ID from causing a database error
+    // Prevent duplicate email from causing a database error
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
     if (emailCheck.rowCount && emailCheck.rowCount > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const staffIdCheck = await pool.query('SELECT id FROM staff WHERE staff_id = $1', [staffId]);
-    if (staffIdCheck.rowCount && staffIdCheck.rowCount > 0) {
-      return res.status(400).json({ message: 'Staff ID already exists' });
-    }
+    const staffIdResult = await pool.query(
+      "SELECT COALESCE(MAX(CAST(staff_id AS INTEGER)), 0) + 1 AS next_id FROM staff"
+    );
+    const staffId = staffIdResult.rows[0].next_id.toString();
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -67,16 +66,15 @@ export async function createStaff(req: Request, res: Response) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { firstName, lastName, staffId, role, email, password } = req.body as {
+  const { firstName, lastName, role, email, password } = req.body as {
     firstName: string;
     lastName: string;
-    staffId: string;
     role: string;
     email: string;
     password: string;
   };
 
-  if (!firstName || !lastName || !staffId || !role || !email || !password) {
+  if (!firstName || !lastName || !role || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
@@ -91,10 +89,10 @@ export async function createStaff(req: Request, res: Response) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const staffIdCheck = await pool.query('SELECT id FROM staff WHERE staff_id = $1', [staffId]);
-    if (staffIdCheck.rowCount && staffIdCheck.rowCount > 0) {
-      return res.status(400).json({ message: 'Staff ID already exists' });
-    }
+    const staffIdResult = await pool.query(
+      "SELECT COALESCE(MAX(CAST(staff_id AS INTEGER)), 0) + 1 AS next_id FROM staff"
+    );
+    const staffId = staffIdResult.rows[0].next_id.toString();
 
     const hashed = await bcrypt.hash(password, 10);
 
