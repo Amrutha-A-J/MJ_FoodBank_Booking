@@ -51,7 +51,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [createMsg, setCreateMsg] = useState('');
 
@@ -152,16 +154,26 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   }
 
   async function submitVolunteer() {
-    if (!firstName || !lastName || !email || !password) {
-      setCreateMsg('All fields required');
+    if (!firstName || !lastName || !username || !password) {
+      setCreateMsg('First name, last name, username and password required');
       return;
     }
     try {
-      await createVolunteer(token, firstName, lastName, email, password);
+      await createVolunteer(
+        token,
+        firstName,
+        lastName,
+        username,
+        password,
+        email || undefined,
+        phone || undefined
+      );
       setCreateMsg('Volunteer created');
       setFirstName('');
       setLastName('');
+      setUsername('');
       setEmail('');
+      setPhone('');
       setPassword('');
     } catch (e) {
       setCreateMsg(e instanceof Error ? e.message : String(e));
@@ -296,7 +308,13 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <label>Last Name: <input value={lastName} onChange={e => setLastName(e.target.value)} /></label>
           </div>
           <div style={{ marginBottom: 8 }}>
-            <label>Email: <input type="email" value={email} onChange={e => setEmail(e.target.value)} /></label>
+            <label>Username: <input value={username} onChange={e => setUsername(e.target.value)} /></label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>Email (optional): <input type="email" value={email} onChange={e => setEmail(e.target.value)} /></label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>Phone (optional): <input value={phone} onChange={e => setPhone(e.target.value)} /></label>
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>Password: <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>

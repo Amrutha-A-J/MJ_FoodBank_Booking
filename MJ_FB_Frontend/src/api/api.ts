@@ -50,13 +50,13 @@ export async function loginStaff(
 }
 
 export async function loginVolunteer(
-  email: string,
+  username: string,
   password: string
 ): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE}/volunteers/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   });
   return handleResponse(res);
 }
@@ -366,8 +366,10 @@ export async function createVolunteer(
   token: string,
   firstName: string,
   lastName: string,
-  email: string,
-  password: string
+  username: string,
+  password: string,
+  email?: string,
+  phone?: string
 ) {
   const res = await fetch(`${API_BASE}/volunteers`, {
     method: 'POST',
@@ -375,7 +377,15 @@ export async function createVolunteer(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ firstName, lastName, email, password }),
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      username,
+      password,
+      email,
+      phone,
+      trainedAreas: [],
+    }),
   });
   return handleResponse(res);
 }

@@ -8,9 +8,11 @@ async function ensureVolunteersTable() {
       id SERIAL PRIMARY KEY,
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      trained_areas INTEGER[]
+      trained_areas TEXT[] DEFAULT '{}',
+      email TEXT,
+      phone TEXT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL
     )
   `);
 }
@@ -39,16 +41,19 @@ export async function updateTrainedAreas(req: Request, res: Response) {
 }
 
 export async function loginVolunteer(req: Request, res: Response) {
-  const { email, password } = req.body as { email?: string; password?: string };
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password required' });
+  const { username, password } = req.body as {
+    username?: string;
+    password?: string;
+  };
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password required' });
   }
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, password
+      `SELECT id, first_name, last_name, username, password
        FROM volunteers
-       WHERE email = $1`,
-      [email]
+       WHERE username = $1`,
+      [username]
     );
     if (result.rowCount === 0) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -72,30 +77,45 @@ export async function loginVolunteer(req: Request, res: Response) {
 }
 
 export async function createVolunteer(req: Request, res: Response) {
-  const { firstName, lastName, email, password } = req.body as {
+  const { firstName, lastName, username, password, email, phone } = req.body as {
     firstName?: string;
     lastName?: string;
-    email?: string;
+    username?: string;
     password?: string;
+    email?: string;
+    phone?: string;
   };
 
-  if (!firstName || !lastName || !email || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
+  if (!firstName || !lastName || !username || !password) {
+    return res.status(400).json({
+      message: 'First name, last name, username and password required',
+    });
   }
 
   try {
     await ensureVolunteersTable();
-    const emailCheck = await pool.query('SELECT id FROM volunteers WHERE email=$1', [email]);
-    if (emailCheck.rowCount && emailCheck.rowCount > 0) {
-      return res.status(400).json({ message: 'Email already exists' });
+    const usernameCheck = await pool.query('SELECT id FROM volunteers WHERE username=$1', [
+      username,
+    ]);
+    if (usernameCheck.rowCount && usernameCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    if (email) {
+      const emailCheck = await pool.query('SELECT id FROM volunteers WHERE email=$1', [
+        email,
+      ]);
+      if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO volunteers (first_name, last_name, email, password, trained_areas)
-       VALUES ($1,$2,$3,$4,$5)
+      `INSERT INTO volunteers (first_name, last_name, trained_areas, email, phone, username, password)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
        RETURNING id`,
-      [firstName, lastName, email, hashed, []]
+      [firstName, lastName, [], email, phone, username, hashed]
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (error) {
