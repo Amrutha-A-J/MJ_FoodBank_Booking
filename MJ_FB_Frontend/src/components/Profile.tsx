@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBookingHistory, cancelBooking } from '../api/api';
+import ConfirmDialog from './ConfirmDialog';
 import type { Role } from '../types';
 
 interface Booking {
@@ -16,6 +17,7 @@ export default function Profile() {
   const role = (localStorage.getItem('role') || '') as Role;
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [confirm, setConfirm] = useState<{ id: number; reschedule: boolean } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -33,12 +35,15 @@ export default function Profile() {
     load();
   }, [token, role, filter]);
 
-  async function handleCancel(id: number, reschedule = false) {
-    const reason = prompt('Please provide a reason');
-    if (reason === null) return;
+  function handleCancel(id: number, reschedule = false) {
+    setConfirm({ id, reschedule });
+  }
+
+  async function confirmCancel() {
+    if (!confirm) return;
     try {
-      await cancelBooking(token, id.toString(), reason);
-      if (reschedule) {
+      await cancelBooking(token, confirm.id.toString());
+      if (confirm.reschedule) {
         window.dispatchEvent(new CustomEvent('navigate', { detail: 'slots' }));
       } else {
         const data: Booking[] = await getBookingHistory(token, {});
@@ -46,6 +51,8 @@ export default function Profile() {
       }
     } catch (err) {
       console.error('Error cancelling booking:', err);
+    } finally {
+      setConfirm(null);
     }
   }
 
@@ -90,6 +97,13 @@ export default function Profile() {
           );
         })}
       </ul>
+      {confirm && (
+        <ConfirmDialog
+          message={confirm.reschedule ? 'Cancel booking to reschedule?' : 'Cancel booking?'}
+          onConfirm={confirmCancel}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </div>
   );
 }

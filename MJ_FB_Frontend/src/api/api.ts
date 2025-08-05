@@ -266,14 +266,14 @@ export async function decideBooking(token: string, bookingId: string, decision: 
   return handleResponse(res);
 }
 
-export async function cancelBooking(token: string, bookingId: string, reason: string) {
+export async function cancelBooking(token: string, bookingId: string, reason?: string) {
   const res = await fetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ reason }),
+    body: JSON.stringify(reason ? { reason } : {}),
   });
   return handleResponse(res);
 }
