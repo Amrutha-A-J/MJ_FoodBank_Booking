@@ -77,19 +77,34 @@ export async function loginVolunteer(req: Request, res: Response) {
 }
 
 export async function createVolunteer(req: Request, res: Response) {
-  const { firstName, lastName, username, password, email, phone } = req.body as {
+  const {
+    firstName,
+    lastName,
+    username,
+    password,
+    email,
+    phone,
+    trainedArea,
+  } = req.body as {
     firstName?: string;
     lastName?: string;
     username?: string;
     password?: string;
     email?: string;
     phone?: string;
+    trainedArea?: string;
   };
 
-  if (!firstName || !lastName || !username || !password) {
+  if (!firstName || !lastName || !username || !password || !trainedArea) {
     return res.status(400).json({
-      message: 'First name, last name, username and password required',
+      message:
+        'First name, last name, username, password and trained area required',
     });
+  }
+
+  const validAreas = ['Warehouse Food Sorter', 'Pantry Greeter'];
+  if (!validAreas.includes(trainedArea)) {
+    return res.status(400).json({ message: 'Invalid trained area' });
   }
 
   try {
@@ -115,13 +130,49 @@ export async function createVolunteer(req: Request, res: Response) {
       `INSERT INTO volunteers (first_name, last_name, trained_areas, email, phone, username, password)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        RETURNING id`,
-      [firstName, lastName, [], email, phone, username, hashed]
+      [firstName, lastName, [trainedArea], email, phone, username, hashed]
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (error) {
     console.error('Error creating volunteer:', error);
     res.status(500).json({
       message: `Database error creating volunteer: ${(error as Error).message}`,
+    });
+  }
+}
+
+export async function searchVolunteers(req: Request, res: Response) {
+  try {
+    const rawSearch = (req.query.search as string) || '';
+    const search = rawSearch.trim();
+
+    if (search.length < 3) {
+      return res.json([]);
+    }
+
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, trained_areas
+       FROM volunteers
+       WHERE (first_name || ' ' || last_name) ILIKE $1
+          OR email ILIKE $1
+          OR phone ILIKE $1
+          OR username ILIKE $1
+       ORDER BY first_name, last_name
+       LIMIT 5`,
+      [`%${search}%`]
+    );
+
+    const formatted = result.rows.map(v => ({
+      id: v.id,
+      name: `${v.first_name} ${v.last_name}`.trim(),
+      trainedAreas: v.trained_areas || [],
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error('Error searching volunteers:', error);
+    res.status(500).json({
+      message: `Database error searching volunteers: ${(error as Error).message}`,
     });
   }
 }

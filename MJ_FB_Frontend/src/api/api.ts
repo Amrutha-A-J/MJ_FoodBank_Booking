@@ -280,6 +280,16 @@ export async function searchUsers(token: string, search: string) {
     });
     return handleResponse(res); // returns array of users
   }
+
+export async function searchVolunteers(token: string, search: string) {
+  const res = await fetch(
+    `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
+    {
+      headers: { Authorization: token },
+    }
+  );
+  return handleResponse(res);
+}
   
   export async function createBookingForUser(
     token: string,
@@ -372,6 +382,7 @@ export async function createVolunteer(
   lastName: string,
   username: string,
   password: string,
+  trainedArea: string,
   email?: string,
   phone?: string
 ) {
@@ -386,10 +397,26 @@ export async function createVolunteer(
       lastName,
       username,
       password,
+      trainedArea,
       email,
       phone,
-      trainedAreas: [],
     }),
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerTrainedAreas(
+  token: string,
+  id: number,
+  trainedAreas: string[]
+) {
+  const res = await fetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ trainedAreas }),
   });
   return handleResponse(res);
 }

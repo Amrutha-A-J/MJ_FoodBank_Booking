@@ -1,5 +1,10 @@
 import express from 'express';
-import { updateTrainedAreas, loginVolunteer, createVolunteer } from '../controllers/volunteerController';
+import {
+  updateTrainedAreas,
+  loginVolunteer,
+  createVolunteer,
+  searchVolunteers,
+} from '../controllers/volunteerController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 
 const router = express.Router();
@@ -11,6 +16,13 @@ router.post(
   authMiddleware,
   authorizeRoles('volunteer_coordinator'),
   createVolunteer
+);
+
+router.get(
+  '/search',
+  authMiddleware,
+  authorizeRoles('staff', 'volunteer_coordinator'),
+  searchVolunteers
 );
 
 router.put(
