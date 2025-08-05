@@ -9,8 +9,10 @@ function getMonthRange(date: Date) {
   };
 }
 
-export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
-  const today = new Date();
+export function isDateWithinCurrentOrNextMonth(
+  dateStr: string,
+  today: Date = new Date(),
+): boolean {
   const bookingDate = new Date(dateStr);
 
   const currentMonth = today.getMonth();
@@ -23,11 +25,13 @@ export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
   const nextMonth = (currentMonth + 1) % 12;
   const nextMonthYear = currentMonth === 11 ? currentYear + 1 : currentYear;
 
+  const startOfToday = new Date(currentYear, currentMonth, today.getDate());
+
   if (
     bookingDate.getFullYear() === currentYear &&
     bookingDate.getMonth() === currentMonth
   ) {
-    return true;
+    return bookingDate >= startOfToday;
   }
 
   if (
