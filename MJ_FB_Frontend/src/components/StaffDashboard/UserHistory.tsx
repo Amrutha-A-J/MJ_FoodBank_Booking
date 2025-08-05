@@ -22,7 +22,12 @@ interface Booking {
   reason?: string;
 }
 
-export default function UserHistory({ token }: { token: string }) {
+interface Props {
+  token: string;
+  self?: boolean;
+}
+
+export default function UserHistory({ token, self = false }: Props) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<User[]>([]);
   const [selected, setSelected] = useState<User | null>(null);
@@ -33,6 +38,7 @@ export default function UserHistory({ token }: { token: string }) {
   const pageSize = 10;
 
   useEffect(() => {
+    if (self) return;
     if (search.length < 3) {
       setResults([]);
       return;
@@ -46,11 +52,16 @@ export default function UserHistory({ token }: { token: string }) {
     return () => {
       active = false;
     };
-  }, [search, token]);
+  }, [search, token, self]);
 
   useEffect(() => {
-    if (!selected) return;
-    const opts: { status?: string; past?: boolean; userId: number } = { userId: selected.id };
+    const opts: { status?: string; past?: boolean; userId?: number } = {};
+    if (self) {
+      // current user's history
+    } else {
+      if (!selected) return;
+      opts.userId = selected.id;
+    }
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     getBookingHistory(token, opts)
@@ -62,46 +73,48 @@ export default function UserHistory({ token }: { token: string }) {
         setPage(1);
       })
       .catch(err => console.error('Error loading history:', err));
-  }, [selected, filter, token]);
+  }, [selected, filter, token, self]);
 
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
+  const filterId = self ? 'filterUser' : 'filterStaff';
+
   return (
     <div>
-      <h2>User History</h2>
-      <input
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search by name or client ID"
-      />
-      {results.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {results.map(u => (
-            <li key={u.id}>
-              <button
-                onClick={() => {
-                  setSelected(u);
-                  setSearch(u.name);
-                  setResults([]);
-                }}
-              >
-                {u.name} ({u.client_id})
-              </button>
-            </li>
-          ))}
-        </ul>
+      <h2>{self ? 'Booking History' : 'User History'}</h2>
+      {!self && (
+        <>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name or client ID"
+          />
+          {results.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {results.map(u => (
+                <li key={u.id}>
+                  <button
+                    onClick={() => {
+                      setSelected(u);
+                      setSearch(u.name);
+                      setResults([]);
+                    }}
+                  >
+                    {u.name} ({u.client_id})
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
-      {selected && (
+      {(self || selected) && (
         <div>
-          <h3>History for {selected.name}</h3>
+          {!self && selected && <h3>History for {selected.name}</h3>}
           <div>
-            <label htmlFor="filterStaff">Filter:</label>{' '}
-            <select
-              id="filterStaff"
-              value={filter}
-              onChange={e => setFilter(e.target.value)}
-            >
+            <label htmlFor={filterId}>Filter:</label>{' '}
+            <select id={filterId} value={filter} onChange={e => setFilter(e.target.value)}>
               <option value="all">All</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>

@@ -49,7 +49,10 @@ export default function App() {
       { label: 'User History', id: 'userHistory' },
     ]);
   } else if (role === 'shopper') {
-    navLinks = navLinks.concat([{ label: 'Booking Slots', id: 'slots' }]);
+    navLinks = navLinks.concat([
+      { label: 'Booking Slots', id: 'slots' },
+      { label: 'Booking History', id: 'bookingHistory' },
+    ]);
   }
 
   return (
@@ -127,6 +130,9 @@ export default function App() {
             )}
             {activePage === 'userHistory' && isStaff && (
               <UserHistory token={token} />
+            )}
+            {activePage === 'bookingHistory' && role === 'shopper' && (
+              <UserHistory token={token} self />
             )}
           </main>
         </>
