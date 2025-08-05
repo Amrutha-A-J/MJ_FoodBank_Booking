@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getBookings, decideBooking } from '../../api/api';
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
 
 interface Booking {
   id: number;
@@ -61,6 +62,9 @@ export default function StaffDashboard({
   }
 
   const pending = bookings.filter(b => b.status === 'submitted');
+  const reginaTimeZone = 'America/Regina';
+  const formatDate = (date: string) =>
+    formatInTimeZone(fromZonedTime(`${date}T00:00:00`, reginaTimeZone), reginaTimeZone, 'yyyy-MM-dd');
 
   return (
     <div>
@@ -80,7 +84,7 @@ export default function StaffDashboard({
               }}
             >
               <div><strong>Booking ID:</strong> {b.id}</div>
-              <div><strong>Date:</strong> {new Date(b.date).toLocaleDateString()}</div>
+              <div><strong>Date:</strong> {formatDate(b.date)}</div>
               <div><strong>User:</strong> {b.user_name || 'Unknown'} ({b.user_email || 'N/A'}, {b.user_phone || 'N/A'})</div>
               <div><strong>Slot:</strong> {b.start_time && b.end_time ? `${b.start_time} - ${b.end_time}` : 'No slot assigned'}</div>
               <div style={{ marginTop: 6 }}>

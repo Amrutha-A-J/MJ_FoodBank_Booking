@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
-import { toZonedTime } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot } from '../types';
 
 const reginaTimeZone = 'America/Regina';
@@ -19,6 +19,13 @@ interface User {
 interface Props {
   token: string;
   role: 'staff' | 'shopper';
+}
+
+function toReginaDate(date: Date): Date {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return fromZonedTime(`${y}-${m}-${d}T00:00:00`, reginaTimeZone);
 }
 
 export default function SlotBooking({ token, role }: Props) {
@@ -38,7 +45,7 @@ export default function SlotBooking({ token, role }: Props) {
 
   const loggedInName = localStorage.getItem('name') || 'You';
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
   const isWeekend = useCallback((date: Date) => {
     const day = toZonedTime(date, reginaTimeZone).getDay();
@@ -47,8 +54,8 @@ export default function SlotBooking({ token, role }: Props) {
 
   const isHoliday = useCallback(
     (date: Date) => {
-      const zoned = toZonedTime(date, reginaTimeZone);
-      return holidays.includes(formatDate(zoned));
+      const dateStr = formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
+      return holidays.includes(dateStr);
     },
     [holidays],
   );
@@ -69,15 +76,16 @@ export default function SlotBooking({ token, role }: Props) {
   }, [token]);
 
   useEffect(() => {
-    const today = toZonedTime(new Date(), reginaTimeZone);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    setIsLastWeek(lastDay.getDate() - today.getDate() < 7);
+    const today = toReginaDate(new Date());
+    const zonedToday = toZonedTime(today, reginaTimeZone);
+    const lastDay = new Date(zonedToday.getFullYear(), zonedToday.getMonth() + 1, 0);
+    setIsLastWeek(lastDay.getDate() - zonedToday.getDate() < 7);
   }, []);
 
   // Automatically choose the first available date (non-weekend and non-holiday)
   useEffect(() => {
-    const today = toZonedTime(new Date(), reginaTimeZone);
-    let date = new Date(today.toDateString());
+    const today = toReginaDate(new Date());
+    let date = today;
     if (isWeekend(date) || isHoliday(date)) {
       date = getNextAvailableDate(date);
     }
@@ -102,9 +110,7 @@ export default function SlotBooking({ token, role }: Props) {
   useEffect(() => {
     if (selectedDate) {
       const dateStr = formatDate(selectedDate);
-      const dayName = toZonedTime(selectedDate, reginaTimeZone).toLocaleDateString('en-US', {
-        weekday: 'long',
-      });
+      const dayName = formatInTimeZone(selectedDate, reginaTimeZone, 'EEEE');
       if (isWeekend(selectedDate)) {
         setSlots([]);
         setSelectedSlotId(null);
@@ -199,25 +205,27 @@ export default function SlotBooking({ token, role }: Props) {
         {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
       </h3>
       <Calendar
-        onChange={(value) => {
-          if (value instanceof Date) setSelectedDate(value);
+        onChange={value => {
+          if (value instanceof Date) setSelectedDate(toReginaDate(value));
         }}
-        value={selectedDate}
+        value={selectedDate ? toZonedTime(selectedDate, reginaTimeZone) : undefined}
         calendarType="gregory"
         tileDisabled={({ date }) => {
-          const zoned = toZonedTime(date, reginaTimeZone);
-          const today = toZonedTime(new Date(), reginaTimeZone);
-          const isPast = zoned < new Date(today.toDateString());
+          const regDate = toReginaDate(date);
+          const today = toReginaDate(new Date());
+          const regDateZ = toZonedTime(regDate, reginaTimeZone);
+          const todayZ = toZonedTime(today, reginaTimeZone);
+          const isPast = regDate < today;
           const sameMonth =
-            zoned.getFullYear() === today.getFullYear() &&
-            zoned.getMonth() === today.getMonth();
+            regDateZ.getFullYear() === todayZ.getFullYear() && regDateZ.getMonth() === todayZ.getMonth();
           const nextMonth =
-            zoned.getFullYear() === (today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear()) &&
-            zoned.getMonth() === ((today.getMonth() + 1) % 12);
+            regDateZ.getFullYear() ===
+              (todayZ.getMonth() === 11 ? todayZ.getFullYear() + 1 : todayZ.getFullYear()) &&
+            regDateZ.getMonth() === ((todayZ.getMonth() + 1) % 12);
           const outOfRange = !sameMonth && !(nextMonth && isLastWeek);
-          return isPast || outOfRange || isHoliday(date);
+          return isPast || outOfRange || isHoliday(regDate);
         }}
-        tileClassName={({ date }) => (isHoliday(date) ? 'holiday-tile' : undefined)}
+        tileClassName={({ date }) => (isHoliday(toReginaDate(date)) ? 'holiday-tile' : undefined)}
       />
       {selectedDate && (
         <div className="slot-day-container">
