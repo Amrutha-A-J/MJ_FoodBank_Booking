@@ -53,3 +53,16 @@ export interface VolunteerBooking {
   role_name: string;
   status_color?: string;
 }
+
+export interface VolunteerBookingDetail {
+  id: number;
+  status: string;
+  slot_id: number;
+  volunteer_id: number;
+  volunteer_name: string;
+  slot_date: string;
+  start_time: string;
+  end_time: string;
+  status_color?: string;
+  role_name?: string;
+}
