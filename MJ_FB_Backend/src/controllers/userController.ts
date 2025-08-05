@@ -28,7 +28,7 @@ export async function loginUser(req: Request, res: Response) {
       }
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
       return res.json({
-        token: `user-${user.id}`,
+        token: `user:${user.id}`,
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
         bookingsThisMonth,
@@ -52,7 +52,7 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     res.json({
-      token: `staff-${staff.id}`,
+      token: `staff:${staff.id}`,
       role: staff.role,
       name: `${staff.first_name} ${staff.last_name}`,
     });
