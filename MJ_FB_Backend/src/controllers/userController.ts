@@ -10,16 +10,24 @@ export async function loginUser(req: Request, res: Response) {
   }
 
   try {
-    const result = await pool.query(
+    let userQuery = await pool.query(
       'SELECT id, name, email, password, role FROM users WHERE email = $1',
       [email]
     );
 
-    if (result.rowCount === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    let user = userQuery.rows[0];
+    if (!user) {
+      const staffQuery = await pool.query(
+        `SELECT id, first_name || ' ' || last_name AS name, email, password
+         FROM staff WHERE email = $1`,
+        [email]
+      );
+      if (staffQuery.rowCount === 0) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      user = { ...staffQuery.rows[0], role: 'staff' };
     }
 
-    const user = result.rows[0];
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });

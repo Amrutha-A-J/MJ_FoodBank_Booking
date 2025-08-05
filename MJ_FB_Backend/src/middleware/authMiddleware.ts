@@ -14,15 +14,29 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       [token]
     );
 
-    if (userRes.rowCount === 0) {
+    if (userRes.rowCount && userRes.rowCount > 0) {
+      req.user = {
+        ...userRes.rows[0],
+        id: userRes.rows[0].id.toString(), // ensure string
+      };
+      return next();
+    }
+
+    const staffRes = await pool.query(
+      'SELECT id, first_name, last_name, email FROM staff WHERE id = $1',
+      [token]
+    );
+
+    if (staffRes.rowCount === 0) {
       return res.status(401).json({ message: 'Invalid token' });
     }
 
     req.user = {
-      ...userRes.rows[0],
-      id: userRes.rows[0].id.toString(), // ensure string
-    };
-
+      id: staffRes.rows[0].id.toString(),
+      role: 'staff',
+      name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
+      email: staffRes.rows[0].email,
+    } as any;
     next();
   } catch (error) {
     console.error('Auth error:', error);
