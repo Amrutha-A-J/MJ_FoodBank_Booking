@@ -10,15 +10,18 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   try {
     // Simple: use token as user.id to find user
     const userRes = await pool.query(
-      'SELECT id, name, email, role, phone FROM users WHERE id = $1',
+      'SELECT id, first_name, last_name, email, role, phone FROM users WHERE id = $1',
       [token]
     );
 
     if (userRes.rowCount && userRes.rowCount > 0) {
       req.user = {
-        ...userRes.rows[0],
-        id: userRes.rows[0].id.toString(), // ensure string
-      };
+        id: userRes.rows[0].id.toString(),
+        role: userRes.rows[0].role,
+        email: userRes.rows[0].email,
+        phone: userRes.rows[0].phone,
+        name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
+      } as any;
       return next();
     }
 

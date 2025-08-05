@@ -6,27 +6,28 @@ export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('shopper');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [clientId, setClientId] = useState('');
   const [staffId, setStaffId] = useState('');
   const [staffRole, setStaffRole] = useState<StaffRole>('staff');
+  const [password, setPassword] = useState('');
 
   async function submitUser() {
-    if (!email || !name || !password) {
-      setMessage('Name, email and password required');
+    if (!firstName || !lastName || !clientId) {
+      setMessage('First name, last name and client ID required');
       return;
     }
     try {
-      await addUser(token, name, email, password, role, phone);
+      await addUser(token, firstName, lastName, clientId, role, email || undefined, phone || undefined);
       setMessage('User added successfully');
+      setFirstName('');
+      setLastName('');
+      setClientId('');
       setEmail('');
-      setName('');
-      setPassword('');
       setPhone('');
       setRole('shopper');
     } catch (err: unknown) {
@@ -65,26 +66,32 @@ export default function AddUser({ token }: { token: string }) {
         <>
           <div style={{ marginBottom: 8 }}>
             <label>
-              Name:{' '}
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Full name" />
+              First Name:{' '}
+              <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>
-              Email:{' '}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="user@example.com" />
+              Last Name:{' '}
+              <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>
-              Password:{' '}
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Secret password" />
+              Client ID:{' '}
+              <input type="text" value={clientId} onChange={e => setClientId(e.target.value)} />
+            </label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>
+              Email (optional):{' '}
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>
               Phone (optional):{' '}
-              <input type="text" value={phone} onChange={e => setPhone(e.target.value)} placeholder="555-1111" />
+              <input type="text" value={phone} onChange={e => setPhone(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>
@@ -92,7 +99,6 @@ export default function AddUser({ token }: { token: string }) {
               Role:{' '}
               <select value={role} onChange={e => setRole(e.target.value as Role)}>
                 <option value="shopper">Shopper</option>
-                <option value="staff">Staff</option>
                 <option value="delivery">Delivery</option>
               </select>
             </label>
@@ -147,3 +153,4 @@ export default function AddUser({ token }: { token: string }) {
     </div>
   );
 }
+

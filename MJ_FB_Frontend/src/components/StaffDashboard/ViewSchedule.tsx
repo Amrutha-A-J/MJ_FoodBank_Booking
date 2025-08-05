@@ -227,7 +227,7 @@ export default function ViewSchedule({ token }: { token: string }) {
             <h4>Assign User</h4>
             <input
               type="text"
-              placeholder="Search users"
+              placeholder="Search users by name/email/phone/client ID"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               style={{ width: '100%', marginBottom: 8 }}
