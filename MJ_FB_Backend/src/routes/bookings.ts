@@ -5,7 +5,8 @@ import {
   listBookings,
   decideBooking,
   createPreapprovedBooking,
-  createBookingForUser   // ✅ make sure to import this controller
+  createBookingForUser,   // ✅ make sure to import this controller
+  getBookingHistory
 } from '../controllers/bookingController';
 
 const router = express.Router();
@@ -15,6 +16,9 @@ router.post('/', authMiddleware, authorizeRoles('shopper', 'delivery'), createBo
 
 // Staff list all bookings
 router.get('/', authMiddleware, authorizeRoles('staff'), listBookings);
+
+// Booking history for user or staff lookup
+router.get('/history', authMiddleware, getBookingHistory);
 
 // Staff approve/reject booking
 router.post('/:id/decision', authMiddleware, authorizeRoles('staff'), decideBooking);
