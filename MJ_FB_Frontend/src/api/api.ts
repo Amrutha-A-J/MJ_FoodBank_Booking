@@ -24,12 +24,26 @@ async function handleResponse(res: Response) {
   return res.json();
 }
 
-export async function login(identifier: string, password?: string): Promise<LoginResponse> {
-  const body = password ? { email: identifier, password } : { clientId: identifier };
+export async function loginUser(
+  clientId: string,
+  password: string
+): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE}/users/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ clientId: Number(clientId), password }),
+  });
+  return handleResponse(res);
+}
+
+export async function loginStaff(
+  email: string,
+  password: string
+): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
   });
   return handleResponse(res);
 }
@@ -92,6 +106,7 @@ export async function addUser(
   lastName: string,
   clientId: string,
   role: string,
+  password: string,
   email?: string,
   phone?: string
 ) {
@@ -101,7 +116,15 @@ export async function addUser(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ firstName, lastName, clientId: Number(clientId), role, email, phone }),
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      clientId: Number(clientId),
+      role,
+      password,
+      email,
+      phone,
+    }),
   });
   return handleResponse(res);
 }

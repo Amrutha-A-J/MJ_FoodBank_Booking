@@ -8,14 +8,23 @@ export async function loginUser(req: Request, res: Response) {
 
   try {
     if (clientId) {
+      if (!password) {
+        return res
+          .status(400)
+          .json({ message: 'Client ID and password required' });
+      }
       const userQuery = await pool.query(
-        `SELECT id, first_name, last_name, role FROM users WHERE client_id = $1`,
+        `SELECT id, first_name, last_name, role, password FROM users WHERE client_id = $1`,
         [clientId]
       );
       if (userQuery.rowCount === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const user = userQuery.rows[0];
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
       return res.json({
         token: user.id.toString(),
         role: user.role,
@@ -57,16 +66,18 @@ export async function createUser(req: Request, res: Response) {
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { firstName, lastName, email, phone, clientId, role } = req.body as {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-    clientId: number;
-    role: UserRole;
-  };
+  const { firstName, lastName, email, phone, clientId, role, password } =
+    req.body as {
+      firstName: string;
+      lastName: string;
+      email?: string;
+      phone?: string;
+      clientId: number;
+      role: UserRole;
+      password: string;
+    };
 
-  if (!firstName || !lastName || !clientId || !role) {
+  if (!firstName || !lastName || !clientId || !role || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
@@ -76,10 +87,12 @@ export async function createUser(req: Request, res: Response) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await pool.query(
-      `INSERT INTO users (first_name, last_name, email, phone, client_id, role)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [firstName, lastName, email || null, phone || null, clientId, role]
+      `INSERT INTO users (first_name, last_name, email, phone, client_id, role, password)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [firstName, lastName, email || null, phone || null, clientId, role, hashedPassword]
     );
 
     res.status(201).json({ message: 'User created' });

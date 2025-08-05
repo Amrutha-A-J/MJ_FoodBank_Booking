@@ -8,4 +8,5 @@ export interface User {
   role: 'shopper' | 'delivery';
   bookingsThisMonth: number;
   bookingCountLastUpdated: string;
+  password?: string;
 }
