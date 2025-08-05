@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking } from '../../api/api';
 import type { Slot } from '../../types';
+import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 interface Booking {
   id: number;
@@ -16,8 +17,13 @@ interface User {
   email: string;
 }
 
+const reginaTimeZone = 'America/Regina';
+
 export default function ViewSchedule({ token }: { token: string }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => {
+    const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
+    return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
+  });
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<string[]>([]);
@@ -27,11 +33,12 @@ export default function ViewSchedule({ token }: { token: string }) {
   const [message, setMessage] = useState('');
   const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
-    const weekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+    const reginaDate = toZonedTime(currentDate, reginaTimeZone);
+    const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
     const holiday = holidays.includes(dateStr);
     if (weekend || holiday) {
       setSlots([]);
@@ -110,9 +117,10 @@ export default function ViewSchedule({ token }: { token: string }) {
   }
 
   const dateStr = formatDate(currentDate);
-  const dayName = currentDate.toLocaleDateString(undefined, { weekday: 'long' });
+  const reginaDate = toZonedTime(currentDate, reginaTimeZone);
+  const dayName = formatInTimeZone(currentDate, reginaTimeZone, 'EEEE');
   const isHoliday = holidays.includes(dateStr);
-  const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+  const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
   // prepare slots with lunch break
