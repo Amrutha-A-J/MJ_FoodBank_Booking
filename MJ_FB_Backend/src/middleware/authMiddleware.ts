@@ -2,10 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers['authorization'];
-  if (!token || typeof token !== 'string') {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || typeof authHeader !== 'string') {
     return res.status(401).json({ message: 'Missing token' });
   }
+
+  // Allow standard "Bearer" prefix but keep backwards compatibility with raw tokens
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : authHeader;
 
   try {
     const [prefix, id] = token.split('-');
