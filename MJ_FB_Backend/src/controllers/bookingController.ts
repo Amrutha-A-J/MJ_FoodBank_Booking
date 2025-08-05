@@ -46,7 +46,7 @@ export async function createBooking(req: Request, res: Response) {
     const status = isStaffBooking ? 'approved' : 'submitted';
 
     await pool.query(
-      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)`
+      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)
        VALUES ($1, $2, $3, '', $4, $5)`,
       [user.id, slotId, status, date, isStaffBooking || false]
     );
