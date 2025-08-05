@@ -16,16 +16,15 @@ export async function checkStaffExists(_req: Request, res: Response) {
 }
 
 export async function createAdmin(req: Request, res: Response) {
-  const { firstName, lastName, staffId, role, email, password } = req.body as {
+  const { firstName, lastName, staffId, email, password } = req.body as {
     firstName: string;
     lastName: string;
     staffId: string;
-    role: string;
     email: string;
     password: string;
   };
 
-  if (!firstName || !lastName || !staffId || !role || !email || !password) {
+  if (!firstName || !lastName || !staffId || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
@@ -50,8 +49,8 @@ export async function createAdmin(req: Request, res: Response) {
 
     await pool.query(
       `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
-       VALUES ($1, $2, $3, $4, $5, $6, TRUE)`,
-      [firstName, lastName, staffId, role, email, hashed]
+       VALUES ($1, $2, $3, 'admin', $4, $5, TRUE)`,
+      [firstName, lastName, staffId, email, hashed]
     );
 
     res.status(201).json({ message: 'Admin account created' });
