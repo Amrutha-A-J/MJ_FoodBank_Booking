@@ -1,5 +1,11 @@
 import { Request, Response } from 'express';
 import pool from '../db';
+import {
+  isDateWithinCurrentOrNextMonth,
+  countApprovedBookingsForMonth,
+  updateBookingsThisMonth,
+  LIMIT_MESSAGE,
+} from '../utils/bookingUtils';
 
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
@@ -27,16 +33,28 @@ export async function createBooking(req: Request, res: Response) {
   }
 
   try {
+    if (!isDateWithinCurrentOrNextMonth(date)) {
+      return res.status(400).json({ message: 'Invalid booking date' });
+    }
+
+    const approvedCount = await countApprovedBookingsForMonth(Number(user.id), date);
+    if (approvedCount >= 2) {
+      return res.status(400).json({ message: LIMIT_MESSAGE });
+    }
+
     await checkSlotCapacity(slotId, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
 
     await pool.query(
-      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)
+      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)`
        VALUES ($1, $2, $3, '', $4, $5)`,
       [user.id, slotId, status, date, isStaffBooking || false]
     );
 
-    res.status(201).json({ message: 'Booking created' });
+    const newCount = await updateBookingsThisMonth(Number(user.id));
+    res
+      .status(201)
+      .json({ message: 'Booking created', bookingsThisMonth: newCount });
   } catch (error: any) {
     console.error('Error creating booking:', error);
     res.status(400).json({ message: error.message || 'Failed to create booking' });
@@ -47,7 +65,7 @@ export async function createBooking(req: Request, res: Response) {
 export async function listBookings(req: Request, res: Response) {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
         u.first_name || ' ' || u.last_name as user_name, u.email as user_email, u.phone as user_phone,
         s.start_time, s.end_time
@@ -84,8 +102,16 @@ export async function decideBooking(req: Request, res: Response) {
     }
 
     if (decision === 'approve') {
+      if (!isDateWithinCurrentOrNextMonth(booking.date)) {
+        return res.status(400).json({ message: 'Invalid booking date' });
+      }
+      const approvedCount = await countApprovedBookingsForMonth(booking.user_id, booking.date);
+      if (approvedCount >= 2) {
+        return res.status(400).json({ message: LIMIT_MESSAGE });
+      }
       await checkSlotCapacity(booking.slot_id, booking.date);
       await pool.query(`UPDATE bookings SET status='approved' WHERE id=$1`, [bookingId]);
+      await updateBookingsThisMonth(booking.user_id);
     } else {
       await pool.query(`UPDATE bookings SET status='rejected' WHERE id=$1`, [bookingId]);
     }
@@ -107,6 +133,10 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
+  if (!isDateWithinCurrentOrNextMonth(date)) {
+    return res.status(400).json({ message: 'Invalid booking date' });
+  }
+
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -123,6 +153,12 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
     );
     const newUserId = userRes.rows[0].id;
 
+    const approvedCount = await countApprovedBookingsForMonth(newUserId, date);
+    if (approvedCount >= 2) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: LIMIT_MESSAGE });
+    }
+
     await checkSlotCapacity(slotId, date);
 
     await client.query(
@@ -132,6 +168,7 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
     );
 
     await client.query('COMMIT');
+    await updateBookingsThisMonth(newUserId);
     res.status(201).json({ message: 'Preapproved booking created' });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -153,6 +190,14 @@ export async function createBookingForUser(req: Request, res: Response) {
   }
 
   try {
+    if (!isDateWithinCurrentOrNextMonth(date)) {
+      return res.status(400).json({ message: 'Invalid booking date' });
+    }
+    const approvedCount = await countApprovedBookingsForMonth(userId, date);
+    if (approvedCount >= 2) {
+      return res.status(400).json({ message: LIMIT_MESSAGE });
+    }
+
     await checkSlotCapacity(slotId, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
 
@@ -162,6 +207,7 @@ export async function createBookingForUser(req: Request, res: Response) {
       [userId, slotId, status, date, isStaffBooking || false]
     );
 
+    await updateBookingsThisMonth(userId);
     res.status(201).json({ message: 'Booking created for user' });
   } catch (error: any) {
     console.error('Error creating booking for user:', error);

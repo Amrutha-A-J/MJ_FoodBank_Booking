@@ -6,6 +6,8 @@ import { toZonedTime } from 'date-fns-tz';
 import type { Slot } from '../types';
 
 const reginaTimeZone = 'America/Regina';
+const LIMIT_MESSAGE =
+  "You’ve already visited the Moose Jaw Food Bank twice this month. Please return at the end of the month to book your appointment for next month. You can only book for next month during the last week of this month.";
 
 interface User {
   id: number;
@@ -29,6 +31,10 @@ export default function SlotBooking({ token, role }: Props) {
   const [holidays, setHolidays] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [dayMessage, setDayMessage] = useState('');
+  const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(
+    Number(localStorage.getItem('bookingsThisMonth') || '0')
+  );
+  const [isLastWeek, setIsLastWeek] = useState(false);
 
   const loggedInName = localStorage.getItem('name') || 'You';
 
@@ -61,6 +67,12 @@ export default function SlotBooking({ token, role }: Props) {
   useEffect(() => {
     getHolidays(token).then(setHolidays).catch(() => {});
   }, [token]);
+
+  useEffect(() => {
+    const today = toZonedTime(new Date(), reginaTimeZone);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    setIsLastWeek(lastDay.getDate() - today.getDate() < 7);
+  }, []);
 
   // Automatically choose the first available date (non-weekend and non-holiday)
   useEffect(() => {
@@ -135,8 +147,12 @@ export default function SlotBooking({ token, role }: Props) {
         setMessage('Booking created successfully!');
         setSelectedUser(null);
       } else {
-        await createBooking(token, selectedSlotId, formatDate(selectedDate));
+        const res = await createBooking(token, selectedSlotId, formatDate(selectedDate));
         setMessage('Booking submitted!');
+        if (res.bookingsThisMonth !== undefined) {
+          setBookingsThisMonth(res.bookingsThisMonth);
+          localStorage.setItem('bookingsThisMonth', res.bookingsThisMonth.toString());
+        }
       }
       setSelectedDate(null);
       setSelectedSlotId(null);
@@ -144,6 +160,15 @@ export default function SlotBooking({ token, role }: Props) {
       const msg = e instanceof Error ? e.message : String(e);
       setMessage('Booking failed: ' + msg);
     }
+  }
+
+  if (role === 'shopper' && bookingsThisMonth >= 2 && !isLastWeek) {
+    return (
+      <div className="slot-booking">
+        <h3>Booking for: {loggedInName}</h3>
+        <p className="error-message">{LIMIT_MESSAGE}</p>
+      </div>
+    );
   }
 
   if (role === 'staff' && !selectedUser) {
@@ -183,7 +208,14 @@ export default function SlotBooking({ token, role }: Props) {
           const zoned = toZonedTime(date, reginaTimeZone);
           const today = toZonedTime(new Date(), reginaTimeZone);
           const isPast = zoned < new Date(today.toDateString());
-          return isPast || isHoliday(date);
+          const sameMonth =
+            zoned.getFullYear() === today.getFullYear() &&
+            zoned.getMonth() === today.getMonth();
+          const nextMonth =
+            zoned.getFullYear() === (today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear()) &&
+            zoned.getMonth() === ((today.getMonth() + 1) % 12);
+          const outOfRange = !sameMonth && !(nextMonth && isLastWeek);
+          return isPast || outOfRange || isHoliday(date);
         }}
         tileClassName={({ date }) => (isHoliday(date) ? 'holiday-tile' : undefined)}
       />
