@@ -34,20 +34,20 @@ export interface VolunteerSlot {
   id: number;
   role_id: number;
   role_name: string;
-  slot_date: string;
   start_time: string;
   end_time: string;
   max_volunteers: number;
   booked: number;
   available: number;
   status: string;
+  date: string;
 }
 
 export interface VolunteerBooking {
   id: number;
   status: string;
   slot_id: number;
-  slot_date: string;
+  date: string;
   start_time: string;
   end_time: string;
   role_name: string;
@@ -60,7 +60,7 @@ export interface VolunteerBookingDetail {
   slot_id: number;
   volunteer_id: number;
   volunteer_name: string;
-  slot_date: string;
+  date: string;
   start_time: string;
   end_time: string;
   status_color?: string;

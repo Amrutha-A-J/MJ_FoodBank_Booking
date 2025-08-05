@@ -4,16 +4,20 @@ import pool from '../db';
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
   approved: 'green',
+  rejected: 'red',
+  cancelled: 'gray',
 };
 
 async function ensureVolunteerBookingsTable() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS volunteer_bookings (
       id SERIAL PRIMARY KEY,
-      slot_id INTEGER NOT NULL REFERENCES volunteer_slots(id) ON DELETE CASCADE,
       volunteer_id INTEGER NOT NULL REFERENCES volunteers(id) ON DELETE CASCADE,
-      status VARCHAR(20) NOT NULL DEFAULT 'pending',
-      created_at TIMESTAMP DEFAULT NOW()
+      slot_id INTEGER NOT NULL REFERENCES volunteer_slots(id) ON DELETE CASCADE,
+      date DATE NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending','approved','rejected','cancelled')),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 }
@@ -24,10 +28,10 @@ function statusColor(status: string) {
 
 export async function createVolunteerBooking(req: Request, res: Response) {
   const user = req.user;
-  const { slotId } = req.body as { slotId?: number };
+  const { slotId, date } = req.body as { slotId?: number; date?: string };
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  if (!slotId) {
-    return res.status(400).json({ message: 'slotId is required' });
+  if (!slotId || !date) {
+    return res.status(400).json({ message: 'slotId and date are required' });
   }
 
   try {
@@ -56,8 +60,8 @@ export async function createVolunteerBooking(req: Request, res: Response) {
 
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND status IN ('pending','approved')`,
-      [slotId]
+       WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+      [slotId, date]
     );
     const currentCount = Number(countRes.rows[0].count);
     if (currentCount >= slot.max_volunteers) {
@@ -65,10 +69,10 @@ export async function createVolunteerBooking(req: Request, res: Response) {
     }
 
     const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (slot_id, volunteer_id)
-       VALUES ($1, $2)
-       RETURNING id, slot_id, volunteer_id, status`,
-      [slotId, user.id]
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date)
+       VALUES ($1, $2, $3)
+       RETURNING id, slot_id, volunteer_id, date, status`,
+      [slotId, user.id, date]
     );
 
     const booking = insertRes.rows[0];
@@ -87,14 +91,14 @@ export async function listVolunteerBookingsByRole(req: Request, res: Response) {
   try {
     await ensureVolunteerBookingsTable();
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id,
-              vs.slot_date, vs.start_time, vs.end_time,
+      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id, vb.date,
+              vs.start_time, vs.end_time,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.id
        JOIN volunteers v ON vb.volunteer_id = v.id
        WHERE vs.role_id = $1
-       ORDER BY vs.slot_date, vs.start_time`,
+       ORDER BY vb.date, vs.start_time`,
       [role_id]
     );
     const bookings = result.rows.map((b: any) => ({
@@ -116,14 +120,14 @@ export async function listMyVolunteerBookings(req: Request, res: Response) {
   try {
     await ensureVolunteerBookingsTable();
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id,
-              vs.slot_date, vs.start_time, vs.end_time,
+      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id, vb.date,
+              vs.start_time, vs.end_time,
               vr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.id
        JOIN volunteer_roles_master vr ON vs.role_id = vr.id
        WHERE vb.volunteer_id = $1
-       ORDER BY vs.slot_date DESC, vs.start_time DESC`,
+       ORDER BY vb.date DESC, vs.start_time DESC`,
       [user.id],
     );
     const bookings = result.rows.map((b: any) => ({
@@ -144,14 +148,14 @@ export async function listVolunteerBookingsByVolunteer(req: Request, res: Respon
   try {
     await ensureVolunteerBookingsTable();
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id,
-              vs.slot_date, vs.start_time, vs.end_time,
+      `SELECT vb.id, vb.status, vb.slot_id, vb.volunteer_id, vb.date,
+              vs.start_time, vs.end_time,
               vr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.id
        JOIN volunteer_roles_master vr ON vs.role_id = vr.id
        WHERE vb.volunteer_id = $1
-       ORDER BY vs.slot_date DESC, vs.start_time DESC`,
+       ORDER BY vb.date DESC, vs.start_time DESC`,
       [volunteer_id]
     );
     const bookings = result.rows.map((b: any) => ({
@@ -170,8 +174,10 @@ export async function listVolunteerBookingsByVolunteer(req: Request, res: Respon
 export async function updateVolunteerBookingStatus(req: Request, res: Response) {
   const { id } = req.params;
   const { status } = req.body as { status?: string };
-  if (!status || !['approved', 'rejected'].includes(status)) {
-    return res.status(400).json({ message: 'Status must be approved or rejected' });
+  if (!status || !['approved', 'rejected', 'cancelled'].includes(status)) {
+    return res
+      .status(400)
+      .json({ message: 'Status must be approved, rejected or cancelled' });
   }
 
   try {
@@ -194,8 +200,8 @@ export async function updateVolunteerBookingStatus(req: Request, res: Response) 
       );
       const countRes = await pool.query(
         `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE slot_id=$1 AND status='approved'`,
-        [booking.slot_id]
+         WHERE slot_id=$1 AND date=$2 AND status='approved'`,
+        [booking.slot_id, booking.date]
       );
       if (Number(countRes.rows[0].count) >= slotRes.rows[0].max_volunteers) {
         return res.status(400).json({ message: 'Slot is full' });
@@ -204,7 +210,7 @@ export async function updateVolunteerBookingStatus(req: Request, res: Response) 
 
     const updateRes = await pool.query(
       `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
-       RETURNING id, slot_id, volunteer_id, status`,
+       RETURNING id, slot_id, volunteer_id, date, status`,
       [status, id]
     );
     const updated = updateRes.rows[0];
