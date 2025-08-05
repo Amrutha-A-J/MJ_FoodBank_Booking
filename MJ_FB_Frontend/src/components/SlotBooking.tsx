@@ -3,7 +3,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
-import type { Slot } from '../types';
+import type { Slot, Holiday } from '../types';
+import { formatTime } from '../utils/time';
 
 const reginaTimeZone = 'America/Regina';
 const LIMIT_MESSAGE =
@@ -35,7 +36,7 @@ export default function SlotBooking({ token, role }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
-  const [holidays, setHolidays] = useState<string[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [message, setMessage] = useState('');
   const [dayMessage, setDayMessage] = useState('');
   const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(
@@ -55,7 +56,7 @@ export default function SlotBooking({ token, role }: Props) {
   const isHoliday = useCallback(
     (date: Date) => {
       const dateStr = formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
-      return holidays.includes(dateStr);
+      return holidays.some(h => h.date === dateStr);
     },
     [holidays],
   );
@@ -243,7 +244,7 @@ export default function SlotBooking({ token, role }: Props) {
                       (s.available ?? 0) > 0 ? '' : 'disabled'
                     }`}
                   >
-                    <span>{s.startTime} - {s.endTime}</span>
+                    <span>{formatTime(s.startTime)} - {formatTime(s.endTime)}</span>
                     <span>Available: {s.available ?? 0}</span>
                   </li>
                 ))}

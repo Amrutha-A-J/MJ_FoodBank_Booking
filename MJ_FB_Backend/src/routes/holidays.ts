@@ -5,19 +5,37 @@ import pool from '../db';
 
 const router = express.Router();
 
+async function ensureTable() {
+  await pool.query(
+    'CREATE TABLE IF NOT EXISTS holidays (date DATE PRIMARY KEY, reason TEXT)'
+  );
+  await pool.query('ALTER TABLE holidays ADD COLUMN IF NOT EXISTS reason TEXT');
+}
+
 router.get('/', authMiddleware, async (_, res) => {
-  const result = await pool.query('SELECT date FROM holidays ORDER BY date');
-  res.json(result.rows.map(r => r.date.toISOString().split('T')[0]));
+  await ensureTable();
+  const result = await pool.query('SELECT date, reason FROM holidays ORDER BY date');
+  res.json(
+    result.rows.map(r => ({
+      date: r.date.toISOString().split('T')[0],
+      reason: r.reason ?? '',
+    }))
+  );
 });
 
 router.post('/', authMiddleware, async (req, res) => {
-  const { date } = req.body;
+  const { date, reason } = req.body;
   if (!date) return res.status(400).json({ message: 'Date required' });
-  await pool.query('INSERT INTO holidays (date) VALUES ($1) ON CONFLICT DO NOTHING', [date]);
+  await ensureTable();
+  await pool.query(
+    'INSERT INTO holidays (date, reason) VALUES ($1, $2) ON CONFLICT (date) DO UPDATE SET reason = EXCLUDED.reason',
+    [date, reason ?? null]
+  );
   res.json({ message: 'Added' });
 });
 
 router.delete('/:date', authMiddleware, async (req, res) => {
+  await ensureTable();
   await pool.query('DELETE FROM holidays WHERE date = $1', [req.params.date]);
   res.json({ message: 'Removed' });
 });

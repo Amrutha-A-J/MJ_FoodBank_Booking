@@ -153,17 +153,17 @@ export async function getHolidays(token: string) {
     const res = await fetch(`${API_BASE}/holidays`, {
       headers: { Authorization: token }
     });
-    return handleResponse(res); // assume returns: string[] of dates like "2025-07-21"
+    return handleResponse(res); // returns Holiday[]
   }
-  
-  export async function addHoliday(token: string, date: string) {
+
+  export async function addHoliday(token: string, date: string, reason: string) {
     const res = await fetch(`${API_BASE}/holidays`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: token
       },
-      body: JSON.stringify({ date })
+      body: JSON.stringify({ date, reason })
     });
     return handleResponse(res);
   }
@@ -187,17 +187,17 @@ export async function getBlockedSlots(token: string, date: string) {
   const res = await fetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
     headers: { Authorization: token },
   });
-  return handleResponse(res);
+  return handleResponse(res); // returns BlockedSlot[]
 }
 
-export async function addBlockedSlot(token: string, date: string, slotId: number) {
+export async function addBlockedSlot(token: string, date: string, slotId: number, reason: string) {
   const res = await fetch(`${API_BASE}/blocked-slots`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ date, slotId }),
+    body: JSON.stringify({ date, slotId, reason }),
   });
   return handleResponse(res);
 }
@@ -214,17 +214,17 @@ export async function getBreaks(token: string) {
   const res = await fetch(`${API_BASE}/breaks`, {
     headers: { Authorization: token },
   });
-  return handleResponse(res);
+  return handleResponse(res); // returns Break[]
 }
 
-export async function addBreak(token: string, dayOfWeek: number, slotId: number) {
+export async function addBreak(token: string, dayOfWeek: number, slotId: number, reason: string) {
   const res = await fetch(`${API_BASE}/breaks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ dayOfWeek, slotId }),
+    body: JSON.stringify({ dayOfWeek, slotId, reason }),
   });
   return handleResponse(res);
 }

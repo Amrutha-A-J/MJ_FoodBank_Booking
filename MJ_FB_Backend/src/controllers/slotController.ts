@@ -15,11 +15,13 @@ export async function listSlots(req: Request, res: Response) {
     if (day === 0 || day === 6) return res.json([]);
 
     await pool.query(
-      'CREATE TABLE IF NOT EXISTS blocked_slots (date DATE NOT NULL, slot_id INTEGER NOT NULL, PRIMARY KEY (date, slot_id))'
+      'CREATE TABLE IF NOT EXISTS blocked_slots (date DATE NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (date, slot_id))'
     );
+    await pool.query('ALTER TABLE blocked_slots ADD COLUMN IF NOT EXISTS reason TEXT');
     await pool.query(
-      'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, PRIMARY KEY (day_of_week, slot_id))'
+      'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (day_of_week, slot_id))'
     );
+    await pool.query('ALTER TABLE breaks ADD COLUMN IF NOT EXISTS reason TEXT');
 
     const slotsResult = await pool.query('SELECT * FROM slots');
     let slots = slotsResult.rows;

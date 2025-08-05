@@ -11,4 +11,15 @@ export interface Slot {
 export interface Break {
   dayOfWeek: number;
   slotId: number;
+  reason: string;
+}
+
+export interface Holiday {
+  date: string;
+  reason: string;
+}
+
+export interface BlockedSlot {
+  slotId: number;
+  reason: string;
 }

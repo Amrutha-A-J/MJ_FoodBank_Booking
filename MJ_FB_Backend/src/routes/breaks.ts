@@ -6,25 +6,32 @@ const router = express.Router();
 
 async function ensureTable() {
   await pool.query(
-    'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, PRIMARY KEY (day_of_week, slot_id))'
+    'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (day_of_week, slot_id))'
   );
+  await pool.query('ALTER TABLE breaks ADD COLUMN IF NOT EXISTS reason TEXT');
 }
 
 router.get('/', authMiddleware, async (_, res) => {
   await ensureTable();
-  const result = await pool.query('SELECT day_of_week, slot_id FROM breaks');
-  res.json(result.rows.map(r => ({ dayOfWeek: Number(r.day_of_week), slotId: Number(r.slot_id) })));
+  const result = await pool.query('SELECT day_of_week, slot_id, reason FROM breaks');
+  res.json(
+    result.rows.map(r => ({
+      dayOfWeek: Number(r.day_of_week),
+      slotId: Number(r.slot_id),
+      reason: r.reason ?? '',
+    }))
+  );
 });
 
 router.post('/', authMiddleware, async (req, res) => {
-  const { dayOfWeek, slotId } = req.body;
+  const { dayOfWeek, slotId, reason } = req.body;
   if (dayOfWeek === undefined || slotId === undefined) {
     return res.status(400).json({ message: 'dayOfWeek and slotId required' });
   }
   await ensureTable();
   await pool.query(
-    'INSERT INTO breaks (day_of_week, slot_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-    [dayOfWeek, slotId]
+    'INSERT INTO breaks (day_of_week, slot_id, reason) VALUES ($1, $2, $3) ON CONFLICT (day_of_week, slot_id) DO UPDATE SET reason = EXCLUDED.reason',
+    [dayOfWeek, slotId, reason ?? null]
   );
   res.json({ message: 'Added' });
 });
