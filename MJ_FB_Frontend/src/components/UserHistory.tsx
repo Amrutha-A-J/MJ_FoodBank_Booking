@@ -8,6 +8,7 @@ import {
 import { formatInTimeZone } from 'date-fns-tz';
 import ConfirmDialog from './ConfirmDialog';
 import type { Role } from '../types';
+import { isStaffRole } from '../types';
 
 const TIMEZONE = 'America/Regina';
 
@@ -53,7 +54,7 @@ export default function UserHistory({ token, role }: { token: string; role: Role
         await decideBooking(token, confirm.id.toString(), 'reject', confirm.reason);
       }
       const opts: { status?: string; past?: boolean; userId?: number } = {};
-      if (role === 'staff' && selected) opts.userId = selected.id;
+      if (isStaffRole(role) && selected) opts.userId = selected.id;
       if (filter === 'past') opts.past = true;
       else if (filter !== 'all') opts.status = filter;
       const data = await getBookingHistory(token, opts);
@@ -69,7 +70,7 @@ export default function UserHistory({ token, role }: { token: string; role: Role
   }
 
   useEffect(() => {
-    if (role !== 'staff') return;
+    if (!isStaffRole(role)) return;
     if (search.length < 3) {
       setResults([]);
       return;
@@ -86,9 +87,9 @@ export default function UserHistory({ token, role }: { token: string; role: Role
   }, [search, token, role]);
 
   useEffect(() => {
-    if (role === 'staff' && !selected) return;
+    if (isStaffRole(role) && !selected) return;
     const opts: { status?: string; past?: boolean; userId?: number } = {};
-    if (role === 'staff' && selected) opts.userId = selected.id;
+    if (isStaffRole(role) && selected) opts.userId = selected.id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     getBookingHistory(token, opts)
@@ -108,7 +109,7 @@ export default function UserHistory({ token, role }: { token: string; role: Role
   return (
     <div>
       <h2>Booking History</h2>
-      {role === 'staff' && (
+      {isStaffRole(role) && (
         <>
           <input
             value={search}
@@ -134,9 +135,9 @@ export default function UserHistory({ token, role }: { token: string; role: Role
           )}
         </>
       )}
-      {(role === 'staff' ? selected !== null : true) && (
+      {(isStaffRole(role) ? selected !== null : true) && (
         <div>
-          {role === 'staff' && selected && <h3>History for {selected.name}</h3>}
+          {isStaffRole(role) && selected && <h3>History for {selected.name}</h3>}
           <div>
             <label htmlFor="filterHistory">Filter:</label>{' '}
             <select
@@ -191,8 +192,8 @@ export default function UserHistory({ token, role }: { token: string; role: Role
                   })();
                   const showCancel =
                     role === 'shopper' && ['approved', 'submitted'].includes(b.status);
-                  const staffReject = role === 'staff' && b.status === 'submitted';
-                  const staffCancel = role === 'staff' && b.status === 'approved';
+                  const staffReject = isStaffRole(role) && b.status === 'submitted';
+                  const staffCancel = isStaffRole(role) && b.status === 'approved';
                   return (
                     <tr key={b.id}>
                       <td>{dateCell}</td>

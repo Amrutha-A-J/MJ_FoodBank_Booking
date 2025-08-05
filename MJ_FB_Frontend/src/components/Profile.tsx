@@ -1,10 +1,11 @@
 import type { Role } from '../types';
+import { isStaffRole } from '../types';
 
 export default function Profile() {
   const role = (localStorage.getItem('role') || '') as Role;
   const name = localStorage.getItem('name') || '';
 
-  if (role === 'staff') {
+  if (isStaffRole(role)) {
     return (
       <div>
         <h2>User Profile</h2>
