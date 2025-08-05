@@ -17,18 +17,28 @@ export default function AddUser({ token }: { token: string }) {
   const [password, setPassword] = useState('');
 
   async function submitUser() {
-    if (!firstName || !lastName || !clientId) {
-      setMessage('First name, last name and client ID required');
+    if (!firstName || !lastName || !clientId || !password) {
+      setMessage('First name, last name, client ID and password required');
       return;
     }
     try {
-      await addUser(token, firstName, lastName, clientId, role, email || undefined, phone || undefined);
+      await addUser(
+        token,
+        firstName,
+        lastName,
+        clientId,
+        role,
+        password,
+        email || undefined,
+        phone || undefined
+      );
       setMessage('User added successfully');
       setFirstName('');
       setLastName('');
       setClientId('');
       setEmail('');
       setPhone('');
+      setPassword('');
       setRole('shopper');
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
@@ -92,6 +102,12 @@ export default function AddUser({ token }: { token: string }) {
             <label>
               Phone (optional):{' '}
               <input type="text" value={phone} onChange={e => setPhone(e.target.value)} />
+            </label>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label>
+              Password:{' '}
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
             </label>
           </div>
           <div style={{ marginBottom: 8 }}>

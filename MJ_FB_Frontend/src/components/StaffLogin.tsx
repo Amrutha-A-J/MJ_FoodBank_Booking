@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { login, staffExists, createAdmin } from '../api/api';
+import { loginStaff, staffExists, createAdmin } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import type { StaffRole } from '../types';
 
@@ -37,7 +37,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const user = await login(email, password);
+      const user = await loginStaff(email, password);
       if (user.role !== 'staff') {
         setError('Not a staff account');
         return;

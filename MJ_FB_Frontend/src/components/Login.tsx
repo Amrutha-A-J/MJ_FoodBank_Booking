@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { login } from '../api/api';
+import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
 
 export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginResponse) => void; onStaff: () => void }) {
   const [clientId, setClientId] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const user = await login(clientId);
+      const user = await loginUser(clientId, password);
       localStorage.setItem('token', user.token);
       localStorage.setItem('role', user.role);
       localStorage.setItem('name', user.name);
@@ -26,6 +27,7 @@ export default function Login({ onLogin, onStaff }: { onLogin: (user: LoginRespo
       {error && <p style={{color:'red'}}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <input value={clientId} onChange={e=>setClientId(e.target.value)} placeholder="Client ID"/>
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
         <button type="submit">Login</button>
       </form>
     </div>
