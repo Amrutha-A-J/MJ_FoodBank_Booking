@@ -9,7 +9,6 @@ import ViewSchedule from './components/StaffDashboard/ViewSchedule';
 import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import type { Role } from './types';
-import { isStaffRole } from './types';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -40,7 +39,7 @@ export default function App() {
   }
 
   let navLinks: { label: string; id: string }[] = [{ label: 'Profile', id: 'profile' }];
-  if (isStaffRole(role)) {
+  if (role === 'staff') {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Availability', id: 'manageAvailability' },
@@ -113,22 +112,22 @@ export default function App() {
 
           <main>
             {activePage === 'profile' && <Profile />}
-            {activePage === 'staffDashboard' && isStaffRole(role) && (
+            {activePage === 'staffDashboard' && role === 'staff' && (
               <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
             )}
-            {activePage === 'manageAvailability' && isStaffRole(role) && (
+            {activePage === 'manageAvailability' && role === 'staff' && (
               <ManageAvailability token={token} />
             )}
-            {activePage === 'viewSchedule' && isStaffRole(role) && (
+            {activePage === 'viewSchedule' && role === 'staff' && (
               <ViewSchedule token={token} />
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <SlotBooking token={token} role="shopper" />
             )}
-            {activePage === 'addUser' && isStaffRole(role) && (
-              <AddUser token={token} role={role} />
+            {activePage === 'addUser' && role === 'staff' && (
+              <AddUser token={token} />
             )}
-            {activePage === 'userHistory' && isStaffRole(role) && (
+            {activePage === 'userHistory' && role === 'staff' && (
               <UserHistory token={token} role={role} />
             )}
             {activePage === 'bookingHistory' && role === 'shopper' && (

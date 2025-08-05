@@ -3,8 +3,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
-import type { Slot, Holiday, Role } from '../types';
-import { isStaffRole } from '../types';
+import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 
 const reginaTimeZone = 'America/Regina';
@@ -20,7 +19,7 @@ interface User {
 
 interface Props {
   token: string;
-  role: Role;
+  role: 'staff' | 'shopper';
 }
 
 function toReginaDate(date: Date): Date {
@@ -103,7 +102,7 @@ export default function SlotBooking({ token, role }: Props) {
   }, [holidays, isWeekend, isHoliday, getNextAvailableDate]);
 
   useEffect(() => {
-    if (isStaffRole(role)) {
+    if (role === 'staff') {
       const delayDebounce = setTimeout(() => {
         if (searchTerm.length >= 3) {
           searchUsers(token, searchTerm)
@@ -154,7 +153,7 @@ export default function SlotBooking({ token, role }: Props) {
     }
 
     try {
-      if (isStaffRole(role)) {
+      if (role === 'staff') {
         if (!selectedUser) {
           setMessage('Please select a user');
           return;
@@ -195,7 +194,7 @@ export default function SlotBooking({ token, role }: Props) {
     );
   }
 
-  if (isStaffRole(role) && !selectedUser) {
+  if (role === 'staff' && !selectedUser) {
     return (
       <div>
         <input
@@ -220,7 +219,7 @@ export default function SlotBooking({ token, role }: Props) {
   return (
     <div className="slot-booking">
       <h3>
-        {isStaffRole(role) && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
+        {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
       </h3>
       <Calendar
         onChange={value => {
@@ -267,14 +266,14 @@ export default function SlotBooking({ token, role }: Props) {
                 ))}
               </ul>
               <button disabled={!selectedSlotId} onClick={submitBooking}>
-                {isStaffRole(role) ? 'Submit Booking' : 'Book Selected Slot'}
+                {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
               </button>
             </>
           )}
         </div>
       )}
 
-      {isStaffRole(role) && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
+      {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
       {message && (
         <p className={message.startsWith('Booking') ? 'success-message' : 'error-message'}>{message}</p>
       )}
