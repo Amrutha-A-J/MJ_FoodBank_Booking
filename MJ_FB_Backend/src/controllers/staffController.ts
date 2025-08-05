@@ -33,23 +33,16 @@ export async function createAdmin(req: Request, res: Response) {
       return res.status(400).json({ message: 'Admin already exists' });
     }
 
-    // Prevent duplicate email from causing a database error
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
     if (emailCheck.rowCount && emailCheck.rowCount > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const staffIdResult = await pool.query(
-      "SELECT COALESCE(MAX(CAST(staff_id AS INTEGER)), 0) + 1 AS next_id FROM staff"
-    );
-    const staffId = staffIdResult.rows[0].next_id.toString();
-
     const hashed = await bcrypt.hash(password, 10);
 
     await pool.query(
-      `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
-       VALUES ($1, $2, $3, 'staff', $4, $5, TRUE)`,
-      [firstName, lastName, staffId, email, hashed]
+      `INSERT INTO staff (first_name, last_name, role, email, password) VALUES ($1, $2, 'admin', $3, $4)`,
+      [firstName, lastName, email, hashed]
     );
 
     res.status(201).json({ message: 'Admin account created' });
@@ -79,8 +72,7 @@ export async function createStaff(req: Request, res: Response) {
   }
 
   try {
-    const adminCheck = await pool.query('SELECT is_admin FROM staff WHERE id = $1', [req.user.id]);
-    if (adminCheck.rowCount === 0 || !adminCheck.rows[0].is_admin) {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -89,17 +81,11 @@ export async function createStaff(req: Request, res: Response) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
-    const staffIdResult = await pool.query(
-      "SELECT COALESCE(MAX(CAST(staff_id AS INTEGER)), 0) + 1 AS next_id FROM staff"
-    );
-    const staffId = staffIdResult.rows[0].next_id.toString();
-
     const hashed = await bcrypt.hash(password, 10);
 
     await pool.query(
-      `INSERT INTO staff (first_name, last_name, staff_id, role, email, password, is_admin)
-       VALUES ($1, $2, $3, $4, $5, $6, FALSE)`,
-      [firstName, lastName, staffId, role, email, hashed]
+      `INSERT INTO staff (first_name, last_name, role, email, password) VALUES ($1, $2, $3, $4, $5)`,
+      [firstName, lastName, role, email, hashed]
     );
 
     res.status(201).json({ message: 'Staff created' });
