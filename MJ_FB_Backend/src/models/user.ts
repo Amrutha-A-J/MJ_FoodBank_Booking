@@ -1,12 +1,14 @@
+export type UserRole = 'shopper' | 'delivery';
+
 export interface User {
-  id: string;
+  id: number;
   firstName: string;
   lastName: string;
   email?: string;
   phone?: string;
   clientId: number;
-  role: 'shopper' | 'delivery';
+  role: UserRole;
   bookingsThisMonth: number;
   bookingCountLastUpdated: string;
-  password?: string;
+  password: string;
 }

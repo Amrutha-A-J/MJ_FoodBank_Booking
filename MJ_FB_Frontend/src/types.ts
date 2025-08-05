@@ -1,4 +1,5 @@
 export type Role = 'staff' | 'shopper' | 'delivery';
+export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff' | 'volunteer_coordinator' | 'admin';
 
 export interface Slot {
