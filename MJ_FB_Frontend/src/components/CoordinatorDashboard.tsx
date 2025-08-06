@@ -15,7 +15,8 @@ import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 interface RoleOption {
-  id: number;
+  id: number; // unique slot id
+  role_id: number; // grouped role id
   name: string;
   start_time: string;
   end_time: string;
@@ -32,6 +33,7 @@ interface VolunteerResult {
 export default function CoordinatorDashboard({ token }: { token: string }) {
   const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending'>('schedule');
   const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
@@ -73,7 +75,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
   useEffect(() => {
     getVolunteerRoles(token)
-      .then(setRoles)
+      .then(data => {
+        setRoles(data);
+        const map = new Map<number, string>();
+        data.forEach((r: RoleOption) => map.set(r.role_id, r.name));
+        setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
+      })
       .catch(() => {});
   }, [token]);
 
@@ -334,7 +341,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <div>
               <h3>Roles for {selectedVolunteer.name}</h3>
               <div style={{ marginBottom: 8 }}>
-                {roles.map(r => (
+                {baseRoles.map(r => (
                   <label key={r.id} style={{ display: 'block' }}>
                     <input
                       type="checkbox"
@@ -413,7 +420,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>Roles:</label>
-            {roles.map(r => (
+            {baseRoles.map(r => (
               <label key={r.id} style={{ display: 'block' }}>
                 <input
                   type="checkbox"
