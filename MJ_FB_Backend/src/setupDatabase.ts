@@ -1,0 +1,195 @@
+import { Client } from 'pg';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export async function setupDatabase() {
+  const dbName = process.env.PG_DATABASE || 'mj_fb_db';
+  const config = {
+    user: process.env.PG_USER,
+    password: process.env.PG_PASSWORD,
+    host: process.env.PG_HOST,
+    port: Number(process.env.PG_PORT),
+  };
+
+  // Connect to default database to ensure target database exists
+  const adminClient = new Client({ ...config, database: 'postgres' });
+  await adminClient.connect();
+  const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
+  if (dbExists.rowCount === 0) {
+    await adminClient.query(`CREATE DATABASE ${dbName}`);
+    console.log(`Created database ${dbName}`);
+  }
+  await adminClient.end();
+
+  // Now connect to the target database
+  const client = new Client({ ...config, database: dbName });
+  await client.connect();
+
+  // Create tables if they do not exist
+  await client.query(`
+CREATE TABLE IF NOT EXISTS slots (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    start_time time without time zone NOT NULL,
+    end_time time without time zone NOT NULL,
+    max_capacity integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    first_name text,
+    last_name text,
+    email text UNIQUE,
+    phone text,
+    password text NOT NULL,
+    client_id bigint NOT NULL UNIQUE CHECK (client_id >= 1 AND client_id <= 9999999),
+    role text NOT NULL CHECK (role IN ('shopper', 'delivery')),
+    bookings_this_month integer DEFAULT 0,
+    booking_count_last_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS staff (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    first_name varchar(100) NOT NULL,
+    last_name varchar(100) NOT NULL,
+    role varchar(50) NOT NULL CHECK (role IN ('staff', 'volunteer_coordinator', 'admin')),
+    email varchar(255) NOT NULL UNIQUE,
+    password varchar(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS volunteers (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    trained_areas text[] DEFAULT '{}',
+    email text,
+    phone text,
+    username text NOT NULL UNIQUE,
+    password text NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS volunteer_roles (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name text NOT NULL UNIQUE,
+    category text NOT NULL,
+    start_time time without time zone NOT NULL,
+    end_time time without time zone NOT NULL,
+    max_volunteers integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id integer,
+    slot_id integer,
+    status text NOT NULL CHECK (status = ANY (ARRAY['submitted', 'approved', 'rejected', 'preapproved', 'cancelled'])),
+    request_data text,
+    date date,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_staff_booking boolean DEFAULT false,
+    FOREIGN KEY (slot_id) REFERENCES public.slots(id),
+    FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+
+CREATE TABLE IF NOT EXISTS breaks (
+    day_of_week integer NOT NULL,
+    slot_id integer NOT NULL,
+    reason text,
+    PRIMARY KEY (day_of_week, slot_id)
+);
+
+CREATE TABLE IF NOT EXISTS blocked_slots (
+    date date NOT NULL,
+    slot_id integer NOT NULL,
+    reason text,
+    PRIMARY KEY (date, slot_id)
+);
+
+CREATE TABLE IF NOT EXISTS holidays (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    date date NOT NULL UNIQUE,
+    reason text
+);
+
+CREATE TABLE IF NOT EXISTS volunteer_bookings (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    volunteer_id integer NOT NULL,
+    role_id integer NOT NULL,
+    date date NOT NULL,
+    status text DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE
+);
+`);
+
+  // Insert master data
+  await client.query(`
+INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
+(1, 6, 'Lunch Break'),
+(2, 6, 'Lunch Break'),
+(3, 6, 'Lunch Break'),
+(4, 6, 'Lunch Break'),
+(5, 6, 'Lunch Break'),
+(1, 7, 'Lunch Break'),
+(2, 7, 'Lunch Break'),
+(3, 7, 'Lunch Break'),
+(4, 7, 'Lunch Break'),
+(5, 7, 'Lunch Break'),
+(3, 12, 'Evening Break'),
+(3, 13, 'Evening Break')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO slots (id, start_time, end_time, max_capacity) VALUES
+(1, '09:30:00', '10:00:00', 4),
+(2, '10:00:00', '10:30:00', 4),
+(3, '10:30:00', '11:00:00', 4),
+(4, '11:00:00', '11:30:00', 4),
+(5, '11:30:00', '12:00:00', 4),
+(6, '12:00:00', '12:30:00', 4),
+(7, '12:30:00', '13:00:00', 4),
+(8, '13:00:00', '13:30:00', 4),
+(9, '13:30:00', '14:00:00', 4),
+(10, '14:00:00', '14:30:00', 4),
+(11, '14:30:00', '15:00:00', 4),
+(12, '15:00:00', '15:30:00', 4),
+(13, '15:30:00', '16:00:00', 4),
+(14, '16:00:00', '16:30:00', 4),
+(15, '16:30:00', '17:00:00', 4),
+(16, '17:00:00', '17:30:00', 4),
+(17, '17:30:00', '18:00:00', 4),
+(18, '18:00:00', '18:30:00', 4)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO staff (id, first_name, last_name, role, email, password) VALUES
+(2, 'Melisa', 'Proulx', 'staff', 'melisa@mjfoodbank', '$2b$10$n4bMtLafHD1zHgoeNBdGauGNd3OPuOMp8SGFP3IFXk5v6ItfHAdrG'),
+(1, 'Amrutha', 'Adiyath', 'staff', 'admin@mjfb.org', '$2b$10$VNVdg.VR3WxF6gQivw9sv.DFWOLT6TCZrm.Bi4mdjVLDfZNft6LG6'),
+(3, 'Terri', 'Smith', 'volunteer_coordinator', 'terri@mjfb.com', '$2b$10$hg6FdP2Pn0ROS.YTKQviXu7EEXsvQedZ4PqStdI61HS6uX/kA/bhm')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO volunteer_roles (id, name, category, start_time, end_time, max_volunteers) VALUES
+(1, 'Food Sorter', 'Warehouse', '09:00:00', '12:00:00', 3),
+(2, 'Production Worker', 'Warehouse', '09:00:00', '12:00:00', 3),
+(3, 'Driver Assistant', 'Warehouse', '09:00:00', '12:00:00', 1),
+(4, 'Loading Dock Personnel', 'Warehouse', '09:00:00', '12:00:00', 1),
+(5, 'General Cleaning & Maintenance', 'Warehouse', '08:00:00', '11:00:00', 1),
+(6, 'Reception (Morning)', 'Pantry', '09:30:00', '12:30:00', 1),
+(7, 'Reception (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 1),
+(8, 'Reception (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 1),
+(9, 'Greeter/Pantry Assistant (Morning)', 'Pantry', '09:00:00', '12:00:00', 3),
+(10, 'Greeter/Pantry Assistant (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 3),
+(11, 'Greeter/Pantry Assistant (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 2),
+(12, 'Greeter/Pantry Assistant (Wednesday Late Evening)', 'Pantry', '16:30:00', '19:30:00', 2),
+(13, 'Stock Person (Morning)', 'Pantry', '08:00:00', '11:00:00', 1),
+(14, 'Stock Person (Afternoon)', 'Pantry', '12:00:00', '15:00:00', 1),
+(15, 'Gardening Assistant', 'Gardening', '13:00:00', '16:00:00', 2),
+(16, 'Event Organizer', 'Special Events', '09:00:00', '17:00:00', 5),
+(17, 'Event Resource Specialist', 'Special Events', '09:00:00', '17:00:00', 5),
+(18, 'Volunteer Marketing Associate', 'Administration', '08:00:00', '16:00:00', 1),
+(19, 'Client Resource Associate', 'Administration', '08:00:00', '16:00:00', 1),
+(20, 'Assistant Volunteer Coordinator', 'Administration', '08:00:00', '16:00:00', 1),
+(21, 'Volunteer Office Administrator', 'Administration', '08:00:00', '16:00:00', 1)
+ON CONFLICT (id) DO NOTHING;
+`);
+
+  await client.end();
+}
