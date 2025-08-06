@@ -123,7 +123,19 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     for (const r of roles) {
       try {
         const data = await getVolunteerBookingsByRole(token, r.id);
-        all.push(...data.filter((b: VolunteerBookingDetail) => b.status === 'pending'));
+        const approvedByDate: Record<string, number> = {};
+        data.forEach((b: VolunteerBookingDetail) => {
+          if (b.status === 'approved') {
+            approvedByDate[b.date] = (approvedByDate[b.date] || 0) + 1;
+          }
+        });
+        data.forEach((b: VolunteerBookingDetail) => {
+          if (b.status === 'pending') {
+            const approvedCount = approvedByDate[b.date] || 0;
+            const canBook = approvedCount < r.max_volunteers;
+            all.push({ ...b, can_book: canBook });
+          }
+        });
       } catch {
         // ignore
       }
@@ -260,34 +272,40 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     b => b.date === formatDate(currentDate) && ['approved', 'pending'].includes(b.status)
   );
   const rows = roleInfo
-    ? [
-        {
-          time: `${formatTime(roleInfo.start_time)} - ${formatTime(roleInfo.end_time)}`,
-          cells: Array.from({ length: roleInfo.max_volunteers }).map((_, i) => {
-            const booking = bookingsForDate[i];
-            return {
-              content: booking ? booking.volunteer_name : '',
-              backgroundColor: booking
-                ? booking.status === 'approved'
-                  ? '#c8e6c9'
-                  : '#ffd8b2'
-                : undefined,
-              onClick: () => {
-                if (booking) {
-                  if (booking.status === 'pending') {
-                    setDecisionBooking(booking);
+    ? (() => {
+        const approvedCount = bookingsForDate.filter(b => b.status === 'approved').length;
+        const canBook = approvedCount < roleInfo.max_volunteers;
+        return [
+          {
+            time: `${formatTime(roleInfo.start_time)} - ${formatTime(roleInfo.end_time)}`,
+            cells: Array.from({ length: roleInfo.max_volunteers }).map((_, i) => {
+              const booking = bookingsForDate[i];
+              return {
+                content: booking
+                  ? booking.volunteer_name + (booking.status === 'pending' && !canBook ? ' (Full)' : '')
+                  : '',
+                backgroundColor: booking
+                  ? booking.status === 'approved'
+                    ? '#c8e6c9'
+                    : '#ffd8b2'
+                  : undefined,
+                onClick: () => {
+                  if (booking) {
+                    if (booking.status === 'pending') {
+                      setDecisionBooking({ ...booking, can_book: canBook });
+                    }
+                  } else {
+                    setAssignModal(true);
+                    setAssignSearch('');
+                    setAssignResults([]);
+                    setAssignMsg('');
                   }
-                } else {
-                  setAssignModal(true);
-                  setAssignSearch('');
-                  setAssignResults([]);
-                  setAssignMsg('');
-                }
-              },
-            };
-          }),
-        },
-      ]
+                },
+              };
+            }),
+          },
+        ];
+      })()
     : [];
 
   return (
@@ -446,6 +464,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
                 <div><strong>Date:</strong> {p.date}</div>
                 <div><strong>Time:</strong> {formatTime(p.start_time)} - {formatTime(p.end_time)}</div>
+                <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
                 <div style={{ marginTop: 4 }}>
                   <button onClick={() => decide(p.id, 'approved')}>Approve</button>{' '}
                   <button onClick={() => decide(p.id, 'rejected')}>Reject</button>
@@ -523,7 +542,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
             <p>
-              Approve or reject booking for {decisionBooking.volunteer_name}?
+              Approve or reject booking for {decisionBooking.volunteer_name}?<br />
+              Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               <button
