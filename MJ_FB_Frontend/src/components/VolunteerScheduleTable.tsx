@@ -15,7 +15,7 @@ interface Props {
   rows: Row[];
 }
 
-export default function ScheduleTable({ maxSlots, rows }: Props) {
+export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   return (
     <table style={{ borderCollapse: 'collapse', width: '100%' }}>
       <thead>
