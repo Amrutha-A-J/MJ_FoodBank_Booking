@@ -31,14 +31,10 @@ export async function createVolunteerBooking(req: Request, res: Response) {
     const role = roleRes.rows[0];
 
     const volRes = await pool.query(
-      'SELECT trained_role_id FROM volunteers WHERE id = $1',
-      [user.id]
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [user.id, roleId]
     );
     if (volRes.rowCount === 0) {
-      return res.status(403).json({ message: 'Volunteer not found' });
-    }
-    const trained = volRes.rows[0].trained_role_id;
-    if (trained === null || trained !== roleId) {
       return res.status(400).json({ message: 'Not trained for this role' });
     }
 
