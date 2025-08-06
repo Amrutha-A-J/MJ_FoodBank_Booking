@@ -65,6 +65,63 @@ export async function createVolunteerBooking(req: Request, res: Response) {
   }
 }
 
+export async function createVolunteerBookingForVolunteer(req: Request, res: Response) {
+  const { volunteerId, roleId, date } = req.body as {
+    volunteerId?: number;
+    roleId?: number;
+    date?: string;
+  };
+  if (!volunteerId || !roleId || !date) {
+    return res
+      .status(400)
+      .json({ message: 'volunteerId, roleId and date are required' });
+  }
+
+  try {
+    const roleRes = await pool.query(
+      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1',
+      [roleId]
+    );
+    if (roleRes.rowCount === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const role = roleRes.rows[0];
+
+    const trainedRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [volunteerId, roleId]
+    );
+    if (trainedRes.rowCount === 0) {
+      return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const countRes = await pool.query(
+      `SELECT COUNT(*) FROM volunteer_bookings
+       WHERE role_id = $1 AND date = $2 AND status = 'approved'`,
+      [roleId, date]
+    );
+    if (Number(countRes.rows[0].count) >= role.max_volunteers) {
+      return res.status(400).json({ message: 'Role is full' });
+    }
+
+    const insertRes = await pool.query(
+      `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, status)
+       VALUES ($1, $2, $3, 'approved')
+       RETURNING id, role_id, volunteer_id, date, status`,
+      [roleId, volunteerId, date]
+    );
+
+    const booking = insertRes.rows[0];
+    booking.status_color = statusColor(booking.status);
+    res.status(201).json(booking);
+  } catch (error) {
+    console.error('Error creating volunteer booking for volunteer:', error);
+    res.status(500).json({
+      message: `Database error creating volunteer booking: ${(error as Error).message}`,
+    });
+  }
+}
+
 export async function listVolunteerBookingsByRole(req: Request, res: Response) {
   const { role_id } = req.params;
   try {

@@ -369,6 +369,23 @@ export async function updateVolunteerBookingStatus(
   return handleResponse(res);
 }
 
+export async function createVolunteerBookingForVolunteer(
+  token: string,
+  volunteerId: number,
+  roleId: number,
+  date: string
+) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/staff`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token,
+    },
+    body: JSON.stringify({ volunteerId, roleId, date }),
+  });
+  return handleResponse(res);
+}
+
 export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
   const res = await fetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`, {
     headers: { Authorization: token },
