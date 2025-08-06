@@ -137,14 +137,14 @@ export async function listVolunteerSlotsForVolunteer(req: Request, res: Response
   try {
     await ensureVolunteerSlotsTable();
     const volunteerRes = await pool.query(
-      'SELECT trained_areas FROM volunteers WHERE id=$1',
+      'SELECT trained_role_id FROM volunteers WHERE id=$1',
       [user.id]
     );
     if (volunteerRes.rowCount === 0) {
       return res.json([]);
     }
-    const trained: number[] = volunteerRes.rows[0].trained_areas || [];
-    if (trained.length === 0) {
+    const trained = volunteerRes.rows[0].trained_role_id;
+    if (trained === null) {
       return res.json([]);
     }
     const result = await pool.query(
@@ -158,7 +158,7 @@ export async function listVolunteerSlotsForVolunteer(req: Request, res: Response
          WHERE status IN ('pending','approved') AND date = $1
          GROUP BY slot_id
        ) b ON vs.id = b.slot_id
-       WHERE vs.role_id = ANY($2)
+       WHERE vs.role_id = $2
        ORDER BY vs.start_time`,
       [date, trained]
     );

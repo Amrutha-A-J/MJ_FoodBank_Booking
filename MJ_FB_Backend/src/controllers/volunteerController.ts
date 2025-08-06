@@ -8,7 +8,7 @@ async function ensureVolunteersTable() {
       id SERIAL PRIMARY KEY,
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
-      trained_areas INTEGER[] DEFAULT '{}',
+      trained_role_id INTEGER REFERENCES volunteer_roles(id),
       email TEXT,
       phone TEXT,
       username TEXT UNIQUE NOT NULL,
@@ -17,34 +17,34 @@ async function ensureVolunteersTable() {
   `);
 }
 
-export async function updateTrainedAreas(req: Request, res: Response) {
+export async function updateTrainedArea(req: Request, res: Response) {
   const { id } = req.params;
-  const { roleIds } = req.body as { roleIds?: number[] };
-  if (!Array.isArray(roleIds) || roleIds.some(r => typeof r !== 'number')) {
+  const { roleId } = req.body as { roleId?: number };
+  if (typeof roleId !== 'number') {
     return res
       .status(400)
-      .json({ message: 'roleIds must be an array of numbers' });
+      .json({ message: 'roleId must be provided as a number' });
   }
   try {
-    const validRoles = await pool.query(
-      `SELECT id FROM volunteer_roles_master WHERE id = ANY($1)`,
-      [roleIds]
+    const validRole = await pool.query(
+      `SELECT id FROM volunteer_roles WHERE id = $1`,
+      [roleId]
     );
-    if (validRoles.rowCount !== roleIds.length) {
-      return res.status(400).json({ message: 'Invalid roleIds' });
+    if (validRole.rowCount === 0) {
+      return res.status(400).json({ message: 'Invalid roleId' });
     }
     const result = await pool.query(
-      `UPDATE volunteers SET trained_areas = $1 WHERE id = $2 RETURNING id, trained_areas`,
-      [roleIds, id]
+      `UPDATE volunteers SET trained_role_id = $1 WHERE id = $2 RETURNING id, trained_role_id`,
+      [roleId, id]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Volunteer not found' });
     }
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating trained areas:', error);
+    console.error('Error updating trained area:', error);
     res.status(500).json({
-      message: `Database error updating trained areas: ${(error as Error).message}`,
+      message: `Database error updating trained area: ${(error as Error).message}`,
     });
   }
 }
@@ -93,7 +93,7 @@ export async function createVolunteer(req: Request, res: Response) {
     password,
     email,
     phone,
-    roleIds,
+    roleId,
   } = req.body as {
     firstName?: string;
     lastName?: string;
@@ -101,7 +101,7 @@ export async function createVolunteer(req: Request, res: Response) {
     password?: string;
     email?: string;
     phone?: string;
-    roleIds?: number[];
+    roleId?: number;
   };
 
   if (
@@ -109,13 +109,10 @@ export async function createVolunteer(req: Request, res: Response) {
     !lastName ||
     !username ||
     !password ||
-    !Array.isArray(roleIds) ||
-    roleIds.length === 0 ||
-    roleIds.some(r => typeof r !== 'number')
+    typeof roleId !== 'number'
   ) {
     return res.status(400).json({
-      message:
-        'First name, last name, username, password and at least one role required',
+      message: 'First name, last name, username, password and role required',
     });
   }
 
@@ -137,20 +134,20 @@ export async function createVolunteer(req: Request, res: Response) {
       }
     }
 
-    const validRoles = await pool.query(
-      `SELECT id FROM volunteer_roles_master WHERE id = ANY($1)`,
-      [roleIds]
+    const validRole = await pool.query(
+      `SELECT id FROM volunteer_roles WHERE id = $1`,
+      [roleId]
     );
-    if (validRoles.rowCount !== roleIds.length) {
-      return res.status(400).json({ message: 'Invalid roleIds' });
+    if (validRole.rowCount === 0) {
+      return res.status(400).json({ message: 'Invalid roleId' });
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO volunteers (first_name, last_name, trained_areas, email, phone, username, password)
+      `INSERT INTO volunteers (first_name, last_name, trained_role_id, email, phone, username, password)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        RETURNING id`,
-      [firstName, lastName, roleIds, email, phone, username, hashed]
+      [firstName, lastName, roleId, email, phone, username, hashed]
     );
     res.status(201).json({ id: result.rows[0].id });
   } catch (error) {
@@ -171,7 +168,7 @@ export async function searchVolunteers(req: Request, res: Response) {
     }
 
     const result = await pool.query(
-      `SELECT id, first_name, last_name, trained_areas
+      `SELECT id, first_name, last_name, trained_role_id
        FROM volunteers
        WHERE (first_name || ' ' || last_name) ILIKE $1
           OR email ILIKE $1
@@ -185,7 +182,7 @@ export async function searchVolunteers(req: Request, res: Response) {
     const formatted = result.rows.map(v => ({
       id: v.id,
       name: `${v.first_name} ${v.last_name}`.trim(),
-      trainedAreas: (v.trained_areas || []).map((n: any) => Number(n)),
+      trainedArea: v.trained_role_id === null ? null : Number(v.trained_role_id),
     }));
 
     res.json(formatted);
