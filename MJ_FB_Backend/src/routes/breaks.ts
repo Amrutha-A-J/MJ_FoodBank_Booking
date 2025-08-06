@@ -6,7 +6,7 @@ const router = express.Router();
 
 async function ensureTable() {
   await pool.query(
-    'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (day_of_week, slot_id))'
+    'CREATE TABLE IF NOT EXISTS breaks (day_of_week INTEGER NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (day_of_week, slot_id), FOREIGN KEY (slot_id) REFERENCES slots(id))'
   );
   await pool.query('ALTER TABLE breaks ADD COLUMN IF NOT EXISTS reason TEXT');
 }
