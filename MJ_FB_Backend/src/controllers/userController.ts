@@ -166,7 +166,7 @@ export async function getUserProfile(req: Request, res: Response) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
-    const bookingsThisMonth = await updateBookingsThisMonth(user.id);
+    const bookingsThisMonth = await updateBookingsThisMonth(Number(user.id));
     const result = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
        FROM users WHERE id = $1`,
