@@ -30,10 +30,10 @@ export interface BlockedSlot {
   reason: string;
 }
 
-export interface VolunteerSlot {
+export interface VolunteerRole {
   id: number;
-  role_id: number;
-  role_name: string;
+  name: string;
+  category: string;
   start_time: string;
   end_time: string;
   max_volunteers: number;
@@ -46,7 +46,7 @@ export interface VolunteerSlot {
 export interface VolunteerBooking {
   id: number;
   status: string;
-  slot_id: number;
+  role_id: number;
   date: string;
   start_time: string;
   end_time: string;
@@ -57,7 +57,7 @@ export interface VolunteerBooking {
 export interface VolunteerBookingDetail {
   id: number;
   status: string;
-  slot_id: number;
+  role_id: number;
   volunteer_id: number;
   volunteer_name: string;
   date: string;

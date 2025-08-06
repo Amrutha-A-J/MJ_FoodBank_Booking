@@ -2,21 +2,6 @@ import { Request, Response } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
 
-async function ensureVolunteersTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS volunteers (
-      id SERIAL PRIMARY KEY,
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      trained_role_id INTEGER REFERENCES volunteer_roles(id),
-      email TEXT,
-      phone TEXT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL
-    )
-  `);
-}
-
 export async function updateTrainedArea(req: Request, res: Response) {
   const { id } = req.params;
   const { roleId } = req.body as { roleId?: number };
@@ -117,7 +102,6 @@ export async function createVolunteer(req: Request, res: Response) {
   }
 
   try {
-    await ensureVolunteersTable();
     const usernameCheck = await pool.query('SELECT id FROM volunteers WHERE username=$1', [
       username,
     ]);

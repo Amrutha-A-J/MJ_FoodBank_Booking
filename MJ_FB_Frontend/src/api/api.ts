@@ -309,8 +309,8 @@ export async function searchVolunteers(token: string, search: string) {
     return handleResponse(res);
   }
 
-export async function getVolunteerSlots(token: string, date: string) {
-  const res = await fetch(`${API_BASE}/volunteer-slots/mine?date=${date}`, {
+export async function getVolunteerRolesForVolunteer(token: string, date: string) {
+  const res = await fetch(`${API_BASE}/volunteer-roles/mine?date=${date}`, {
     headers: { Authorization: token },
   });
   return handleResponse(res);
@@ -318,7 +318,7 @@ export async function getVolunteerSlots(token: string, date: string) {
 
 export async function requestVolunteerBooking(
   token: string,
-  slotId: number,
+  roleId: number,
   date: string
 ) {
   const res = await fetch(`${API_BASE}/volunteer-bookings`, {
@@ -327,7 +327,7 @@ export async function requestVolunteerBooking(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ slotId, date }),
+    body: JSON.stringify({ roleId, date }),
   });
   return handleResponse(res);
 }

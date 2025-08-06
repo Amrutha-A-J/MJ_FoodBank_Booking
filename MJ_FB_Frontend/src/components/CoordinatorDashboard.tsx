@@ -22,8 +22,8 @@ interface VolunteerResult {
   trainedAreas: number[];
 }
 
-interface SlotGroup {
-  slot_id: number;
+interface RoleGroup {
+  role_id: number;
   date: string;
   start_time: string;
   end_time: string;
@@ -35,8 +35,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
-  const [slotModal, setSlotModal] = useState<{
-    slot_id: number;
+  const [roleModal, setRoleModal] = useState<{
+    role_id: number;
     date: string;
     start_time: string;
     end_time: string;
@@ -114,10 +114,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setPending(all);
   }
 
-  const grouped = bookings.reduce((acc: Record<string, SlotGroup>, b) => {
-    const key = `${b.slot_id}-${b.date}`;
+  const grouped = bookings.reduce((acc: Record<string, RoleGroup>, b) => {
+    const key = `${b.role_id}-${b.date}`;
     const slot = acc[key] || {
-      slot_id: b.slot_id,
+      role_id: b.role_id,
       date: b.date,
       start_time: b.start_time,
       end_time: b.end_time,
@@ -126,8 +126,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     slot.bookings.push(b);
     acc[key] = slot;
     return acc;
-  }, {} as Record<string, SlotGroup>);
-  const slotArray: SlotGroup[] = Object.values(grouped);
+  }, {} as Record<string, RoleGroup>);
+  const roleArray: RoleGroup[] = Object.values(grouped);
 
   async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
@@ -135,12 +135,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       if (selectedRole) {
         const data = await getVolunteerBookingsByRole(token, Number(selectedRole));
         setBookings(data);
-          if (slotModal) {
+          if (roleModal) {
             const updated = data.filter(
               (b: VolunteerBookingDetail) =>
-                b.slot_id === slotModal.slot_id && b.date === slotModal.date
+                b.role_id === roleModal.role_id && b.date === roleModal.date
             );
-            setSlotModal({ ...slotModal, bookings: updated });
+            setRoleModal({ ...roleModal, bookings: updated });
           }
       }
       if (tab === 'pending') loadPending();
@@ -242,29 +242,29 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             </select>
           </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
-            {slotArray.map((s: SlotGroup) => {
+            {roleArray.map((s: RoleGroup) => {
               const hasPending = s.bookings.some((b: VolunteerBookingDetail) => b.status === 'pending');
               const color = hasPending ? '#ffd8b2' : '#c8e6c9';
               return (
                 <button
-                  key={s.slot_id}
+                  key={s.role_id}
                   style={{ backgroundColor: color, padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
-                  onClick={() => setSlotModal(s)}
+                  onClick={() => setRoleModal(s)}
                 >
                 {s.date} {formatTime(s.start_time)} - {formatTime(s.end_time)}
                 </button>
               );
             })}
-            {slotArray.length === 0 && <p>No bookings.</p>}
+            {roleArray.length === 0 && <p>No bookings.</p>}
           </div>
-          {slotModal && (
+          {roleModal && (
             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 400 }}>
                 <h3>
-                    {slotModal.date} {formatTime(slotModal.start_time)} - {formatTime(slotModal.end_time)}
+                    {roleModal.date} {formatTime(roleModal.start_time)} - {formatTime(roleModal.end_time)}
                 </h3>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {slotModal.bookings.map(b => (
+                  {roleModal.bookings.map(b => (
                     <li key={b.id} style={{ marginBottom: 8, padding: 4, background: b.status === 'pending' ? '#ffd8b2' : '#c8e6c9' }}>
                       {b.volunteer_name} ({b.status}){' '}
                       {b.status === 'pending' && (
@@ -276,7 +276,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => setSlotModal(null)}>Close</button>
+                <button onClick={() => setRoleModal(null)}>Close</button>
               </div>
             </div>
           )}
