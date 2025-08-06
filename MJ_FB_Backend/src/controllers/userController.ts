@@ -162,3 +162,35 @@ export async function searchUsers(req: Request, res: Response) {
   }
 }
 
+export async function getUserProfile(req: Request, res: Response) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const bookingsThisMonth = await updateBookingsThisMonth(user.id);
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
+       FROM users WHERE id = $1`,
+      [user.id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const row = result.rows[0];
+    res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      clientId: row.client_id,
+      role: row.role,
+      bookingsThisMonth,
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({
+      message: `Database error fetching user profile: ${(error as Error).message}`,
+    });
+  }
+}
+

@@ -62,7 +62,9 @@ CREATE TABLE IF NOT EXISTS volunteer_roles (
     category text NOT NULL,
     start_time time without time zone NOT NULL,
     end_time time without time zone NOT NULL,
-    max_volunteers integer NOT NULL
+    max_volunteers integer NOT NULL,
+    role_id integer NOT NULL,
+    is_wednesday_slot boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS volunteers (
@@ -79,8 +81,7 @@ CREATE TABLE IF NOT EXISTS volunteer_trained_roles (
     volunteer_id integer NOT NULL,
     role_id integer NOT NULL,
     PRIMARY KEY (volunteer_id, role_id),
-    FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE
+    FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
@@ -176,28 +177,28 @@ INSERT INTO staff (first_name, last_name, role, email, password) VALUES
 ('Terri', 'Smith', 'volunteer_coordinator', 'terri@mjfb.com', '$2b$10$hg6FdP2Pn0ROS.YTKQviXu7EEXsvQedZ4PqStdI61HS6uX/kA/bhm')
 ON CONFLICT (email) DO NOTHING;
 
-INSERT INTO volunteer_roles (name, category, start_time, end_time, max_volunteers) VALUES
-('Food Sorter', 'Warehouse', '09:00:00', '12:00:00', 3),
-('Production Worker', 'Warehouse', '09:00:00', '12:00:00', 3),
-('Driver Assistant', 'Warehouse', '09:00:00', '12:00:00', 1),
-('Loading Dock Personnel', 'Warehouse', '09:00:00', '12:00:00', 1),
-('General Cleaning & Maintenance', 'Warehouse', '08:00:00', '11:00:00', 1),
-('Reception (Morning)', 'Pantry', '09:30:00', '12:30:00', 1),
-('Reception (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 1),
-('Reception (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 1),
-('Greeter/Pantry Assistant (Morning)', 'Pantry', '09:00:00', '12:00:00', 3),
-('Greeter/Pantry Assistant (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 3),
-('Greeter/Pantry Assistant (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 2),
-('Greeter/Pantry Assistant (Wednesday Late Evening)', 'Pantry', '16:30:00', '19:30:00', 2),
-('Stock Person (Morning)', 'Pantry', '08:00:00', '11:00:00', 1),
-('Stock Person (Afternoon)', 'Pantry', '12:00:00', '15:00:00', 1),
-('Gardening Assistant', 'Gardening', '13:00:00', '16:00:00', 2),
-('Event Organizer', 'Special Events', '09:00:00', '17:00:00', 5),
-('Event Resource Specialist', 'Special Events', '09:00:00', '17:00:00', 5),
-('Volunteer Marketing Associate', 'Administration', '08:00:00', '16:00:00', 1),
-('Client Resource Associate', 'Administration', '08:00:00', '16:00:00', 1),
-('Assistant Volunteer Coordinator', 'Administration', '08:00:00', '16:00:00', 1),
-('Volunteer Office Administrator', 'Administration', '08:00:00', '16:00:00', 1)
+INSERT INTO volunteer_roles (name, category, start_time, end_time, max_volunteers, role_id, is_wednesday_slot) VALUES
+('Food Sorter', 'Warehouse', '09:00:00', '12:00:00', 3, 1, false),
+('Production Worker', 'Warehouse', '09:00:00', '12:00:00', 3, 2, false),
+('Driver Assistant', 'Warehouse', '09:00:00', '12:00:00', 1, 3, false),
+('Loading Dock Personnel', 'Warehouse', '09:00:00', '12:00:00', 1, 4, false),
+('General Cleaning & Maintenance', 'Warehouse', '08:00:00', '11:00:00', 1, 5, false),
+('Reception (Morning)', 'Pantry', '09:30:00', '12:30:00', 1, 6, false),
+('Reception (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 1, 6, false),
+('Reception (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 1, 6, true),
+('Greeter/Pantry Assistant (Morning)', 'Pantry', '09:00:00', '12:00:00', 3, 7, false),
+('Greeter/Pantry Assistant (Afternoon)', 'Pantry', '12:30:00', '15:30:00', 3, 7, false),
+('Greeter/Pantry Assistant (Wednesday Evening)', 'Pantry', '15:30:00', '18:30:00', 2, 7, true),
+('Greeter/Pantry Assistant (Wednesday Late Evening)', 'Pantry', '16:30:00', '19:30:00', 2, 7, true),
+('Stock Person (Morning)', 'Pantry', '08:00:00', '11:00:00', 1, 8, false),
+('Stock Person (Afternoon)', 'Pantry', '12:00:00', '15:00:00', 1, 8, false),
+('Gardening Assistant', 'Gardening', '13:00:00', '16:00:00', 2, 9, false),
+('Event Organizer', 'Special Events', '09:00:00', '17:00:00', 5, 10, false),
+('Event Resource Specialist', 'Special Events', '09:00:00', '17:00:00', 5, 11, false),
+('Volunteer Marketing Associate', 'Administration', '08:00:00', '16:00:00', 1, 12, false),
+('Client Resource Associate', 'Administration', '08:00:00', '16:00:00', 1, 13, false),
+('Assistant Volunteer Coordinator', 'Administration', '08:00:00', '16:00:00', 1, 14, false),
+('Volunteer Office Administrator', 'Administration', '08:00:00', '16:00:00', 1, 15, false)
 ON CONFLICT (name) DO NOTHING;
 `);
 

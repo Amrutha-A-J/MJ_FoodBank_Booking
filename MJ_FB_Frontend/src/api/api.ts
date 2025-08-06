@@ -1,6 +1,6 @@
 // src/api/api.ts
 // Read API base URL from environment or fall back to localhost
-import type { Role, UserRole, StaffRole } from '../types';
+import type { Role, UserRole, StaffRole, UserProfile } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
@@ -57,6 +57,13 @@ export async function loginVolunteer(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
+  });
+  return handleResponse(res);
+}
+
+export async function getUserProfile(token: string): Promise<UserProfile> {
+  const res = await fetch(`${API_BASE}/users/me`, {
+    headers: { Authorization: token },
   });
   return handleResponse(res);
 }
