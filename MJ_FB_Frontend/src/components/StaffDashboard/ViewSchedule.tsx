@@ -3,6 +3,7 @@ import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, 
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
+import ScheduleTable from '../ScheduleTable';
 
 interface Booking {
   id: number;
@@ -167,6 +168,61 @@ export default function ViewSchedule({ token }: { token: string }) {
   }
   displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  const rows = displaySlots.map(slot => {
+    if (slot.break) {
+      return {
+        time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
+        cells: [
+          {
+            content: `Break${slot.reason ? ` - ${slot.reason}` : ''}`,
+            colSpan: 4,
+            backgroundColor: '#f5f5f5',
+          },
+        ],
+      };
+    }
+    if (slot.blocked) {
+      return {
+        time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
+        cells: [
+          {
+            content: `Blocked${slot.reason ? ` - ${slot.reason}` : ''}`,
+            colSpan: 4,
+            backgroundColor: '#f5f5f5',
+          },
+        ],
+      };
+    }
+    const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
+    return {
+      time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
+      cells: Array.from({ length: 4 }).map((_, i) => {
+        const booking = slotBookings[i];
+        return {
+          content: booking ? booking.user_name : '',
+          backgroundColor: booking
+            ? booking.status === 'submitted'
+              ? '#ffe5b4'
+              : '#e0f7e0'
+            : undefined,
+          onClick: () => {
+            if (booking) {
+              if (['submitted', 'approved'].includes(booking.status)) {
+                setDecisionBooking(booking);
+                setDecisionReason('');
+              }
+            } else if (!isClosed) {
+              setAssignSlot(slot);
+              setAssignMessage('');
+            } else {
+              setMessage('Booking not allowed on weekends or holidays');
+            }
+          },
+        };
+      }),
+    };
+  });
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -185,82 +241,7 @@ export default function ViewSchedule({ token }: { token: string }) {
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
-        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead>
-            <tr>
-              <th style={{ border: '1px solid #ccc', padding: 8, width: '120px' }}>Time</th>
-              {[1,2,3,4].map(i => (
-                <th key={i} style={{ border: '1px solid #ccc', padding: 8 }}>Slot {i}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {displaySlots.map((slot, idx) => {
-              if (slot.break) {
-                return (
-                  <tr key={`break-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
-                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Break{slot.reason ? ` - ${slot.reason}` : ''}</td>
-                  </tr>
-                );
-              }
-              if (slot.blocked) {
-                return (
-                  <tr key={`blocked-${idx}`} style={{ backgroundColor: '#f5f5f5' }}>
-                    <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
-                    <td colSpan={4} style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>Blocked{slot.reason ? ` - ${slot.reason}` : ''}</td>
-                  </tr>
-                );
-              }
-              const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
-              return (
-                <tr key={slot.id}>
-                  <td style={{ border: '1px solid #ccc', padding: 8 }}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</td>
-                  {Array.from({ length: 4 }).map((_, i) => {
-                    const booking = slotBookings[i];
-                    return (
-                      <td
-                        key={i}
-                        style={{
-                          border: '1px solid #ccc',
-                          padding: 8,
-                          height: 40,
-                          cursor: booking
-                            ? ['submitted', 'approved'].includes(booking.status)
-                              ? 'pointer'
-                              : 'default'
-                            : isClosed
-                              ? 'not-allowed'
-                              : 'pointer',
-                          backgroundColor: booking
-                            ? booking.status === 'submitted'
-                              ? '#ffe5b4'
-                              : '#e0f7e0'
-                            : 'transparent',
-                        }}
-                        onClick={() => {
-                          if (booking) {
-                            if (['submitted', 'approved'].includes(booking.status)) {
-                              setDecisionBooking(booking);
-                              setDecisionReason('');
-                            }
-                          } else if (!isClosed) {
-                            setAssignSlot(slot);
-                            setAssignMessage('');
-                          } else {
-                            setMessage('Booking not allowed on weekends or holidays');
-                          }
-                        }}
-                      >
-                        {booking ? booking.user_name : ''}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <ScheduleTable maxSlots={4} rows={rows} />
       )}
 
       {assignSlot && (

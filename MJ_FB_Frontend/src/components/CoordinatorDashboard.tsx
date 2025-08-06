@@ -10,10 +10,15 @@ import {
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
+import ScheduleTable from './ScheduleTable';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 interface RoleOption {
   id: number;
   name: string;
+  start_time: string;
+  end_time: string;
+  max_volunteers: number;
 }
 
 interface VolunteerResult {
@@ -22,26 +27,12 @@ interface VolunteerResult {
   trainedAreas: number[];
 }
 
-interface RoleGroup {
-  role_id: number;
-  date: string;
-  start_time: string;
-  end_time: string;
-  bookings: VolunteerBookingDetail[];
-}
 
 export default function CoordinatorDashboard({ token }: { token: string }) {
   const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending'>('schedule');
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
-  const [roleModal, setRoleModal] = useState<{
-    role_id: number;
-    date: string;
-    start_time: string;
-    end_time: string;
-    bookings: VolunteerBookingDetail[];
-  } | null>(null);
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
 
@@ -60,6 +51,18 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
   const [createMsg, setCreateMsg] = useState('');
+
+  const reginaTimeZone = 'America/Regina';
+  const [currentDate, setCurrentDate] = useState(() => {
+    const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
+    return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
+  });
+
+  const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
+
+  function changeDay(delta: number) {
+    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
+  }
 
   useEffect(() => {
     getVolunteerRoles(token)
@@ -114,34 +117,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setPending(all);
   }
 
-  const grouped = bookings.reduce((acc: Record<string, RoleGroup>, b) => {
-    const key = `${b.role_id}-${b.date}`;
-    const slot = acc[key] || {
-      role_id: b.role_id,
-      date: b.date,
-      start_time: b.start_time,
-      end_time: b.end_time,
-      bookings: [],
-    };
-    slot.bookings.push(b);
-    acc[key] = slot;
-    return acc;
-  }, {} as Record<string, RoleGroup>);
-  const roleArray: RoleGroup[] = Object.values(grouped);
-
   async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
       await updateVolunteerBookingStatus(token, id, status);
       if (selectedRole) {
         const data = await getVolunteerBookingsByRole(token, Number(selectedRole));
         setBookings(data);
-          if (roleModal) {
-            const updated = data.filter(
-              (b: VolunteerBookingDetail) =>
-                b.role_id === roleModal.role_id && b.date === roleModal.date
-            );
-            setRoleModal({ ...roleModal, bookings: updated });
-          }
       }
       if (tab === 'pending') loadPending();
     } catch (e) {
@@ -221,6 +202,29 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
   }
 
+  const roleInfo = roles.find(r => r.id === selectedRole);
+  const bookingsForDate = bookings.filter(
+    b => b.date === formatDate(currentDate) && ['approved', 'pending'].includes(b.status)
+  );
+  const rows = roleInfo
+    ? [
+        {
+          time: `${formatTime(roleInfo.start_time)} - ${formatTime(roleInfo.end_time)}`,
+          cells: Array.from({ length: roleInfo.max_volunteers }).map((_, i) => {
+            const booking = bookingsForDate[i];
+            return {
+              content: booking ? booking.volunteer_name : '',
+              backgroundColor: booking
+                ? booking.status === 'approved'
+                  ? '#c8e6c9'
+                  : '#ffd8b2'
+                : undefined,
+            };
+          }),
+        },
+      ]
+    : [];
+
   return (
     <div>
       <h2>Coordinator Dashboard</h2>
@@ -241,44 +245,17 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               ))}
             </select>
           </label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
-            {roleArray.map((s: RoleGroup) => {
-              const hasPending = s.bookings.some((b: VolunteerBookingDetail) => b.status === 'pending');
-              const color = hasPending ? '#ffd8b2' : '#c8e6c9';
-              return (
-                <button
-                  key={s.role_id}
-                  style={{ backgroundColor: color, padding: 8, border: '1px solid #ccc', borderRadius: 4 }}
-                  onClick={() => setRoleModal(s)}
-                >
-                {s.date} {formatTime(s.start_time)} - {formatTime(s.end_time)}
-                </button>
-              );
-            })}
-            {roleArray.length === 0 && <p>No bookings.</p>}
-          </div>
-          {roleModal && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 400 }}>
-                <h3>
-                    {roleModal.date} {formatTime(roleModal.start_time)} - {formatTime(roleModal.end_time)}
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {roleModal.bookings.map(b => (
-                    <li key={b.id} style={{ marginBottom: 8, padding: 4, background: b.status === 'pending' ? '#ffd8b2' : '#c8e6c9' }}>
-                      {b.volunteer_name} ({b.status}){' '}
-                      {b.status === 'pending' && (
-                        <>
-                          <button onClick={() => decide(b.id, 'approved')}>Approve</button>{' '}
-                          <button onClick={() => decide(b.id, 'rejected')}>Reject</button>
-                        </>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <button onClick={() => setRoleModal(null)}>Close</button>
+          {selectedRole && roleInfo ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+                <button onClick={() => changeDay(-1)}>Previous</button>
+                <h3>{formatDate(currentDate)}</h3>
+                <button onClick={() => changeDay(1)}>Next</button>
               </div>
-            </div>
+              <ScheduleTable maxSlots={roleInfo.max_volunteers} rows={rows} />
+            </>
+          ) : (
+            <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>
           )}
         </div>
       )}
