@@ -21,6 +21,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [roles, setRoles] = useState<VolunteerRole[]>([]);
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string }[]>([]);
+  const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
@@ -38,6 +40,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     if (weekend || holiday) {
       setRoles([]);
       setBookings([]);
+      setBaseRoles([]);
+      setSelectedRole('');
       return;
     }
     try {
@@ -46,6 +50,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getMyVolunteerBookings(token),
       ]);
       setRoles(roleData);
+      const map = new Map<number, string>();
+      roleData.forEach(r => map.set(r.role_id, r.name));
+      setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
+      setSelectedRole(prev => (prev && map.has(Number(prev)) ? prev : ''));
       const filtered = bookingData.filter(
         b => b.date === dateStr && ['approved', 'submitted'].includes(b.status)
       );
@@ -107,89 +115,100 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const timeMap = new Map<string, VolunteerRole[]>();
-  for (const r of roles) {
-    const key = `${r.start_time}-${r.end_time}`;
-    if (!timeMap.has(key)) timeMap.set(key, []);
-    timeMap.get(key)!.push(r);
-  }
-  const maxSlots = Math.max(
-    0,
-    ...Array.from(timeMap.values(), arr => arr.length)
-  );
-  const rows = Array.from(timeMap.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([key, arr]) => {
-      const [start, end] = key.split('-');
-      return {
-        time: `${formatTime(start)} - ${formatTime(end)}`,
-        cells: arr.map(role => {
-          const booking = bookings.find(
-            b =>
-              b.role_id === role.role_id &&
-              b.start_time === role.start_time &&
-              b.date === role.date
-          );
-          if (booking) {
-            return {
-              content: role.name,
-              backgroundColor:
-                booking.status === 'submitted' ? '#ffe5b4' : '#e0f7e0',
-              onClick: () => {
-                setDecisionBooking(booking);
-                setDecisionReason('');
-              },
-            };
-          }
-          if (role.available <= 0) {
-            return {
-              content: `${role.name} (Full)`,
-              backgroundColor: '#f5f5f5',
-            };
-          }
-          return {
-            content: role.name,
-            onClick: () => {
-              if (!isClosed) {
-                setRequestRole(role);
-                setMessage('');
-              } else {
-                setMessage('Booking not allowed on weekends or holidays');
-              }
-            },
-          };
-        }),
-      };
-    });
+  const roleSlots = selectedRole
+    ? roles.filter(r => r.role_id === selectedRole)
+    : [];
+  const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
+  const rows = roleSlots.map(role => {
+    const myBooking = bookings.find(b => b.role_id === role.id);
+    const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
+    const cells: {
+      content: string;
+      backgroundColor?: string;
+      onClick?: () => void;
+    }[] = [];
+    if (myBooking) {
+      cells.push({
+        content: 'My Booking',
+        backgroundColor:
+          myBooking.status === 'submitted' ? '#ffe5b4' : '#e0f7e0',
+        onClick: () => {
+          setDecisionBooking(myBooking);
+          setDecisionReason('');
+        },
+      });
+    }
+    for (let i = cells.length; i < role.max_volunteers; i++) {
+      if (i - (myBooking ? 1 : 0) < othersBooked) {
+        cells.push({ content: 'Booked', backgroundColor: '#f5f5f5' });
+      } else {
+        cells.push({
+          content: 'Available',
+          onClick: () => {
+            if (!isClosed) {
+              setRequestRole(role);
+              setMessage('');
+            } else {
+              setMessage('Booking not allowed on weekends or holidays');
+            }
+          },
+        });
+      }
+    }
+    return {
+      time: `${formatTime(role.start_time)} - ${formatTime(role.end_time)}`,
+      cells,
+    };
+  });
 
   return (
     <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 16,
-        }}
-      >
-        <button onClick={() => changeDay(-1)}>Previous</button>
-        <h3>
-          {dateStr} - {dayName}
-          {isHoliday
-            ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
-            : isWeekend
-              ? ' (Weekend)'
-              : ''}
-        </h3>
-        <button onClick={() => changeDay(1)}>Next</button>
-      </div>
-      {message && <p style={{ color: 'red' }}>{message}</p>}
-      {isClosed ? (
-        <p style={{ textAlign: 'center' }}>
-          Moose Jaw food bank is closed for {dayName}
-        </p>
-      ) : (
-        <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+      <label>
+        Role:{' '}
+        <select
+          value={selectedRole}
+          onChange={e =>
+            setSelectedRole(e.target.value ? Number(e.target.value) : '')
+          }
+        >
+          <option value="">Select role</option>
+          {baseRoles.map(r => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {selectedRole && (
+        <>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <button onClick={() => changeDay(-1)}>Previous</button>
+            <h3>
+              {dateStr} - {dayName}
+              {isHoliday
+                ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
+                : isWeekend
+                  ? ' (Weekend)'
+                  : ''}
+            </h3>
+            <button onClick={() => changeDay(1)}>Next</button>
+          </div>
+          {message && <p style={{ color: 'red' }}>{message}</p>}
+          {isClosed ? (
+            <p style={{ textAlign: 'center' }}>
+              Moose Jaw food bank is closed for {dayName}
+            </p>
+          ) : (
+            <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+          )}
+        </>
       )}
 
       {requestRole && (
