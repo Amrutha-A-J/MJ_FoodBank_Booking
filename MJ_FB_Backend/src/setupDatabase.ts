@@ -95,14 +95,16 @@ CREATE TABLE IF NOT EXISTS breaks (
     day_of_week integer NOT NULL,
     slot_id integer NOT NULL,
     reason text,
-    PRIMARY KEY (day_of_week, slot_id)
+    PRIMARY KEY (day_of_week, slot_id),
+    FOREIGN KEY (slot_id) REFERENCES public.slots(id)
 );
 
 CREATE TABLE IF NOT EXISTS blocked_slots (
     date date NOT NULL,
     slot_id integer NOT NULL,
     reason text,
-    PRIMARY KEY (date, slot_id)
+    PRIMARY KEY (date, slot_id),
+    FOREIGN KEY (slot_id) REFERENCES public.slots(id)
 );
 
 CREATE TABLE IF NOT EXISTS holidays (

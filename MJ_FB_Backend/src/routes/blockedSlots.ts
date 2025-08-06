@@ -6,7 +6,7 @@ const router = express.Router();
 
 async function ensureTable() {
   await pool.query(
-    'CREATE TABLE IF NOT EXISTS blocked_slots (date DATE NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (date, slot_id))'
+    'CREATE TABLE IF NOT EXISTS blocked_slots (date DATE NOT NULL, slot_id INTEGER NOT NULL, reason TEXT, PRIMARY KEY (date, slot_id), FOREIGN KEY (slot_id) REFERENCES slots(id))'
   );
   await pool.query('ALTER TABLE blocked_slots ADD COLUMN IF NOT EXISTS reason TEXT');
 }
