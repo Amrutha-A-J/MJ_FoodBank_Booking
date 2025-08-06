@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors'; // add this
+import cors from 'cors';
 import dotenv from 'dotenv';
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
@@ -40,7 +40,7 @@ app.use('/volunteer-roles', volunteerRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-bookings', volunteerBookingsRoutes);
 
-const PORT = 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 async function init() {
   try {
