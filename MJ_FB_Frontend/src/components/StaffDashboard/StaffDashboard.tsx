@@ -10,6 +10,8 @@ interface Booking {
   user_name: string;
   user_email: string;
   user_phone: string;
+  client_id: number;
+  bookings_this_month: number;
   slot_id: number;
   start_time: string;
   end_time: string;
@@ -97,6 +99,8 @@ export default function StaffDashboard({
               }}
             >
               <div><strong>Booking ID:</strong> {b.id}</div>
+              <div><strong>Client ID:</strong> {b.client_id}</div>
+              <div><strong>Uses This Month:</strong> {b.bookings_this_month}</div>
               <div><strong>Date:</strong> {formatDate(b.date)}</div>
               <div><strong>User:</strong> {b.user_name || 'Unknown'} ({b.user_email || 'N/A'}, {b.user_phone || 'N/A'})</div>
               <div><strong>Slot:</strong> {b.start_time && b.end_time ? `${b.start_time} - ${b.end_time}` : 'No slot assigned'}</div>

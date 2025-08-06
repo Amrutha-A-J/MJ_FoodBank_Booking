@@ -11,6 +11,9 @@ interface Booking {
   date: string;
   slot_id: number;
   user_name: string;
+  user_id: number;
+  client_id: number;
+  bookings_this_month: number;
   is_staff_booking: boolean;
 }
 
@@ -303,6 +306,10 @@ export default function PantrySchedule({ token }: { token: string }) {
               {decisionBooking.status === 'submitted'
                 ? `Approve or reject booking for ${decisionBooking.user_name}?`
                 : `Cancel booking for ${decisionBooking.user_name}?`}
+            </p>
+            <p>
+              Client ID: {decisionBooking.client_id}<br />
+              Uses This Month: {decisionBooking.bookings_this_month}
             </p>
             <textarea
               placeholder={

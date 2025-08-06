@@ -67,6 +67,7 @@ export interface VolunteerBookingDetail {
   end_time: string;
   status_color?: string;
   role_name?: string;
+  can_book?: boolean;
 }
 
 export interface UserProfile {

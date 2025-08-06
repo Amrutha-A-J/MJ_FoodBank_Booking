@@ -67,7 +67,15 @@ export async function listBookings(req: Request, res: Response) {
     const result = await pool.query(`
       SELECT
         b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
-        u.first_name || ' ' || u.last_name as user_name, u.email as user_email, u.phone as user_phone,
+        u.first_name || ' ' || u.last_name as user_name,
+        u.email as user_email, u.phone as user_phone,
+        u.client_id,
+        (
+          SELECT COUNT(*) FROM bookings b2
+          WHERE b2.user_id = b.user_id
+            AND b2.status = 'approved'
+            AND DATE_TRUNC('month', b2.date) = DATE_TRUNC('month', b.date)
+        ) AS bookings_this_month,
         s.start_time, s.end_time
       FROM bookings b
       INNER JOIN users u ON b.user_id = u.id
