@@ -14,6 +14,7 @@ import volunteerSlotsRoutes from './routes/volunteerSlots';
 import volunteerBookingsRoutes from './routes/volunteerBookings';
 import { initializeSlots } from './data';
 import pool from './db';
+import { setupDatabase } from './setupDatabase';
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ const PORT = 4000;
 
 async function init() {
   try {
+    await setupDatabase();
     const client = await pool.connect();
     console.log('✅ Connected to the database successfully!');
     client.release();
