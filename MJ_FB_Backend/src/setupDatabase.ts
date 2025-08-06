@@ -126,21 +126,6 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
 
   // Insert master data
   await client.query(`
-INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
-(1, 6, 'Lunch Break'),
-(2, 6, 'Lunch Break'),
-(3, 6, 'Lunch Break'),
-(4, 6, 'Lunch Break'),
-(5, 6, 'Lunch Break'),
-(1, 7, 'Lunch Break'),
-(2, 7, 'Lunch Break'),
-(3, 7, 'Lunch Break'),
-(4, 7, 'Lunch Break'),
-(5, 7, 'Lunch Break'),
-(3, 12, 'Evening Break'),
-(3, 13, 'Evening Break')
-ON CONFLICT DO NOTHING;
-
 INSERT INTO slots (id, start_time, end_time, max_capacity) VALUES
 (1, '09:30:00', '10:00:00', 4),
 (2, '10:00:00', '10:30:00', 4),
@@ -161,6 +146,21 @@ INSERT INTO slots (id, start_time, end_time, max_capacity) VALUES
 (17, '17:30:00', '18:00:00', 4),
 (18, '18:00:00', '18:30:00', 4)
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
+(1, 6, 'Lunch Break'),
+(2, 6, 'Lunch Break'),
+(3, 6, 'Lunch Break'),
+(4, 6, 'Lunch Break'),
+(5, 6, 'Lunch Break'),
+(1, 7, 'Lunch Break'),
+(2, 7, 'Lunch Break'),
+(3, 7, 'Lunch Break'),
+(4, 7, 'Lunch Break'),
+(5, 7, 'Lunch Break'),
+(3, 12, 'Evening Break'),
+(3, 13, 'Evening Break')
+ON CONFLICT DO NOTHING;
 
 INSERT INTO staff (id, first_name, last_name, role, email, password) VALUES
 (2, 'Melisa', 'Proulx', 'staff', 'melisa@mjfoodbank', '$2b$10$n4bMtLafHD1zHgoeNBdGauGNd3OPuOMp8SGFP3IFXk5v6ItfHAdrG'),
