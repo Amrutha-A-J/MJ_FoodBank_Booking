@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS staff (
     email varchar(255) NOT NULL UNIQUE,
     password varchar(255) NOT NULL
 );
+CREATE TABLE IF NOT EXISTS volunteer_roles (
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name text NOT NULL UNIQUE,
+    category text NOT NULL,
+    start_time time without time zone NOT NULL,
+    end_time time without time zone NOT NULL,
+    max_volunteers integer NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS volunteers (
     id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -67,15 +75,6 @@ CREATE TABLE IF NOT EXISTS volunteers (
     phone text,
     username text NOT NULL UNIQUE,
     password text NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS volunteer_roles (
-    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name text NOT NULL UNIQUE,
-    category text NOT NULL,
-    start_time time without time zone NOT NULL,
-    end_time time without time zone NOT NULL,
-    max_volunteers integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
