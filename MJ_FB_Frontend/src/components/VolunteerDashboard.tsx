@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import {
-  getVolunteerSlots,
+  getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   getMyVolunteerBookings,
 } from '../api/api';
-import type { VolunteerSlot, VolunteerBooking } from '../types';
+import type { VolunteerRole, VolunteerBooking } from '../types';
 import { formatTime } from '../utils/time';
 
 export default function VolunteerDashboard({ token }: { token: string }) {
-  const [slots, setSlots] = useState<VolunteerSlot[]>([]);
+  const [rolesData, setRolesData] = useState<VolunteerRole[]>([]);
   const [roles, setRoles] = useState<{ id: number; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
-  const [modalSlot, setModalSlot] = useState<VolunteerSlot | null>(null);
+  const [modalRole, setModalRole] = useState<VolunteerRole | null>(null);
   const [message, setMessage] = useState('');
   const [tab, setTab] = useState<'slots' | 'history'>('slots');
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
@@ -20,11 +20,11 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   );
 
   useEffect(() => {
-    getVolunteerSlots(token, selectedDate)
+    getVolunteerRolesForVolunteer(token, selectedDate)
       .then(data => {
-        setSlots(data);
+        setRolesData(data);
         const map = new Map<number, string>();
-        data.forEach((s: VolunteerSlot) => map.set(s.role_id, s.role_name));
+        data.forEach((r: VolunteerRole) => map.set(r.id, r.name));
         const arr = Array.from(map, ([id, name]) => ({ id, name }));
         setRoles(arr);
         if (arr.length > 0) setSelectedRole(arr[0].id);
@@ -40,16 +40,16 @@ export default function VolunteerDashboard({ token }: { token: string }) {
     }
   }, [tab, token]);
 
-  const filteredSlots = slots.filter(s => selectedRole === '' || s.role_id === selectedRole);
+  const filteredRoles = rolesData.filter(r => selectedRole === '' || r.id === selectedRole);
 
   async function submitBooking() {
-    if (!modalSlot) return;
+    if (!modalRole) return;
     try {
-      await requestVolunteerBooking(token, modalSlot.id, selectedDate);
+      await requestVolunteerBooking(token, modalRole.id, selectedDate);
       setMessage('Request submitted!');
-      setModalSlot(null);
-      const updated = await getVolunteerSlots(token, selectedDate);
-      setSlots(updated);
+      setModalRole(null);
+      const updated = await getVolunteerRolesForVolunteer(token, selectedDate);
+      setRolesData(updated);
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
     }
@@ -102,25 +102,25 @@ export default function VolunteerDashboard({ token }: { token: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSlots.map(s => (
-                    <tr key={s.id}>
-                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{s.date}</td>
+                  {filteredRoles.map(r => (
+                    <tr key={r.id}>
+                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{r.date}</td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>
-                        {formatTime(s.start_time)} - {formatTime(s.end_time)}
+                        {formatTime(r.start_time)} - {formatTime(r.end_time)}
                       </td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>
-                        {s.available}/{s.max_volunteers}
+                        {r.available}/{r.max_volunteers}
                       </td>
                       <td style={{ border: '1px solid #ccc', padding: 8, textAlign: 'center' }}>
-                        {s.available > 0 ? (
-                          <button onClick={() => setModalSlot(s)}>Request</button>
+                        {r.available > 0 ? (
+                          <button onClick={() => setModalRole(r)}>Request</button>
                         ) : (
                           'Full'
                         )}
                       </td>
                     </tr>
                   ))}
-                  {filteredSlots.length === 0 && (
+                  {filteredRoles.length === 0 && (
                     <tr>
                       <td colSpan={4} style={{ textAlign: 'center', padding: 8 }}>
                         No slots.
@@ -169,7 +169,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </table>
       )}
 
-      {modalSlot && (
+      {modalRole && (
         <div
           style={{
             position: 'fixed',
@@ -185,12 +185,12 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
             <p>
-              Request booking for {modalSlot.date} {formatTime(modalSlot.start_time)} -{' '}
-              {formatTime(modalSlot.end_time)}?
+              Request booking for {modalRole.date} {formatTime(modalRole.start_time)} -{' '}
+              {formatTime(modalRole.end_time)}?
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               <button onClick={submitBooking}>Submit</button>
-              <button onClick={() => setModalSlot(null)}>Cancel</button>
+              <button onClick={() => setModalRole(null)}>Cancel</button>
             </div>
           </div>
         </div>
