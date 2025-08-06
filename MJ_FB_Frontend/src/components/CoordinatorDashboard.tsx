@@ -11,7 +11,7 @@ import {
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
-import ScheduleTable from './ScheduleTable';
+import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 interface RoleOption {
@@ -310,7 +310,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 <h3>{formatDate(currentDate)}</h3>
                 <button onClick={() => changeDay(1)}>Next</button>
               </div>
-              <ScheduleTable maxSlots={roleInfo.max_volunteers} rows={rows} />
+              <VolunteerScheduleTable maxSlots={roleInfo.max_volunteers} rows={rows} />
             </>
           ) : (
             <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>

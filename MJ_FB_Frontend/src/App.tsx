@@ -5,7 +5,7 @@ import ManageAvailability from './components/StaffDashboard/ManageAvailability';
 import UserHistory from './components/StaffDashboard/UserHistory';
 import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
-import ViewSchedule from './components/StaffDashboard/ViewSchedule';
+import PantrySchedule from './components/StaffDashboard/PantrySchedule';
 import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
@@ -50,7 +50,7 @@ export default function App() {
     navLinks = navLinks.concat([
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Availability', id: 'manageAvailability' },
-      { label: 'View Schedule', id: 'viewSchedule' },
+      { label: 'Pantry Schedule', id: 'pantrySchedule' },
       { label: 'Add User', id: 'addUser' },
       { label: 'User History', id: 'userHistory' },
     ]);
@@ -142,8 +142,8 @@ export default function App() {
             {activePage === 'manageAvailability' && isStaff && (
               <ManageAvailability token={token} />
             )}
-            {activePage === 'viewSchedule' && isStaff && (
-              <ViewSchedule token={token} />
+            {activePage === 'pantrySchedule' && isStaff && (
+              <PantrySchedule token={token} />
             )}
             {activePage === 'slots' && role === 'shopper' && (
               <SlotBooking token={token} role="shopper" />

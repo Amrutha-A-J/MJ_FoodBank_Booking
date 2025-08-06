@@ -3,7 +3,7 @@ import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, 
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
-import ScheduleTable from '../ScheduleTable';
+import VolunteerScheduleTable from '../VolunteerScheduleTable';
 
 interface Booking {
   id: number;
@@ -22,7 +22,7 @@ interface User {
 
 const reginaTimeZone = 'America/Regina';
 
-export default function ViewSchedule({ token }: { token: string }) {
+export default function PantrySchedule({ token }: { token: string }) {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -241,7 +241,7 @@ export default function ViewSchedule({ token }: { token: string }) {
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
-        <ScheduleTable maxSlots={4} rows={rows} />
+        <VolunteerScheduleTable maxSlots={4} rows={rows} />
       )}
 
       {assignSlot && (
