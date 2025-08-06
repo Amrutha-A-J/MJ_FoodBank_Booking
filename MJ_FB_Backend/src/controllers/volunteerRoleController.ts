@@ -110,16 +110,13 @@ export async function listVolunteerRolesForVolunteer(req: Request, res: Response
   }
   try {
     const volunteerRes = await pool.query(
-      'SELECT trained_role_id FROM volunteers WHERE id=$1',
+      'SELECT role_id FROM volunteer_trained_roles WHERE volunteer_id=$1',
       [user.id]
     );
     if (volunteerRes.rowCount === 0) {
       return res.json([]);
     }
-    const trained = volunteerRes.rows[0].trained_role_id;
-    if (trained === null) {
-      return res.json([]);
-    }
+    const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
       `SELECT vr.id, vr.name, vr.category, vr.start_time, vr.end_time, vr.max_volunteers,
               COALESCE(b.count,0) AS booked, $1::date AS date
@@ -130,9 +127,9 @@ export async function listVolunteerRolesForVolunteer(req: Request, res: Response
          WHERE status IN ('pending','approved') AND date = $1
          GROUP BY role_id
        ) b ON vr.id = b.role_id
-       WHERE vr.id = $2
+       WHERE vr.id = ANY($2::int[])
        ORDER BY vr.start_time`,
-      [date, trained]
+      [date, roleIds]
     );
     const roles = result.rows.map((row: any) => ({
       ...row,
