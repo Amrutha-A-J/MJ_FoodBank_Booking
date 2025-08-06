@@ -382,7 +382,7 @@ export async function createVolunteer(
   lastName: string,
   username: string,
   password: string,
-  trainedArea: string,
+  roleIds: number[],
   email?: string,
   phone?: string
 ) {
@@ -397,7 +397,7 @@ export async function createVolunteer(
       lastName,
       username,
       password,
-      trainedArea,
+      roleIds,
       email,
       phone,
     }),
@@ -408,7 +408,7 @@ export async function createVolunteer(
 export async function updateVolunteerTrainedAreas(
   token: string,
   id: number,
-  trainedAreas: string[]
+  roleIds: number[]
 ) {
   const res = await fetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
     method: 'PUT',
@@ -416,7 +416,7 @@ export async function updateVolunteerTrainedAreas(
       'Content-Type': 'application/json',
       Authorization: token,
     },
-    body: JSON.stringify({ trainedAreas }),
+    body: JSON.stringify({ roleIds }),
   });
   return handleResponse(res);
 }
