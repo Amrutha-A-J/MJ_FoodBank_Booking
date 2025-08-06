@@ -24,7 +24,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
       .then(data => {
         setRolesData(data);
         const map = new Map<number, string>();
-        data.forEach((r: VolunteerRole) => map.set(r.id, r.name));
+        data.forEach((r: VolunteerRole) => map.set(r.role_id, r.name));
         const arr = Array.from(map, ([id, name]) => ({ id, name }));
         setRoles(arr);
         if (arr.length > 0) setSelectedRole(arr[0].id);
@@ -40,7 +40,9 @@ export default function VolunteerDashboard({ token }: { token: string }) {
     }
   }, [tab, token]);
 
-  const filteredRoles = rolesData.filter(r => selectedRole === '' || r.id === selectedRole);
+  const filteredRoles = rolesData.filter(
+    r => selectedRole === '' || r.role_id === selectedRole
+  );
 
   async function submitBooking() {
     if (!modalRole) return;

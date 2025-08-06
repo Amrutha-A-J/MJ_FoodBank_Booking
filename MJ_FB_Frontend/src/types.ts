@@ -41,6 +41,8 @@ export interface VolunteerRole {
   available: number;
   status: string;
   date: string;
+  role_id: number;
+  is_wednesday_slot: boolean;
 }
 
 export interface VolunteerBooking {
@@ -65,4 +67,15 @@ export interface VolunteerBookingDetail {
   end_time: string;
   status_color?: string;
   role_name?: string;
+}
+
+export interface UserProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  clientId: number;
+  role: Role;
+  bookingsThisMonth: number;
 }
