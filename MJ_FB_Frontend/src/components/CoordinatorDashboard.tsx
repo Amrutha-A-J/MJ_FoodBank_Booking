@@ -7,6 +7,7 @@ import {
   getVolunteerBookingHistory,
   createVolunteer,
   updateVolunteerTrainedAreas,
+  createVolunteerBookingForVolunteer,
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
@@ -51,6 +52,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
   const [createMsg, setCreateMsg] = useState('');
+
+  const [assignModal, setAssignModal] = useState(false);
+  const [assignSearch, setAssignSearch] = useState('');
+  const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
+  const [assignMsg, setAssignMsg] = useState('');
+  const [decisionBooking, setDecisionBooking] = useState<VolunteerBookingDetail | null>(null);
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -155,6 +162,26 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     );
   }
 
+  async function assignVolunteer(vol: VolunteerResult) {
+    if (!roleInfo) return;
+    try {
+      setAssignMsg('');
+      await createVolunteerBookingForVolunteer(
+        token,
+        vol.id,
+        roleInfo.id,
+        formatDate(currentDate)
+      );
+      setAssignModal(false);
+      setAssignSearch('');
+      setAssignResults([]);
+      const data = await getVolunteerBookingsByRole(token, roleInfo.id);
+      setBookings(data);
+    } catch (e) {
+      setAssignMsg(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   async function saveTrainedAreas() {
     if (!selectedVolunteer) return;
     try {
@@ -203,6 +230,25 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   }
 
   const roleInfo = roles.find(r => r.id === selectedRole);
+
+  useEffect(() => {
+    if (!assignModal || assignSearch.length < 3 || !roleInfo) {
+      setAssignResults([]);
+      return;
+    }
+    const delay = setTimeout(() => {
+      searchVolunteers(token, assignSearch)
+        .then((data: VolunteerResult[]) => {
+          const filtered = data
+            .filter(v => v.trainedAreas.includes(roleInfo.id))
+            .slice(0, 5);
+          setAssignResults(filtered);
+        })
+        .catch(() => setAssignResults([]));
+    }, 300);
+    return () => clearTimeout(delay);
+  }, [assignSearch, token, assignModal, roleInfo]);
+
   const bookingsForDate = bookings.filter(
     b => b.date === formatDate(currentDate) && ['approved', 'pending'].includes(b.status)
   );
@@ -219,6 +265,18 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                   ? '#c8e6c9'
                   : '#ffd8b2'
                 : undefined,
+              onClick: () => {
+                if (booking) {
+                  if (booking.status === 'pending') {
+                    setDecisionBooking(booking);
+                  }
+                } else {
+                  setAssignModal(true);
+                  setAssignSearch('');
+                  setAssignResults([]);
+                  setAssignMsg('');
+                }
+              },
             };
           }),
         },
@@ -393,6 +451,95 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       )}
 
       {message && <p style={{ color: 'red' }}>{message}</p>}
+
+      {assignModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
+            <h4>Assign Volunteer</h4>
+            <input
+              type="text"
+              placeholder="Search volunteers"
+              value={assignSearch}
+              onChange={e => setAssignSearch(e.target.value)}
+              style={{ width: '100%', marginBottom: 8 }}
+            />
+            <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
+              {assignResults.map(v => (
+                <li key={v.id} style={{ marginBottom: 4 }}>
+                  {v.name}
+                  <button style={{ marginLeft: 4 }} onClick={() => assignVolunteer(v)}>
+                    Assign
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {assignMsg && <p style={{ color: 'red' }}>{assignMsg}</p>}
+            <button
+              onClick={() => {
+                setAssignModal(false);
+                setAssignSearch('');
+                setAssignResults([]);
+                setAssignMsg('');
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {decisionBooking && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
+            <p>
+              Approve or reject booking for {decisionBooking.volunteer_name}?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+              <button
+                onClick={() => {
+                  decide(decisionBooking.id, 'approved');
+                  setDecisionBooking(null);
+                }}
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => {
+                  decide(decisionBooking.id, 'rejected');
+                  setDecisionBooking(null);
+                }}
+              >
+                Reject
+              </button>
+              <button onClick={() => setDecisionBooking(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
