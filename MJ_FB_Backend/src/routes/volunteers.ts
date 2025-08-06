@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  updateTrainedAreas,
+  updateTrainedArea,
   loginVolunteer,
   createVolunteer,
   searchVolunteers,
@@ -29,7 +29,7 @@ router.put(
   '/:id/trained-areas',
   authMiddleware,
   authorizeRoles('staff', 'volunteer_coordinator'),
-  updateTrainedAreas
+  updateTrainedArea
 );
 
 export default router;
