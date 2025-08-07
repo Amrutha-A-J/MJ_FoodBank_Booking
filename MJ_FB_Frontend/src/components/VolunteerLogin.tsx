@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loginVolunteer } from '../api/api';
 import type { LoginResponse } from '../api/api';
+import { Box, Typography, TextField, Button, Stack, Link } from '@mui/material';
 
 export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [username, setUsername] = useState('');
@@ -22,15 +23,15 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
   }
 
   return (
-    <div>
-      <a onClick={onBack} style={{ cursor: 'pointer' }}>User Login</a>
-      <h2>Volunteer Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={submit}>
-        <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Username" />
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" />
-        <button type="submit">Login</button>
-      </form>
-    </div>
+    <Box>
+      <Link component="button" onClick={onBack} underline="hover">User Login</Link>
+      <Typography variant="h4" gutterBottom>Volunteer Login</Typography>
+      {error && <Typography color="error">{error}</Typography>}
+      <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
+        <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" />
+        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
+        <Button type="submit" variant="contained">Login</Button>
+      </Stack>
+    </Box>
   );
 }

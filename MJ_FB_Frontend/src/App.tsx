@@ -12,6 +12,7 @@ import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import type { Role } from './types';
+import Navbar from './components/Navbar';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -110,23 +111,14 @@ export default function App() {
         )
       ) : (
         <>
-          <nav className="navbar" aria-label="Main navigation">
-            {navLinks.map(({ label, id }) => (
-              <button
-                key={id}
-                onClick={() => handleNavClick(id)}
-                disabled={loading}
-                aria-current={activePage === id ? 'page' : undefined}
-                className={activePage === id ? 'active' : undefined}
-              >
-                {label}
-              </button>
-            ))}
-
-            <button onClick={logout} disabled={loading} className="logout">
-              Logout
-            </button>
-          </nav>
+          <Navbar
+            links={navLinks}
+            active={activePage}
+            onSelect={handleNavClick}
+            onLogout={logout}
+            name={localStorage.getItem('name') || undefined}
+            loading={loading}
+          />
 
           {error && (
             <div role="alert" className="error-message">
