@@ -55,7 +55,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       setSelectedRole(prev => (prev && map.has(Number(prev)) ? prev : ''));
       const filtered = bookingData.filter(
-        b => b.date === dateStr && ['approved', 'submitted'].includes(b.status)
+        b => b.date === dateStr && ['approved', 'pending'].includes(b.status)
       );
       setBookings(filtered);
     } catch (err) {
@@ -131,7 +131,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       cells.push({
         content: 'My Booking',
         backgroundColor:
-          myBooking.status === 'submitted' ? '#ffe5b4' : '#e0f7e0',
+          myBooking.status === 'pending' ? '#ffe5b4' : '#e0f7e0',
         onClick: () => {
           setDecisionBooking(myBooking);
           setDecisionReason('');
