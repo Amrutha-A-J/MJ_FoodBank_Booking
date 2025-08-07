@@ -12,7 +12,7 @@ import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import type { Role } from './types';
-import Navbar from './components/Navbar';
+import Navbar, { type NavGroup } from './components/Navbar';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -46,25 +46,29 @@ export default function App() {
     setActivePage(id);
   }
 
-  let navLinks: { label: string; id: string }[] = [{ label: 'Profile', id: 'profile' }];
+  const navGroups: NavGroup[] = [{ label: 'Profile', links: [{ label: 'Profile', id: 'profile' }] }];
   if (isStaff) {
-    navLinks = navLinks.concat([
+    const staffLinks = [
       { label: 'Staff Dashboard', id: 'staffDashboard' },
       { label: 'Manage Availability', id: 'manageAvailability' },
       { label: 'Pantry Schedule', id: 'pantrySchedule' },
       { label: 'Add User', id: 'addUser' },
       { label: 'User History', id: 'userHistory' },
-    ]);
+    ];
     if (isCoordinator) {
-      navLinks.push({ label: 'Coordinator Dashboard', id: 'coordinatorDashboard' });
+      staffLinks.push({ label: 'Coordinator Dashboard', id: 'coordinatorDashboard' });
     }
+    navGroups.push({ label: 'Staff', links: staffLinks });
   } else if (role === 'shopper') {
-    navLinks = navLinks.concat([
-      { label: 'Booking Slots', id: 'slots' },
-      { label: 'Booking History', id: 'bookingHistory' },
-    ]);
+    navGroups.push({
+      label: 'Booking',
+      links: [
+        { label: 'Booking Slots', id: 'slots' },
+        { label: 'Booking History', id: 'bookingHistory' },
+      ],
+    });
   } else if (role === 'volunteer') {
-    navLinks = navLinks.concat([{ label: 'Volunteer Dashboard', id: 'volunteerDashboard' }]);
+    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', id: 'volunteerDashboard' }] });
   }
 
   return (
@@ -112,7 +116,7 @@ export default function App() {
       ) : (
         <>
           <Navbar
-            links={navLinks}
+            groups={navGroups}
             active={activePage}
             onSelect={handleNavClick}
             onLogout={logout}
