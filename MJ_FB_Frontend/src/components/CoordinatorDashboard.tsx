@@ -368,13 +368,17 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               <h3>Roles for {selectedVolunteer.name}</h3>
               <div style={{ marginBottom: 8 }}>
                 {baseRoles.map(r => (
-                  <label key={r.id} style={{ display: 'block' }}>
+                  <label
+                    key={r.id}
+                    style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+                  >
                     <input
                       type="checkbox"
                       value={r.id}
                       checked={trainedEdit.includes(r.id)}
                       onChange={e => toggleTrained(r.id, e.target.checked)}
-                    />{' '}
+                      style={{ marginRight: 6 }}
+                    />
                     {r.name}
                   </label>
                 ))}
@@ -447,13 +451,17 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           <div style={{ marginBottom: 8 }}>
             <label>Roles:</label>
             {baseRoles.map(r => (
-              <label key={r.id} style={{ display: 'block' }}>
+              <label
+                key={r.id}
+                style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+              >
                 <input
                   type="checkbox"
                   value={r.id}
                   checked={selectedCreateRoles.includes(r.id)}
                   onChange={e => toggleCreateRole(r.id, e.target.checked)}
-                />{' '}
+                  style={{ marginRight: 6 }}
+                />
                 {r.name}
               </label>
             ))}
