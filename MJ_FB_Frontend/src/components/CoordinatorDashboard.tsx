@@ -85,16 +85,16 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   }, [token]);
 
   useEffect(() => {
-    if (selectedRole) {
+    if (selectedRole && tab === 'schedule') {
       getVolunteerBookingsByRole(token, Number(selectedRole))
         .then(data => {
           setBookings(data);
         })
         .catch(() => {});
-    } else {
+    } else if (!selectedRole) {
       setBookings([]);
     }
-  }, [selectedRole, token]);
+  }, [selectedRole, token, tab]);
 
   useEffect(() => {
     if (search.length < 3) {
@@ -112,25 +112,19 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     };
   }, [search, token]);
 
-  useEffect(() => {
-    if (tab === 'pending') {
-      loadPending();
-    }
-  }, [tab, roles, token]);
-
-  async function loadPending() {
+  const loadPending = useCallback(async () => {
     const all: VolunteerBookingDetail[] = [];
     for (const r of roles) {
       try {
         const data = await getVolunteerBookingsByRole(token, r.id);
         const approvedByDate: Record<string, number> = {};
         data.forEach((b: VolunteerBookingDetail) => {
-          if (b.status === 'approved') {
+          if (b.status.toLowerCase() === 'approved') {
             approvedByDate[b.date] = (approvedByDate[b.date] || 0) + 1;
           }
         });
         data.forEach((b: VolunteerBookingDetail) => {
-          if (b.status === 'pending') {
+          if (b.status.toLowerCase() === 'pending') {
             const approvedCount = approvedByDate[b.date] || 0;
             const canBook = approvedCount < r.max_volunteers;
             all.push({ ...b, can_book: canBook });
@@ -141,7 +135,13 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       }
     }
     setPending(all);
-  }
+  }, [roles, token]);
+
+  useEffect(() => {
+    if (tab === 'pending') {
+      loadPending();
+    }
+  }, [tab, loadPending]);
 
   async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
@@ -269,11 +269,15 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   }, [assignSearch, token, assignModal, roleInfo]);
 
   const bookingsForDate = bookings.filter(
-    b => b.date === formatDate(currentDate) && ['approved', 'pending'].includes(b.status)
+    b =>
+      b.date === formatDate(currentDate) &&
+      ['approved', 'pending'].includes(b.status.toLowerCase())
   );
   const rows = roleInfo
     ? (() => {
-        const approvedCount = bookingsForDate.filter(b => b.status === 'approved').length;
+        const approvedCount = bookingsForDate.filter(
+          b => b.status.toLowerCase() === 'approved'
+        ).length;
         const canBook = approvedCount < roleInfo.max_volunteers;
         return [
           {
@@ -282,16 +286,20 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               const booking = bookingsForDate[i];
               return {
                 content: booking
-                  ? booking.volunteer_name + (booking.status === 'pending' && !canBook ? ' (Full)' : '')
+                  ?
+                      booking.volunteer_name +
+                      (booking.status.toLowerCase() === 'pending' && !canBook
+                        ? ' (Full)'
+                        : '')
                   : '',
                 backgroundColor: booking
-                  ? booking.status === 'approved'
+                  ? booking.status.toLowerCase() === 'approved'
                     ? '#c8e6c9'
                     : '#ffd8b2'
                   : undefined,
                 onClick: () => {
                   if (booking) {
-                    if (booking.status === 'pending') {
+                    if (booking.status.toLowerCase() === 'pending') {
                       setDecisionBooking({ ...booking, can_book: canBook });
                     }
                   } else {
