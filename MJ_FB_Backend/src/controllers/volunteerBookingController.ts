@@ -127,7 +127,7 @@ export async function listVolunteerBookingsByRole(req: Request, res: Response) {
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
-              vr.start_time, vr.end_time,
+              vr.start_time, vr.end_time, vr.name AS role_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id

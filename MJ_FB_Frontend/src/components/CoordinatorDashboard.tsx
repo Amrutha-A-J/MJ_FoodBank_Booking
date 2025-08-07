@@ -127,7 +127,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           if (b.status.toLowerCase() === 'pending') {
             const approvedCount = approvedByDate[b.date] || 0;
             const canBook = approvedCount < r.max_volunteers;
-            all.push({ ...b, can_book: canBook });
+            all.push({ ...b, role_name: b.role_name || r.name, can_book: canBook });
           }
         });
       } catch {
@@ -470,6 +470,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             {pending.map(p => (
               <li key={p.id} style={{ marginBottom: 12, border: '1px solid #ccc', padding: 8 }}>
                 <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
+                <div><strong>Role:</strong> {p.role_name}</div>
                 <div><strong>Date:</strong> {p.date}</div>
                 <div><strong>Time:</strong> {formatTime(p.start_time)} - {formatTime(p.end_time)}</div>
                 <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
