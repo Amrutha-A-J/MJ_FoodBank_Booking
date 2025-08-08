@@ -449,10 +449,13 @@ export async function rescheduleBookingByToken(
   token: string,
   slotId: string,
   date: string,
+  authToken?: string,
 ) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (authToken) headers.Authorization = authToken;
   const res = await fetch(`${API_BASE}/bookings/reschedule/${token}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ slotId, date }),
   });
   return handleResponse(res);

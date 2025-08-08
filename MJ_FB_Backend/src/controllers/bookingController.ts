@@ -203,9 +203,12 @@ export async function rescheduleBooking(req: Request, res: Response) {
     }
     await checkSlotCapacity(slotId, date);
     const newToken = randomUUID();
+    const isStaffReschedule =
+      req.user && ['staff', 'volunteer_coordinator'].includes(req.user.role);
+    const newStatus = isStaffReschedule ? booking.status : 'submitted';
     await pool.query(
-      'UPDATE bookings SET slot_id=$1, date=$2, reschedule_token=$3 WHERE id=$4',
-      [slotId, date, newToken, booking.id],
+      'UPDATE bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
+      [slotId, date, newToken, newStatus, booking.id],
     );
     await updateBookingsThisMonth(booking.user_id);
     res.json({ message: 'Booking rescheduled', rescheduleToken: newToken });
