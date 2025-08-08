@@ -445,3 +445,28 @@ export async function updateVolunteerTrainedAreas(
   return handleResponse(res);
 }
   
+export async function rescheduleBookingByToken(
+  token: string,
+  slotId: string,
+  date: string,
+) {
+  const res = await fetch(`${API_BASE}/bookings/reschedule/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slotId, date }),
+  });
+  return handleResponse(res);
+}
+
+export async function rescheduleVolunteerBookingByToken(
+  token: string,
+  roleId: number,
+  date: string,
+) {
+  const res = await fetch(`${API_BASE}/volunteer-bookings/reschedule/${token}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ roleId, date }),
+  });
+  return handleResponse(res);
+}
