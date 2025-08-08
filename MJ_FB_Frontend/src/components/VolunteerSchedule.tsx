@@ -11,6 +11,20 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Typography,
+} from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -163,130 +177,100 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   });
 
   return (
-    <div>
-      <label>
-        Role:{' '}
-        <select
-          value={selectedRole}
+    <Box>
+      <FormControl size="small" sx={{ minWidth: 200 }}>
+        <InputLabel id="role-select-label">Role</InputLabel>
+        <Select
+          labelId="role-select-label"
+          value={selectedRole === '' ? '' : selectedRole}
+          label="Role"
           onChange={e =>
-            setSelectedRole(e.target.value ? Number(e.target.value) : '')
+            setSelectedRole(e.target.value === '' ? '' : Number(e.target.value))
           }
         >
-          <option value="">Select role</option>
+          <MenuItem value="">Select role</MenuItem>
           {baseRoles.map(r => (
-            <option key={r.id} value={r.id}>
+            <MenuItem key={r.id} value={r.id}>
               {r.name}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </label>
+        </Select>
+      </FormControl>
       {selectedRole && (
         <>
-          <div
-            style={{
+          <Box
+            sx={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 16,
+              mb: 2,
             }}
           >
-            <button onClick={() => changeDay(-1)}>Previous</button>
-            <h3>
+            <Button onClick={() => changeDay(-1)}>Previous</Button>
+            <Typography variant="h6" component="h3">
               {dateStr} - {dayName}
               {isHoliday
                 ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
                 : isWeekend
                   ? ' (Weekend)'
                   : ''}
-            </h3>
-            <button onClick={() => changeDay(1)}>Next</button>
-          </div>
+            </Typography>
+            <Button onClick={() => changeDay(1)}>Next</Button>
+          </Box>
           <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
           {isClosed ? (
-            <p style={{ textAlign: 'center' }}>
+            <Typography align="center">
               Moose Jaw food bank is closed for {dayName}
-            </p>
+            </Typography>
           ) : (
             <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
           )}
         </>
       )}
 
-      {requestRole && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
-            <h4>Request Booking</h4>
-            <p>Request booking for {requestRole.name}?</p>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: 12,
-              }}
-            >
-              <button onClick={submitRequest}>Submit</button>
-              <button onClick={() => setRequestRole(null)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
+        <DialogTitle>Request Booking</DialogTitle>
+        <DialogContent dividers>
+          <Typography>Request booking for {requestRole?.name}?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={submitRequest}>Submit</Button>
+          <Button onClick={() => setRequestRole(null)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
 
-      {decisionBooking && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 320 }}>
-            <h4>Cancel Booking</h4>
-            <p>Cancel booking for {decisionBooking.role_name}?</p>
-            <textarea
-              placeholder="Reason for cancellation"
-              value={decisionReason}
-              onChange={e => setDecisionReason(e.target.value)}
-              style={{ width: '100%', marginTop: 8 }}
-            />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                marginTop: 12,
-              }}
-            >
-              <button onClick={cancelSelected}>Confirm</button>
-              <button
-                onClick={() => {
-                  setDecisionBooking(null);
-                  setDecisionReason('');
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <Dialog
+        open={!!decisionBooking}
+        onClose={() => {
+          setDecisionBooking(null);
+          setDecisionReason('');
+        }}
+      >
+        <DialogTitle>Cancel Booking</DialogTitle>
+        <DialogContent dividers>
+          <Typography>Cancel booking for {decisionBooking?.role_name}?</Typography>
+          <TextField
+            placeholder="Reason for cancellation"
+            value={decisionReason}
+            onChange={e => setDecisionReason(e.target.value)}
+            fullWidth
+            multiline
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelSelected}>Confirm</Button>
+          <Button
+            onClick={() => {
+              setDecisionBooking(null);
+              setDecisionReason('');
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
 
