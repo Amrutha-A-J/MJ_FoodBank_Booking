@@ -7,6 +7,7 @@ import {
   updateBookingsThisMonth,
   LIMIT_MESSAGE,
 } from '../utils/bookingUtils';
+import { sendEmail } from '../utils/emailUtils';
 
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
@@ -51,6 +52,12 @@ export async function createBooking(req: Request, res: Response) {
       `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
        VALUES ($1, $2, $3, '', $4, $5, $6)`,
       [user.id, slotId, status, date, isStaffBooking || false, token]
+    );
+
+    await sendEmail(
+      user.email || 'test@example.com',
+      'Appointment request received',
+      `Booking request submitted for ${date}`,
     );
 
     const newCount = await updateBookingsThisMonth(Number(user.id));
@@ -130,6 +137,12 @@ export async function decideBooking(req: Request, res: Response) {
       await pool.query(`UPDATE bookings SET status='rejected', request_data=$2 WHERE id=$1`, [bookingId, reason]);
     }
 
+    await sendEmail(
+      'test@example.com',
+      `Booking ${decision}d`,
+      `Booking ${bookingId} has been ${decision}d`,
+    );
+
     res.json({ message: `Booking ${decision}d` });
   } catch (error: any) {
     console.error('Error deciding booking:', error);
@@ -172,6 +185,12 @@ export async function cancelBooking(req: Request, res: Response) {
       await updateBookingsThisMonth(booking.user_id);
     }
 
+    await sendEmail(
+      'test@example.com',
+      'Booking cancelled',
+      `Booking ${bookingId} was cancelled`,
+    );
+
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
     console.error('Error cancelling booking:', error);
@@ -211,6 +230,13 @@ export async function rescheduleBooking(req: Request, res: Response) {
       [slotId, date, newToken, newStatus, booking.id],
     );
     await updateBookingsThisMonth(booking.user_id);
+
+    await sendEmail(
+      'test@example.com',
+      'Booking rescheduled',
+      `Booking ${booking.id} was rescheduled`,
+    );
+
     res.json({ message: 'Booking rescheduled', rescheduleToken: newToken });
   } catch (error: any) {
     console.error('Error rescheduling booking:', error);
