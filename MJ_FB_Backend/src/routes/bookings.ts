@@ -1,5 +1,9 @@
 import express, { Request, Response } from 'express';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import {
+  authMiddleware,
+  authorizeRoles,
+  optionalAuthMiddleware,
+} from '../middleware/authMiddleware';
 import {
   createBooking,
   listBookings,
@@ -56,7 +60,7 @@ router.post(
 router.post('/:id/cancel', authMiddleware, cancelBooking);
 
 // Reschedule booking by token
-router.post('/reschedule/:token', rescheduleBooking);
+router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
 
 // Staff create preapproved booking for walk-in users
 router.post(
