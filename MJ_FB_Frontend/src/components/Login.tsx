@@ -3,6 +3,7 @@ import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Box, Link, Typography, TextField, Button, Stack } from '@mui/material';
+import FeedbackSnackbar from './FeedbackSnackbar';
 
 export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (user: LoginResponse) => void; onStaff: () => void; onVolunteer: () => void }) {
   const [clientId, setClientId] = useState('');
@@ -34,12 +35,12 @@ export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (use
         <Link component="button" onClick={onVolunteer} underline="hover">Volunteer Login</Link>
       </Stack>
       <Typography variant="h4" gutterBottom>User Login</Typography>
-      {error && <Typography color="error">{error}</Typography>}
       <Stack component="form" spacing={2} onSubmit={handleSubmit} mt={2}>
         <TextField value={clientId} onChange={e => setClientId(e.target.value)} label="Client ID" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
         <Button type="submit" variant="contained">Login</Button>
       </Stack>
+      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
   );
 }

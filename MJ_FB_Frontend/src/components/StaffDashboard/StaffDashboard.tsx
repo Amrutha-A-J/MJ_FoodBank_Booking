@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { getBookings, decideBooking } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
+import FeedbackSnackbar from '../FeedbackSnackbar';
+import ConfirmDialog from '../ConfirmDialog';
+import { TextField } from '@mui/material';
 
 interface Booking {
   id: number;
@@ -30,6 +33,8 @@ export default function StaffDashboard({
 }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [message, setMessage] = useState('');
+  const [rejectId, setRejectId] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -50,16 +55,8 @@ export default function StaffDashboard({
     loadBookings();
   }, [loadBookings]);
 
-  async function decide(id: number, decision: 'approve' | 'reject') {
+  async function decide(id: number, decision: 'approve' | 'reject', reason = '') {
     setError('');
-    let reason = '';
-    if (decision === 'reject') {
-      reason = window.prompt('Reason for rejection?')?.trim() || '';
-      if (!reason) {
-        setError('Rejection reason is required');
-        return;
-      }
-    }
     setLoading(true);
     try {
       await decideBooking(token, id.toString(), decision, reason);
@@ -73,6 +70,24 @@ export default function StaffDashboard({
     }
   }
 
+  function handleApprove(id: number) {
+    void decide(id, 'approve');
+  }
+
+  function handleReject(id: number) {
+    setRejectId(id);
+    setRejectReason('');
+  }
+
+  function confirmReject() {
+    if (!rejectReason.trim()) {
+      setError('Rejection reason is required');
+      return;
+    }
+    void decide(rejectId as number, 'reject', rejectReason.trim());
+    setRejectId(null);
+  }
+
   const pending = bookings.filter(b => b.status === 'submitted');
   const reginaTimeZone = 'America/Regina';
   const formatDate = (dateStr: string) => {
@@ -84,7 +99,7 @@ export default function StaffDashboard({
   return (
     <div>
       <h2>Staff Dashboard - Pending Appointments</h2>
-      {message && <p style={{ color: 'green' }}>{message}</p>}
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="success" />
       {pending.length === 0 && <p>No pending bookings.</p>}
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {pending.map(b => {
@@ -105,10 +120,10 @@ export default function StaffDashboard({
               <div><strong>User:</strong> {b.user_name || 'Unknown'} ({b.user_email || 'N/A'}, {b.user_phone || 'N/A'})</div>
               <div><strong>Slot:</strong> {b.start_time && b.end_time ? `${b.start_time} - ${b.end_time}` : 'No slot assigned'}</div>
               <div style={{ marginTop: 6 }}>
-                <button onClick={() => decide(b.id, 'approve')} style={btnApprove}>
+                <button onClick={() => handleApprove(b.id)} style={btnApprove}>
                   Approve
                 </button>{' '}
-                <button onClick={() => decide(b.id, 'reject')} style={btnReject}>
+                <button onClick={() => handleReject(b.id)} style={btnReject}>
                   Reject
                 </button>
               </div>
@@ -116,6 +131,20 @@ export default function StaffDashboard({
           )
         })}
       </ul>
+      {rejectId !== null && (
+        <ConfirmDialog
+          message="Reason for rejection?"
+          onConfirm={confirmReject}
+          onCancel={() => setRejectId(null)}
+        >
+          <TextField
+            value={rejectReason}
+            onChange={e => setRejectReason(e.target.value)}
+            fullWidth
+            multiline
+          />
+        </ConfirmDialog>
+      )}
     </div>
   );
 }

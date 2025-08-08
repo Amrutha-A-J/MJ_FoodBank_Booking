@@ -5,6 +5,7 @@ import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
+import FeedbackSnackbar from './FeedbackSnackbar';
 
 const reginaTimeZone = 'America/Regina';
 const LIMIT_MESSAGE =
@@ -211,7 +212,7 @@ export default function SlotBooking({ token, role }: Props) {
             </li>
           ))}
         </ul>
-        {message && <p className="error-message">{message}</p>}
+        <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
       </div>
     );
   }
@@ -274,9 +275,12 @@ export default function SlotBooking({ token, role }: Props) {
       )}
 
       {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
-      {message && (
-        <p className={message.startsWith('Booking') ? 'success-message' : 'error-message'}>{message}</p>
-      )}
+      <FeedbackSnackbar
+        open={!!message}
+        onClose={() => setMessage('')}
+        message={message}
+        severity={message.startsWith('Booking') ? 'success' : 'error'}
+      />
     </div>
   );
 }

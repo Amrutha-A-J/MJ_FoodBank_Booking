@@ -13,6 +13,7 @@ import {
 } from '../../api/api';
 import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
+import FeedbackSnackbar from '../FeedbackSnackbar';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -157,7 +158,7 @@ export default function ManageAvailability({ token }: { token: string }) {
   return (
     <div>
       <h2>Manage Availability</h2>
-      {message && <p>{message}</p>}
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} />
 
       <div style={{ marginBottom: 16 }}>
         <label>
