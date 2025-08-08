@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../db';
+import { sendEmail } from '../utils/emailUtils';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
@@ -54,6 +55,12 @@ export async function createVolunteerBooking(req: Request, res: Response) {
        VALUES ($1, $2, $3, $4)
        RETURNING id, role_id, volunteer_id, date, status, reschedule_token`,
       [roleId, user.id, date, token]
+    );
+
+    await sendEmail(
+      user.email || 'test@example.com',
+      'Volunteer booking request received',
+      `Volunteer booking request for role ${roleId} on ${date}`,
     );
 
     const booking = insertRes.rows[0];
@@ -248,6 +255,11 @@ export async function updateVolunteerBookingStatus(req: Request, res: Response) 
     );
     const updated = updateRes.rows[0];
     updated.status_color = statusColor(updated.status);
+    await sendEmail(
+      'test@example.com',
+      `Volunteer booking ${status}`,
+      `Volunteer booking ${id} ${status}.`,
+    );
     res.json(updated);
   } catch (error) {
     console.error('Error updating volunteer booking:', error);
@@ -301,6 +313,11 @@ export async function rescheduleVolunteerBooking(req: Request, res: Response) {
     await pool.query(
       'UPDATE volunteer_bookings SET role_id=$1, date=$2, reschedule_token=$3 WHERE id=$4',
       [roleId, date, newToken, booking.id],
+    );
+    await sendEmail(
+      'test@example.com',
+      'Volunteer booking rescheduled',
+      `Volunteer booking ${booking.id} was rescheduled`,
     );
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
