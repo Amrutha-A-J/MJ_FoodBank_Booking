@@ -3,6 +3,19 @@ import { getMyVolunteerBookings } from '../api/api';
 import type { VolunteerBooking } from '../types';
 import { formatTime } from '../utils/time';
 import VolunteerSchedule from './VolunteerSchedule';
+import {
+  Box,
+  Tabs,
+  Tab,
+  Typography,
+  TableContainer,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+} from '@mui/material';
 
 export default function VolunteerDashboard({ token }: { token: string }) {
   const [tab, setTab] = useState<'schedule' | 'history'>('schedule');
@@ -17,57 +30,51 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   }, [tab, token]);
 
   return (
-    <div>
-      <h2>Volunteer Dashboard</h2>
-      <div style={{ marginBottom: 16 }}>
-        <button onClick={() => setTab('schedule')} disabled={tab === 'schedule'}>
-          Schedule
-        </button>
-        <button
-          onClick={() => setTab('history')}
-          disabled={tab === 'history'}
-          style={{ marginLeft: 8 }}
-        >
-          Booking History
-        </button>
-      </div>
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Volunteer Dashboard
+      </Typography>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+        <Tab label="Schedule" value="schedule" />
+        <Tab label="Booking History" value="history" />
+      </Tabs>
 
       {tab === 'schedule' && <VolunteerSchedule token={token} />}
 
       {tab === 'history' && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ border: '1px solid #ccc', padding: 8 }}>Role</th>
-              <th style={{ border: '1px solid #ccc', padding: 8 }}>Date</th>
-              <th style={{ border: '1px solid #ccc', padding: 8 }}>Time</th>
-              <th style={{ border: '1px solid #ccc', padding: 8 }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map(h => (
-              <tr key={h.id}>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>
-                  {h.role_name}
-                </td>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>{h.date}</td>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>
-                  {formatTime(h.start_time)} - {formatTime(h.end_time)}
-                </td>
-                <td style={{ border: '1px solid #ccc', padding: 8 }}>{h.status}</td>
-              </tr>
-            ))}
-            {history.length === 0 && (
-              <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: 8 }}>
-                  No bookings.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Role</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Status</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {history.map(h => (
+                <TableRow key={h.id}>
+                  <TableCell>{h.role_name}</TableCell>
+                  <TableCell>{h.date}</TableCell>
+                  <TableCell>
+                    {formatTime(h.start_time)} - {formatTime(h.end_time)}
+                  </TableCell>
+                  <TableCell>{h.status}</TableCell>
+                </TableRow>
+              ))}
+              {history.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    No bookings.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </div>
+    </Box>
   );
 }
 
