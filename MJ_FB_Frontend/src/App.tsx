@@ -13,6 +13,7 @@ import VolunteerDashboard from './components/VolunteerDashboard';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
+import FeedbackSnackbar from './components/FeedbackSnackbar';
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
@@ -124,11 +125,12 @@ export default function App() {
             loading={loading}
           />
 
-          {error && (
-            <div role="alert" className="error-message">
-              {error}
-            </div>
-          )}
+          <FeedbackSnackbar
+            open={!!error}
+            onClose={() => setError('')}
+            message={error}
+            severity="error"
+          />
 
           <main>
             {activePage === 'profile' && <Profile />}

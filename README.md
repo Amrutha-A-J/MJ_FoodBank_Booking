@@ -35,3 +35,7 @@ npm start   # or npm run dev
 ```
 
 Refer to the submodule repositories for detailed configuration and environment variables.
+
+### Frontend features
+
+- Includes a reusable `FeedbackSnackbar` component for concise user notifications.
