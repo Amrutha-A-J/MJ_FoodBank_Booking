@@ -6,6 +6,7 @@ import {
   updateVolunteerBookingStatus,
   listVolunteerBookingsByVolunteer,
   createVolunteerBookingForVolunteer,
+  rescheduleVolunteerBooking,
 } from '../controllers/volunteerBookingController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { verifyVolunteerToken } from '../middleware/verifyVolunteerToken';
@@ -28,5 +29,6 @@ router.get(
 );
 router.get('/:role_id', authMiddleware, authorizeRoles('volunteer_coordinator'), listVolunteerBookingsByRole);
 router.patch('/:id', authMiddleware, authorizeRoles('volunteer_coordinator'), updateVolunteerBookingStatus);
+router.post('/reschedule/:token', rescheduleVolunteerBooking);
 
 export default router;

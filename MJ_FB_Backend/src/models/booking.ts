@@ -12,4 +12,5 @@ interface Booking {
   is_staff_booking: boolean;
   created_at: string;
   reason?: string | null;
+  reschedule_token: string | null;
 }

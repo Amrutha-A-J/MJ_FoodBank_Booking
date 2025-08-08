@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { randomUUID } from 'crypto';
 import pool from '../db';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -47,11 +48,12 @@ export async function createVolunteerBooking(req: Request, res: Response) {
       return res.status(400).json({ message: 'Role is full' });
     }
 
+    const token = randomUUID();
     const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (role_id, volunteer_id, date)
-       VALUES ($1, $2, $3)
-       RETURNING id, role_id, volunteer_id, date, status`,
-      [roleId, user.id, date]
+      `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, reschedule_token)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, role_id, volunteer_id, date, status, reschedule_token`,
+      [roleId, user.id, date, token]
     );
 
     const booking = insertRes.rows[0];
@@ -104,12 +106,13 @@ export async function createVolunteerBookingForVolunteer(req: Request, res: Resp
       return res.status(400).json({ message: 'Role is full' });
     }
 
-    const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, status)
-       VALUES ($1, $2, $3, 'approved')
-       RETURNING id, role_id, volunteer_id, date, status`,
-      [roleId, volunteerId, date]
-    );
+    const token = randomUUID();
+      const insertRes = await pool.query(
+        `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, status, reschedule_token)
+         VALUES ($1, $2, $3, 'approved', $4)
+         RETURNING id, role_id, volunteer_id, date, status, reschedule_token`,
+        [roleId, volunteerId, date, token]
+      );
 
     const booking = insertRes.rows[0];
     booking.status_color = statusColor(booking.status);
@@ -250,6 +253,60 @@ export async function updateVolunteerBookingStatus(req: Request, res: Response) 
     console.error('Error updating volunteer booking:', error);
     res.status(500).json({
       message: `Database error updating volunteer booking: ${(error as Error).message}`,
+    });
+  }
+}
+
+export async function rescheduleVolunteerBooking(req: Request, res: Response) {
+  const { token } = req.params;
+  const { roleId, date } = req.body as { roleId?: number; date?: string };
+  if (!roleId || !date) {
+    return res.status(400).json({ message: 'roleId and date are required' });
+  }
+  try {
+    const bookingRes = await pool.query(
+      'SELECT * FROM volunteer_bookings WHERE reschedule_token = $1',
+      [token],
+    );
+    if (bookingRes.rowCount === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    const booking = bookingRes.rows[0];
+
+    const trainedRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [booking.volunteer_id, roleId],
+    );
+    if (trainedRes.rowCount === 0) {
+      return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const roleRes = await pool.query(
+      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1',
+      [roleId],
+    );
+    if (roleRes.rowCount === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const countRes = await pool.query(
+      `SELECT COUNT(*) FROM volunteer_bookings
+       WHERE role_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+      [roleId, date],
+    );
+    if (Number(countRes.rows[0].count) >= roleRes.rows[0].max_volunteers) {
+      return res.status(400).json({ message: 'Role is full' });
+    }
+
+    const newToken = randomUUID();
+    await pool.query(
+      'UPDATE volunteer_bookings SET role_id=$1, date=$2, reschedule_token=$3 WHERE id=$4',
+      [roleId, date, newToken, booking.id],
+    );
+    res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
+  } catch (error) {
+    console.error('Error rescheduling volunteer booking:', error);
+    res.status(500).json({
+      message: `Database error rescheduling volunteer booking: ${(error as Error).message}`,
     });
   }
 }

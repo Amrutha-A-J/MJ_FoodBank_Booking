@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     date date,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     is_staff_booking boolean DEFAULT false,
+    reschedule_token text,
     FOREIGN KEY (slot_id) REFERENCES public.slots(id),
     FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
@@ -128,10 +129,16 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     date date NOT NULL,
     status text DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    reschedule_token text,
     FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE,
     FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE
 );
 `);
+
+  await client.query(`
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reschedule_token text;
+    ALTER TABLE volunteer_bookings ADD COLUMN IF NOT EXISTS reschedule_token text;
+  `);
 
   // Insert master data
   await client.query(`

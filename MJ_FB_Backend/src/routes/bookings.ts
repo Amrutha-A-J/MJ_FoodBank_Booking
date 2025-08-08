@@ -7,7 +7,8 @@ import {
   createPreapprovedBooking,
   createBookingForUser,   // ✅ make sure to import this controller
   getBookingHistory,
-  cancelBooking
+  cancelBooking,
+  rescheduleBooking
 } from '../controllers/bookingController';
 
 const router = express.Router();
@@ -53,6 +54,9 @@ router.post(
 
 // Cancel booking (staff or user)
 router.post('/:id/cancel', authMiddleware, cancelBooking);
+
+// Reschedule booking by token
+router.post('/reschedule/:token', rescheduleBooking);
 
 // Staff create preapproved booking for walk-in users
 router.post(

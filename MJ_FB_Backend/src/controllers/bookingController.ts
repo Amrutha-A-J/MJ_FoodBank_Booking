@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { randomUUID } from 'crypto';
 import pool from '../db';
 import {
   isDateWithinCurrentOrNextMonth,
@@ -44,17 +45,18 @@ export async function createBooking(req: Request, res: Response) {
 
     await checkSlotCapacity(slotId, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
+    const token = randomUUID();
 
     await pool.query(
-      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)
-       VALUES ($1, $2, $3, '', $4, $5)`,
-      [user.id, slotId, status, date, isStaffBooking || false]
+      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
+       VALUES ($1, $2, $3, '', $4, $5, $6)`,
+      [user.id, slotId, status, date, isStaffBooking || false, token]
     );
 
     const newCount = await updateBookingsThisMonth(Number(user.id));
     res
       .status(201)
-      .json({ message: 'Booking created', bookingsThisMonth: newCount });
+      .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
   } catch (error: any) {
     console.error('Error creating booking:', error);
     res.status(400).json({ message: error.message || 'Failed to create booking' });
@@ -177,6 +179,42 @@ export async function cancelBooking(req: Request, res: Response) {
   }
 }
 
+// --- Reschedule booking using token ---
+export async function rescheduleBooking(req: Request, res: Response) {
+  const { token } = req.params;
+  const { slotId, date } = req.body as { slotId?: number; date?: string };
+  if (!slotId || !date) {
+    return res.status(400).json({ message: 'slotId and date are required' });
+  }
+  try {
+    const bookingRes = await pool.query(
+      'SELECT * FROM bookings WHERE reschedule_token = $1',
+      [token],
+    );
+    if (bookingRes.rowCount === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    const booking = bookingRes.rows[0];
+    if (!['submitted', 'approved', 'preapproved'].includes(booking.status)) {
+      return res.status(400).json({ message: 'Booking cannot be rescheduled' });
+    }
+    if (!isDateWithinCurrentOrNextMonth(date)) {
+      return res.status(400).json({ message: 'Invalid booking date' });
+    }
+    await checkSlotCapacity(slotId, date);
+    const newToken = randomUUID();
+    await pool.query(
+      'UPDATE bookings SET slot_id=$1, date=$2, reschedule_token=$3 WHERE id=$4',
+      [slotId, date, newToken, booking.id],
+    );
+    await updateBookingsThisMonth(booking.user_id);
+    res.json({ message: 'Booking rescheduled', rescheduleToken: newToken });
+  } catch (error: any) {
+    console.error('Error rescheduling booking:', error);
+    res.status(400).json({ message: error.message || 'Failed to reschedule booking' });
+  }
+}
+
 // --- Staff: create preapproved booking for walk-in user ---
 export async function createPreapprovedBooking(req: Request, res: Response) {
   if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
@@ -214,16 +252,17 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
     }
 
     await checkSlotCapacity(slotId, date);
+    const token = randomUUID();
 
     await client.query(
-      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)
-       VALUES ($1, $2, 'approved', $3, $4, TRUE)`,
-      [newUserId, slotId, requestData || '', date]
+      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
+       VALUES ($1, $2, 'approved', $3, $4, TRUE, $5)`,
+      [newUserId, slotId, requestData || '', date, token]
     );
 
     await client.query('COMMIT');
     await updateBookingsThisMonth(newUserId);
-    res.status(201).json({ message: 'Preapproved booking created' });
+    res.status(201).json({ message: 'Preapproved booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('Error creating preapproved booking:', error);
@@ -254,15 +293,16 @@ export async function createBookingForUser(req: Request, res: Response) {
 
     await checkSlotCapacity(slotId, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
+    const token = randomUUID();
 
     await pool.query(
-      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking)
-       VALUES ($1, $2, $3, '', $4, $5)`,
-      [userId, slotId, status, date, isStaffBooking || false]
+      `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
+       VALUES ($1, $2, $3, '', $4, $5, $6)`,
+      [userId, slotId, status, date, isStaffBooking || false, token]
     );
 
     await updateBookingsThisMonth(userId);
-    res.status(201).json({ message: 'Booking created for user' });
+    res.status(201).json({ message: 'Booking created for user', rescheduleToken: token });
   } catch (error: any) {
     console.error('Error creating booking for user:', error);
     res.status(400).json({ message: error.message || 'Failed to create booking' });
