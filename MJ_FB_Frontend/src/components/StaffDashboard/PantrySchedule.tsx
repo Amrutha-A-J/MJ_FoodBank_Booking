@@ -4,6 +4,7 @@ import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../VolunteerScheduleTable';
+import FeedbackSnackbar from '../FeedbackSnackbar';
 
 interface Booking {
   id: number;
@@ -240,7 +241,7 @@ export default function PantrySchedule({ token }: { token: string }) {
         </h3>
         <button onClick={() => changeDay(1)}>Next</button>
       </div>
-      {message && <p style={{ color: 'red' }}>{message}</p>}
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
@@ -280,7 +281,7 @@ export default function PantrySchedule({ token }: { token: string }) {
                 </li>
               ))}
             </ul>
-            {assignMessage && <p style={{ color: 'red' }}>{assignMessage}</p>}
+            <FeedbackSnackbar open={!!assignMessage} onClose={() => setAssignMessage('')} message={assignMessage} severity="error" />
             <button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }}>Close</button>
           </div>
         </div>

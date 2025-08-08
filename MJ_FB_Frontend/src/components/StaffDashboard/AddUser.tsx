@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { addUser, createStaff } from '../../api/api';
 import type { UserRole, StaffRole } from '../../types';
+import FeedbackSnackbar from '../FeedbackSnackbar';
+import FeedbackModal from '../FeedbackModal';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('shopper');
   const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -17,7 +20,7 @@ export default function AddUser({ token }: { token: string }) {
 
   async function submitUser() {
     if (!firstName || !lastName || !clientId || !password) {
-      setMessage('First name, last name, client ID and password required');
+      setError('First name, last name, client ID and password required');
       return;
     }
     try {
@@ -31,7 +34,7 @@ export default function AddUser({ token }: { token: string }) {
         email || undefined,
         phone || undefined
       );
-      setMessage('User added successfully');
+      setSuccess('User added successfully');
       setFirstName('');
       setLastName('');
       setClientId('');
@@ -40,25 +43,25 @@ export default function AddUser({ token }: { token: string }) {
       setPassword('');
       setRole('shopper');
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
   async function submitStaff() {
     if (!firstName || !lastName || !email || !password) {
-      setMessage('All fields required');
+      setError('All fields required');
       return;
     }
     try {
       await createStaff(firstName, lastName, staffRole, email, password, token);
-      setMessage('Staff added successfully');
+      setSuccess('Staff added successfully');
       setFirstName('');
       setLastName('');
       setEmail('');
       setPassword('');
       setStaffRole('staff');
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -69,7 +72,8 @@ export default function AddUser({ token }: { token: string }) {
         <button onClick={() => setMode('user')}>Create User</button>
         <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>Create Staff</button>
       </div>
-      {message && <p>{message}</p>}
+      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+      <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
       {mode === 'user' ? (
         <>
           <div style={{ marginBottom: 8 }}>

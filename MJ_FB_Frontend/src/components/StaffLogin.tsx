@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { Box, Typography, TextField, Button, Stack, Link } from '@mui/material';
+import FeedbackSnackbar from './FeedbackSnackbar';
+import FeedbackModal from './FeedbackModal';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [checking, setChecking] = useState(true);
@@ -52,12 +54,12 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
     <Box>
       <Link component="button" onClick={onBack} underline="hover">User Login</Link>
       <Typography variant="h4" gutterBottom>Staff Login</Typography>
-      {error && <Typography color="error">{error}</Typography>}
       <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
         <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
         <Button type="submit" variant="contained">Login</Button>
       </Stack>
+      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
   );
 }
@@ -84,8 +86,6 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Create Staff Account</Typography>
-      {error && <Typography color="error">{error}</Typography>}
-      {message && <Typography color="success.main">{message}</Typography>}
       <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
         <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" />
         <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" />
@@ -93,6 +93,8 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
         <Button type="submit" variant="contained">Create Staff</Button>
       </Stack>
+      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+      <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
     </Box>
   );
 }

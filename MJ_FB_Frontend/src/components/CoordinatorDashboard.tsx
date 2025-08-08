@@ -13,6 +13,7 @@ import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
+import FeedbackSnackbar from './FeedbackSnackbar';
 
 interface RoleOption {
   id: number; // unique slot id
@@ -493,7 +494,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         </div>
       )}
 
-      {message && <p style={{ color: 'red' }}>{message}</p>}
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
 
       {assignModal && (
         <div
