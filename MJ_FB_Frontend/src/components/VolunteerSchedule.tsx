@@ -5,6 +5,7 @@ import {
   getMyVolunteerBookings,
   getHolidays,
   updateVolunteerBookingStatus,
+  rescheduleVolunteerBookingByToken,
 } from '../api/api';
 import type { VolunteerRole, Holiday, VolunteerBooking } from '../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
@@ -117,6 +118,26 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       await loadData();
     } catch {
       setMessage('Failed to cancel booking');
+    } finally {
+      setDecisionBooking(null);
+      setDecisionReason('');
+    }
+  }
+
+  async function rescheduleSelected() {
+    if (!decisionBooking) return;
+    const date = prompt('Enter new date (YYYY-MM-DD)');
+    const role = prompt('Enter new role ID');
+    if (!date || !role) return;
+    try {
+      await rescheduleVolunteerBookingByToken(
+        decisionBooking.reschedule_token || '',
+        Number(role),
+        date,
+      );
+      await loadData();
+    } catch {
+      setMessage('Failed to reschedule booking');
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
@@ -247,9 +268,9 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           setDecisionReason('');
         }}
       >
-        <DialogTitle>Cancel Booking</DialogTitle>
+        <DialogTitle>Manage Booking</DialogTitle>
         <DialogContent dividers>
-          <Typography>Cancel booking for {decisionBooking?.role_name}?</Typography>
+          <Typography>Modify booking for {decisionBooking?.role_name}?</Typography>
           <TextField
             placeholder="Reason for cancellation"
             value={decisionReason}
@@ -260,7 +281,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
+          <Button onClick={rescheduleSelected} variant="outlined" color="primary">Reschedule</Button>
+          <Button onClick={cancelSelected} variant="outlined" color="primary">Cancel Booking</Button>
           <Button
             onClick={() => {
               setDecisionBooking(null);
@@ -269,7 +291,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             variant="outlined"
             color="primary"
           >
-            Cancel
+            Close
           </Button>
         </DialogActions>
       </Dialog>

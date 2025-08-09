@@ -148,6 +148,7 @@ export async function listVolunteerBookingsByRole(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+              vb.reschedule_token,
               vr.start_time, vr.end_time, vmr.name AS role_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
@@ -179,6 +180,7 @@ export async function listMyVolunteerBookings(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+              vb.reschedule_token,
               vr.start_time, vr.end_time,
               vmr.name AS role_name
        FROM volunteer_bookings vb
@@ -208,6 +210,7 @@ export async function listVolunteerBookingsByVolunteer(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+              vb.reschedule_token,
               vr.start_time, vr.end_time,
               vmr.name AS role_name
        FROM volunteer_bookings vb
