@@ -71,6 +71,32 @@ export async function loginVolunteer(
   return handleResponse(res);
 }
 
+export async function requestPasswordReset(data: {
+  email?: string;
+  username?: string;
+  clientId?: string;
+}): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/auth/request-password-reset`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
+}
+
+export async function changePassword(
+  token: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: bearer(token) },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  await handleResponse(res);
+}
+
 export async function getUserProfile(token: string): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`, {
     headers: { Authorization: bearer(token) },

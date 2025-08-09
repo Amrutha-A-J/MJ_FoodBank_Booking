@@ -11,6 +11,7 @@ import staffRoutes from './routes/staff';
 import volunteerRolesRoutes from './routes/volunteerRoles';
 import volunteersRoutes from './routes/volunteers';
 import volunteerBookingsRoutes from './routes/volunteerBookings';
+import authRoutes from './routes/auth';
 import { initializeSlots } from './data';
 import pool from './db';
 import { setupDatabase } from './setupDatabase';
@@ -39,6 +40,7 @@ app.use('/staff', staffRoutes);
 app.use('/volunteer-roles', volunteerRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-bookings', volunteerBookingsRoutes);
+app.use('/auth', authRoutes);
 
 const PORT = config.port;
 
