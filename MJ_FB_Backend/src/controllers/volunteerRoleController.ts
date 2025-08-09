@@ -60,6 +60,7 @@ export async function listVolunteerRoles(
               vmr.name AS category_name
        FROM volunteer_roles vr
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vmr.is_active
        ORDER BY vr.id`
     );
     res.json(result.rows);
@@ -166,11 +167,12 @@ export async function listVolunteerRolesForVolunteer(
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        LEFT JOIN (
          SELECT role_id, COUNT(*) AS count
-         FROM volunteer_bookings
-         WHERE status IN ('pending','approved') AND date = $1
-         GROUP BY role_id
-       ) b ON vr.id = b.role_id
+       FROM volunteer_bookings
+        WHERE status IN ('pending','approved') AND date = $1
+        GROUP BY role_id
+      ) b ON vr.id = b.role_id
        WHERE vr.category_id = ANY($2::int[])
+        AND vmr.is_active
         AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
        ORDER BY vr.start_time`,
       [date, roleIds]

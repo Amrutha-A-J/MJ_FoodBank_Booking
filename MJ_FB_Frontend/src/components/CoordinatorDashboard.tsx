@@ -9,6 +9,8 @@ import {
   createVolunteer,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
+  getVolunteerMasterRoles,
+  updateVolunteerMasterRole,
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
@@ -47,13 +49,13 @@ interface VolunteerResult {
 export default function CoordinatorDashboard({ token }: { token: string }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
-  const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending'>(
-    initialTab === 'search' || initialTab === 'create' || initialTab === 'pending'
-      ? initialTab
+  const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending' | 'roles'>(
+    initialTab === 'search' || initialTab === 'create' || initialTab === 'pending' || initialTab === 'roles'
+      ? (initialTab as any)
       : 'schedule',
   );
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string }[]>([]);
+  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string; is_active: boolean }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
@@ -61,8 +63,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
   useEffect(() => {
     const p = searchParams.get('tab');
-    if (p === 'schedule' || p === 'search' || p === 'create' || p === 'pending') {
-      setTab(p);
+    if (p === 'schedule' || p === 'search' || p === 'create' || p === 'pending' || p === 'roles') {
+      setTab(p as any);
     } else {
       setTab('schedule');
     }
@@ -92,6 +94,17 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setSelectedCreateRoles(prev =>
       checked ? [...prev, id] : prev.filter(r => r !== id)
     );
+  }
+
+  async function toggleMasterRole(id: number, checked: boolean) {
+    try {
+      await updateVolunteerMasterRole(token, id, checked);
+      setBaseRoles(prev => prev.map(r => (r.id === id ? { ...r, is_active: checked } : r)));
+      const data = await getVolunteerRoles(token);
+      setRoles(data);
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : String(e));
+    }
   }
 
   const [assignModal, setAssignModal] = useState(false);
@@ -126,12 +139,13 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     getVolunteerRoles(token)
       .then(data => {
         setRoles(data);
-        const map = new Map<number, string>();
-        data.forEach((r: RoleOption) => {
-          if (!map.has(r.category_id)) map.set(r.category_id, r.name);
-        });
-        setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       })
+      .catch(() => {});
+  }, [token]);
+
+  useEffect(() => {
+    getVolunteerMasterRoles(token)
+      .then(data => setBaseRoles(data))
       .catch(() => {});
   }, [token]);
 
@@ -421,6 +435,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         <Button onClick={() => setSearchParams({ tab: 'schedule' })} disabled={tab === 'schedule'} variant="outlined" color="primary">Schedule</Button>
         <Button onClick={() => setSearchParams({ tab: 'search' })} disabled={tab === 'search'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Search Volunteer</Button>
         <Button onClick={() => setSearchParams({ tab: 'create' })} disabled={tab === 'create'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Create Volunteer</Button>
+        <Button onClick={() => setSearchParams({ tab: 'roles' })} disabled={tab === 'roles'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Manage Roles</Button>
         <Button onClick={() => setSearchParams({ tab: 'pending' })} disabled={tab === 'pending'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Pending</Button>
       </div>
       {tab === 'schedule' && (
@@ -451,6 +466,24 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           ) : (
             <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>
           )}
+        </div>
+      )}
+
+      {tab === 'roles' && (
+        <div>
+          <h3>Manage Volunteer Roles</h3>
+          {baseRoles.map(r => (
+            <FormControlLabel
+              key={r.id}
+              control={
+                <Checkbox
+                  checked={r.is_active}
+                  onChange={e => toggleMasterRole(r.id, e.target.checked)}
+                />
+              }
+              label={r.name}
+            />
+          ))}
         </div>
       )}
 

@@ -29,7 +29,7 @@ export async function createVolunteerBooking(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
+      'SELECT vr.max_volunteers, vr.category_id FROM volunteer_roles vr JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id WHERE vr.id = $1 AND vmr.is_active',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
@@ -96,7 +96,7 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
+      'SELECT vr.max_volunteers, vr.category_id FROM volunteer_roles vr JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id WHERE vr.id = $1 AND vmr.is_active',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
@@ -309,7 +309,7 @@ export async function rescheduleVolunteerBooking(
     const booking = bookingRes.rows[0];
 
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
+      'SELECT vr.max_volunteers, vr.category_id FROM volunteer_roles vr JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id WHERE vr.id = $1 AND vmr.is_active',
       [roleId],
     );
     if (roleRes.rowCount === 0) {
