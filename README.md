@@ -22,6 +22,21 @@ npm install
 npm start   # or npm run dev
 ```
 
+### Required environment variables
+
+Create a `.env` file in `MJ_FB_Backend` with the following variables:
+
+| Variable | Description |
+| --- | --- |
+| `PG_HOST` | PostgreSQL host |
+| `PG_PORT` | PostgreSQL port |
+| `PG_USER` | PostgreSQL username |
+| `PG_PASSWORD` | PostgreSQL password |
+| `PG_DATABASE` | PostgreSQL database name |
+| `JWT_SECRET` | Secret used to sign JWT tokens |
+| `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
+| `PORT` | Port for the backend server |
+
 ## Frontend setup (`MJ_FB_Frontend`)
 
 Prerequisites:

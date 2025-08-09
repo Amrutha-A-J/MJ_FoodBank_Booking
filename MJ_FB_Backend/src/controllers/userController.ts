@@ -4,7 +4,7 @@ import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
-import { JWT_SECRET } from '../utils/env';
+import config from '../config';
 import logger from '../utils/logger';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
@@ -32,7 +32,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
       const token = jwt.sign(
         { id: user.id, role: user.role, type: 'user' },
-        JWT_SECRET,
+        config.jwtSecret,
         { expiresIn: '1h' },
       );
       res.cookie('token', token, {
@@ -66,7 +66,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     }
     const token = jwt.sign(
       { id: staff.id, role: staff.role, type: 'staff' },
-      JWT_SECRET,
+      config.jwtSecret,
       { expiresIn: '1h' },
     );
     res.cookie('token', token, {

@@ -5,9 +5,21 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 ## Environment Variables
 
+`PG_HOST` – PostgreSQL host.
+
+`PG_PORT` – PostgreSQL port.
+
+`PG_USER` – PostgreSQL username.
+
+`PG_PASSWORD` – PostgreSQL password.
+
+`PG_DATABASE` – PostgreSQL database name.
+
 `FRONTEND_ORIGIN` – Origin URL of the frontend allowed for CORS. Defaults to `http://localhost:5173` if unset.
 
 `JWT_SECRET` – Secret key used to sign and verify JSON Web Tokens. **Required**.
+
+`PORT` – Port for the backend server.
 
 ## Authentication Tokens
 

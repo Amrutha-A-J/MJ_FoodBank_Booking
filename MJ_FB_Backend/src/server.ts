@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import config from './config';
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
 import bookingsRoutes from './routes/bookings';
@@ -16,15 +16,12 @@ import pool from './db';
 import { setupDatabase } from './setupDatabase';
 import logger from './utils/logger';
 
-dotenv.config();
-
 const app = express();
 
 // ⭐ Add CORS middleware before routes
 // Allow a comma separated list of frontend origins so local hosts like
 // "http://127.0.0.1:5173" work in addition to "http://localhost:5173".
-const allowedOrigins = (process.env.FRONTEND_ORIGIN ||
-  'http://localhost:5173,http://127.0.0.1:5173')
+const allowedOrigins = config.frontendOrigin
   .split(',')
   .map(o => o.trim());
 
@@ -48,7 +45,7 @@ app.use('/volunteer-roles', volunteerRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-bookings', volunteerBookingsRoutes);
 
-const PORT = Number(process.env.PORT) || 4000;
+const PORT = config.port;
 
 async function init() {
   try {

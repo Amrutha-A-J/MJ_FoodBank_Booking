@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../utils/env';
+import config from '../config';
 import logger from '../utils/logger';
 
 function getTokenFromCookies(req: Request) {
@@ -31,7 +31,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, config.jwtSecret) as {
       id: number | string;
       role: string;
       type: string;
@@ -104,7 +104,7 @@ export async function optionalAuthMiddleware(
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, config.jwtSecret) as {
       id: number | string;
       role: string;
       type: string;
