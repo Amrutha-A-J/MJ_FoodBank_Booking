@@ -23,7 +23,7 @@ const app = express();
 // "http://127.0.0.1:5173" work in addition to "http://localhost:5173".
 const allowedOrigins = config.frontendOrigin
   .split(',')
-  .map(o => o.trim());
+  .map((o: string) => o.trim());
 
 app.use(cors({
   origin: allowedOrigins,
