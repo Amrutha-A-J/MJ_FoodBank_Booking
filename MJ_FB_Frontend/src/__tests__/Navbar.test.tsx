@@ -18,6 +18,7 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     expect(screen.getByText(/Profile/i)).toBeInTheDocument();
+    expect(screen.getByText(/Logout/i)).toBeInTheDocument();
   });
 
   it('renders without greeting when name is absent', () => {
