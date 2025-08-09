@@ -15,6 +15,18 @@ function getTokenFromCookies(req: Request) {
   return cookies.token;
 }
 
+function getTokenFromCookies(req: Request) {
+  const cookie = req.headers.cookie;
+  if (!cookie) return undefined;
+  const cookies = Object.fromEntries(
+    cookie.split(';').map(c => {
+      const [k, ...v] = c.trim().split('=');
+      return [k, v.join('=')];
+    }),
+  );
+  return cookies.token;
+}
+
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   let token: string | undefined;
