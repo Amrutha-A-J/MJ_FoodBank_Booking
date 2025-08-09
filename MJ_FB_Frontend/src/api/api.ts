@@ -389,6 +389,29 @@ export async function getVolunteerRoles(token: string) {
   return handleResponse(res);
 }
 
+export async function getVolunteerMasterRoles(token: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
+    headers: { Authorization: bearer(token) },
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerMasterRole(
+  token: string,
+  id: number,
+  isActive: boolean,
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: bearer(token),
+    },
+    body: JSON.stringify({ isActive }),
+  });
+  return handleResponse(res);
+}
+
 export async function getVolunteerBookingsByRole(token: string, roleId: number) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`, {
     headers: { Authorization: bearer(token) },
