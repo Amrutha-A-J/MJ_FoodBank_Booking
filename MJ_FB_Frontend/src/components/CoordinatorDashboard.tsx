@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -24,6 +24,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
+
 
 interface RoleOption {
   id: number; // unique slot id
@@ -66,8 +67,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
   const [createMsg, setCreateMsg] = useState('');
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
   const [assignModal, setAssignModal] = useState(false);
   const [assignSearch, setAssignSearch] = useState('');
@@ -99,20 +99,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       })
       .catch(() => {});
   }, [token]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setRoleDropdownOpen(false);
-      }
-    }
-    if (roleDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [roleDropdownOpen]);
 
   const groupedRoles = useMemo(() => {
     const unique = new Map<number, { id: number; name: string; category: string }>();
@@ -230,11 +216,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     );
   }
 
-  function toggleCreateRole(id: number, checked: boolean) {
-    setSelectedCreateRoles(prev =>
-      checked ? [...prev, id] : prev.filter(r => r !== id)
-    );
-  }
 
   async function assignVolunteer(vol: VolunteerResult) {
     if (!roleInfo) return;
@@ -274,6 +255,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       !password ||
       selectedCreateRoles.length === 0
     ) {
+      setCreateSeverity('error');
       setCreateMsg(
         'First name, last name, username, password and at least one role required'
       );
@@ -290,6 +272,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         email || undefined,
         phone || undefined
       );
+      setCreateSeverity('success');
       setCreateMsg('Volunteer created');
       setFirstName('');
       setLastName('');
@@ -299,6 +282,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       setPassword('');
       setSelectedCreateRoles([]);
     } catch (e) {
+      setCreateSeverity('error');
       setCreateMsg(e instanceof Error ? e.message : String(e));
     }
   }
@@ -586,7 +570,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             )}
           </div>
           <Button onClick={submitVolunteer} variant="outlined" color="primary">Add Volunteer</Button>
-          {createMsg && <p>{createMsg}</p>}
+          <FeedbackSnackbar
+            open={!!createMsg}
+            onClose={() => setCreateMsg('')}
+            message={createMsg}
+            severity={createSeverity}
+          />
         </div>
       )}
 
