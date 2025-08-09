@@ -14,7 +14,17 @@ import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { Button, TextField, MenuItem, ListSubheader } from '@mui/material';
+import {
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from '@mui/material';
+
 
 interface RoleOption {
   id: number; // unique slot id
@@ -356,15 +366,24 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       </div>
       {tab === 'schedule' && (
         <div>
-          <label>
-            Role:{' '}
-            <select value={selectedRole} onChange={e => setSelectedRole(e.target.value ? Number(e.target.value) : '')}>
-              <option value="">Select role</option>
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel id="schedule-role-label">Role</InputLabel>
+            <Select
+              labelId="schedule-role-label"
+              value={selectedRole === '' ? '' : selectedRole}
+              label="Role"
+              onChange={e =>
+                setSelectedRole(e.target.value ? Number(e.target.value) : '')
+              }
+            >
+              <MenuItem value="">Select role</MenuItem>
               {roles.map(r => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+                <MenuItem key={r.id} value={r.id}>
+                  {r.name}
+                </MenuItem>
               ))}
-            </select>
-          </label>
+            </Select>
+          </FormControl>
           {selectedRole && roleInfo ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
@@ -382,7 +401,14 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
       {tab === 'search' && (
         <div>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search volunteers" />
+          <TextField
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search volunteers"
+            label="Search"
+            size="small"
+            sx={{ mb: 1 }}
+          />
           {results.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(r => (
@@ -459,55 +485,89 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
       {tab === 'create' && (
         <div>
-          <div style={{ marginBottom: 8 }}>
-            <label>First Name: <input value={firstName} onChange={e => setFirstName(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Last Name: <input value={lastName} onChange={e => setLastName(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Username: <input value={username} onChange={e => setUsername(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Email (optional): <input type="email" value={email} onChange={e => setEmail(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Phone (optional): <input value={phone} onChange={e => setPhone(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Password: <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <TextField
-              label="Roles"
-              select
-              value={selectedCreateRoles}
-              onChange={e => {
-                const value = e.target.value;
-                setSelectedCreateRoles(
-                  typeof value === 'string'
-                    ? value.split(',').map(Number)
-                    : (value as number[])
-                );
-              }}
-              SelectProps={{
-                multiple: true,
-                displayEmpty: true,
-                renderValue: () => selectedRoleNames || 'Select roles',
-              }}
-              fullWidth
-            >
-              {groupedRoles.map(g => (
-                <Fragment key={g.category}>
-                  <ListSubheader>{g.category}</ListSubheader>
-                  {g.roles.map(r => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
-                </Fragment>
-              ))}
-            </TextField>
+          <TextField
+            label="First Name"
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <TextField
+            label="Last Name"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <TextField
+            label="Username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <TextField
+            label="Email (optional)"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <TextField
+            label="Phone (optional)"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            size="small"
+            sx={{ mb: 1 }}
+          />
+          <div style={{ marginBottom: 8, position: 'relative' }} ref={dropdownRef}>
+            <label>Role: </label>
+            <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
+              {selectedRoleNames || 'Select roles'}
+            </Button>
+            {roleDropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  background: 'white',
+                  border: '1px solid #ccc',
+                  padding: 8,
+                  zIndex: 1,
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  marginTop: 4,
+                }}
+              >
+                {groupedRoles.map(g => (
+                  <div key={g.category} style={{ marginBottom: 8 }}>
+                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                    {g.roles.map(r => (
+                      <FormControlLabel
+                        key={r.id}
+                        control={
+                          <Checkbox
+                            value={r.id}
+                            checked={selectedCreateRoles.includes(r.id)}
+                            onChange={e => toggleCreateRole(r.id, e.target.checked)}
+                          />
+                        }
+                        label={r.name}
+                        sx={{ width: '100%', m: 0 }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <Button onClick={submitVolunteer} variant="outlined" color="primary">Add Volunteer</Button>
           <FeedbackSnackbar
@@ -559,12 +619,15 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
             <h4>Assign Volunteer</h4>
-            <input
+            <TextField
               type="text"
               placeholder="Search volunteers"
               value={assignSearch}
               onChange={e => setAssignSearch(e.target.value)}
-              style={{ width: '100%', marginBottom: 8 }}
+              label="Search"
+              size="small"
+              fullWidth
+              sx={{ mb: 1 }}
             />
             <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
               {assignResults.map(v => (
