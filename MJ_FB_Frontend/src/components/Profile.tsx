@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Typography, List, ListItem } from '@mui/material';
 import type { Role, UserProfile } from '../types';
 import { getUserProfile } from '../api/api';
+import Page from './Page';
 
 export default function Profile({ token, role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -16,29 +18,25 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
 
   if (role === 'staff') {
     return (
-      <div>
-        <h2>User Profile</h2>
-        <p>Profile view is only available for shoppers.</p>
-      </div>
+      <Page title="User Profile">
+        <Typography>Profile view is only available for shoppers.</Typography>
+      </Page>
     );
   }
 
   return (
-    <div>
-      <h2>User Profile</h2>
-      {error && <p>{error}</p>}
-      {!profile && !error && <p>Loading...</p>}
+    <Page title="User Profile">
+      {error && <Typography color="error">{error}</Typography>}
+      {!profile && !error && <Typography>Loading...</Typography>}
       {profile && (
-        <ul>
-          <li>
-            Name: {profile.firstName} {profile.lastName}
-          </li>
-          <li>Client ID: {profile.clientId}</li>
-          <li>Email: {profile.email || 'N/A'}</li>
-          <li>Phone: {profile.phone || 'N/A'}</li>
-          <li>Visits this month: {profile.bookingsThisMonth}</li>
-        </ul>
+        <List>
+          <ListItem>Name: {profile.firstName} {profile.lastName}</ListItem>
+          <ListItem>Client ID: {profile.clientId}</ListItem>
+          <ListItem>Email: {profile.email || 'N/A'}</ListItem>
+          <ListItem>Phone: {profile.phone || 'N/A'}</ListItem>
+          <ListItem>Visits this month: {profile.bookingsThisMonth}</ListItem>
+        </List>
       )}
-    </div>
+    </Page>
   );
 }

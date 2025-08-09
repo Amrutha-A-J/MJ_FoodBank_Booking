@@ -4,10 +4,8 @@ import type { VolunteerBooking } from '../types';
 import { formatTime } from '../utils/time';
 import VolunteerSchedule from './VolunteerSchedule';
 import {
-  Box,
   Tabs,
   Tab,
-  Typography,
   TableContainer,
   Paper,
   Table,
@@ -16,6 +14,7 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
+import Page from './Page';
 
 export default function VolunteerDashboard({ token }: { token: string }) {
   const [tab, setTab] = useState<'schedule' | 'history'>('schedule');
@@ -30,10 +29,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   }, [tab, token]);
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Volunteer Dashboard
-      </Typography>
+    <Page title="Volunteer Dashboard">
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
         <Tab label="Schedule" value="schedule" />
         <Tab label="Booking History" value="history" />
@@ -74,7 +70,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
           </Table>
         </TableContainer>
       )}
-    </Box>
+    </Page>
   );
 }
 

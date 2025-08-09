@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../api/api';
 import type { LoginResponse } from '../api/api';
-import { Box, Typography, TextField, Link } from '@mui/material';
+import { Typography, TextField, Link } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FeedbackModal from './FeedbackModal';
 import FormContainer from './FormContainer';
+import Page from './Page';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [checking, setChecking] = useState(true);
@@ -23,7 +24,7 @@ export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResp
       });
   }, []);
 
-  if (checking) return <div>Loading...</div>;
+  if (checking) return <Typography>Loading...</Typography>;
 
   return hasStaff ? (
     <StaffLoginForm onLogin={onLogin} error={error} onBack={onBack} />
@@ -52,15 +53,16 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   }
 
   return (
-    <Box>
-      <Link component="button" onClick={onBack} underline="hover">User Login</Link>
-      <Typography variant="h4" gutterBottom>Staff Login</Typography>
+    <Page
+      title="Staff Login"
+      header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
+    >
       <FormContainer onSubmit={submit} submitLabel="Login">
         <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
       </FormContainer>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </Box>
+    </Page>
   );
 }
 
@@ -84,8 +86,7 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Create Staff Account</Typography>
+    <Page title="Create Staff Account">
       <FormContainer onSubmit={submit} submitLabel="Create Staff">
         <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" fullWidth />
         <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" fullWidth />
@@ -94,6 +95,6 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
       </FormContainer>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
-    </Box>
+    </Page>
   );
 }
