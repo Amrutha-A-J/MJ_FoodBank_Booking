@@ -30,6 +30,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const location = useLocation();
 
   function handleGroupClick(label: string, event: React.MouseEvent<HTMLElement>) {
@@ -42,7 +43,16 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     setOpenGroup(null);
   }
 
+  function handleProfileClick(event: React.MouseEvent<HTMLElement>) {
+    setProfileAnchorEl(event.currentTarget);
+  }
+
+  function closeProfileMenu() {
+    setProfileAnchorEl(null);
+  }
+
   const mobileMenuOpen = Boolean(mobileAnchorEl);
+  const profileMenuOpen = Boolean(profileAnchorEl);
 
   return (
     <AppBar position="static">
@@ -123,9 +133,25 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         )}
         <Box sx={{ flexGrow: 1 }} />
         {name && (
-          <Typography variant="body2" sx={{ mr: 1 }}>
-            Hello, {name}
-          </Typography>
+          <>
+            <Button color="inherit" onClick={handleProfileClick}>
+              Hello, {name}
+            </Button>
+            <Menu
+              anchorEl={profileAnchorEl}
+              open={profileMenuOpen}
+              onClose={closeProfileMenu}
+            >
+              <MenuItem
+                component={RouterLink}
+                to="/profile"
+                onClick={closeProfileMenu}
+                disabled={loading}
+              >
+                Profile
+              </MenuItem>
+            </Menu>
+          </>
         )}
         <Button color="inherit" onClick={onLogout} sx={{ ml: name ? 1 : 0 }}>
           Logout
