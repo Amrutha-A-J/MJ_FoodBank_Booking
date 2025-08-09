@@ -17,9 +17,9 @@ import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 
 export default function App() {
-  const [token, setToken] = useState('');
-  const [role, setRole] = useState<Role>('' as Role);
-  const [name, setName] = useState('');
+  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
+  const [role, setRole] = useState<Role>(() => (localStorage.getItem('role') as Role) || ('' as Role));
+  const [name, setName] = useState(() => localStorage.getItem('name') || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
@@ -29,6 +29,9 @@ export default function App() {
     setToken('');
     setRole('' as Role);
     setName('');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('name');
   }
 
   const navGroups: NavGroup[] = [];
@@ -72,6 +75,9 @@ export default function App() {
               setToken(u.token);
               setRole(u.role);
               setName(u.name);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
             }}
             onStaff={() => setLoginMode('staff')}
             onVolunteer={() => setLoginMode('volunteer')}
@@ -82,6 +88,9 @@ export default function App() {
               setToken(u.token);
               setRole(u.role);
               setName(u.name);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
             }}
             onBack={() => setLoginMode('user')}
           />
@@ -91,6 +100,9 @@ export default function App() {
               setToken(u.token);
               setRole(u.role);
               setName(u.name);
+              localStorage.setItem('token', u.token);
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
             }}
             onBack={() => setLoginMode('user')}
           />
