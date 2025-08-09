@@ -18,6 +18,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  ListSubheader,
   Button,
   Dialog,
   DialogTitle,
@@ -37,8 +38,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [roles, setRoles] = useState<VolunteerRole[]>([]);
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string }[]>([]);
-  const [selectedRole, setSelectedRole] = useState<number | ''>('');
+  const [roleGroups, setRoleGroups] = useState<{ category: string; roles: string[] }[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string>('');
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
@@ -56,7 +57,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     if (weekend || holiday) {
       setRoles([]);
       setBookings([]);
-      setBaseRoles([]);
+      setRoleGroups([]);
       setSelectedRole('');
       return;
     }
@@ -66,10 +67,20 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getMyVolunteerBookings(token),
       ]);
       setRoles(roleData);
-      const map = new Map<number, string>();
-      roleData.forEach((r: VolunteerRole) => map.set(r.category_id, r.name));
-      setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
-      setSelectedRole(prev => (prev && map.has(Number(prev)) ? prev : ''));
+      const groups = new Map<string, Set<string>>();
+      roleData.forEach(r => {
+        const set = groups.get(r.category_name) || new Set<string>();
+        set.add(r.name);
+        groups.set(r.category_name, set);
+      });
+      setRoleGroups(
+        Array.from(groups.entries()).map(([category, set]) => ({
+          category,
+          roles: Array.from(set),
+        }))
+      );
+      const names = new Set(roleData.map(r => r.name));
+      setSelectedRole(prev => (prev && names.has(prev) ? prev : ''));
       const filtered = bookingData.filter(
         (b: VolunteerBooking) =>
           b.date === dateStr && ['approved', 'pending'].includes(b.status)
@@ -153,7 +164,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isClosed = isHoliday || isWeekend;
 
   const roleSlots = selectedRole
-    ? roles.filter(r => r.category_id === selectedRole)
+    ? roles.filter(r => r.name === selectedRole)
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
   const rows = roleSlots.map(role => {
@@ -204,18 +215,21 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         <InputLabel id="role-select-label">Role</InputLabel>
         <Select
           labelId="role-select-label"
-          value={selectedRole === '' ? '' : selectedRole}
+          value={selectedRole}
           label="Role"
-          onChange={e =>
-            setSelectedRole(e.target.value === '' ? '' : Number(e.target.value))
-          }
+          onChange={e => setSelectedRole(e.target.value)}
         >
           <MenuItem value="">Select role</MenuItem>
-          {baseRoles.map(r => (
-            <MenuItem key={r.id} value={r.id}>
-              {r.name}
-            </MenuItem>
-          ))}
+          {roleGroups.flatMap(g => [
+            <ListSubheader key={`${g.category}-header`}>
+              {g.category}
+            </ListSubheader>,
+            ...g.roles.map(r => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            )),
+          ])}
         </Select>
       </FormControl>
       {selectedRole && (

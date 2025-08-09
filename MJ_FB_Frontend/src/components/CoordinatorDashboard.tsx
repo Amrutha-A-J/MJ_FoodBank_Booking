@@ -9,7 +9,6 @@ import {
   createVolunteer,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
-  getVolunteerMasterRoles,
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
@@ -54,7 +53,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       : 'schedule',
   );
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [baseRoles, setBaseRoles] = useState<{ id: number; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
@@ -72,7 +70,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<VolunteerResult[]>([]);
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
-  const [trainedEdit, setTrainedEdit] = useState<number[]>([]);
+  const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
   const [editMsg, setEditMsg] = useState('');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
@@ -82,16 +80,16 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
+  const [selectedCreateRoles, setSelectedCreateRoles] = useState<string[]>([]);
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  function toggleCreateRole(id: number, checked: boolean) {
+  function toggleCreateRole(name: string, checked: boolean) {
     setSelectedCreateRoles(prev =>
-      checked ? [...prev, id] : prev.filter(r => r !== id)
+      checked ? [...prev, name] : prev.filter(r => r !== name)
     );
   }
 
@@ -131,30 +129,32 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       .catch(() => {});
   }, [token]);
 
-  useEffect(() => {
-    getVolunteerMasterRoles(token)
-      .then(data => setBaseRoles(data))
-      .catch(() => {});
-  }, [token]);
-
   const groupedRoles = useMemo(() => {
-    const groups = new Map<string, { id: number; name: string }[]>();
+    const groups = new Map<string, { name: string; category_id: number }[]>();
     roles.forEach(r => {
-      const arr = groups.get(r.name) || [];
-      if (!arr.some(a => a.id === r.category_id)) {
-        arr.push({ id: r.category_id, name: r.name });
+      const arr = groups.get(r.category_name) || [];
+      if (!arr.some(a => a.name === r.name)) {
+        arr.push({ name: r.name, category_id: r.category_id });
       }
-      groups.set(r.name, arr);
+      groups.set(r.category_name, arr);
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
+  }, [roles]);
+
+  const nameToCategoryId = useMemo(() => {
+    const map = new Map<string, number>();
+    roles.forEach(r => {
+      if (!map.has(r.name)) map.set(r.name, r.category_id);
+    });
+    return map;
   }, [roles]);
 
   const scheduleRoleGroups = useMemo(() => {
     const groups = new Map<string, RoleOption[]>();
     roles.forEach(r => {
-      const arr = groups.get(r.name) || [];
+      const arr = groups.get(r.category_name) || [];
       arr.push(r);
-      groups.set(r.name, arr);
+      groups.set(r.category_name, arr);
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({
       category,
@@ -175,16 +175,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     [scheduleRoleGroups]
   );
 
-  const selectedRoleNames = useMemo(() => {
-    const map = new Map<number, string>();
-    roles.forEach(r => {
-      if (!map.has(r.category_id)) map.set(r.category_id, r.name);
-    });
-    return selectedCreateRoles
-      .map(id => map.get(id))
-      .filter(Boolean)
-      .join(', ');
-  }, [roles, selectedCreateRoles]);
+  const selectedRoleNames = selectedCreateRoles.join(', ');
 
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
@@ -262,7 +253,15 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setSelectedVolunteer(u);
     setResults([]);
     setSearch(u.name);
-    setTrainedEdit(u.trainedAreas || []);
+    const idToName = new Map<number, string>();
+    roles.forEach(r => {
+      if (!idToName.has(r.category_id)) idToName.set(r.category_id, r.name);
+    });
+    setTrainedEdit(
+      (u.trainedAreas || [])
+        .map(id => idToName.get(id))
+        .filter(Boolean) as string[]
+    );
     try {
       const data = await getVolunteerBookingHistory(token, u.id);
       setHistory(data);
@@ -271,9 +270,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
   }
 
-  function toggleTrained(id: number, checked: boolean) {
+  function toggleTrained(name: string, checked: boolean) {
     setTrainedEdit(prev =>
-      checked ? [...prev, id] : prev.filter(t => t !== id)
+      checked ? [...prev, name] : prev.filter(t => t !== name)
     );
   }
 
@@ -301,7 +300,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   async function saveTrainedAreas() {
     if (!selectedVolunteer) return;
     try {
-      await updateVolunteerTrainedAreas(token, selectedVolunteer.id, trainedEdit);
+      const ids = Array.from(
+        new Set(trainedEdit.map(name => nameToCategoryId.get(name) || 0))
+      ).filter(id => id !== 0);
+      await updateVolunteerTrainedAreas(token, selectedVolunteer.id, ids);
       setEditMsg('Roles updated');
     } catch (e) {
       setEditMsg(e instanceof Error ? e.message : String(e));
@@ -323,13 +325,16 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       return;
     }
     try {
+      const ids = Array.from(
+        new Set(selectedCreateRoles.map(name => nameToCategoryId.get(name) || 0))
+      ).filter(id => id !== 0);
       await createVolunteer(
         token,
         firstName,
         lastName,
         username,
         password,
-        selectedCreateRoles,
+        ids,
         email || undefined,
         phone || undefined
       );
@@ -491,20 +496,25 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <div>
               <h3>Edit Roles for {selectedVolunteer.name}</h3>
               <div style={{ marginBottom: 8 }}>
-                {baseRoles.map(r => (
-                  <label
-                    key={r.id}
-                    style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
-                  >
-                    <input
-                      type="checkbox"
-                      value={r.id}
-                      checked={trainedEdit.includes(r.id)}
-                      onChange={e => toggleTrained(r.id, e.target.checked)}
-                      style={{ marginRight: 6 }}
-                    />
-                    {r.name}
-                  </label>
+                {groupedRoles.map(g => (
+                  <div key={g.category} style={{ marginBottom: 8 }}>
+                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                    {g.roles.map(r => (
+                      <label
+                        key={r.name}
+                        style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+                      >
+                        <input
+                          type="checkbox"
+                          value={r.name}
+                          checked={trainedEdit.includes(r.name)}
+                          onChange={e => toggleTrained(r.name, e.target.checked)}
+                          style={{ marginRight: 6 }}
+                        />
+                        {r.name}
+                      </label>
+                    ))}
+                  </div>
                 ))}
               </div>
               <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
@@ -621,12 +631,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                     <div style={{ fontWeight: 'bold' }}>{g.category}</div>
                     {g.roles.map(r => (
                       <FormControlLabel
-                        key={r.id}
+                        key={r.name}
                         control={
                           <Checkbox
-                            value={r.id}
-                            checked={selectedCreateRoles.includes(r.id)}
-                            onChange={e => toggleCreateRole(r.id, e.target.checked)}
+                            value={r.name}
+                            checked={selectedCreateRoles.includes(r.name)}
+                            onChange={e => toggleCreateRole(r.name, e.target.checked)}
                           />
                         }
                         label={r.name}
