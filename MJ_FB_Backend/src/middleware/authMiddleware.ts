@@ -78,6 +78,24 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       return res.status(401).json({ message: 'Invalid token' });
     }
 
+    if (type === 'volunteer') {
+      const volRes = await pool.query(
+        'SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1',
+        [id]
+      );
+      if (volRes.rowCount === 0) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      req.user = {
+        id: volRes.rows[0].id.toString(),
+        type: 'volunteer',
+        role: 'volunteer',
+        email: volRes.rows[0].email,
+        name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
+      } as any;
+      return next();
+    }
+
     return res.status(401).json({ message: 'Invalid token format' });
   } catch (error) {
     logger.error('Auth error:', error);
@@ -145,6 +163,24 @@ export async function optionalAuthMiddleware(
         return next();
       }
       return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    if (type === 'volunteer') {
+      const volRes = await pool.query(
+        'SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1',
+        [id],
+      );
+      if (volRes.rowCount === 0) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+      req.user = {
+        id: volRes.rows[0].id.toString(),
+        type: 'volunteer',
+        role: 'volunteer',
+        email: volRes.rows[0].email,
+        name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
+      } as any;
+      return next();
     }
 
     return res.status(401).json({ message: 'Invalid token format' });

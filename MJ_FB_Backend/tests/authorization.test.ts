@@ -64,6 +64,19 @@ describe('Authorization middleware', () => {
     expect(res.status).toBe(200);
   });
 
+  it('allows volunteer to access volunteer endpoint', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 3, role: 'volunteer', type: 'volunteer' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 3, first_name: 'Vol', last_name: 'unteer', email: 'vol@example.com' }],
+    });
+
+    const res = await request(app)
+      .get('/volunteer-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+  });
+
   it('returns 403 when shopper accesses volunteer endpoint', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValue({
