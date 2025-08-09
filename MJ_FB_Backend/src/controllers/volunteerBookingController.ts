@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../db';
 import { sendEmail } from '../utils/emailUtils';
+import logger from '../utils/logger';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
@@ -14,7 +15,11 @@ function statusColor(status: string) {
   return STATUS_COLORS[status] || null;
 }
 
-export async function createVolunteerBooking(req: Request, res: Response) {
+export async function createVolunteerBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const user = req.user;
   const { roleId, date } = req.body as { roleId?: number; date?: string };
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
@@ -67,14 +72,16 @@ export async function createVolunteerBooking(req: Request, res: Response) {
     booking.status_color = statusColor(booking.status);
     res.status(201).json(booking);
   } catch (error) {
-    console.error('Error creating volunteer booking:', error);
-    res.status(500).json({
-      message: `Database error creating volunteer booking: ${(error as Error).message}`,
-    });
+    logger.error('Error creating volunteer booking:', error);
+    next(error);
   }
 }
 
-export async function createVolunteerBookingForVolunteer(req: Request, res: Response) {
+export async function createVolunteerBookingForVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { volunteerId, roleId, date } = req.body as {
     volunteerId?: number;
     roleId?: number;
@@ -125,14 +132,16 @@ export async function createVolunteerBookingForVolunteer(req: Request, res: Resp
     booking.status_color = statusColor(booking.status);
     res.status(201).json(booking);
   } catch (error) {
-    console.error('Error creating volunteer booking for volunteer:', error);
-    res.status(500).json({
-      message: `Database error creating volunteer booking: ${(error as Error).message}`,
-    });
+    logger.error('Error creating volunteer booking for volunteer:', error);
+    next(error);
   }
 }
 
-export async function listVolunteerBookingsByRole(req: Request, res: Response) {
+export async function listVolunteerBookingsByRole(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { role_id } = req.params;
   try {
     const result = await pool.query(
@@ -152,14 +161,16 @@ export async function listVolunteerBookingsByRole(req: Request, res: Response) {
     }));
     res.json(bookings);
   } catch (error) {
-    console.error('Error listing volunteer bookings:', error);
-    res.status(500).json({
-      message: `Database error listing volunteer bookings: ${(error as Error).message}`,
-    });
+    logger.error('Error listing volunteer bookings:', error);
+    next(error);
   }
 }
 
-export async function listMyVolunteerBookings(req: Request, res: Response) {
+export async function listMyVolunteerBookings(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
@@ -179,14 +190,16 @@ export async function listMyVolunteerBookings(req: Request, res: Response) {
     }));
     res.json(bookings);
   } catch (error) {
-    console.error('Error listing volunteer bookings for volunteer:', error);
-    res.status(500).json({
-      message: `Database error listing volunteer bookings for volunteer: ${(error as Error).message}`,
-    });
+    logger.error('Error listing volunteer bookings for volunteer:', error);
+    next(error);
   }
 }
 
-export async function listVolunteerBookingsByVolunteer(req: Request, res: Response) {
+export async function listVolunteerBookingsByVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { volunteer_id } = req.params;
   try {
     const result = await pool.query(
@@ -205,14 +218,16 @@ export async function listVolunteerBookingsByVolunteer(req: Request, res: Respon
     }));
     res.json(bookings);
   } catch (error) {
-    console.error('Error listing volunteer bookings for volunteer:', error);
-    res.status(500).json({
-      message: `Database error listing volunteer bookings for volunteer: ${(error as Error).message}`,
-    });
+    logger.error('Error listing volunteer bookings for volunteer:', error);
+    next(error);
   }
 }
 
-export async function updateVolunteerBookingStatus(req: Request, res: Response) {
+export async function updateVolunteerBookingStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { id } = req.params;
   const { status } = req.body as { status?: string };
   if (!status || !['approved', 'rejected', 'cancelled'].includes(status)) {
@@ -262,14 +277,16 @@ export async function updateVolunteerBookingStatus(req: Request, res: Response) 
     );
     res.json(updated);
   } catch (error) {
-    console.error('Error updating volunteer booking:', error);
-    res.status(500).json({
-      message: `Database error updating volunteer booking: ${(error as Error).message}`,
-    });
+    logger.error('Error updating volunteer booking:', error);
+    next(error);
   }
 }
 
-export async function rescheduleVolunteerBooking(req: Request, res: Response) {
+export async function rescheduleVolunteerBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { token } = req.params;
   const { roleId, date } = req.body as { roleId?: number; date?: string };
   if (!roleId || !date) {
@@ -321,10 +338,8 @@ export async function rescheduleVolunteerBooking(req: Request, res: Response) {
     );
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
-    console.error('Error rescheduling volunteer booking:', error);
-    res.status(500).json({
-      message: `Database error rescheduling volunteer booking: ${(error as Error).message}`,
-    });
+    logger.error('Error rescheduling volunteer booking:', error);
+    next(error);
   }
 }
 

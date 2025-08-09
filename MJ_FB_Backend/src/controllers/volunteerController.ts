@@ -1,8 +1,13 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
+import logger from '../utils/logger';
 
-export async function updateTrainedArea(req: Request, res: Response) {
+export async function updateTrainedArea(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { id } = req.params;
   const { roleIds } = req.body as { roleIds?: number[] };
   if (!Array.isArray(roleIds) || roleIds.some(r => typeof r !== 'number')) {
@@ -28,14 +33,12 @@ export async function updateTrainedArea(req: Request, res: Response) {
     }
     res.json({ id: Number(id), roleIds });
   } catch (error) {
-    console.error('Error updating trained area:', error);
-    res.status(500).json({
-      message: `Database error updating trained area: ${(error as Error).message}`,
-    });
+    logger.error('Error updating trained area:', error);
+    next(error);
   }
 }
 
-export async function loginVolunteer(req: Request, res: Response) {
+export async function loginVolunteer(req: Request, res: Response, next: NextFunction) {
   const { username, password } = req.body as {
     username?: string;
     password?: string;
@@ -70,14 +73,16 @@ export async function loginVolunteer(req: Request, res: Response) {
       name: `${volunteer.first_name} ${volunteer.last_name}`,
     });
   } catch (error) {
-    console.error('Error logging in volunteer:', error);
-    res.status(500).json({
-      message: `Database error logging in volunteer: ${(error as Error).message}`,
-    });
+    logger.error('Error logging in volunteer:', error);
+    next(error);
   }
 }
 
-export async function createVolunteer(req: Request, res: Response) {
+export async function createVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const {
     firstName,
     lastName,
@@ -150,14 +155,12 @@ export async function createVolunteer(req: Request, res: Response) {
     );
     res.status(201).json({ id: volunteerId });
   } catch (error) {
-    console.error('Error creating volunteer:', error);
-    res.status(500).json({
-      message: `Database error creating volunteer: ${(error as Error).message}`,
-    });
+    logger.error('Error creating volunteer:', error);
+    next(error);
   }
 }
 
-export async function searchVolunteers(req: Request, res: Response) {
+export async function searchVolunteers(req: Request, res: Response, next: NextFunction) {
   try {
     const rawSearch = (req.query.search as string) || '';
     const search = rawSearch.trim();
@@ -189,9 +192,7 @@ export async function searchVolunteers(req: Request, res: Response) {
 
     res.json(formatted);
   } catch (error) {
-    console.error('Error searching volunteers:', error);
-    res.status(500).json({
-      message: `Database error searching volunteers: ${(error as Error).message}`,
-    });
+    logger.error('Error searching volunteers:', error);
+    next(error);
   }
 }

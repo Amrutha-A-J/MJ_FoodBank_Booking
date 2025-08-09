@@ -1,12 +1,13 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import { JWT_SECRET } from '../utils/env';
+import logger from '../utils/logger';
 
-export async function loginUser(req: Request, res: Response) {
+export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
 
   try {
@@ -79,14 +80,12 @@ export async function loginUser(req: Request, res: Response) {
       name: `${staff.first_name} ${staff.last_name}`,
     });
   } catch (error) {
-    console.error('Error logging in:', error);
-    res
-      .status(500)
-      .json({ message: `Database error logging in: ${(error as Error).message}` });
+    logger.error('Error logging in:', error);
+    next(error);
   }
 }
 
-export async function createUser(req: Request, res: Response) {
+export async function createUser(req: Request, res: Response, next: NextFunction) {
   if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role)) {
     return res.status(403).json({ message: 'Forbidden' });
   }
@@ -139,14 +138,12 @@ export async function createUser(req: Request, res: Response) {
 
     res.status(201).json({ message: 'User created' });
   } catch (error) {
-    console.error('Error creating user:', error);
-    res
-      .status(500)
-      .json({ message: `Database error creating user: ${(error as Error).message}` });
+    logger.error('Error creating user:', error);
+    next(error);
   }
 }
 
-export async function searchUsers(req: Request, res: Response) {
+export async function searchUsers(req: Request, res: Response, next: NextFunction) {
   try {
     const rawSearch = (req.query.search as string) || '';
     const search = rawSearch.trim();
@@ -177,14 +174,12 @@ export async function searchUsers(req: Request, res: Response) {
 
     res.json(formatted);
   } catch (error) {
-    console.error('Error searching users:', (error as Error).message);
-    res
-      .status(500)
-      .json({ message: `Server error searching users: ${(error as Error).message}` });
+    logger.error('Error searching users:', error);
+    next(error);
   }
 }
 
-export async function getUserProfile(req: Request, res: Response) {
+export async function getUserProfile(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
@@ -209,10 +204,8 @@ export async function getUserProfile(req: Request, res: Response) {
       bookingsThisMonth,
     });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({
-      message: `Database error fetching user profile: ${(error as Error).message}`,
-    });
+    logger.error('Error fetching user profile:', error);
+    next(error);
   }
 }
 

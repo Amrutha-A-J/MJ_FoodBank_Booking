@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
+import logger from '../utils/logger';
 
 function getCookieToken(req: Request) {
   const cookie = req.headers.cookie;
@@ -54,9 +55,7 @@ export async function verifyVolunteerToken(
     } as any;
     next();
   } catch (error) {
-    console.error('Volunteer auth error:', error);
-    res.status(500).json({
-      message: `Database error during volunteer authentication: ${(error as Error).message}`,
-    });
+    logger.error('Volunteer auth error:', error);
+    next(error);
   }
 }

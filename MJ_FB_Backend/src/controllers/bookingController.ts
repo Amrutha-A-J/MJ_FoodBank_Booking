@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../db';
 import {
@@ -8,6 +8,7 @@ import {
   LIMIT_MESSAGE,
 } from '../utils/bookingUtils';
 import { sendEmail } from '../utils/emailUtils';
+import logger from '../utils/logger';
 
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
@@ -25,7 +26,7 @@ async function checkSlotCapacity(slotId: number, date: string) {
 }
 
 // --- Create booking for logged-in shopper ---
-export async function createBooking(req: Request, res: Response) {
+export async function createBooking(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
@@ -65,13 +66,13 @@ export async function createBooking(req: Request, res: Response) {
       .status(201)
       .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
   } catch (error: any) {
-    console.error('Error creating booking:', error);
-    res.status(400).json({ message: error.message || 'Failed to create booking' });
+    logger.error('Error creating booking:', error);
+    next(error);
   }
 }
 
 // --- List all bookings (for staff) ---
-export async function listBookings(req: Request, res: Response) {
+export async function listBookings(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await pool.query(`
       SELECT
@@ -93,15 +94,13 @@ export async function listBookings(req: Request, res: Response) {
     `);
     res.json(result.rows);
   } catch (error) {
-    console.error('Error listing bookings:', error);
-    res
-      .status(500)
-      .json({ message: `Database error listing bookings: ${(error as Error).message}` });
+    logger.error('Error listing bookings:', error);
+    next(error);
   }
 }
 
 // --- Approve or reject booking ---
-export async function decideBooking(req: Request, res: Response) {
+export async function decideBooking(req: Request, res: Response, next: NextFunction) {
   const bookingId = req.params.id;
   const decision = (req.body.decision as string)?.toLowerCase();
   const reason = ((req.body.reason as string) || '').trim();
@@ -145,13 +144,13 @@ export async function decideBooking(req: Request, res: Response) {
 
     res.json({ message: `Booking ${decision}d` });
   } catch (error: any) {
-    console.error('Error deciding booking:', error);
-    res.status(400).json({ message: error.message || 'Failed to process decision' });
+    logger.error('Error deciding booking:', error);
+    next(error);
   }
 }
 
 // --- Cancel booking (staff or user) ---
-export async function cancelBooking(req: Request, res: Response) {
+export async function cancelBooking(req: Request, res: Response, next: NextFunction) {
   const bookingId = req.params.id;
   const requester = req.user;
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
@@ -193,13 +192,13 @@ export async function cancelBooking(req: Request, res: Response) {
 
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
-    console.error('Error cancelling booking:', error);
-    res.status(400).json({ message: error.message || 'Failed to cancel booking' });
+    logger.error('Error cancelling booking:', error);
+    next(error);
   }
 }
 
 // --- Reschedule booking using token ---
-export async function rescheduleBooking(req: Request, res: Response) {
+export async function rescheduleBooking(req: Request, res: Response, next: NextFunction) {
   const { token } = req.params;
   const { slotId, date } = req.body as { slotId?: number; date?: string };
   if (!slotId || !date) {
@@ -239,13 +238,17 @@ export async function rescheduleBooking(req: Request, res: Response) {
 
     res.json({ message: 'Booking rescheduled', rescheduleToken: newToken });
   } catch (error: any) {
-    console.error('Error rescheduling booking:', error);
-    res.status(400).json({ message: error.message || 'Failed to reschedule booking' });
+    logger.error('Error rescheduling booking:', error);
+    next(error);
   }
 }
 
 // --- Staff: create preapproved booking for walk-in user ---
-export async function createPreapprovedBooking(req: Request, res: Response) {
+export async function createPreapprovedBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
     return res.status(403).json({ message: 'Forbidden' });
 
@@ -294,15 +297,19 @@ export async function createPreapprovedBooking(req: Request, res: Response) {
     res.status(201).json({ message: 'Preapproved booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
-    console.error('Error creating preapproved booking:', error);
-    res.status(400).json({ message: error.message || 'Failed to create preapproved booking' });
+    logger.error('Error creating preapproved booking:', error);
+    next(error);
   } finally {
     client.release();
   }
 }
 
 // --- Staff: create booking for existing user ---
-export async function createBookingForUser(req: Request, res: Response) {
+export async function createBookingForUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
     return res.status(403).json({ message: 'Forbidden' });
 
@@ -333,13 +340,13 @@ export async function createBookingForUser(req: Request, res: Response) {
     await updateBookingsThisMonth(userId);
     res.status(201).json({ message: 'Booking created for user', rescheduleToken: token });
   } catch (error: any) {
-    console.error('Error creating booking for user:', error);
-    res.status(400).json({ message: error.message || 'Failed to create booking' });
+    logger.error('Error creating booking for user:', error);
+    next(error);
   }
 }
 
 // --- Get booking history (last 6 months) ---
-export async function getBookingHistory(req: Request, res: Response) {
+export async function getBookingHistory(req: Request, res: Response, next: NextFunction) {
   try {
     const requester = req.user;
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
@@ -381,7 +388,7 @@ export async function getBookingHistory(req: Request, res: Response) {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching booking history:', error);
-    res.status(500).json({ message: 'Failed to fetch booking history' });
+    logger.error('Error fetching booking history:', error);
+    next(error);
   }
 }

@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { Slot } from '../models/slot';
+import logger from '../utils/logger';
 
-export async function listSlots(req: Request, res: Response) {
+export async function listSlots(req: Request, res: Response, next: NextFunction) {
   const date = req.query.date as string;
   if (!date) return res.status(400).json({ message: 'Date query parameter required' });
 
@@ -66,14 +67,16 @@ export async function listSlots(req: Request, res: Response) {
 
     res.json(slotsWithAvailability);
   } catch (error) {
-    console.error('Error listing slots:', error);
-    res
-      .status(500)
-      .json({ message: `Database error listing slots: ${(error as Error).message}` });
+    logger.error('Error listing slots:', error);
+    next(error);
   }
 }
 
-export async function listAllSlots(req: Request, res: Response) {
+export async function listAllSlots(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const result = await pool.query('SELECT * FROM slots ORDER BY start_time');
     const slots = result.rows.map((slot: any) => ({
@@ -84,9 +87,7 @@ export async function listAllSlots(req: Request, res: Response) {
     }));
     res.json(slots);
   } catch (error) {
-    console.error('Error listing all slots:', error);
-    res
-      .status(500)
-      .json({ message: `Database error listing all slots: ${(error as Error).message}` });
+    logger.error('Error listing all slots:', error);
+    next(error);
   }
 }
