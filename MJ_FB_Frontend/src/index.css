@@ -1,5 +1,11 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --e-global-color-primary: #000000;
+  --e-global-color-secondary: #000000;
+  --e-global-color-text: #2E2E2E;
+  --e-global-color-accent: #941818;
+  --e-global-typography-text-font-family: 'Golos Text', sans-serif;
+
+  font-family: var(--e-global-typography-text-font-family);
   line-height: 1.5;
   font-weight: 400;
 
@@ -75,7 +81,7 @@ button:focus-visible {
   margin: 0 auto;
   padding: 1rem;
   box-sizing: border-box;
-  font-family: sans-serif;
+  font-family: var(--e-global-typography-text-font-family);
 }
 
 form {
