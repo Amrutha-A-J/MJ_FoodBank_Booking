@@ -33,7 +33,6 @@ export interface BlockedSlot {
 export interface VolunteerRole {
   id: number;
   name: string;
-  category: string;
   start_time: string;
   end_time: string;
   max_volunteers: number;
@@ -41,7 +40,7 @@ export interface VolunteerRole {
   available: number;
   status: string;
   date: string;
-  role_id: number;
+  category_id: number;
   is_wednesday_slot: boolean;
 }
 

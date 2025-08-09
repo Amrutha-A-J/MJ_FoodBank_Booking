@@ -66,7 +66,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       ]);
       setRoles(roleData);
       const map = new Map<number, string>();
-      roleData.forEach((r: VolunteerRole) => map.set(r.role_id, r.name));
+      roleData.forEach((r: VolunteerRole) => map.set(r.category_id, r.name));
       setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       setSelectedRole(prev => (prev && map.has(Number(prev)) ? prev : ''));
       const filtered = bookingData.filter(
@@ -132,7 +132,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isClosed = isHoliday || isWeekend;
 
   const roleSlots = selectedRole
-    ? roles.filter(r => r.role_id === selectedRole)
+    ? roles.filter(r => r.category_id === selectedRole)
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
   const rows = roleSlots.map(role => {

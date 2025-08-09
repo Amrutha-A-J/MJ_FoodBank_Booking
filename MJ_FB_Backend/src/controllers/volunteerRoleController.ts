@@ -7,40 +7,40 @@ export async function addVolunteerRole(
   res: Response,
   next: NextFunction,
 ) {
-  const { startTime, endTime, maxVolunteers, roleId, isWednesdaySlot } =
+  const { startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot } =
     req.body as {
       startTime?: string;
       endTime?: string;
       maxVolunteers?: number;
-      roleId?: number;
+      categoryId?: number;
       isWednesdaySlot?: boolean;
     };
   if (
     !startTime ||
     !endTime ||
     typeof maxVolunteers !== 'number' ||
-    typeof roleId !== 'number'
+    typeof categoryId !== 'number'
   ) {
     return res
       .status(400)
       .json({
         message:
-          'startTime, endTime, maxVolunteers and roleId are required',
+          'startTime, endTime, maxVolunteers and categoryId are required',
       });
   }
   try {
     const result = await pool.query(
-      `INSERT INTO volunteer_roles (start_time, end_time, max_volunteers, role_id, is_wednesday_slot)
+      `INSERT INTO volunteer_roles (start_time, end_time, max_volunteers, category_id, is_wednesday_slot)
        VALUES ($1,$2,$3,$4,$5)
-       RETURNING id, start_time, end_time, max_volunteers, role_id, is_wednesday_slot`,
-      [startTime, endTime, maxVolunteers, roleId, isWednesdaySlot || false]
+       RETURNING id, start_time, end_time, max_volunteers, category_id, is_wednesday_slot`,
+      [startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot || false]
     );
     const row = result.rows[0];
     const master = await pool.query(
-      'SELECT name, category FROM volunteer_master_roles WHERE id=$1',
-      [row.role_id]
+      'SELECT name FROM volunteer_master_roles WHERE id=$1',
+      [row.category_id]
     );
-    res.status(201).json({ ...row, ...master.rows[0] });
+    res.status(201).json({ ...row, name: master.rows[0].name });
   } catch (error) {
     logger.error('Error adding volunteer role:', error);
     next(error);
@@ -54,9 +54,9 @@ export async function listVolunteerRoles(
 ) {
   try {
     const result = await pool.query(
-      `SELECT vr.id, vmr.name, vmr.category, vr.start_time, vr.end_time, vr.max_volunteers, vr.role_id, vr.is_wednesday_slot
+      `SELECT vr.id, vmr.name, vr.start_time, vr.end_time, vr.max_volunteers, vr.category_id, vr.is_wednesday_slot
        FROM volunteer_roles vr
-       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        ORDER BY vr.id`
     );
     res.json(result.rows);
@@ -72,44 +72,44 @@ export async function updateVolunteerRole(
   next: NextFunction,
 ) {
   const { id } = req.params;
-  const { startTime, endTime, maxVolunteers, roleId, isWednesdaySlot } =
+  const { startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot } =
     req.body as {
       startTime?: string;
       endTime?: string;
       maxVolunteers?: number;
-      roleId?: number;
+      categoryId?: number;
       isWednesdaySlot?: boolean;
     };
   if (
     !startTime ||
     !endTime ||
     typeof maxVolunteers !== 'number' ||
-    typeof roleId !== 'number'
+    typeof categoryId !== 'number'
   ) {
     return res
       .status(400)
       .json({
         message:
-          'startTime, endTime, maxVolunteers and roleId are required',
+          'startTime, endTime, maxVolunteers and categoryId are required',
       });
   }
   try {
     const result = await pool.query(
       `UPDATE volunteer_roles
-       SET start_time = $1, end_time = $2, max_volunteers = $3, role_id = $4, is_wednesday_slot = $5
+       SET start_time = $1, end_time = $2, max_volunteers = $3, category_id = $4, is_wednesday_slot = $5
        WHERE id = $6
-       RETURNING id, start_time, end_time, max_volunteers, role_id, is_wednesday_slot`,
-      [startTime, endTime, maxVolunteers, roleId, isWednesdaySlot || false, id]
+       RETURNING id, start_time, end_time, max_volunteers, category_id, is_wednesday_slot`,
+      [startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot || false, id]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const row = result.rows[0];
     const master = await pool.query(
-      'SELECT name, category FROM volunteer_master_roles WHERE id=$1',
-      [row.role_id]
+      'SELECT name FROM volunteer_master_roles WHERE id=$1',
+      [row.category_id]
     );
-    res.json({ ...row, ...master.rows[0] });
+    res.json({ ...row, name: master.rows[0].name });
   } catch (error) {
     logger.error('Error updating volunteer role:', error);
     next(error);
@@ -154,18 +154,18 @@ export async function listVolunteerRolesForVolunteer(
     }
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
-      `SELECT vr.id, vmr.name, vmr.category, vr.start_time, vr.end_time, vr.max_volunteers, vr.role_id, vr.is_wednesday_slot,
+      `SELECT vr.id, vmr.name, vr.start_time, vr.end_time, vr.max_volunteers, vr.category_id, vr.is_wednesday_slot,
               COALESCE(b.count,0) AS booked, $1::date AS date
        FROM volunteer_roles vr
-       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        LEFT JOIN (
          SELECT role_id, COUNT(*) AS count
          FROM volunteer_bookings
          WHERE status IN ('pending','approved') AND date = $1
          GROUP BY role_id
        ) b ON vr.id = b.role_id
-       WHERE vr.role_id = ANY($2::int[])
-         AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
+       WHERE vr.category_id = ANY($2::int[])
+        AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
        ORDER BY vr.start_time`,
       [date, roleIds]
     );

@@ -29,9 +29,8 @@ import {
 
 interface RoleOption {
   id: number; // unique slot id
-  role_id: number; // grouped role id
+  category_id: number; // grouped role id
   name: string;
-  category: string;
   start_time: string;
   end_time: string;
   max_volunteers: number;
@@ -113,7 +112,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         setRoles(data);
         const map = new Map<number, string>();
         data.forEach((r: RoleOption) => {
-          if (!map.has(r.role_id)) map.set(r.role_id, r.name);
+          if (!map.has(r.category_id)) map.set(r.category_id, r.name);
         });
         setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       })
@@ -121,17 +120,13 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   }, [token]);
 
   const groupedRoles = useMemo(() => {
-    const unique = new Map<number, { id: number; name: string; category: string }>();
-    roles.forEach(r => {
-      if (!unique.has(r.role_id)) {
-        unique.set(r.role_id, { id: r.role_id, name: r.name, category: r.category });
-      }
-    });
     const groups = new Map<string, { id: number; name: string }[]>();
-    unique.forEach(r => {
-      const arr = groups.get(r.category) || [];
-      arr.push({ id: r.id, name: r.name });
-      groups.set(r.category, arr);
+    roles.forEach(r => {
+      const arr = groups.get(r.name) || [];
+      if (!arr.some(a => a.id === r.category_id)) {
+        arr.push({ id: r.category_id, name: r.name });
+      }
+      groups.set(r.name, arr);
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
   }, [roles]);
@@ -139,9 +134,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const scheduleRoleGroups = useMemo(() => {
     const groups = new Map<string, RoleOption[]>();
     roles.forEach(r => {
-      const arr = groups.get(r.category) || [];
+      const arr = groups.get(r.name) || [];
       arr.push(r);
-      groups.set(r.category, arr);
+      groups.set(r.name, arr);
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({
       category,
@@ -164,12 +159,14 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
   const selectedRoleNames = useMemo(() => {
     const map = new Map<number, string>();
-    groupedRoles.forEach(g => g.roles.forEach(r => map.set(r.id, r.name)));
+    roles.forEach(r => {
+      if (!map.has(r.category_id)) map.set(r.category_id, r.name);
+    });
     return selectedCreateRoles
       .map(id => map.get(id))
       .filter(Boolean)
       .join(', ');
-  }, [groupedRoles, selectedCreateRoles]);
+  }, [roles, selectedCreateRoles]);
 
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
