@@ -4,6 +4,7 @@ import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
+import { JWT_SECRET } from '../utils/env';
 
 export async function loginUser(req: Request, res: Response) {
   const { email, password, clientId } = req.body;
@@ -28,13 +29,9 @@ export async function loginUser(req: Request, res: Response) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
-      const secret = process.env.JWT_SECRET;
-      if (!secret) {
-        throw new Error('JWT_SECRET not set');
-      }
       const token = jwt.sign(
         { id: user.id, role: user.role, type: 'user' },
-        secret,
+        JWT_SECRET,
         { expiresIn: '1h' },
       );
       return res.json({
@@ -61,13 +58,9 @@ export async function loginUser(req: Request, res: Response) {
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET not set');
-    }
     const token = jwt.sign(
       { id: staff.id, role: staff.role, type: 'staff' },
-      secret,
+      JWT_SECRET,
       { expiresIn: '1h' },
     );
     res.json({

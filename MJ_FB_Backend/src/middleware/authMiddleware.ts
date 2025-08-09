@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../utils/env';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -14,11 +15,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     : authHeader;
 
   try {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET not set');
-    }
-    const decoded = jwt.verify(token, secret) as {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
       id: number | string;
       role: string;
       type: string;
@@ -89,11 +86,7 @@ export async function optionalAuthMiddleware(
     : authHeader;
 
   try {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error('JWT_SECRET not set');
-    }
-    const decoded = jwt.verify(token, secret) as {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
       id: number | string;
       role: string;
       type: string;
