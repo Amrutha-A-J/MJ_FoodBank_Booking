@@ -16,7 +16,12 @@ function getTokenFromCookies(req: Request) {
   return cookies.token;
 }
 
-export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+type AuthResult =
+  | { status: 'missing' }
+  | { status: 'invalid' }
+  | { status: 'ok'; user: any };
+
+async function authenticate(req: Request): Promise<AuthResult> {
   const authHeader = req.headers['authorization'];
   let token: string | undefined;
   if (authHeader && typeof authHeader === 'string') {
@@ -27,7 +32,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     token = getTokenFromCookies(req);
   }
   if (!token) {
-    return res.status(401).json({ message: 'Missing token' });
+    return { status: 'missing' };
   }
 
   try {
@@ -40,67 +45,79 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
-        [id]
+        [id],
       );
-
       if (staffRes.rowCount === 0) {
-        return res.status(401).json({ message: 'Invalid token' });
+        return { status: 'invalid' };
       }
-
-      req.user = {
-        id: staffRes.rows[0].id.toString(),
-        type: 'staff',
-        role,
-        name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
-        email: staffRes.rows[0].email,
-      } as any;
-      return next();
+      return {
+        status: 'ok',
+        user: {
+          id: staffRes.rows[0].id.toString(),
+          type: 'staff',
+          role,
+          name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
+          email: staffRes.rows[0].email,
+        },
+      };
     }
 
     if (type === 'user') {
       const userRes = await pool.query(
         'SELECT id, first_name, last_name, email, role, phone FROM users WHERE id = $1',
-        [id]
+        [id],
       );
-
       if (userRes.rowCount && userRes.rowCount > 0) {
-        req.user = {
-          id: userRes.rows[0].id.toString(),
-          type: 'user',
-          role,
-          email: userRes.rows[0].email,
-          phone: userRes.rows[0].phone,
-          name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
-        } as any;
-        return next();
+        return {
+          status: 'ok',
+          user: {
+            id: userRes.rows[0].id.toString(),
+            type: 'user',
+            role,
+            email: userRes.rows[0].email,
+            phone: userRes.rows[0].phone,
+            name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
+          },
+        };
       }
-
-      return res.status(401).json({ message: 'Invalid token' });
+      return { status: 'invalid' };
     }
 
     if (type === 'volunteer') {
       const volRes = await pool.query(
         'SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1',
-        [id]
+        [id],
       );
       if (volRes.rowCount === 0) {
-        return res.status(401).json({ message: 'Invalid token' });
+        return { status: 'invalid' };
       }
-      req.user = {
-        id: volRes.rows[0].id.toString(),
-        type: 'volunteer',
-        role: 'volunteer',
-        email: volRes.rows[0].email,
-        name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
-      } as any;
-      return next();
+      return {
+        status: 'ok',
+        user: {
+          id: volRes.rows[0].id.toString(),
+          type: 'volunteer',
+          role: 'volunteer',
+          email: volRes.rows[0].email,
+          name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
+        },
+      };
     }
 
-    return res.status(401).json({ message: 'Invalid token format' });
+    return { status: 'invalid' };
   } catch (error) {
     logger.error('Auth error:', error);
-    next(error);
+    return { status: 'invalid' };
   }
+}
+
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const result = await authenticate(req);
+  if (result.status === 'ok') {
+    req.user = result.user as any;
+    return next();
+  }
+  const message = result.status === 'missing' ? 'Missing token' : 'Invalid token';
+  return res.status(401).json({ message });
 }
 
 export async function optionalAuthMiddleware(
@@ -108,86 +125,15 @@ export async function optionalAuthMiddleware(
   res: Response,
   next: NextFunction,
 ) {
-  const authHeader = req.headers['authorization'];
-  let token: string | undefined;
-  if (authHeader && typeof authHeader === 'string') {
-    token = authHeader.startsWith('Bearer ')
-      ? authHeader.slice(7).trim()
-      : authHeader;
-  } else {
-    token = getTokenFromCookies(req);
-  }
-  if (!token) {
+  const result = await authenticate(req);
+  if (result.status === 'ok') {
+    req.user = result.user as any;
     return next();
   }
-
-  try {
-    const decoded = jwt.verify(token, config.jwtSecret) as {
-      id: number | string;
-      role: string;
-      type: string;
-    };
-    const { id, type, role } = decoded;
-    if (type === 'staff') {
-      const staffRes = await pool.query(
-        'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
-        [id],
-      );
-      if (staffRes.rowCount === 0) {
-        return res.status(401).json({ message: 'Invalid token' });
-      }
-      req.user = {
-        id: staffRes.rows[0].id.toString(),
-        type: 'staff',
-        role,
-        name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
-        email: staffRes.rows[0].email,
-      } as any;
-      return next();
-    }
-
-    if (type === 'user') {
-      const userRes = await pool.query(
-        'SELECT id, first_name, last_name, email, role, phone FROM users WHERE id = $1',
-        [id],
-      );
-      if (userRes.rowCount && userRes.rowCount > 0) {
-        req.user = {
-          id: userRes.rows[0].id.toString(),
-          type: 'user',
-          role,
-          email: userRes.rows[0].email,
-          phone: userRes.rows[0].phone,
-          name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
-        } as any;
-        return next();
-      }
-      return res.status(401).json({ message: 'Invalid token' });
-    }
-
-    if (type === 'volunteer') {
-      const volRes = await pool.query(
-        'SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1',
-        [id],
-      );
-      if (volRes.rowCount === 0) {
-        return res.status(401).json({ message: 'Invalid token' });
-      }
-      req.user = {
-        id: volRes.rows[0].id.toString(),
-        type: 'volunteer',
-        role: 'volunteer',
-        email: volRes.rows[0].email,
-        name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
-      } as any;
-      return next();
-    }
-
-    return res.status(401).json({ message: 'Invalid token format' });
-  } catch (error) {
-    logger.error('Auth error:', error);
-    next(error);
+  if (result.status === 'invalid') {
+    return res.status(401).json({ message: 'Invalid token' });
   }
+  return next();
 }
 
 export function authorizeRoles(...allowedRoles: string[]) {
