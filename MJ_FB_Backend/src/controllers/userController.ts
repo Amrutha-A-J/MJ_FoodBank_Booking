@@ -37,6 +37,11 @@ export async function loginUser(req: Request, res: Response) {
         secret,
         { expiresIn: '1h' },
       );
+      res.cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 1000,
+      });
       return res.json({
         token,
         role: user.role,
@@ -70,6 +75,11 @@ export async function loginUser(req: Request, res: Response) {
       secret,
       { expiresIn: '1h' },
     );
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000,
+    });
     res.json({
       token,
       role: staff.role,

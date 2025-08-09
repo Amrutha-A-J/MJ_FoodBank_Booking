@@ -58,8 +58,14 @@ export async function loginVolunteer(req: Request, res: Response) {
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    const token = `volunteer:${volunteer.id}`;
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000,
+    });
     res.json({
-      token: `volunteer:${volunteer.id}`,
+      token,
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
     });

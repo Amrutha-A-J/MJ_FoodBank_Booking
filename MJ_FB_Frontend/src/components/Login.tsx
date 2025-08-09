@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
-import { formatInTimeZone } from 'date-fns-tz';
 import { Box, Link, Typography, TextField, Button, Stack } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 
@@ -14,14 +13,6 @@ export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (use
     e.preventDefault();
     try {
       const user = await loginUser(clientId, password);
-      localStorage.setItem('token', user.token);
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('name', user.name);
-      if (user.bookingsThisMonth !== undefined) {
-        localStorage.setItem('bookingsThisMonth', user.bookingsThisMonth.toString());
-        const currentMonth = formatInTimeZone(new Date(), 'America/Regina', 'yyyy-MM');
-        localStorage.setItem('bookingsMonth', currentMonth);
-      }
       onLogin(user);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));

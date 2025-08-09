@@ -6,6 +6,10 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 const bearer = (token: string) => `Bearer ${token}`;
 
+function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  return fetch(input, { credentials: 'include', ...init });
+}
+
 export interface LoginResponse {
   token: string;
   role: Role;
@@ -31,7 +35,7 @@ export async function loginUser(
   clientId: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/users/login`, {
+  const res = await apiFetch(`${API_BASE}/users/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ clientId: Number(clientId), password }),
@@ -43,7 +47,7 @@ export async function loginStaff(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/users/login`, {
+  const res = await apiFetch(`${API_BASE}/users/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -55,7 +59,7 @@ export async function loginVolunteer(
   username: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/volunteers/login`, {
+  const res = await apiFetch(`${API_BASE}/volunteers/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
@@ -64,14 +68,14 @@ export async function loginVolunteer(
 }
 
 export async function getUserProfile(token: string): Promise<UserProfile> {
-  const res = await fetch(`${API_BASE}/users/me`, {
+  const res = await apiFetch(`${API_BASE}/users/me`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
 }
 
 export async function staffExists(): Promise<boolean> {
-  const res = await fetch(`${API_BASE}/staff/exists`);
+  const res = await apiFetch(`${API_BASE}/staff/exists`);
   const data = await handleResponse(res);
   return data.exists as boolean;
 }
@@ -88,7 +92,7 @@ export async function createStaff(
     'Content-Type': 'application/json',
   };
   if (token) headers.Authorization = bearer(token);
-  const res = await fetch(`${API_BASE}/staff`, {
+  const res = await apiFetch(`${API_BASE}/staff`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ firstName, lastName, role, email, password }),
@@ -99,7 +103,7 @@ export async function createStaff(
 export async function getSlots(token: string, date?: string) {
     let url = `${API_BASE}/slots`;
     if (date) url += `?date=${encodeURIComponent(date)}`;
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       headers: { Authorization: bearer(token) }
     });
     return handleResponse(res);
@@ -116,7 +120,7 @@ export async function addUser(
   email?: string,
   phone?: string
 ) {
-  const res = await fetch(`${API_BASE}/users`, {
+  const res = await apiFetch(`${API_BASE}/users`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -136,7 +140,7 @@ export async function addUser(
 }
   
   export async function createBooking(token: string, slotId: string, date: string) {
-    const res = await fetch(`${API_BASE}/bookings`, {
+    const res = await apiFetch(`${API_BASE}/bookings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -148,7 +152,7 @@ export async function addUser(
   }
 
 export async function getBookings(token: string) {
-  const res = await fetch(`${API_BASE}/bookings`, {
+  const res = await apiFetch(`${API_BASE}/bookings`, {
     headers: { Authorization: bearer(token) }
   });
   return handleResponse(res);
@@ -162,7 +166,7 @@ export async function getBookingHistory(
   if (opts.status) params.append('status', opts.status);
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
-  const res = await fetch(
+  const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
     {
       headers: { Authorization: bearer(token) },
@@ -172,14 +176,14 @@ export async function getBookingHistory(
 }
 
 export async function getHolidays(token: string) {
-    const res = await fetch(`${API_BASE}/holidays`, {
+    const res = await apiFetch(`${API_BASE}/holidays`, {
       headers: { Authorization: bearer(token) }
     });
     return handleResponse(res); // returns Holiday[]
   }
 
   export async function addHoliday(token: string, date: string, reason: string) {
-    const res = await fetch(`${API_BASE}/holidays`, {
+    const res = await apiFetch(`${API_BASE}/holidays`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,7 +195,7 @@ export async function getHolidays(token: string) {
   }
   
   export async function removeHoliday(token: string, date: string) {
-    const res = await fetch(`${API_BASE}/holidays/${encodeURIComponent(date)}`, {
+    const res = await apiFetch(`${API_BASE}/holidays/${encodeURIComponent(date)}`, {
       method: 'DELETE',
       headers: { Authorization: bearer(token) }
     });
@@ -199,21 +203,21 @@ export async function getHolidays(token: string) {
   }
 
 export async function getAllSlots(token: string) {
-  const res = await fetch(`${API_BASE}/slots/all`, {
+  const res = await apiFetch(`${API_BASE}/slots/all`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
 }
 
 export async function getBlockedSlots(token: string, date: string) {
-  const res = await fetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
+  const res = await apiFetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res); // returns BlockedSlot[]
 }
 
 export async function addBlockedSlot(token: string, date: string, slotId: number, reason: string) {
-  const res = await fetch(`${API_BASE}/blocked-slots`, {
+  const res = await apiFetch(`${API_BASE}/blocked-slots`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -225,7 +229,7 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
 }
 
 export async function removeBlockedSlot(token: string, date: string, slotId: number) {
-  const res = await fetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
+  const res = await apiFetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
     method: 'DELETE',
     headers: { Authorization: bearer(token) },
   });
@@ -233,14 +237,14 @@ export async function removeBlockedSlot(token: string, date: string, slotId: num
 }
 
 export async function getBreaks(token: string) {
-  const res = await fetch(`${API_BASE}/breaks`, {
+  const res = await apiFetch(`${API_BASE}/breaks`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res); // returns Break[]
 }
 
 export async function addBreak(token: string, dayOfWeek: number, slotId: number, reason: string) {
-  const res = await fetch(`${API_BASE}/breaks`, {
+  const res = await apiFetch(`${API_BASE}/breaks`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -252,7 +256,7 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
 }
 
 export async function removeBreak(token: string, dayOfWeek: number, slotId: number) {
-  const res = await fetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
+  const res = await apiFetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
     method: 'DELETE',
     headers: { Authorization: bearer(token) },
   });
@@ -260,7 +264,7 @@ export async function removeBreak(token: string, dayOfWeek: number, slotId: numb
 }
 
 export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject', reason: string) {
-  const res = await fetch(`${API_BASE}/bookings/${bookingId}/decision`, {
+  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/decision`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -272,7 +276,7 @@ export async function decideBooking(token: string, bookingId: string, decision: 
 }
 
 export async function cancelBooking(token: string, bookingId: string, reason?: string) {
-  const res = await fetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
+  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -284,14 +288,14 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
 }
 
 export async function searchUsers(token: string, search: string) {
-    const res = await fetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`, {
+    const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`, {
       headers: { Authorization: bearer(token) }
     });
     return handleResponse(res); // returns array of users
   }
 
 export async function searchVolunteers(token: string, search: string) {
-  const res = await fetch(
+  const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
     {
       headers: { Authorization: bearer(token) },
@@ -307,7 +311,7 @@ export async function searchVolunteers(token: string, search: string) {
     date: string,
     isStaffBooking: boolean
   ) {
-    const res = await fetch(`${API_BASE}/bookings/staff`, {
+    const res = await apiFetch(`${API_BASE}/bookings/staff`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -319,7 +323,7 @@ export async function searchVolunteers(token: string, search: string) {
   }
 
 export async function getVolunteerRolesForVolunteer(token: string, date: string) {
-  const res = await fetch(`${API_BASE}/volunteer-roles/mine?date=${date}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
@@ -330,7 +334,7 @@ export async function requestVolunteerBooking(
   roleId: number,
   date: string
 ) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -342,21 +346,21 @@ export async function requestVolunteerBooking(
 }
 
 export async function getMyVolunteerBookings(token: string) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/mine`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
 }
 
 export async function getVolunteerRoles(token: string) {
-  const res = await fetch(`${API_BASE}/volunteer-roles`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
 }
 
 export async function getVolunteerBookingsByRole(token: string, roleId: number) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/${roleId}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
@@ -367,7 +371,7 @@ export async function updateVolunteerBookingStatus(
   bookingId: number,
   status: 'approved' | 'rejected' | 'cancelled'
 ) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -384,7 +388,7 @@ export async function createVolunteerBookingForVolunteer(
   roleId: number,
   date: string
 ) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/staff`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/staff`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -396,7 +400,7 @@ export async function createVolunteerBookingForVolunteer(
 }
 
 export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
@@ -412,7 +416,7 @@ export async function createVolunteer(
   email?: string,
   phone?: string
 ) {
-  const res = await fetch(`${API_BASE}/volunteers`, {
+  const res = await apiFetch(`${API_BASE}/volunteers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -436,7 +440,7 @@ export async function updateVolunteerTrainedAreas(
   id: number,
   roleIds: number[]
 ) {
-  const res = await fetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -455,7 +459,7 @@ export async function rescheduleBookingByToken(
 ) {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (authToken) headers.Authorization = bearer(authToken);
-  const res = await fetch(`${API_BASE}/bookings/reschedule/${token}`, {
+  const res = await apiFetch(`${API_BASE}/bookings/reschedule/${token}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ slotId, date }),
@@ -468,7 +472,7 @@ export async function rescheduleVolunteerBookingByToken(
   roleId: number,
   date: string,
 ) {
-  const res = await fetch(`${API_BASE}/volunteer-bookings/reschedule/${token}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/reschedule/${token}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ roleId, date }),
