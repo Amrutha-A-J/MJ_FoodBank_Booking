@@ -20,8 +20,15 @@ dotenv.config();
 const app = express();
 
 // ⭐ Add CORS middleware before routes
+// Allow a comma separated list of frontend origins so local hosts like
+// "http://127.0.0.1:5173" work in addition to "http://localhost:5173".
+const allowedOrigins = (process.env.FRONTEND_ORIGIN ||
+  'http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // allow your frontend
+  origin: allowedOrigins,
   credentials: true,
 }));
 
