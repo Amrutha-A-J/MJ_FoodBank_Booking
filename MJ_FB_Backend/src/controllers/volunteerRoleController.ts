@@ -7,7 +7,7 @@ export async function addVolunteerRole(
   res: Response,
   next: NextFunction,
 ) {
-  const { name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot } =
+  const { name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot, isActive } =
     req.body as {
       name?: string;
       startTime?: string;
@@ -15,6 +15,7 @@ export async function addVolunteerRole(
       maxVolunteers?: number;
       categoryId?: number;
       isWednesdaySlot?: boolean;
+      isActive?: boolean;
     };
   if (
     !name ||
@@ -32,10 +33,18 @@ export async function addVolunteerRole(
   }
   try {
     const result = await pool.query(
-      `INSERT INTO volunteer_roles (name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot`,
-      [name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot || false]
+      `INSERT INTO volunteer_roles (name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active`,
+      [
+        name,
+        startTime,
+        endTime,
+        maxVolunteers,
+        categoryId,
+        isWednesdaySlot || false,
+        typeof isActive === 'boolean' ? isActive : true,
+      ]
     );
     const row = result.rows[0];
     const master = await pool.query(
@@ -56,11 +65,11 @@ export async function listVolunteerRoles(
 ) {
   try {
     const result = await pool.query(
-      `SELECT vr.id, vr.name, vr.start_time, vr.end_time, vr.max_volunteers, vr.category_id, vr.is_wednesday_slot,
+      `SELECT vr.id, vr.name, vr.start_time, vr.end_time, vr.max_volunteers, vr.category_id, vr.is_wednesday_slot, vr.is_active,
               vmr.name AS category_name
        FROM volunteer_roles vr
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
-       WHERE vmr.is_active
+       WHERE vr.is_active
        ORDER BY vr.id`
     );
     res.json(result.rows);
@@ -104,7 +113,7 @@ export async function updateVolunteerRole(
       `UPDATE volunteer_roles
        SET name = $1, start_time = $2, end_time = $3, max_volunteers = $4, category_id = $5, is_wednesday_slot = $6
        WHERE id = $7
-       RETURNING id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot`,
+       RETURNING id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active`,
       [name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot || false, id]
     );
     if (result.rowCount === 0) {
@@ -118,6 +127,37 @@ export async function updateVolunteerRole(
     res.json({ ...row, category_name: master.rows[0].name });
   } catch (error) {
     logger.error('Error updating volunteer role:', error);
+    next(error);
+  }
+}
+
+export async function updateVolunteerRoleStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  const { isActive } = req.body as { isActive?: boolean };
+  if (typeof isActive !== 'boolean') {
+    return res.status(400).json({ message: 'isActive is required' });
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE volunteer_roles SET is_active = $1 WHERE id = $2
+       RETURNING id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active`,
+      [isActive, id]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const row = result.rows[0];
+    const master = await pool.query(
+      'SELECT name FROM volunteer_master_roles WHERE id=$1',
+      [row.category_id]
+    );
+    res.json({ ...row, category_name: master.rows[0].name });
+  } catch (error) {
+    logger.error('Error updating volunteer role status:', error);
     next(error);
   }
 }
@@ -167,12 +207,12 @@ export async function listVolunteerRolesForVolunteer(
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        LEFT JOIN (
          SELECT role_id, COUNT(*) AS count
-       FROM volunteer_bookings
-        WHERE status IN ('pending','approved') AND date = $1
-        GROUP BY role_id
-      ) b ON vr.id = b.role_id
+         FROM volunteer_bookings
+         WHERE status IN ('pending','approved') AND date = $1
+         GROUP BY role_id
+       ) b ON vr.id = b.role_id
        WHERE vr.category_id = ANY($2::int[])
-        AND vmr.is_active
+        AND vr.is_active
         AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
        ORDER BY vr.start_time`,
       [date, roleIds]
@@ -189,4 +229,3 @@ export async function listVolunteerRolesForVolunteer(
     next(error);
   }
 }
-
