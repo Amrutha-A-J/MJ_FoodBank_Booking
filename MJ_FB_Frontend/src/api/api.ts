@@ -17,7 +17,7 @@ export interface LoginResponse {
   bookingsThisMonth?: number;
 }
 
-async function handleResponse(res: Response) {
+export async function handleResponse(res: Response) {
   if (!res.ok) {
     let message = res.statusText;
     try {
@@ -28,7 +28,11 @@ async function handleResponse(res: Response) {
     }
     throw new Error(message);
   }
-  return res.json();
+  if (res.status === 204 || res.headers.get('Content-Length') === '0') {
+    return undefined;
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : undefined;
 }
 
 export async function loginUser(
@@ -76,8 +80,8 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
 
 export async function staffExists(): Promise<boolean> {
   const res = await apiFetch(`${API_BASE}/staff/exists`);
-  const data = await handleResponse(res);
-  return data.exists as boolean;
+  const data = (await handleResponse(res)) as { exists?: boolean } | undefined;
+  return data?.exists ?? false;
 }
 
 export async function createStaff(
@@ -87,7 +91,7 @@ export async function createStaff(
   email: string,
   password: string,
   token?: string
-) {
+) : Promise<void> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -97,7 +101,7 @@ export async function createStaff(
     headers,
     body: JSON.stringify({ firstName, lastName, role, email, password }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function getSlots(token: string, date?: string) {
@@ -119,7 +123,7 @@ export async function addUser(
   password: string,
   email?: string,
   phone?: string
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/users`, {
     method: 'POST',
     headers: {
@@ -136,20 +140,20 @@ export async function addUser(
       phone,
     }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
   
-  export async function createBooking(token: string, slotId: string, date: string) {
+export async function createBooking(token: string, slotId: string, date: string) {
     const res = await apiFetch(`${API_BASE}/bookings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: bearer(token),
       },
-      body: JSON.stringify({ slotId, date, requestData: '' }),
-    });
-    return handleResponse(res);
-  }
+    body: JSON.stringify({ slotId, date, requestData: '' }),
+  });
+  return handleResponse(res);
+}
 
 export async function getBookings(token: string) {
   const res = await apiFetch(`${API_BASE}/bookings`, {
@@ -182,24 +186,24 @@ export async function getHolidays(token: string) {
     return handleResponse(res); // returns Holiday[]
   }
 
-  export async function addHoliday(token: string, date: string, reason: string) {
+export async function addHoliday(token: string, date: string, reason: string): Promise<void> {
     const res = await apiFetch(`${API_BASE}/holidays`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: bearer(token)
       },
-      body: JSON.stringify({ date, reason })
+    body: JSON.stringify({ date, reason })
     });
-    return handleResponse(res);
+    await handleResponse(res);
   }
-  
-  export async function removeHoliday(token: string, date: string) {
+
+  export async function removeHoliday(token: string, date: string): Promise<void> {
     const res = await apiFetch(`${API_BASE}/holidays/${encodeURIComponent(date)}`, {
       method: 'DELETE',
       headers: { Authorization: bearer(token) }
     });
-    return handleResponse(res);
+    await handleResponse(res);
   }
 
 export async function getAllSlots(token: string) {
@@ -216,7 +220,7 @@ export async function getBlockedSlots(token: string, date: string) {
   return handleResponse(res); // returns BlockedSlot[]
 }
 
-export async function addBlockedSlot(token: string, date: string, slotId: number, reason: string) {
+export async function addBlockedSlot(token: string, date: string, slotId: number, reason: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/blocked-slots`, {
     method: 'POST',
     headers: {
@@ -225,15 +229,15 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
     },
     body: JSON.stringify({ date, slotId, reason }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
-export async function removeBlockedSlot(token: string, date: string, slotId: number) {
+export async function removeBlockedSlot(token: string, date: string, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
     method: 'DELETE',
     headers: { Authorization: bearer(token) },
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function getBreaks(token: string) {
@@ -243,7 +247,7 @@ export async function getBreaks(token: string) {
   return handleResponse(res); // returns Break[]
 }
 
-export async function addBreak(token: string, dayOfWeek: number, slotId: number, reason: string) {
+export async function addBreak(token: string, dayOfWeek: number, slotId: number, reason: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/breaks`, {
     method: 'POST',
     headers: {
@@ -252,18 +256,18 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
     },
     body: JSON.stringify({ dayOfWeek, slotId, reason }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
-export async function removeBreak(token: string, dayOfWeek: number, slotId: number) {
+export async function removeBreak(token: string, dayOfWeek: number, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
     method: 'DELETE',
     headers: { Authorization: bearer(token) },
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
-export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject', reason: string) {
+export async function decideBooking(token: string, bookingId: string, decision: 'approve'|'reject', reason: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/decision`, {
     method: 'POST',
     headers: {
@@ -272,10 +276,10 @@ export async function decideBooking(token: string, bookingId: string, decision: 
     },
     body: JSON.stringify({ decision, reason }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
-export async function cancelBooking(token: string, bookingId: string, reason?: string) {
+export async function cancelBooking(token: string, bookingId: string, reason?: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
     method: 'POST',
     headers: {
@@ -284,7 +288,7 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
     },
     body: JSON.stringify(reason ? { reason } : {}),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function searchUsers(token: string, search: string) {
@@ -304,13 +308,13 @@ export async function searchVolunteers(token: string, search: string) {
   return handleResponse(res);
 }
   
-  export async function createBookingForUser(
+export async function createBookingForUser(
     token: string,
     userId: number,
     slotId: number,
     date: string,
     isStaffBooking: boolean
-  ) {
+  ) : Promise<void> {
     const res = await apiFetch(`${API_BASE}/bookings/staff`, {
       method: 'POST',
       headers: {
@@ -319,7 +323,7 @@ export async function searchVolunteers(token: string, search: string) {
       },
       body: JSON.stringify({ userId, slotId, date, isStaffBooking })
     });
-    return handleResponse(res);
+    await handleResponse(res);
   }
 
 export async function getVolunteerRolesForVolunteer(token: string, date: string) {
@@ -333,7 +337,7 @@ export async function requestVolunteerBooking(
   token: string,
   roleId: number,
   date: string
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
@@ -342,7 +346,7 @@ export async function requestVolunteerBooking(
     },
     body: JSON.stringify({ roleId, date }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function getMyVolunteerBookings(token: string) {
@@ -370,7 +374,7 @@ export async function updateVolunteerBookingStatus(
   token: string,
   bookingId: number,
   status: 'approved' | 'rejected' | 'cancelled'
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
     method: 'PATCH',
     headers: {
@@ -379,7 +383,7 @@ export async function updateVolunteerBookingStatus(
     },
     body: JSON.stringify({ status }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function createVolunteerBookingForVolunteer(
@@ -387,7 +391,7 @@ export async function createVolunteerBookingForVolunteer(
   volunteerId: number,
   roleId: number,
   date: string
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/staff`, {
     method: 'POST',
     headers: {
@@ -396,7 +400,7 @@ export async function createVolunteerBookingForVolunteer(
     },
     body: JSON.stringify({ volunteerId, roleId, date }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
@@ -415,7 +419,7 @@ export async function createVolunteer(
   roleIds: number[],
   email?: string,
   phone?: string
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteers`, {
     method: 'POST',
     headers: {
@@ -432,14 +436,14 @@ export async function createVolunteer(
       phone,
     }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function updateVolunteerTrainedAreas(
   token: string,
   id: number,
   roleIds: number[]
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
     method: 'PUT',
     headers: {
@@ -448,7 +452,7 @@ export async function updateVolunteerTrainedAreas(
     },
     body: JSON.stringify({ roleIds }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
   
 export async function rescheduleBookingByToken(
@@ -456,7 +460,7 @@ export async function rescheduleBookingByToken(
   slotId: string,
   date: string,
   authToken?: string,
-) {
+) : Promise<void> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (authToken) headers.Authorization = bearer(authToken);
   const res = await apiFetch(`${API_BASE}/bookings/reschedule/${token}`, {
@@ -464,18 +468,18 @@ export async function rescheduleBookingByToken(
     headers,
     body: JSON.stringify({ slotId, date }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
 
 export async function rescheduleVolunteerBookingByToken(
   token: string,
   roleId: number,
   date: string,
-) {
+) : Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/reschedule/${token}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ roleId, date }),
   });
-  return handleResponse(res);
+  await handleResponse(res);
 }
