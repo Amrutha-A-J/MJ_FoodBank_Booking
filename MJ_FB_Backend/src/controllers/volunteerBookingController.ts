@@ -337,9 +337,11 @@ export async function rescheduleVolunteerBooking(
     }
 
     const newToken = randomUUID();
+    const isStaffReschedule = req.user && (req.user as any).role === 'staff';
+    const newStatus = isStaffReschedule ? booking.status : 'pending';
     await pool.query(
-      'UPDATE volunteer_bookings SET role_id=$1, date=$2, reschedule_token=$3 WHERE id=$4',
-      [roleId, date, newToken, booking.id],
+      'UPDATE volunteer_bookings SET role_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
+      [roleId, date, newToken, newStatus, booking.id],
     );
     await sendEmail(
       'test@example.com',

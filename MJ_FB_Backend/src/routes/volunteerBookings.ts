@@ -8,7 +8,11 @@ import {
   createVolunteerBookingForVolunteer,
   rescheduleVolunteerBooking,
 } from '../controllers/volunteerBookingController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import {
+  authMiddleware,
+  authorizeRoles,
+  optionalAuthMiddleware,
+} from '../middleware/authMiddleware';
 
 const router = express.Router();
 
@@ -28,6 +32,10 @@ router.get(
 );
 router.get('/:role_id', authMiddleware, authorizeRoles('staff'), listVolunteerBookingsByRole);
 router.patch('/:id', authMiddleware, authorizeRoles('staff'), updateVolunteerBookingStatus);
-router.post('/reschedule/:token', rescheduleVolunteerBooking);
+router.post(
+  '/reschedule/:token',
+  optionalAuthMiddleware,
+  rescheduleVolunteerBooking,
+);
 
 export default router;
