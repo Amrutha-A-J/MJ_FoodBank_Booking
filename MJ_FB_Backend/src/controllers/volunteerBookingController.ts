@@ -149,7 +149,7 @@ export async function listVolunteerBookingsByRole(
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time, vmr.name AS role_name,
+              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
@@ -181,8 +181,7 @@ export async function listMyVolunteerBookings(
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time,
-              vmr.name AS role_name
+              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -211,8 +210,7 @@ export async function listVolunteerBookingsByVolunteer(
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time,
-              vmr.name AS role_name
+              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
