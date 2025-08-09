@@ -93,7 +93,7 @@ export default function AddUser({ token }: { token: string }) {
             <MenuItem value="shopper">Shopper</MenuItem>
             <MenuItem value="delivery">Delivery</MenuItem>
           </TextField>
-          <Button variant="outlined" color="primary" onClick={submitUser}>
+          <Button variant="contained" color="primary" onClick={submitUser}>
             Add User
           </Button>
         </Stack>
@@ -112,7 +112,7 @@ export default function AddUser({ token }: { token: string }) {
           </TextField>
           <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Button variant="outlined" color="primary" onClick={submitStaff}>
+          <Button variant="contained" color="primary" onClick={submitStaff}>
             Add Staff
           </Button>
         </Stack>

@@ -608,7 +608,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               </div>
             )}
           </div>
-          <Button onClick={submitVolunteer} variant="outlined" color="primary">Add Volunteer</Button>
+          <Button onClick={submitVolunteer} variant="contained" color="primary">Add Volunteer</Button>
           <FeedbackSnackbar
             open={!!createMsg}
             onClose={() => setCreateMsg('')}
