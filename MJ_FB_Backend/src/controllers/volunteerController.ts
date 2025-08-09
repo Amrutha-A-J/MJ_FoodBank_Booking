@@ -18,8 +18,8 @@ export async function updateTrainedArea(
       .json({ message: 'roleIds must be provided as an array of numbers' });
   }
   try {
-    const validRoles = await pool.query(
-      `SELECT DISTINCT role_id FROM volunteer_roles WHERE role_id = ANY($1::int[])`,
+    const validRoles = await pool.query<{ id: number }>(
+      `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
     if (validRoles.rowCount !== roleIds.length) {
@@ -138,8 +138,8 @@ export async function createVolunteer(
       }
     }
 
-    const validRoles = await pool.query(
-      `SELECT DISTINCT role_id FROM volunteer_roles WHERE role_id = ANY($1::int[])`,
+    const validRoles = await pool.query<{ id: number }>(
+      `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
     if (validRoles.rowCount !== roleIds.length) {
