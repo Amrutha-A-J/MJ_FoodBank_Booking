@@ -8,7 +8,7 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (_, res) => {
     const result = await pool.query('SELECT date, reason FROM holidays ORDER BY date');
     res.json(
@@ -23,7 +23,7 @@ router.get(
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const { date, reason } = req.body;
     if (!date) return res.status(400).json({ message: 'Date required' });
@@ -38,7 +38,7 @@ router.post(
 router.delete(
   '/:date',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     await pool.query('DELETE FROM holidays WHERE date = $1', [req.params.date]);
     res.json({ message: 'Removed' });

@@ -10,11 +10,11 @@ router.post('/login', validate(loginSchema), loginUser);
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   validate(createUserSchema),
   createUser,
 );
-router.get('/search', authMiddleware, authorizeRoles('staff', 'volunteer_coordinator'), searchUsers);
+router.get('/search', authMiddleware, authorizeRoles('staff'), searchUsers);
 router.get('/me', authMiddleware, getUserProfile);
 
 

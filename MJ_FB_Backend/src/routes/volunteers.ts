@@ -14,21 +14,21 @@ router.post('/login', loginVolunteer);
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('volunteer_coordinator'),
+  authorizeRoles('staff'),
   createVolunteer
 );
 
 router.get(
   '/search',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   searchVolunteers
 );
 
 router.put(
   '/:id/trained-areas',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   updateTrainedArea
 );
 

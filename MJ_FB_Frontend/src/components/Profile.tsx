@@ -14,7 +14,7 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
     }
   }, [role, token]);
 
-  if (['staff', 'volunteer_coordinator'].includes(role)) {
+  if (role === 'staff') {
     return (
       <div>
         <h2>User Profile</h2>

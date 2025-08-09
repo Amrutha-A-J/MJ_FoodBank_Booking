@@ -14,6 +14,7 @@ app.use(express.json());
 app.use('/blocked-slots', blockedSlotsRouter);
 app.use('/slots', slotsRouter);
 app.get('/volunteer-area', authMiddleware, authorizeRoles('volunteer'), (_req, res) => res.json({ ok: true }));
+app.get('/staff-area', authMiddleware, authorizeRoles('staff'), (_req, res) => res.json({ ok: true }));
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -51,15 +52,15 @@ describe('Authorization middleware', () => {
     expect(res.status).toBe(403);
   });
 
-  it('allows coordinator to access volunteer endpoint', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 2, role: 'volunteer_coordinator', type: 'staff' });
+  it('allows staff to access staff endpoint', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 2, role: 'staff', type: 'staff' });
     (pool.query as jest.Mock).mockResolvedValue({
       rowCount: 1,
-      rows: [{ id: 2, first_name: 'Coord', last_name: 'inator', email: 'coord@example.com', role: 'volunteer_coordinator' }],
+      rows: [{ id: 2, first_name: 'Staff', last_name: 'Member', email: 'staff@example.com', role: 'staff' }],
     });
 
     const res = await request(app)
-      .get('/volunteer-area')
+      .get('/staff-area')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
   });

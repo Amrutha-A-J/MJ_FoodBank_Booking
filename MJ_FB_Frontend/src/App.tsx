@@ -23,8 +23,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
-  const isStaff = role === 'staff' || role === 'volunteer_coordinator';
-  const isCoordinator = role === 'volunteer_coordinator';
+  const isStaff = role === 'staff';
 
   function logout() {
     setToken('');
@@ -41,10 +40,16 @@ export default function App() {
       { label: 'Add User', to: '/add-user' },
       { label: 'User History', to: '/user-history' },
     ];
-    if (isCoordinator) {
-      staffLinks.push({ label: 'Coordinator Dashboard', to: '/coordinator-dashboard' });
-    }
     navGroups.push({ label: 'Staff', links: staffLinks });
+    navGroups.push({
+      label: 'Volunteer Management',
+      links: [
+        { label: 'Schedule', to: '/coordinator-dashboard?tab=schedule' },
+        { label: 'Search', to: '/coordinator-dashboard?tab=search' },
+        { label: 'Create', to: '/coordinator-dashboard?tab=create' },
+        { label: 'Pending', to: '/coordinator-dashboard?tab=pending' },
+      ],
+    });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
@@ -149,7 +154,7 @@ export default function App() {
                 )}
                 {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
                 {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-                {role === 'volunteer_coordinator' && (
+                {isStaff && (
                   <Route
                     path="/coordinator-dashboard"
                     element={<CoordinatorDashboard token={token} />}

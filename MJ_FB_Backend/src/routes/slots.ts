@@ -7,13 +7,13 @@ const router = express.Router();
 router.get(
   '/all',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   listAllSlots,
 );
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff', 'volunteer_coordinator'),
+  authorizeRoles('shopper', 'delivery', 'staff'),
   listSlots,
 );
 

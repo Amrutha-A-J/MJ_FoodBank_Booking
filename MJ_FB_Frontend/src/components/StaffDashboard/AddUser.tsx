@@ -108,7 +108,6 @@ export default function AddUser({ token }: { token: string }) {
             onChange={e => setStaffRole(e.target.value as StaffRole)}
           >
             <MenuItem value="staff">Staff</MenuItem>
-            <MenuItem value="volunteer_coordinator">Volunteer Coordinator</MenuItem>
           </TextField>
           <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
