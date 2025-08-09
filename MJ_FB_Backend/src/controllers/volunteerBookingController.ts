@@ -29,14 +29,14 @@ export async function createVolunteerBooking(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
-    const masterRoleId = role.role_id;
+    const masterRoleId = role.category_id;
 
     const volRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
@@ -96,14 +96,14 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
-    const masterRoleId = role.role_id;
+    const masterRoleId = role.category_id;
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
@@ -152,7 +152,7 @@ export async function listVolunteerBookingsByRole(
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
-       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        JOIN volunteers v ON vb.volunteer_id = v.id
        WHERE vb.role_id = $1
        ORDER BY vb.date, vr.start_time`,
@@ -183,7 +183,7 @@ export async function listMyVolunteerBookings(
               vmr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
-       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        WHERE vb.volunteer_id = $1
        ORDER BY vb.date DESC, vr.start_time DESC`,
       [user.id]
@@ -212,7 +212,7 @@ export async function listVolunteerBookingsByVolunteer(
               vmr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
-       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        WHERE vb.volunteer_id = $1
        ORDER BY vb.date DESC, vr.start_time DESC`,
       [volunteer_id]
@@ -308,7 +308,7 @@ export async function rescheduleVolunteerBooking(
     const booking = bookingRes.rows[0];
 
     const roleRes = await pool.query(
-      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1',
       [roleId],
     );
     if (roleRes.rowCount === 0) {
@@ -318,7 +318,7 @@ export async function rescheduleVolunteerBooking(
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [booking.volunteer_id, role.role_id],
+      [booking.volunteer_id, role.category_id],
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
