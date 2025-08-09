@@ -17,4 +17,19 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
     expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
   });
+
+  it('renders without greeting when name is absent', () => {
+    render(
+      <MemoryRouter>
+        <Navbar
+          groups={[{ label: 'Home', links: [{ label: 'Home', to: '/' }] }]}
+          onLogout={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Hello/)).toBeNull();
+    expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
+  });
 });
