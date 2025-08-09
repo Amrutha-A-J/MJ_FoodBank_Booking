@@ -1,19 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 
+function getCookieToken(req: Request) {
+  const cookie = req.headers.cookie;
+  if (!cookie) return undefined;
+  const cookies = Object.fromEntries(
+    cookie.split(';').map(c => {
+      const [k, ...v] = c.trim().split('=');
+      return [k, v.join('=')];
+    }),
+  );
+  return cookies.token;
+}
+
 export async function verifyVolunteerToken(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const authHeader = req.headers['authorization'];
-  if (!authHeader || typeof authHeader !== 'string') {
+  let token: string | undefined;
+  if (authHeader && typeof authHeader === 'string') {
+    token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : authHeader;
+  } else {
+    token = getCookieToken(req);
+  }
+  if (!token) {
     return res.status(401).json({ message: 'Missing token' });
   }
-
-  const token = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7).trim()
-    : authHeader;
 
   const match = token.match(/^volunteer[:\-](\d+)$/);
   if (!match) {

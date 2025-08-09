@@ -3,16 +3,31 @@ import pool from '../db';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../utils/env';
 
+function getTokenFromCookies(req: Request) {
+  const cookie = req.headers.cookie;
+  if (!cookie) return undefined;
+  const cookies = Object.fromEntries(
+    cookie.split(';').map(c => {
+      const [k, ...v] = c.trim().split('=');
+      return [k, v.join('=')];
+    }),
+  );
+  return cookies.token;
+}
+
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
-  if (!authHeader || typeof authHeader !== 'string') {
+  let token: string | undefined;
+  if (authHeader && typeof authHeader === 'string') {
+    token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : authHeader;
+  } else {
+    token = getTokenFromCookies(req);
+  }
+  if (!token) {
     return res.status(401).json({ message: 'Missing token' });
   }
-
-  // Allow standard "Bearer <token>" format in addition to raw tokens
-  const token = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7).trim()
-    : authHeader;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as {
@@ -77,13 +92,17 @@ export async function optionalAuthMiddleware(
   next: NextFunction,
 ) {
   const authHeader = req.headers['authorization'];
-  if (!authHeader || typeof authHeader !== 'string') {
+  let token: string | undefined;
+  if (authHeader && typeof authHeader === 'string') {
+    token = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7).trim()
+      : authHeader;
+  } else {
+    token = getTokenFromCookies(req);
+  }
+  if (!token) {
     return next();
   }
-
-  const token = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7).trim()
-    : authHeader;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as {

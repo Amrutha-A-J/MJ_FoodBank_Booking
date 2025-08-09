@@ -13,9 +13,6 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
     e.preventDefault();
     try {
       const user = await loginVolunteer(username, password);
-      localStorage.setItem('token', user.token);
-      localStorage.setItem('role', user.role);
-      localStorage.setItem('name', user.name);
       onLogin(user);
       window.location.href = '/volunteer-dashboard';
     } catch (err: unknown) {
