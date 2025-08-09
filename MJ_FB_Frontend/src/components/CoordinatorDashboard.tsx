@@ -520,17 +520,18 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                         style={{
                           display: 'flex',
                           alignItems: 'center',
+                          justifyContent: 'space-between',
+                          width: '100%',
                           marginBottom: 4,
                         }}
                       >
+                        <span>{r.name}</span>
                         <input
                           type="checkbox"
                           value={r.id}
                           checked={selectedCreateRoles.includes(r.id)}
                           onChange={e => toggleCreateRole(r.id, e.target.checked)}
-                          style={{ marginRight: 6 }}
                         />
-                        {r.name}
                       </label>
                     ))}
                   </div>
