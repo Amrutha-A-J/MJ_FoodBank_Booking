@@ -10,6 +10,9 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
   try {
     // Parse date in local Regina timezone safely
     const dateObj = new Date(date + 'T00:00:00-06:00'); // Regina is UTC-6
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
     const day = dateObj.getDay(); // Sunday=0, Monday=1, etc.
 
     // Closed on weekends
