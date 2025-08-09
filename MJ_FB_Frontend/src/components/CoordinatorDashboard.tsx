@@ -21,6 +21,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  ListSubheader,
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
@@ -114,6 +115,19 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       groups.set(r.category, arr);
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
+  }, [roles]);
+
+  const scheduleRoleGroups = useMemo(() => {
+    const groups = new Map<string, RoleOption[]>();
+    roles.forEach(r => {
+      const arr = groups.get(r.category) || [];
+      arr.push(r);
+      groups.set(r.category, arr);
+    });
+    return Array.from(groups.entries()).map(([category, roles]) => ({
+      category,
+      roles,
+    }));
   }, [roles]);
 
   const selectedRoleNames = useMemo(() => {
@@ -377,10 +391,15 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               }
             >
               <MenuItem value="">Select role</MenuItem>
-              {roles.map(r => (
-                <MenuItem key={r.id} value={r.id}>
-                  {r.name}
-                </MenuItem>
+              {scheduleRoleGroups.map(g => (
+                <Fragment key={g.category}>
+                  <ListSubheader>{g.category}</ListSubheader>
+                  {g.roles.map(r => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.name}
+                    </MenuItem>
+                  ))}
+                </Fragment>
               ))}
             </Select>
           </FormControl>
