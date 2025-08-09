@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -70,6 +70,15 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  function toggleCreateRole(id: number, checked: boolean) {
+    setSelectedCreateRoles(prev =>
+      checked ? [...prev, id] : prev.filter(r => r !== id)
+    );
+  }
+
   const [assignModal, setAssignModal] = useState(false);
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
@@ -87,6 +96,16 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   function changeDay(delta: number) {
     setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
   }
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setRoleDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     getVolunteerRoles(token)
