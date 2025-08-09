@@ -1,22 +1,25 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
 import type { StaffRole } from '../models/staff';
+import logger from '../utils/logger';
 
-export async function checkStaffExists(_req: Request, res: Response) {
+export async function checkStaffExists(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const result = await pool.query('SELECT COUNT(*) FROM staff');
     const count = parseInt(result.rows[0].count, 10);
     res.json({ exists: count > 0 });
   } catch (error) {
-    console.error('Error checking staff:', error);
-    res
-      .status(500)
-      .json({ message: `Database error checking staff: ${(error as Error).message}` });
+    logger.error('Error checking staff:', error);
+    next(error);
   }
 }
 
-export async function createStaff(req: Request, res: Response) {
+export async function createStaff(req: Request, res: Response, next: NextFunction) {
   const { firstName, lastName, role, email, password } = req.body as {
     firstName: string;
     lastName: string;
@@ -48,10 +51,8 @@ export async function createStaff(req: Request, res: Response) {
 
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {
-    console.error('Error creating staff:', error);
-    res
-      .status(500)
-      .json({ message: `Database error creating staff: ${(error as Error).message}` });
+    logger.error('Error creating staff:', error);
+    next(error);
   }
 }
 

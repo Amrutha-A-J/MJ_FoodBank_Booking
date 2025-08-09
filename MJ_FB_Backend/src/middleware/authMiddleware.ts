@@ -2,18 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../utils/env';
-
-function getTokenFromCookies(req: Request) {
-  const cookie = req.headers.cookie;
-  if (!cookie) return undefined;
-  const cookies = Object.fromEntries(
-    cookie.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    }),
-  );
-  return cookies.token;
-}
+import logger from '../utils/logger';
 
 function getTokenFromCookies(req: Request) {
   const cookie = req.headers.cookie;
@@ -91,10 +80,8 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
     return res.status(401).json({ message: 'Invalid token format' });
   } catch (error) {
-    console.error('Auth error:', error);
-    res
-      .status(500)
-      .json({ message: `Database error during authentication: ${(error as Error).message}` });
+    logger.error('Auth error:', error);
+    next(error);
   }
 }
 
@@ -162,10 +149,8 @@ export async function optionalAuthMiddleware(
 
     return res.status(401).json({ message: 'Invalid token format' });
   } catch (error) {
-    console.error('Auth error:', error);
-    res.status(500).json({
-      message: `Database error during authentication: ${(error as Error).message}`,
-    });
+    logger.error('Auth error:', error);
+    next(error);
   }
 }
 

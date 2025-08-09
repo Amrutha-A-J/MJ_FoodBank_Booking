@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import usersRoutes from './routes/users';
@@ -14,6 +14,7 @@ import volunteerBookingsRoutes from './routes/volunteerBookings';
 import { initializeSlots } from './data';
 import pool from './db';
 import { setupDatabase } from './setupDatabase';
+import logger from './utils/logger';
 
 dotenv.config();
 
@@ -53,16 +54,24 @@ async function init() {
   try {
     await setupDatabase();
     const client = await pool.connect();
-    console.log('✅ Connected to the database successfully!');
+    logger.info('✅ Connected to the database successfully!');
     client.release();
 
     app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      logger.info(`Server running at http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error('❌ Failed to connect to the database:', err);
+    logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
   }
 }
 
 init();
+
+// Global error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  logger.error('Unhandled error:', err);
+  const status = err.status || 500;
+  res.status(status).json({ message: err.message || 'Internal Server Error' });
+});

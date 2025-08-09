@@ -1,7 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
+import logger from '../utils/logger';
 
-export async function addVolunteerRole(req: Request, res: Response) {
+export async function addVolunteerRole(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { name, category, startTime, endTime, maxVolunteers, roleId, isWednesdaySlot } =
     req.body as {
       name?: string;
@@ -36,28 +41,32 @@ export async function addVolunteerRole(req: Request, res: Response) {
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error adding volunteer role:', error);
-    res.status(500).json({
-      message: `Database error adding volunteer role: ${(error as Error).message}`,
-    });
+    logger.error('Error adding volunteer role:', error);
+    next(error);
   }
 }
 
-export async function listVolunteerRoles(req: Request, res: Response) {
+export async function listVolunteerRoles(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const result = await pool.query(
       `SELECT id, name, category, start_time, end_time, max_volunteers, role_id, is_wednesday_slot FROM volunteer_roles ORDER BY id`
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error listing volunteer roles:', error);
-    res.status(500).json({
-      message: `Database error listing volunteer roles: ${(error as Error).message}`,
-    });
+    logger.error('Error listing volunteer roles:', error);
+    next(error);
   }
 }
 
-export async function updateVolunteerRole(req: Request, res: Response) {
+export async function updateVolunteerRole(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const { id } = req.params;
   const { name, category, startTime, endTime, maxVolunteers, roleId, isWednesdaySlot } =
     req.body as {
@@ -97,14 +106,12 @@ export async function updateVolunteerRole(req: Request, res: Response) {
     }
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating volunteer role:', error);
-    res.status(500).json({
-      message: `Database error updating volunteer role: ${(error as Error).message}`,
-    });
+    logger.error('Error updating volunteer role:', error);
+    next(error);
   }
 }
 
-export async function deleteVolunteerRole(req: Request, res: Response) {
+export async function deleteVolunteerRole(req: Request, res: Response, next: NextFunction) {
   const { id } = req.params;
   try {
     const result = await pool.query(
@@ -116,14 +123,16 @@ export async function deleteVolunteerRole(req: Request, res: Response) {
     }
     res.json({ message: 'Role deleted' });
   } catch (error) {
-    console.error('Error deleting volunteer role:', error);
-    res.status(500).json({
-      message: `Database error deleting volunteer role: ${(error as Error).message}`,
-    });
+    logger.error('Error deleting volunteer role:', error);
+    next(error);
   }
 }
 
-export async function listVolunteerRolesForVolunteer(req: Request, res: Response) {
+export async function listVolunteerRolesForVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   const { date } = req.query as { date?: string };
@@ -162,10 +171,8 @@ export async function listVolunteerRolesForVolunteer(req: Request, res: Response
     }));
     res.json(roles);
   } catch (error) {
-    console.error('Error listing volunteer roles for volunteer:', error);
-    res.status(500).json({
-      message: `Database error listing volunteer roles for volunteer: ${(error as Error).message}`,
-    });
+    logger.error('Error listing volunteer roles for volunteer:', error);
+    next(error);
   }
 }
 
