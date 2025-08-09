@@ -3,14 +3,16 @@ export interface ThemeConfig {
   secondary: string;
   text: string;
   accent: string;
+  background: string;
   fontFamily: string;
 }
 
 export const defaultTheme: ThemeConfig = {
-  primary: '#000000',
+  primary: '#941818',
   secondary: '#000000',
-  text: '#2E2E2E',
+  text: '#000000',
   accent: '#941818',
+  background: '#FFFFFF',
   fontFamily: '"Golos Text", sans-serif',
 };
 

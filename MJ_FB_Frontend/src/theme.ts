@@ -17,7 +17,7 @@ export const getTheme = (
       secondary: { main: config.secondary },
       text: { primary: config.text },
       error: { main: config.accent },
-      background: { default: config.primary },
+      background: { default: config.background },
     },
     typography: {
       fontFamily: config.fontFamily,
@@ -37,6 +37,7 @@ export const getTheme = (
     root.style.setProperty('--e-global-color-secondary', config.secondary);
     root.style.setProperty('--e-global-color-text', config.text);
     root.style.setProperty('--e-global-color-accent', config.accent);
+    root.style.setProperty('--e-global-color-background', config.background);
     root.style.setProperty('--e-global-typography-text-font-family', config.fontFamily);
   }
 
