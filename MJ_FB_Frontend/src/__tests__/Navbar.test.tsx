@@ -1,0 +1,20 @@
+import { render, screen } from '@testing-library/react';
+import Navbar from '../components/Navbar';
+import { MemoryRouter } from 'react-router-dom';
+
+describe('Navbar component', () => {
+  it('renders with title and name', () => {
+    render(
+      <MemoryRouter>
+        <Navbar
+          groups={[{ label: 'Home', links: [{ label: 'Home', to: '/' }] }]}
+          onLogout={() => {}}
+          name="Tester"
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
+    expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
+  });
+});
