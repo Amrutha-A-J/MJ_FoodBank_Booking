@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -14,7 +14,7 @@ import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { Button } from '@mui/material';
+import { Button, TextField, MenuItem, ListSubheader } from '@mui/material';
 
 interface RoleOption {
   id: number; // unique slot id
@@ -57,8 +57,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
   const [createMsg, setCreateMsg] = useState('');
-  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
   const [assignModal, setAssignModal] = useState(false);
   const [assignSearch, setAssignSearch] = useState('');
@@ -90,20 +89,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       })
       .catch(() => {});
   }, [token]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setRoleDropdownOpen(false);
-      }
-    }
-    if (roleDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [roleDropdownOpen]);
 
   const groupedRoles = useMemo(() => {
     const unique = new Map<number, { id: number; name: string; category: string }>();
@@ -221,11 +206,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     );
   }
 
-  function toggleCreateRole(id: number, checked: boolean) {
-    setSelectedCreateRoles(prev =>
-      checked ? [...prev, id] : prev.filter(r => r !== id)
-    );
-  }
 
   async function assignVolunteer(vol: VolunteerResult) {
     if (!roleInfo) return;
@@ -265,6 +245,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       !password ||
       selectedCreateRoles.length === 0
     ) {
+      setCreateSeverity('error');
       setCreateMsg(
         'First name, last name, username, password and at least one role required'
       );
@@ -281,6 +262,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         email || undefined,
         phone || undefined
       );
+      setCreateSeverity('success');
       setCreateMsg('Volunteer created');
       setFirstName('');
       setLastName('');
@@ -290,6 +272,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       setPassword('');
       setSelectedCreateRoles([]);
     } catch (e) {
+      setCreateSeverity('error');
       setCreateMsg(e instanceof Error ? e.message : String(e));
     }
   }
@@ -494,54 +477,45 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           <div style={{ marginBottom: 8 }}>
             <label>Password: <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
           </div>
-          <div style={{ marginBottom: 8, position: 'relative' }} ref={dropdownRef}>
-            <label>Role: </label>
-            <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
-              {selectedRoleNames || 'Select roles'}
-            </Button>
-            {roleDropdownOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  background: 'white',
-                  border: '1px solid #ccc',
-                  padding: 8,
-                  zIndex: 1,
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  marginTop: 4,
-                }}
-              >
-                {groupedRoles.map(g => (
-                  <div key={g.category} style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                    {g.roles.map(r => (
-                      <label
-                        key={r.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          width: '100%',
-                          marginBottom: 4,
-                        }}
-                      >
-                        <span>{r.name}</span>
-                        <input
-                          type="checkbox"
-                          value={r.id}
-                          checked={selectedCreateRoles.includes(r.id)}
-                          onChange={e => toggleCreateRole(r.id, e.target.checked)}
-                        />
-                      </label>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
+          <div style={{ marginBottom: 8 }}>
+            <TextField
+              label="Roles"
+              select
+              value={selectedCreateRoles}
+              onChange={e => {
+                const value = e.target.value;
+                setSelectedCreateRoles(
+                  typeof value === 'string'
+                    ? value.split(',').map(Number)
+                    : (value as number[])
+                );
+              }}
+              SelectProps={{
+                multiple: true,
+                displayEmpty: true,
+                renderValue: () => selectedRoleNames || 'Select roles',
+              }}
+              fullWidth
+            >
+              {groupedRoles.map(g => (
+                <Fragment key={g.category}>
+                  <ListSubheader>{g.category}</ListSubheader>
+                  {g.roles.map(r => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.name}
+                    </MenuItem>
+                  ))}
+                </Fragment>
+              ))}
+            </TextField>
           </div>
           <Button onClick={submitVolunteer} variant="outlined" color="primary">Add Volunteer</Button>
-          {createMsg && <p>{createMsg}</p>}
+          <FeedbackSnackbar
+            open={!!createMsg}
+            onClose={() => setCreateMsg('')}
+            message={createMsg}
+            severity={createSeverity}
+          />
         </div>
       )}
 
