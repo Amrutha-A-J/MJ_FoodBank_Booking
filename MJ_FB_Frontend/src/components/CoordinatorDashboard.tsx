@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -19,6 +19,7 @@ interface RoleOption {
   id: number; // unique slot id
   role_id: number; // grouped role id
   name: string;
+  category: string;
   start_time: string;
   end_time: string;
   max_volunteers: number;
@@ -55,6 +56,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<number[]>([]);
   const [createMsg, setCreateMsg] = useState('');
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [assignModal, setAssignModal] = useState(false);
   const [assignSearch, setAssignSearch] = useState('');
@@ -79,11 +82,52 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       .then(data => {
         setRoles(data);
         const map = new Map<number, string>();
-        data.forEach((r: RoleOption) => map.set(r.role_id, r.name));
+        data.forEach((r: RoleOption) => {
+          if (!map.has(r.role_id)) map.set(r.role_id, r.name);
+        });
         setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       })
       .catch(() => {});
   }, [token]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setRoleDropdownOpen(false);
+      }
+    }
+    if (roleDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [roleDropdownOpen]);
+
+  const groupedRoles = useMemo(() => {
+    const unique = new Map<number, { id: number; name: string; category: string }>();
+    roles.forEach(r => {
+      if (!unique.has(r.role_id)) {
+        unique.set(r.role_id, { id: r.role_id, name: r.name, category: r.category });
+      }
+    });
+    const groups = new Map<string, { id: number; name: string }[]>();
+    unique.forEach(r => {
+      const arr = groups.get(r.category) || [];
+      arr.push({ id: r.id, name: r.name });
+      groups.set(r.category, arr);
+    });
+    return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
+  }, [roles]);
+
+  const selectedRoleNames = useMemo(() => {
+    const map = new Map<number, string>();
+    groupedRoles.forEach(g => g.roles.forEach(r => map.set(r.id, r.name)));
+    return selectedCreateRoles
+      .map(id => map.get(id))
+      .filter(Boolean)
+      .join(', ');
+  }, [groupedRoles, selectedCreateRoles]);
 
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
@@ -449,23 +493,50 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           <div style={{ marginBottom: 8 }}>
             <label>Password: <input type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Roles:</label>
-            {baseRoles.map(r => (
-              <label
-                key={r.id}
-                style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+          <div style={{ marginBottom: 8, position: 'relative' }} ref={dropdownRef}>
+            <label>Role: </label>
+            <button type="button" onClick={() => setRoleDropdownOpen(o => !o)}>
+              {selectedRoleNames || 'Select roles'}
+            </button>
+            {roleDropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  background: 'white',
+                  border: '1px solid #ccc',
+                  padding: 8,
+                  zIndex: 1,
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  marginTop: 4,
+                }}
               >
-                <input
-                  type="checkbox"
-                  value={r.id}
-                  checked={selectedCreateRoles.includes(r.id)}
-                  onChange={e => toggleCreateRole(r.id, e.target.checked)}
-                  style={{ marginRight: 6 }}
-                />
-                {r.name}
-              </label>
-            ))}
+                {groupedRoles.map(g => (
+                  <div key={g.category} style={{ marginBottom: 8 }}>
+                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                    {g.roles.map(r => (
+                      <label
+                        key={r.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginBottom: 4,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          value={r.id}
+                          checked={selectedCreateRoles.includes(r.id)}
+                          onChange={e => toggleCreateRole(r.id, e.target.checked)}
+                          style={{ marginRight: 6 }}
+                        />
+                        {r.name}
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <button onClick={submitVolunteer}>Add Volunteer</button>
           {createMsg && <p>{createMsg}</p>}
