@@ -6,23 +6,6 @@ import ConfirmDialog from '../ConfirmDialog';
 import { TextField, Button } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  user_id: number;
-  user_name: string;
-  user_email: string;
-  user_phone: string;
-  client_id: number;
-  bookings_this_month: number;
-  slot_id: number;
-  start_time: string;
-  end_time: string;
-  is_staff_booking: boolean;
-  created_at: string;
-}
-
 export default function StaffDashboard({
   token,
   setError,

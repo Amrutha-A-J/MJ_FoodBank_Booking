@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
-import { Box, Link, Typography, TextField, Stack } from '@mui/material';
+import { Link, TextField, Stack } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormContainer from './FormContainer';
+import Page from './Page';
 
 export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (user: LoginResponse) => void; onStaff: () => void; onVolunteer: () => void }) {
   const [clientId, setClientId] = useState('');
@@ -21,17 +22,20 @@ export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (use
   }
 
   return (
-    <Box>
-      <Stack direction="row" spacing={2} mb={2}>
-        <Link component="button" onClick={onStaff} underline="hover">Staff Login</Link>
-        <Link component="button" onClick={onVolunteer} underline="hover">Volunteer Login</Link>
-      </Stack>
-      <Typography variant="h4" gutterBottom>User Login</Typography>
+    <Page
+      title="User Login"
+      header={
+        <Stack direction="row" spacing={2} mb={2}>
+          <Link component="button" onClick={onStaff} underline="hover">Staff Login</Link>
+          <Link component="button" onClick={onVolunteer} underline="hover">Volunteer Login</Link>
+        </Stack>
+      }
+    >
       <FormContainer onSubmit={handleSubmit} submitLabel="Login">
         <TextField value={clientId} onChange={e => setClientId(e.target.value)} label="Client ID" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
       </FormContainer>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </Box>
+    </Page>
   );
 }
