@@ -396,12 +396,12 @@ export async function getVolunteerMasterRoles(token: string) {
   return handleResponse(res);
 }
 
-export async function updateVolunteerMasterRole(
+export async function updateVolunteerRoleStatus(
   token: string,
   id: number,
   isActive: boolean,
 ) {
-  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
