@@ -14,6 +14,7 @@ import {
 import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../FeedbackSnackbar';
+import { Button } from '@mui/material';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -186,14 +187,14 @@ export default function ManageAvailability({ token }: { token: string }) {
             onChange={(e) => setNewHolidayReason(e.target.value)}
             style={{ marginLeft: 8 }}
           />
-          <button onClick={addHoliday} style={{ marginLeft: 8 }}>Add Holiday</button>
+          <Button onClick={addHoliday} style={{ marginLeft: 8 }} variant="outlined" color="primary">Add Holiday</Button>
           <ul>
             {holidays.map(h => (
               <li key={h.date}>
                 {h.date}{h.reason ? ` - ${h.reason}` : ''}{' '}
-                <button onClick={() => removeHoliday(h.date)} style={{ color: 'red' }}>
+                <Button onClick={() => removeHoliday(h.date)} variant="outlined" color="primary">
                   Remove
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -227,16 +228,16 @@ export default function ManageAvailability({ token }: { token: string }) {
             onChange={(e) => setBlockedReason(e.target.value)}
             style={{ marginLeft: 8 }}
           />
-          <button onClick={addBlocked} style={{ marginLeft: 8 }}>Block Slot</button>
+          <Button onClick={addBlocked} style={{ marginLeft: 8 }} variant="outlined" color="primary">Block Slot</Button>
 
           {blockedDate && (
             <ul>
               {blockedList.map(b => (
                 <li key={b.slotId}>
                   {slotLabel(b.slotId)}{b.reason ? ` - ${b.reason}` : ''}{' '}
-                  <button onClick={() => removeBlocked(b.slotId)} style={{ color: 'red' }}>
+                  <Button onClick={() => removeBlocked(b.slotId)} variant="outlined" color="primary">
                     Remove
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -275,15 +276,15 @@ export default function ManageAvailability({ token }: { token: string }) {
             onChange={(e) => setBreakReason(e.target.value)}
             style={{ marginLeft: 8 }}
           />
-          <button onClick={addBreak} style={{ marginLeft: 8 }}>Add Break</button>
+          <Button onClick={addBreak} style={{ marginLeft: 8 }} variant="outlined" color="primary">Add Break</Button>
 
           <ul>
             {breaks.map(b => (
               <li key={`${b.dayOfWeek}-${b.slotId}`}>
                 {dayNames[b.dayOfWeek]} {slotLabel(b.slotId)}{b.reason ? ` - ${b.reason}` : ''}{' '}
-                <button onClick={() => removeBreak(b.dayOfWeek, b.slotId)} style={{ color: 'red' }}>
+                <Button onClick={() => removeBreak(b.dayOfWeek, b.slotId)} variant="outlined" color="primary">
                   Remove
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

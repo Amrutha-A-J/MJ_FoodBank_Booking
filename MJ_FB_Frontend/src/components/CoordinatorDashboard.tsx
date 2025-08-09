@@ -14,6 +14,7 @@ import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import { Button } from '@mui/material';
 
 interface RoleOption {
   id: number; // unique slot id
@@ -365,10 +366,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     <div>
       <h2>Coordinator Dashboard</h2>
       <div style={{ marginBottom: 16 }}>
-        <button onClick={() => setTab('schedule')} disabled={tab === 'schedule'}>Schedule</button>
-        <button onClick={() => setTab('search')} disabled={tab === 'search'} style={{ marginLeft: 8 }}>Search Volunteer</button>
-        <button onClick={() => setTab('create')} disabled={tab === 'create'} style={{ marginLeft: 8 }}>Create Volunteer</button>
-        <button onClick={() => setTab('pending')} disabled={tab === 'pending'} style={{ marginLeft: 8 }}>Pending</button>
+        <Button onClick={() => setTab('schedule')} disabled={tab === 'schedule'} variant="outlined" color="primary">Schedule</Button>
+        <Button onClick={() => setTab('search')} disabled={tab === 'search'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Search Volunteer</Button>
+        <Button onClick={() => setTab('create')} disabled={tab === 'create'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Create Volunteer</Button>
+        <Button onClick={() => setTab('pending')} disabled={tab === 'pending'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Pending</Button>
       </div>
       {tab === 'schedule' && (
         <div>
@@ -384,9 +385,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           {selectedRole && roleInfo ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                <button onClick={() => changeDay(-1)}>Previous</button>
+                <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
                 <h3>{formatDate(currentDate)}</h3>
-                <button onClick={() => changeDay(1)}>Next</button>
+                <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
               </div>
               <VolunteerScheduleTable maxSlots={roleInfo.max_volunteers} rows={rows} />
             </>
@@ -403,7 +404,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(r => (
                 <li key={r.id}>
-                  <button onClick={() => selectVolunteer(r)}>{r.name}</button>
+                  <Button onClick={() => selectVolunteer(r)} variant="outlined" color="primary">{r.name}</Button>
                 </li>
               ))}
             </ul>
@@ -428,7 +429,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                   </label>
                 ))}
               </div>
-              <button onClick={saveTrainedAreas}>Save Roles</button>
+              <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
               {editMsg && <p>{editMsg}</p>}
               <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -451,12 +452,12 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>
                         {h.status === 'pending' && (
                           <>
-                            <button onClick={() => decide(h.id, 'approved')}>Approve</button>{' '}
-                            <button onClick={() => decide(h.id, 'rejected')}>Reject</button>
+                            <Button onClick={() => decide(h.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
+                            <Button onClick={() => decide(h.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
                           </>
                         )}
                           {h.status === 'approved' && (
-                            <button onClick={() => decide(h.id, 'cancelled')}>Cancel</button>
+                            <Button onClick={() => decide(h.id, 'cancelled')} variant="outlined" color="primary">Cancel</Button>
                           )}
                       </td>
                     </tr>
@@ -495,9 +496,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           </div>
           <div style={{ marginBottom: 8, position: 'relative' }} ref={dropdownRef}>
             <label>Role: </label>
-            <button type="button" onClick={() => setRoleDropdownOpen(o => !o)}>
+            <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
               {selectedRoleNames || 'Select roles'}
-            </button>
+            </Button>
             {roleDropdownOpen && (
               <div
                 style={{
@@ -539,7 +540,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               </div>
             )}
           </div>
-          <button onClick={submitVolunteer}>Add Volunteer</button>
+          <Button onClick={submitVolunteer} variant="outlined" color="primary">Add Volunteer</Button>
           {createMsg && <p>{createMsg}</p>}
         </div>
       )}
@@ -556,8 +557,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 <div><strong>Time:</strong> {formatTime(p.start_time)} - {formatTime(p.end_time)}</div>
                 <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
                 <div style={{ marginTop: 4 }}>
-                  <button onClick={() => decide(p.id, 'approved')}>Approve</button>{' '}
-                  <button onClick={() => decide(p.id, 'rejected')}>Reject</button>
+                  <Button onClick={() => decide(p.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
+                  <Button onClick={() => decide(p.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
                 </div>
               </li>
             ))}
@@ -595,23 +596,25 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               {assignResults.map(v => (
                 <li key={v.id} style={{ marginBottom: 4 }}>
                   {v.name}
-                  <button style={{ marginLeft: 4 }} onClick={() => assignVolunteer(v)}>
+                  <Button style={{ marginLeft: 4 }} onClick={() => assignVolunteer(v)} variant="outlined" color="primary">
                     Assign
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
             {assignMsg && <p style={{ color: 'red' }}>{assignMsg}</p>}
-            <button
+            <Button
               onClick={() => {
                 setAssignModal(false);
                 setAssignSearch('');
                 setAssignResults([]);
                 setAssignMsg('');
               }}
+              variant="outlined"
+              color="primary"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -636,23 +639,27 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              <button
+              <Button
                 onClick={() => {
                   decide(decisionBooking.id, 'approved');
                   setDecisionBooking(null);
                 }}
+                variant="outlined"
+                color="primary"
               >
                 Approve
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   decide(decisionBooking.id, 'rejected');
                   setDecisionBooking(null);
                 }}
+                variant="outlined"
+                color="primary"
               >
                 Reject
-              </button>
-              <button onClick={() => setDecisionBooking(null)}>Cancel</button>
+              </Button>
+              <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">Cancel</Button>
             </div>
           </div>
         </div>

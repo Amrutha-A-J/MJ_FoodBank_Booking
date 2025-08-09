@@ -3,7 +3,7 @@ import { getBookings, decideBooking } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import ConfirmDialog from '../ConfirmDialog';
-import { TextField } from '@mui/material';
+import { TextField, Button } from '@mui/material';
 
 interface Booking {
   id: number;
@@ -120,12 +120,12 @@ export default function StaffDashboard({
               <div><strong>User:</strong> {b.user_name || 'Unknown'} ({b.user_email || 'N/A'}, {b.user_phone || 'N/A'})</div>
               <div><strong>Slot:</strong> {b.start_time && b.end_time ? `${b.start_time} - ${b.end_time}` : 'No slot assigned'}</div>
               <div style={{ marginTop: 6 }}>
-                <button onClick={() => handleApprove(b.id)} style={btnApprove}>
+                <Button onClick={() => handleApprove(b.id)} variant="outlined" color="primary">
                   Approve
-                </button>{' '}
-                <button onClick={() => handleReject(b.id)} style={btnReject}>
+                </Button>{' '}
+                <Button onClick={() => handleReject(b.id)} variant="outlined" color="primary">
                   Reject
-                </button>
+                </Button>
               </div>
             </li>
           )
@@ -149,20 +149,3 @@ export default function StaffDashboard({
   );
 }
 
-const btnApprove: React.CSSProperties = {
-  backgroundColor: '#4caf50',
-  border: 'none',
-  color: 'white',
-  padding: '6px 12px',
-  borderRadius: 4,
-  cursor: 'pointer',
-};
-
-const btnReject: React.CSSProperties = {
-  backgroundColor: '#f44336',
-  border: 'none',
-  color: 'white',
-  padding: '6px 12px',
-  borderRadius: 4,
-  cursor: 'pointer',
-};

@@ -5,6 +5,7 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../VolunteerScheduleTable';
 import FeedbackSnackbar from '../FeedbackSnackbar';
+import { Button } from '@mui/material';
 
 interface Booking {
   id: number;
@@ -230,7 +231,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <button onClick={() => changeDay(-1)}>Previous</button>
+        <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
         <h3>
           {dateStr} - {dayName}
           {isHoliday
@@ -239,7 +240,7 @@ export default function PantrySchedule({ token }: { token: string }) {
               ? ' (Weekend)'
               : ''}
         </h3>
-        <button onClick={() => changeDay(1)}>Next</button>
+        <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
       </div>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
       {isClosed ? (
@@ -275,14 +276,14 @@ export default function PantrySchedule({ token }: { token: string }) {
               {userResults.map(u => (
                 <li key={u.id} style={{ marginBottom: 4 }}>
                   {u.name} ({u.email})
-                  <button style={{ marginLeft: 4 }} onClick={() => assignUser(u)}>
+                  <Button style={{ marginLeft: 4 }} onClick={() => assignUser(u)} variant="outlined" color="primary">
                     Assign
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
             <FeedbackSnackbar open={!!assignMessage} onClose={() => setAssignMessage('')} message={assignMessage} severity="error" />
-            <button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }}>Close</button>
+            <Button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }} variant="outlined" color="primary">Close</Button>
           </div>
         </div>
       )}
@@ -325,28 +326,32 @@ export default function PantrySchedule({ token }: { token: string }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               {decisionBooking.status === 'submitted' ? (
                 <>
-                  <button onClick={() => decideSelected('approve')}>Approve</button>
-                  <button onClick={() => decideSelected('reject')}>Reject</button>
-                  <button
+                  <Button onClick={() => decideSelected('approve')} variant="outlined" color="primary">Approve</Button>
+                  <Button onClick={() => decideSelected('reject')} variant="outlined" color="primary">Reject</Button>
+                  <Button
                     onClick={() => {
                       setDecisionBooking(null);
                       setDecisionReason('');
                     }}
+                    variant="outlined"
+                    color="primary"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  <button onClick={cancelSelected}>Confirm</button>
-                  <button
+                  <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
+                  <Button
                     onClick={() => {
                       setDecisionBooking(null);
                       setDecisionReason('');
                     }}
+                    variant="outlined"
+                    color="primary"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </>
               )}
             </div>

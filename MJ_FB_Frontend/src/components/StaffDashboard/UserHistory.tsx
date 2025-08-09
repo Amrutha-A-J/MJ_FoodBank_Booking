@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { searchUsers, getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
+import { Button } from '@mui/material';
 
 const TIMEZONE = 'America/Regina';
 
@@ -89,15 +90,17 @@ export default function UserHistory({
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(u => (
                 <li key={u.id}>
-                  <button
+                  <Button
                     onClick={() => {
                       setSelected(u);
                       setSearch(u.name);
                       setResults([]);
                     }}
+                    variant="outlined"
+                    color="primary"
                   >
                     {u.name} ({u.client_id})
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -178,18 +181,25 @@ export default function UserHistory({
           </div>
           {totalPages > 1 && (
             <div className="pagination">
-              <button disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+              <Button
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                variant="outlined"
+                color="primary"
+              >
                 Previous
-              </button>
+              </Button>
               <span>
                 Page {page} of {totalPages}
               </span>
-              <button
+              <Button
                 disabled={page === totalPages}
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                variant="outlined"
+                color="primary"
               >
                 Next
-              </button>
+              </Button>
             </div>
           )}
         </div>

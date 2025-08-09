@@ -72,10 +72,10 @@ export default function AddUser({ token }: { token: string }) {
         {mode === 'user' ? 'Create User' : 'Create Staff'}
       </Typography>
       <Stack direction="row" spacing={1} mb={2}>
-        <Button variant={mode === 'user' ? 'contained' : 'outlined'} onClick={() => setMode('user')}>
+        <Button variant="outlined" color="primary" onClick={() => setMode('user')}>
           Create User
         </Button>
-        <Button variant={mode === 'staff' ? 'contained' : 'outlined'} onClick={() => setMode('staff')}>
+        <Button variant="outlined" color="primary" onClick={() => setMode('staff')}>
           Create Staff
         </Button>
       </Stack>
@@ -93,7 +93,7 @@ export default function AddUser({ token }: { token: string }) {
             <MenuItem value="shopper">Shopper</MenuItem>
             <MenuItem value="delivery">Delivery</MenuItem>
           </TextField>
-          <Button variant="contained" onClick={submitUser}>
+          <Button variant="outlined" color="primary" onClick={submitUser}>
             Add User
           </Button>
         </Stack>
@@ -112,7 +112,7 @@ export default function AddUser({ token }: { token: string }) {
           </TextField>
           <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
           <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Button variant="contained" onClick={submitStaff}>
+          <Button variant="outlined" color="primary" onClick={submitStaff}>
             Add Staff
           </Button>
         </Stack>
