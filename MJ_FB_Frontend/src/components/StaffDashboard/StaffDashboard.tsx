@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { getBookings, decideBooking } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import ConfirmDialog from '../ConfirmDialog';
 import { TextField, Button } from '@mui/material';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Booking {
   id: number;
@@ -31,47 +32,37 @@ export default function StaffDashboard({
   setError: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [message, setMessage] = useState('');
   const [rejectId, setRejectId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  const loadBookings = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data: Booking[] = await getBookings(token);
-      console.log('Received bookings:', data);
-      setBookings(data);
-    } catch (err: unknown) {
-      console.error('Error fetching bookings:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load bookings');
-    } finally {
-      setLoading(false);
-    }
-  }, [token, setError, setLoading]);
+  const queryClient = useQueryClient();
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ['bookings', token],
+    queryFn: () => getBookings(token),
+    onError: (err: unknown) =>
+      setError(err instanceof Error ? err.message : 'Failed to load bookings'),
+  });
+
+  const decideMutation = useMutation(
+    ({ id, decision, reason }: { id: number; decision: 'approve' | 'reject'; reason?: string }) =>
+      decideBooking(token, id.toString(), decision, reason ?? ''),
+    {
+      onSuccess: (_data, variables) => {
+        setMessage(`Booking ${variables.decision}d`);
+        queryClient.invalidateQueries({ queryKey: ['bookings', token] });
+      },
+      onError: (err: unknown) =>
+        setError(err instanceof Error ? err.message : 'Failed to process decision'),
+    },
+  );
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
-
-  async function decide(id: number, decision: 'approve' | 'reject', reason = '') {
-    setError('');
-    setLoading(true);
-    try {
-      await decideBooking(token, id.toString(), decision, reason);
-      setMessage(`Booking ${decision}d`);
-      await loadBookings();
-    } catch (err: unknown) {
-      console.error('Error deciding booking:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process decision');
-    } finally {
-      setLoading(false);
-    }
-  }
+    setLoading(isLoading || decideMutation.isPending);
+  }, [isLoading, decideMutation.isPending, setLoading]);
 
   function handleApprove(id: number) {
-    void decide(id, 'approve');
+    decideMutation.mutate({ id, decision: 'approve' });
   }
 
   function handleReject(id: number) {
@@ -84,7 +75,7 @@ export default function StaffDashboard({
       setError('Rejection reason is required');
       return;
     }
-    void decide(rejectId as number, 'reject', rejectReason.trim());
+    decideMutation.mutate({ id: rejectId as number, decision: 'reject', reason: rejectReason.trim() });
     setRejectId(null);
   }
 

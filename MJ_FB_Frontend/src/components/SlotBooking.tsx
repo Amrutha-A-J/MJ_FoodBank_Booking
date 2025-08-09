@@ -7,6 +7,7 @@ import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { TextField, Button } from '@mui/material';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const reginaTimeZone = 'America/Regina';
 const LIMIT_MESSAGE =
@@ -33,12 +34,9 @@ function toReginaDate(date: Date): Date {
 
 export default function SlotBooking({ token, role }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [userResults, setUserResults] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [message, setMessage] = useState('');
   const [dayMessage, setDayMessage] = useState('');
   const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(() => {
@@ -63,6 +61,11 @@ export default function SlotBooking({ token, role }: Props) {
     return day === 0 || day === 6;
   }, []);
 
+  const { data: holidays = [] } = useQuery<Holiday[]>({
+    queryKey: ['holidays', token],
+    queryFn: () => getHolidays(token),
+  });
+
   const isHoliday = useCallback(
     (date: Date) => {
       const dateStr = formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
@@ -83,10 +86,6 @@ export default function SlotBooking({ token, role }: Props) {
   );
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-  }, [token]);
-
-  useEffect(() => {
     const today = toReginaDate(new Date());
     const zonedToday = toZonedTime(today, reginaTimeZone);
     const lastDay = new Date(zonedToday.getFullYear(), zonedToday.getMonth() + 1, 0);
@@ -103,34 +102,23 @@ export default function SlotBooking({ token, role }: Props) {
     setSelectedDate(date);
   }, [holidays, isWeekend, isHoliday, getNextAvailableDate]);
 
-  useEffect(() => {
-    if (role === 'staff') {
-      const delayDebounce = setTimeout(() => {
-        if (searchTerm.length >= 3) {
-          searchUsers(token, searchTerm)
-            .then((data: User[]) => setUserResults(data.slice(0, 5)))
-            .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'));
-        } else {
-          setUserResults([]);
-        }
-      }, 300);
-      return () => clearTimeout(delayDebounce);
-    }
-  }, [searchTerm, token, role]);
+  const { data: userResults = [] } = useQuery({
+    queryKey: ['userSearch', searchTerm],
+    queryFn: () => searchUsers(token, searchTerm),
+    enabled: role === 'staff' && searchTerm.length >= 3,
+    onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'),
+  });
 
   useEffect(() => {
     if (selectedDate) {
-      const dateStr = formatDate(selectedDate);
       const dayName = formatInTimeZone(selectedDate, reginaTimeZone, 'EEEE');
       if (isWeekend(selectedDate)) {
-        setSlots([]);
         setSelectedSlotId(null);
         setDayMessage(`Moose Jaw food bank is closed for ${dayName}`);
         setMessage('');
         return;
       }
       if (isHoliday(selectedDate)) {
-        setSlots([]);
         setSelectedSlotId(null);
         const next = getNextAvailableDate(selectedDate);
         setDayMessage(
@@ -139,14 +127,27 @@ export default function SlotBooking({ token, role }: Props) {
         setMessage('');
         return;
       }
-      getSlots(token, dateStr)
-        .then(setSlots)
-        .catch((err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'));
       setSelectedSlotId(null);
       setDayMessage('');
       setMessage('');
     }
-  }, [selectedDate, token, holidays, isWeekend, isHoliday, getNextAvailableDate]);
+  }, [selectedDate, isWeekend, isHoliday, getNextAvailableDate]);
+
+  const slotsEnabled = !!selectedDate && !isWeekend(selectedDate) && !isHoliday(selectedDate);
+  const { data: slots = [] } = useQuery<Slot[]>({
+    queryKey: ['slots', token, selectedDate ? formatDate(selectedDate) : null],
+    queryFn: () => getSlots(token, formatDate(selectedDate as Date)),
+    enabled: slotsEnabled,
+    onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'),
+  });
+
+  const queryClient = useQueryClient();
+  const bookingMutation = useMutation((vars: { slotId: string; date: string }) =>
+    createBooking(token, vars.slotId, vars.date),
+  );
+  const staffBookingMutation = useMutation((vars: { userId: number; slotId: number; date: string }) =>
+    createBookingForUser(token, vars.userId, vars.slotId, vars.date, true),
+  );
 
   async function submitBooking() {
     if (!selectedSlotId || !selectedDate) {
@@ -155,16 +156,21 @@ export default function SlotBooking({ token, role }: Props) {
     }
 
     try {
+      const dateStr = formatDate(selectedDate);
       if (role === 'staff') {
         if (!selectedUser) {
           setMessage('Please select a user');
           return;
         }
-        await createBookingForUser(token, selectedUser.id, parseInt(selectedSlotId), formatDate(selectedDate), true);
+        await staffBookingMutation.mutateAsync({
+          userId: selectedUser.id,
+          slotId: parseInt(selectedSlotId),
+          date: dateStr,
+        });
         setMessage('Booking created successfully!');
         setSelectedUser(null);
       } else {
-        const res = await createBooking(token, selectedSlotId, formatDate(selectedDate));
+        const res = await bookingMutation.mutateAsync({ slotId: selectedSlotId, date: dateStr });
         setMessage('Booking submitted!');
         if (res.bookingsThisMonth !== undefined) {
           setBookingsThisMonth(res.bookingsThisMonth);
@@ -175,6 +181,7 @@ export default function SlotBooking({ token, role }: Props) {
       }
       setSelectedDate(null);
       setSelectedSlotId(null);
+      queryClient.invalidateQueries({ queryKey: ['slots'] });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       if (/already.*(twice|2)/i.test(msg)) {
@@ -207,7 +214,7 @@ export default function SlotBooking({ token, role }: Props) {
           sx={{ mb: 2 }}
         />
         <ul className="user-results">
-          {userResults.map(user => (
+          {userResults.slice(0, 5).map(user => (
             <li key={user.id} className="user-item">
               {user.name} ({user.email})
               <Button size="small" variant="outlined" color="primary" sx={{ ml: 1 }} onClick={() => setSelectedUser(user)}>
