@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { searchUsers, getBookingHistory } from '../../api/api';
+import { searchUsers, getBookingHistory, rescheduleBookingByToken } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
   Button,
@@ -28,6 +28,7 @@ interface Booking {
   slot_id: number;
   is_staff_booking: boolean;
   reason?: string;
+  reschedule_token: string;
 }
 
 export default function UserHistory({
@@ -143,12 +144,13 @@ export default function UserHistory({
                   <th>Time</th>
                   <th>Status</th>
                   <th>Reason</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginated.length === 0 && (
                   <tr>
-                    <td colSpan={4}>No bookings.</td>
+                    <td colSpan={5}>No bookings.</td>
                   </tr>
                 )}
                 {paginated.map(b => {
@@ -184,6 +186,28 @@ export default function UserHistory({
                       </td>
                       <td>{b.status}</td>
                       <td>{b.reason || ''}</td>
+                      <td>
+                        {['approved', 'submitted'].includes(b.status.toLowerCase()) && (
+                          <Button
+                            onClick={() => {
+                              const date = prompt('Enter new date (YYYY-MM-DD)');
+                              const slot = prompt('Enter new slot ID');
+                              if (date && slot) {
+                                rescheduleBookingByToken(
+                                  b.reschedule_token,
+                                  slot,
+                                  date,
+                                  token,
+                                ).catch(() => {});
+                              }
+                            }}
+                            variant="outlined"
+                            color="primary"
+                          >
+                            Reschedule
+                          </Button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

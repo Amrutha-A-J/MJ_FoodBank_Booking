@@ -48,6 +48,7 @@ export interface VolunteerBooking {
   end_time: string;
   role_name: string;
   status_color?: string;
+  reschedule_token?: string;
 }
 
 export interface VolunteerBookingDetail {

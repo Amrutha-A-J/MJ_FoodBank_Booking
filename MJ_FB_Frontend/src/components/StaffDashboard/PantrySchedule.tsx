@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
+import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots, rescheduleBookingByToken } from '../../api/api';
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
@@ -17,6 +17,7 @@ interface Booking {
   client_id: number;
   bookings_this_month: number;
   is_staff_booking: boolean;
+  reschedule_token: string;
 }
 
 interface User {
@@ -122,6 +123,27 @@ export default function PantrySchedule({ token }: { token: string }) {
       await loadData();
     } catch {
       setMessage('Failed to cancel booking');
+    } finally {
+      setDecisionBooking(null);
+      setDecisionReason('');
+    }
+  }
+
+  async function rescheduleSelected() {
+    if (!decisionBooking) return;
+    const date = prompt('Enter new date (YYYY-MM-DD)');
+    const slot = prompt('Enter new slot ID');
+    if (!date || !slot) return;
+    try {
+      await rescheduleBookingByToken(
+        decisionBooking.reschedule_token,
+        slot,
+        date,
+        token,
+      );
+      await loadData();
+    } catch {
+      setMessage('Failed to reschedule booking');
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
@@ -326,6 +348,7 @@ export default function PantrySchedule({ token }: { token: string }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               {decisionBooking.status === 'submitted' ? (
                 <>
+                  <Button onClick={rescheduleSelected} variant="outlined" color="primary">Reschedule</Button>
                   <Button onClick={() => decideSelected('approve')} variant="outlined" color="primary">Approve</Button>
                   <Button onClick={() => decideSelected('reject')} variant="outlined" color="primary">Reject</Button>
                   <Button
@@ -341,6 +364,7 @@ export default function PantrySchedule({ token }: { token: string }) {
                 </>
               ) : (
                 <>
+                  <Button onClick={rescheduleSelected} variant="outlined" color="primary">Reschedule</Button>
                   <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
                   <Button
                     onClick={() => {
