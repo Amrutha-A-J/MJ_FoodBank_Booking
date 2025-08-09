@@ -6,6 +6,7 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import FeedbackModal from './FeedbackModal';
 import FormContainer from './FormContainer';
 import Page from './Page';
+import PasswordResetDialog from './PasswordResetDialog';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [checking, setChecking] = useState(true);
@@ -37,6 +38,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
+  const [resetOpen, setResetOpen] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +62,9 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
       <FormContainer onSubmit={submit} submitLabel="Login">
         <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+        <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
       </FormContainer>
+      <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="staff" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Page>
   );
