@@ -90,7 +90,8 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
             group.links.length === 1 ? (
               <Button
                 key={group.links[0].id}
-                color={group.links[0].id === active ? 'secondary' : 'inherit'}
+                variant="outlined"
+                color="primary"
                 onClick={() => onSelect(group.links[0].id)}
                 disabled={loading}
               >
@@ -99,7 +100,8 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
             ) : (
               <Box key={group.label}>
                 <Button
-                  color={group.links.some((l) => l.id === active) ? 'secondary' : 'inherit'}
+                  variant="outlined"
+                  color="primary"
                   onClick={(e) => handleGroupClick(group.label, e)}
                 >
                   {group.label}
@@ -130,7 +132,7 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
         <IconButton color="inherit" onClick={colorMode.toggleColorMode}>
           {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
         </IconButton>
-        <Button color="inherit" onClick={onLogout} sx={{ ml: 1 }}>
+        <Button variant="outlined" color="primary" onClick={onLogout} sx={{ ml: 1 }}>
           Logout
         </Button>
       </Toolbar>

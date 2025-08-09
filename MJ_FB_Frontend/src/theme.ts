@@ -24,6 +24,10 @@ export const getTheme = (
     },
     components: {
       MuiButton: {
+        defaultProps: {
+          variant: 'outlined',
+          color: 'primary',
+        },
         styleOverrides: {
           root: { borderRadius: 8 },
         },

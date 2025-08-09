@@ -38,7 +38,7 @@ export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (use
       <Stack component="form" spacing={2} onSubmit={handleSubmit} mt={2}>
         <TextField value={clientId} onChange={e => setClientId(e.target.value)} label="Client ID" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="contained">Login</Button>
+        <Button type="submit" variant="outlined" color="primary">Login</Button>
       </Stack>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>

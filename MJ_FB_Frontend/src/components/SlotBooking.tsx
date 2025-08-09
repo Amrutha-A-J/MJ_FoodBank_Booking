@@ -210,7 +210,7 @@ export default function SlotBooking({ token, role }: Props) {
           {userResults.map(user => (
             <li key={user.id} className="user-item">
               {user.name} ({user.email})
-              <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => setSelectedUser(user)}>
+              <Button size="small" variant="outlined" color="primary" sx={{ ml: 1 }} onClick={() => setSelectedUser(user)}>
                 Book Appointment
               </Button>
             </li>
@@ -270,15 +270,19 @@ export default function SlotBooking({ token, role }: Props) {
                   </li>
                 ))}
               </ul>
-              <button disabled={!selectedSlotId} onClick={submitBooking}>
+              <Button disabled={!selectedSlotId} onClick={submitBooking} variant="outlined" color="primary">
                 {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
-              </button>
+              </Button>
             </>
           )}
         </div>
       )}
 
-      {role === 'staff' && <button onClick={() => setSelectedUser(null)}>Back to Search</button>}
+      {role === 'staff' && (
+        <Button onClick={() => setSelectedUser(null)} variant="outlined" color="primary">
+          Back to Search
+        </Button>
+      )}
       <FeedbackSnackbar
         open={!!message}
         onClose={() => setMessage('')}

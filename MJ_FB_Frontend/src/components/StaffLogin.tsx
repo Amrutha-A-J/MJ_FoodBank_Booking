@@ -57,7 +57,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
       <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
         <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="contained">Login</Button>
+        <Button type="submit" variant="outlined" color="primary">Login</Button>
       </Stack>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
@@ -91,7 +91,7 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
         <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" />
         <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="contained">Create Staff</Button>
+        <Button type="submit" variant="outlined" color="primary">Create Staff</Button>
       </Stack>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
