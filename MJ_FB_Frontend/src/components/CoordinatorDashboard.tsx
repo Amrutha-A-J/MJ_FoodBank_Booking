@@ -85,7 +85,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [editRoleDropdownOpen, setEditRoleDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const editDropdownRef = useRef<HTMLDivElement>(null);
 
   function toggleCreateRole(name: string, checked: boolean) {
     setSelectedCreateRoles(prev =>
@@ -115,6 +117,9 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setRoleDropdownOpen(false);
+      }
+      if (editDropdownRef.current && !editDropdownRef.current.contains(e.target as Node)) {
+        setEditRoleDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -495,27 +500,50 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           {selectedVolunteer && (
             <div>
               <h3>Edit Roles for {selectedVolunteer.name}</h3>
-              <div style={{ marginBottom: 8 }}>
-                {groupedRoles.map(g => (
-                  <div key={g.category} style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                    {g.roles.map(r => (
-                      <label
-                        key={r.name}
-                        style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
-                      >
-                        <input
-                          type="checkbox"
-                          value={r.name}
-                          checked={trainedEdit.includes(r.name)}
-                          onChange={e => toggleTrained(r.name, e.target.checked)}
-                          style={{ marginRight: 6 }}
-                        />
-                        {r.name}
-                      </label>
+              <div style={{ marginBottom: 8, position: 'relative' }} ref={editDropdownRef}>
+                <label>Role: </label>
+                <Button
+                  type="button"
+                  onClick={() => setEditRoleDropdownOpen(o => !o)}
+                  variant="outlined"
+                  color="primary"
+                >
+                  {trainedEdit.length ? trainedEdit.join(', ') : 'Select roles'}
+                </Button>
+                {editRoleDropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      background: 'white',
+                      border: '1px solid #ccc',
+                      padding: 8,
+                      zIndex: 1,
+                      maxHeight: 200,
+                      overflowY: 'auto',
+                      marginTop: 4,
+                    }}
+                  >
+                    {groupedRoles.map(g => (
+                      <div key={g.category} style={{ marginBottom: 8 }}>
+                        <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                        {g.roles.map(r => (
+                          <FormControlLabel
+                            key={r.name}
+                            control={
+                              <Checkbox
+                                value={r.name}
+                                checked={trainedEdit.includes(r.name)}
+                                onChange={e => toggleTrained(r.name, e.target.checked)}
+                              />
+                            }
+                            label={r.name}
+                            sx={{ width: '100%', m: 0 }}
+                          />
+                        ))}
+                      </div>
                     ))}
                   </div>
-                ))}
+                )}
               </div>
               <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
               {editMsg && <p>{editMsg}</p>}
