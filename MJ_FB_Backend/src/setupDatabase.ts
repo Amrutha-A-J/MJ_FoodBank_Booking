@@ -1,19 +1,17 @@
 import { Client } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import config from './config';
 
 export async function setupDatabase() {
-  const dbName = process.env.PG_DATABASE || 'mj_fb_db';
-  const config = {
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    host: process.env.PG_HOST,
-    port: Number(process.env.PG_PORT),
+  const dbName = config.pgDatabase;
+  const dbConfig = {
+    user: config.pgUser,
+    password: config.pgPassword,
+    host: config.pgHost,
+    port: config.pgPort,
   };
 
   // Connect to default database to ensure target database exists
-  const adminClient = new Client({ ...config, database: 'postgres' });
+  const adminClient = new Client({ ...dbConfig, database: 'postgres' });
   await adminClient.connect();
   const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
   if (dbExists.rowCount === 0) {
@@ -23,7 +21,7 @@ export async function setupDatabase() {
   await adminClient.end();
 
   // Now connect to the target database
-  const client = new Client({ ...config, database: dbName });
+  const client = new Client({ ...dbConfig, database: dbName });
   await client.connect();
 
   // Create tables if they do not exist
