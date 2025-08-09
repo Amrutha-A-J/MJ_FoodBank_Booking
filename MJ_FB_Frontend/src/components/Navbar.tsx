@@ -122,10 +122,12 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
           )
         )}
         <Box sx={{ flexGrow: 1 }} />
-        <Typography variant="body2" sx={{ mr: 1 }}>
-          Hello, {name}
-        </Typography>
-        <Button color="inherit" onClick={onLogout} sx={{ ml: 1 }}>
+        {name && (
+          <Typography variant="body2" sx={{ mr: 1 }}>
+            Hello, {name}
+          </Typography>
+        )}
+        <Button color="inherit" onClick={onLogout} sx={{ ml: name ? 1 : 0 }}>
           Logout
         </Button>
       </Toolbar>
