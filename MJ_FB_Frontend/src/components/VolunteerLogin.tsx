@@ -27,11 +27,13 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
     <Box>
       <Link component="button" onClick={onBack} underline="hover">User Login</Link>
       <Typography variant="h4" gutterBottom>Volunteer Login</Typography>
-      <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
-        <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="outlined" color="primary">Login</Button>
-      </Stack>
+      <Box component="form" onSubmit={submit} mt={2}>
+        <Stack spacing={2}>
+          <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" />
+          <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
+          <Button type="submit" variant="outlined" color="primary">Login</Button>
+        </Stack>
+      </Box>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
   );
