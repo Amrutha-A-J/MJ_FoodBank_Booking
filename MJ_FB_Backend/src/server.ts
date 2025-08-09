@@ -19,14 +19,9 @@ import logger from './utils/logger';
 const app = express();
 
 // ⭐ Add CORS middleware before routes
-// Allow a comma separated list of frontend origins so local hosts like
-// "http://127.0.0.1:5173" work in addition to "http://localhost:5173".
-const allowedOrigins = config.frontendOrigin
-  .split(',')
-  .map((o: string) => o.trim());
-
+// Origins are parsed from FRONTEND_ORIGIN env variable as a comma-separated list.
 app.use(cors({
-  origin: allowedOrigins,
+  origin: config.frontendOrigins,
   credentials: true,
 }));
 

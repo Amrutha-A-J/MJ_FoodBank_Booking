@@ -15,7 +15,7 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `PG_DATABASE` – PostgreSQL database name.
 
-`FRONTEND_ORIGIN` – Origin URL of the frontend allowed for CORS. Defaults to `http://localhost:5173` if unset.
+`FRONTEND_ORIGIN` – Comma-separated list of frontend origin URLs allowed for CORS. Defaults to `http://localhost:5173,http://127.0.0.1:5173` if unset.
 
 `JWT_SECRET` – Secret key used to sign and verify JSON Web Tokens. **Required**.
 
