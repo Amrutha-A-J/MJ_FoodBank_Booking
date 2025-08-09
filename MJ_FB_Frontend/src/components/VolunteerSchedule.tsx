@@ -66,11 +66,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       ]);
       setRoles(roleData);
       const map = new Map<number, string>();
-      roleData.forEach(r => map.set(r.role_id, r.name));
+      roleData.forEach((r: VolunteerRole) => map.set(r.role_id, r.name));
       setBaseRoles(Array.from(map, ([id, name]) => ({ id, name })));
       setSelectedRole(prev => (prev && map.has(Number(prev)) ? prev : ''));
       const filtered = bookingData.filter(
-        b => b.date === dateStr && ['approved', 'pending'].includes(b.status)
+        (b: VolunteerBooking) =>
+          b.date === dateStr && ['approved', 'pending'].includes(b.status)
       );
       setBookings(filtered);
     } catch (err) {
