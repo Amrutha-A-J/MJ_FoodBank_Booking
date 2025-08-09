@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -129,6 +129,19 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       roles,
     }));
   }, [roles]);
+
+  const scheduleRoleItems = useMemo(
+    () =>
+      scheduleRoleGroups.flatMap(g => [
+        <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
+        ...g.roles.map(r => (
+          <MenuItem key={r.id} value={r.id}>
+            {r.name}
+          </MenuItem>
+        )),
+      ]),
+    [scheduleRoleGroups]
+  );
 
   const selectedRoleNames = useMemo(() => {
     const map = new Map<number, string>();
@@ -391,16 +404,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               }
             >
               <MenuItem value="">Select role</MenuItem>
-              {scheduleRoleGroups.map(g => (
-                <Fragment key={g.category}>
-                  <ListSubheader>{g.category}</ListSubheader>
-                  {g.roles.map(r => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
-                </Fragment>
-              ))}
+              {scheduleRoleItems}
             </Select>
           </FormControl>
           {selectedRole && roleInfo ? (
