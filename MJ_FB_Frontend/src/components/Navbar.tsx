@@ -87,7 +87,8 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
             group.links.length === 1 ? (
               <Button
                 key={group.links[0].id}
-                color="inherit"
+                variant="outlined"
+                color="primary"
                 onClick={() => onSelect(group.links[0].id)}
                 disabled={loading}
               >
@@ -96,7 +97,8 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
             ) : (
               <Box key={group.label}>
                 <Button
-                  color="inherit"
+                  variant="outlined"
+                  color="primary"
                   onClick={(e) => handleGroupClick(group.label, e)}
                 >
                   {group.label}

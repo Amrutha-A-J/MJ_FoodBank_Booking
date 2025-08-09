@@ -15,7 +15,7 @@ export default function FeedbackModal({ open, onClose, message, severity = 'succ
         <Alert severity={severity}>{message}</Alert>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button onClick={onClose} variant="outlined" color="primary">Close</Button>
       </DialogActions>
     </Dialog>
   );

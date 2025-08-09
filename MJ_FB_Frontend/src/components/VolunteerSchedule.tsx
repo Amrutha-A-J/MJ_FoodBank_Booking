@@ -207,7 +207,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
               mb: 2,
             }}
           >
-            <Button onClick={() => changeDay(-1)}>Previous</Button>
+            <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
             <Typography variant="h6" component="h3">
               {dateStr} - {dayName}
               {isHoliday
@@ -216,7 +216,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
                   ? ' (Weekend)'
                   : ''}
             </Typography>
-            <Button onClick={() => changeDay(1)}>Next</Button>
+            <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
           </Box>
           <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
           {isClosed ? (
@@ -235,8 +235,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           <Typography>Request booking for {requestRole?.name}?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={submitRequest}>Submit</Button>
-          <Button onClick={() => setRequestRole(null)}>Cancel</Button>
+          <Button onClick={submitRequest} variant="outlined" color="primary">Submit</Button>
+          <Button onClick={() => setRequestRole(null)} variant="outlined" color="primary">Cancel</Button>
         </DialogActions>
       </Dialog>
 
@@ -260,12 +260,14 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={cancelSelected}>Confirm</Button>
+          <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
           <Button
             onClick={() => {
               setDecisionBooking(null);
               setDecisionReason('');
             }}
+            variant="outlined"
+            color="primary"
           >
             Cancel
           </Button>

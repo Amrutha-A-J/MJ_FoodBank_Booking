@@ -30,7 +30,7 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
       <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
         <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="contained">Login</Button>
+        <Button type="submit" variant="outlined" color="primary">Login</Button>
       </Stack>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>

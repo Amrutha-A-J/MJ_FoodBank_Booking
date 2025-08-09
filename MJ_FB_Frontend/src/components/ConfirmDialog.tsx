@@ -16,8 +16,8 @@ export default function ConfirmDialog({ message, onConfirm, onCancel, children }
         {children}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onConfirm}>Confirm</Button>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onConfirm} variant="outlined" color="primary">Confirm</Button>
+        <Button onClick={onCancel} variant="outlined" color="primary">Cancel</Button>
       </DialogActions>
     </Dialog>
   );
