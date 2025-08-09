@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { searchUsers, getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
-import { Button } from '@mui/material';
+import {
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 
 const TIMEZONE = 'America/Regina';
 
@@ -81,10 +88,13 @@ export default function UserHistory({
       <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
       {!initialUser && (
         <>
-          <input
+          <TextField
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or client ID"
+            label="Search"
+            size="small"
+            sx={{ mb: 1 }}
           />
           {results.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -110,20 +120,21 @@ export default function UserHistory({
       {selected && (
         <div>
           {selected.name && <h3>History for {selected.name}</h3>}
-          <div>
-            <label htmlFor={initialUser ? 'filterUser' : 'filterStaff'}>Filter:</label>{' '}
-            <select
-              id={initialUser ? 'filterUser' : 'filterStaff'}
+          <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
+            <InputLabel id="filter-label">Filter</InputLabel>
+            <Select
+              labelId="filter-label"
               value={filter}
+              label="Filter"
               onChange={e => setFilter(e.target.value)}
             >
-              <option value="all">All</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="pending">Pending</option>
-              <option value="past">Past</option>
-            </select>
-          </div>
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="approved">Approved</MenuItem>
+              <MenuItem value="rejected">Rejected</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="past">Past</MenuItem>
+            </Select>
+          </FormControl>
           <div className="history-table-container">
             <table className="history-table">
               <thead>
