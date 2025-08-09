@@ -42,7 +42,7 @@ describe('POST /bookings capacity check', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, max_capacity: 1 }] })
       .mockResolvedValueOnce({ rows: [{ count: '1' }] });
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA');
     const res = await request(app)
       .post('/bookings')
       .set('Authorization', 'Bearer token')
