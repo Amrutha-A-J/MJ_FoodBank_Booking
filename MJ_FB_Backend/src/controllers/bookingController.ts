@@ -10,10 +10,19 @@ import {
 import { sendEmail } from '../utils/emailUtils';
 import logger from '../utils/logger';
 
+// Custom error to preserve HTTP status codes for capacity issues
+class SlotCapacityError extends Error {
+  status: number;
+  constructor(message: string) {
+    super(message);
+    this.status = 400;
+  }
+}
+
 // --- Helper: validate slot and check capacity ---
 async function checkSlotCapacity(slotId: number, date: string) {
   const slotRes = await pool.query('SELECT * FROM slots WHERE id = $1', [slotId]);
-  if (slotRes.rowCount === 0) throw new Error('Invalid slot');
+  if (slotRes.rowCount === 0) throw new SlotCapacityError('Invalid slot');
 
   const approvedCountRes = await pool.query(
     `SELECT COUNT(*) FROM bookings WHERE slot_id=$1 AND date=$2 AND status='approved'`,
@@ -21,7 +30,7 @@ async function checkSlotCapacity(slotId: number, date: string) {
   );
   const approvedCount = Number(approvedCountRes.rows[0].count);
   if (approvedCount >= slotRes.rows[0].max_capacity) {
-    throw new Error('Slot full on selected date');
+    throw new SlotCapacityError('Slot full on selected date');
   }
 }
 
@@ -67,7 +76,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
-    next(error);
+    return next(error);
   }
 }
 
@@ -341,7 +350,7 @@ export async function createBookingForUser(
     res.status(201).json({ message: 'Booking created for user', rescheduleToken: token });
   } catch (error: any) {
     logger.error('Error creating booking for user:', error);
-    next(error);
+    return next(error);
   }
 }
 
