@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { loginVolunteer } from '../api/api';
 import type { LoginResponse } from '../api/api';
-import { Box, Typography, TextField, Button, Stack, Link } from '@mui/material';
+import { Box, Typography, TextField, Link } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormContainer from './FormContainer';
 
 export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
   const [username, setUsername] = useState('');
@@ -24,13 +25,10 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
     <Box>
       <Link component="button" onClick={onBack} underline="hover">User Login</Link>
       <Typography variant="h4" gutterBottom>Volunteer Login</Typography>
-      <Box component="form" onSubmit={submit} mt={2}>
-        <Stack spacing={2}>
-          <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" />
-          <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-          <Button type="submit" variant="outlined" color="primary">Login</Button>
-        </Stack>
-      </Box>
+      <FormContainer onSubmit={submit} submitLabel="Login">
+        <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
+        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+      </FormContainer>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
   );
