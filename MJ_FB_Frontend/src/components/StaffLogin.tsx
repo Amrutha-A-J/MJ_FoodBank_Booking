@@ -94,7 +94,7 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
           <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" />
           <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" />
           <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-          <Button type="submit" variant="outlined" color="primary">Create Staff</Button>
+          <Button type="submit" variant="contained" color="primary">Create Staff</Button>
         </Stack>
       </Box>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
