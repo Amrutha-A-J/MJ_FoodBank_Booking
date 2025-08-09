@@ -31,7 +31,7 @@ export default function App() {
     setName('');
   }
 
-  const navGroups: NavGroup[] = [{ label: 'Profile', links: [{ label: 'Profile', to: '/profile' }] }];
+  const navGroups: NavGroup[] = [];
   if (isStaff) {
     const staffLinks = [
       { label: 'Staff Dashboard', to: '/staff-dashboard' },
@@ -116,7 +116,15 @@ export default function App() {
                 <Route
                   path="/"
                   element={
-                    <Navigate to={role === 'volunteer' ? '/volunteer-dashboard' : '/profile'} />
+                    <Navigate
+                      to={
+                        role === 'volunteer'
+                          ? '/volunteer-dashboard'
+                          : role === 'staff'
+                          ? '/pantry-schedule'
+                          : '/profile'
+                      }
+                    />
                   }
                 />
                 <Route path="/profile" element={<Profile token={token} role={role} />} />
@@ -169,7 +177,15 @@ export default function App() {
                 <Route
                   path="*"
                   element={
-                    <Navigate to={role === 'volunteer' ? '/volunteer-dashboard' : '/profile'} />
+                    <Navigate
+                      to={
+                        role === 'volunteer'
+                          ? '/volunteer-dashboard'
+                          : role === 'staff'
+                          ? '/pantry-schedule'
+                          : '/profile'
+                      }
+                    />
                   }
                 />
               </Routes>

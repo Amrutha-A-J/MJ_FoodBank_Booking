@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '../components/Navbar';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -16,6 +16,8 @@ describe('Navbar component', () => {
 
     expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
     expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Hello, Tester/i));
+    expect(screen.getByText(/Profile/i)).toBeInTheDocument();
   });
 
   it('renders without greeting when name is absent', () => {
