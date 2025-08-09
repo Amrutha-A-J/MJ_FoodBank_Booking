@@ -8,12 +8,10 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { Brightness4, Brightness7 } from '@mui/icons-material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { ColorModeContext } from '../theme';
 
 export type NavLink = { label: string; id: string };
 export type NavGroup = { label: string; links: NavLink[] };
@@ -29,7 +27,6 @@ interface NavbarProps {
 
 export default function Navbar({ groups, active, onSelect, onLogout, name, loading }: NavbarProps) {
   const theme = useTheme();
-  const colorMode = useContext(ColorModeContext);
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
@@ -129,10 +126,7 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
         <Typography variant="body2" sx={{ mr: 1 }}>
           Hello, {name}
         </Typography>
-        <IconButton color="inherit" onClick={colorMode.toggleColorMode}>
-          {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-        </IconButton>
-        <Button variant="outlined" color="primary" onClick={onLogout} sx={{ ml: 1 }}>
+        <Button color="inherit" onClick={onLogout} sx={{ ml: 1 }}>
           Logout
         </Button>
       </Toolbar>
