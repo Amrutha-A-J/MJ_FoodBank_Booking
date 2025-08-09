@@ -16,8 +16,9 @@ import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 
 export default function App() {
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [role, setRole] = useState<Role>((localStorage.getItem('role') || '') as Role);
+  const [token, setToken] = useState('');
+  const [role, setRole] = useState<Role>('' as Role);
+  const [name, setName] = useState('');
   const [activePage, setActivePage] = useState(() => {
     return window.location.pathname === '/volunteer-dashboard' ? 'volunteerDashboard' : 'profile';
   });
@@ -39,7 +40,7 @@ export default function App() {
   function logout() {
     setToken('');
     setRole('' as Role);
-    localStorage.clear();
+    setName('');
   }
 
   function handleNavClick(id: string) {
@@ -80,12 +81,7 @@ export default function App() {
             onLogin={(u) => {
               setToken(u.token);
               setRole(u.role);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
-              if (u.bookingsThisMonth !== undefined) {
-                localStorage.setItem('bookingsThisMonth', u.bookingsThisMonth.toString());
-              }
+              setName(u.name);
             }}
             onStaff={() => setLoginMode('staff')}
             onVolunteer={() => setLoginMode('volunteer')}
@@ -95,10 +91,7 @@ export default function App() {
             onLogin={(u) => {
               setToken(u.token);
               setRole(u.role);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
-              localStorage.removeItem('bookingsThisMonth');
+              setName(u.name);
             }}
             onBack={() => setLoginMode('user')}
           />
@@ -107,9 +100,7 @@ export default function App() {
             onLogin={(u) => {
               setToken(u.token);
               setRole(u.role);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
+              setName(u.name);
             }}
             onBack={() => setLoginMode('user')}
           />
@@ -121,7 +112,7 @@ export default function App() {
             active={activePage}
             onSelect={handleNavClick}
             onLogout={logout}
-            name={localStorage.getItem('name') || undefined}
+            name={name || undefined}
             loading={loading}
           />
 
@@ -133,7 +124,7 @@ export default function App() {
           />
 
           <main>
-            {activePage === 'profile' && <Profile />}
+            {activePage === 'profile' && <Profile token={token} role={role} />}
             {activePage === 'staffDashboard' && isStaff && (
               <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
             )}
@@ -149,7 +140,7 @@ export default function App() {
             {activePage === 'bookingHistory' && role === 'shopper' && (
               <UserHistory
                 token={token}
-                initialUser={{ id: 0, name: localStorage.getItem('name') || '', client_id: 0 }}
+                initialUser={{ id: 0, name, client_id: 0 }}
               />
             )}
             {activePage === 'addUser' && isStaff && (

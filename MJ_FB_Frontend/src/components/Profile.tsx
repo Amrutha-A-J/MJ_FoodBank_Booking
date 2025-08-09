@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Role, UserProfile } from '../types';
 import { getUserProfile } from '../api/api';
 
-export default function Profile() {
-  const role = (localStorage.getItem('role') || '') as Role;
-  const token = localStorage.getItem('token') || '';
+export default function Profile({ token, role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
 
