@@ -6,6 +6,7 @@ import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import { TextField, Button } from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
 const LIMIT_MESSAGE =
@@ -198,17 +199,20 @@ export default function SlotBooking({ token, role }: Props) {
   if (role === 'staff' && !selectedUser) {
     return (
       <div>
-        <input
-          type="text"
+        <TextField
           placeholder="Search users by name/email/phone/client ID"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
+          fullWidth
+          sx={{ mb: 2 }}
         />
         <ul className="user-results">
           {userResults.map(user => (
             <li key={user.id} className="user-item">
               {user.name} ({user.email})
-              <button onClick={() => setSelectedUser(user)}>Book Appointment</button>
+              <Button size="small" variant="outlined" sx={{ ml: 1 }} onClick={() => setSelectedUser(user)}>
+                Book Appointment
+              </Button>
             </li>
           ))}
         </ul>

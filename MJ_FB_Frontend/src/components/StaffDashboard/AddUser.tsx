@@ -3,6 +3,7 @@ import { addUser, createStaff } from '../../api/api';
 import type { UserRole, StaffRole } from '../../types';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';
+import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
@@ -66,102 +67,57 @@ export default function AddUser({ token }: { token: string }) {
   }
 
   return (
-    <div>
-      <h2>{mode === 'user' ? 'Create User' : 'Create Staff'}</h2>
-      <div style={{ marginBottom: 12 }}>
-        <button onClick={() => setMode('user')}>Create User</button>
-        <button onClick={() => setMode('staff')} style={{ marginLeft: 8 }}>Create Staff</button>
-      </div>
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        {mode === 'user' ? 'Create User' : 'Create Staff'}
+      </Typography>
+      <Stack direction="row" spacing={1} mb={2}>
+        <Button variant={mode === 'user' ? 'contained' : 'outlined'} onClick={() => setMode('user')}>
+          Create User
+        </Button>
+        <Button variant={mode === 'staff' ? 'contained' : 'outlined'} onClick={() => setMode('staff')}>
+          Create Staff
+        </Button>
+      </Stack>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
       {mode === 'user' ? (
-        <>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              First Name:{' '}
-              <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Last Name:{' '}
-              <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Client ID:{' '}
-              <input type="text" value={clientId} onChange={e => setClientId(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Email (optional):{' '}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Phone (optional):{' '}
-              <input type="text" value={phone} onChange={e => setPhone(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Password:{' '}
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Role:{' '}
-              <select value={role} onChange={e => setRole(e.target.value as UserRole)}>
-                <option value="shopper">Shopper</option>
-                <option value="delivery">Delivery</option>
-              </select>
-            </label>
-          </div>
-          <button onClick={submitUser}>Add User</button>
-        </>
+        <Stack spacing={2}>
+          <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+          <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+          <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
+          <TextField label="Email (optional)" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <TextField label="Phone (optional)" value={phone} onChange={e => setPhone(e.target.value)} />
+          <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
+            <MenuItem value="shopper">Shopper</MenuItem>
+            <MenuItem value="delivery">Delivery</MenuItem>
+          </TextField>
+          <Button variant="contained" onClick={submitUser}>
+            Add User
+          </Button>
+        </Stack>
       ) : (
-        <>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              First Name:{' '}
-              <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Last Name:{' '}
-              <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Staff Role:{' '}
-              <select value={staffRole} onChange={e => setStaffRole(e.target.value as StaffRole)}>
-                <option value="staff">Staff</option>
-                <option value="volunteer_coordinator">Volunteer Coordinator</option>
-              </select>
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Email:{' '}
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} />
-            </label>
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>
-              Password:{' '}
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
-            </label>
-          </div>
-          <button onClick={submitStaff}>Add Staff</button>
-        </>
+        <Stack spacing={2}>
+          <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+          <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+          <TextField
+            select
+            label="Staff Role"
+            value={staffRole}
+            onChange={e => setStaffRole(e.target.value as StaffRole)}
+          >
+            <MenuItem value="staff">Staff</MenuItem>
+            <MenuItem value="volunteer_coordinator">Volunteer Coordinator</MenuItem>
+          </TextField>
+          <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+          <Button variant="contained" onClick={submitStaff}>
+            Add Staff
+          </Button>
+        </Stack>
       )}
-    </div>
+    </Box>
   );
 }
 
