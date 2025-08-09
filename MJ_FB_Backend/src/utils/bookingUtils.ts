@@ -1,11 +1,12 @@
 import pool from '../db';
 
-function getMonthRange(date: Date) {
+export function getMonthRange(date: Date) {
   const start = new Date(date.getFullYear(), date.getMonth(), 1);
   const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const format = (d: Date) => d.toLocaleDateString('en-CA');
   return {
-    start: start.toISOString().split('T')[0],
-    end: end.toISOString().split('T')[0],
+    start: format(start),
+    end: format(end),
   };
 }
 
