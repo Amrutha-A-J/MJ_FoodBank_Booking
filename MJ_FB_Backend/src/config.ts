@@ -16,6 +16,8 @@ const envSchema = z.object({
 
 const env = envSchema.parse(process.env);
 
+const frontendOrigins = env.FRONTEND_ORIGIN.split(',').map(o => o.trim());
+
 const requiredVars: Array<keyof typeof env> = [
   'PG_USER',
   'PG_PASSWORD',
@@ -39,6 +41,6 @@ export default {
   pgPort: env.PG_PORT,
   pgDatabase: env.PG_DATABASE,
   jwtSecret: env.JWT_SECRET,
-  frontendOrigin: env.FRONTEND_ORIGIN,
+  frontendOrigins,
   port: env.PORT,
 };
