@@ -140,12 +140,6 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
 );
 `);
 
-  await client.query(`
-    ALTER TABLE volunteer_roles ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
-    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reschedule_token text;
-    ALTER TABLE volunteer_bookings ADD COLUMN IF NOT EXISTS reschedule_token text;
-  `);
-
   // Remove duplicate slots and enforce uniqueness
   await client.query(`
     DELETE FROM slots a
@@ -197,8 +191,7 @@ INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
 ON CONFLICT (day_of_week, slot_id) DO NOTHING;
 
 INSERT INTO staff (first_name, last_name, role, email, password) VALUES
-('Melisa', 'Proulx', 'staff', 'melisa@mjfoodbank', '$2b$10$n4bMtLafHD1zHgoeNBdGauGNd3OPuOMp8SGFP3IFXk5v6ItfHAdrG'),
-('Amrutha', 'Adiyath', 'staff', 'admin@mjfb.org', '$2b$10$VNVdg.VR3WxF6gQivw9sv.DFWOLT6TCZrm.Bi4mdjVLDfZNft6LG6')
+('Admin', 'Admin', 'staff', 'harvestpantry@mjfoodbank.com', '$2b$10$n4bMtLafHD1zHgoeNBdGauGNd3OPuOMp8SGFP3IFXk5v6ItfHAdrG')
 ON CONFLICT (email) DO NOTHING;
  
 INSERT INTO volunteer_master_roles (id, name) VALUES
