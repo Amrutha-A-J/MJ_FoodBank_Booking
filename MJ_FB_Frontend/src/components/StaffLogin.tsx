@@ -54,11 +54,13 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
     <Box>
       <Link component="button" onClick={onBack} underline="hover">User Login</Link>
       <Typography variant="h4" gutterBottom>Staff Login</Typography>
-      <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
-        <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="outlined" color="primary">Login</Button>
-      </Stack>
+      <Box component="form" onSubmit={submit} mt={2}>
+        <Stack spacing={2}>
+          <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" />
+          <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
+          <Button type="submit" variant="outlined" color="primary">Login</Button>
+        </Stack>
+      </Box>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </Box>
   );
@@ -86,13 +88,15 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Create Staff Account</Typography>
-      <Stack component="form" onSubmit={submit} spacing={2} mt={2}>
-        <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" />
-        <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" />
-        <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
-        <Button type="submit" variant="outlined" color="primary">Create Staff</Button>
-      </Stack>
+      <Box component="form" onSubmit={submit} mt={2}>
+        <Stack spacing={2}>
+          <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" />
+          <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" />
+          <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" />
+          <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" />
+          <Button type="submit" variant="outlined" color="primary">Create Staff</Button>
+        </Stack>
+      </Box>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
     </Box>
