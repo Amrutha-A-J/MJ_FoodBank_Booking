@@ -12,25 +12,25 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-export type NavLink = { label: string; id: string };
+export type NavLink = { label: string; to: string };
 export type NavGroup = { label: string; links: NavLink[] };
 
 interface NavbarProps {
   groups: NavGroup[];
-  active: string;
-  onSelect: (id: string) => void;
   onLogout: () => void;
   name?: string;
   loading?: boolean;
 }
 
-export default function Navbar({ groups, active, onSelect, onLogout, name, loading }: NavbarProps) {
+export default function Navbar({ groups, onLogout, name, loading }: NavbarProps) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(null);
+  const location = useLocation();
 
   function handleGroupClick(label: string, event: React.MouseEvent<HTMLElement>) {
     setAnchorEl(event.currentTarget);
@@ -65,13 +65,14 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
                   {!(group.links.length === 1 && group.links[0].label === group.label) && (
                     <MenuItem disabled>{group.label}</MenuItem>
                   )}
-                  {group.links.map(({ label, id }) => (
+                  {group.links.map(({ label, to }) => (
                     <MenuItem
-                      key={id}
-                      selected={active === id}
+                      key={to}
+                      component={RouterLink}
+                      to={to}
+                      selected={location.pathname === to}
                       onClick={() => {
                         setMobileAnchorEl(null);
-                        onSelect(id);
                       }}
                       disabled={loading}
                     >
@@ -86,9 +87,10 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
           groups.map((group) =>
             group.links.length === 1 ? (
               <Button
-                key={group.links[0].id}
+                key={group.links[0].to}
                 color="inherit"
-                onClick={() => onSelect(group.links[0].id)}
+                component={RouterLink}
+                to={group.links[0].to}
                 disabled={loading}
               >
                 {group.links[0].label}
@@ -102,14 +104,13 @@ export default function Navbar({ groups, active, onSelect, onLogout, name, loadi
                   {group.label}
                 </Button>
                 <Menu anchorEl={anchorEl} open={openGroup === group.label} onClose={closeGroup}>
-                  {group.links.map(({ label, id }) => (
+                  {group.links.map(({ label, to }) => (
                     <MenuItem
-                      key={id}
-                      selected={active === id}
-                      onClick={() => {
-                        closeGroup();
-                        onSelect(id);
-                      }}
+                      key={to}
+                      component={RouterLink}
+                      to={to}
+                      selected={location.pathname === to}
+                      onClick={closeGroup}
                       disabled={loading}
                     >
                       {label}
