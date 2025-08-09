@@ -7,11 +7,10 @@ import {
   listVolunteerRolesForVolunteer,
 } from '../controllers/volunteerRoleController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
-import { verifyVolunteerToken } from '../middleware/verifyVolunteerToken';
 
 const router = express.Router();
 
-router.get('/mine', verifyVolunteerToken, listVolunteerRolesForVolunteer);
+router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listVolunteerRolesForVolunteer);
 
 router.use(authMiddleware, authorizeRoles('staff', 'volunteer_coordinator'));
 

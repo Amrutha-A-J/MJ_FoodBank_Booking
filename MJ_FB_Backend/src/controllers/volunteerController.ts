@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import config from '../config';
 import logger from '../utils/logger';
 
 export async function updateTrainedArea(
@@ -61,7 +63,11 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = `volunteer:${volunteer.id}`;
+    const token = jwt.sign(
+      { id: volunteer.id, role: 'volunteer', type: 'volunteer' },
+      config.jwtSecret,
+      { expiresIn: '1h' },
+    );
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
