@@ -467,15 +467,27 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
           {results.length > 0 && (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(r => (
-                <li key={r.id}>
-                  <Button onClick={() => selectVolunteer(r)} variant="outlined" color="primary">{r.name}</Button>
+                <li
+                  key={r.id}
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+                >
+                  <span>{r.name}</span>
+                  <Button
+                    onClick={() => selectVolunteer(r)}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    sx={{ ml: 1 }}
+                  >
+                    Edit
+                  </Button>
                 </li>
               ))}
             </ul>
           )}
           {selectedVolunteer && (
             <div>
-              <h3>Roles for {selectedVolunteer.name}</h3>
+              <h3>Edit Roles for {selectedVolunteer.name}</h3>
               <div style={{ marginBottom: 8 }}>
                 {baseRoles.map(r => (
                   <label
