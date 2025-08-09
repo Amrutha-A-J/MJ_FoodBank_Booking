@@ -36,6 +36,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables:
 | `JWT_SECRET` | Secret used to sign JWT tokens |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
 | `PORT` | Port for the backend server |
+| `POWER_AUTOMATE_URL` | HTTP endpoint for the Power Automate email flow |
+| `POWER_AUTOMATE_KEY` | Optional key or code for the Power Automate flow |
 
 ## Frontend setup (`MJ_FB_Frontend`)
 
