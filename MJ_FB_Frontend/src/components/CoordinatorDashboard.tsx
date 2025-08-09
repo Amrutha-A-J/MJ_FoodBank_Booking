@@ -14,7 +14,14 @@ import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { Button, TextField, MenuItem, ListSubheader } from '@mui/material';
+import {
+  Button,
+  TextField,
+  MenuItem,
+  ListSubheader,
+  Checkbox,
+  ListItemText,
+} from '@mui/material';
 
 interface RoleOption {
   id: number; // unique slot id
@@ -502,7 +509,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                   <ListSubheader>{g.category}</ListSubheader>
                   {g.roles.map(r => (
                     <MenuItem key={r.id} value={r.id}>
-                      {r.name}
+                      <Checkbox checked={selectedCreateRoles.indexOf(r.id) > -1} />
+                      <ListItemText primary={r.name} />
                     </MenuItem>
                   ))}
                 </Fragment>
