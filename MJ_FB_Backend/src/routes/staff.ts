@@ -16,9 +16,7 @@ router.post('/', async (req, res, next: NextFunction) => {
     return createStaff(req, res, next);
   }
   authMiddleware(req, res, () => {
-    authorizeRoles('staff', 'volunteer_coordinator')(req, res, () =>
-      createStaff(req, res, next)
-    );
+    authorizeRoles('staff')(req, res, () => createStaff(req, res, next));
   });
 });
 

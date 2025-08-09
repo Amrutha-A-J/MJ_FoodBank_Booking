@@ -16,18 +16,18 @@ router.post('/', authMiddleware, authorizeRoles('volunteer'), createVolunteerBoo
 router.post(
   '/staff',
   authMiddleware,
-  authorizeRoles('volunteer_coordinator'),
+  authorizeRoles('staff'),
   createVolunteerBookingForVolunteer
 );
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listMyVolunteerBookings);
 router.get(
   '/volunteer/:volunteer_id',
   authMiddleware,
-  authorizeRoles('volunteer_coordinator'),
+  authorizeRoles('staff'),
   listVolunteerBookingsByVolunteer
 );
-router.get('/:role_id', authMiddleware, authorizeRoles('volunteer_coordinator'), listVolunteerBookingsByRole);
-router.patch('/:id', authMiddleware, authorizeRoles('volunteer_coordinator'), updateVolunteerBookingStatus);
+router.get('/:role_id', authMiddleware, authorizeRoles('staff'), listVolunteerBookingsByRole);
+router.patch('/:id', authMiddleware, authorizeRoles('staff'), updateVolunteerBookingStatus);
 router.post('/reschedule/:token', rescheduleVolunteerBooking);
 
 export default router;

@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listVolunteerRolesForVolunteer);
 
-router.use(authMiddleware, authorizeRoles('staff', 'volunteer_coordinator'));
+router.use(authMiddleware, authorizeRoles('staff'));
 
 router.post('/', addVolunteerRole);
 router.get('/', listVolunteerRoles);

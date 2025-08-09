@@ -137,9 +137,7 @@ export async function optionalAuthMiddleware(
 }
 
 export function authorizeRoles(...allowedRoles: string[]) {
-  const hierarchy: Record<string, string[]> = {
-    volunteer_coordinator: ['volunteer'],
-  };
+  const hierarchy: Record<string, string[]> = {};
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });

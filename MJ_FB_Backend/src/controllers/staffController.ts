@@ -32,7 +32,7 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
     return res.status(400).json({ message: 'Missing fields' });
   }
 
-  if (!['staff', 'volunteer_coordinator'].includes(role)) {
+  if (role !== 'staff') {
     return res.status(400).json({ message: 'Invalid role' });
   }
 

@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Date required' });
@@ -19,7 +19,7 @@ router.get(
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const { date, slotId, reason } = req.body;
     if (!date || !slotId) return res.status(400).json({ message: 'Date and slotId required' });
@@ -34,7 +34,7 @@ router.post(
 router.delete(
   '/:date/:slotId',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const { date, slotId } = req.params;
     await pool.query('DELETE FROM blocked_slots WHERE date = $1 AND slot_id = $2', [date, slotId]);

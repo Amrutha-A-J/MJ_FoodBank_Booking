@@ -163,9 +163,8 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
   const bookingId = req.params.id;
   const requester = req.user;
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
-  const reason = ['staff', 'volunteer_coordinator'].includes(requester.role)
-    ? (req.body.reason as string) || ''
-    : 'user cancelled';
+  const reason =
+    requester.role === 'staff' ? (req.body.reason as string) || '' : 'user cancelled';
 
   try {
     const bookingRes = await pool.query('SELECT * FROM bookings WHERE id=$1', [bookingId]);
@@ -173,7 +172,7 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     const booking = bookingRes.rows[0];
 
     if (
-      !['staff', 'volunteer_coordinator'].includes(requester.role) &&
+      requester.role !== 'staff' &&
       booking.user_id !== Number(requester.id)
     ) {
       return res.status(403).json({ message: 'Forbidden' });
@@ -230,8 +229,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     }
     await checkSlotCapacity(slotId, date);
     const newToken = randomUUID();
-    const isStaffReschedule =
-      req.user && ['staff', 'volunteer_coordinator'].includes(req.user.role);
+    const isStaffReschedule = req.user && req.user.role === 'staff';
     const newStatus = isStaffReschedule ? booking.status : 'submitted';
     await pool.query(
       'UPDATE bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
@@ -258,7 +256,7 @@ export async function createPreapprovedBooking(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
+  if (!req.user || req.user.role !== 'staff')
     return res.status(403).json({ message: 'Forbidden' });
 
   const { name, slotId, requestData, date } = req.body;
@@ -319,7 +317,7 @@ export async function createBookingForUser(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.user || !['staff', 'volunteer_coordinator'].includes(req.user.role))
+  if (!req.user || req.user.role !== 'staff')
     return res.status(403).json({ message: 'Forbidden' });
 
   const { userId, slotId, date, isStaffBooking } = req.body;
@@ -361,7 +359,7 @@ export async function getBookingHistory(req: Request, res: Response, next: NextF
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
 
     let userId: number | null = null;
-    if (['staff', 'volunteer_coordinator'].includes(requester.role)) {
+    if (requester.role === 'staff') {
       const paramId = req.query.userId as string;
       if (!paramId) {
         return res.status(400).json({ message: 'userId query parameter required' });

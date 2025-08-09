@@ -1,11 +1,6 @@
-export type Role =
-  | 'staff'
-  | 'shopper'
-  | 'delivery'
-  | 'volunteer_coordinator'
-  | 'volunteer';
+export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer';
 export type UserRole = 'shopper' | 'delivery';
-export type StaffRole = 'staff' | 'volunteer_coordinator';
+export type StaffRole = 'staff';
 
 export interface Slot {
   id: string;

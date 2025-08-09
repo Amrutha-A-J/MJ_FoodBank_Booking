@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (_, res) => {
     const result = await pool.query('SELECT day_of_week, slot_id, reason FROM breaks');
     res.json(
@@ -23,7 +23,7 @@ router.get(
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const { dayOfWeek, slotId, reason } = req.body;
     if (dayOfWeek === undefined || slotId === undefined) {
@@ -40,7 +40,7 @@ router.post(
 router.delete(
   '/:day/:slotId',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   async (req, res) => {
     const { day, slotId } = req.params;
     await pool.query('DELETE FROM breaks WHERE day_of_week = $1 AND slot_id = $2', [day, slotId]);

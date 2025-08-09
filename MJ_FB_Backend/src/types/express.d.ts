@@ -2,7 +2,7 @@ declare namespace Express {
   export interface Request {
     user?: {
       id: string;
-      role: 'shopper' | 'delivery' | 'staff' | 'volunteer_coordinator' | 'volunteer';
+      role: 'shopper' | 'delivery' | 'staff' | 'volunteer';
       email?: string;
     };
   }

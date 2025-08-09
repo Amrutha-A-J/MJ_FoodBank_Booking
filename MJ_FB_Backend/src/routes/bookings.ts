@@ -19,7 +19,7 @@ const router = express.Router();
 
 // Wrapper to handle bookings created by staff or regular users
 const handleCreateBooking = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user && ['staff', 'volunteer_coordinator'].includes(req.user.role)) {
+  if (req.user && req.user.role === 'staff') {
     // Allow staff to create a booking for themselves or another user
     if (!req.body.userId) {
       req.body.userId = req.user.id;
@@ -33,7 +33,7 @@ const handleCreateBooking = (req: Request, res: Response, next: NextFunction) =>
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff', 'volunteer_coordinator'),
+  authorizeRoles('shopper', 'delivery', 'staff'),
   handleCreateBooking
 );
 
@@ -41,7 +41,7 @@ router.post(
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   listBookings
 );
 
@@ -52,7 +52,7 @@ router.get('/history', authMiddleware, getBookingHistory);
 router.post(
   '/:id/decision',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   decideBooking
 );
 
@@ -66,7 +66,7 @@ router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
 router.post(
   '/preapproved',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   createPreapprovedBooking
 );
 
@@ -74,7 +74,7 @@ router.post(
 router.post(
   '/staff',
   authMiddleware,
-  authorizeRoles('staff', 'volunteer_coordinator'),
+  authorizeRoles('staff'),
   createBookingForUser
 );
 
