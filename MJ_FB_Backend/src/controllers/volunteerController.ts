@@ -19,7 +19,7 @@ export async function updateTrainedArea(
   }
   try {
     const validRoles = await pool.query<{ id: number }>(
-      `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
+      `SELECT id FROM volunteer_master_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
     if (validRoles.rowCount !== roleIds.length) {
@@ -139,7 +139,7 @@ export async function createVolunteer(
     }
 
     const validRoles = await pool.query<{ id: number }>(
-      `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
+      `SELECT id FROM volunteer_master_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
     if (validRoles.rowCount !== roleIds.length) {
