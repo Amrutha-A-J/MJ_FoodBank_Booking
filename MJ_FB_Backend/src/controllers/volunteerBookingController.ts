@@ -29,17 +29,18 @@ export async function createVolunteerBooking(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
+    const masterRoleId = role.role_id;
 
     const volRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [user.id, roleId]
+      [user.id, masterRoleId]
     );
     if (volRes.rowCount === 0) {
       return res.status(400).json({ message: 'Not trained for this role' });
@@ -95,17 +96,18 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
+    const masterRoleId = role.role_id;
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [volunteerId, roleId]
+      [volunteerId, masterRoleId]
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
@@ -146,10 +148,11 @@ export async function listVolunteerBookingsByRole(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
-              vr.start_time, vr.end_time, vr.name AS role_name,
+              vr.start_time, vr.end_time, vmr.name AS role_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
        JOIN volunteers v ON vb.volunteer_id = v.id
        WHERE vb.role_id = $1
        ORDER BY vb.date, vr.start_time`,
@@ -177,9 +180,10 @@ export async function listMyVolunteerBookings(
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
               vr.start_time, vr.end_time,
-              vr.name AS role_name
+              vmr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
        WHERE vb.volunteer_id = $1
        ORDER BY vb.date DESC, vr.start_time DESC`,
       [user.id]
@@ -205,9 +209,10 @@ export async function listVolunteerBookingsByVolunteer(
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
               vr.start_time, vr.end_time,
-              vr.name AS role_name
+              vmr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.role_id = vmr.id
        WHERE vb.volunteer_id = $1
        ORDER BY vb.date DESC, vr.start_time DESC`,
       [volunteer_id]
@@ -302,27 +307,29 @@ export async function rescheduleVolunteerBooking(
     }
     const booking = bookingRes.rows[0];
 
-    const trainedRes = await pool.query(
-      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [booking.volunteer_id, roleId],
-    );
-    if (trainedRes.rowCount === 0) {
-      return res.status(400).json({ message: 'Volunteer not trained for this role' });
-    }
-
     const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1',
+      'SELECT max_volunteers, role_id FROM volunteer_roles WHERE id = $1',
       [roleId],
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
+    const role = roleRes.rows[0];
+
+    const trainedRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [booking.volunteer_id, role.role_id],
+    );
+    if (trainedRes.rowCount === 0) {
+      return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
        WHERE role_id = $1 AND date = $2 AND status IN ('pending','approved')`,
       [roleId, date],
     );
-    if (Number(countRes.rows[0].count) >= roleRes.rows[0].max_volunteers) {
+    if (Number(countRes.rows[0].count) >= role.max_volunteers) {
       return res.status(400).json({ message: 'Role is full' });
     }
 
