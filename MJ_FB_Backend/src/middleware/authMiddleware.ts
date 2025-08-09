@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
+import jwt from 'jsonwebtoken';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -13,11 +14,16 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     : authHeader;
 
   try {
-    const match = token.match(/^(staff|user)[:\-](\d+)$/);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid token format' });
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET not set');
     }
-    const [, type, id] = match;
+    const decoded = jwt.verify(token, secret) as {
+      id: number | string;
+      role: string;
+      type: string;
+    };
+    const { id, type, role } = decoded;
     if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
@@ -31,7 +37,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       req.user = {
         id: staffRes.rows[0].id.toString(),
         type: 'staff',
-        role: staffRes.rows[0].role,
+        role,
         name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
         email: staffRes.rows[0].email,
       } as any;
@@ -48,7 +54,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         req.user = {
           id: userRes.rows[0].id.toString(),
           type: 'user',
-          role: userRes.rows[0].role,
+          role,
           email: userRes.rows[0].email,
           phone: userRes.rows[0].phone,
           name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
@@ -83,11 +89,16 @@ export async function optionalAuthMiddleware(
     : authHeader;
 
   try {
-    const match = token.match(/^(staff|user)[:\-](\d+)$/);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid token format' });
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET not set');
     }
-    const [, type, id] = match;
+    const decoded = jwt.verify(token, secret) as {
+      id: number | string;
+      role: string;
+      type: string;
+    };
+    const { id, type, role } = decoded;
     if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
@@ -99,7 +110,7 @@ export async function optionalAuthMiddleware(
       req.user = {
         id: staffRes.rows[0].id.toString(),
         type: 'staff',
-        role: staffRes.rows[0].role,
+        role,
         name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
         email: staffRes.rows[0].email,
       } as any;
@@ -115,7 +126,7 @@ export async function optionalAuthMiddleware(
         req.user = {
           id: userRes.rows[0].id.toString(),
           type: 'user',
-          role: userRes.rows[0].role,
+          role,
           email: userRes.rows[0].email,
           phone: userRes.rows[0].phone,
           name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
