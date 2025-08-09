@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './components/Profile';
 import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageAvailability from './components/StaffDashboard/ManageAvailability';
@@ -19,23 +20,11 @@ export default function App() {
   const [token, setToken] = useState('');
   const [role, setRole] = useState<Role>('' as Role);
   const [name, setName] = useState('');
-  const [activePage, setActivePage] = useState(() => {
-    return window.location.pathname === '/volunteer-dashboard' ? 'volunteerDashboard' : 'profile';
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
   const isStaff = role === 'staff' || role === 'volunteer_coordinator';
   const isCoordinator = role === 'volunteer_coordinator';
-
-  useEffect(() => {
-    function handler(e: Event) {
-      const detail = (e as CustomEvent<string>).detail;
-      if (detail) setActivePage(detail);
-    }
-    window.addEventListener('navigate', handler as EventListener);
-    return () => window.removeEventListener('navigate', handler as EventListener);
-  }, []);
 
   function logout() {
     setToken('');
@@ -43,39 +32,35 @@ export default function App() {
     setName('');
   }
 
-  function handleNavClick(id: string) {
-    setError('');
-    setActivePage(id);
-  }
-
-  const navGroups: NavGroup[] = [{ label: 'Profile', links: [{ label: 'Profile', id: 'profile' }] }];
+  const navGroups: NavGroup[] = [{ label: 'Profile', links: [{ label: 'Profile', to: '/profile' }] }];
   if (isStaff) {
     const staffLinks = [
-      { label: 'Staff Dashboard', id: 'staffDashboard' },
-      { label: 'Manage Availability', id: 'manageAvailability' },
-      { label: 'Pantry Schedule', id: 'pantrySchedule' },
-      { label: 'Add User', id: 'addUser' },
-      { label: 'User History', id: 'userHistory' },
+      { label: 'Staff Dashboard', to: '/staff-dashboard' },
+      { label: 'Manage Availability', to: '/manage-availability' },
+      { label: 'Pantry Schedule', to: '/pantry-schedule' },
+      { label: 'Add User', to: '/add-user' },
+      { label: 'User History', to: '/user-history' },
     ];
     if (isCoordinator) {
-      staffLinks.push({ label: 'Coordinator Dashboard', id: 'coordinatorDashboard' });
+      staffLinks.push({ label: 'Coordinator Dashboard', to: '/coordinator-dashboard' });
     }
     navGroups.push({ label: 'Staff', links: staffLinks });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
       links: [
-        { label: 'Booking Slots', id: 'slots' },
-        { label: 'Booking History', id: 'bookingHistory' },
+        { label: 'Booking Slots', to: '/slots' },
+        { label: 'Booking History', to: '/booking-history' },
       ],
     });
   } else if (role === 'volunteer') {
-    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', id: 'volunteerDashboard' }] });
+    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', to: '/volunteer-dashboard' }] });
   }
 
   return (
-    <div className="app-container">
-      {!token ? (
+    <BrowserRouter>
+      <div className="app-container">
+        {!token ? (
         loginMode === 'user' ? (
           <Login
             onLogin={(u) => {
@@ -105,59 +90,88 @@ export default function App() {
             onBack={() => setLoginMode('user')}
           />
         )
-      ) : (
-        <>
-          <Navbar
-            groups={navGroups}
-            active={activePage}
-            onSelect={handleNavClick}
-            onLogout={logout}
-            name={name || undefined}
-            loading={loading}
-          />
+        ) : (
+          <>
+            <Navbar
+              groups={navGroups}
+              onLogout={logout}
+              name={name || undefined}
+              loading={loading}
+            />
 
-          <FeedbackSnackbar
-            open={!!error}
-            onClose={() => setError('')}
-            message={error}
-            severity="error"
-          />
+            <FeedbackSnackbar
+              open={!!error}
+              onClose={() => setError('')}
+              message={error}
+              severity="error"
+            />
 
-          <main>
-            {activePage === 'profile' && <Profile token={token} role={role} />}
-            {activePage === 'staffDashboard' && isStaff && (
-              <StaffDashboard token={token} setError={setError} setLoading={setLoading} />
-            )}
-            {activePage === 'manageAvailability' && isStaff && (
-              <ManageAvailability token={token} />
-            )}
-            {activePage === 'pantrySchedule' && isStaff && (
-              <PantrySchedule token={token} />
-            )}
-            {activePage === 'slots' && role === 'shopper' && (
-              <SlotBooking token={token} role="shopper" />
-            )}
-            {activePage === 'bookingHistory' && role === 'shopper' && (
-              <UserHistory
-                token={token}
-                initialUser={{ id: 0, name, client_id: 0 }}
-              />
-            )}
-            {activePage === 'addUser' && isStaff && (
-              <AddUser token={token} />
-            )}
-            {activePage === 'userHistory' && isStaff && (
-              <UserHistory token={token} />
-            )}
-            {activePage === 'coordinatorDashboard' && role === 'volunteer_coordinator' && (
-              <CoordinatorDashboard token={token} />
-            )}
-            {activePage === 'volunteerDashboard' && role === 'volunteer' && (
-              <VolunteerDashboard token={token} />
-            )}
-          </main>
-        </>
-      )}
-    </div>
+            <main>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <Navigate to={role === 'volunteer' ? '/volunteer-dashboard' : '/profile'} />
+                  }
+                />
+                <Route path="/profile" element={<Profile token={token} role={role} />} />
+                {isStaff && (
+                  <Route
+                    path="/staff-dashboard"
+                    element={
+                      <StaffDashboard
+                        token={token}
+                        setError={setError}
+                        setLoading={setLoading}
+                      />
+                    }
+                  />
+                )}
+                {isStaff && (
+                  <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                )}
+                {isStaff && (
+                  <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
+                )}
+                {role === 'shopper' && (
+                  <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
+                )}
+                {role === 'shopper' && (
+                  <Route
+                    path="/booking-history"
+                    element={
+                      <UserHistory
+                        token={token}
+                        initialUser={{ id: 0, name, client_id: 0 }}
+                      />
+                    }
+                  />
+                )}
+                {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
+                {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
+                {role === 'volunteer_coordinator' && (
+                  <Route
+                    path="/coordinator-dashboard"
+                    element={<CoordinatorDashboard token={token} />}
+                  />
+                )}
+                {role === 'volunteer' && (
+                  <Route
+                    path="/volunteer-dashboard"
+                    element={<VolunteerDashboard token={token} />}
+                  />
+                )}
+                <Route
+                  path="*"
+                  element={
+                    <Navigate to={role === 'volunteer' ? '/volunteer-dashboard' : '/profile'} />
+                  }
+                />
+              </Routes>
+            </main>
+          </>
+        )}
+      </div>
+    </BrowserRouter>
   );
 }
