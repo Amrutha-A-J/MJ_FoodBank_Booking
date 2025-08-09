@@ -9,6 +9,8 @@ import {
   MenuItem,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ExpandLess from '@mui/icons-material/ExpandLess';
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -110,6 +112,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                 <Button
                   color="inherit"
                   onClick={(e) => handleGroupClick(group.label, e)}
+                  endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
                 >
                   {group.label}
                 </Button>
@@ -132,9 +135,13 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
           )
         )}
         <Box sx={{ flexGrow: 1 }} />
-        {name && (
+        {name ? (
           <>
-            <Button color="inherit" onClick={handleProfileClick}>
+            <Button
+              color="inherit"
+              onClick={handleProfileClick}
+              endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
+            >
               Hello, {name}
             </Button>
             <Menu
@@ -150,12 +157,22 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               >
                 Profile
               </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  closeProfileMenu();
+                  onLogout();
+                }}
+                disabled={loading}
+              >
+                Logout
+              </MenuItem>
             </Menu>
           </>
+        ) : (
+          <Button color="inherit" onClick={onLogout} disabled={loading}>
+            Logout
+          </Button>
         )}
-        <Button color="inherit" onClick={onLogout} sx={{ ml: name ? 1 : 0 }}>
-          Logout
-        </Button>
       </Toolbar>
     </AppBar>
   );
