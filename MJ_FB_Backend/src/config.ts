@@ -12,6 +12,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().default('dev-secret'),
   FRONTEND_ORIGIN: z.string().default('http://localhost:5173,http://127.0.0.1:5173'),
   PORT: z.coerce.number().default(4000),
+  POWER_AUTOMATE_URL: z.string().optional(),
+  POWER_AUTOMATE_KEY: z.string().optional(),
 });
 
 const env = envSchema.parse(process.env);
@@ -43,4 +45,6 @@ export default {
   jwtSecret: env.JWT_SECRET,
   frontendOrigins,
   port: env.PORT,
+  powerAutomateUrl: env.POWER_AUTOMATE_URL ?? '',
+  powerAutomateKey: env.POWER_AUTOMATE_KEY ?? '',
 };
