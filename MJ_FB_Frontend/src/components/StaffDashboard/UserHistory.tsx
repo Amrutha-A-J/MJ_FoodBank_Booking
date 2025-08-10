@@ -1,14 +1,8 @@
-import { useState, useEffect } from 'react';
-import { searchUsers, getBookingHistory, rescheduleBookingByToken } from '../../api/api';
+import { useState, useEffect, useCallback } from 'react';
+import { searchUsers, getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
-import {
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from '@mui/material';
+import { Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import RescheduleDialog from '../RescheduleDialog';
 
 const TIMEZONE = 'America/Regina';
 
@@ -44,6 +38,7 @@ export default function UserHistory({
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
   const pageSize = 10;
 
@@ -64,13 +59,13 @@ export default function UserHistory({
     };
   }, [search, token, initialUser]);
 
-  useEffect(() => {
-    if (!selected) return;
+  const loadBookings = useCallback(() => {
+    if (!selected) return Promise.resolve();
     const opts: { status?: string; past?: boolean; userId?: number } = {};
     if (!initialUser) opts.userId = selected.id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
-    getBookingHistory(token, opts)
+    return getBookingHistory(token, opts)
       .then(data => {
         const sorted = [...data].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -80,6 +75,10 @@ export default function UserHistory({
       })
       .catch(err => console.error('Error loading history:', err));
   }, [selected, filter, token, initialUser]);
+
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
 
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
@@ -189,18 +188,7 @@ export default function UserHistory({
                       <td>
                         {['approved', 'submitted'].includes(b.status.toLowerCase()) && (
                           <Button
-                            onClick={() => {
-                              const date = prompt('Enter new date (YYYY-MM-DD)');
-                              const slot = prompt('Enter new slot ID');
-                              if (date && slot) {
-                                rescheduleBookingByToken(
-                                  b.reschedule_token,
-                                  slot,
-                                  date,
-                                  token,
-                                ).catch(() => {});
-                              }
-                            }}
+                            onClick={() => setRescheduleBooking(b)}
                             variant="outlined"
                             color="primary"
                           >
@@ -238,6 +226,17 @@ export default function UserHistory({
             </div>
           )}
         </div>
+      )}
+      {rescheduleBooking && (
+        <RescheduleDialog
+          open={!!rescheduleBooking}
+          token={token}
+          rescheduleToken={rescheduleBooking.reschedule_token}
+          onClose={() => setRescheduleBooking(null)}
+          onRescheduled={() => {
+            loadBookings();
+          }}
+        />
       )}
     </div>
   );
