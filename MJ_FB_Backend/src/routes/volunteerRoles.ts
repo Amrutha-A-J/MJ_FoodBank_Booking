@@ -5,19 +5,11 @@ import {
   updateVolunteerRole,
   deleteVolunteerRole,
   listVolunteerRolesForVolunteer,
-  listVolunteerRoleGroupsForVolunteer,
   updateVolunteerRoleStatus,
 } from '../controllers/volunteerRoleController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 
 const router = express.Router();
-
-router.get(
-  '/mine/grouped',
-  authMiddleware,
-  authorizeRoles('volunteer'),
-  listVolunteerRoleGroupsForVolunteer,
-);
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listVolunteerRolesForVolunteer);
 
 router.use(authMiddleware, authorizeRoles('staff'));

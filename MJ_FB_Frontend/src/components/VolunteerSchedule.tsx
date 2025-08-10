@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getVolunteerRoleGroups,
+  getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   getMyVolunteerBookings,
   getHolidays,
@@ -59,15 +59,30 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
     const holiday = holidays.some(h => h.date === dateStr);
     try {
-      const [groupData, bookingData] = await Promise.all([
-        getVolunteerRoleGroups(token, dateStr),
+      const [roleData, bookingData] = await Promise.all([
+        getVolunteerRolesForVolunteer(token, dateStr),
         getMyVolunteerBookings(token),
       ]);
-      setRoleGroups(groupData);
+      const map = new Map<number, VolunteerRoleGroup>();
+      roleData.forEach((r: VolunteerRole) => {
+        const group =
+          map.get(r.category_id) || {
+            category_id: r.category_id,
+            category: r.category_name,
+            roles: [],
+          };
+        let role = group.roles.find(g => g.id === r.role_id);
+        if (!role) {
+          role = { id: r.role_id, name: r.name, slots: [] };
+          group.roles.push(role);
+        }
+        role.slots.push(r);
+        map.set(r.category_id, group);
+      });
+      const groups = Array.from(map.values());
+      setRoleGroups(groups);
       const keys = new Set(
-        groupData.flatMap((g: VolunteerRoleGroup) =>
-          g.roles.map(r => `${g.category_id}|${r.id}`)
-        )
+        groups.flatMap(g => g.roles.map(r => `${g.category_id}|${r.id}`)),
       );
       setSelectedRoleKey(prev => {
         const key = prev && keys.has(prev) ? prev : '';
@@ -78,7 +93,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       } else {
         const filtered = bookingData.filter(
           (b: VolunteerBooking) =>
-            b.date === dateStr && ['approved', 'pending'].includes(b.status)
+            b.date === dateStr && ['approved', 'pending'].includes(b.status),
         );
         setBookings(filtered);
       }

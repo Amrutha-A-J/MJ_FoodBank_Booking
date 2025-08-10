@@ -41,6 +41,24 @@ export interface VolunteerRole {
   is_wednesday_slot: boolean;
 }
 
+export interface VolunteerRoleShift {
+  id: number;
+  start_time: string;
+  end_time: string;
+  is_wednesday_slot: boolean;
+  is_active: boolean;
+}
+
+export interface VolunteerRoleWithShifts {
+  id: number;
+  role_id: number;
+  category_id: number;
+  name: string;
+  max_volunteers: number;
+  category_name: string;
+  shifts: VolunteerRoleShift[];
+}
+
 export interface VolunteerRoleGroup {
   category_id: number;
   category: string;
