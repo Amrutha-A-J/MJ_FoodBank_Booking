@@ -39,9 +39,47 @@ describe('Volunteer roles activation', () => {
     expect(res.body.is_active).toBe(false);
   });
 
-  it('filters inactive roles from list', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
-    await request(app).get('/volunteer-roles');
+  it('lists active roles with shifts', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          role_id: 1,
+          category_id: 1,
+          name: 'Role',
+          max_volunteers: 1,
+          category_name: 'Pantry',
+          shifts: [
+            {
+              id: 10,
+              start_time: '09:00:00',
+              end_time: '12:00:00',
+              is_wednesday_slot: false,
+              is_active: true,
+            },
+          ],
+        },
+      ],
+    });
+    const res = await request(app).get('/volunteer-roles');
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE vs\.is_active/);
+    expect(res.body).toEqual([
+      {
+        id: 1,
+        role_id: 1,
+        category_id: 1,
+        name: 'Role',
+        max_volunteers: 1,
+        category_name: 'Pantry',
+        shifts: [
+          {
+            id: 10,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      },
+    ]);
   });
 });

@@ -95,16 +95,36 @@ export async function listVolunteerRoles(
 ) {
   try {
     const result = await pool.query(
-        `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
-                vmr.name AS category_name
-       FROM volunteer_slots vs
-       JOIN volunteer_roles vr ON vs.role_id = vr.id
+        `SELECT vr.id AS role_id, vr.category_id, vr.name, vr.max_volunteers,
+                vmr.name AS category_name,
+                json_agg(
+                  json_build_object(
+                    'id', vs.slot_id,
+                    'start_time', vs.start_time,
+                    'end_time', vs.end_time,
+                    'is_wednesday_slot', vs.is_wednesday_slot,
+                    'is_active', vs.is_active
+                  )
+                  ORDER BY vs.slot_id
+                ) AS shifts
+       FROM volunteer_roles vr
+       JOIN volunteer_slots vs ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        WHERE vs.is_active
-       ORDER BY vs.slot_id`
+       GROUP BY vr.id, vr.category_id, vr.name, vr.max_volunteers, vmr.name
+       ORDER BY vr.id`
     );
-    res.json(result.rows);
+    res.json(
+      result.rows.map(row => ({
+        id: row.role_id,
+        role_id: row.role_id,
+        category_id: row.category_id,
+        name: row.name,
+        max_volunteers: row.max_volunteers,
+        category_name: row.category_name,
+        shifts: row.shifts,
+      })),
+    );
   } catch (error) {
     logger.error('Error listing volunteer roles:', error);
     next(error);
