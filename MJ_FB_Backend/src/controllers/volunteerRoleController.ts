@@ -266,7 +266,7 @@ export async function listVolunteerRolesForVolunteer(
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
         `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
-                vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+                vs.max_volunteers AS max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
                 vmr.name AS category_name,
                 COALESCE(b.count,0) AS booked, $1::date AS date
          FROM volunteer_slots vs
@@ -285,10 +285,23 @@ export async function listVolunteerRolesForVolunteer(
       [date, roleIds]
     );
     const roles = result.rows.map((row: any) => ({
-      ...row,
+      id: row.id,
+      role_id: row.role_id,
+      name: row.name,
+      start_time: row.start_time,
+      end_time: row.end_time,
+      max_volunteers: Number(row.max_volunteers),
+      category_id: row.category_id,
+      is_wednesday_slot: row.is_wednesday_slot,
+      is_active: row.is_active,
+      category_name: row.category_name,
       booked: Number(row.booked),
-      available: row.max_volunteers - Number(row.booked),
-      status: Number(row.booked) >= row.max_volunteers ? 'booked' : 'available',
+      available: Number(row.max_volunteers) - Number(row.booked),
+      status:
+        Number(row.booked) >= Number(row.max_volunteers)
+          ? 'booked'
+          : 'available',
+      date: row.date,
     }));
     res.json(roles);
   } catch (error) {
