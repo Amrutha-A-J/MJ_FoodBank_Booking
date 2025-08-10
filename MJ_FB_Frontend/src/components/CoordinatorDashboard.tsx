@@ -412,7 +412,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                     (booking.status.toLowerCase() === 'pending' && !canBook
                       ? ' (Full)'
                       : '')
-                : '',
+                : 'Available',
               backgroundColor: booking
                 ? booking.status.toLowerCase() === 'approved'
                   ? '#c8e6c9'
