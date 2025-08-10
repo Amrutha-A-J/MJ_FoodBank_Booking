@@ -39,7 +39,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [roleGroups, setRoleGroups] = useState<{ category: string; roles: string[] }[]>([]);
-  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedRoleKey, setSelectedRoleKey] = useState<string>('');
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
@@ -58,7 +58,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       setRoles([]);
       setBookings([]);
       setRoleGroups([]);
-      setSelectedRole('');
+      setSelectedRoleKey('');
       return;
     }
     try {
@@ -79,8 +79,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           roles: Array.from(set),
         }))
       );
-      const names = new Set(roleData.map(r => r.name));
-      setSelectedRole(prev => (prev && names.has(prev) ? prev : ''));
+      const keys = new Set(
+        roleData.map(r => `${r.category_name}|${r.name}`)
+      );
+      setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
       const filtered = bookingData.filter(
         (b: VolunteerBooking) =>
           b.date === dateStr && ['approved', 'pending'].includes(b.status)
@@ -163,8 +165,14 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const roleSlots = selectedRole
-    ? roles.filter(r => r.name === selectedRole)
+  const [selectedCategory, selectedName] = selectedRoleKey.split('|');
+  const roleSlots = selectedRoleKey
+    ? roles
+        .filter(
+          r =>
+            r.category_name === selectedCategory && r.name === selectedName
+        )
+        .sort((a, b) => a.start_time.localeCompare(b.start_time))
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
   const rows = roleSlots.map(role => {
@@ -215,9 +223,9 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         <InputLabel id="role-select-label">Role</InputLabel>
         <Select
           labelId="role-select-label"
-          value={selectedRole}
+          value={selectedRoleKey}
           label="Role"
-          onChange={e => setSelectedRole(e.target.value)}
+          onChange={e => setSelectedRoleKey(e.target.value)}
         >
           <MenuItem value="">Select role</MenuItem>
           {roleGroups.flatMap(g => [
@@ -225,14 +233,17 @@ export default function VolunteerSchedule({ token }: { token: string }) {
               {g.category}
             </ListSubheader>,
             ...g.roles.map(r => (
-              <MenuItem key={r} value={r}>
+              <MenuItem
+                key={`${g.category}-${r}`}
+                value={`${g.category}|${r}`}
+              >
                 {r}
               </MenuItem>
             )),
           ])}
         </Select>
       </FormControl>
-      {selectedRole && (
+      {selectedRoleKey && (
         <>
           <Box
             sx={{
