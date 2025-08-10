@@ -105,6 +105,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - 13 Client Resource Associate (category 4)
 - 14 Assistant Volunteer Coordinator (category 4)
 - 15 Volunteer Office Administrator (category 4)
+
 ### API Endpoints
 
 #### Auth
@@ -181,6 +182,57 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-bookings/:role_id` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
+
+### Slot API
+
+`GET /volunteer-roles` returns all volunteer roles with their shifts:
+
+```
+[
+  {
+    "id": <role_id>,
+    "role_id": <role_id>,
+    "category_id": <category_id>,
+    "name": "<role name>",
+    "max_volunteers": 3,
+    "category_name": "<category>",
+    "shifts": [
+      {
+        "id": <slot_id>,
+        "start_time": "09:00:00",
+        "end_time": "12:00:00",
+        "is_wednesday_slot": false,
+        "is_active": true
+      },
+      ...
+    ]
+  },
+  ...
+]
+```
+
+`GET /volunteer-roles/mine?date=YYYY-MM-DD` returns each slot the logged-in volunteer is trained for:
+
+```
+[
+  {
+    "id": <slot_id>,
+    "role_id": <role_id>,
+    "name": "<role name>",
+    "start_time": "09:00:00",
+    "end_time": "12:00:00",
+    "max_volunteers": 3,
+    "category_id": <category_id>,
+    "category_name": "<category>",
+    "is_wednesday_slot": false,
+    "booked": 1,
+    "available": 2,
+    "status": "available",
+    "date": "2024-01-15"
+  },
+  ...
+]
+```
 
 ### Components and Workflow
 
