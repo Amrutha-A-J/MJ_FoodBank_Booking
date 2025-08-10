@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 app.use('/volunteers', volunteersRouter);
 
-describe('Volunteer routes with valid role IDs', () => {
+describe('Volunteer routes role ID validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -57,5 +57,29 @@ describe('Volunteer routes with valid role IDs', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ id: 1, roleIds: [1, 2] });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/SELECT id FROM volunteer_roles/);
+  });
+
+  it('returns invalid role IDs when creating volunteer', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // usernameCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }); // validRoles
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'John',
+      lastName: 'Doe',
+      username: 'johndoe',
+      password: 'secret',
+      roleIds: [1, 2],
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid roleIds', invalidIds: [2] });
+  });
+
+  it('returns invalid role IDs when updating trained areas', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }); // validRoles
+    const res = await request(app)
+      .put('/volunteers/1/trained-areas')
+      .send({ roleIds: [1, 2] });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Invalid roleIds', invalidIds: [2] });
   });
 });

@@ -22,8 +22,10 @@ export async function updateTrainedArea(
       `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
-    if (validRoles.rowCount !== roleIds.length) {
-      return res.status(400).json({ message: 'Invalid roleIds' });
+    const validRoleIds = new Set(validRoles.rows.map(r => r.id));
+    const invalidIds = roleIds.filter(id => !validRoleIds.has(id));
+    if (invalidIds.length) {
+      return res.status(400).json({ message: 'Invalid roleIds', invalidIds });
     }
     await pool.query('DELETE FROM volunteer_trained_roles WHERE volunteer_id = $1', [id]);
     if (roleIds.length > 0) {
@@ -142,8 +144,10 @@ export async function createVolunteer(
       `SELECT id FROM volunteer_roles WHERE id = ANY($1::int[])`,
       [roleIds]
     );
-    if (validRoles.rowCount !== roleIds.length) {
-      return res.status(400).json({ message: 'Invalid roleIds' });
+    const validRoleIds = new Set(validRoles.rows.map(r => r.id));
+    const invalidIds = roleIds.filter(id => !validRoleIds.has(id));
+    if (invalidIds.length) {
+      return res.status(400).json({ message: 'Invalid roleIds', invalidIds });
     }
 
     const hashed = await bcrypt.hash(password, 10);
