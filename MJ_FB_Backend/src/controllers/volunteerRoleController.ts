@@ -95,9 +95,9 @@ export async function listVolunteerRoles(
 ) {
   try {
     const result = await pool.query(
-      `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
-              vmr.name AS category_name
+        `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
+                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+                vmr.name AS category_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -157,9 +157,9 @@ export async function updateVolunteerRole(
       [name, categoryId, roleId]
     );
     const rowRes = await pool.query(
-      `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
-       FROM volunteer_slots vs
+        `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
+                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
+         FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        WHERE vs.slot_id=$1`,
       [id]
@@ -192,8 +192,8 @@ export async function updateVolunteerRoleStatus(
        SET is_active = $1
        FROM volunteer_roles vr, volunteer_master_roles vmr
        WHERE vs.slot_id = $2 AND vs.role_id = vr.id AND vr.category_id = vmr.id
-       RETURNING vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-                 vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
+        RETURNING vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
+                  vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
       [isActive, id]
     );
     if (result.rowCount === 0) {
@@ -244,11 +244,11 @@ export async function listVolunteerRolesForVolunteer(
     }
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
-      `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
-              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
-              vmr.name AS category_name,
-              COALESCE(b.count,0) AS booked, $1::date AS date
-       FROM volunteer_slots vs
+        `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
+                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+                vmr.name AS category_name,
+                COALESCE(b.count,0) AS booked, $1::date AS date
+         FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        LEFT JOIN (
@@ -298,21 +298,21 @@ export async function listVolunteerRoleGroupsForVolunteer(
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
       `SELECT vmr.id AS category_id, vmr.name AS category, vr.id AS role_id, vr.name,
-              json_agg(json_build_object(
-                'id', vs.slot_id,
-                'role_id', vr.id,
-                'name', vr.name,
-                'start_time', vs.start_time,
-                'end_time', vs.end_time,
-                'max_volunteers', vs.max_volunteers,
-                'category_id', vr.category_id,
-                'category_name', vmr.name,
-                'is_wednesday_slot', vs.is_wednesday_slot,
-                'booked', COALESCE(b.count,0),
-                'available', vs.max_volunteers - COALESCE(b.count,0),
-                'status', CASE WHEN COALESCE(b.count,0) >= vs.max_volunteers THEN 'booked' ELSE 'available' END,
-                'date', $1::date
-              ) ORDER BY vs.start_time) AS slots
+                json_agg(json_build_object(
+                  'id', vs.slot_id,
+                  'role_id', vr.id,
+                  'name', vr.name,
+                  'start_time', vs.start_time,
+                  'end_time', vs.end_time,
+                  'max_volunteers', vr.max_volunteers,
+                  'category_id', vr.category_id,
+                  'category_name', vmr.name,
+                  'is_wednesday_slot', vs.is_wednesday_slot,
+                  'booked', COALESCE(b.count,0),
+                  'available', vr.max_volunteers - COALESCE(b.count,0),
+                  'status', CASE WHEN COALESCE(b.count,0) >= vr.max_volunteers THEN 'booked' ELSE 'available' END,
+                  'date', $1::date
+                ) ORDER BY vs.start_time) AS slots
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
