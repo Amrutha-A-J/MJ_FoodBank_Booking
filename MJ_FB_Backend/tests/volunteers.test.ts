@@ -41,7 +41,7 @@ describe('Volunteer routes with valid role IDs', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ id: 5 });
-    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/SELECT id FROM volunteer_master_roles/);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/SELECT id FROM volunteer_roles/);
   });
 
   it('updates trained areas when role IDs are valid', async () => {
@@ -56,6 +56,6 @@ describe('Volunteer routes with valid role IDs', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ id: 1, roleIds: [1, 2] });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/SELECT id FROM volunteer_master_roles/);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/SELECT id FROM volunteer_roles/);
   });
 });

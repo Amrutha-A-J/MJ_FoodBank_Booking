@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS volunteer_trained_roles (
     role_id integer NOT NULL,
     PRIMARY KEY (volunteer_id, role_id),
     FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES public.volunteer_master_roles(id) ON DELETE CASCADE
+    FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
