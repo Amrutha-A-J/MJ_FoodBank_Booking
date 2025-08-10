@@ -63,8 +63,14 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getVolunteerRolesForVolunteer(token, dateStr),
         getMyVolunteerBookings(token),
       ]);
+      const disallowed = weekend || holiday
+        ? ['Pantry', 'Warehouse', 'Administrative']
+        : [];
+      const filteredRoles = roleData.filter(
+        (r: VolunteerRole) => !disallowed.includes(r.category_name),
+      );
       const map = new Map<number, VolunteerRoleGroup>();
-      roleData.forEach((r: VolunteerRole) => {
+      filteredRoles.forEach((r: VolunteerRole) => {
         const group =
           map.get(r.category_id) || {
             category_id: r.category_id,
@@ -84,19 +90,16 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       const keys = new Set(
         groups.flatMap(g => g.roles.map(r => `${g.category_id}|${r.id}`)),
       );
-      setSelectedRoleKey(prev => {
-        const key = prev && keys.has(prev) ? prev : '';
-        return weekend || holiday ? '' : key;
-      });
-      if (weekend || holiday) {
-        setBookings([]);
-      } else {
-        const filtered = bookingData.filter(
-          (b: VolunteerBooking) =>
-            b.date === dateStr && ['approved', 'pending'].includes(b.status),
-        );
-        setBookings(filtered);
-      }
+      setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
+
+      const allowedIds = new Set(filteredRoles.map(r => r.id));
+      const filteredBookings = bookingData.filter(
+        (b: VolunteerBooking) =>
+          b.date === dateStr &&
+          ['approved', 'pending'].includes(b.status) &&
+          allowedIds.has(b.role_id),
+      );
+      setBookings(filteredBookings);
     } catch (err) {
       console.error(err);
     }
@@ -172,9 +175,15 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const holidayObj = holidays.find(h => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-  const isClosed = isHoliday || isWeekend;
-
+  const allowedOnClosed = ['Gardening', 'Special Events'];
   const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split('|');
+  const selectedCategory = roleGroups.find(
+    g => g.category_id === Number(selectedCategoryId),
+  )?.category;
+  const isClosed =
+    (isHoliday || isWeekend) &&
+    (!selectedCategory || !allowedOnClosed.includes(selectedCategory));
+
   const roleSlots = selectedRoleKey
     ? (
         roleGroups
@@ -183,6 +192,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       ).sort((a, b) => a.start_time.localeCompare(b.start_time))
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
+  const showClosedMessage = (isHoliday || isWeekend) && roleGroups.length === 0;
   const rows = roleSlots.map(role => {
     const myBooking = bookings.find(b => b.role_id === role.id);
     const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
@@ -251,7 +261,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           ])}
         </Select>
       </FormControl>
-      {selectedRoleKey && (
+      {selectedRoleKey ? (
         <>
           <Box
             sx={{
@@ -281,7 +291,11 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
           )}
         </>
-      )}
+      ) : showClosedMessage ? (
+        <Typography align="center" sx={{ mt: 2 }}>
+          Moose Jaw food bank is closed for {dayName}
+        </Typography>
+      ) : null}
 
       <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
         <DialogTitle>Request Booking</DialogTitle>
