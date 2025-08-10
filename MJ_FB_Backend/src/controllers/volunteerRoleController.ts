@@ -265,7 +265,7 @@ export async function listVolunteerRoleGroupsForVolunteer(
     }
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
-      `SELECT vmr.name AS category, vr.role_id, vr.name,
+      `SELECT vmr.id AS category_id, vmr.name AS category, vr.role_id, vr.name,
               json_agg(json_build_object(
                 'id', vr.id,
                 'role_id', vr.role_id,
@@ -292,21 +292,21 @@ export async function listVolunteerRoleGroupsForVolunteer(
        WHERE vr.id = ANY($2::int[])
         AND vr.is_active
         AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
-       GROUP BY vmr.name, vr.role_id, vr.name
-       ORDER BY vmr.name, vr.role_id`,
+       GROUP BY vmr.id, vmr.name, vr.role_id, vr.name
+       ORDER BY vmr.id, vr.role_id`,
       [date, roleIds]
     );
-    const map = new Map<string, { id: number; name: string; slots: any[] }[]>();
+    const map = new Map<number, { category_id: number; category: string; roles: any[] }>();
     result.rows.forEach((row: any) => {
-      const roles = map.get(row.category) || [];
-      roles.push({ id: row.role_id, name: row.name, slots: row.slots });
-      map.set(row.category, roles);
+      const group = map.get(row.category_id) || {
+        category_id: row.category_id,
+        category: row.category,
+        roles: [] as any[],
+      };
+      group.roles.push({ id: row.role_id, name: row.name, slots: row.slots });
+      map.set(row.category_id, group);
     });
-    const groups = Array.from(map.entries()).map(([category, roles]) => ({
-      category,
-      roles,
-    }));
-    res.json(groups);
+    res.json(Array.from(map.values()));
   } catch (error) {
     logger.error('Error listing volunteer role groups for volunteer:', error);
     next(error);

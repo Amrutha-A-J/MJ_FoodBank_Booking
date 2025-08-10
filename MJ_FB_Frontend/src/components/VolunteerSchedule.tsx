@@ -53,21 +53,6 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const formatDate = (date: Date) =>
     formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
-  function mergeRoleSlots(groups: VolunteerRoleGroup[]): VolunteerRoleGroup[] {
-    return groups.map(g => {
-      const map = new Map<string, { id: number; name: string; slots: VolunteerRole[] }>();
-      g.roles.forEach(r => {
-        const existing = map.get(r.name);
-        if (existing) {
-          existing.slots.push(...r.slots);
-        } else {
-          map.set(r.name, { ...r, slots: [...r.slots] });
-        }
-      });
-      return { category: g.category, roles: Array.from(map.values()) };
-    });
-  }
-
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
@@ -84,11 +69,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getVolunteerRoleGroups(token, dateStr),
         getMyVolunteerBookings(token),
       ]);
-      const merged = mergeRoleSlots(groupData);
-      setRoleGroups(merged);
+      setRoleGroups(groupData);
       const keys = new Set(
-        merged.flatMap((g: VolunteerRoleGroup) =>
-          g.roles.map(r => `${g.category}|${r.id}`)
+        groupData.flatMap((g: VolunteerRoleGroup) =>
+          g.roles.map(r => `${g.category_id}|${r.id}`)
         )
       );
       setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
@@ -174,11 +158,11 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const [selectedCategory, selectedRoleId] = selectedRoleKey.split('|');
+  const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split('|');
   const roleSlots = selectedRoleKey
     ? (
         roleGroups
-          .find(g => g.category === selectedCategory)
+          .find(g => g.category_id === Number(selectedCategoryId))
           ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || []
       ).sort((a, b) => a.start_time.localeCompare(b.start_time))
     : [];
@@ -237,13 +221,13 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         >
           <MenuItem value="">Select role</MenuItem>
           {roleGroups.flatMap(g => [
-            <ListSubheader key={`${g.category}-header`}>
+            <ListSubheader key={`${g.category_id}-header`}>
               {g.category}
             </ListSubheader>,
             ...g.roles.map(r => (
               <MenuItem
-                key={`${g.category}-${r.id}`}
-                value={`${g.category}|${r.id}`}
+                key={`${g.category_id}-${r.id}`}
+                value={`${g.category_id}|${r.id}`}
               >
                 {r.name}
               </MenuItem>
