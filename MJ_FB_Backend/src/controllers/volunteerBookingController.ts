@@ -29,10 +29,9 @@ export async function createVolunteerBooking(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vr.max_volunteers
-       FROM volunteer_slots vs
-       JOIN volunteer_roles vr ON vs.role_id = vr.id
-       WHERE vs.slot_id = $1 AND vs.is_active`,
+      `SELECT role_id, max_volunteers
+       FROM volunteer_slots
+       WHERE slot_id = $1 AND is_active`,
       [roleId]
     );
     if (slotRes.rowCount === 0) {
@@ -100,10 +99,9 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vr.max_volunteers
-       FROM volunteer_slots vs
-       JOIN volunteer_roles vr ON vs.role_id = vr.id
-       WHERE vs.slot_id = $1 AND vs.is_active`,
+      `SELECT role_id, max_volunteers
+       FROM volunteer_slots
+       WHERE slot_id = $1 AND is_active`,
       [roleId]
     );
     if (slotRes.rowCount === 0) {
@@ -267,10 +265,7 @@ export async function updateVolunteerBookingStatus(
 
     if (status === 'approved') {
       const roleRes = await pool.query(
-        `SELECT vr.max_volunteers
-         FROM volunteer_slots vs
-         JOIN volunteer_roles vr ON vs.role_id = vr.id
-         WHERE vs.slot_id=$1`,
+        `SELECT max_volunteers FROM volunteer_slots WHERE slot_id=$1`,
         [booking.slot_id]
       );
       const countRes = await pool.query(
@@ -325,10 +320,9 @@ export async function rescheduleVolunteerBooking(
     const booking = bookingRes.rows[0];
 
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vr.max_volunteers
-       FROM volunteer_slots vs
-       JOIN volunteer_roles vr ON vs.role_id = vr.id
-       WHERE vs.slot_id = $1 AND vs.is_active`,
+      `SELECT role_id, max_volunteers
+       FROM volunteer_slots
+       WHERE slot_id = $1 AND is_active`,
       [roleId],
     );
     if (slotRes.rowCount === 0) {

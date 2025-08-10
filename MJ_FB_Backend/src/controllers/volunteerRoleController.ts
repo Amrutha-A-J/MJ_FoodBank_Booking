@@ -34,35 +34,36 @@ export async function addVolunteerRole(
   try {
     let roleId: number;
     const existing = await pool.query(
-      'SELECT id, max_volunteers, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
+      'SELECT id, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
       [name]
     );
     if ((existing.rowCount ?? 0) > 0) {
       roleId = existing.rows[0].id;
     } else {
       const roleRes = await pool.query(
-        `INSERT INTO volunteer_roles (name, max_volunteers, category_id)
-         VALUES ($1,$2,$3)
-         RETURNING id, max_volunteers, category_id`,
-        [name, maxVolunteers, categoryId]
+        `INSERT INTO volunteer_roles (name, category_id)
+         VALUES ($1,$2)
+         RETURNING id, category_id`,
+        [name, categoryId]
       );
       roleId = roleRes.rows[0].id;
     }
     const slotRes = await pool.query(
-      `INSERT INTO volunteer_slots (role_id, start_time, end_time, is_wednesday_slot, is_active)
-       VALUES ($1,$2,$3,$4,$5)
-       RETURNING slot_id, start_time, end_time, is_wednesday_slot, is_active`,
+      `INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6)
+       RETURNING slot_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active`,
       [
         roleId,
         startTime,
         endTime,
+        maxVolunteers,
         isWednesdaySlot || false,
         typeof isActive === 'boolean' ? isActive : true,
       ]
     );
     const slot = slotRes.rows[0];
     const roleInfo = await pool.query(
-      'SELECT name, max_volunteers, category_id FROM volunteer_roles WHERE id=$1',
+      'SELECT name, category_id FROM volunteer_roles WHERE id=$1',
       [roleId]
     );
     const master = await pool.query(
@@ -75,7 +76,7 @@ export async function addVolunteerRole(
       name: roleInfo.rows[0].name,
       start_time: slot.start_time,
       end_time: slot.end_time,
-      max_volunteers: roleInfo.rows[0].max_volunteers,
+      max_volunteers: slot.max_volunteers,
       category_id: roleInfo.rows[0].category_id,
       is_wednesday_slot: slot.is_wednesday_slot,
       is_active: slot.is_active,
@@ -95,7 +96,7 @@ export async function listVolunteerRoles(
   try {
     const result = await pool.query(
       `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-              vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
               vmr.name AS category_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
@@ -142,22 +143,22 @@ export async function updateVolunteerRole(
   try {
     const slotRes = await pool.query(
       `UPDATE volunteer_slots
-       SET start_time = $1, end_time = $2, is_wednesday_slot = $3
-       WHERE slot_id = $4
+       SET start_time = $1, end_time = $2, max_volunteers = $3, is_wednesday_slot = $4
+       WHERE slot_id = $5
        RETURNING role_id, slot_id, is_active`,
-      [startTime, endTime, isWednesdaySlot || false, id]
+      [startTime, endTime, maxVolunteers, isWednesdaySlot || false, id]
     );
     if (slotRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const roleId = slotRes.rows[0].role_id;
     await pool.query(
-      `UPDATE volunteer_roles SET name=$1, max_volunteers=$2, category_id=$3 WHERE id=$4`,
-      [name, maxVolunteers, categoryId, roleId]
+      `UPDATE volunteer_roles SET name=$1, category_id=$2 WHERE id=$3`,
+      [name, categoryId, roleId]
     );
     const rowRes = await pool.query(
       `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-              vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
+              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        WHERE vs.slot_id=$1`,
@@ -192,7 +193,7 @@ export async function updateVolunteerRoleStatus(
        FROM volunteer_roles vr, volunteer_master_roles vmr
        WHERE vs.slot_id = $2 AND vs.role_id = vr.id AND vr.category_id = vmr.id
        RETURNING vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-                 vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
+                 vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
       [isActive, id]
     );
     if (result.rowCount === 0) {
@@ -244,7 +245,7 @@ export async function listVolunteerRolesForVolunteer(
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
       `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
-              vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+              vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
               vmr.name AS category_name,
               COALESCE(b.count,0) AS booked, $1::date AS date
        FROM volunteer_slots vs
@@ -303,13 +304,13 @@ export async function listVolunteerRoleGroupsForVolunteer(
                 'name', vr.name,
                 'start_time', vs.start_time,
                 'end_time', vs.end_time,
-                'max_volunteers', vr.max_volunteers,
+                'max_volunteers', vs.max_volunteers,
                 'category_id', vr.category_id,
                 'category_name', vmr.name,
                 'is_wednesday_slot', vs.is_wednesday_slot,
                 'booked', COALESCE(b.count,0),
-                'available', vr.max_volunteers - COALESCE(b.count,0),
-                'status', CASE WHEN COALESCE(b.count,0) >= vr.max_volunteers THEN 'booked' ELSE 'available' END,
+                'available', vs.max_volunteers - COALESCE(b.count,0),
+                'status', CASE WHEN COALESCE(b.count,0) >= vs.max_volunteers THEN 'booked' ELSE 'available' END,
                 'date', $1::date
               ) ORDER BY vs.start_time) AS slots
        FROM volunteer_slots vs
