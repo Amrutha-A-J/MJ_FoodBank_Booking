@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createVolunteerBooking,
+  listVolunteerBookings,
   listVolunteerBookingsByRole,
   listMyVolunteerBookings,
   updateVolunteerBookingStatus,
@@ -30,6 +31,7 @@ router.get(
   authorizeRoles('staff'),
   listVolunteerBookingsByVolunteer
 );
+router.get('/', authMiddleware, authorizeRoles('staff'), listVolunteerBookings);
 router.get('/:role_id', authMiddleware, authorizeRoles('staff'), listVolunteerBookingsByRole);
 router.patch('/:id', authMiddleware, authorizeRoles('staff'), updateVolunteerBookingStatus);
 router.post(
