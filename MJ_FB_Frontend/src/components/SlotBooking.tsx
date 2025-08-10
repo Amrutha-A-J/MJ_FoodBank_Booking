@@ -266,15 +266,21 @@ export default function SlotBooking({ token, role }: Props) {
             <>
               <h4>Available Slots on {formatDate(selectedDate)}</h4>
               <ul className="slot-list">
-                {slots.map((s) => (
+                {slots.map(s => (
                   <li
                     key={s.id}
-                    onClick={() => (s.available ?? 0) > 0 && setSelectedSlotId(s.id)}
+                    onClick={() => {
+                      if ((s.available ?? 0) > 0) {
+                        setSelectedSlotId(s.id);
+                      }
+                    }}
                     className={`slot-item ${selectedSlotId === s.id ? 'selected' : ''} ${
                       (s.available ?? 0) > 0 ? '' : 'disabled'
                     }`}
                   >
-                    <span>{formatTime(s.startTime)} - {formatTime(s.endTime)}</span>
+                    <span>
+                      {formatTime(s.startTime)} - {formatTime(s.endTime)}
+                    </span>
                     <span>Available: {s.available ?? 0}</span>
                   </li>
                 ))}
