@@ -58,12 +58,6 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
     const holiday = holidays.some(h => h.date === dateStr);
-    if (weekend || holiday) {
-      setBookings([]);
-      setRoleGroups([]);
-      setSelectedRoleKey('');
-      return;
-    }
     try {
       const [groupData, bookingData] = await Promise.all([
         getVolunteerRoleGroups(token, dateStr),
@@ -75,12 +69,19 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           g.roles.map(r => `${g.category_id}|${r.id}`)
         )
       );
-      setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
-      const filtered = bookingData.filter(
-        (b: VolunteerBooking) =>
-          b.date === dateStr && ['approved', 'pending'].includes(b.status)
-      );
-      setBookings(filtered);
+      setSelectedRoleKey(prev => {
+        const key = prev && keys.has(prev) ? prev : '';
+        return weekend || holiday ? '' : key;
+      });
+      if (weekend || holiday) {
+        setBookings([]);
+      } else {
+        const filtered = bookingData.filter(
+          (b: VolunteerBooking) =>
+            b.date === dateStr && ['approved', 'pending'].includes(b.status)
+        );
+        setBookings(filtered);
+      }
     } catch (err) {
       console.error(err);
     }
