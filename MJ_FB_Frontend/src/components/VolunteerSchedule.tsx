@@ -38,7 +38,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [roles, setRoles] = useState<VolunteerRole[]>([]);
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [roleGroups, setRoleGroups] = useState<{ category: string; roles: string[] }[]>([]);
+  const [roleGroups, setRoleGroups] = useState<{
+    category: string;
+    roles: { id: number; name: string }[];
+  }[]>([]);
   const [selectedRoleKey, setSelectedRoleKey] = useState<string>('');
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
@@ -67,20 +70,20 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getMyVolunteerBookings(token),
       ]);
       setRoles(roleData);
-      const groups = new Map<string, Set<string>>();
+      const groups = new Map<string, Map<number, string>>();
       roleData.forEach(r => {
-        const set = groups.get(r.category_name) || new Set<string>();
-        set.add(r.name);
-        groups.set(r.category_name, set);
+        const map = groups.get(r.category_name) || new Map<number, string>();
+        if (!map.has(r.role_id)) map.set(r.role_id, r.name);
+        groups.set(r.category_name, map);
       });
       setRoleGroups(
-        Array.from(groups.entries()).map(([category, set]) => ({
+        Array.from(groups.entries()).map(([category, map]) => ({
           category,
-          roles: Array.from(set),
+          roles: Array.from(map.entries()).map(([id, name]) => ({ id, name })),
         }))
       );
       const keys = new Set(
-        roleData.map(r => `${r.category_name}|${r.name}`)
+        roleData.map(r => `${r.category_name}|${r.role_id}`)
       );
       setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
       const filtered = bookingData.filter(
@@ -165,12 +168,13 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const [selectedCategory, selectedName] = selectedRoleKey.split('|');
+  const [selectedCategory, selectedRoleId] = selectedRoleKey.split('|');
   const roleSlots = selectedRoleKey
     ? roles
         .filter(
           r =>
-            r.category_name === selectedCategory && r.name === selectedName
+            r.category_name === selectedCategory &&
+            r.role_id === Number(selectedRoleId)
         )
         .sort((a, b) => a.start_time.localeCompare(b.start_time))
     : [];
@@ -234,10 +238,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             </ListSubheader>,
             ...g.roles.map(r => (
               <MenuItem
-                key={`${g.category}-${r}`}
-                value={`${g.category}|${r}`}
+                key={`${g.category}-${r.id}`}
+                value={`${g.category}|${r.id}`}
               >
-                {r}
+                {r.name}
               </MenuItem>
             )),
           ])}
