@@ -10,7 +10,7 @@ import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
-import CoordinatorDashboard from './components/CoordinatorDashboard';
+import VolunteerManagement from './components/VolunteerManagement';
 import Dashboard from './pages/Dashboard';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
@@ -47,11 +47,11 @@ export default function App() {
       navGroups.push({
         label: 'Volunteer Management',
         links: [
-          { label: 'Dashboard', to: '/coordinator-dashboard' },
-          { label: 'Schedule', to: '/coordinator-dashboard/schedule' },
-          { label: 'Search', to: '/coordinator-dashboard/search' },
-          { label: 'Create', to: '/coordinator-dashboard/create' },
-          { label: 'Pending', to: '/coordinator-dashboard/pending' },
+          { label: 'Dashboard', to: '/volunteer-management' },
+          { label: 'Schedule', to: '/volunteer-management/schedule' },
+          { label: 'Search', to: '/volunteer-management/search' },
+          { label: 'Create', to: '/volunteer-management/create' },
+          { label: 'Pending', to: '/volunteer-management/pending' },
         ],
       });
   } else if (role === 'shopper') {
@@ -163,12 +163,12 @@ export default function App() {
                 {isStaff && (
                   <>
                     <Route
-                      path="/coordinator-dashboard"
-                      element={<CoordinatorDashboard token={token} />}
+                      path="/volunteer-management"
+                      element={<VolunteerManagement token={token} />}
                     />
                     <Route
-                      path="/coordinator-dashboard/:tab"
-                      element={<CoordinatorDashboard token={token} />}
+                      path="/volunteer-management/:tab"
+                      element={<VolunteerManagement token={token} />}
                     />
                   </>
                 )}
