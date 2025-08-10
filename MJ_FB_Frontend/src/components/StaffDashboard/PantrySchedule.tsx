@@ -214,7 +214,7 @@ export default function PantrySchedule({ token }: { token: string }) {
       cells: Array.from({ length: 4 }).map((_, i) => {
         const booking = slotBookings[i];
         return {
-          content: booking ? booking.user_name : '',
+          content: booking ? booking.user_name : 'Available',
           backgroundColor: booking
             ? booking.status === 'submitted'
               ? '#ffe5b4'
