@@ -1,6 +1,6 @@
 // src/api/api.ts
 // Read API base URL from environment or fall back to localhost
-import type { Role, UserRole, StaffRole, UserProfile } from '../types';
+import type { Role, UserRole, StaffRole, UserProfile, Slot } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
@@ -130,14 +130,21 @@ export async function createStaff(
   await handleResponse(res);
 }
 
+
 export async function getSlots(token: string, date?: string) {
-    let url = `${API_BASE}/slots`;
-    if (date) url += `?date=${encodeURIComponent(date)}`;
-    const res = await apiFetch(url, {
-      headers: { Authorization: bearer(token) }
-    });
-    return handleResponse(res);
-  }
+  let url = `${API_BASE}/slots`;
+  if (date) url += `?date=${encodeURIComponent(date)}`;
+  const res = await apiFetch(url, {
+    headers: { Authorization: bearer(token) },
+  });
+  const data = await handleResponse(res);
+  return data.map((s: any) => ({
+    id: String(s.id),
+    startTime: s.startTime ?? s.start_time,
+    endTime: s.endTime ?? s.end_time,
+    available: s.available,
+  })) as Slot[];
+}
 
 // api.ts
 export async function addUser(
@@ -236,7 +243,13 @@ export async function getAllSlots(token: string) {
   const res = await apiFetch(`${API_BASE}/slots/all`, {
     headers: { Authorization: bearer(token) },
   });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return data.map((s: any) => ({
+    id: String(s.id),
+    startTime: s.startTime ?? s.start_time,
+    endTime: s.endTime ?? s.end_time,
+    available: s.available,
+  })) as Slot[];
 }
 
 export async function getBlockedSlots(token: string, date: string) {
