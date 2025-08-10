@@ -44,15 +44,16 @@ export default function App() {
         { label: 'User History', to: '/user-history' },
       ];
     navGroups.push({ label: 'Staff', links: staffLinks });
-    navGroups.push({
-      label: 'Volunteer Management',
-      links: [
-        { label: 'Schedule', to: '/coordinator-dashboard/schedule' },
-        { label: 'Search', to: '/coordinator-dashboard/search' },
-        { label: 'Create', to: '/coordinator-dashboard/create' },
-        { label: 'Pending', to: '/coordinator-dashboard/pending' },
-      ],
-    });
+      navGroups.push({
+        label: 'Volunteer Management',
+        links: [
+          { label: 'Dashboard', to: '/coordinator-dashboard' },
+          { label: 'Schedule', to: '/coordinator-dashboard/schedule' },
+          { label: 'Search', to: '/coordinator-dashboard/search' },
+          { label: 'Create', to: '/coordinator-dashboard/create' },
+          { label: 'Pending', to: '/coordinator-dashboard/pending' },
+        ],
+      });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
