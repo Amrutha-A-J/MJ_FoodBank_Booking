@@ -44,11 +44,10 @@ router.get('/:roleId/shifts', async (req: Request, res: Response) => {
         s.slot_id AS shift_id,
         s.start_time,
         s.end_time,
-        r.max_volunteers
+        s.max_volunteers
       FROM volunteer_slots s
-      JOIN volunteer_roles r ON s.role_id = r.id
       WHERE s.is_active = TRUE
-        AND r.id = $1
+        AND s.role_id = $1
       ORDER BY s.start_time;
     `;
     const { rows } = await pool.query(query, [roleId]);
