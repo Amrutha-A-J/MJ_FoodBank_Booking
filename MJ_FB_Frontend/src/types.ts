@@ -42,6 +42,7 @@ export interface VolunteerRole {
 }
 
 export interface VolunteerRoleGroup {
+  category_id: number;
   category: string;
   roles: {
     id: number;
