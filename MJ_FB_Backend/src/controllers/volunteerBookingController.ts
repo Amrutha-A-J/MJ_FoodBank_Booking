@@ -29,9 +29,11 @@ export async function createVolunteerBooking(
 
   try {
     const slotRes = await pool.query(
-      `SELECT role_id, max_volunteers
-       FROM volunteer_slots
-       WHERE slot_id = $1 AND is_active`,
+      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
       [roleId]
     );
     if (slotRes.rowCount === 0) {
@@ -45,6 +47,14 @@ export async function createVolunteerBooking(
     );
     if (volRes.rowCount === 0) {
       return res.status(400).json({ message: 'Not trained for this role' });
+    }
+
+    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
+    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+      return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
     }
 
     const countRes = await pool.query(
@@ -99,9 +109,11 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const slotRes = await pool.query(
-      `SELECT role_id, max_volunteers
-       FROM volunteer_slots
-       WHERE slot_id = $1 AND is_active`,
+      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
       [roleId]
     );
     if (slotRes.rowCount === 0) {
@@ -115,6 +127,14 @@ export async function createVolunteerBookingForVolunteer(
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
+    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+      return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
     }
 
     const countRes = await pool.query(

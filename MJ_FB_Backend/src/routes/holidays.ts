@@ -8,7 +8,7 @@ const router = express.Router();
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff'),
+  authorizeRoles('staff', 'volunteer'),
   async (_, res) => {
     const result = await pool.query('SELECT date, reason FROM holidays ORDER BY date');
     res.json(
