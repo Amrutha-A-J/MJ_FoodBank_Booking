@@ -30,6 +30,66 @@
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Document new environment variables in the repository README and `.env.example` files.
 
+## UI Rules & Design System (Global)
+
+### Tech & Theme
+- Library: Material UI v5 only (no Tailwind).
+- Theme: Use the app’s `ThemeProvider` theme (primary `#941818`, Golos font, rounded corners). Never hard-code colors, spacing, or fonts—pull from the theme.
+- Typography: Default to theme typography. Section titles use `subtitle1`/`h5` with bold as defined in theme.
+
+### Layout
+- Grid: Use `Grid` with `spacing={2}` for page layout; prefer 12-column responsive layouts.
+- Cards: Group related content in `Card` (or `Paper`) with the themed light border and subtle shadow. Avoid “floating” elements.
+- Responsive: Ensure components work on xs→xl. Hide non-critical details on small screens, not critical actions.
+
+### Components & Patterns
+- Buttons: `size="small"`, `variant="contained"` for primary actions, outlined/text for secondary/tertiary. No ALL CAPS; `textTransform: 'none'`.
+- Lists: `List` + `ListItem` for short, actionable sets.
+- Tables: Use dense row height; keep actions in a trailing column; keep columns ≤ 7 on desktop.
+- Forms: Use `TextField`, `Select`, `Checkbox`, `Radio` from MUI. Label every field; show helper text for constraints. Validate on blur and on submit; show inline errors and a top summary only if multiple errors exist.
+- Feedback: Use the shared `FeedbackSnackbar` for success/info/error; avoid custom alerts. Keep messages short and specific.
+- Loading: Prefer skeletons for cards/lists; use `CircularProgress` inline for button-level waits; never block entire pages without a reason.
+- Empty States: Show a short explainer + primary action (e.g., “No bookings yet — Book an appointment”).
+- Icons: Use `@mui/icons-material`. Pair icons with labels (accessibility + clarity).
+
+### Status & Colors
+- Status chips:
+  - success = approved/ok,
+  - warning = pending/needs attention,
+  - error = rejected/failed,
+  - default/info = neutral.
+- Never hard-code hex values; use theme palette (`success`, `warning`, `error`, `info`).
+- Links & Emphasis: Use the theme’s primary color for emphasis and links; do not introduce new accent colors.
+
+### Interactions
+- Affordance: Primary action visible and enabled when valid; disabled state must include a reason (helper text or tooltip).
+- Confirmation: Only confirm destructive actions (e.g., Cancel, Reject). Use dialogs with clear verb-first buttons (“Cancel booking”, “Keep booking”).
+- Undo: Prefer “Undo” in `FeedbackSnackbar` where safe (e.g., client-side remove before API commit).
+
+### Content Style
+- Copy: Plain, concise, second person (“You”).
+- Dates/Times: Show local time with clear format (e.g., Tue, Aug 12 · 9:30–10:00). Avoid ambiguity.
+- Errors: Actionable and specific (“Slot is full. Pick another time.”), not generic.
+
+### Dashboards (by role)
+- Staff: “Today at a Glance” stats, Pending Approvals, Pantry Schedule snapshot, Volunteer Coverage, Quick Search, Cancellations, Notices & Events.
+- Volunteer: My Next Shifts, Available in My Roles, Announcements, Quick Actions, Profile & Training.
+- User: Upcoming Appointments, Pending Requests, Next Available Slots, Notices, Quick Actions.
+- Each section should be a card with a concise header and an action (e.g., “Review All”, “Open Schedule”).
+
+### Accessibility
+- Keyboard: All interactive controls must be focusable; visible focus ring (default MUI is fine).
+- ARIA: Use semantic components; add `aria-label` on icon-only buttons.
+- Contrast: Rely on theme tokens; don’t reduce contrast below MUI defaults.
+
+### Do / Don’t
+- Do reuse existing shared components (`FeedbackSnackbar`, search inputs, role-aware guards).
+- Do keep pages fast; fetch minimal data for first paint, then lazy-load details.
+- Don’t inline custom CSS or use non-themed colors.
+- Don’t add new design primitives without updating the theme.
+- Code Conventions: Co-locate small view components with the page; share reusable pieces in `components/`. Keep pages for data flow & layout; keep business logic in hooks/services.
+- All new UI must compile against strict TypeScript and pass existing tests.
+
 ## Base Requirements
 
 Users with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Even though we track usage in our own table, we do not record visits for walk-in clients in our system. When a client uses the food bank without booking through our app, there is currently no way to capture that visit in our platform. This is why it’s important for staff to check Link2Feed to see if the client has already used the food bank twice this calendar month and is eligible (users can only use the food bank two times in a month). In the future, we plan to implement a feature that allows uploading an Excel sheet to update visit counts for visits not processed through our booking platform.
