@@ -170,13 +170,13 @@ export async function addUser(
 }
   
 export async function createBooking(token: string, slotId: string, date: string) {
-    const res = await apiFetch(`${API_BASE}/bookings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: bearer(token),
-      },
-    body: JSON.stringify({ slotId, date, requestData: '' }),
+  const res = await apiFetch(`${API_BASE}/bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: bearer(token),
+    },
+    body: JSON.stringify({ slotId: Number(slotId), date, requestData: '' }),
   });
   return handleResponse(res);
 }

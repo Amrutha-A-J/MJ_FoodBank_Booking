@@ -44,6 +44,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
+  const slotIdNum = Number(slotId);
+  if (Number.isNaN(slotIdNum)) {
+    return res.status(400).json({ message: 'Invalid slot' });
+  }
+
   try {
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Invalid booking date' });
@@ -54,14 +59,14 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
 
-    await checkSlotCapacity(slotId, date);
+    await checkSlotCapacity(slotIdNum, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
     const token = randomUUID();
 
     await pool.query(
       `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
        VALUES ($1, $2, $3, '', $4, $5, $6)`,
-      [user.id, slotId, status, date, isStaffBooking || false, token]
+      [user.id, slotIdNum, status, date, isStaffBooking || false, token]
     );
 
     await sendEmail(
@@ -326,6 +331,11 @@ export async function createBookingForUser(
     return res.status(400).json({ message: 'Missing fields' });
   }
 
+  const slotIdNum = Number(slotId);
+  if (Number.isNaN(slotIdNum)) {
+    return res.status(400).json({ message: 'Invalid slot' });
+  }
+
   try {
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Invalid booking date' });
@@ -335,14 +345,14 @@ export async function createBookingForUser(
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
 
-    await checkSlotCapacity(slotId, date);
+    await checkSlotCapacity(slotIdNum, date);
     const status = isStaffBooking ? 'approved' : 'submitted';
     const token = randomUUID();
 
     await pool.query(
       `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
        VALUES ($1, $2, $3, '', $4, $5, $6)`,
-      [userId, slotId, status, date, isStaffBooking || false, token]
+      [userId, slotIdNum, status, date, isStaffBooking || false, token]
     );
 
     await updateBookingsThisMonth(userId);
