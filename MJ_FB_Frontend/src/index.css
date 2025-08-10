@@ -64,8 +64,8 @@ button:focus-visible {
 /* src/index.css */
 
 .app-container {
-  max-width: 900px; /* fits nicely in iframe, adjust as needed */
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 1rem;
   box-sizing: border-box;
   font-family: var(--e-global-typography-text-font-family);
