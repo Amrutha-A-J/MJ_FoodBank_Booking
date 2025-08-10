@@ -87,3 +87,17 @@ export interface UserProfile {
   role: Role;
   bookingsThisMonth: number;
 }
+
+export interface RoleOption {
+  categoryId: number;
+  categoryName: string;
+  roleId: number;
+  roleName: string;
+}
+
+export interface Shift {
+  shiftId: number;
+  startTime: string; // 'HH:MM:SS'
+  endTime: string;   // 'HH:MM:SS'
+  maxVolunteers: number;
+}

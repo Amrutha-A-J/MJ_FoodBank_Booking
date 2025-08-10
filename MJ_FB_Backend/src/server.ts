@@ -13,6 +13,7 @@ import volunteersRoutes from './routes/volunteers';
 import volunteerBookingsRoutes from './routes/volunteerBookings';
 import volunteerMasterRolesRoutes from './routes/volunteerMasterRoles';
 import authRoutes from './routes/auth';
+import rolesRoutes from './routes/roles';
 import { initializeSlots } from './data';
 import pool from './db';
 import { setupDatabase } from './setupDatabase';
@@ -43,6 +44,7 @@ app.use('/volunteer-master-roles', volunteerMasterRolesRoutes);
 app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-bookings', volunteerBookingsRoutes);
 app.use('/auth', authRoutes);
+app.use('/api/roles', rolesRoutes);
 
 const PORT = config.port;
 
