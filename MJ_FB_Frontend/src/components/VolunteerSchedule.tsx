@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getVolunteerRolesForVolunteer,
+  getVolunteerRoleGroups,
   requestVolunteerBooking,
   getMyVolunteerBookings,
   getHolidays,
   updateVolunteerBookingStatus,
   rescheduleVolunteerBookingByToken,
 } from '../api/api';
-import type { VolunteerRole, Holiday, VolunteerBooking } from '../types';
+import type {
+  VolunteerRole,
+  Holiday,
+  VolunteerBooking,
+  VolunteerRoleGroup,
+} from '../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
@@ -35,13 +40,9 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
-  const [roles, setRoles] = useState<VolunteerRole[]>([]);
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [roleGroups, setRoleGroups] = useState<{
-    category: string;
-    roles: { id: number; name: string }[];
-  }[]>([]);
+  const [roleGroups, setRoleGroups] = useState<VolunteerRoleGroup[]>([]);
   const [selectedRoleKey, setSelectedRoleKey] = useState<string>('');
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
@@ -58,32 +59,21 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
     const holiday = holidays.some(h => h.date === dateStr);
     if (weekend || holiday) {
-      setRoles([]);
       setBookings([]);
       setRoleGroups([]);
       setSelectedRoleKey('');
       return;
     }
     try {
-      const [roleData, bookingData] = await Promise.all([
-        getVolunteerRolesForVolunteer(token, dateStr),
+      const [groupData, bookingData] = await Promise.all([
+        getVolunteerRoleGroups(token, dateStr),
         getMyVolunteerBookings(token),
       ]);
-      setRoles(roleData);
-      const groups = new Map<string, Map<number, string>>();
-      roleData.forEach(r => {
-        const map = groups.get(r.category_name) || new Map<number, string>();
-        if (!map.has(r.role_id)) map.set(r.role_id, r.name);
-        groups.set(r.category_name, map);
-      });
-      setRoleGroups(
-        Array.from(groups.entries()).map(([category, map]) => ({
-          category,
-          roles: Array.from(map.entries()).map(([id, name]) => ({ id, name })),
-        }))
-      );
+      setRoleGroups(groupData);
       const keys = new Set(
-        roleData.map(r => `${r.category_name}|${r.role_id}`)
+        groupData.flatMap((g: VolunteerRoleGroup) =>
+          g.roles.map(r => `${g.category}|${r.id}`)
+        )
       );
       setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
       const filtered = bookingData.filter(
@@ -170,13 +160,11 @@ export default function VolunteerSchedule({ token }: { token: string }) {
 
   const [selectedCategory, selectedRoleId] = selectedRoleKey.split('|');
   const roleSlots = selectedRoleKey
-    ? roles
-        .filter(
-          r =>
-            r.category_name === selectedCategory &&
-            r.role_id === Number(selectedRoleId)
-        )
-        .sort((a, b) => a.start_time.localeCompare(b.start_time))
+    ? (
+        roleGroups
+          .find(g => g.category === selectedCategory)
+          ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || []
+      ).sort((a, b) => a.start_time.localeCompare(b.start_time))
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
   const rows = roleSlots.map(role => {
