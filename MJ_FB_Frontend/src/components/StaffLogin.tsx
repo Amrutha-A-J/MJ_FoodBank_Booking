@@ -60,7 +60,13 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
       header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
     >
       <FormContainer onSubmit={submit} submitLabel="Login">
-        <TextField value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
+        <TextField
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          label="Email"
+          fullWidth
+        />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
       </FormContainer>
