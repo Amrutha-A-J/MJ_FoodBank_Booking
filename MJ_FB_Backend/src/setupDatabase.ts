@@ -191,10 +191,6 @@ INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
 (3, 13, 'Evening Break')
 ON CONFLICT (day_of_week, slot_id) DO NOTHING;
 
-INSERT INTO staff (first_name, last_name, role, email, password) VALUES
-('Admin', 'Admin', 'staff', 'harvestpantry@mjfoodbank.com', '$2b$10$n4bMtLafHD1zHgoeNBdGauGNd3OPuOMp8SGFP3IFXk5v6ItfHAdrG')
-ON CONFLICT (email) DO NOTHING;
- 
 INSERT INTO volunteer_master_roles (id, name) VALUES
 (1, 'Pantry'),
 (2, 'Warehouse'),
