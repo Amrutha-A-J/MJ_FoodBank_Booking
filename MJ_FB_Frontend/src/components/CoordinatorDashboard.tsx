@@ -855,6 +855,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             />
             <TextField
               label="Phone (optional)"
+              type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
               size="small"

@@ -87,7 +87,12 @@ export default function AddUser({ token }: { token: string }) {
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
           <TextField label="Email (optional)" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <TextField label="Phone (optional)" value={phone} onChange={e => setPhone(e.target.value)} />
+          <TextField
+            label="Phone (optional)"
+            type="tel"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+          />
           <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
           <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
             <MenuItem value="shopper">Shopper</MenuItem>
