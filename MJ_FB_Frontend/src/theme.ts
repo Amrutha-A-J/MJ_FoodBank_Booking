@@ -1,48 +1,102 @@
 import { createTheme } from '@mui/material/styles';
-import type { ThemeOptions } from '@mui/material/styles';
-import themeConfig, { type ThemeConfig } from './themeConfig';
 
-export const getTheme = (config: ThemeConfig = themeConfig) => {
-  const theme = createTheme({
-    palette: {
-      mode: 'light',
-      primary: { main: config.primary },
-      secondary: { main: config.secondary },
-      text: { primary: config.text },
-      error: { main: config.accent },
-      background: {
-        default: config.background,
-        paper: '#FFFFFF',
-      },
+export const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: { main: '#941818' },
+    secondary: { main: '#111827' },
+    background: {
+      default: '#f7f8fa',
+      paper: '#ffffff',
     },
-    typography: {
-      fontFamily: config.fontFamily,
-    },
-    components: {
-      MuiButton: {
-        defaultProps: {
-          variant: 'outlined',
-          color: 'primary',
-        },
-        styleOverrides: {
-          root: { borderRadius: 8 },
+    divider: '#e5e7eb',
+  },
+  shape: {
+    borderRadius: 16,
+  },
+  typography: {
+    fontFamily: 'Golos, system-ui, Segoe UI, Roboto, Arial, sans-serif',
+    h5: { fontWeight: 700 },
+    subtitle1: { fontWeight: 600 },
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundImage: 'none',
         },
       },
     },
-  } as ThemeOptions);
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiButton: {
+      defaultProps: {
+        size: 'small',
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+        },
+      },
+    },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: {
+          fontWeight: 600,
+        },
+      },
+    },
+  },
+});
 
-  if (typeof document !== 'undefined') {
-    const root = document.documentElement;
-    root.style.setProperty('--e-global-color-primary', config.primary);
-    root.style.setProperty('--e-global-color-secondary', config.secondary);
-    root.style.setProperty('--e-global-color-text', config.text);
-    root.style.setProperty('--e-global-color-accent', config.accent);
-    root.style.setProperty('--e-global-color-background', config.background);
-    root.style.setProperty('--e-global-typography-text-font-family', config.fontFamily);
-  }
+/*
+How to install Golos:
 
-  return theme;
-};
+```bash
+npm install @fontsource/golos-text
+```
 
-export default getTheme;
+How to import Golos in src/fonts.ts:
+
+```ts
+import '@fontsource/golos-text/400.css';
+import '@fontsource/golos-text/600.css';
+import '@fontsource/golos-text/700.css';
+```
+
+How to wrap the app:
+
+```tsx
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { theme } from './theme';
+import './fonts';
+
+<ThemeProvider theme={theme}>
+  <CssBaseline />
+  <AppRoutes />
+</ThemeProvider>
+```
+*/
 
