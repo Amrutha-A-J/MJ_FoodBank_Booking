@@ -13,6 +13,7 @@ import VolunteerDashboard from './components/VolunteerDashboard';
 import VolunteerManagement from './components/VolunteerManagement';
 import Dashboard from './pages/Dashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
+import VolunteerSchedule from './components/VolunteerSchedule';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
@@ -67,7 +68,8 @@ export default function App() {
     navGroups.push({
       label: 'Volunteer',
       links: [
-        { label: 'Schedule', to: '/' },
+        { label: 'Dashboard', to: '/' },
+        { label: 'Schedule', to: '/volunteer/schedule' },
         { label: 'Booking History', to: '/volunteer/history' },
       ],
     });
@@ -180,10 +182,16 @@ export default function App() {
                   </>
                 )}
                 {role === 'volunteer' && (
-                  <Route
-                    path="/volunteer/history"
-                    element={<VolunteerBookingHistory token={token} />}
-                  />
+                  <>
+                    <Route
+                      path="/volunteer/schedule"
+                      element={<VolunteerSchedule token={token} />}
+                    />
+                    <Route
+                      path="/volunteer/history"
+                      element={<VolunteerBookingHistory token={token} />}
+                    />
+                  </>
                 )}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
