@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Grid,
   Card,
@@ -22,14 +22,19 @@ import {
   Search,
   EventAvailable,
   Announcement,
-  CheckCircle,
-  AccessTime,
 } from '@mui/icons-material';
-
-export type Role = 'staff' | 'volunteer' | 'user';
+import {
+  getBookings,
+  getSlots,
+  getVolunteerRoles,
+  getVolunteerBookingsByRole,
+} from '../api/api';
+import type { Role, Slot } from '../types';
+import { formatTime } from '../utils/time';
 
 export interface DashboardProps {
   role: Role;
+  token: string;
 }
 
 interface SectionCardProps {
@@ -63,59 +68,82 @@ const Stat = ({ icon, label, value }: StatProps) => (
   </Stack>
 );
 
-const mockStaff = {
-  stats: {
-    appointments: 24,
-    volunteers: 8,
-    approvals: 5,
-    cancellations: 2,
-  },
-  approvals: [
-    { name: 'Alice Johnson', type: 'User' },
-    { name: 'Bob Lee', type: 'Volunteer' },
-  ],
-  coverage: [
-    { role: 'Pantry', filled: 4, total: 5 },
-    { role: 'Warehouse', filled: 2, total: 3 },
-    { role: 'Driver', filled: 1, total: 2 },
-  ],
-  schedule: [
-    { day: 'Mon', open: 12 },
-    { day: 'Tue', open: 8 },
-    { day: 'Wed', open: 10 },
-    { day: 'Thu', open: 14 },
-    { day: 'Fri', open: 6 },
-    { day: 'Sat', open: 4 },
-    { day: 'Sun', open: 0 },
-  ],
-  cancellations: ['Jones - 9:00 AM', 'Smith - 11:30 AM'],
-  notices: ['Food drive Saturday', 'Team meeting Thursday'],
-};
+interface Booking {
+  id: number;
+  status: string;
+  date: string;
+  user_name?: string;
+  start_time?: string;
+  end_time?: string;
+}
 
-const mockVolunteer = {
-  shifts: [
-    { role: 'Pantry', time: 'Tue 9:00 AM', status: 'approved' },
-    { role: 'Warehouse', time: 'Thu 1:00 PM', status: 'pending' },
-  ],
-  available: [
-    { role: 'Pantry', time: 'Fri 9:00 AM' },
-    { role: 'Garden', time: 'Sat 10:00 AM' },
-  ],
-  announcements: ['Training session next week', 'Wear closed-toe shoes'],
-  trained: ['Pantry', 'Warehouse'],
-};
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
-const mockUser = {
-  appointments: [
-    { date: 'Jun 12', time: '10:00 AM' },
-    { date: 'Jun 20', time: '2:00 PM' },
-  ],
-  pending: [{ date: 'Jun 30', time: '11:00 AM' }],
-  slots: ['Jun 15 9:00 AM', 'Jun 16 11:00 AM', 'Jun 17 1:00 PM'],
-  notices: ['Closed on July 4', 'Bring reusable bags'],
-};
+function StaffDashboard({ token }: { token: string }) {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [coverage, setCoverage] = useState<
+    { role: string; filled: number; total: number }[]
+  >([]);
+  const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
 
-function StaffDashboard() {
+  useEffect(() => {
+    getBookings(token).then(setBookings).catch(() => {});
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    getVolunteerRoles(token)
+      .then(roles =>
+        Promise.all(
+          roles.map(async r => {
+            const bookings = await getVolunteerBookingsByRole(token, r.id);
+            const filled = bookings.filter(
+              (b: any) =>
+                b.status === 'approved' && b.date.split('T')[0] === todayStr,
+            ).length;
+            return { role: r.name, filled, total: r.max_volunteers };
+          }),
+        ),
+      )
+      .then(data => setCoverage(data))
+      .catch(() => {});
+
+    const today = new Date();
+    Promise.all(
+      [...Array(7)].map(async (_, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const slots = await getSlots(token, dateStr);
+        const open = (slots as Slot[]).reduce(
+          (sum, s) => sum + (s.available || 0),
+          0,
+        );
+        return {
+          day: d.toLocaleDateString(undefined, { weekday: 'short' }),
+          open,
+        };
+      }),
+    )
+      .then(setSchedule)
+      .catch(() => {});
+  }, [token]);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const pending = bookings.filter(b => b.status === 'submitted');
+  const cancellations = bookings.filter(b => b.status === 'cancelled');
+  const stats = {
+    appointments: bookings.filter(
+      b => b.status === 'approved' && b.date.split('T')[0] === todayStr,
+    ).length,
+    volunteers: coverage.reduce((sum, c) => sum + c.filled, 0),
+    approvals: pending.length,
+    cancellations: cancellations.filter(
+      b => b.date.split('T')[0] === todayStr,
+    ).length,
+  };
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
@@ -125,28 +153,28 @@ function StaffDashboard() {
               <Stat
                 icon={<CalendarToday color="primary" />}
                 label="Appointments Today"
-                value={mockStaff.stats.appointments}
+                value={stats.appointments}
               />
             </Grid>
             <Grid item xs={6}>
               <Stat
                 icon={<People color="primary" />}
                 label="Volunteers Scheduled"
-                value={mockStaff.stats.volunteers}
+                value={stats.volunteers}
               />
             </Grid>
             <Grid item xs={6}>
               <Stat
                 icon={<WarningAmber color="warning" />}
                 label="Pending Approvals"
-                value={mockStaff.stats.approvals}
+                value={stats.approvals}
               />
             </Grid>
             <Grid item xs={6}>
               <Stat
                 icon={<CancelIcon color="error" />}
                 label="Cancellations"
-                value={mockStaff.stats.cancellations}
+                value={stats.cancellations}
               />
             </Grid>
           </Grid>
@@ -155,12 +183,9 @@ function StaffDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Pending Approvals">
           <List>
-            {mockStaff.approvals.map((item, i) => (
-              <ListItem
-                key={i}
-                secondaryAction={<Chip label={item.type} />}
-              >
-                <ListItemText primary={item.name} />
+            {pending.map(b => (
+              <ListItem key={b.id} secondaryAction={<Chip label="User" />}>
+                <ListItemText primary={b.user_name || 'Unknown'} />
               </ListItem>
             ))}
           </List>
@@ -169,8 +194,8 @@ function StaffDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Volunteer Coverage">
           <List>
-            {mockStaff.coverage.map((item, i) => {
-              const ratio = item.filled / item.total;
+            {coverage.map((c, i) => {
+              const ratio = c.filled / c.total;
               let color: 'success' | 'warning' | 'error' | 'default' = 'default';
               if (ratio >= 1) color = 'success';
               else if (ratio >= 0.5) color = 'warning';
@@ -178,11 +203,9 @@ function StaffDashboard() {
               return (
                 <ListItem
                   key={i}
-                  secondaryAction={
-                    <Chip color={color} label={`${item.filled}/${item.total}`} />
-                  }
+                  secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
                 >
-                  <ListItemText primary={item.role} />
+                  <ListItemText primary={c.role} />
                 </ListItem>
               );
             })}
@@ -192,7 +215,7 @@ function StaffDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Pantry Schedule (This Week)">
           <Grid container columns={7} spacing={2}>
-            {mockStaff.schedule.map((day, i) => (
+            {schedule.map((day, i) => (
               <Grid item xs={1} key={i}>
                 <Stack alignItems="center" spacing={1}>
                   <Typography variant="body2">{day.day}</Typography>
@@ -229,9 +252,11 @@ function StaffDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Recent Cancellations">
           <List>
-            {mockStaff.cancellations.map((c, i) => (
-              <ListItem key={i}>
-                <ListItemText primary={c} />
+            {cancellations.slice(0, 5).map(c => (
+              <ListItem key={c.id}>
+                <ListItemText
+                  primary={`${c.user_name || 'Unknown'} - ${formatTime(c.start_time || '')}`}
+                />
               </ListItem>
             ))}
           </List>
@@ -240,11 +265,9 @@ function StaffDashboard() {
       <Grid item xs={12}>
         <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
           <List>
-            {mockStaff.notices.map((n, i) => (
-              <ListItem key={i}>
-                <ListItemText primary={n} />
-              </ListItem>
-            ))}
+            <ListItem>
+              <ListItemText primary="" />
+            </ListItem>
           </List>
         </SectionCard>
       </Grid>
@@ -252,128 +275,57 @@ function StaffDashboard() {
   );
 }
 
-function VolunteerDashboard() {
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="My Next Shifts">
-          <List>
-            {mockVolunteer.shifts.map((s, i) => (
-              <ListItem
-                key={i}
-                secondaryAction={
-                  s.status === 'approved' ? (
-                    <CheckCircle color="success" />
-                  ) : (
-                    <AccessTime color="warning" />
-                  )
-                }
-              >
-                <ListItemText primary={`${s.role} - ${s.time}`} />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="Available in My Roles">
-          <List>
-            {mockVolunteer.available.map((a, i) => (
-              <ListItem
-                key={i}
-                secondaryAction={
-                  <Button
-                    size="small"
-                    variant="contained"
-                    sx={{ textTransform: 'none' }}
-                  >
-                    Request
-                  </Button>
-                }
-              >
-                <ListItemText primary={`${a.role} - ${a.time}`} />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="Announcements" icon={<Announcement color="primary" />}>
-          <List>
-            {mockVolunteer.announcements.map((a, i) => (
-              <ListItem key={i}>
-                <ListItemText primary={a} />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="Quick Actions">
-          <Stack direction="row" spacing={1}>
-            <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
-              Request
-            </Button>
-            <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-              Cancel
-            </Button>
-            <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-              Reschedule
-            </Button>
-          </Stack>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SectionCard title="Profile & Training">
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={1}>
-              {mockVolunteer.trained.map((t, i) => (
-                <Chip key={i} label={t} />
-              ))}
-            </Stack>
-            <Button
-              size="small"
-              variant="outlined"
-              sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
-            >
-              Update
-            </Button>
-          </Stack>
-        </SectionCard>
-      </Grid>
-    </Grid>
-  );
-}
+function UserDashboard({ token }: { token: string }) {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [slotOptions, setSlotOptions] = useState<string[]>([]);
 
-function UserDashboard() {
+  useEffect(() => {
+    getBookings(token).then(setBookings).catch(() => {});
+
+    const today = new Date();
+    Promise.all(
+      [...Array(5)].map(async (_, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        const slots = await getSlots(token, dateStr);
+        return (slots as Slot[])
+          .filter(s => s.available > 0)
+          .map(s => `${formatDate(dateStr)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`);
+      }),
+    )
+      .then(days => {
+        const merged = days.flat();
+        setSlotOptions(merged.slice(0, 3));
+      })
+      .catch(() => {});
+  }, [token]);
+
+  const appointments = bookings.filter(b => b.status === 'approved');
+  const pending = bookings.filter(b => b.status === 'submitted');
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
         <SectionCard title="My Upcoming Appointments" icon={<EventAvailable color="primary" />}>
           <List>
-            {mockUser.appointments.map((a, i) => (
+            {appointments.map(a => (
               <ListItem
-                key={i}
+                key={a.id}
                 secondaryAction={
                   <Stack direction="row" spacing={1}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      sx={{ textTransform: 'none' }}
-                    >
+                    <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
                       Cancel
                     </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      sx={{ textTransform: 'none' }}
-                    >
+                    <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
                       Reschedule
                     </Button>
                   </Stack>
                 }
               >
-                <ListItemText primary={`${a.date} ${a.time}`} />
+                <ListItemText
+                  primary={`${formatDate(a.date)} ${formatTime(a.start_time || '')}`}
+                />
               </ListItem>
             ))}
           </List>
@@ -382,12 +334,14 @@ function UserDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Pending Requests">
           <List>
-            {mockUser.pending.map((p, i) => (
+            {pending.map(p => (
               <ListItem
-                key={i}
+                key={p.id}
                 secondaryAction={<Chip label="Waiting for approval" color="warning" />}
               >
-                <ListItemText primary={`${p.date} ${p.time}`} />
+                <ListItemText
+                  primary={`${formatDate(p.date)} ${formatTime(p.start_time || '')}`}
+                />
               </ListItem>
             ))}
           </List>
@@ -396,7 +350,7 @@ function UserDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Next Available Slots" icon={<EventAvailable color="primary" />}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            {mockUser.slots.map((s, i) => (
+            {slotOptions.map((s, i) => (
               <Button
                 key={i}
                 size="small"
@@ -412,11 +366,9 @@ function UserDashboard() {
       <Grid item xs={12} md={6}>
         <SectionCard title="Notices" icon={<Announcement color="primary" />}>
           <List>
-            {mockUser.notices.map((n, i) => (
-              <ListItem key={i}>
-                <ListItemText primary={n} />
-              </ListItem>
-            ))}
+            <ListItem>
+              <ListItemText primary="" />
+            </ListItem>
           </List>
         </SectionCard>
       </Grid>
@@ -439,8 +391,8 @@ function UserDashboard() {
   );
 }
 
-export default function Dashboard({ role }: DashboardProps) {
-  if (role === 'staff') return <StaffDashboard />;
-  if (role === 'volunteer') return <VolunteerDashboard />;
-  return <UserDashboard />;
+export default function Dashboard({ role, token }: DashboardProps) {
+  if (role === 'staff') return <StaffDashboard token={token} />;
+  return <UserDashboard token={token} />;
 }
+

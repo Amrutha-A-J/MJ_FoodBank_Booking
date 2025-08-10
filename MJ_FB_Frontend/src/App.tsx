@@ -133,7 +133,7 @@ export default function App() {
                       role === 'volunteer' ? (
                         <VolunteerDashboard token={token} />
                       ) : (
-                        <Dashboard role={isStaff ? 'staff' : 'user'} />
+                        <Dashboard role={isStaff ? 'staff' : 'user'} token={token} />
                       )
                     }
                   />
