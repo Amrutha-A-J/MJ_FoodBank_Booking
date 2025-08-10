@@ -213,63 +213,67 @@ function StaffDashboard({ token }: { token: string }) {
         </SectionCard>
       </Grid>
       <Grid item xs={12} md={6}>
-        <SectionCard title="Pantry Schedule (This Week)">
-          <Grid container columns={7} spacing={2}>
-            {schedule.map((day, i) => (
-              <Grid item xs={1} key={i}>
-                <Stack alignItems="center" spacing={1}>
-                  <Typography variant="body2">{day.day}</Typography>
-                  <Chip
-                    label={`Open: ${day.open}`}
-                    color={day.open > 0 ? 'success' : 'default'}
-                  />
-                </Stack>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <SectionCard title="Pantry Schedule (This Week)">
+              <Grid container columns={7} spacing={2}>
+                {schedule.map((day, i) => (
+                  <Grid item xs={1} key={i}>
+                    <Stack alignItems="center" spacing={1}>
+                      <Typography variant="body2">{day.day}</Typography>
+                      <Chip
+                        label={`Open: ${day.open}`}
+                        color={day.open > 0 ? 'success' : 'default'}
+                      />
+                    </Stack>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
+            </SectionCard>
           </Grid>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="Quick Search">
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={1}>
-              <TextField size="small" placeholder="Search" fullWidth />
-              <IconButton color="primary" size="small">
-                <Search />
-              </IconButton>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
-                Find Client
-              </Button>
-              <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-                Find Volunteer
-              </Button>
-            </Stack>
-          </Stack>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <SectionCard title="Recent Cancellations">
-          <List>
-            {cancellations.slice(0, 5).map(c => (
-              <ListItem key={c.id}>
-                <ListItemText
-                  primary={`${c.user_name || 'Unknown'} - ${formatTime(c.start_time || '')}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid item xs={12}>
-        <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
-          <List>
-            <ListItem>
-              <ListItemText primary="" />
-            </ListItem>
-          </List>
-        </SectionCard>
+          <Grid item xs={12}>
+            <SectionCard title="Quick Search">
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={1}>
+                  <TextField size="small" placeholder="Search" fullWidth />
+                  <IconButton color="primary" size="small">
+                    <Search />
+                  </IconButton>
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
+                    Find Client
+                  </Button>
+                  <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                    Find Volunteer
+                  </Button>
+                </Stack>
+              </Stack>
+            </SectionCard>
+          </Grid>
+          <Grid item xs={12}>
+            <SectionCard title="Recent Cancellations">
+              <List>
+                {cancellations.slice(0, 5).map(c => (
+                  <ListItem key={c.id}>
+                    <ListItemText
+                      primary={`${c.user_name || 'Unknown'} - ${formatTime(c.start_time || '')}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </SectionCard>
+          </Grid>
+          <Grid item xs={12}>
+            <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
+              <List>
+                <ListItem>
+                  <ListItemText primary="" />
+                </ListItem>
+              </List>
+            </SectionCard>
+          </Grid>
+        </Grid>
       </Grid>
     </Grid>
   );
