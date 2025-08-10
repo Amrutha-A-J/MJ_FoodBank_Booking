@@ -215,6 +215,32 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
 
 ### Slot API
 
+`GET /volunteer-roles` returns all volunteer roles with their shifts:
+
+```
+[
+  {
+    "id": <role_id>,
+    "role_id": <role_id>,
+    "category_id": <category_id>,
+    "name": "<role name>",
+    "max_volunteers": 3,
+    "category_name": "<category>",
+    "shifts": [
+      {
+        "id": <slot_id>,
+        "start_time": "09:00:00",
+        "end_time": "12:00:00",
+        "is_wednesday_slot": false,
+        "is_active": true
+      },
+      ...
+    ]
+  },
+  ...
+]
+```
+
 `GET /volunteer-roles/mine?date=YYYY-MM-DD` returns each slot the logged-in volunteer is trained for:
 
 ```
