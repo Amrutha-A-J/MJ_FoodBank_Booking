@@ -26,12 +26,19 @@ interface Props {
 }
 
 export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
+  const slotWidth = `calc((100% - 160px) / ${maxSlots})`;
   return (
     <TableContainer component={Paper}>
-      <Table size="small">
+      <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
+        <colgroup>
+          <col style={{ width: 160 }} />
+          {Array.from({ length: maxSlots }).map((_, i) => (
+            <col key={i} style={{ width: slotWidth }} />
+          ))}
+        </colgroup>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ width: 160 }}>Time</TableCell>
+            <TableCell>Time</TableCell>
             {Array.from({ length: maxSlots }).map((_, i) => (
               <TableCell key={i}>Slot {i + 1}</TableCell>
             ))}
