@@ -129,7 +129,6 @@ export default function SlotBooking({ token, role }: Props) {
         setMessage('');
         return;
       }
-      setSelectedSlotId(null);
       setDayMessage('');
       setMessage('');
     }
@@ -237,7 +236,10 @@ export default function SlotBooking({ token, role }: Props) {
       </h3>
       <Calendar
         onChange={value => {
-          if (value instanceof Date) setSelectedDate(toReginaDate(value));
+          if (value instanceof Date) {
+            setSelectedDate(toReginaDate(value));
+            setSelectedSlotId(null);
+          }
         }}
         value={selectedDate ? toZonedTime(selectedDate, reginaTimeZone) : undefined}
         calendarType="gregory"
