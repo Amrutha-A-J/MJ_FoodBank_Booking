@@ -12,6 +12,7 @@ import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import VolunteerManagement from './components/VolunteerManagement';
 import Dashboard from './pages/Dashboard';
+import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
@@ -139,8 +140,10 @@ export default function App() {
                     element={
                       role === 'volunteer' ? (
                         <VolunteerDashboard token={token} />
+                      ) : isStaff ? (
+                        <Dashboard role="staff" token={token} />
                       ) : (
-                        <Dashboard role={isStaff ? 'staff' : 'user'} token={token} />
+                        <UserDashboard token={token} />
                       )
                     }
                   />
