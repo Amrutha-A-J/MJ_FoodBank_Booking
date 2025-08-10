@@ -7,3 +7,9 @@ export function formatTime(time: string): string {
   hour = hour % 12 || 12;
   return `${hour}:${minute} ${ampm}`;
 }
+
+export function formatHHMM(time: string): string {
+  if (!time) return '';
+  const [h, m] = time.split(':');
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+}
