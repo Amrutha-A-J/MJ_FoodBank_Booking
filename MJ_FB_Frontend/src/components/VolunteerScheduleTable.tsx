@@ -31,7 +31,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={{ width: 120 }}>Time</TableCell>
+            <TableCell sx={{ width: 160 }}>Time</TableCell>
             {Array.from({ length: maxSlots }).map((_, i) => (
               <TableCell key={i}>Slot {i + 1}</TableCell>
             ))}
@@ -42,7 +42,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
             const used = row.cells.reduce((sum, c) => sum + (c.colSpan || 1), 0);
             return (
               <TableRow key={idx}>
-                <TableCell>{row.time}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.time}</TableCell>
                 {row.cells.map((cell, i) => (
                   <TableCell
                     key={i}
