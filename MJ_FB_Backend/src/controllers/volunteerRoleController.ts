@@ -266,7 +266,7 @@ export async function listVolunteerRolesForVolunteer(
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
         `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
-                vr.max_volunteers AS max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+                vs.max_volunteers AS max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
                 vmr.name AS category_name,
                 COALESCE(b.count,0) AS booked, $1::date AS date
          FROM volunteer_slots vs
