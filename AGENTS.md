@@ -42,7 +42,7 @@
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
 - `SlotBooking` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
 - Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API.
-- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times.
+- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to four shoppers across Slot 1–Slot 4, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and approve pending requests (highlighted in yellow).
 - Volunteers view role-specific schedules and request, cancel, or reschedule bookings through `VolunteerSchedule`. Gardening and special events shifts remain bookable on holidays and weekends, while pantry, warehouse, and administrative roles are disabled when a holiday is set.
 
 ## Booking Workflow
@@ -57,8 +57,8 @@
 - **BookingHistory** – lists a shopper's pending and approved appointments with actions to cancel or reschedule.
 - **PendingBookings** and the schedule view in the staff dashboard show each slot's status and provide Approve/Reject/Reschedule controls.
 - **ManageAvailability** – lets staff maintain holidays, blocked slots, and recurring breaks.
-- **PantrySchedule** – marks holidays, blocked slots, and breaks as non bookable entries in the staff schedule.
-- **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored.
+- **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and approve user requests, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
+- **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. The number of slot columns matches each role's `max_volunteers` (e.g., pantry shelf stocker shows one slot, while pantry greeter shows multiple). Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored.
 - Backend controllers such as `bookingController`, `slotController`, `holidayController`, `blockedSlotController`, `breakController`, `volunteerBookingController`, and `volunteerRoleController` enforce business rules and interact with the database.
 
 ## Database Model
