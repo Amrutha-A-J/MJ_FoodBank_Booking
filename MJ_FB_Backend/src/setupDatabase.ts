@@ -154,6 +154,19 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     `CREATE UNIQUE INDEX IF NOT EXISTS slots_unique_start_end ON slots (start_time, end_time);`
   );
 
+  // Remove duplicate volunteer roles and enforce uniqueness
+  await client.query(`
+    DELETE FROM volunteer_roles a
+    USING volunteer_roles b
+    WHERE a.id > b.id
+      AND a.role_id = b.role_id
+      AND a.start_time = b.start_time
+      AND a.end_time = b.end_time;
+  `);
+  await client.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_roles_unique_role_time ON volunteer_roles (role_id, start_time, end_time);`
+  );
+
   // Insert master data
   await client.query(`
 INSERT INTO slots (start_time, end_time, max_capacity) VALUES
@@ -222,7 +235,7 @@ INSERT INTO volunteer_roles (role_id, name, start_time, end_time, max_volunteers
 (13, 'Client Resource Associate', '08:00:00', '16:00:00', 1, 4, false),
 (14, 'Assistant Volunteer Coordinator', '08:00:00', '16:00:00', 1, 4, false),
 (15, 'Volunteer Office Administrator', '08:00:00', '16:00:00', 1, 4, false)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
 `);
 
   await client.end();
