@@ -16,6 +16,20 @@
   - `api/` wraps server requests.
   - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 
+## Functional Overview
+### Backend
+- The Express server configures CORS, initializes default slots, and mounts route modules for users, slots, bookings, holidays, blocked slots, breaks, staff, volunteer roles and bookings, and authentication before starting the service
+- Booking logic checks slot capacity, enforces monthly visit limits, and sends confirmation emails when a booking is created
+- JWT-based middleware extracts tokens from headers or cookies, verifies them, and loads the matching staff, user, or volunteer record from PostgreSQL
+- A setup script provisions PostgreSQL tables for slots, users, staff, volunteer roles, bookings, breaks, and related data when the server starts
+
+### Frontend
+- The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination
+- `SlotBooking` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API
+- Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API
+- Volunteers view role-specific schedules and request, cancel, or reschedule bookings through `VolunteerSchedule`
+- Reusable Material UI components include a responsive `Navbar` and a `FeedbackSnackbar` for consistent UI and notifications
+
 ## Basic Requirements
 - Preserve the separation between controllers, routes, models, and middleware in the backend.
 - Use Zod schemas for validation and keep TypeScript types in sync.
