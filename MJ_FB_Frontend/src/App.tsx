@@ -15,6 +15,7 @@ import CoordinatorDashboard from './components/CoordinatorDashboard';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
+import Breadcrumbs from './components/Breadcrumbs';
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');
@@ -124,6 +125,7 @@ export default function App() {
             />
 
             <main>
+              <Breadcrumbs />
               <Routes>
                 <Route
                   path="/"
