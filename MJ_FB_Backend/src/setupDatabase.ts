@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS volunteers (
 CREATE TABLE IF NOT EXISTS volunteer_trained_roles (
     volunteer_id integer NOT NULL,
     role_id integer NOT NULL,
+    category_id integer NOT NULL REFERENCES public.volunteer_master_roles(id),
     PRIMARY KEY (volunteer_id, role_id),
     FOREIGN KEY (volunteer_id) REFERENCES public.volunteers(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE

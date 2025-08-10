@@ -28,8 +28,8 @@ export async function updateTrainedArea(
     await pool.query('DELETE FROM volunteer_trained_roles WHERE volunteer_id = $1', [id]);
     if (roleIds.length > 0) {
       await pool.query(
-        `INSERT INTO volunteer_trained_roles (volunteer_id, role_id)
-         SELECT $1, UNNEST($2::int[])`,
+        `INSERT INTO volunteer_trained_roles (volunteer_id, role_id, category_id)
+         SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
         [id, roleIds]
       );
     }
@@ -155,8 +155,8 @@ export async function createVolunteer(
     );
     const volunteerId = result.rows[0].id;
     await pool.query(
-      `INSERT INTO volunteer_trained_roles (volunteer_id, role_id)
-       SELECT $1, UNNEST($2::int[])`,
+      `INSERT INTO volunteer_trained_roles (volunteer_id, role_id, category_id)
+       SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
     res.status(201).json({ id: volunteerId });
