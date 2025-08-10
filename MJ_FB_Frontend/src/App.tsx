@@ -12,6 +12,7 @@ import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import VolunteerManagement from './components/VolunteerManagement';
 import Dashboard from './pages/Dashboard';
+import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
@@ -63,7 +64,13 @@ export default function App() {
       ],
     });
   } else if (role === 'volunteer') {
-    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', to: '/' }] });
+    navGroups.push({
+      label: 'Volunteer',
+      links: [
+        { label: 'Schedule', to: '/' },
+        { label: 'Booking History', to: '/volunteer/history' },
+      ],
+    });
   }
 
   return (
@@ -174,8 +181,8 @@ export default function App() {
                 )}
                 {role === 'volunteer' && (
                   <Route
-                    path="/volunteer-dashboard"
-                    element={<VolunteerDashboard token={token} />}
+                    path="/volunteer/history"
+                    element={<VolunteerBookingHistory token={token} />}
                   />
                 )}
                   <Route path="*" element={<Navigate to="/" replace />} />
