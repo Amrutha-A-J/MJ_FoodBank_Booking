@@ -30,6 +30,14 @@
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Document new environment variables in the repository README and `.env.example` files.
 
+## Base Requirements
+
+Users with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Even though we track usage in our own table, we do not record visits for walk-in clients in our system. When a client uses the food bank without booking through our app, there is currently no way to capture that visit in our platform. This is why it’s important for staff to check Link2Feed to see if the client has already used the food bank twice this calendar month and is eligible (users can only use the food bank two times in a month). In the future, we plan to implement a feature that allows uploading an Excel sheet to update visit counts for visits not processed through our booking platform.
+
+Staff must also book appointments for clients who do not have internet access. In these cases, the client visits in person to request an appointment, and the staff member clicks on an empty cell in the pantry schedule to assign the client to that slot. Both users and staff should have the ability to cancel or reschedule appointments.
+
+Similarly, volunteers should be able to log into the app to see which roles require volunteers for a given day. They will only see roles they are trained in, so they do not sign up for areas they are unfamiliar with. Just like user bookings, staff must approve volunteer requests. Staff can also view which volunteers are available on a given day for each role.
+
 ## Functional Overview
 
 ### Backend
