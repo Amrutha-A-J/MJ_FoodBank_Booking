@@ -3,11 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ThemeProvider, CssBaseline } from '@mui/material';
-import getTheme from './theme';
+import { theme } from './theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function Main() {
-  const theme = getTheme();
   const queryClient = new QueryClient();
 
   return (
