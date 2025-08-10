@@ -63,6 +63,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
   const [editMsg, setEditMsg] = useState('');
+  const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
   const [firstName, setFirstName] = useState('');
@@ -300,8 +301,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         new Set(trainedEdit.map(name => nameToCategoryId.get(name) || 0))
       ).filter(id => id !== 0);
       await updateVolunteerTrainedAreas(token, selectedVolunteer.id, ids);
+      setEditSeverity('success');
       setEditMsg('Roles updated');
     } catch (e) {
+      setEditSeverity('error');
       setEditMsg(e instanceof Error ? e.message : String(e));
     }
   }
@@ -537,7 +540,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 )}
               </div>
               <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
-              {editMsg && <p>{editMsg}</p>}
               <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -707,6 +709,18 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       )}
 
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
+      <FeedbackSnackbar
+        open={!!editMsg}
+        onClose={() => setEditMsg('')}
+        message={editMsg}
+        severity={editSeverity}
+      />
+      <FeedbackSnackbar
+        open={!!assignMsg}
+        onClose={() => setAssignMsg('')}
+        message={assignMsg}
+        severity="error"
+      />
 
       {assignModal && (
         <div
@@ -744,7 +758,6 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 </li>
               ))}
             </ul>
-            {assignMsg && <p style={{ color: 'red' }}>{assignMsg}</p>}
             <Button
               onClick={() => {
                 setAssignModal(false);
