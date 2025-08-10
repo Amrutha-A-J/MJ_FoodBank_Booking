@@ -53,6 +53,21 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const formatDate = (date: Date) =>
     formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
+  function mergeRoleSlots(groups: VolunteerRoleGroup[]): VolunteerRoleGroup[] {
+    return groups.map(g => {
+      const map = new Map<string, { id: number; name: string; slots: VolunteerRole[] }>();
+      g.roles.forEach(r => {
+        const existing = map.get(r.name);
+        if (existing) {
+          existing.slots.push(...r.slots);
+        } else {
+          map.set(r.name, { ...r, slots: [...r.slots] });
+        }
+      });
+      return { category: g.category, roles: Array.from(map.values()) };
+    });
+  }
+
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
@@ -69,9 +84,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         getVolunteerRoleGroups(token, dateStr),
         getMyVolunteerBookings(token),
       ]);
-      setRoleGroups(groupData);
+      const merged = mergeRoleSlots(groupData);
+      setRoleGroups(merged);
       const keys = new Set(
-        groupData.flatMap((g: VolunteerRoleGroup) =>
+        merged.flatMap((g: VolunteerRoleGroup) =>
           g.roles.map(r => `${g.category}|${r.id}`)
         )
       );
