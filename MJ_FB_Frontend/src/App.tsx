@@ -11,6 +11,7 @@ import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
 import VolunteerDashboard from './components/VolunteerDashboard';
 import CoordinatorDashboard from './components/CoordinatorDashboard';
+import Dashboard from './pages/Dashboard';
 import type { Role } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
@@ -61,7 +62,7 @@ export default function App() {
       ],
     });
   } else if (role === 'volunteer') {
-    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', to: '/volunteer-dashboard' }] });
+    navGroups.push({ label: 'Volunteer', links: [{ label: 'Volunteer Dashboard', to: '/' }] });
   }
 
   return (
@@ -125,7 +126,16 @@ export default function App() {
             <main>
               <Breadcrumbs />
               <Routes>
-                  <Route path="/" element={<div />} />
+                  <Route
+                    path="/"
+                    element={
+                      role === 'volunteer' ? (
+                        <VolunteerDashboard token={token} />
+                      ) : (
+                        <Dashboard role={isStaff ? 'staff' : 'user'} />
+                      )
+                    }
+                  />
                   <Route path="/profile" element={<Profile token={token} role={role} />} />
                   {isStaff && (
                     <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
@@ -153,7 +163,7 @@ export default function App() {
                   <>
                     <Route
                       path="/coordinator-dashboard"
-                      element={<Navigate to="/coordinator-dashboard/schedule" replace />}
+                      element={<CoordinatorDashboard token={token} />}
                     />
                     <Route
                       path="/coordinator-dashboard/:tab"
