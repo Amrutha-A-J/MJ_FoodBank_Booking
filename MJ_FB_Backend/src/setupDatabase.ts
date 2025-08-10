@@ -24,6 +24,16 @@ export async function setupDatabase() {
   const client = new Client({ ...dbConfig, database: dbName });
   await client.connect();
 
+  // Check if the database has already been initialized
+  const tableCheck = await client.query(
+    "SELECT to_regclass('public.slots') as table_exists;"
+  );
+  if (tableCheck.rows[0].table_exists) {
+    console.log('Database already initialized');
+    await client.end();
+    return;
+  }
+
   // Create tables if they do not exist
   await client.query(`
 CREATE TABLE IF NOT EXISTS slots (
