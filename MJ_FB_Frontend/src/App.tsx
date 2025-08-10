@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './components/Profile';
-import StaffDashboard from './components/StaffDashboard/StaffDashboard';
 import ManageAvailability from './components/StaffDashboard/ManageAvailability';
 import UserHistory from './components/StaffDashboard/UserHistory';
 import SlotBooking from './components/SlotBooking';
@@ -21,7 +20,7 @@ export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');
   const [role, setRole] = useState<Role>(() => (localStorage.getItem('role') as Role) || ('' as Role));
   const [name, setName] = useState(() => localStorage.getItem('name') || '');
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
   const isStaff = role === 'staff';
@@ -37,13 +36,12 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   if (isStaff) {
-    const staffLinks = [
-      { label: 'Staff Dashboard', to: '/staff-dashboard' },
-      { label: 'Manage Availability', to: '/manage-availability' },
-      { label: 'Pantry Schedule', to: '/pantry-schedule' },
-      { label: 'Add User', to: '/add-user' },
-      { label: 'User History', to: '/user-history' },
-    ];
+      const staffLinks = [
+        { label: 'Manage Availability', to: '/manage-availability' },
+        { label: 'Pantry Schedule', to: '/pantry-schedule' },
+        { label: 'Add User', to: '/add-user' },
+        { label: 'User History', to: '/user-history' },
+      ];
     navGroups.push({ label: 'Staff', links: staffLinks });
     navGroups.push({
       label: 'Volunteer Management',
@@ -127,36 +125,11 @@ export default function App() {
             <main>
               <Breadcrumbs />
               <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <Navigate
-                      to={
-                        role === 'volunteer'
-                          ? '/volunteer-dashboard'
-                          : role === 'staff'
-                          ? '/pantry-schedule'
-                          : '/profile'
-                      }
-                    />
-                  }
-                />
-                <Route path="/profile" element={<Profile token={token} role={role} />} />
-                {isStaff && (
-                  <Route
-                    path="/staff-dashboard"
-                    element={
-                      <StaffDashboard
-                        token={token}
-                        setError={setError}
-                        setLoading={setLoading}
-                      />
-                    }
-                  />
-                )}
-                {isStaff && (
-                  <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
-                )}
+                  <Route path="/" element={<div />} />
+                  <Route path="/profile" element={<Profile token={token} role={role} />} />
+                  {isStaff && (
+                    <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                  )}
                 {isStaff && (
                   <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
                 )}
@@ -194,21 +167,8 @@ export default function App() {
                     element={<VolunteerDashboard token={token} />}
                   />
                 )}
-                <Route
-                  path="*"
-                  element={
-                    <Navigate
-                      to={
-                        role === 'volunteer'
-                          ? '/volunteer-dashboard'
-                          : role === 'staff'
-                          ? '/pantry-schedule'
-                          : '/profile'
-                      }
-                    />
-                  }
-                />
-              </Routes>
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
             </main>
           </>
         )}
