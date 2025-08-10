@@ -104,7 +104,10 @@ export default function SlotBooking({ token, role }: Props) {
     }
   }, [selectedDate, holidays, isWeekend, isHoliday, getNextAvailableDate]);
 
-  const { data: userResults = [] } = useQuery({
+  const {
+    data: userResults = [],
+    isFetching: userFetching,
+  } = useQuery({
     queryKey: ['userSearch', searchTerm],
     queryFn: () => searchUsers(token, searchTerm),
     enabled: role === 'staff' && searchTerm.length >= 3,
@@ -218,11 +221,20 @@ export default function SlotBooking({ token, role }: Props) {
           {userResults.slice(0, 5).map(user => (
             <li key={user.id} className="user-item">
               {user.name} ({user.email})
-              <Button size="small" variant="outlined" color="primary" sx={{ ml: 1 }} onClick={() => setSelectedUser(user)}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="primary"
+                sx={{ ml: 1 }}
+                onClick={() => setSelectedUser(user)}
+              >
                 Book Appointment
               </Button>
             </li>
           ))}
+          {!userFetching && searchTerm.length >= 3 && userResults.length === 0 && (
+            <li>No search results.</li>
+          )}
         </ul>
         <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
       </div>

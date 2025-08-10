@@ -702,7 +702,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             size="small"
             sx={{ mb: 1 }}
           />
-          {results.length > 0 && (
+          {results.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(r => (
                 <li
@@ -722,6 +722,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 </li>
               ))}
             </ul>
+          ) : (
+            search.length >= 3 && <p>No search results.</p>
           )}
           {selectedVolunteer && (
             <div>
@@ -984,11 +986,19 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
               {assignResults.map(v => (
                 <li key={v.id} style={{ marginBottom: 4 }}>
                   {v.name}
-                  <Button style={{ marginLeft: 4 }} onClick={() => assignVolunteer(v)} variant="outlined" color="primary">
+                  <Button
+                    style={{ marginLeft: 4 }}
+                    onClick={() => assignVolunteer(v)}
+                    variant="outlined"
+                    color="primary"
+                  >
                     Assign
                   </Button>
                 </li>
               ))}
+              {assignSearch.length >= 3 && assignResults.length === 0 && (
+                <li>No search results.</li>
+              )}
             </ul>
             <Button
               onClick={() => {
