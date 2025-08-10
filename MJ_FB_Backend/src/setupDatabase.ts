@@ -156,6 +156,20 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
 );
 `);
 
+  // Ensure max_volunteers column exists in volunteer_slots for legacy databases
+  const maxVolRes = await client.query(`
+    SELECT column_name FROM information_schema.columns
+    WHERE table_name = 'volunteer_slots' AND column_name = 'max_volunteers';
+  `);
+  if (maxVolRes.rowCount === 0) {
+    await client.query(
+      `ALTER TABLE volunteer_slots ADD COLUMN max_volunteers integer NOT NULL DEFAULT 1;`
+    );
+    await client.query(
+      `ALTER TABLE volunteer_slots ALTER COLUMN max_volunteers DROP DEFAULT;`
+    );
+  }
+
   // Remove duplicate slots and enforce uniqueness
   await client.query(`
     DELETE FROM slots a
