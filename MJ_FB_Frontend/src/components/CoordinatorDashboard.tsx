@@ -31,7 +31,8 @@ import {
 
 interface RoleOption {
   id: number; // unique slot id
-  category_id: number; // grouped role id
+  category_id: number; // category identifier
+  category_name: string; // category display name
   name: string;
   start_time: string;
   end_time: string;
@@ -138,10 +139,20 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
   }, [roles]);
 
-  const nameToCategoryId = useMemo(() => {
-    const map = new Map<string, number>();
+  const nameToRoleIds = useMemo(() => {
+    const map = new Map<string, number[]>();
     roles.forEach(r => {
-      if (!map.has(r.name)) map.set(r.name, r.category_id);
+      const arr = map.get(r.name) || [];
+      arr.push(r.id);
+      map.set(r.name, arr);
+    });
+    return map;
+  }, [roles]);
+
+  const idToName = useMemo(() => {
+    const map = new Map<number, string>();
+    roles.forEach(r => {
+      map.set(r.id, r.name);
     });
     return map;
   }, [roles]);
@@ -250,14 +261,14 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     setSelectedVolunteer(u);
     setResults([]);
     setSearch(u.name);
-    const idToName = new Map<number, string>();
-    roles.forEach(r => {
-      if (!idToName.has(r.category_id)) idToName.set(r.category_id, r.name);
-    });
     setTrainedEdit(
-      (u.trainedAreas || [])
-        .map(id => idToName.get(id))
-        .filter(Boolean) as string[]
+      Array.from(
+        new Set(
+          (u.trainedAreas || [])
+            .map(id => idToName.get(id))
+            .filter(Boolean) as string[]
+        )
+      )
     );
     try {
       const data = await getVolunteerBookingHistory(token, u.id);
@@ -298,8 +309,8 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     if (!selectedVolunteer) return;
     try {
       const ids = Array.from(
-        new Set(trainedEdit.map(name => nameToCategoryId.get(name) || 0))
-      ).filter(id => id !== 0);
+        new Set(trainedEdit.flatMap(name => nameToRoleIds.get(name) || []))
+      );
       await updateVolunteerTrainedAreas(token, selectedVolunteer.id, ids);
       setEditSeverity('success');
       setEditMsg('Roles updated');
@@ -325,8 +336,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
     try {
       const ids = Array.from(
-        new Set(selectedCreateRoles.map(name => nameToCategoryId.get(name) || 0))
-      ).filter(id => id !== 0);
+        new Set(
+          selectedCreateRoles.flatMap(name => nameToRoleIds.get(name) || [])
+        )
+      );
       await createVolunteer(
         token,
         firstName,
