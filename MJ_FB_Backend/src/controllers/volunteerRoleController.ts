@@ -179,7 +179,7 @@ export async function updateVolunteerRole(
     );
     const rowRes = await pool.query(
         `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
+                vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active
          FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        WHERE vs.slot_id=$1`,
@@ -214,7 +214,7 @@ export async function updateVolunteerRoleStatus(
        FROM volunteer_roles vr, volunteer_master_roles vmr
        WHERE vs.slot_id = $2 AND vs.role_id = vr.id AND vr.category_id = vmr.id
         RETURNING vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
-                  vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
+                  vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
       [isActive, id]
     );
     if (result.rowCount === 0) {
@@ -266,7 +266,7 @@ export async function listVolunteerRolesForVolunteer(
     const roleIds = volunteerRes.rows.map(r => r.role_id);
     const result = await pool.query(
         `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
-                vr.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
+                vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
                 vmr.name AS category_name,
                 COALESCE(b.count,0) AS booked, $1::date AS date
          FROM volunteer_slots vs
