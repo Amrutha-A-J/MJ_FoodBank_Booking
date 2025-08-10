@@ -34,8 +34,10 @@ interface RoleOption {
   category_id: number; // category identifier
   category_name: string; // category display name
   name: string;
-  start_time: string;
-  end_time: string;
+  start_time?: string;
+  end_time?: string;
+  startTime?: string;
+  endTime?: string;
   max_volunteers: number;
 }
 
@@ -400,7 +402,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         ).length;
         const canBook = approvedCount < role.max_volunteers;
         return {
-          time: `${formatTime(role.start_time)} - ${formatTime(role.end_time)}`,
+          time: `${formatTime(role.start_time || role.startTime || '')} - ${formatTime(role.end_time || role.endTime || '')}`,
           cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
             const booking = slotBookings[i];
             return {
@@ -563,7 +565,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                     <tr key={h.id}>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.role_name}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.date}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time)} - {formatTime(h.end_time)}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time || h.startTime || '')} - {formatTime(h.end_time || h.endTime || '')}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.status}</td>
                       <td style={{ border: '1px solid #ccc', padding: 4 }}>
                         {h.status === 'pending' && (
@@ -702,7 +704,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
                 <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
                 <div><strong>Role:</strong> {p.role_name}</div>
                 <div><strong>Date:</strong> {p.date}</div>
-                <div><strong>Time:</strong> {formatTime(p.start_time)} - {formatTime(p.end_time)}</div>
+                <div><strong>Time:</strong> {formatTime(p.start_time || p.startTime || '')} - {formatTime(p.end_time || p.endTime || '')}</div>
                 <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
                 <div style={{ marginTop: 4 }}>
                   <Button onClick={() => decide(p.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
