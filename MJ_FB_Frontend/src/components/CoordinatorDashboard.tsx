@@ -60,7 +60,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   };
   const title = tabTitles[tab];
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [selectedRole, setSelectedRole] = useState<number | ''>('');
+  const [selectedRole, setSelectedRole] = useState<string>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
@@ -94,7 +94,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     );
   }
 
-  const [assignModal, setAssignModal] = useState(false);
+  const [assignSlot, setAssignSlot] = useState<RoleOption | null>(null);
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
@@ -163,45 +163,33 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     return map;
   }, [roles]);
 
-  const scheduleRoleGroups = useMemo(() => {
-    const groups = new Map<string, RoleOption[]>();
-    roles.forEach(r => {
-      const arr = groups.get(r.category_name) || [];
-      arr.push(r);
-      groups.set(r.category_name, arr);
-    });
-    return Array.from(groups.entries()).map(([category, roles]) => ({
-      category,
-      roles,
-    }));
-  }, [roles]);
-
   const scheduleRoleItems = useMemo(
     () =>
-      scheduleRoleGroups.flatMap(g => [
+      groupedRoles.flatMap(g => [
         <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
         ...g.roles.map(r => (
-          <MenuItem key={r.id} value={r.id}>
+          <MenuItem key={r.name} value={r.name}>
             {r.name}
           </MenuItem>
         )),
       ]),
-    [scheduleRoleGroups]
+    [groupedRoles]
   );
 
   const selectedRoleNames = selectedCreateRoles.join(', ');
 
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
-      getVolunteerBookingsByRole(token, Number(selectedRole))
+      const ids = nameToRoleIds.get(selectedRole) || [];
+      Promise.all(ids.map(id => getVolunteerBookingsByRole(token, id)))
         .then(data => {
-          setBookings(data);
+          setBookings(data.flat());
         })
         .catch(() => {});
     } else if (!selectedRole) {
       setBookings([]);
     }
-  }, [selectedRole, token, tab]);
+  }, [selectedRole, token, tab, nameToRoleIds]);
 
   useEffect(() => {
     if (search.length < 3) {
@@ -254,8 +242,11 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     try {
       await updateVolunteerBookingStatus(token, id, status);
       if (selectedRole) {
-        const data = await getVolunteerBookingsByRole(token, Number(selectedRole));
-        setBookings(data);
+        const ids = nameToRoleIds.get(selectedRole) || [];
+        const data = await Promise.all(
+          ids.map(rid => getVolunteerBookingsByRole(token, rid))
+        );
+        setBookings(data.flat());
       }
       if (tab === 'pending') loadPending();
     } catch (e) {
@@ -292,20 +283,23 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
 
   async function assignVolunteer(vol: VolunteerResult) {
-    if (!roleInfo) return;
+    if (!assignSlot || !selectedRole) return;
     try {
       setAssignMsg('');
       await createVolunteerBookingForVolunteer(
         token,
         vol.id,
-        roleInfo.id,
+        assignSlot.id,
         formatDate(currentDate)
       );
-      setAssignModal(false);
+      setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
-      const data = await getVolunteerBookingsByRole(token, roleInfo.id);
-      setBookings(data);
+      const ids = nameToRoleIds.get(selectedRole) || [];
+      const data = await Promise.all(
+        ids.map(id => getVolunteerBookingsByRole(token, id))
+      );
+      setBookings(data.flat());
     } catch (e) {
       setAssignMsg(e instanceof Error ? e.message : String(e));
     }
@@ -371,10 +365,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     }
   }
 
-  const roleInfo = roles.find(r => r.id === selectedRole);
+  const roleInfos = roles.filter(r => r.name === selectedRole);
 
   useEffect(() => {
-    if (!assignModal || assignSearch.length < 3 || !roleInfo) {
+    if (!assignSlot || assignSearch.length < 3) {
       setAssignResults([]);
       return;
     }
@@ -382,62 +376,64 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       searchVolunteers(token, assignSearch)
         .then((data: VolunteerResult[]) => {
           const filtered = data
-            .filter(v => v.trainedAreas.includes(roleInfo.id))
+            .filter(v => v.trainedAreas.includes(assignSlot.id))
             .slice(0, 5);
           setAssignResults(filtered);
         })
         .catch(() => setAssignResults([]));
     }, 300);
     return () => clearTimeout(delay);
-  }, [assignSearch, token, assignModal, roleInfo]);
+  }, [assignSearch, token, assignSlot]);
 
   const bookingsForDate = bookings.filter(
     b =>
       b.date === formatDate(currentDate) &&
       ['approved', 'pending'].includes(b.status.toLowerCase())
   );
-  const rows = roleInfo
-    ? (() => {
-        const approvedCount = bookingsForDate.filter(
+  const rows = selectedRole
+    ? roleInfos.map(role => {
+        const slotBookings = bookingsForDate.filter(
+          b => b.role_id === role.id
+        );
+        const approvedCount = slotBookings.filter(
           b => b.status.toLowerCase() === 'approved'
         ).length;
-        const canBook = approvedCount < roleInfo.max_volunteers;
-        return [
-          {
-            time: `${formatTime(roleInfo.start_time)} - ${formatTime(roleInfo.end_time)}`,
-            cells: Array.from({ length: roleInfo.max_volunteers }).map((_, i) => {
-              const booking = bookingsForDate[i];
-              return {
-                content: booking
-                  ?
-                      booking.volunteer_name +
-                      (booking.status.toLowerCase() === 'pending' && !canBook
-                        ? ' (Full)'
-                        : '')
-                  : '',
-                backgroundColor: booking
-                  ? booking.status.toLowerCase() === 'approved'
-                    ? '#c8e6c9'
-                    : '#ffd8b2'
-                  : undefined,
-                onClick: () => {
-                  if (booking) {
-                    if (booking.status.toLowerCase() === 'pending') {
-                      setDecisionBooking({ ...booking, can_book: canBook });
-                    }
-                  } else {
-                    setAssignModal(true);
-                    setAssignSearch('');
-                    setAssignResults([]);
-                    setAssignMsg('');
+        const canBook = approvedCount < role.max_volunteers;
+        return {
+          time: `${formatTime(role.start_time)} - ${formatTime(role.end_time)}`,
+          cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
+            const booking = slotBookings[i];
+            return {
+              content: booking
+                ?
+                    booking.volunteer_name +
+                    (booking.status.toLowerCase() === 'pending' && !canBook
+                      ? ' (Full)'
+                      : '')
+                : '',
+              backgroundColor: booking
+                ? booking.status.toLowerCase() === 'approved'
+                  ? '#c8e6c9'
+                  : '#ffd8b2'
+                : undefined,
+              onClick: () => {
+                if (booking) {
+                  if (booking.status.toLowerCase() === 'pending') {
+                    setDecisionBooking({ ...booking, can_book: canBook });
                   }
-                },
-              };
-            }),
-          },
-        ];
-      })()
+                } else {
+                  setAssignSlot(role);
+                  setAssignSearch('');
+                  setAssignResults([]);
+                  setAssignMsg('');
+                }
+              },
+            };
+          }),
+        };
+      })
     : [];
+  const maxSlots = Math.max(0, ...roleInfos.map(r => r.max_volunteers));
 
   return (
     <div>
@@ -448,24 +444,22 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             <InputLabel id="schedule-role-label">Role</InputLabel>
             <Select
               labelId="schedule-role-label"
-              value={selectedRole === '' ? '' : selectedRole}
+              value={selectedRole}
               label="Role"
-              onChange={e =>
-                setSelectedRole(e.target.value ? Number(e.target.value) : '')
-              }
+              onChange={e => setSelectedRole(e.target.value as string)}
             >
               <MenuItem value="">Select role</MenuItem>
               {scheduleRoleItems}
             </Select>
           </FormControl>
-          {selectedRole && roleInfo ? (
+          {selectedRole && roleInfos.length > 0 ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
                 <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
                 <h3>{formatDate(currentDate)}</h3>
                 <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
               </div>
-              <VolunteerScheduleTable maxSlots={roleInfo.max_volunteers} rows={rows} />
+              <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
             </>
           ) : (
             <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>
@@ -735,7 +729,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
         severity="error"
       />
 
-      {assignModal && (
+      {assignSlot && (
         <div
           style={{
             position: 'fixed',
@@ -773,7 +767,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
             </ul>
             <Button
               onClick={() => {
-                setAssignModal(false);
+                setAssignSlot(null);
                 setAssignSearch('');
                 setAssignResults([]);
                 setAssignMsg('');
