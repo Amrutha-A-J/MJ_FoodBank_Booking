@@ -9,7 +9,7 @@ interface FormContainerProps extends Omit<BoxProps, 'component' | 'onSubmit'> {
 
 export default function FormContainer({ onSubmit, submitLabel, children, ...boxProps }: FormContainerProps) {
   return (
-    <Box component="form" onSubmit={onSubmit} mt={2} {...boxProps}>
+    <Box component="form" onSubmit={onSubmit} mt={2} maxWidth={400} mx="auto" {...boxProps}>
       <Stack spacing={2}>
         {children}
         <Button type="submit" variant="contained" color="primary" fullWidth>
