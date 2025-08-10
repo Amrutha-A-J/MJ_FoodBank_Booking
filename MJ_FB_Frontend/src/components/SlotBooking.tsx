@@ -146,12 +146,14 @@ export default function SlotBooking({ token, role }: Props) {
   });
 
   const queryClient = useQueryClient();
-  const bookingMutation = useMutation((vars: { slotId: string; date: string }) =>
-    createBooking(token, vars.slotId, vars.date),
-  );
-  const staffBookingMutation = useMutation((vars: { userId: number; slotId: number; date: string }) =>
-    createBookingForUser(token, vars.userId, vars.slotId, vars.date, true),
-  );
+  const bookingMutation = useMutation({
+    mutationFn: (vars: { slotId: string; date: string }) =>
+      createBooking(token, vars.slotId, vars.date),
+  });
+  const staffBookingMutation = useMutation({
+    mutationFn: (vars: { userId: number; slotId: number; date: string }) =>
+      createBookingForUser(token, vars.userId, vars.slotId, vars.date, true),
+  });
 
   async function submitBooking() {
     if (!selectedSlotId || !selectedDate) {
