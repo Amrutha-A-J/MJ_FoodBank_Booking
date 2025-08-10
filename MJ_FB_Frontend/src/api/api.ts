@@ -359,6 +359,13 @@ export async function getVolunteerRolesForVolunteer(token: string, date: string)
   return handleResponse(res);
 }
 
+export async function getVolunteerRoleGroups(token: string, date: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine/grouped?date=${date}`, {
+    headers: { Authorization: bearer(token) },
+  });
+  return handleResponse(res);
+}
+
 export async function requestVolunteerBooking(
   token: string,
   roleId: number,

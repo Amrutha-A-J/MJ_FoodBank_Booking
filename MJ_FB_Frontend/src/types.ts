@@ -41,6 +41,15 @@ export interface VolunteerRole {
   is_wednesday_slot: boolean;
 }
 
+export interface VolunteerRoleGroup {
+  category: string;
+  roles: {
+    id: number;
+    name: string;
+    slots: VolunteerRole[];
+  }[];
+}
+
 export interface VolunteerBooking {
   id: number;
   status: string;

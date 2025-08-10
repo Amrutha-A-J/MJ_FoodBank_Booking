@@ -243,3 +243,72 @@ export async function listVolunteerRolesForVolunteer(
     next(error);
   }
 }
+
+export async function listVolunteerRoleGroupsForVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  const { date } = req.query as { date?: string };
+  if (!date) {
+    return res.status(400).json({ message: 'date query parameter is required' });
+  }
+  try {
+    const volunteerRes = await pool.query(
+      'SELECT role_id FROM volunteer_trained_roles WHERE volunteer_id=$1',
+      [user.id]
+    );
+    if (volunteerRes.rowCount === 0) {
+      return res.json([]);
+    }
+    const roleIds = volunteerRes.rows.map(r => r.role_id);
+    const result = await pool.query(
+      `SELECT vmr.name AS category, vr.role_id, vr.name,
+              json_agg(json_build_object(
+                'id', vr.id,
+                'role_id', vr.role_id,
+                'name', vr.name,
+                'start_time', vr.start_time,
+                'end_time', vr.end_time,
+                'max_volunteers', vr.max_volunteers,
+                'category_id', vr.category_id,
+                'category_name', vmr.name,
+                'is_wednesday_slot', vr.is_wednesday_slot,
+                'booked', COALESCE(b.count,0),
+                'available', vr.max_volunteers - COALESCE(b.count,0),
+                'status', CASE WHEN COALESCE(b.count,0) >= vr.max_volunteers THEN 'booked' ELSE 'available' END,
+                'date', $1::date
+              ) ORDER BY vr.start_time) AS slots
+       FROM volunteer_roles vr
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       LEFT JOIN (
+         SELECT role_id, COUNT(*) AS count
+         FROM volunteer_bookings
+         WHERE status IN ('pending','approved') AND date = $1
+         GROUP BY role_id
+       ) b ON vr.id = b.role_id
+       WHERE vr.id = ANY($2::int[])
+        AND vr.is_active
+        AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
+       GROUP BY vmr.name, vr.role_id, vr.name
+       ORDER BY vmr.name, vr.role_id`,
+      [date, roleIds]
+    );
+    const map = new Map<string, { id: number; name: string; slots: any[] }[]>();
+    result.rows.forEach((row: any) => {
+      const roles = map.get(row.category) || [];
+      roles.push({ id: row.role_id, name: row.name, slots: row.slots });
+      map.set(row.category, roles);
+    });
+    const groups = Array.from(map.entries()).map(([category, roles]) => ({
+      category,
+      roles,
+    }));
+    res.json(groups);
+  } catch (error) {
+    logger.error('Error listing volunteer role groups for volunteer:', error);
+    next(error);
+  }
+}
