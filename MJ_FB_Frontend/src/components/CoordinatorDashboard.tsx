@@ -130,7 +130,18 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   useEffect(() => {
     getVolunteerRoles(token)
       .then(data => {
-        setRoles(data);
+        const flattened: RoleOption[] = data.flatMap(r =>
+          r.shifts.map(s => ({
+            id: s.id,
+            category_id: r.category_id,
+            category_name: r.category_name,
+            name: r.name,
+            start_time: s.start_time,
+            end_time: s.end_time,
+            max_volunteers: r.max_volunteers,
+          })),
+        );
+        setRoles(flattened);
       })
       .catch(() => {});
   }, [token]);

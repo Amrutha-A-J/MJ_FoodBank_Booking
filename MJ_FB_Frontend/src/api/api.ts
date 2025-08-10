@@ -1,6 +1,14 @@
 // src/api/api.ts
 // Read API base URL from environment or fall back to localhost
-import type { Role, UserRole, StaffRole, UserProfile, Slot } from '../types';
+import type {
+  Role,
+  UserRole,
+  StaffRole,
+  UserProfile,
+  Slot,
+  VolunteerRole,
+  VolunteerRoleWithShifts,
+} from '../types';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
@@ -365,15 +373,11 @@ export async function createBookingForUser(
     await handleResponse(res);
   }
 
-export async function getVolunteerRolesForVolunteer(token: string, date: string) {
+export async function getVolunteerRolesForVolunteer(
+  token: string,
+  date: string,
+): Promise<VolunteerRole[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`, {
-    headers: { Authorization: bearer(token) },
-  });
-  return handleResponse(res);
-}
-
-export async function getVolunteerRoleGroups(token: string, date: string) {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine/grouped?date=${date}`, {
     headers: { Authorization: bearer(token) },
   });
   return handleResponse(res);
@@ -402,7 +406,9 @@ export async function getMyVolunteerBookings(token: string) {
   return handleResponse(res);
 }
 
-export async function getVolunteerRoles(token: string) {
+export async function getVolunteerRoles(
+  token: string,
+): Promise<VolunteerRoleWithShifts[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
     headers: { Authorization: bearer(token) },
   });

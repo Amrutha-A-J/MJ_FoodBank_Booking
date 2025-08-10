@@ -231,7 +231,6 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `PUT /volunteers/:id/trained-areas` → `{ id, roleIds }`
 
 ### Volunteer Roles
-- `GET /volunteer-roles/mine/grouped?date=YYYY-MM-DD` → `[ { category_id, category, roles: [ { id, name, slots: [...] } ] } ]`
 - `GET /volunteer-roles/mine?date=YYYY-MM-DD` → `[ { id, role_id, name, start_time, end_time, max_volunteers, category_id, category_name, is_wednesday_slot, booked, available, status, date } ]`
 - `POST /volunteer-roles` → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active, category_name }`
 - `GET /volunteer-roles` → `[ { id, role_id, category_id, name, max_volunteers, category_name, shifts } ]`
