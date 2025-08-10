@@ -286,11 +286,19 @@ export default function PantrySchedule({ token }: { token: string }) {
               {userResults.map(u => (
                 <li key={u.id} style={{ marginBottom: 4 }}>
                   {u.name} ({u.email})
-                  <Button style={{ marginLeft: 4 }} onClick={() => assignUser(u)} variant="outlined" color="primary">
+                  <Button
+                    style={{ marginLeft: 4 }}
+                    onClick={() => assignUser(u)}
+                    variant="outlined"
+                    color="primary"
+                  >
                     Assign
                   </Button>
                 </li>
               ))}
+              {assignSlot && searchTerm.length >= 3 && userResults.length === 0 && (
+                <li>No search results.</li>
+              )}
             </ul>
             <FeedbackSnackbar open={!!assignMessage} onClose={() => setAssignMessage('')} message={assignMessage} severity="error" />
             <Button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }} variant="outlined" color="primary">Close</Button>

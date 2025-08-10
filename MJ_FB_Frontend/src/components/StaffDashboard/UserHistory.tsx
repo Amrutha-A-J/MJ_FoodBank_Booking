@@ -96,7 +96,7 @@ export default function UserHistory({
             size="small"
             sx={{ mb: 1 }}
           />
-          {results.length > 0 && (
+          {results.length > 0 ? (
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {results.map(u => (
                 <li key={u.id}>
@@ -114,6 +114,8 @@ export default function UserHistory({
                 </li>
               ))}
             </ul>
+          ) : (
+            search.length >= 3 && <p>No search results.</p>
           )}
         </>
       )}
