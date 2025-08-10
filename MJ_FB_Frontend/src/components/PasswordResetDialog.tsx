@@ -45,6 +45,7 @@ export default function PasswordResetDialog({
             autoFocus
             margin="dense"
             label={label}
+            type={type === 'staff' ? 'email' : 'text'}
             fullWidth
             value={identifier}
             onChange={e => setIdentifier(e.target.value)}
