@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -46,27 +46,17 @@ interface VolunteerResult {
 
 
 export default function CoordinatorDashboard({ token }: { token: string }) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab');
-  const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending'>(
-    initialTab === 'search' || initialTab === 'create' || initialTab === 'pending'
-      ? (initialTab as 'search' | 'create' | 'pending')
-      : 'schedule',
-  );
+  const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const tab: 'schedule' | 'search' | 'create' | 'pending' =
+    tabParam === 'search' || tabParam === 'create' || tabParam === 'pending'
+      ? (tabParam as 'search' | 'create' | 'pending')
+      : 'schedule';
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
-
-  useEffect(() => {
-    const p = searchParams.get('tab');
-    if (p === 'schedule' || p === 'search' || p === 'create' || p === 'pending') {
-      setTab(p as 'schedule' | 'search' | 'create' | 'pending');
-    } else {
-      setTab('schedule');
-    }
-  }, [searchParams]);
 
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<VolunteerResult[]>([]);
@@ -431,10 +421,10 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
     <div>
       <h2>Coordinator Dashboard</h2>
       <div style={{ marginBottom: 16 }}>
-        <Button onClick={() => setSearchParams({ tab: 'schedule' })} disabled={tab === 'schedule'} variant="outlined" color="primary">Schedule</Button>
-        <Button onClick={() => setSearchParams({ tab: 'search' })} disabled={tab === 'search'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Search Volunteer</Button>
-        <Button onClick={() => setSearchParams({ tab: 'create' })} disabled={tab === 'create'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Create Volunteer</Button>
-        <Button onClick={() => setSearchParams({ tab: 'pending' })} disabled={tab === 'pending'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Pending</Button>
+        <Button onClick={() => navigate('/coordinator-dashboard/schedule')} disabled={tab === 'schedule'} variant="outlined" color="primary">Schedule</Button>
+        <Button onClick={() => navigate('/coordinator-dashboard/search')} disabled={tab === 'search'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Search Volunteer</Button>
+        <Button onClick={() => navigate('/coordinator-dashboard/create')} disabled={tab === 'create'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Create Volunteer</Button>
+        <Button onClick={() => navigate('/coordinator-dashboard/pending')} disabled={tab === 'pending'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Pending</Button>
       </div>
       {tab === 'schedule' && (
         <div>
