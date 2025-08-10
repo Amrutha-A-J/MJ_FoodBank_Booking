@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -47,12 +47,18 @@ interface VolunteerResult {
 
 
 export default function CoordinatorDashboard({ token }: { token: string }) {
-  const navigate = useNavigate();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const tab: 'schedule' | 'search' | 'create' | 'pending' =
     tabParam === 'search' || tabParam === 'create' || tabParam === 'pending'
       ? (tabParam as 'search' | 'create' | 'pending')
       : 'schedule';
+  const tabTitles: Record<typeof tab, string> = {
+    schedule: 'Schedule',
+    search: 'Search Volunteer',
+    create: 'Create Volunteer',
+    pending: 'Pending',
+  };
+  const title = tabTitles[tab];
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | ''>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
@@ -435,13 +441,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
 
   return (
     <div>
-      <h2>Coordinator Dashboard</h2>
-      <div style={{ marginBottom: 16 }}>
-        <Button onClick={() => navigate('/coordinator-dashboard/schedule')} disabled={tab === 'schedule'} variant="outlined" color="primary">Schedule</Button>
-        <Button onClick={() => navigate('/coordinator-dashboard/search')} disabled={tab === 'search'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Search Volunteer</Button>
-        <Button onClick={() => navigate('/coordinator-dashboard/create')} disabled={tab === 'create'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Create Volunteer</Button>
-        <Button onClick={() => navigate('/coordinator-dashboard/pending')} disabled={tab === 'pending'} style={{ marginLeft: 8 }} variant="outlined" color="primary">Pending</Button>
-      </div>
+      <h2>{title}</h2>
       {tab === 'schedule' && (
         <div>
           <FormControl size="small" sx={{ minWidth: 200 }}>
