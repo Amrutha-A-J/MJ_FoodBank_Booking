@@ -36,6 +36,7 @@ export interface VolunteerRole {
   status: string;
   date: string;
   category_id: number;
+  category_name: string;
   is_wednesday_slot: boolean;
 }
 
