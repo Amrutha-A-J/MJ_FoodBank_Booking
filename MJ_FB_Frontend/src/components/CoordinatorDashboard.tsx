@@ -15,6 +15,7 @@ import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormContainer from './FormContainer';
 import {
   Button,
   TextField,
@@ -49,7 +50,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   const initialTab = searchParams.get('tab');
   const [tab, setTab] = useState<'schedule' | 'search' | 'create' | 'pending'>(
     initialTab === 'search' || initialTab === 'create' || initialTab === 'pending'
-      ? (initialTab as any)
+      ? (initialTab as 'search' | 'create' | 'pending')
       : 'schedule',
   );
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -61,7 +62,7 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
   useEffect(() => {
     const p = searchParams.get('tab');
     if (p === 'schedule' || p === 'search' || p === 'create' || p === 'pending') {
-      setTab(p as any);
+      setTab(p as 'schedule' | 'search' | 'create' | 'pending');
     } else {
       setTab('schedule');
     }
@@ -591,99 +592,106 @@ export default function CoordinatorDashboard({ token }: { token: string }) {
       )}
 
       {tab === 'create' && (
-        <div>
-          <TextField
-            label="First Name"
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            label="Last Name"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            label="Username"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            label="Email (optional)"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            label="Phone (optional)"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          <div style={{ marginBottom: 8, position: 'relative' }} ref={dropdownRef}>
-            <label>Role: </label>
-            <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
-              {selectedRoleNames || 'Select roles'}
-            </Button>
-            {roleDropdownOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  background: 'white',
-                  border: '1px solid #ccc',
-                  padding: 8,
-                  zIndex: 1,
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  marginTop: 4,
-                }}
-              >
-                {groupedRoles.map(g => (
-                  <div key={g.category} style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                    {g.roles.map(r => (
-                      <FormControlLabel
-                        key={r.name}
-                        control={
-                          <Checkbox
-                            value={r.name}
-                            checked={selectedCreateRoles.includes(r.name)}
-                            onChange={e => toggleCreateRole(r.name, e.target.checked)}
-                          />
-                        }
-                        label={r.name}
-                        sx={{ width: '100%', m: 0 }}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <Button onClick={submitVolunteer} variant="contained" color="primary">Add Volunteer</Button>
+        <>
+          <FormContainer
+            onSubmit={e => {
+              e.preventDefault();
+              submitVolunteer();
+            }}
+            submitLabel="Add Volunteer"
+          >
+            <TextField
+              label="First Name"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Last Name"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Username"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Email (optional)"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Phone (optional)"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Password"
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              size="small"
+              fullWidth
+            />
+            <div ref={dropdownRef} style={{ position: 'relative' }}>
+              <label>Role: </label>
+              <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
+                {selectedRoleNames || 'Select roles'}
+              </Button>
+              {roleDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    background: 'white',
+                    border: '1px solid #ccc',
+                    padding: 8,
+                    zIndex: 1,
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    marginTop: 4,
+                  }}
+                >
+                  {groupedRoles.map(g => (
+                    <div key={g.category} style={{ marginBottom: 8 }}>
+                      <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                      {g.roles.map(r => (
+                        <FormControlLabel
+                          key={r.name}
+                          control={
+                            <Checkbox
+                              value={r.name}
+                              checked={selectedCreateRoles.includes(r.name)}
+                              onChange={e => toggleCreateRole(r.name, e.target.checked)}
+                            />
+                          }
+                          label={r.name}
+                          sx={{ width: '100%', m: 0 }}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </FormContainer>
           <FeedbackSnackbar
             open={!!createMsg}
             onClose={() => setCreateMsg('')}
             message={createMsg}
             severity={createSeverity}
           />
-        </div>
+        </>
       )}
 
       {tab === 'pending' && (
