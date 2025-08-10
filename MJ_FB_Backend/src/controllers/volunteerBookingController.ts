@@ -29,18 +29,17 @@ export async function createVolunteerBooking(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1 AND is_active',
+      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
-    const masterRoleId = role.category_id;
 
     const volRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [user.id, masterRoleId]
+      [user.id, roleId]
     );
     if (volRes.rowCount === 0) {
       return res.status(400).json({ message: 'Not trained for this role' });
@@ -96,18 +95,17 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1 AND is_active',
+      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
       [roleId]
     );
     if (roleRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const role = roleRes.rows[0];
-    const masterRoleId = role.category_id;
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [volunteerId, masterRoleId]
+      [volunteerId, roleId]
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
@@ -309,7 +307,7 @@ export async function rescheduleVolunteerBooking(
     const booking = bookingRes.rows[0];
 
     const roleRes = await pool.query(
-      'SELECT max_volunteers, category_id FROM volunteer_roles WHERE id = $1 AND is_active',
+      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
       [roleId],
     );
     if (roleRes.rowCount === 0) {
@@ -319,7 +317,7 @@ export async function rescheduleVolunteerBooking(
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [booking.volunteer_id, role.category_id],
+      [booking.volunteer_id, roleId],
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
