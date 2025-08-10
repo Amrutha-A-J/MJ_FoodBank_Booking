@@ -29,7 +29,7 @@ describe('rescheduleVolunteerBooking', () => {
     const booking = { id: 1, volunteer_id: 2, status: 'approved' };
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_volunteers: 5, category_id: 3 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_volunteers: 5 }] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
       .mockResolvedValueOnce({});
@@ -47,7 +47,7 @@ describe('rescheduleVolunteerBooking', () => {
     const booking = { id: 1, volunteer_id: 2, status: 'approved' };
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_volunteers: 5, category_id: 3 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_volunteers: 5 }] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
       .mockResolvedValueOnce({});
