@@ -51,7 +51,7 @@ interface VolunteerResult {
 }
 
 
-export default function CoordinatorDashboard({ token }: { token: string }) {
+export default function VolunteerManagement({ token }: { token: string }) {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
     tabParam === 'schedule' ||
