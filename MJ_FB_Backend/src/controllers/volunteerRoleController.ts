@@ -225,7 +225,7 @@ export async function listVolunteerRolesForVolunteer(
          WHERE status IN ('pending','approved') AND date = $1
          GROUP BY role_id
        ) b ON vr.id = b.role_id
-       WHERE vr.id = ANY($2::int[])
+       WHERE vr.category_id = ANY($2::int[])
         AND vr.is_active
         AND (vr.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
        ORDER BY vr.start_time`,
