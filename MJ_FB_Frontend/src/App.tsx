@@ -48,10 +48,10 @@ export default function App() {
     navGroups.push({
       label: 'Volunteer Management',
       links: [
-        { label: 'Schedule', to: '/coordinator-dashboard?tab=schedule' },
-        { label: 'Search', to: '/coordinator-dashboard?tab=search' },
-        { label: 'Create', to: '/coordinator-dashboard?tab=create' },
-        { label: 'Pending', to: '/coordinator-dashboard?tab=pending' },
+        { label: 'Schedule', to: '/coordinator-dashboard/schedule' },
+        { label: 'Search', to: '/coordinator-dashboard/search' },
+        { label: 'Create', to: '/coordinator-dashboard/create' },
+        { label: 'Pending', to: '/coordinator-dashboard/pending' },
       ],
     });
   } else if (role === 'shopper') {
@@ -177,10 +177,16 @@ export default function App() {
                 {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
                 {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
                 {isStaff && (
-                  <Route
-                    path="/coordinator-dashboard"
-                    element={<CoordinatorDashboard token={token} />}
-                  />
+                  <>
+                    <Route
+                      path="/coordinator-dashboard"
+                      element={<Navigate to="/coordinator-dashboard/schedule" replace />}
+                    />
+                    <Route
+                      path="/coordinator-dashboard/:tab"
+                      element={<CoordinatorDashboard token={token} />}
+                    />
+                  </>
                 )}
                 {role === 'volunteer' && (
                   <Route
