@@ -94,13 +94,15 @@ export default function SlotBooking({ token, role }: Props) {
 
   // Automatically choose the first available date (non-weekend and non-holiday)
   useEffect(() => {
-    const today = toReginaDate(new Date());
-    let date = today;
-    if (isWeekend(date) || isHoliday(date)) {
-      date = getNextAvailableDate(date);
+    if (selectedDate === null) {
+      const today = toReginaDate(new Date());
+      let date = today;
+      if (isWeekend(date) || isHoliday(date)) {
+        date = getNextAvailableDate(date);
+      }
+      setSelectedDate(date);
     }
-    setSelectedDate(date);
-  }, [holidays, isWeekend, isHoliday, getNextAvailableDate]);
+  }, [selectedDate, holidays, isWeekend, isHoliday, getNextAvailableDate]);
 
   const { data: userResults = [] } = useQuery({
     queryKey: ['userSearch', searchTerm],
