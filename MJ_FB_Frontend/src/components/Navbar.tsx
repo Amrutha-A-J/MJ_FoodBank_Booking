@@ -57,8 +57,20 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const profileMenuOpen = Boolean(profileAnchorEl);
 
   return (
-    <AppBar position="static">
-      <Toolbar sx={{ gap: 2, flexWrap: 'wrap' }}>
+    <Box
+      sx={{
+        height: { xs: 150, sm: 200 },
+        bgcolor: 'background.paper',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+      }}
+    >
+      <AppBar
+        position="static"
+        sx={{ bgcolor: 'common.black', color: 'common.white' }}
+      >
+        <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 } }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Food Bank Portal
         </Typography>
@@ -175,5 +187,6 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         )}
       </Toolbar>
     </AppBar>
+  </Box>
   );
 }
