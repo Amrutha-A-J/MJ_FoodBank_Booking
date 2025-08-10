@@ -10,12 +10,12 @@ router.get('/', async (_req: Request, res: Response) => {
       SELECT
         c.id            AS category_id,
         c.name          AS category_name,
-        r.role_id,
-        MIN(r.name)     AS role_name
+        r.id            AS role_id,
+        r.name          AS role_name
       FROM volunteer_roles r
       JOIN volunteer_master_roles c ON c.id = r.category_id
-      WHERE r.is_active = TRUE
-      GROUP BY c.id, c.name, r.role_id
+      JOIN volunteer_slots s ON s.role_id = r.id AND s.is_active = TRUE
+      GROUP BY c.id, c.name, r.id, r.name
       ORDER BY c.name, role_name;
     `;
     const { rows } = await pool.query(query);
@@ -41,14 +41,15 @@ router.get('/:roleId/shifts', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT
-        r.id AS shift_id,
-        r.start_time,
-        r.end_time,
+        s.slot_id AS shift_id,
+        s.start_time,
+        s.end_time,
         r.max_volunteers
-      FROM volunteer_roles r
-      WHERE r.is_active = TRUE
-        AND r.role_id = $1
-      ORDER BY r.start_time;
+      FROM volunteer_slots s
+      JOIN volunteer_roles r ON s.role_id = r.id
+      WHERE s.is_active = TRUE
+        AND r.id = $1
+      ORDER BY s.start_time;
     `;
     const { rows } = await pool.query(query, [roleId]);
     const result = rows.map((row) => ({

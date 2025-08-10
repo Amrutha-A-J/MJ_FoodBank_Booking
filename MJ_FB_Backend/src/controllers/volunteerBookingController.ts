@@ -28,18 +28,21 @@ export async function createVolunteerBooking(
   }
 
   try {
-    const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vr.max_volunteers
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
       [roleId]
     );
-    if (roleRes.rowCount === 0) {
+    if (slotRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
-    const role = roleRes.rows[0];
+    const slot = slotRes.rows[0];
 
     const volRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [user.id, roleId]
+      [user.id, slot.role_id]
     );
     if (volRes.rowCount === 0) {
       return res.status(400).json({ message: 'Not trained for this role' });
@@ -47,18 +50,18 @@ export async function createVolunteerBooking(
 
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE role_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
       [roleId, date]
     );
-    if (Number(countRes.rows[0].count) >= role.max_volunteers) {
+    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
       return res.status(400).json({ message: 'Role is full' });
     }
 
     const token = randomUUID();
     const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, reschedule_token)
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, role_id, volunteer_id, date, status, reschedule_token`,
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token`,
       [roleId, user.id, date, token]
     );
 
@@ -69,6 +72,8 @@ export async function createVolunteerBooking(
     );
 
     const booking = insertRes.rows[0];
+    booking.role_id = booking.slot_id;
+    delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
     res.status(201).json(booking);
   } catch (error) {
@@ -94,18 +99,21 @@ export async function createVolunteerBookingForVolunteer(
   }
 
   try {
-    const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vr.max_volunteers
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
       [roleId]
     );
-    if (roleRes.rowCount === 0) {
+    if (slotRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
-    const role = roleRes.rows[0];
+    const slot = slotRes.rows[0];
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [volunteerId, roleId]
+      [volunteerId, slot.role_id]
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
@@ -113,22 +121,24 @@ export async function createVolunteerBookingForVolunteer(
 
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE role_id = $1 AND date = $2 AND status = 'approved'`,
+       WHERE slot_id = $1 AND date = $2 AND status = 'approved'`,
       [roleId, date]
     );
-    if (Number(countRes.rows[0].count) >= role.max_volunteers) {
+    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
       return res.status(400).json({ message: 'Role is full' });
     }
 
     const token = randomUUID();
-      const insertRes = await pool.query(
-        `INSERT INTO volunteer_bookings (role_id, volunteer_id, date, status, reschedule_token)
-         VALUES ($1, $2, $3, 'approved', $4)
-         RETURNING id, role_id, volunteer_id, date, status, reschedule_token`,
-        [roleId, volunteerId, date, token]
-      );
+    const insertRes = await pool.query(
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+       VALUES ($1, $2, $3, 'approved', $4)
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token`,
+      [roleId, volunteerId, date, token]
+    );
 
     const booking = insertRes.rows[0];
+    booking.role_id = booking.slot_id;
+    delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
     res.status(201).json(booking);
   } catch (error) {
@@ -145,16 +155,17 @@ export async function listVolunteerBookingsByRole(
   const { role_id } = req.params;
   try {
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+      `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name,
+              vs.start_time, vs.end_time, vr.name AS role_name, vmr.name AS category_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
-       JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        JOIN volunteers v ON vb.volunteer_id = v.id
-       WHERE vb.role_id = $1
-       ORDER BY vb.date, vr.start_time`,
+       WHERE vb.slot_id = $1
+       ORDER BY vb.date, vs.start_time`,
       [role_id]
     );
     const bookings = result.rows.map((b: any) => ({
@@ -177,14 +188,15 @@ export async function listMyVolunteerBookings(
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+      `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name
+              vs.start_time, vs.end_time, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
-       JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        WHERE vb.volunteer_id = $1
-       ORDER BY vb.date DESC, vr.start_time DESC`,
+       ORDER BY vb.date DESC, vs.start_time DESC`,
       [user.id]
     );
     const bookings = result.rows.map((b: any) => ({
@@ -206,14 +218,15 @@ export async function listVolunteerBookingsByVolunteer(
   const { volunteer_id } = req.params;
   try {
     const result = await pool.query(
-      `SELECT vb.id, vb.status, vb.role_id, vb.volunteer_id, vb.date,
+      `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
               vb.reschedule_token,
-              vr.start_time, vr.end_time, vr.name AS role_name, vmr.name AS category_name
+              vs.start_time, vs.end_time, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
-       JOIN volunteer_roles vr ON vb.role_id = vr.id
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        WHERE vb.volunteer_id = $1
-       ORDER BY vb.date DESC, vr.start_time DESC`,
+       ORDER BY vb.date DESC, vs.start_time DESC`,
       [volunteer_id]
     );
     const bookings = result.rows.map((b: any) => ({
@@ -254,13 +267,16 @@ export async function updateVolunteerBookingStatus(
 
     if (status === 'approved') {
       const roleRes = await pool.query(
-        'SELECT max_volunteers FROM volunteer_roles WHERE id=$1',
-        [booking.role_id]
+        `SELECT vr.max_volunteers
+         FROM volunteer_slots vs
+         JOIN volunteer_roles vr ON vs.role_id = vr.id
+         WHERE vs.slot_id=$1`,
+        [booking.slot_id]
       );
       const countRes = await pool.query(
         `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE role_id=$1 AND date=$2 AND status='approved'`,
-        [booking.role_id, booking.date]
+         WHERE slot_id=$1 AND date=$2 AND status='approved'`,
+        [booking.slot_id, booking.date]
       );
       if (Number(countRes.rows[0].count) >= roleRes.rows[0].max_volunteers) {
         return res.status(400).json({ message: 'Role is full' });
@@ -269,10 +285,12 @@ export async function updateVolunteerBookingStatus(
 
     const updateRes = await pool.query(
       `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
-       RETURNING id, role_id, volunteer_id, date, status`,
+       RETURNING id, slot_id, volunteer_id, date, status`,
       [status, id]
     );
     const updated = updateRes.rows[0];
+    updated.role_id = updated.slot_id;
+    delete updated.slot_id;
     updated.status_color = statusColor(updated.status);
     await sendEmail(
       'test@example.com',
@@ -306,18 +324,21 @@ export async function rescheduleVolunteerBooking(
     }
     const booking = bookingRes.rows[0];
 
-    const roleRes = await pool.query(
-      'SELECT max_volunteers FROM volunteer_roles WHERE id = $1 AND is_active',
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vr.max_volunteers
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
       [roleId],
     );
-    if (roleRes.rowCount === 0) {
+    if (slotRes.rowCount === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
-    const role = roleRes.rows[0];
+    const slot = slotRes.rows[0];
 
     const trainedRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
-      [booking.volunteer_id, roleId],
+      [booking.volunteer_id, slot.role_id],
     );
     if (trainedRes.rowCount === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
@@ -325,10 +346,10 @@ export async function rescheduleVolunteerBooking(
 
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE role_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
       [roleId, date],
     );
-    if (Number(countRes.rows[0].count) >= role.max_volunteers) {
+    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
       return res.status(400).json({ message: 'Role is full' });
     }
 
@@ -336,7 +357,7 @@ export async function rescheduleVolunteerBooking(
     const isStaffReschedule = req.user && (req.user as any).role === 'staff';
     const newStatus = isStaffReschedule ? booking.status : 'pending';
     await pool.query(
-      'UPDATE volunteer_bookings SET role_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
+      'UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
       [roleId, date, newToken, newStatus, booking.id],
     );
     await sendEmail(
