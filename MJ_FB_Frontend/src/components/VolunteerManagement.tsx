@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
@@ -28,6 +28,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import Dashboard from '../pages/Dashboard';
+import EntitySearch from './EntitySearch';
 
 
 
@@ -53,6 +54,7 @@ interface VolunteerResult {
 
 export default function VolunteerManagement({ token }: { token: string }) {
   const { tab: tabParam } = useParams<{ tab?: string }>();
+  const [searchParams] = useSearchParams();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
     tabParam === 'schedule' ||
     tabParam === 'search' ||
@@ -74,8 +76,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const [message, setMessage] = useState('');
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
 
-  const [search, setSearch] = useState('');
-  const [results, setResults] = useState<VolunteerResult[]>([]);
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
   const [editMsg, setEditMsg] = useState('');
@@ -211,21 +211,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
     }
   }, [selectedRole, token, tab, nameToRoleIds]);
 
-  useEffect(() => {
-    if (search.length < 3) {
-      setResults([]);
-      return;
-    }
-    let active = true;
-    searchVolunteers(token, search)
-      .then(data => {
-        if (active) setResults(data);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [search, token]);
+  // volunteer search handled via EntitySearch component
 
   const loadPending = useCallback(async () => {
     const all: VolunteerBookingDetail[] = [];
@@ -258,6 +244,16 @@ export default function VolunteerManagement({ token }: { token: string }) {
     }
   }, [tab, loadPending]);
 
+  useEffect(() => {
+    if (tab !== 'search') return;
+    if (selectedVolunteer) return;
+    const id = searchParams.get('id');
+    const name = searchParams.get('name');
+    if (id && name) {
+      selectVolunteer({ id: Number(id), name, trainedAreas: [] });
+    }
+  }, [tab, searchParams, selectedVolunteer]);
+
   async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
       await updateVolunteerBookingStatus(token, id, status);
@@ -276,8 +272,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
 
   async function selectVolunteer(u: VolunteerResult) {
     setSelectedVolunteer(u);
-    setResults([]);
-    setSearch(u.name);
     setTrainedEdit(
       Array.from(
         new Set(
@@ -490,37 +484,28 @@ export default function VolunteerManagement({ token }: { token: string }) {
 
       {tab === 'search' && (
         <div>
-          <TextField
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+          <EntitySearch
+            token={token}
+            type="volunteer"
             placeholder="Search volunteers"
-            label="Search"
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          {results.length > 0 ? (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {results.map(r => (
-                <li
-                  key={r.id}
-                  style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+            onSelect={selectVolunteer}
+            renderResult={(r, select) => (
+              <span
+                style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+              >
+                <span>{r.name}</span>
+                <Button
+                  onClick={select}
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  sx={{ ml: 1 }}
                 >
-                  <span>{r.name}</span>
-                  <Button
-                    onClick={() => selectVolunteer(r)}
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{ ml: 1 }}
-                  >
-                    Edit
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            search.length >= 3 && <p>No search results.</p>
-          )}
+                  Edit
+                </Button>
+              </span>
+            )}
+          />
           {selectedVolunteer && (
             <div>
               <h3>Edit Roles for {selectedVolunteer.name}</h3>

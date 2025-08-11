@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { searchUsers, getBookingHistory } from '../../api/api';
+import { useSearchParams } from 'react-router-dom';
+import { getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
-import { Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';
+import EntitySearch from '../EntitySearch';
 
 const TIMEZONE = 'America/Regina';
 
@@ -32,8 +34,7 @@ export default function UserHistory({
   token: string;
   initialUser?: User;
 }) {
-  const [search, setSearch] = useState('');
-  const [results, setResults] = useState<User[]>([]);
+  const [searchParams] = useSearchParams();
   const [selected, setSelected] = useState<User | null>(initialUser || null);
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -41,23 +42,6 @@ export default function UserHistory({
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
   const pageSize = 10;
-
-  useEffect(() => {
-    if (initialUser) return;
-    if (search.length < 3) {
-      setResults([]);
-      return;
-    }
-    let active = true;
-    searchUsers(token, search)
-      .then(data => {
-        if (active) setResults(data);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [search, token, initialUser]);
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
@@ -80,6 +64,16 @@ export default function UserHistory({
     loadBookings();
   }, [loadBookings]);
 
+  useEffect(() => {
+    if (initialUser) return;
+    const id = searchParams.get('id');
+    const name = searchParams.get('name');
+    const clientId = searchParams.get('clientId');
+    if (id && name && clientId) {
+      setSelected({ id: Number(id), name, client_id: Number(clientId) });
+    }
+  }, [searchParams, initialUser]);
+
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
@@ -87,37 +81,12 @@ export default function UserHistory({
     <div>
       <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
       {!initialUser && (
-        <>
-          <TextField
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or client ID"
-            label="Search"
-            size="small"
-            sx={{ mb: 1 }}
-          />
-          {results.length > 0 ? (
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {results.map(u => (
-                <li key={u.id}>
-                  <Button
-                    onClick={() => {
-                      setSelected(u);
-                      setSearch(u.name);
-                      setResults([]);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    {u.name} ({u.client_id})
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            search.length >= 3 && <p>No search results.</p>
-          )}
-        </>
+        <EntitySearch
+          token={token}
+          type="user"
+          placeholder="Search by name or client ID"
+          onSelect={u => setSelected(u as User)}
+        />
       )}
       {selected && (
         <div>
