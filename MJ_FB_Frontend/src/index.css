@@ -88,7 +88,6 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-
 /* src/index.css */
 
 .app-container {
@@ -130,6 +129,11 @@ select {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
   border-radius: 4px;
+}
+
+.navbar button:hover {
+  background-color: var(--e-global-color-accent);
+  color: white;
 }
 
 .navbar button.active {
