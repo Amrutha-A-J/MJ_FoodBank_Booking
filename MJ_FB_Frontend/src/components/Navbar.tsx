@@ -64,32 +64,31 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   };
 
   return (
-    <Box
-      sx={{
-        height: { xs: 150, sm: 130 },
-        bgcolor: 'background.paper',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-      }}
+    <AppBar
+      component="header"
+      position="static"
+      elevation={0}
+      className="site-header"
+      sx={{ bgcolor: 'background.default', color: 'text.primary' }}
     >
-      <AppBar
-        position="static"
-        sx={{ bgcolor: 'common.black', color: 'common.white' }}
-      >
-        <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 } }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Food Bank Portal
-        </Typography>
+      <Toolbar className="header-inner" sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 } }}>
+        <Box className="site-branding" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" className="site-title">
+            Food Bank Portal
+          </Typography>
+        </Box>
         {isSmall ? (
           <>
-            <IconButton color="inherit" onClick={(e) => setMobileAnchorEl(e.currentTarget)}>
-              <MenuIcon />
-            </IconButton>
+            <Box className="site-navigation-toggle-holder">
+              <IconButton color="inherit" onClick={(e) => setMobileAnchorEl(e.currentTarget)}>
+                <MenuIcon />
+              </IconButton>
+            </Box>
             <Menu
               anchorEl={mobileAnchorEl}
               open={mobileMenuOpen}
               onClose={() => setMobileAnchorEl(null)}
+              className="site-navigation-dropdown"
             >
               {groups.map((group) => (
                 <Box key={group.label}>
@@ -118,46 +117,51 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
             </Menu>
           </>
         ) : (
-          groups.map((group) =>
-            group.links.length === 1 ? (
-              <Button
-                key={group.links[0].to}
-                color="inherit"
-                component={RouterLink}
-                to={group.links[0].to}
-                disabled={loading}
-                sx={navItemStyles}
-              >
-                {group.links[0].label}
-              </Button>
-            ) : (
-              <Box key={group.label}>
-                <Button
-                  color="inherit"
-                  onClick={(e) => handleGroupClick(group.label, e)}
-                  endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
-                  sx={navItemStyles}
-                >
-                  {group.label}
-                </Button>
-                <Menu anchorEl={anchorEl} open={openGroup === group.label} onClose={closeGroup}>
-                  {group.links.map(({ label, to }) => (
-                    <MenuItem
-                      key={to}
+          <Box component="nav" className="site-navigation">
+            <ul className="menu">
+              {groups.map((group) =>
+                group.links.length === 1 ? (
+                  <li key={group.links[0].to}>
+                    <Button
+                      color="inherit"
                       component={RouterLink}
-                      to={to}
-                      selected={location.pathname === to}
-                      onClick={closeGroup}
+                      to={group.links[0].to}
                       disabled={loading}
                       sx={navItemStyles}
                     >
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
-            )
-          )
+                      {group.links[0].label}
+                    </Button>
+                  </li>
+                ) : (
+                  <li key={group.label}>
+                    <Button
+                      color="inherit"
+                      onClick={(e) => handleGroupClick(group.label, e)}
+                      endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
+                      sx={navItemStyles}
+                    >
+                      {group.label}
+                    </Button>
+                    <Menu anchorEl={anchorEl} open={openGroup === group.label} onClose={closeGroup}>
+                      {group.links.map(({ label, to }) => (
+                        <MenuItem
+                          key={to}
+                          component={RouterLink}
+                          to={to}
+                          selected={location.pathname === to}
+                          onClick={closeGroup}
+                          disabled={loading}
+                          sx={navItemStyles}
+                        >
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </li>
+                )
+              )}
+            </ul>
+          </Box>
         )}
         <Box sx={{ flexGrow: 1 }} />
         {name ? (
@@ -203,6 +207,5 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         )}
       </Toolbar>
     </AppBar>
-  </Box>
   );
 }

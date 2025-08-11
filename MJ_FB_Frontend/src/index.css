@@ -236,3 +236,64 @@ select {
     padding: 0.3rem;
   }
 }
+
+/* Site header and navigation styles */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding-block: 1rem;
+  position: relative;
+}
+
+.site-header .site-title {
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.site-header .site-branding {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.site-header .header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.site-navigation {
+  align-items: center;
+  display: flex;
+}
+
+.site-navigation ul.menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.site-navigation ul.menu li {
+  display: flex;
+}
+
+.site-navigation ul.menu li a,
+.site-navigation ul.menu li button {
+  display: block;
+  padding: 8px 15px;
+}
+
+
+.site-navigation-toggle-holder {
+  align-items: center;
+  display: flex;
+  padding: 8px 15px;
+}
+
