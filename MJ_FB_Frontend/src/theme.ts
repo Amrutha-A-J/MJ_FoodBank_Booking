@@ -23,7 +23,7 @@ let theme = createTheme({
     warning: { main: '#f59e0b' },   // matches BRAND_ACCENT
     info: { main: '#2563eb' },      // optional informational blue
   },
-  shape: { borderRadius: 16 },
+  shape: { borderRadius: 10 },
   typography: {
     // Keep Golos unless you’d like to mirror the website font exactly.
     // Swap this to match the site later if needed.
@@ -57,7 +57,7 @@ let theme = createTheme({
     MuiButton: {
       defaultProps: { size: 'small' },
       styleOverrides: {
-        root: { borderRadius: 12, textTransform: 'none', fontWeight: 600 },
+        root: { borderRadius: 10, textTransform: 'none', fontWeight: 600 },
         containedPrimary: {
           color: '#fff',
           '&:hover': { backgroundColor: BRAND_PRIMARY },
@@ -81,7 +81,7 @@ let theme = createTheme({
     },
     MuiAlert: {
       styleOverrides: {
-        root: { borderRadius: 12 },
+        root: { borderRadius: 10 },
         standardSuccess: { border: `1px solid ${DIVIDER}` },
       },
     },

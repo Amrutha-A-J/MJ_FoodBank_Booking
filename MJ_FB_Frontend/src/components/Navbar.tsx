@@ -55,7 +55,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const mobileMenuOpen = Boolean(mobileAnchorEl);
   const profileMenuOpen = Boolean(profileAnchorEl);
 
-  const menuPaperProps = { sx: { bgcolor: 'common.white', borderRadius: 0 } };
+  const menuPaperProps = { sx: { bgcolor: 'common.white', borderRadius: 1 } };
 
   const navItemStyles = {
     fontFamily: '"Oswald", Sans-serif',
