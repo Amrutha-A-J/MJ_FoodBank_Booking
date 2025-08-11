@@ -82,6 +82,10 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+function formatLocalDate(date: Date) {
+  return date.toLocaleDateString('en-CA');
+}
+
 function StaffDashboard({ token }: { token: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [coverage, setCoverage] = useState<
@@ -92,7 +96,7 @@ function StaffDashboard({ token }: { token: string }) {
   useEffect(() => {
     getBookings(token).then(setBookings).catch(() => {});
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = formatLocalDate(new Date());
     getVolunteerRoles(token)
       .then(roles =>
         Promise.all(
@@ -100,7 +104,8 @@ function StaffDashboard({ token }: { token: string }) {
             const bookings = await getVolunteerBookingsByRole(token, r.id);
             const filled = bookings.filter(
               (b: any) =>
-                b.status === 'approved' && b.date.split('T')[0] === todayStr,
+                b.status === 'approved' &&
+                formatLocalDate(new Date(b.date)) === todayStr,
             ).length;
             return { role: r.name, filled, total: r.max_volunteers };
           }),
@@ -114,7 +119,7 @@ function StaffDashboard({ token }: { token: string }) {
       [...Array(7)].map(async (_, i) => {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatLocalDate(d);
         const slots = await getSlots(token, dateStr);
         const open = (slots as Slot[]).reduce(
           (sum, s) => sum + (s.available || 0),
@@ -130,17 +135,19 @@ function StaffDashboard({ token }: { token: string }) {
       .catch(() => {});
   }, [token]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatLocalDate(new Date());
   const pending = bookings.filter(b => b.status === 'submitted');
   const cancellations = bookings.filter(b => b.status === 'cancelled');
   const stats = {
     appointments: bookings.filter(
-      b => b.status === 'approved' && b.date.split('T')[0] === todayStr,
+      b =>
+        b.status === 'approved' &&
+        formatLocalDate(new Date(b.date)) === todayStr,
     ).length,
     volunteers: coverage.reduce((sum, c) => sum + c.filled, 0),
     approvals: pending.length,
     cancellations: cancellations.filter(
-      b => b.date.split('T')[0] === todayStr,
+      b => formatLocalDate(new Date(b.date)) === todayStr,
     ).length,
   };
 
@@ -291,7 +298,7 @@ function UserDashboard({ token }: { token: string }) {
       [...Array(5)].map(async (_, i) => {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatLocalDate(d);
         const slots = await getSlots(token, dateStr);
         return (slots as Slot[])
           .filter(s => s.available > 0)
