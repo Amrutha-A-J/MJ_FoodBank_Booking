@@ -95,7 +95,11 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
           <Box sx={{ flexGrow: 1 }} />
           {isSmall ? (
           <>
-            <IconButton color="inherit" onClick={(e) => setMobileAnchorEl(e.currentTarget)}>
+            <IconButton
+              color="inherit"
+              aria-label="open navigation menu"
+              onClick={(e) => setMobileAnchorEl(e.currentTarget)}
+            >
               <MenuIcon />
             </IconButton>
             <Menu
@@ -127,6 +131,45 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   ))}
                 </Box>
               ))}
+              {name ? (
+                <>
+                  <MenuItem disabled sx={navItemStyles}>
+                    Hello, {name}
+                  </MenuItem>
+                  <MenuItem
+                    component={RouterLink}
+                    to="/profile"
+                    onClick={() => {
+                      setMobileAnchorEl(null);
+                    }}
+                    disabled={loading}
+                    sx={navItemStyles}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      setMobileAnchorEl(null);
+                      onLogout();
+                    }}
+                    disabled={loading}
+                    sx={navItemStyles}
+                  >
+                    Logout
+                  </MenuItem>
+                </>
+              ) : (
+                <MenuItem
+                  onClick={() => {
+                    setMobileAnchorEl(null);
+                    onLogout();
+                  }}
+                  disabled={loading}
+                  sx={navItemStyles}
+                >
+                  Logout
+                </MenuItem>
+              )}
             </Menu>
           </>
         ) : (
@@ -172,7 +215,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
           )
         )}
         <Box sx={{ flexGrow: 1 }} />
-        {name ? (
+        {name && !isSmall ? (
           <>
             <Button
               color="inherit"
@@ -208,11 +251,11 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               </MenuItem>
             </Menu>
           </>
-        ) : (
+        ) : !name && !isSmall ? (
           <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
             Logout
           </Button>
-        )}
+        ) : null}
       </Toolbar>
     </AppBar>
   </Box>
