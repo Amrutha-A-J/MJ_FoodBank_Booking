@@ -211,15 +211,14 @@ button,input,optgroup,select,textarea {
 }
 
 input[type=date],input[type=email],input[type=number],input[type=password],input[type=search],input[type=tel],input[type=text],input[type=url],select,textarea {
-    border: 1px solid #666;
-    border-radius: 3px;
+    /* Let component libraries like MUI handle borders to avoid double outlines */
     padding: .5rem 1rem;
     transition: all .3s;
     width: 100%
 }
 
 input[type=date]:focus,input[type=email]:focus,input[type=number]:focus,input[type=password]:focus,input[type=search]:focus,input[type=tel]:focus,input[type=text]:focus,input[type=url]:focus,select:focus,textarea:focus {
-    border-color: #333
+    /* Intentionally do not set a border color so library defaults show correctly */
 }
 
 button,input {
