@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Grid,
   Card,
@@ -10,16 +11,13 @@ import {
   List,
   ListItem,
   ListItemText,
-  TextField,
   Chip,
-  IconButton,
 } from '@mui/material';
 import {
   CalendarToday,
   People,
   WarningAmber,
   Cancel as CancelIcon,
-  Search,
   EventAvailable,
   Announcement,
 } from '@mui/icons-material';
@@ -31,6 +29,7 @@ import {
 } from '../api/api';
 import type { Role, Slot } from '../types';
 import { formatTime } from '../utils/time';
+import EntitySearch from '../components/EntitySearch';
 
 export interface DashboardProps {
   role: Role;
@@ -92,6 +91,8 @@ function StaffDashboard({ token }: { token: string }) {
     { role: string; filled: number; total: number }[]
   >([]);
   const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
+  const [searchType, setSearchType] = useState<'user' | 'volunteer'>('user');
+  const navigate = useNavigate();
 
   useEffect(() => {
     getBookings(token).then(setBookings).catch(() => {});
@@ -241,17 +242,41 @@ function StaffDashboard({ token }: { token: string }) {
           <Grid item xs={12}>
             <SectionCard title="Quick Search">
               <Stack spacing={2}>
+                <EntitySearch
+                  token={token}
+                  type={searchType}
+                  placeholder="Search"
+                  onSelect={res => {
+                    if (searchType === 'user') {
+                      navigate(
+                        `/user-history?id=${res.id}&name=${encodeURIComponent(
+                          res.name,
+                        )}&clientId=${res.client_id}`,
+                      );
+                    } else {
+                      navigate(
+                        `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
+                          res.name,
+                        )}`,
+                      );
+                    }
+                  }}
+                />
                 <Stack direction="row" spacing={1}>
-                  <TextField size="small" placeholder="Search" fullWidth />
-                  <IconButton color="primary" size="small">
-                    <Search />
-                  </IconButton>
-                </Stack>
-                <Stack direction="row" spacing={1}>
-                  <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
+                  <Button
+                    size="small"
+                    variant={searchType === 'user' ? 'contained' : 'outlined'}
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => setSearchType('user')}
+                  >
                     Find Client
                   </Button>
-                  <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                  <Button
+                    size="small"
+                    variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => setSearchType('volunteer')}
+                  >
                     Find Volunteer
                   </Button>
                 </Stack>
