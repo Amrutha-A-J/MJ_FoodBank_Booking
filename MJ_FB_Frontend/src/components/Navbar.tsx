@@ -80,9 +80,9 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
           alt="Food Bank logo"
           sx={{
             position: 'absolute',
-            top: { xs: 0, sm: 36 },
-            left: { xs: 0, sm: 15 },
-            width: { xs: 80, sm: 200 },
+            top: -26,
+            left: 15,
+            width: 178,
           }}
         />
       </Box>
