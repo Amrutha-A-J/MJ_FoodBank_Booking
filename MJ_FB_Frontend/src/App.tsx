@@ -6,6 +6,7 @@ import UserHistory from './components/StaffDashboard/UserHistory';
 import SlotBooking from './components/SlotBooking';
 import AddUser from './components/StaffDashboard/AddUser';
 import PantrySchedule from './components/StaffDashboard/PantrySchedule';
+import Pending from './components/StaffDashboard/Pending';
 import Login from './components/Login';
 import StaffLogin from './components/StaffLogin';
 import VolunteerLogin from './components/VolunteerLogin';
@@ -45,6 +46,7 @@ export default function App() {
         { label: 'Pantry Schedule', to: '/pantry-schedule' },
         { label: 'Add User', to: '/add-user' },
         { label: 'User History', to: '/user-history' },
+        { label: 'Pending', to: '/pending' },
       ];
     navGroups.push({ label: 'Staff', links: staffLinks });
       navGroups.push({
@@ -172,6 +174,7 @@ export default function App() {
                 )}
                 {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
                 {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
+                {isStaff && <Route path="/pending" element={<Pending token={token} />} />}
                 {isStaff && (
                   <>
                     <Route
