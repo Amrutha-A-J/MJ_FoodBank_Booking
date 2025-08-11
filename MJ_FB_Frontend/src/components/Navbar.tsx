@@ -66,7 +66,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     ...navItemStyles,
     color: 'common.black',
     '&:hover': {
-      bgcolor: '#3f44bb',
+      bgcolor: '#3f444b',
     },
   };
 
