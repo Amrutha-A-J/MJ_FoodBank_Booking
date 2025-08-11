@@ -46,6 +46,29 @@ h1 {
   line-height: 1.1;
 }
 
+h2 {
+  font-size: 2.4em;
+  line-height: 1.2;
+}
+
+p {
+  font-size: 1em;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 2.2em;
+  }
+
+  h2 {
+    font-size: 1.8em;
+  }
+
+  p {
+    font-size: 0.9em;
+  }
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;
