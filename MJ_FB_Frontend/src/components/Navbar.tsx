@@ -55,9 +55,11 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const mobileMenuOpen = Boolean(mobileAnchorEl);
   const profileMenuOpen = Boolean(profileAnchorEl);
 
+  const menuPaperProps = { sx: { bgcolor: 'common.white', borderRadius: 0 } };
+
   const navItemStyles = {
     fontFamily: '"Oswald", Sans-serif',
-    fontSize: '20px',
+    fontSize: { xs: 12, sm: 14, md: 16 },
     fontWeight: 700,
     textTransform: 'uppercase',
     '&:hover': {
@@ -69,7 +71,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const menuItemStyles = {
     ...navItemStyles,
     color: 'common.black',
-    '&:hover': {
+    '&:hover, &.Mui-selected:hover': {
       bgcolor: '#3f444b',
       color: 'common.black',
     },
@@ -119,7 +121,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               anchorEl={mobileAnchorEl}
               open={mobileMenuOpen}
               onClose={() => setMobileAnchorEl(null)}
-              PaperProps={{ sx: { bgcolor: 'common.white' } }}
+              PaperProps={menuPaperProps}
             >
               {groups.map((group) => (
                 <Box key={group.label}>
@@ -213,7 +215,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   anchorEl={anchorEl}
                   open={openGroup === group.label}
                   onClose={closeGroup}
-                  PaperProps={{ sx: { bgcolor: 'common.white' } }}
+                  PaperProps={menuPaperProps}
                 >
                   {group.links.map(({ label, to }) => (
                     <MenuItem
@@ -247,7 +249,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               anchorEl={profileAnchorEl}
               open={profileMenuOpen}
               onClose={closeProfileMenu}
-              PaperProps={{ sx: { bgcolor: 'common.white' } }}
+              PaperProps={menuPaperProps}
             >
               <MenuItem
                 component={RouterLink}
