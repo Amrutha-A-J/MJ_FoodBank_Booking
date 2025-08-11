@@ -73,7 +73,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         position: 'relative',
       }}
     >
-      <Box sx={{ height: 0 }}>
+      <Box sx={{ position: 'relative', height: 0 }}>
         <Box
           component="img"
           src="/images/mjfoodbank_logo.png"
