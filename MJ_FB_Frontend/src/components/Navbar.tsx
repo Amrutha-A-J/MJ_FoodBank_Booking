@@ -56,10 +56,17 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const mobileMenuOpen = Boolean(mobileAnchorEl);
   const profileMenuOpen = Boolean(profileAnchorEl);
 
+  const navItemStyles = {
+    fontFamily: '"Oswald", Sans-serif',
+    fontSize: '20px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  };
+
   return (
     <Box
       sx={{
-        height: { xs: 150, sm: 200 },
+        height: { xs: 150, sm: 130 },
         bgcolor: 'background.paper',
         display: 'flex',
         flexDirection: 'column',
@@ -87,7 +94,9 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               {groups.map((group) => (
                 <Box key={group.label}>
                   {!(group.links.length === 1 && group.links[0].label === group.label) && (
-                    <MenuItem disabled>{group.label}</MenuItem>
+                    <MenuItem disabled sx={navItemStyles}>
+                      {group.label}
+                    </MenuItem>
                   )}
                   {group.links.map(({ label, to }) => (
                     <MenuItem
@@ -99,6 +108,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                         setMobileAnchorEl(null);
                       }}
                       disabled={loading}
+                      sx={navItemStyles}
                     >
                       {label}
                     </MenuItem>
@@ -116,6 +126,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                 component={RouterLink}
                 to={group.links[0].to}
                 disabled={loading}
+                sx={navItemStyles}
               >
                 {group.links[0].label}
               </Button>
@@ -125,6 +136,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   color="inherit"
                   onClick={(e) => handleGroupClick(group.label, e)}
                   endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
+                  sx={navItemStyles}
                 >
                   {group.label}
                 </Button>
@@ -137,6 +149,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                       selected={location.pathname === to}
                       onClick={closeGroup}
                       disabled={loading}
+                      sx={navItemStyles}
                     >
                       {label}
                     </MenuItem>
@@ -153,6 +166,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               color="inherit"
               onClick={handleProfileClick}
               endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
+              sx={navItemStyles}
             >
               Hello, {name}
             </Button>
@@ -166,6 +180,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                 to="/profile"
                 onClick={closeProfileMenu}
                 disabled={loading}
+                sx={navItemStyles}
               >
                 Profile
               </MenuItem>
@@ -175,13 +190,14 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   onLogout();
                 }}
                 disabled={loading}
+                sx={navItemStyles}
               >
                 Logout
               </MenuItem>
             </Menu>
           </>
         ) : (
-          <Button color="inherit" onClick={onLogout} disabled={loading}>
+          <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
             Logout
           </Button>
         )}
