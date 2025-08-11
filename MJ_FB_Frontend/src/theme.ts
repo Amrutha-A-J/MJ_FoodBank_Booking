@@ -58,8 +58,18 @@ let theme = createTheme({
       defaultProps: { size: 'small' },
       styleOverrides: {
         root: { borderRadius: 12, textTransform: 'none', fontWeight: 600 },
-        containedPrimary: { color: '#fff' },
-        outlinedPrimary: { borderColor: `${BRAND_PRIMARY}33` }, // subtle outline
+        containedPrimary: {
+          color: '#fff',
+          '&:hover': { backgroundColor: BRAND_PRIMARY },
+        },
+        outlinedPrimary: {
+          borderColor: `${BRAND_PRIMARY}33`,
+          '&:hover': {
+            borderColor: BRAND_PRIMARY,
+            backgroundColor: `${BRAND_PRIMARY}14`,
+            color: BRAND_PRIMARY,
+          },
+        }, // subtle outline
       },
     },
     MuiChip: { styleOverrides: { root: { borderRadius: 10 } } },

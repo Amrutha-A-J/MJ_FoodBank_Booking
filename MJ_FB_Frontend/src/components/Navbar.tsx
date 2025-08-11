@@ -60,6 +60,10 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     fontSize: '20px',
     fontWeight: 700,
     textTransform: 'uppercase',
+    '&:hover': {
+      bgcolor: 'error.main',
+      color: 'common.white',
+    },
   };
 
   const menuItemStyles = {
@@ -67,6 +71,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     color: 'common.black',
     '&:hover': {
       bgcolor: '#3f444b',
+      color: 'common.black',
     },
   };
 
