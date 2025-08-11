@@ -6,6 +6,8 @@ import {
   TableCell,
   TableBody,
   Paper,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 
 interface Cell {
@@ -27,9 +29,24 @@ interface Props {
 
 export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const slotWidth = `calc((100% - 160px) / ${maxSlots})`;
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   return (
     <TableContainer component={Paper}>
-      <Table size="small" sx={{ tableLayout: 'fixed', width: '100%' }}>
+      <Table
+        size="small"
+        sx={{
+          tableLayout: 'fixed',
+          width: '100%',
+          '& .MuiTableCell-root': {
+            p: isSmall ? 0.5 : 1,
+            fontSize: isSmall ? '0.75rem' : 'inherit',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          },
+        }}
+      >
         <colgroup>
           <col style={{ width: 160 }} />
           {Array.from({ length: maxSlots }).map((_, i) => (
