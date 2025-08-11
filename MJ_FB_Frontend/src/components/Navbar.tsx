@@ -65,8 +65,9 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
   const menuItemStyles = {
     ...navItemStyles,
     color: 'common.black',
-    '&:hover': {
+    '&:hover, &.Mui-selected:hover': {
       bgcolor: '#3f444b',
+      color: 'common.white',
     },
   };
 
