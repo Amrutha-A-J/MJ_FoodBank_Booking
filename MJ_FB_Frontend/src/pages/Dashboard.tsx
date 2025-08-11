@@ -44,7 +44,7 @@ interface SectionCardProps {
 }
 
 const SectionCard = ({ title, icon, children }: SectionCardProps) => (
-  <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+  <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
     <CardHeader title={title} avatar={icon} />
     <CardContent>{children}</CardContent>
   </Card>

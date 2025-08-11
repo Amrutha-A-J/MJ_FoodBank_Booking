@@ -135,7 +135,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="My Next Shift" />
             <CardContent>
               {nextShift ? (
@@ -170,7 +170,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Pending Requests" />
             <CardContent>
               <List>
@@ -191,7 +191,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Available in My Roles" />
             <CardContent>
               <Stack direction="row" spacing={1} alignItems="center" mb={2}>
@@ -247,7 +247,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Quick Actions" />
             <CardContent>
               <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -283,7 +283,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Announcements" />
             <CardContent>
               <Typography>No announcements</Typography>
@@ -292,7 +292,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 2, boxShadow: 1 }}>
+          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Profile & Training" />
             <CardContent>
               <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>

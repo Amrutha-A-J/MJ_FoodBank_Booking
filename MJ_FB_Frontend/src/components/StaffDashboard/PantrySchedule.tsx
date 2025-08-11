@@ -273,7 +273,7 @@ export default function PantrySchedule({ token }: { token: string }) {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: '300px' }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '300px' }}>
             <h4>Assign User</h4>
             <input
               type="text"
@@ -320,7 +320,7 @@ export default function PantrySchedule({ token }: { token: string }) {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: '320px' }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '320px' }}>
             <h4>Manage Booking</h4>
             <p>
               {decisionBooking.status === 'submitted'

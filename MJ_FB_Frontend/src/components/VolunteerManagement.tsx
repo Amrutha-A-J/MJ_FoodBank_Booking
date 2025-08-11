@@ -767,7 +767,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
             <h4>Assign Volunteer</h4>
             <TextField
               type="text"
@@ -827,7 +827,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 4, width: 300 }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
             <p>
               Approve or reject booking for {decisionBooking.volunteer_name}?<br />
               Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
