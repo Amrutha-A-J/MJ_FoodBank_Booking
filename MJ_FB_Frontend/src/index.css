@@ -35,6 +35,11 @@ body, html, #root {
   width: 100%;
 }
 
+main {
+  margin: 15px;
+  margin-top: 40px;
+}
+
 
 h1 {
   font-size: 3.2em;

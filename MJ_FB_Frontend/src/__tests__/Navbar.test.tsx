@@ -37,4 +37,31 @@ describe('Navbar component', () => {
     expect(screen.queryByText(/Hello/)).toBeNull();
     expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
   });
+
+  it('moves greeting into hamburger menu on small screens', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = () => ({
+      matches: true,
+      addListener: () => {},
+      removeListener: () => {},
+    }) as any;
+
+    render(
+      <MemoryRouter>
+        <Navbar
+          groups={[{ label: 'Home', links: [{ label: 'Home', to: '/' }] }]}
+          onLogout={() => {}}
+          name="Tester"
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText(/Hello, Tester/i)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/open navigation menu/i));
+    expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
+    expect(screen.getByText(/Profile/i)).toBeInTheDocument();
+    expect(screen.getByText(/Logout/i)).toBeInTheDocument();
+
+    window.matchMedia = originalMatchMedia;
+  });
 });
