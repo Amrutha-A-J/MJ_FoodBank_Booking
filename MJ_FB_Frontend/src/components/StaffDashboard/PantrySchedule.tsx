@@ -107,6 +107,10 @@ export default function PantrySchedule({ token }: { token: string }) {
 
   async function decideSelected(decision: 'approve' | 'reject') {
     if (!decisionBooking) return;
+    if (decision === 'reject' && !decisionReason.trim()) {
+      setMessage('Reason for rejection required');
+      return;
+    }
     try {
       await decideBooking(token, decisionBooking.id.toString(), decision, decisionReason);
       await loadData();
@@ -346,7 +350,14 @@ export default function PantrySchedule({ token }: { token: string }) {
                 <>
                   <Button onClick={openReschedule} variant="outlined" color="primary">Reschedule</Button>
                   <Button onClick={() => decideSelected('approve')} variant="outlined" color="primary">Approve</Button>
-                  <Button onClick={() => decideSelected('reject')} variant="outlined" color="primary">Reject</Button>
+                  <Button
+                    onClick={() => decideSelected('reject')}
+                    variant="outlined"
+                    color="primary"
+                    disabled={!decisionReason.trim()}
+                  >
+                    Reject
+                  </Button>
                   <Button
                     onClick={() => {
                       setDecisionBooking(null);
