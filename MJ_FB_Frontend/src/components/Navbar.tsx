@@ -91,8 +91,9 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         position="static"
         sx={{ bgcolor: 'common.black', color: 'common.white' }}
       >
-        <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 } }}>
-          <Box sx={{ flexGrow: 1 }} />
+        <Toolbar
+          sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 }, justifyContent: 'flex-end' }}
+        >
           {isSmall ? (
           <>
             <IconButton color="inherit" onClick={(e) => setMobileAnchorEl(e.currentTarget)}>
@@ -171,7 +172,6 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
             )
           )
         )}
-        <Box sx={{ flexGrow: 1 }} />
         {name ? (
           <>
             <Button
