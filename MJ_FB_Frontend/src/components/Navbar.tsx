@@ -214,8 +214,6 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
             )
           )
         )}
-
-        <Box sx={{ flexGrow: 1 }} />
         {name && !isSmall ? (
           <>
             <Button
