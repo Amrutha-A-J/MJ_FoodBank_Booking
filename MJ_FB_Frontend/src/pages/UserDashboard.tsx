@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { EventAvailable, Announcement, History } from '@mui/icons-material';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getBookings, getSlots, getHolidays, cancelBooking } from '../api/api';
+import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/api';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 
@@ -88,7 +88,9 @@ export default function UserDashboard({ token }: { token: string }) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    getBookings(token).then(setBookings).catch(() => {});
+    getBookingHistory(token)
+      .then(setBookings)
+      .catch(() => {});
   }, [token]);
 
   useEffect(() => {
