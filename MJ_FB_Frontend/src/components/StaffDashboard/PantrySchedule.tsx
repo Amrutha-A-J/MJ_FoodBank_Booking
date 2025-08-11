@@ -5,7 +5,7 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../VolunteerScheduleTable';
 import FeedbackSnackbar from '../FeedbackSnackbar';
-import { Button } from '@mui/material';
+import { Button, type AlertColor } from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';
 
 interface Booking {
@@ -43,7 +43,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
-  const [message, setMessage] = useState('');
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor } | null>(null);
   const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [assignMessage, setAssignMessage] = useState('');
@@ -108,14 +108,15 @@ export default function PantrySchedule({ token }: { token: string }) {
   async function decideSelected(decision: 'approve' | 'reject') {
     if (!decisionBooking) return;
     if (decision === 'reject' && !decisionReason.trim()) {
-      setMessage('Reason for rejection required');
+      setSnackbar({ message: 'Reason for rejection required', severity: 'error' });
       return;
     }
     try {
       await decideBooking(token, decisionBooking.id.toString(), decision, decisionReason);
       await loadData();
+      setSnackbar({ message: `Booking ${decision}d`, severity: 'success' });
     } catch {
-      setMessage(`Failed to ${decision} booking`);
+      setSnackbar({ message: `Failed to ${decision} booking`, severity: 'error' });
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
@@ -127,8 +128,9 @@ export default function PantrySchedule({ token }: { token: string }) {
     try {
       await cancelBooking(token, decisionBooking.id.toString(), decisionReason);
       await loadData();
+      setSnackbar({ message: 'Booking cancelled', severity: 'success' });
     } catch {
-      setMessage('Failed to cancel booking');
+      setSnackbar({ message: 'Failed to cancel booking', severity: 'error' });
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
@@ -234,7 +236,7 @@ export default function PantrySchedule({ token }: { token: string }) {
               setAssignSlot(slot);
               setAssignMessage('');
             } else {
-              setMessage('Booking not allowed on weekends or holidays');
+              setSnackbar({ message: 'Booking not allowed on weekends or holidays', severity: 'error' });
             }
           },
         };
@@ -256,7 +258,12 @@ export default function PantrySchedule({ token }: { token: string }) {
         </h3>
         <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
       </div>
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
+      <FeedbackSnackbar
+        open={!!snackbar}
+        onClose={() => setSnackbar(null)}
+        message={snackbar?.message || ''}
+        severity={snackbar?.severity}
+      />
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
