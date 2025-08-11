@@ -71,17 +71,29 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
+        position: 'relative',
       }}
     >
+      <Box sx={{ height: 0 }}>
+        <Box
+          component="img"
+          src="/images/mjfoodbank_logo.png"
+          alt="Food Bank logo"
+          sx={{
+            position: 'absolute',
+            top: { xs: 0, sm: 0 },
+            left: { xs: 0, sm: 0 },
+            width: { xs: 80, sm: 120 },
+          }}
+        />
+      </Box>
       <AppBar
         position="static"
         sx={{ bgcolor: 'common.black', color: 'common.white' }}
       >
         <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 } }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Food Bank Portal
-        </Typography>
-        {isSmall ? (
+          <Box sx={{ flexGrow: 1 }} />
+          {isSmall ? (
           <>
             <IconButton color="inherit" onClick={(e) => setMobileAnchorEl(e.currentTarget)}>
               <MenuIcon />

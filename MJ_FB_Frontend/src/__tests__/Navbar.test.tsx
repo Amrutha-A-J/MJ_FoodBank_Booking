@@ -14,7 +14,8 @@ describe('Navbar component', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/Food Bank logo/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Food Bank Portal/i)).toBeNull();
     expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     expect(screen.getByText(/Profile/i)).toBeInTheDocument();
@@ -31,7 +32,8 @@ describe('Navbar component', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/Food Bank Portal/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/Food Bank logo/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Food Bank Portal/i)).toBeNull();
     expect(screen.queryByText(/Hello/)).toBeNull();
     expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
   });
