@@ -62,6 +62,14 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     textTransform: 'uppercase',
   };
 
+  const menuItemStyles = {
+    ...navItemStyles,
+    color: 'common.black',
+    '&:hover': {
+      bgcolor: '#3f44bb',
+    },
+  };
+
   return (
     <Box
       sx={{
@@ -106,11 +114,12 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               anchorEl={mobileAnchorEl}
               open={mobileMenuOpen}
               onClose={() => setMobileAnchorEl(null)}
+              PaperProps={{ sx: { bgcolor: 'common.white' } }}
             >
               {groups.map((group) => (
                 <Box key={group.label}>
                   {!(group.links.length === 1 && group.links[0].label === group.label) && (
-                    <MenuItem disabled sx={navItemStyles}>
+                    <MenuItem disabled sx={menuItemStyles}>
                       {group.label}
                     </MenuItem>
                   )}
@@ -124,7 +133,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                         setMobileAnchorEl(null);
                       }}
                       disabled={loading}
-                      sx={navItemStyles}
+                      sx={menuItemStyles}
                     >
                       {label}
                     </MenuItem>
@@ -133,7 +142,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               ))}
               {name ? (
                 <>
-                  <MenuItem disabled sx={navItemStyles}>
+                  <MenuItem disabled sx={menuItemStyles}>
                     Hello, {name}
                   </MenuItem>
                   <MenuItem
@@ -143,7 +152,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                       setMobileAnchorEl(null);
                     }}
                     disabled={loading}
-                    sx={navItemStyles}
+                    sx={menuItemStyles}
                   >
                     Profile
                   </MenuItem>
@@ -153,7 +162,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                       onLogout();
                     }}
                     disabled={loading}
-                    sx={navItemStyles}
+                    sx={menuItemStyles}
                   >
                     Logout
                   </MenuItem>
@@ -165,7 +174,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                     onLogout();
                   }}
                   disabled={loading}
-                  sx={navItemStyles}
+                  sx={menuItemStyles}
                 >
                   Logout
                 </MenuItem>
@@ -195,7 +204,12 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                 >
                   {group.label}
                 </Button>
-                <Menu anchorEl={anchorEl} open={openGroup === group.label} onClose={closeGroup}>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openGroup === group.label}
+                  onClose={closeGroup}
+                  PaperProps={{ sx: { bgcolor: 'common.white' } }}
+                >
                   {group.links.map(({ label, to }) => (
                     <MenuItem
                       key={to}
@@ -204,7 +218,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                       selected={location.pathname === to}
                       onClick={closeGroup}
                       disabled={loading}
-                      sx={navItemStyles}
+                      sx={menuItemStyles}
                     >
                       {label}
                     </MenuItem>
@@ -228,13 +242,14 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               anchorEl={profileAnchorEl}
               open={profileMenuOpen}
               onClose={closeProfileMenu}
+              PaperProps={{ sx: { bgcolor: 'common.white' } }}
             >
               <MenuItem
                 component={RouterLink}
                 to="/profile"
                 onClick={closeProfileMenu}
                 disabled={loading}
-                sx={navItemStyles}
+                sx={menuItemStyles}
               >
                 Profile
               </MenuItem>
@@ -244,7 +259,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   onLogout();
                 }}
                 disabled={loading}
-                sx={navItemStyles}
+                sx={menuItemStyles}
               >
                 Logout
               </MenuItem>
