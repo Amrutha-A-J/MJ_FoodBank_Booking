@@ -1,5 +1,5 @@
 // src/theme.ts
-import { createTheme } from '@mui/material/styles';
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
 // ---- Brand tokens (tweak these to match mjfoodbank.org exactly) ----
 // Approx palette: green primary, warm "harvest" accent, deep red for errors (your 941818)
@@ -11,7 +11,7 @@ const BG_CARD       = '#ffffff';
 const DIVIDER       = '#e6e9e6';
 // -------------------------------------------------------------------
 
-export const theme = createTheme({
+let theme = createTheme({
   palette: {
     mode: 'light',
     primary: { main: BRAND_PRIMARY },
@@ -95,3 +95,7 @@ export const theme = createTheme({
     },
   },
 });
+
+theme = responsiveFontSizes(theme);
+
+export { theme };
