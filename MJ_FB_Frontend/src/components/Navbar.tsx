@@ -62,18 +62,23 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
     fontSize: { xs: 12, sm: 14, md: 16 },
     fontWeight: 700,
     textTransform: 'uppercase',
+    color: 'common.white',
     '&:hover': {
-      bgcolor: 'error.main',
-      color: 'common.white',
+      bgcolor: 'transparent',
+      color: 'error.main',
     },
   };
 
   const menuItemStyles = {
     ...navItemStyles,
     color: 'common.black',
-    '&:hover, &.Mui-selected:hover': {
-      bgcolor: '#3f444b',
-      color: 'common.black',
+    '&:hover': {
+      bgcolor: 'grey.800',
+      color: 'common.white',
+    },
+    '&.Mui-selected:hover': {
+      bgcolor: 'grey.800',
+      color: 'common.white',
     },
   };
 
