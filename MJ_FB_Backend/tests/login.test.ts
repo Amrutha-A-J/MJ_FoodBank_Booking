@@ -44,6 +44,7 @@ describe('POST /api/users/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token', 'token');
+    expect(res.body).toHaveProperty('refreshToken', 'token');
     expect(res.body).toHaveProperty('role', 'staff');
   });
 
