@@ -82,7 +82,8 @@ export async function findUpcomingBooking(
        LIMIT 1`,
     [userId],
   );
-  return res.rowCount > 0 ? res.rows[0] : null;
+  // `rowCount` can be null in the PG typings, so fall back to 0 when null.
+  return (res.rowCount ?? 0) > 0 ? res.rows[0] : null;
 }
 
 export const LIMIT_MESSAGE =
