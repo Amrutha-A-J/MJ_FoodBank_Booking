@@ -6,7 +6,8 @@ import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const reginaTimeZone = 'America/Regina';
@@ -51,6 +52,7 @@ export default function SlotBooking({ token, role }: Props) {
     return Number(storedCount || '0');
   });
   const [isLastWeek, setIsLastWeek] = useState(false);
+  const [conflict, setConflict] = useState<{ date: string; startTime: string; status: string } | null>(null);
 
   const loggedInName = localStorage.getItem('name') || 'You';
 
@@ -188,15 +190,20 @@ export default function SlotBooking({ token, role }: Props) {
       setSelectedDate(null);
       setSelectedSlotId(null);
       queryClient.invalidateQueries({ queryKey: ['slots'] });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (/already.*(twice|2)/i.test(msg)) {
-        const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
-        setBookingsThisMonth(2);
-        localStorage.setItem('bookingsThisMonth', '2');
-        localStorage.setItem('bookingsMonth', currentMonth);
+    } catch (e: any) {
+      if (e?.details?.existingBooking) {
+        const b = e.details.existingBooking;
+        setConflict({ date: b.date, startTime: b.start_time, status: b.status });
+      } else {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/already.*(twice|2)/i.test(msg)) {
+          const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
+          setBookingsThisMonth(2);
+          localStorage.setItem('bookingsThisMonth', '2');
+          localStorage.setItem('bookingsMonth', currentMonth);
+        }
+        setMessage('Booking failed: ' + msg);
       }
-      setMessage('Booking failed: ' + msg);
     }
   }
 
@@ -320,6 +327,39 @@ export default function SlotBooking({ token, role }: Props) {
         message={message}
         severity={message.startsWith('Booking') ? 'success' : 'error'}
       />
+      <Dialog open={!!conflict} onClose={() => setConflict(null)}>
+        <DialogTitle>Upcoming booking</DialogTitle>
+        {conflict && (
+          <DialogContent>
+            <Typography>
+              You already have an appointment booked on {conflict.date} at {formatTime(conflict.startTime)} and it is{' '}
+              {conflict.status === 'submitted' ? 'pending approval' : 'approved'}.
+            </Typography>
+            <Typography sx={{ mt: 2 }}>
+              After this appointment, if you still need assistance, please book another appointment.
+            </Typography>
+            <Typography sx={{ mt: 2 }}>
+              If you want to reschedule your appointments, go to your{' '}
+              <Link to="/booking-history">bookings</Link> and reschedule from there.
+            </Typography>
+          </DialogContent>
+        )}
+        <DialogActions>
+          <Button size="small" onClick={() => setConflict(null)} variant="outlined" color="primary">
+            Close
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            component={Link}
+            to="/booking-history"
+            onClick={() => setConflict(null)}
+          >
+            Go to Bookings
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

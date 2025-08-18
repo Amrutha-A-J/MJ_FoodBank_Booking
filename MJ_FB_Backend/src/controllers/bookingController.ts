@@ -6,6 +6,7 @@ import {
   countApprovedBookingsForMonth,
   updateBookingsThisMonth,
   LIMIT_MESSAGE,
+  findUpcomingBooking,
 } from '../utils/bookingUtils';
 import { sendEmail } from '../utils/emailUtils';
 import logger from '../utils/logger';
@@ -57,6 +58,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const approvedCount = await countApprovedBookingsForMonth(Number(user.id), date);
     if (approvedCount >= 2) {
       return res.status(400).json({ message: LIMIT_MESSAGE });
+    }
+
+    const upcoming = await findUpcomingBooking(Number(user.id));
+    if (upcoming) {
+      return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
     }
 
     await checkSlotCapacity(slotIdNum, date);
@@ -343,6 +349,11 @@ export async function createBookingForUser(
     const approvedCount = await countApprovedBookingsForMonth(userId, date);
     if (approvedCount >= 2) {
       return res.status(400).json({ message: LIMIT_MESSAGE });
+    }
+
+    const upcoming = await findUpcomingBooking(userId);
+    if (upcoming) {
+      return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
     }
 
     await checkSlotCapacity(slotIdNum, date);
