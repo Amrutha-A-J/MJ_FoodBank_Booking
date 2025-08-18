@@ -123,8 +123,13 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       await requestVolunteerBooking(
         token,
         requestRole.id,
-        formatDate(currentDate)
+        formatDate(currentDate),
       );
+      const dateLabel = formatInTimeZone(currentDate, reginaTimeZone, 'EEE, MMM d');
+      const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
+        requestRole.end_time,
+      )}`;
+      setMessage(`Booking request for ${dateLabel} · ${timeLabel} submitted`);
       setRequestRole(null);
       await loadData();
     } catch (err) {
@@ -282,7 +287,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             </Typography>
             <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
           </Box>
-          <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
+          <FeedbackSnackbar
+            open={!!message}
+            onClose={() => setMessage('')}
+            message={message}
+            severity={message.startsWith('Booking') ? 'success' : 'error'}
+          />
           {isClosed ? (
             <Typography align="center">
               Moose Jaw food bank is closed for {dayName}

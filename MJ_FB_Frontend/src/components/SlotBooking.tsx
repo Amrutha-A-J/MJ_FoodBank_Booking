@@ -163,6 +163,11 @@ export default function SlotBooking({ token, role }: Props) {
 
     try {
       const dateStr = formatDate(selectedDate);
+      const slot = slots.find(s => s.id === selectedSlotId);
+      const dateLabel = formatInTimeZone(selectedDate, reginaTimeZone, 'EEE, MMM d');
+      const timeLabel = slot
+        ? `${formatTime(slot.startTime)}–${formatTime(slot.endTime)}`
+        : '';
       if (role === 'staff') {
         if (!selectedUser) {
           setMessage('Please select a user');
@@ -173,15 +178,22 @@ export default function SlotBooking({ token, role }: Props) {
           slotId: parseInt(selectedSlotId),
           date: dateStr,
         });
-        setMessage('Booking created successfully!');
+        setMessage(`Booking for ${dateLabel} · ${timeLabel} submitted!`);
         setSelectedUser(null);
       } else {
-        const res = await bookingMutation.mutateAsync({ slotId: selectedSlotId, date: dateStr });
-        setMessage('Booking submitted!');
+        const res = await bookingMutation.mutateAsync({
+          slotId: selectedSlotId,
+          date: dateStr,
+        });
+        setMessage(`Booking for ${dateLabel} · ${timeLabel} submitted!`);
         if (res.bookingsThisMonth !== undefined) {
           setBookingsThisMonth(res.bookingsThisMonth);
           localStorage.setItem('bookingsThisMonth', res.bookingsThisMonth.toString());
-          const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
+          const currentMonth = formatInTimeZone(
+            new Date(),
+            reginaTimeZone,
+            'yyyy-MM',
+          );
           localStorage.setItem('bookingsMonth', currentMonth);
         }
       }
