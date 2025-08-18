@@ -28,13 +28,16 @@ export interface LoginResponse {
 export async function handleResponse(res: Response) {
   if (!res.ok) {
     let message = res.statusText;
+    let data: any = null;
     try {
-      const data = await res.json();
+      data = await res.json();
       message = data.message || data.error || JSON.stringify(data);
     } catch {
       message = await res.text();
     }
-    throw new Error(message);
+    const err: any = new Error(message);
+    if (data) err.details = data;
+    throw err;
   }
   if (res.status === 204 || res.headers.get('Content-Length') === '0') {
     return undefined;

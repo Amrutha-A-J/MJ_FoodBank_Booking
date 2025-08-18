@@ -70,5 +70,20 @@ export async function updateBookingsThisMonth(userId: number): Promise<number> {
   return count;
 }
 
+export async function findUpcomingBooking(
+  userId: number,
+): Promise<{ date: string; start_time: string; status: string } | null> {
+  const res = await pool.query(
+    `SELECT b.date, s.start_time, b.status
+       FROM bookings b
+       INNER JOIN slots s ON b.slot_id = s.id
+       WHERE b.user_id=$1 AND b.status IN ('submitted','approved') AND b.date >= CURRENT_DATE
+       ORDER BY b.date ASC
+       LIMIT 1`,
+    [userId],
+  );
+  return res.rowCount > 0 ? res.rows[0] : null;
+}
+
 export const LIMIT_MESSAGE =
   "You’ve already visited the Moose Jaw Food Bank twice this month. Please return at the end of the month to book your appointment for next month. You can only book for next month during the last week of this month.";
