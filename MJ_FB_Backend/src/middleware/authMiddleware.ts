@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
-import jwt from 'jsonwebtoken';
+import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
 
@@ -19,6 +19,7 @@ function getTokenFromCookies(req: Request) {
 type AuthResult =
   | { status: 'missing' }
   | { status: 'invalid' }
+  | { status: 'expired' }
   | { status: 'ok'; user: any };
 
 async function authenticate(req: Request): Promise<AuthResult> {
@@ -105,6 +106,10 @@ async function authenticate(req: Request): Promise<AuthResult> {
 
     return { status: 'invalid' };
   } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      logger.warn('Token expired');
+      return { status: 'expired' };
+    }
     logger.error('Auth error:', error);
     return { status: 'invalid' };
   }
@@ -115,6 +120,10 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (result.status === 'ok') {
     req.user = result.user as any;
     return next();
+  }
+  if (result.status === 'expired') {
+    res.clearCookie('token');
+    return res.status(401).json({ message: 'Token expired' });
   }
   const message = result.status === 'missing' ? 'Missing token' : 'Invalid token';
   return res.status(401).json({ message });
@@ -129,6 +138,10 @@ export async function optionalAuthMiddleware(
   if (result.status === 'ok') {
     req.user = result.user as any;
     return next();
+  }
+  if (result.status === 'expired') {
+    res.clearCookie('token');
+    return res.status(401).json({ message: 'Token expired' });
   }
   if (result.status === 'invalid') {
     return res.status(401).json({ message: 'Invalid token' });
