@@ -30,18 +30,24 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
-      const token = jwt.sign(
-        { id: user.id, role: user.role, type: 'user' },
-        config.jwtSecret,
-        { expiresIn: '1h' },
-      );
+      const payload = { id: user.id, role: user.role, type: 'user' };
+      const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+      const refreshToken = jwt.sign(payload, config.jwtSecret, {
+        expiresIn: '7d',
+      });
       res.cookie('token', token, {
         httpOnly: true,
         sameSite: 'strict',
         maxAge: 60 * 60 * 1000,
       });
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
       return res.json({
         token,
+        refreshToken,
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
         bookingsThisMonth,
@@ -64,18 +70,24 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign(
-      { id: staff.id, role: staff.role, type: 'staff' },
-      config.jwtSecret,
-      { expiresIn: '1h' },
-    );
+    const payload = { id: staff.id, role: staff.role, type: 'staff' };
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+    const refreshToken = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: '7d',
+    });
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
     });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     res.json({
       token,
+      refreshToken,
       role: staff.role,
       name: `${staff.first_name} ${staff.last_name}`,
     });

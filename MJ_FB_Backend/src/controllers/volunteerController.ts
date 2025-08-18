@@ -65,18 +65,24 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign(
-      { id: volunteer.id, role: 'volunteer', type: 'volunteer' },
-      config.jwtSecret,
-      { expiresIn: '1h' },
-    );
+    const payload = { id: volunteer.id, role: 'volunteer', type: 'volunteer' };
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+    const refreshToken = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: '7d',
+    });
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
     });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     res.json({
       token,
+      refreshToken,
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
     });

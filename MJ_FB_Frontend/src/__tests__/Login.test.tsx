@@ -8,7 +8,12 @@ jest.mock('../api/api', () => ({
 
 describe('Login component', () => {
   it('submits login credentials and calls onLogin', async () => {
-    (loginUser as jest.Mock).mockResolvedValue({ token: 't', role: 'user', name: 'Test' });
+    (loginUser as jest.Mock).mockResolvedValue({
+      token: 't',
+      refreshToken: 'rt',
+      role: 'user',
+      name: 'Test',
+    });
     const onLogin = jest.fn();
     render(<Login onLogin={onLogin} onStaff={() => {}} onVolunteer={() => {}} />);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import config from '../config';
 import logger from '../utils/logger';
 
 export async function requestPasswordReset(
@@ -71,5 +73,51 @@ export async function changePassword(
     res.status(204).send();
   } catch (err) {
     next(err);
+  }
+}
+
+function getRefreshTokenFromCookies(req: Request) {
+  const cookie = req.headers.cookie;
+  if (!cookie) return undefined;
+  const cookies = Object.fromEntries(
+    cookie.split(';').map(c => {
+      const [k, ...v] = c.trim().split('=');
+      return [k, v.join('=')];
+    }),
+  );
+  return cookies.refreshToken;
+}
+
+export async function refreshToken(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = getRefreshTokenFromCookies(req);
+    if (!token) {
+      return res.status(401).json({ message: 'Missing refresh token' });
+    }
+    const payload = jwt.verify(token, config.jwtSecret) as {
+      id: number | string;
+      role: string;
+      type: string;
+    };
+    const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+    const newRefreshToken = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: '7d',
+    });
+    res.cookie('token', accessToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000,
+    });
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return res.json({ token: accessToken, refreshToken: newRefreshToken });
+  } catch (err) {
+    logger.warn('Invalid refresh token');
+    res.clearCookie('token');
+    res.clearCookie('refreshToken');
+    return res.status(401).json({ message: 'Invalid refresh token' });
   }
 }

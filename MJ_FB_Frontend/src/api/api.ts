@@ -14,12 +14,37 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
 const bearer = (token: string) => `Bearer ${token}`;
 
-function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
-  return fetch(input, { credentials: 'include', ...init });
+async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  let res = await fetch(input, { credentials: 'include', ...init });
+  if (res.status === 401) {
+    try {
+      const data = await res.clone().json();
+      if (data?.message === 'Token expired') {
+        const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          if (init.headers) {
+            const headers = new Headers(init.headers as HeadersInit);
+            headers.set('Authorization', bearer(refreshData.token));
+            init.headers = headers;
+          }
+          localStorage.setItem('token', refreshData.token);
+          res = await fetch(input, { credentials: 'include', ...init });
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return res;
 }
 
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
   role: Role;
   name: string;
   bookingsThisMonth?: number;
