@@ -3,13 +3,17 @@ import { z } from 'zod';
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
 const envSchema = z.object({
   PG_USER: z.string().default('postgres'),
   PG_PASSWORD: z.string().default('password'),
   PG_HOST: z.string().default('localhost'),
   PG_PORT: z.coerce.number().default(5432),
   PG_DATABASE: z.string().default('mj_fb_db'),
-  JWT_SECRET: z.string().default('dev-secret'),
+  JWT_SECRET: z.string(),
   FRONTEND_ORIGIN: z.string().default('http://localhost:5173,http://127.0.0.1:5173'),
   PORT: z.coerce.number().default(4000),
   POWER_AUTOMATE_URL: z.string().optional(),
@@ -26,7 +30,6 @@ const requiredVars: Array<keyof typeof env> = [
   'PG_HOST',
   'PG_PORT',
   'PG_DATABASE',
-  'JWT_SECRET',
   'FRONTEND_ORIGIN',
 ];
 

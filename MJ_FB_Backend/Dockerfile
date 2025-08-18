@@ -12,4 +12,5 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 ENV PORT=4000
+# JWT_SECRET must be supplied at runtime
 CMD ["node", "dist/server.js"]

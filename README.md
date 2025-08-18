@@ -33,11 +33,17 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables:
 | `PG_USER` | PostgreSQL username |
 | `PG_PASSWORD` | PostgreSQL password |
 | `PG_DATABASE` | PostgreSQL database name |
-| `JWT_SECRET` | Secret used to sign JWT tokens |
+| `JWT_SECRET` | Secret used to sign JWT tokens. Generate a strong random value, e.g., `openssl rand -hex 32` |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
 | `PORT` | Port for the backend server |
 | `POWER_AUTOMATE_URL` | HTTP endpoint for the Power Automate email flow |
 | `POWER_AUTOMATE_KEY` | Optional key or code for the Power Automate flow |
+
+You can generate a secure `JWT_SECRET` with:
+
+```bash
+openssl rand -hex 32
+```
 
 ## Frontend setup (`MJ_FB_Frontend`)
 
@@ -77,6 +83,6 @@ docker push <registry>.azurecr.io/mjfb-frontend
 
 2. Create Azure resources (Web App or Container App) pointing to the images.
 
-3. Configure the environment variables in the Azure portal using the provided `.env.example` files.
+3. Configure the environment variables in the Azure portal using the provided `.env.example` files. Ensure `JWT_SECRET` is set to a strong value.
 
 This setup prepares the project so it can be hosted on Azure with containerized services.

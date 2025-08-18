@@ -17,7 +17,7 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `FRONTEND_ORIGIN` – Comma-separated list of frontend origin URLs allowed for CORS. Defaults to `http://localhost:5173,http://127.0.0.1:5173` if unset.
 
-`JWT_SECRET` – Secret key used to sign and verify JSON Web Tokens. **Required**.
+`JWT_SECRET` – Secret key used to sign and verify JSON Web Tokens. **Required**. Generate a strong random value (e.g., `openssl rand -hex 32`).
 
 `PORT` – Port for the backend server.
 
