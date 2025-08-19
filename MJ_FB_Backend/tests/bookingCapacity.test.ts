@@ -10,6 +10,7 @@ jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
   countApprovedBookingsForMonth: jest.fn().mockResolvedValue(0),
   updateBookingsThisMonth: jest.fn().mockResolvedValue(0),
+  findUpcomingBooking: jest.fn().mockResolvedValue(null),
   LIMIT_MESSAGE: 'limit',
 }));
 
@@ -24,6 +25,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
+  process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
 });
 
 beforeEach(() => {

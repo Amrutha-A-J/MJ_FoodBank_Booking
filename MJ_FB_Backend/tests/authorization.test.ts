@@ -18,6 +18,7 @@ app.get('/staff-area', authMiddleware, authorizeRoles('staff'), (_req, res) => r
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
+  process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
 });
 
 beforeEach(() => {

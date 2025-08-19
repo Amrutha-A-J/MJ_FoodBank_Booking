@@ -3,6 +3,7 @@ import pool from '../db';
 import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import config from '../config';
 import logger from '../utils/logger';
@@ -31,10 +32,16 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
       const payload = { id: user.id, role: user.role, type: 'user' };
+      const jti = randomUUID();
       const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-      const refreshToken = jwt.sign(payload, config.jwtSecret, {
+      const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
         expiresIn: '7d',
       });
+      await pool.query(
+        `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
+         ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
+        [jti, `user:${user.id}`],
+      );
       res.cookie('token', token, {
         httpOnly: true,
         sameSite: 'strict',
@@ -71,10 +78,16 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const payload = { id: staff.id, role: staff.role, type: 'staff' };
+    const jti = randomUUID();
     const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-    const refreshToken = jwt.sign(payload, config.jwtSecret, {
+    const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
       expiresIn: '7d',
     });
+    await pool.query(
+      `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
+       ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
+      [jti, `staff:${staff.id}`],
+    );
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',

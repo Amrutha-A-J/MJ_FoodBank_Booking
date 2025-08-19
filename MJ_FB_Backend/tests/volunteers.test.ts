@@ -152,8 +152,6 @@ describe('Volunteer login with shopper profile', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
-      token: 'token',
-      refreshToken: 'token',
       role: 'volunteer',
       name: 'John Doe',
       userId: 9,

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import config from '../config';
 import logger from '../utils/logger';
 
@@ -71,10 +72,16 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
       payload.userId = volunteer.user_id;
       payload.userRole = volunteer.user_role || 'shopper';
     }
+    const jti = randomUUID();
     const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-    const refreshToken = jwt.sign(payload, config.jwtSecret, {
+    const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
       expiresIn: '7d',
     });
+    await pool.query(
+      `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
+       ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
+      [jti, `volunteer:${volunteer.id}`],
+    );
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
