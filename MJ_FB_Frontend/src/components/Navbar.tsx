@@ -152,45 +152,34 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   ))}
                 </Box>
               ))}
-              {name ? (
-                <>
-                  <MenuItem disabled sx={menuItemStyles}>
-                    Hello, {name}
-                  </MenuItem>
-                  <MenuItem
-                    component={RouterLink}
-                    to="/profile"
-                    onClick={() => {
-                      setMobileAnchorEl(null);
-                    }}
-                    disabled={loading}
-                    sx={menuItemStyles}
-                  >
-                    Profile
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => {
-                      setMobileAnchorEl(null);
-                      onLogout();
-                    }}
-                    disabled={loading}
-                    sx={menuItemStyles}
-                  >
-                    Logout
-                  </MenuItem>
-                </>
-              ) : (
-                <MenuItem
-                  onClick={() => {
-                    setMobileAnchorEl(null);
-                    onLogout();
-                  }}
-                  disabled={loading}
-                  sx={menuItemStyles}
-                >
-                  Logout
-                </MenuItem>
-              )}
+                {name && (
+                  <>
+                    <MenuItem disabled sx={menuItemStyles}>
+                      Hello, {name}
+                    </MenuItem>
+                    <MenuItem
+                      component={RouterLink}
+                      to="/profile"
+                      onClick={() => {
+                        setMobileAnchorEl(null);
+                      }}
+                      disabled={loading}
+                      sx={menuItemStyles}
+                    >
+                      Profile
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setMobileAnchorEl(null);
+                        onLogout();
+                      }}
+                      disabled={loading}
+                      sx={menuItemStyles}
+                    >
+                      Logout
+                    </MenuItem>
+                  </>
+                )}
             </Menu>
           </>
         ) : (
@@ -240,7 +229,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
             )
           )
         )}
-        {name && !isSmall ? (
+        {name && !isSmall && (
           <>
             <Button
               color="inherit"
@@ -277,11 +266,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
               </MenuItem>
             </Menu>
           </>
-        ) : !name && !isSmall ? (
-          <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
-            Logout
-          </Button>
-        ) : null}
+        )}
       </Toolbar>
     </AppBar>
   </Box>

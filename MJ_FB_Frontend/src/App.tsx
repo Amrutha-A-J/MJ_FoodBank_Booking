@@ -17,6 +17,7 @@ import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
 import type { Role, UserRole } from './types';
+import type { LoginResponse } from './api/api';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -30,7 +31,6 @@ export default function App() {
   );
   const [loading] = useState(false);
   const [error, setError] = useState('');
-  const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
   const isStaff = role === 'staff';
 
   function logout() {
@@ -41,8 +41,21 @@ export default function App() {
     localStorage.removeItem('userRole');
   }
 
+  function handleLogin(u: LoginResponse) {
+    setToken('loggedin');
+    setRole(u.role);
+    setName(u.name);
+    setUserRole(u.userRole || '');
+    if (u.userRole) localStorage.setItem('userRole', u.userRole);
+    else localStorage.removeItem('userRole');
+  }
+
   const navGroups: NavGroup[] = [];
-  if (isStaff) {
+  if (!token) {
+    navGroups.push({ label: 'Client Login', links: [{ label: 'Client Login', to: '/' }] });
+    navGroups.push({ label: 'Staff Login', links: [{ label: 'Staff Login', to: '/staff-login' }] });
+    navGroups.push({ label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/volunteer-login' }] });
+  } else if (isStaff) {
       const staffLinks = [
         { label: 'Manage Availability', to: '/manage-availability' },
         { label: 'Pantry Schedule', to: '/pantry-schedule' },
@@ -92,80 +105,48 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        {!token ? (
-        loginMode === 'user' ? (
-          <Login
-            onLogin={(u) => {
-              setToken('loggedin');
-              setRole(u.role);
-              setName(u.name);
-              setUserRole(u.userRole || '');
-              if (u.userRole) localStorage.setItem('userRole', u.userRole);
-              else localStorage.removeItem('userRole');
-            }}
-            onStaff={() => setLoginMode('staff')}
-            onVolunteer={() => setLoginMode('volunteer')}
-          />
-        ) : loginMode === 'staff' ? (
-          <StaffLogin
-            onLogin={(u) => {
-              setToken('loggedin');
-              setRole(u.role);
-              setName(u.name);
-              setUserRole(u.userRole || '');
-              if (u.userRole) localStorage.setItem('userRole', u.userRole);
-              else localStorage.removeItem('userRole');
-            }}
-            onBack={() => setLoginMode('user')}
-          />
-        ) : (
-          <VolunteerLogin
-            onLogin={(u) => {
-              setToken('loggedin');
-              setRole(u.role);
-              setName(u.name);
-              setUserRole(u.userRole || '');
-              if (u.userRole) localStorage.setItem('userRole', u.userRole);
-              else localStorage.removeItem('userRole');
-            }}
-            onBack={() => setLoginMode('user')}
-          />
-        )
-        ) : (
-          <>
-            <Navbar
-              groups={navGroups}
-              onLogout={logout}
-              name={name || undefined}
-              loading={loading}
-            />
+        <Navbar
+          groups={navGroups}
+          onLogout={logout}
+          name={token ? name : undefined}
+          loading={loading}
+        />
 
-            <FeedbackSnackbar
-              open={!!error}
-              onClose={() => setError('')}
-              message={error}
-              severity="error"
-            />
+        <FeedbackSnackbar
+          open={!!error}
+          onClose={() => setError('')}
+          message={error}
+          severity="error"
+        />
 
-            <main>
-              <Breadcrumbs />
-              <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      role === 'volunteer' ? (
-                        <VolunteerDashboard token={token} />
-                      ) : isStaff ? (
-                        <Dashboard role="staff" token={token} />
-                      ) : (
-                        <UserDashboard token={token} />
-                      )
-                    }
-                  />
-                  <Route path="/profile" element={<Profile token={token} role={role} />} />
-                  {isStaff && (
-                    <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
-                  )}
+        <main>
+          <Breadcrumbs />
+          <Routes>
+            {!token ? (
+              <>
+                <Route path="/" element={<Login onLogin={handleLogin} />} />
+                <Route path="/staff-login" element={<StaffLogin onLogin={handleLogin} />} />
+                <Route path="/volunteer-login" element={<VolunteerLogin onLogin={handleLogin} />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+            ) : (
+              <>
+                <Route
+                  path="/"
+                  element={
+                    role === 'volunteer' ? (
+                      <VolunteerDashboard token={token} />
+                    ) : isStaff ? (
+                      <Dashboard role="staff" token={token} />
+                    ) : (
+                      <UserDashboard token={token} />
+                    )
+                  }
+                />
+                <Route path="/profile" element={<Profile token={token} role={role} />} />
+                {isStaff && (
+                  <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                )}
                 {isStaff && (
                   <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
                 )}
@@ -224,11 +205,11 @@ export default function App() {
                     />
                   </>
                 )}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </main>
-          </>
-        )}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+            )}
+          </Routes>
+        </main>
       </div>
     </BrowserRouter>
   );

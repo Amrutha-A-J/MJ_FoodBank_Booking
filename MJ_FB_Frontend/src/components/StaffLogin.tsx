@@ -8,7 +8,7 @@ import FormContainer from './FormContainer';
 import Page from './Page';
 import PasswordResetDialog from './PasswordResetDialog';
 
-export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
+export default function StaffLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [checking, setChecking] = useState(true);
   const [hasStaff, setHasStaff] = useState(false);
   const [error, setError] = useState('');
@@ -28,13 +28,13 @@ export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResp
   if (checking) return <Typography>Loading...</Typography>;
 
   return hasStaff ? (
-    <StaffLoginForm onLogin={onLogin} error={error} onBack={onBack} />
+    <StaffLoginForm onLogin={onLogin} error={error} />
   ) : (
     <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
   );
 }
 
-function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: LoginResponse) => void; error: string; onBack: () => void }) {
+function StaffLoginForm({ onLogin, error: initError }: { onLogin: (u: LoginResponse) => void; error: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
@@ -55,10 +55,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   }
 
   return (
-    <Page
-      title="Staff Login"
-      header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
-    >
+    <Page title="Staff Login">
       <FormContainer onSubmit={submit} submitLabel="Login">
         <TextField
           type="email"

@@ -7,7 +7,7 @@ import FormContainer from './FormContainer';
 import Page from './Page';
 import PasswordResetDialog from './PasswordResetDialog';
 
-export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
+export default function VolunteerLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,10 +24,7 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
   }
 
   return (
-    <Page
-      title="Volunteer Login"
-      header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
-    >
+    <Page title="Volunteer Login">
       <FormContainer onSubmit={submit} submitLabel="Login">
         <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />

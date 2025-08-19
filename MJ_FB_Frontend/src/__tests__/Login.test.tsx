@@ -13,7 +13,7 @@ describe('Login component', () => {
       name: 'Test',
     });
     const onLogin = jest.fn();
-    render(<Login onLogin={onLogin} onStaff={() => {}} onVolunteer={() => {}} />);
+    render(<Login onLogin={onLogin} />);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
