@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Grid, Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
-import { getBookingHistory, decideBooking } from '../../api/api';
+import { getBookings, decideBooking } from '../../api/api';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 
 interface Booking {
   id: number;
   user_name?: string;
+  client_id?: number;
+  bookings_this_month?: number;
   date: string;
   start_time?: string;
   end_time?: string;
@@ -21,7 +23,7 @@ export default function Pending({ token }: { token: string }) {
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
 
   function loadBookings() {
-    getBookingHistory(token, { status: 'submitted' })
+    getBookings(token, { status: 'pending' })
       .then(setBookings)
       .catch(() => {});
   }
@@ -58,6 +60,8 @@ export default function Pending({ token }: { token: string }) {
             <Card variant="outlined" sx={{ borderRadius: 1 }}>
               <CardContent>
                 <Typography variant="subtitle1">{b.user_name || 'Unknown'}</Typography>
+                <Typography variant="body2">Client ID: {b.client_id ?? 'N/A'}</Typography>
+                <Typography variant="body2">Uses this month: {b.bookings_this_month ?? 0}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {new Date(b.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
                   {formatTime(b.start_time || b.startTime || '')} - {formatTime(b.end_time || b.endTime || '')}

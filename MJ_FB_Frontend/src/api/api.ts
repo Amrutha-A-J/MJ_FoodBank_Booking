@@ -219,8 +219,11 @@ export async function createBooking(token: string, slotId: string, date: string)
   return handleResponse(res);
 }
 
-export async function getBookings(token: string) {
-  const res = await apiFetch(`${API_BASE}/bookings`);
+export async function getBookings(token: string, opts: { status?: string } = {}) {
+  const params = new URLSearchParams();
+  if (opts.status) params.append('status', opts.status);
+  const query = params.toString();
+  const res = await apiFetch(`${API_BASE}/bookings${query ? `?${query}` : ''}`);
   return handleResponse(res);
 }
 
