@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { Typography, TextField, Link } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FeedbackModal from './FeedbackModal';
 import FormContainer from './FormContainer';
 import PasswordResetDialog from './PasswordResetDialog';
 
-export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
+export default function StaffLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [checking, setChecking] = useState(true);
   const [hasStaff, setHasStaff] = useState(false);
   const [error, setError] = useState('');
@@ -27,13 +28,13 @@ export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResp
   if (checking) return <Typography>Loading...</Typography>;
 
   return hasStaff ? (
-    <StaffLoginForm onLogin={onLogin} error={error} onBack={onBack} />
+    <StaffLoginForm onLogin={onLogin} error={error} />
   ) : (
     <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
   );
 }
 
-function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: LoginResponse) => void; error: string; onBack: () => void }) {
+function StaffLoginForm({ onLogin, error: initError }: { onLogin: (u: LoginResponse) => void; error: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
@@ -59,7 +60,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
         onSubmit={submit}
         submitLabel="Login"
         title="Staff Login"
-        header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
+        header={<Link component={RouterLink} to="/login/user" underline="hover">User Login</Link>}
       >
         <TextField
           type="email"

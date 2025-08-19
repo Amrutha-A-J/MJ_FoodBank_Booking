@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { loginUser } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { Link, TextField, Stack } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormContainer from './FormContainer';
 import PasswordResetDialog from './PasswordResetDialog';
 
-export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (user: LoginResponse) => void; onStaff: () => void; onVolunteer: () => void }) {
+export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => void }) {
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,10 +31,10 @@ export default function Login({ onLogin, onStaff, onVolunteer }: { onLogin: (use
         title="User Login"
         header={
           <Stack direction="row" spacing={2} justifyContent="center">
-            <Link component="button" onClick={onStaff} underline="hover">
+            <Link component={RouterLink} to="/login/staff" underline="hover">
               Staff Login
             </Link>
-            <Link component="button" onClick={onVolunteer} underline="hover">
+            <Link component={RouterLink} to="/login/volunteer" underline="hover">
               Volunteer Login
             </Link>
           </Stack>

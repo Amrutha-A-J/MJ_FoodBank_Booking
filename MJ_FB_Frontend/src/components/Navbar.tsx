@@ -20,7 +20,7 @@ export type NavGroup = { label: string; links: NavLink[] };
 
 interface NavbarProps {
   groups: NavGroup[];
-  onLogout: () => void;
+  onLogout?: () => void;
   name?: string;
   loading?: boolean;
 }
@@ -152,22 +152,35 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   ))}
                 </Box>
               ))}
-              {name ? (
-                <>
-                  <MenuItem disabled sx={menuItemStyles}>
-                    Hello, {name}
-                  </MenuItem>
-                  <MenuItem
-                    component={RouterLink}
-                    to="/profile"
-                    onClick={() => {
-                      setMobileAnchorEl(null);
-                    }}
-                    disabled={loading}
-                    sx={menuItemStyles}
-                  >
-                    Profile
-                  </MenuItem>
+              {onLogout &&
+                (name ? (
+                  <>
+                    <MenuItem disabled sx={menuItemStyles}>
+                      Hello, {name}
+                    </MenuItem>
+                    <MenuItem
+                      component={RouterLink}
+                      to="/profile"
+                      onClick={() => {
+                        setMobileAnchorEl(null);
+                      }}
+                      disabled={loading}
+                      sx={menuItemStyles}
+                    >
+                      Profile
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        setMobileAnchorEl(null);
+                        onLogout();
+                      }}
+                      disabled={loading}
+                      sx={menuItemStyles}
+                    >
+                      Logout
+                    </MenuItem>
+                  </>
+                ) : (
                   <MenuItem
                     onClick={() => {
                       setMobileAnchorEl(null);
@@ -178,19 +191,7 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                   >
                     Logout
                   </MenuItem>
-                </>
-              ) : (
-                <MenuItem
-                  onClick={() => {
-                    setMobileAnchorEl(null);
-                    onLogout();
-                  }}
-                  disabled={loading}
-                  sx={menuItemStyles}
-                >
-                  Logout
-                </MenuItem>
-              )}
+                ))}
             </Menu>
           </>
         ) : (
@@ -240,48 +241,49 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
             )
           )
         )}
-        {name && !isSmall ? (
-          <>
-            <Button
-              color="inherit"
-              onClick={handleProfileClick}
-              endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
-              sx={navItemStyles}
-            >
-              Hello, {name}
+        {onLogout &&
+          (name && !isSmall ? (
+            <>
+              <Button
+                color="inherit"
+                onClick={handleProfileClick}
+                endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
+                sx={navItemStyles}
+              >
+                Hello, {name}
+              </Button>
+              <Menu
+                anchorEl={profileAnchorEl}
+                open={profileMenuOpen}
+                onClose={closeProfileMenu}
+                PaperProps={menuPaperProps}
+              >
+                <MenuItem
+                  component={RouterLink}
+                  to="/profile"
+                  onClick={closeProfileMenu}
+                  disabled={loading}
+                  sx={menuItemStyles}
+                >
+                  Profile
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    closeProfileMenu();
+                    onLogout();
+                  }}
+                  disabled={loading}
+                  sx={menuItemStyles}
+                >
+                  Logout
+                </MenuItem>
+              </Menu>
+            </>
+          ) : !name && !isSmall ? (
+            <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
+              Logout
             </Button>
-            <Menu
-              anchorEl={profileAnchorEl}
-              open={profileMenuOpen}
-              onClose={closeProfileMenu}
-              PaperProps={menuPaperProps}
-            >
-              <MenuItem
-                component={RouterLink}
-                to="/profile"
-                onClick={closeProfileMenu}
-                disabled={loading}
-                sx={menuItemStyles}
-              >
-                Profile
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  closeProfileMenu();
-                  onLogout();
-                }}
-                disabled={loading}
-                sx={menuItemStyles}
-              >
-                Logout
-              </MenuItem>
-            </Menu>
-          </>
-        ) : !name && !isSmall ? (
-          <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
-            Logout
-          </Button>
-        ) : null}
+          ) : null)}
       </Toolbar>
     </AppBar>
   </Box>
