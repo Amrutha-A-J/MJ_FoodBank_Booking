@@ -3,9 +3,11 @@ import express from 'express';
 import volunteersRouter from '../src/routes/volunteers';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -81,5 +83,88 @@ describe('Volunteer routes role ID validation', () => {
       .send({ roleIds: [1, 2] });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ message: 'Invalid roleIds', invalidIds: [2] });
+  });
+});
+
+describe('Volunteer shopper profile', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('creates a shopper profile for a volunteer', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ first_name: 'John', last_name: 'Doe', email: 'j@e.com', phone: '123' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 9 }] })
+      .mockResolvedValueOnce({});
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+
+    const res = await request(app)
+      .post('/volunteers/1/shopper')
+      .send({ clientId: 123, password: 'pass' });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ userId: 9 });
+  });
+
+  it('removes a shopper profile for a volunteer', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    const res = await request(app).delete('/volunteers/1/shopper');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Shopper profile removed' });
+  });
+});
+
+describe('Volunteer login with shopper profile', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('includes shopper info in token and response', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          id: 1,
+          first_name: 'John',
+          last_name: 'Doe',
+          username: 'john',
+          password: 'hashed',
+          user_id: 9,
+          user_role: 'shopper',
+        },
+      ],
+    });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/volunteers/login')
+      .send({ username: 'john', password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      token: 'token',
+      refreshToken: 'token',
+      role: 'volunteer',
+      name: 'John Doe',
+      userId: 9,
+      userRole: 'shopper',
+    });
+    expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
+      id: 1,
+      role: 'volunteer',
+      type: 'volunteer',
+      userId: 9,
+      userRole: 'shopper',
+    });
   });
 });

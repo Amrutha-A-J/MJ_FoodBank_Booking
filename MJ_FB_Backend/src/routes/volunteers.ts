@@ -4,6 +4,8 @@ import {
   loginVolunteer,
   createVolunteer,
   searchVolunteers,
+  createVolunteerShopperProfile,
+  removeVolunteerShopperProfile,
 } from '../controllers/volunteerController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 
@@ -30,6 +32,20 @@ router.put(
   authMiddleware,
   authorizeRoles('staff'),
   updateTrainedArea
+);
+
+router.post(
+  '/:id/shopper',
+  authMiddleware,
+  authorizeRoles('staff'),
+  createVolunteerShopperProfile
+);
+
+router.delete(
+  '/:id/shopper',
+  authMiddleware,
+  authorizeRoles('staff'),
+  removeVolunteerShopperProfile
 );
 
 export default router;
