@@ -6,7 +6,7 @@ import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography } from '@mui/material';
+import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Grid } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -267,66 +267,72 @@ export default function SlotBooking({ token, role }: Props) {
       <h3>
         {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
       </h3>
-      <Calendar
-        onChange={value => {
-          if (value instanceof Date) {
-            setSelectedDate(toReginaDate(value));
-            setSelectedSlotId(null);
-          }
-        }}
-        value={selectedDate ? toZonedTime(selectedDate, reginaTimeZone) : undefined}
-        calendarType="gregory"
-        tileDisabled={({ date }) => {
-          const regDate = toReginaDate(date);
-          const today = toReginaDate(new Date());
-          const regDateZ = toZonedTime(regDate, reginaTimeZone);
-          const todayZ = toZonedTime(today, reginaTimeZone);
-          const isPast = regDate < today;
-          const sameMonth =
-            regDateZ.getFullYear() === todayZ.getFullYear() && regDateZ.getMonth() === todayZ.getMonth();
-          const nextMonth =
-            regDateZ.getFullYear() ===
-              (todayZ.getMonth() === 11 ? todayZ.getFullYear() + 1 : todayZ.getFullYear()) &&
-            regDateZ.getMonth() === ((todayZ.getMonth() + 1) % 12);
-          const outOfRange = !sameMonth && !(nextMonth && isLastWeek);
-          return isPast || outOfRange || isHoliday(regDate);
-        }}
-        tileClassName={({ date }) => (isHoliday(toReginaDate(date)) ? 'holiday-tile' : undefined)}
-      />
-      {selectedDate && (
-        <div className="slot-day-container">
-          {dayMessage ? (
-            <div className="day-message">{dayMessage}</div>
-          ) : (
-            <>
-              <h4>Available Slots on {formatDate(selectedDate)}</h4>
-              <ul className="slot-list">
-                {slots.map(s => (
-                  <li
-                    key={s.id}
-                    onClick={() => {
-                      if ((s.available ?? 0) > 0) {
-                        setSelectedSlotId(s.id);
-                      }
-                    }}
-                    className={`slot-item ${selectedSlotId === s.id ? 'selected' : ''} ${
-                      (s.available ?? 0) > 0 ? '' : 'disabled'
-                    }`}
-                  >
-                    <span>
-                      {formatTime(s.startTime)} - {formatTime(s.endTime)}
-                    </span>
-                    <span>Available: {s.available ?? 0}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button disabled={!selectedSlotId} onClick={submitBooking} variant="outlined" color="primary">
-                {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
-              </Button>
-            </>
-          )}
-        </div>
-      )}
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6}>
+          <Calendar
+            onChange={value => {
+              if (value instanceof Date) {
+                setSelectedDate(toReginaDate(value));
+                setSelectedSlotId(null);
+              }
+            }}
+            value={selectedDate ? toZonedTime(selectedDate, reginaTimeZone) : undefined}
+            calendarType="gregory"
+            tileDisabled={({ date }) => {
+              const regDate = toReginaDate(date);
+              const today = toReginaDate(new Date());
+              const regDateZ = toZonedTime(regDate, reginaTimeZone);
+              const todayZ = toZonedTime(today, reginaTimeZone);
+              const isPast = regDate < today;
+              const sameMonth =
+                regDateZ.getFullYear() === todayZ.getFullYear() && regDateZ.getMonth() === todayZ.getMonth();
+              const nextMonth =
+                regDateZ.getFullYear() ===
+                  (todayZ.getMonth() === 11 ? todayZ.getFullYear() + 1 : todayZ.getFullYear()) &&
+                regDateZ.getMonth() === ((todayZ.getMonth() + 1) % 12);
+              const outOfRange = !sameMonth && !(nextMonth && isLastWeek);
+              return isPast || outOfRange || isHoliday(regDate);
+            }}
+            tileClassName={({ date }) => (isHoliday(toReginaDate(date)) ? 'holiday-tile' : undefined)}
+          />
+        </Grid>
+        {selectedDate && (
+          <Grid item xs={12} md={6}>
+            <div className="slot-day-container">
+              {dayMessage ? (
+                <div className="day-message">{dayMessage}</div>
+              ) : (
+                <>
+                  <h4>Available Slots on {formatDate(selectedDate)}</h4>
+                  <ul className="slot-list">
+                    {slots.map(s => (
+                      <li
+                        key={s.id}
+                        onClick={() => {
+                          if ((s.available ?? 0) > 0) {
+                            setSelectedSlotId(s.id);
+                          }
+                        }}
+                        className={`slot-item ${selectedSlotId === s.id ? 'selected' : ''} ${
+                          (s.available ?? 0) > 0 ? '' : 'disabled'
+                        }`}
+                      >
+                        <span>
+                          {formatTime(s.startTime)} - {formatTime(s.endTime)}
+                        </span>
+                        <span>Available: {s.available ?? 0}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button disabled={!selectedSlotId} onClick={submitBooking} variant="outlined" color="primary">
+                    {role === 'staff' ? 'Submit Booking' : 'Book Selected Slot'}
+                  </Button>
+                </>
+              )}
+            </div>
+          </Grid>
+        )}
+      </Grid>
 
       {role === 'staff' && (
         <Button onClick={() => setSelectedUser(null)} variant="outlined" color="primary">
