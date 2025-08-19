@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { loginVolunteer } from '../api/api';
 import type { LoginResponse } from '../api/api';
 import { TextField, Link } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormContainer from './FormContainer';
 import PasswordResetDialog from './PasswordResetDialog';
 
-export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
+export default function VolunteerLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,7 +29,7 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
         onSubmit={submit}
         submitLabel="Login"
         title="Volunteer Login"
-        header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
+        header={<Link component={RouterLink} to="/login/user" underline="hover">User Login</Link>}
       >
         <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
