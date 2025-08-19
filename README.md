@@ -45,6 +45,8 @@ You can generate a secure `JWT_SECRET` with:
 openssl rand -hex 32
 ```
 
+**Production note:** The backend issues cookies with the `secure` flag when `NODE_ENV` is not `development`. Ensure that your production deployment uses HTTPS so these cookies are transmitted to clients.
+
 ## Frontend setup (`MJ_FB_Frontend`)
 
 Prerequisites:
