@@ -43,8 +43,6 @@ describe('POST /api/users/login', () => {
       .send({ email: 'john@example.com', password: 'secret' });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token', 'token');
-    expect(res.body).toHaveProperty('refreshToken', 'token');
     expect(res.body).toHaveProperty('role', 'staff');
   });
 

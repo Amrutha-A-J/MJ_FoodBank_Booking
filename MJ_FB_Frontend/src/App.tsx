@@ -22,9 +22,9 @@ import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
 
 export default function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
-  const [role, setRole] = useState<Role>(() => (localStorage.getItem('role') as Role) || ('' as Role));
-  const [name, setName] = useState(() => localStorage.getItem('name') || '');
+  const [token, setToken] = useState('');
+  const [role, setRole] = useState<Role>('' as Role);
+  const [name, setName] = useState('');
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
@@ -34,9 +34,6 @@ export default function App() {
     setToken('');
     setRole('' as Role);
     setName('');
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('name');
   }
 
   const navGroups: NavGroup[] = [];
@@ -85,12 +82,9 @@ export default function App() {
         loginMode === 'user' ? (
           <Login
             onLogin={(u) => {
-              setToken(u.token);
+              setToken('loggedin');
               setRole(u.role);
               setName(u.name);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
             }}
             onStaff={() => setLoginMode('staff')}
             onVolunteer={() => setLoginMode('volunteer')}
@@ -98,24 +92,18 @@ export default function App() {
         ) : loginMode === 'staff' ? (
           <StaffLogin
             onLogin={(u) => {
-              setToken(u.token);
+              setToken('loggedin');
               setRole(u.role);
               setName(u.name);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
             }}
             onBack={() => setLoginMode('user')}
           />
         ) : (
           <VolunteerLogin
             onLogin={(u) => {
-              setToken(u.token);
+              setToken('loggedin');
               setRole(u.role);
               setName(u.name);
-              localStorage.setItem('token', u.token);
-              localStorage.setItem('role', u.role);
-              localStorage.setItem('name', u.name);
             }}
             onBack={() => setLoginMode('user')}
           />

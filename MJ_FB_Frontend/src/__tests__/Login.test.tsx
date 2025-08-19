@@ -9,8 +9,6 @@ jest.mock('../api/api', () => ({
 describe('Login component', () => {
   it('submits login credentials and calls onLogin', async () => {
     (loginUser as jest.Mock).mockResolvedValue({
-      token: 't',
-      refreshToken: 'rt',
       role: 'user',
       name: 'Test',
     });

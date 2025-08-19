@@ -81,8 +81,6 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.json({
-      token,
-      refreshToken,
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
     });
