@@ -18,6 +18,7 @@ app.use('/api/users', usersRouter);
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
+  process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
 });
 
 beforeEach(() => {
