@@ -5,7 +5,6 @@ import { Typography, TextField, Link } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FeedbackModal from './FeedbackModal';
 import FormContainer from './FormContainer';
-import Page from './Page';
 import PasswordResetDialog from './PasswordResetDialog';
 
 export default function StaffLogin({ onLogin, onBack }: { onLogin: (u: LoginResponse) => void; onBack: () => void }) {
@@ -55,11 +54,13 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
   }
 
   return (
-    <Page
-      title="Staff Login"
-      header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
-    >
-      <FormContainer onSubmit={submit} submitLabel="Login">
+    <>
+      <FormContainer
+        onSubmit={submit}
+        submitLabel="Login"
+        title="Staff Login"
+        header={<Link component="button" onClick={onBack} underline="hover">User Login</Link>}
+      >
         <TextField
           type="email"
           value={email}
@@ -72,7 +73,7 @@ function StaffLoginForm({ onLogin, error: initError, onBack }: { onLogin: (u: Lo
       </FormContainer>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="staff" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </Page>
+    </>
   );
 }
 
@@ -96,8 +97,8 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   }
 
   return (
-    <Page title="Create Staff Account">
-      <FormContainer onSubmit={submit} submitLabel="Create Staff">
+    <>
+      <FormContainer onSubmit={submit} submitLabel="Create Staff" title="Create Staff Account">
         <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" fullWidth />
         <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" fullWidth />
         <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
@@ -105,6 +106,6 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
       </FormContainer>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
-    </Page>
+    </>
   );
 }
