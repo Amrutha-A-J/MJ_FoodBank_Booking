@@ -39,11 +39,13 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         httpOnly: true,
         sameSite: 'strict',
         maxAge: 60 * 60 * 1000,
+        secure: process.env.NODE_ENV !== 'development',
       });
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: process.env.NODE_ENV !== 'development',
       });
       return res.json({
         role: user.role,
@@ -77,11 +79,13 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
+      secure: process.env.NODE_ENV !== 'development',
     });
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV !== 'development',
     });
     res.json({
       role: staff.role,

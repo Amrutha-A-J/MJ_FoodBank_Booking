@@ -107,11 +107,13 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
+      secure: process.env.NODE_ENV !== 'development',
     });
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV !== 'development',
     });
     return res.json({ token: accessToken, refreshToken: newRefreshToken });
   } catch (err) {
