@@ -5,14 +5,22 @@ interface FormContainerProps extends Omit<BoxProps, 'component' | 'onSubmit'> {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   submitLabel: string;
   children: ReactNode;
+  title?: string;
+  header?: ReactNode;
 }
 
-export default function FormContainer({ onSubmit, submitLabel, children, ...boxProps }: FormContainerProps) {
+export default function FormContainer({ onSubmit, submitLabel, children, title, header, ...boxProps }: FormContainerProps) {
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
       <Box flexGrow={1} display="flex" justifyContent="center" alignItems="center" px={2}>
         <Box component="form" onSubmit={onSubmit} maxWidth={400} width="100%" mx="auto" {...boxProps}>
           <Stack spacing={2}>
+            {header && <Box textAlign="center">{header}</Box>}
+            {title && (
+              <Typography variant="h5" textAlign="center">
+                {title}
+              </Typography>
+            )}
             {children}
             <Button type="submit" variant="contained" color="primary" fullWidth>
               {submitLabel}
