@@ -19,6 +19,7 @@ import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormContainer from './FormContainer';
 import {
+  Box,
   Button,
   TextField,
   FormControl,
@@ -573,129 +574,131 @@ export default function VolunteerManagement({ token }: { token: string }) {
       )}
 
       {tab === 'search' && (
-        <div>
-          <EntitySearch
-            token={token}
-            type="volunteer"
-            placeholder="Search volunteers"
-            onSelect={selectVolunteer}
-            renderResult={(r, select) => (
-              <span
-                style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
-              >
-                <span>{r.name}</span>
-                <Button
-                  onClick={select}
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  sx={{ ml: 1 }}
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+          <Box width="100%" maxWidth={600}>
+            <EntitySearch
+              token={token}
+              type="volunteer"
+              placeholder="Search volunteers"
+              onSelect={selectVolunteer}
+              renderResult={(r, select) => (
+                <span
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
                 >
-                  Edit
-                </Button>
-              </span>
-            )}
-          />
-          {selectedVolunteer && (
-            <div>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={selectedVolunteer.hasShopper}
-                    onChange={handleShopperToggle}
+                  <span>{r.name}</span>
+                  <Button
+                    onClick={select}
+                    variant="outlined"
                     color="primary"
-                  />
-                }
-                label="Shopper Profile"
-              />
-              <h3>Edit Roles for {selectedVolunteer.name}</h3>
-              <div style={{ marginBottom: 8, position: 'relative' }} ref={editDropdownRef}>
-                <label>Role: </label>
-                <Button
-                  type="button"
-                  onClick={() => setEditRoleDropdownOpen(o => !o)}
-                  variant="outlined"
-                  color="primary"
-                >
-                  {trainedEdit.length ? trainedEdit.join(', ') : 'Select roles'}
-                </Button>
-                {editRoleDropdownOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      background: 'white',
-                      border: '1px solid #ccc',
-                      padding: 8,
-                      zIndex: 1,
-                      maxHeight: 200,
-                      overflowY: 'auto',
-                      marginTop: 4,
-                    }}
+                    size="small"
+                    sx={{ ml: 1 }}
                   >
-                    {groupedRoles.map(g => (
-                      <div key={g.category} style={{ marginBottom: 8 }}>
-                        <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                        {g.roles.map(r => (
-                          <FormControlLabel
-                            key={r.name}
-                            control={
-                              <Checkbox
-                                value={r.name}
-                                checked={trainedEdit.includes(r.name)}
-                                onChange={e => toggleTrained(r.name, e.target.checked)}
-                              />
-                            }
-                            label={r.name}
-                            sx={{ width: '100%', m: 0 }}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
-              <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={{ border: '1px solid #ccc', padding: 4 }}>Role</th>
-                    <th style={{ border: '1px solid #ccc', padding: 4 }}>Date</th>
-                    <th style={{ border: '1px solid #ccc', padding: 4 }}>Time</th>
-                    <th style={{ border: '1px solid #ccc', padding: 4 }}>Status</th>
-                    <th style={{ border: '1px solid #ccc', padding: 4 }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map(h => (
-                    <tr key={h.id}>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.role_name}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.date}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time || h.startTime || '')} - {formatTime(h.end_time || h.endTime || '')}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.status}</td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}>
-                        {h.status === 'pending' && (
-                          <>
-                            <Button onClick={() => decide(h.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
-                            <Button onClick={() => decide(h.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
-                          </>
-                        )}
-                          {h.status === 'approved' && (
-                            <Button onClick={() => decide(h.id, 'cancelled')} variant="outlined" color="primary">Cancel</Button>
-                          )}
-                      </td>
-                    </tr>
-                  ))}
-                  {history.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: 8 }}>No bookings.</td>
-                    </tr>
+                    Edit
+                  </Button>
+                </span>
+              )}
+            />
+            {selectedVolunteer && (
+              <div>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={selectedVolunteer.hasShopper}
+                      onChange={handleShopperToggle}
+                      color="primary"
+                    />
+                  }
+                  label="Shopper Profile"
+                />
+                <h3>Edit Roles for {selectedVolunteer.name}</h3>
+                <div style={{ marginBottom: 8, position: 'relative' }} ref={editDropdownRef}>
+                  <label>Role: </label>
+                  <Button
+                    type="button"
+                    onClick={() => setEditRoleDropdownOpen(o => !o)}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    {trainedEdit.length ? trainedEdit.join(', ') : 'Select roles'}
+                  </Button>
+                  {editRoleDropdownOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        background: 'white',
+                        border: '1px solid #ccc',
+                        padding: 8,
+                        zIndex: 1,
+                        maxHeight: 200,
+                        overflowY: 'auto',
+                        marginTop: 4,
+                      }}
+                    >
+                      {groupedRoles.map(g => (
+                        <div key={g.category} style={{ marginBottom: 8 }}>
+                          <div style={{ fontWeight: 'bold' }}>{g.category}</div>
+                          {g.roles.map(r => (
+                            <FormControlLabel
+                              key={r.name}
+                              control={
+                                <Checkbox
+                                  value={r.name}
+                                  checked={trainedEdit.includes(r.name)}
+                                  onChange={e => toggleTrained(r.name, e.target.checked)}
+                                />
+                              }
+                              label={r.name}
+                              sx={{ width: '100%', m: 0 }}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                </div>
+                <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
+                <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Role</th>
+                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Date</th>
+                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Time</th>
+                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Status</th>
+                      <th style={{ border: '1px solid #ccc', padding: 4 }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map(h => (
+                      <tr key={h.id}>
+                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.role_name}</td>
+                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.date}</td>
+                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time || h.startTime || '')} - {formatTime(h.end_time || h.endTime || '')}</td>
+                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.status}</td>
+                        <td style={{ border: '1px solid #ccc', padding: 4 }}>
+                          {h.status === 'pending' && (
+                            <>
+                              <Button onClick={() => decide(h.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
+                              <Button onClick={() => decide(h.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
+                            </>
+                          )}
+                            {h.status === 'approved' && (
+                              <Button onClick={() => decide(h.id, 'cancelled')} variant="outlined" color="primary">Cancel</Button>
+                            )}
+                        </td>
+                      </tr>
+                    ))}
+                    {history.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: 8 }}>No bookings.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Box>
+        </Box>
       )}
 
       {tab === 'create' && (

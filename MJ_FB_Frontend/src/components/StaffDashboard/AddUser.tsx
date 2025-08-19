@@ -67,22 +67,23 @@ export default function AddUser({ token }: { token: string }) {
   }
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        {mode === 'user' ? 'Create User' : 'Create Staff'}
-      </Typography>
-      <Stack direction="row" spacing={1} mb={2}>
-        <Button variant="outlined" color="primary" onClick={() => setMode('user')}>
-          Create User
-        </Button>
-        <Button variant="outlined" color="primary" onClick={() => setMode('staff')}>
-          Create Staff
-        </Button>
-      </Stack>
-      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
-      {mode === 'user' ? (
-        <Stack spacing={2}>
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box maxWidth={400} width="100%">
+        <Typography variant="h5" gutterBottom>
+          {mode === 'user' ? 'Create User' : 'Create Staff'}
+        </Typography>
+        <Stack direction="row" spacing={1} mb={2}>
+          <Button variant="outlined" color="primary" onClick={() => setMode('user')}>
+            Create User
+          </Button>
+          <Button variant="outlined" color="primary" onClick={() => setMode('staff')}>
+            Create Staff
+          </Button>
+        </Stack>
+        <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+        <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
+        {mode === 'user' ? (
+          <Stack spacing={2}>
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
@@ -121,6 +122,7 @@ export default function AddUser({ token }: { token: string }) {
           </Button>
         </Stack>
       )}
+      </Box>
     </Box>
   );
 }

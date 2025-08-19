@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { TextField, Button, Stack } from '@mui/material';
+import { TextField } from '@mui/material';
 import { changePassword } from '../api/api';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormContainer from './FormContainer';
 
 export default function ChangePasswordForm({ token }: { token: string }) {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -23,7 +24,7 @@ export default function ChangePasswordForm({ token }: { token: string }) {
 
   return (
     <>
-      <Stack component="form" onSubmit={handleSubmit} spacing={2} sx={{ maxWidth: 400 }}>
+      <FormContainer onSubmit={handleSubmit} submitLabel="Reset Password">
         <TextField
           type="password"
           label="Current Password"
@@ -38,8 +39,7 @@ export default function ChangePasswordForm({ token }: { token: string }) {
           onChange={e => setNewPassword(e.target.value)}
           fullWidth
         />
-        <Button type="submit" variant="contained">Reset Password</Button>
-      </Stack>
+      </FormContainer>
       <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} severity="success" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>

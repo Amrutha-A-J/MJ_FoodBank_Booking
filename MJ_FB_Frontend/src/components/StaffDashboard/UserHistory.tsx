@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
-import { Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';
 import EntitySearch from '../EntitySearch';
 
@@ -78,36 +78,37 @@ export default function UserHistory({
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div>
-      <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
-      {!initialUser && (
-        <EntitySearch
-          token={token}
-          type="user"
-          placeholder="Search by name or client ID"
-          onSelect={u => setSelected(u as User)}
-        />
-      )}
-      {selected && (
-        <div>
-          {selected.name && <h3>History for {selected.name}</h3>}
-          <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
-            <InputLabel id="filter-label">Filter</InputLabel>
-            <Select
-              labelId="filter-label"
-              value={filter}
-              label="Filter"
-              onChange={e => setFilter(e.target.value)}
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="approved">Approved</MenuItem>
-              <MenuItem value="rejected">Rejected</MenuItem>
-              <MenuItem value="pending">Pending</MenuItem>
-              <MenuItem value="past">Past</MenuItem>
-            </Select>
-          </FormControl>
-          <div className="history-table-container">
-            <table className="history-table">
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box width="100%" maxWidth={800}>
+        <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
+        {!initialUser && (
+          <EntitySearch
+            token={token}
+            type="user"
+            placeholder="Search by name or client ID"
+            onSelect={u => setSelected(u as User)}
+          />
+        )}
+        {selected && (
+          <div>
+            {selected.name && <h3>History for {selected.name}</h3>}
+            <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
+              <InputLabel id="filter-label">Filter</InputLabel>
+              <Select
+                labelId="filter-label"
+                value={filter}
+                label="Filter"
+                onChange={e => setFilter(e.target.value)}
+              >
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="approved">Approved</MenuItem>
+                <MenuItem value="rejected">Rejected</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="past">Past</MenuItem>
+              </Select>
+            </FormControl>
+            <div className="history-table-container">
+              <table className="history-table">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -173,42 +174,43 @@ export default function UserHistory({
               </tbody>
             </table>
           </div>
-          {totalPages > 1 && (
-            <div className="pagination">
-              <Button
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                variant="outlined"
-                color="primary"
-              >
-                Previous
-              </Button>
-              <span>
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                disabled={page === totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                variant="outlined"
-                color="primary"
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-      {rescheduleBooking && (
-        <RescheduleDialog
-          open={!!rescheduleBooking}
-          token={token}
-          rescheduleToken={rescheduleBooking.reschedule_token}
-          onClose={() => setRescheduleBooking(null)}
-          onRescheduled={() => {
-            loadBookings();
-          }}
-        />
-      )}
-    </div>
+            {totalPages > 1 && (
+              <div className="pagination">
+                <Button
+                  disabled={page === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Previous
+                </Button>
+                <span>
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        {rescheduleBooking && (
+          <RescheduleDialog
+            open={!!rescheduleBooking}
+            token={token}
+            rescheduleToken={rescheduleBooking.reschedule_token}
+            onClose={() => setRescheduleBooking(null)}
+            onRescheduled={() => {
+              loadBookings();
+            }}
+          />
+        )}
+      </Box>
+    </Box>
   );
 }
