@@ -24,7 +24,7 @@ export default function ChangePasswordForm({ token }: { token: string }) {
 
   return (
     <>
-      <FormContainer onSubmit={handleSubmit} submitLabel="Reset Password">
+      <FormContainer onSubmit={handleSubmit} submitLabel="Reset Password" centered={false}>
         <TextField
           type="password"
           label="Current Password"

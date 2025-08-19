@@ -157,8 +157,8 @@ export default function ManageAvailability({ token }: { token: string }) {
     return slot ? `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}` : `Slot ${id}`;
   }
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-      <Box maxWidth={600} width="100%">
+    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+      <Box maxWidth={600} width="100%" mt={4}>
         <h2>Manage Availability</h2>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} />
 

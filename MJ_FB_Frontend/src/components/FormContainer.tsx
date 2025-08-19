@@ -7,12 +7,20 @@ interface FormContainerProps extends Omit<BoxProps, 'component' | 'onSubmit'> {
   children: ReactNode;
   title?: string;
   header?: ReactNode;
+  centered?: boolean;
 }
 
-export default function FormContainer({ onSubmit, submitLabel, children, title, header, ...boxProps }: FormContainerProps) {
+export default function FormContainer({ onSubmit, submitLabel, children, title, header, centered = true, ...boxProps }: FormContainerProps) {
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
-      <Box flexGrow={1} display="flex" justifyContent="center" alignItems="center" px={2}>
+      <Box
+        flexGrow={1}
+        display="flex"
+        justifyContent="center"
+        alignItems={centered ? 'center' : 'flex-start'}
+        px={2}
+        py={centered ? 0 : 4}
+      >
         <Box component="form" onSubmit={onSubmit} maxWidth={400} width="100%" mx="auto" {...boxProps}>
           <Stack spacing={2}>
             {header && <Box textAlign="center">{header}</Box>}

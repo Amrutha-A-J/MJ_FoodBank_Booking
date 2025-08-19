@@ -67,8 +67,8 @@ export default function AddUser({ token }: { token: string }) {
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-      <Box maxWidth={400} width="100%">
+    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+      <Box maxWidth={400} width="100%" mt={4}>
         <Typography variant="h5" gutterBottom>
           {mode === 'user' ? 'Create User' : 'Create Staff'}
         </Typography>
