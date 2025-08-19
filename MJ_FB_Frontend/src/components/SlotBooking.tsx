@@ -344,15 +344,18 @@ export default function SlotBooking({ token, role }: Props) {
         {conflict && (
           <DialogContent>
             <Typography>
-              You already have an appointment booked on {conflict.date} at {formatTime(conflict.startTime)} and it is{' '}
+              You already have an appointment booked for{' '}
+              {formatInTimeZone(new Date(conflict.date), reginaTimeZone, 'MMMM d, yyyy')} at{' '}
+              {formatTime(conflict.startTime)}, which is currently{' '}
               {conflict.status === 'submitted' ? 'pending approval' : 'approved'}.
             </Typography>
             <Typography sx={{ mt: 2 }}>
-              After this appointment, if you still need assistance, please book another appointment.
+              If you need to reschedule, please go to your{' '}
+              <Link to="/booking-history">bookings</Link> and make the change there. Please note that we do not encourage
+              auto-booking weeks in advance, as our services are meant to be used for emergencies only.
             </Typography>
             <Typography sx={{ mt: 2 }}>
-              If you want to reschedule your appointments, go to your{' '}
-              <Link to="/booking-history">bookings</Link> and reschedule from there.
+              Once you complete this shopping appointment, you may book another one if you still need assistance.
             </Typography>
           </DialogContent>
         )}
