@@ -95,8 +95,17 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 // --- List all bookings (for staff) ---
 export async function listBookings(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await pool.query(`
-      SELECT
+    const status = (req.query.status as string)?.toLowerCase();
+    const params: any[] = [];
+    let where = '';
+    if (status) {
+      const mapped = status === 'pending' ? 'submitted' : status;
+      params.push(mapped);
+      where = 'WHERE b.status = $1';
+    }
+
+    const result = await pool.query(
+      `SELECT
         b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
         b.reschedule_token,
         u.first_name || ' ' || u.last_name as user_name,
@@ -112,8 +121,10 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
       FROM bookings b
       INNER JOIN users u ON b.user_id = u.id
       INNER JOIN slots s ON b.slot_id = s.id
-      ORDER BY b.created_at DESC
-    `);
+      ${where}
+      ORDER BY b.date ASC, s.start_time ASC`,
+      params,
+    );
     res.json(result.rows);
   } catch (error) {
     logger.error('Error listing bookings:', error);

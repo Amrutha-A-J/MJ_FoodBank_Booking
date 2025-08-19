@@ -11,7 +11,6 @@ jest.mock('../src/utils/bookingUtils', () => ({
   countApprovedBookingsForMonth: jest.fn().mockResolvedValue(0),
   findUpcomingBooking: jest.fn().mockResolvedValue(null),
   updateBookingsThisMonth: jest.fn().mockResolvedValue(0),
-  findUpcomingBooking: jest.fn().mockResolvedValue(null),
   LIMIT_MESSAGE: 'limit',
 }));
 
