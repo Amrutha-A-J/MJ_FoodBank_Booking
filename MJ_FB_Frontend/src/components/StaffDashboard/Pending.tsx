@@ -6,6 +6,7 @@ import { formatTime } from '../../utils/time';
 
 interface Booking {
   id: number;
+  status?: string;
   user_name?: string;
   client_id?: number;
   bookings_this_month?: number;
@@ -24,7 +25,7 @@ export default function Pending({ token }: { token: string }) {
 
   function loadBookings() {
     getBookings(token, { status: 'pending' })
-      .then(setBookings)
+      .then(b => setBookings(b.filter(x => x.status === 'submitted')))
       .catch(() => {});
   }
 
@@ -42,6 +43,9 @@ export default function Pending({ token }: { token: string }) {
         delete copy[id];
         return copy;
       });
+      // Remove the booking locally so it disappears immediately
+      setBookings(bs => bs.filter(b => b.id !== id));
+      // Fetch latest pending bookings in case new ones were added
       loadBookings();
     } catch (e) {
       setSeverity('error');
