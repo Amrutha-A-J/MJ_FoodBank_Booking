@@ -78,8 +78,8 @@ export default function UserHistory({
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-      <Box width="100%" maxWidth={800}>
+    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+      <Box width="100%" maxWidth={800} mt={4}>
         <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
         {!initialUser && (
           <EntitySearch

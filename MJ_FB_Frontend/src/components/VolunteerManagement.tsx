@@ -574,8 +574,8 @@ export default function VolunteerManagement({ token }: { token: string }) {
       )}
 
       {tab === 'search' && (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-          <Box width="100%" maxWidth={600}>
+        <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+          <Box width="100%" maxWidth={600} mt={4}>
             <EntitySearch
               token={token}
               type="volunteer"
@@ -709,6 +709,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
               submitVolunteer();
             }}
             submitLabel="Add Volunteer"
+            centered={false}
           >
             <TextField
               label="First Name"
