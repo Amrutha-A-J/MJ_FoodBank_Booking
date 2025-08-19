@@ -16,7 +16,7 @@ import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
-import type { Role } from './types';
+import type { Role, UserRole } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -25,6 +25,9 @@ export default function App() {
   const [token, setToken] = useState('');
   const [role, setRole] = useState<Role>('' as Role);
   const [name, setName] = useState('');
+  const [userRole, setUserRole] = useState<UserRole | ''>(
+    () => (localStorage.getItem('userRole') as UserRole) || ''
+  );
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'user' | 'staff' | 'volunteer'>('user');
@@ -34,6 +37,8 @@ export default function App() {
     setToken('');
     setRole('' as Role);
     setName('');
+    setUserRole('');
+    localStorage.removeItem('userRole');
   }
 
   const navGroups: NavGroup[] = [];
@@ -73,6 +78,15 @@ export default function App() {
         { label: 'Booking History', to: '/volunteer/history' },
       ],
     });
+    if (userRole === 'shopper') {
+      navGroups.push({
+        label: 'Booking',
+        links: [
+          { label: 'Booking Slots', to: '/slots' },
+          { label: 'Booking History', to: '/booking-history' },
+        ],
+      });
+    }
   }
 
   return (
@@ -85,6 +99,9 @@ export default function App() {
               setToken('loggedin');
               setRole(u.role);
               setName(u.name);
+              setUserRole(u.userRole || '');
+              if (u.userRole) localStorage.setItem('userRole', u.userRole);
+              else localStorage.removeItem('userRole');
             }}
             onStaff={() => setLoginMode('staff')}
             onVolunteer={() => setLoginMode('volunteer')}
@@ -95,6 +112,9 @@ export default function App() {
               setToken('loggedin');
               setRole(u.role);
               setName(u.name);
+              setUserRole(u.userRole || '');
+              if (u.userRole) localStorage.setItem('userRole', u.userRole);
+              else localStorage.removeItem('userRole');
             }}
             onBack={() => setLoginMode('user')}
           />
@@ -104,6 +124,9 @@ export default function App() {
               setToken('loggedin');
               setRole(u.role);
               setName(u.name);
+              setUserRole(u.userRole || '');
+              if (u.userRole) localStorage.setItem('userRole', u.userRole);
+              else localStorage.removeItem('userRole');
             }}
             onBack={() => setLoginMode('user')}
           />
@@ -150,6 +173,20 @@ export default function App() {
                   <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
                 )}
                 {role === 'shopper' && (
+                  <Route
+                    path="/booking-history"
+                    element={
+                      <UserHistory
+                        token={token}
+                        initialUser={{ id: 0, name, client_id: 0 }}
+                      />
+                    }
+                  />
+                )}
+                {role === 'volunteer' && userRole === 'shopper' && (
+                  <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
+                )}
+                {role === 'volunteer' && userRole === 'shopper' && (
                   <Route
                     path="/booking-history"
                     element={

@@ -18,7 +18,6 @@ export default function VolunteerLogin({ onLogin, onBack }: { onLogin: (u: Login
     try {
       const user = await loginVolunteer(username, password);
       onLogin(user);
-      window.location.href = '/volunteer-dashboard';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }

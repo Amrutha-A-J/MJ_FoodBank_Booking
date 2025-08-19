@@ -48,6 +48,7 @@ export interface LoginResponse {
   role: Role;
   name: string;
   bookingsThisMonth?: number;
+  userRole?: UserRole;
 }
 
 export async function handleResponse(res: Response) {
@@ -104,7 +105,8 @@ export async function loginVolunteer(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   });
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return data;
 }
 
 export async function requestPasswordReset(data: {
