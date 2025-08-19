@@ -14,7 +14,7 @@ import {
 import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../FeedbackSnackbar';
-import { Button } from '@mui/material';
+import { Box, Button } from '@mui/material';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -157,8 +157,9 @@ export default function ManageAvailability({ token }: { token: string }) {
     return slot ? `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}` : `Slot ${id}`;
   }
   return (
-    <div>
-      <h2>Manage Availability</h2>
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box maxWidth={600} width="100%">
+        <h2>Manage Availability</h2>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} />
 
       <div style={{ marginBottom: 16 }}>
@@ -290,7 +291,8 @@ export default function ManageAvailability({ token }: { token: string }) {
           </ul>
         </section>
       )}
-    </div>
+      </Box>
+    </Box>
   );
 }
 
