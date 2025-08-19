@@ -535,3 +535,34 @@ export async function rescheduleVolunteerBookingByToken(
   });
   await handleResponse(res);
 }
+
+export async function createVolunteerShopperProfile(
+  token: string,
+  volunteerId: number,
+  clientId: string,
+  password: string,
+  email?: string,
+  phone?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clientId: Number(clientId),
+      password,
+      email,
+      phone,
+    }),
+  });
+  await handleResponse(res);
+}
+
+export async function removeVolunteerShopperProfile(
+  token: string,
+  volunteerId: number,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
+    method: 'DELETE',
+  });
+  await handleResponse(res);
+}

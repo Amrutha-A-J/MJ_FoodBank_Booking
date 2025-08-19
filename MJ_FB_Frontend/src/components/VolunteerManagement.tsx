@@ -9,6 +9,8 @@ import {
   createVolunteer,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
+  createVolunteerShopperProfile,
+  removeVolunteerShopperProfile,
 } from '../api/api';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
@@ -26,9 +28,14 @@ import {
   ListSubheader,
   Checkbox,
   FormControlLabel,
+  Switch,
+  Dialog,
+  DialogActions,
+  DialogContent,
 } from '@mui/material';
 import Dashboard from '../pages/Dashboard';
 import EntitySearch from './EntitySearch';
+import ConfirmDialog from './ConfirmDialog';
 
 
 
@@ -49,6 +56,7 @@ interface VolunteerResult {
   id: number;
   name: string;
   trainedAreas: number[];
+  hasShopper: boolean;
 }
 
 
@@ -81,6 +89,13 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
+
+  const [shopperOpen, setShopperOpen] = useState(false);
+  const [shopperClientId, setShopperClientId] = useState('');
+  const [shopperPassword, setShopperPassword] = useState('');
+  const [shopperEmail, setShopperEmail] = useState('');
+  const [shopperPhone, setShopperPhone] = useState('');
+  const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -250,7 +265,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
     const id = searchParams.get('id');
     const name = searchParams.get('name');
     if (id && name) {
-      selectVolunteer({ id: Number(id), name, trainedAreas: [] });
+      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false });
     }
   }, [tab, searchParams, selectedVolunteer]);
 
@@ -270,19 +285,46 @@ export default function VolunteerManagement({ token }: { token: string }) {
     }
   }
 
-  async function selectVolunteer(u: VolunteerResult) {
-    setSelectedVolunteer(u);
+  async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
+    try {
+      const res = await searchVolunteers(token, name);
+      const found = res.find((v: VolunteerResult) => v.id === id);
+      if (found) return found;
+    } catch {
+      // ignore
+    }
+    return { id, name, trainedAreas: [], hasShopper: false };
+  }
+
+  async function refreshVolunteer() {
+    if (!selectedVolunteer) return;
+    const vol = await loadVolunteer(selectedVolunteer.id, selectedVolunteer.name);
+    setSelectedVolunteer(vol);
     setTrainedEdit(
       Array.from(
         new Set(
-          (u.trainedAreas || [])
+          (vol.trainedAreas || [])
+            .map(id => idToName.get(id))
+            .filter(Boolean) as string[]
+        )
+      )
+    );
+  }
+
+  async function selectVolunteer(u: VolunteerResult) {
+    const vol = await loadVolunteer(u.id, u.name);
+    setSelectedVolunteer(vol);
+    setTrainedEdit(
+      Array.from(
+        new Set(
+          (vol.trainedAreas || [])
             .map(id => idToName.get(id))
             .filter(Boolean) as string[]
         )
       )
     );
     try {
-      const data = await getVolunteerBookingHistory(token, u.id);
+      const data = await getVolunteerBookingHistory(token, vol.id);
       setHistory(data);
     } catch {
       setHistory([]);
@@ -328,6 +370,54 @@ export default function VolunteerManagement({ token }: { token: string }) {
       await updateVolunteerTrainedAreas(token, selectedVolunteer.id, ids);
       setEditSeverity('success');
       setEditMsg('Roles updated');
+    } catch (e) {
+      setEditSeverity('error');
+      setEditMsg(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  function handleShopperToggle(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!selectedVolunteer) return;
+    if (e.target.checked) {
+      setShopperOpen(true);
+    } else {
+      setRemoveShopperOpen(true);
+    }
+  }
+
+  async function createShopper() {
+    if (!selectedVolunteer) return;
+    try {
+      await createVolunteerShopperProfile(
+        token,
+        selectedVolunteer.id,
+        shopperClientId,
+        shopperPassword,
+        shopperEmail || undefined,
+        shopperPhone || undefined,
+      );
+      setEditSeverity('success');
+      setEditMsg('Shopper profile created');
+      setShopperOpen(false);
+      setShopperClientId('');
+      setShopperPassword('');
+      setShopperEmail('');
+      setShopperPhone('');
+      await refreshVolunteer();
+    } catch (e) {
+      setEditSeverity('error');
+      setEditMsg(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function removeShopper() {
+    if (!selectedVolunteer) return;
+    try {
+      await removeVolunteerShopperProfile(token, selectedVolunteer.id);
+      setEditSeverity('success');
+      setEditMsg('Shopper profile removed');
+      setRemoveShopperOpen(false);
+      await refreshVolunteer();
     } catch (e) {
       setEditSeverity('error');
       setEditMsg(e instanceof Error ? e.message : String(e));
@@ -508,6 +598,16 @@ export default function VolunteerManagement({ token }: { token: string }) {
           />
           {selectedVolunteer && (
             <div>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={selectedVolunteer.hasShopper}
+                    onChange={handleShopperToggle}
+                    color="primary"
+                  />
+                }
+                label="Shopper Profile"
+              />
               <h3>Edit Roles for {selectedVolunteer.name}</h3>
               <div style={{ marginBottom: 8, position: 'relative' }} ref={editDropdownRef}>
                 <label>Role: </label>
@@ -722,6 +822,64 @@ export default function VolunteerManagement({ token }: { token: string }) {
             {pending.length === 0 && <li>No pending bookings.</li>}
           </ul>
         </div>
+      )}
+
+      {shopperOpen && (
+        <Dialog open onClose={() => setShopperOpen(false)}>
+          <DialogContent>
+            <TextField
+              label="Client ID"
+              value={shopperClientId}
+              onChange={e => setShopperClientId(e.target.value)}
+              fullWidth
+              size="small"
+              margin="dense"
+            />
+            <TextField
+              label="Password"
+              type="password"
+              value={shopperPassword}
+              onChange={e => setShopperPassword(e.target.value)}
+              fullWidth
+              size="small"
+              margin="dense"
+            />
+            <TextField
+              label="Email (optional)"
+              type="email"
+              value={shopperEmail}
+              onChange={e => setShopperEmail(e.target.value)}
+              fullWidth
+              size="small"
+              margin="dense"
+            />
+            <TextField
+              label="Phone (optional)"
+              type="tel"
+              value={shopperPhone}
+              onChange={e => setShopperPhone(e.target.value)}
+              fullWidth
+              size="small"
+              margin="dense"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={createShopper} variant="contained" color="primary" size="small">
+              Create
+            </Button>
+            <Button onClick={() => setShopperOpen(false)} variant="outlined" color="primary" size="small">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {removeShopperOpen && (
+        <ConfirmDialog
+          message={`Remove shopper profile for ${selectedVolunteer?.name}?`}
+          onConfirm={removeShopper}
+          onCancel={() => setRemoveShopperOpen(false)}
+        />
       )}
 
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
