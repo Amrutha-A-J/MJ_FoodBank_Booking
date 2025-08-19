@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
+import { randomUUID } from 'crypto';
 
 export async function requestPasswordReset(
   req: Request,
@@ -94,15 +95,35 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
     if (!token) {
       return res.status(401).json({ message: 'Missing refresh token' });
     }
-    const payload = jwt.verify(token, config.jwtSecret) as {
+    const payload = jwt.verify(token, config.jwtRefreshSecret) as {
       id: number | string;
       role: string;
       type: string;
+      jti: string;
     };
-    const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-    const newRefreshToken = jwt.sign(payload, config.jwtSecret, {
-      expiresIn: '7d',
-    });
+    const subject = `${payload.type}:${payload.id}`;
+    const stored = await pool.query(
+      'SELECT token_id FROM refresh_tokens WHERE subject=$1',
+      [subject],
+    );
+    if (stored.rowCount === 0 || stored.rows[0].token_id !== payload.jti) {
+      throw new Error('Invalid refresh token');
+    }
+    const newJti = randomUUID();
+    await pool.query(
+      `UPDATE refresh_tokens SET token_id=$1 WHERE subject=$2`,
+      [newJti, subject],
+    );
+    const accessToken = jwt.sign(
+      { id: payload.id, role: payload.role, type: payload.type },
+      config.jwtSecret,
+      { expiresIn: '1h' },
+    );
+    const newRefreshToken = jwt.sign(
+      { id: payload.id, role: payload.role, type: payload.type, jti: newJti },
+      config.jwtRefreshSecret,
+      { expiresIn: '7d' },
+    );
     res.cookie('token', accessToken, {
       httpOnly: true,
       sameSite: 'strict',
@@ -121,5 +142,29 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
     res.clearCookie('token');
     res.clearCookie('refreshToken');
     return res.status(401).json({ message: 'Invalid refresh token' });
+  }
+}
+
+export async function logout(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = getRefreshTokenFromCookies(req);
+    if (token) {
+      try {
+        const payload = jwt.verify(token, config.jwtRefreshSecret) as {
+          id: number | string;
+          type: string;
+        };
+        await pool.query('DELETE FROM refresh_tokens WHERE subject=$1', [
+          `${payload.type}:${payload.id}`,
+        ]);
+      } catch {
+        // ignore
+      }
+    }
+    res.clearCookie('token');
+    res.clearCookie('refreshToken');
+    res.status(204).send();
+  } catch (err) {
+    next(err);
   }
 }

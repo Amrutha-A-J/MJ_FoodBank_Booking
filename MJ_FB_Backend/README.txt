@@ -19,6 +19,8 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `JWT_SECRET` – Secret key used to sign and verify JSON Web Tokens. **Required**. Generate a strong random value (e.g., `openssl rand -hex 32`).
 
+`JWT_REFRESH_SECRET` – Secret key used to sign refresh JSON Web Tokens. **Required**. Use a value different from `JWT_SECRET`.
+
 `PORT` – Port for the backend server.
 
 ## Authentication Tokens

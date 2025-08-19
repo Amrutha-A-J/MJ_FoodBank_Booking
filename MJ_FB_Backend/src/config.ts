@@ -6,6 +6,9 @@ dotenv.config();
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
+if (!process.env.JWT_REFRESH_SECRET) {
+  throw new Error('JWT_REFRESH_SECRET environment variable is required');
+}
 
 const envSchema = z.object({
   PG_USER: z.string().default('postgres'),
@@ -14,6 +17,7 @@ const envSchema = z.object({
   PG_PORT: z.coerce.number().default(5432),
   PG_DATABASE: z.string().default('mj_fb_db'),
   JWT_SECRET: z.string(),
+  JWT_REFRESH_SECRET: z.string(),
   FRONTEND_ORIGIN: z.string().default('http://localhost:5173,http://127.0.0.1:5173'),
   PORT: z.coerce.number().default(4000),
   POWER_AUTOMATE_URL: z.string().optional(),
@@ -46,6 +50,7 @@ export default {
   pgPort: env.PG_PORT,
   pgDatabase: env.PG_DATABASE,
   jwtSecret: env.JWT_SECRET,
+  jwtRefreshSecret: env.JWT_REFRESH_SECRET,
   frontendOrigins,
   port: env.PORT,
   powerAutomateUrl: env.POWER_AUTOMATE_URL ?? '',
