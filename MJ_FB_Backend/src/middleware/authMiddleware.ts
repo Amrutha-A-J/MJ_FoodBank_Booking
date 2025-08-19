@@ -41,8 +41,10 @@ async function authenticate(req: Request): Promise<AuthResult> {
       id: number | string;
       role: string;
       type: string;
+      userId?: number | string;
+      userRole?: string;
     };
-    const { id, type, role } = decoded;
+    const { id, type, role, userId, userRole } = decoded;
     if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
@@ -100,6 +102,8 @@ async function authenticate(req: Request): Promise<AuthResult> {
           role: 'volunteer',
           email: volRes.rows[0].email,
           name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
+          ...(userId && { userId: String(userId) }),
+          ...(userRole && { userRole }),
         },
       };
     }
@@ -154,9 +158,10 @@ export function authorizeRoles(...allowedRoles: string[]) {
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { role, type } = req.user as any;
+    const { role, type, userRole } = req.user as any;
 
     const effectiveRoles = new Set([role, type]);
+    if (userRole) effectiveRoles.add(userRole);
     (hierarchy[role] || []).forEach(r => effectiveRoles.add(r));
 
     if (!allowedRoles.some(r => effectiveRoles.has(r))) {

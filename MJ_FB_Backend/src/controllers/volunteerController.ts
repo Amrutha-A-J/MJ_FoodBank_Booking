@@ -52,9 +52,10 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
   }
   try {
     const result = await pool.query(
-      `SELECT id, first_name, last_name, username, password
-       FROM volunteers
-       WHERE username = $1`,
+      `SELECT v.id, v.first_name, v.last_name, v.username, v.password, v.user_id, u.role AS user_role
+       FROM volunteers v
+       LEFT JOIN users u ON v.user_id = u.id
+       WHERE v.username = $1`,
       [username]
     );
     if (result.rowCount === 0) {
@@ -65,7 +66,11 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const payload = { id: volunteer.id, role: 'volunteer', type: 'volunteer' };
+    const payload: any = { id: volunteer.id, role: 'volunteer', type: 'volunteer' };
+    if (volunteer.user_id) {
+      payload.userId = volunteer.user_id;
+      payload.userRole = volunteer.user_role || 'shopper';
+    }
     const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
     const refreshToken = jwt.sign(payload, config.jwtSecret, {
       expiresIn: '7d',
@@ -85,6 +90,10 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
       refreshToken,
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
+      ...(volunteer.user_id && {
+        userId: volunteer.user_id,
+        userRole: volunteer.user_role || 'shopper',
+      }),
     });
   } catch (error) {
     logger.error('Error logging in volunteer:', error);
@@ -176,6 +185,83 @@ export async function createVolunteer(
   }
 }
 
+export async function createVolunteerShopperProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  const { clientId, password } = req.body as {
+    clientId?: number;
+    password?: string;
+  };
+  if (!clientId || !password) {
+    return res.status(400).json({ message: 'Client ID and password required' });
+  }
+  try {
+    const volRes = await pool.query(
+      `SELECT first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
+      [id],
+    );
+    if (volRes.rowCount === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    const clientCheck = await pool.query(
+      `SELECT id FROM users WHERE client_id = $1`,
+      [clientId],
+    );
+    if (clientCheck.rowCount && clientCheck.rowCount > 0) {
+      return res.status(400).json({ message: 'Client ID already exists' });
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    const userRes = await pool.query(
+      `INSERT INTO users (first_name, last_name, email, phone, client_id, role, password)
+       VALUES ($1,$2,$3,$4,$5,'shopper',$6) RETURNING id`,
+      [
+        volRes.rows[0].first_name,
+        volRes.rows[0].last_name,
+        volRes.rows[0].email,
+        volRes.rows[0].phone,
+        clientId,
+        hashed,
+      ],
+    );
+    const userId = userRes.rows[0].id;
+    await pool.query(`UPDATE volunteers SET user_id = $1 WHERE id = $2`, [
+      userId,
+      id,
+    ]);
+    res.status(201).json({ userId });
+  } catch (error) {
+    logger.error('Error creating volunteer shopper profile:', error);
+    next(error);
+  }
+}
+
+export async function removeVolunteerShopperProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  try {
+    const volRes = await pool.query(
+      `SELECT user_id FROM volunteers WHERE id = $1`,
+      [id],
+    );
+    if (volRes.rowCount === 0 || !volRes.rows[0].user_id) {
+      return res.status(404).json({ message: 'Shopper profile not found' });
+    }
+    const userId = volRes.rows[0].user_id;
+    await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+    await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
+    res.json({ message: 'Shopper profile removed' });
+  } catch (error) {
+    logger.error('Error removing volunteer shopper profile:', error);
+    next(error);
+  }
+}
+
 export async function searchVolunteers(req: Request, res: Response, next: NextFunction) {
   try {
     const rawSearch = (req.query.search as string) || '';
@@ -186,7 +272,7 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
     }
 
     const result = await pool.query(
-      `SELECT v.id, v.first_name, v.last_name,
+      `SELECT v.id, v.first_name, v.last_name, v.user_id,
               ARRAY_REMOVE(ARRAY_AGG(vtr.role_id), NULL) AS role_ids
        FROM volunteers v
        LEFT JOIN volunteer_trained_roles vtr ON v.id = vtr.volunteer_id
@@ -204,6 +290,7 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
       id: v.id,
       name: `${v.first_name} ${v.last_name}`.trim(),
       trainedAreas: (v.role_ids || []).map(Number),
+      hasShopper: Boolean(v.user_id),
     }));
 
     res.json(formatted);

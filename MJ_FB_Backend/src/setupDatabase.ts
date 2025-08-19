@@ -29,6 +29,15 @@ export async function setupDatabase() {
     "SELECT to_regclass('public.slots') as table_exists;"
   );
   if (tableCheck.rows[0].table_exists) {
+    const userIdRes = await client.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'volunteers' AND column_name = 'user_id';
+    `);
+    if (userIdRes.rowCount === 0) {
+      await client.query(
+        `ALTER TABLE volunteers ADD COLUMN user_id integer REFERENCES public.users(id);`,
+      );
+    }
     console.log('Database already initialized');
     await client.end();
     return;
@@ -93,7 +102,8 @@ CREATE TABLE IF NOT EXISTS volunteers (
     email text,
     phone text,
     username text NOT NULL UNIQUE,
-    password text NOT NULL
+    password text NOT NULL,
+    user_id integer REFERENCES public.users(id)
 );
 
 CREATE TABLE IF NOT EXISTS volunteer_trained_roles (

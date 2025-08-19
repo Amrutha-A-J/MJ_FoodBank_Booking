@@ -4,6 +4,8 @@ declare namespace Express {
       id: string;
       role: 'shopper' | 'delivery' | 'staff' | 'volunteer';
       email?: string;
+      userId?: string;
+      userRole?: 'shopper' | 'delivery';
     };
   }
 }
