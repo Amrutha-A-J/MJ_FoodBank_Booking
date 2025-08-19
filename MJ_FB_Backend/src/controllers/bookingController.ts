@@ -51,16 +51,17 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   }
 
   try {
+    const userId = Number((req.user as any).userId ?? req.user?.id);
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Invalid booking date' });
     }
 
-    const approvedCount = await countApprovedBookingsForMonth(Number(user.id), date);
+    const approvedCount = await countApprovedBookingsForMonth(userId, date);
     if (approvedCount >= 2) {
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
 
-    const upcoming = await findUpcomingBooking(Number(user.id));
+    const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
       return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
     }
@@ -72,7 +73,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     await pool.query(
       `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
        VALUES ($1, $2, $3, '', $4, $5, $6)`,
-      [user.id, slotIdNum, status, date, isStaffBooking || false, token]
+      [userId, slotIdNum, status, date, isStaffBooking || false, token]
     );
 
     await sendEmail(
@@ -81,7 +82,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       `Booking request submitted for ${date}`,
     );
 
-    const newCount = await updateBookingsThisMonth(Number(user.id));
+    const newCount = await updateBookingsThisMonth(userId);
     res
       .status(201)
       .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
@@ -183,10 +184,8 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     if (bookingRes.rowCount === 0) return res.status(404).json({ message: 'Booking not found' });
     const booking = bookingRes.rows[0];
 
-    if (
-      requester.role !== 'staff' &&
-      booking.user_id !== Number(requester.id)
-    ) {
+    const requesterId = Number((requester as any).userId ?? requester.id);
+    if (requester.role !== 'staff' && booking.user_id !== requesterId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -388,7 +387,7 @@ export async function getBookingHistory(req: Request, res: Response, next: NextF
       }
       userId = Number(paramId);
     } else {
-      userId = Number(requester.id);
+      userId = Number((requester as any).userId ?? requester.id);
     }
 
     if (!userId) return res.status(400).json({ message: 'Invalid user' });
