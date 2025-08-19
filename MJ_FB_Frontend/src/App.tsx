@@ -22,9 +22,11 @@ import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
 
 export default function App() {
-  const [token, setToken] = useState('');
-  const [role, setRole] = useState<Role>('' as Role);
-  const [name, setName] = useState('');
+  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
+  const [role, setRole] = useState<Role>(
+    () => (localStorage.getItem('role') as Role) || ('' as Role)
+  );
+  const [name, setName] = useState(() => localStorage.getItem('name') || '');
   const [userRole, setUserRole] = useState<UserRole | ''>(
     () => (localStorage.getItem('userRole') as UserRole) || ''
   );
@@ -38,6 +40,9 @@ export default function App() {
     setRole('' as Role);
     setName('');
     setUserRole('');
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('name');
     localStorage.removeItem('userRole');
   }
 
@@ -100,6 +105,9 @@ export default function App() {
               setRole(u.role);
               setName(u.name);
               setUserRole(u.userRole || '');
+              localStorage.setItem('token', 'loggedin');
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
               if (u.userRole) localStorage.setItem('userRole', u.userRole);
               else localStorage.removeItem('userRole');
             }}
@@ -113,6 +121,9 @@ export default function App() {
               setRole(u.role);
               setName(u.name);
               setUserRole(u.userRole || '');
+              localStorage.setItem('token', 'loggedin');
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
               if (u.userRole) localStorage.setItem('userRole', u.userRole);
               else localStorage.removeItem('userRole');
             }}
@@ -125,6 +136,9 @@ export default function App() {
               setRole(u.role);
               setName(u.name);
               setUserRole(u.userRole || '');
+              localStorage.setItem('token', 'loggedin');
+              localStorage.setItem('role', u.role);
+              localStorage.setItem('name', u.name);
               if (u.userRole) localStorage.setItem('userRole', u.userRole);
               else localStorage.removeItem('userRole');
             }}
