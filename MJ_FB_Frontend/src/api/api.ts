@@ -12,9 +12,18 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
-const bearer = (token: string) => `Bearer ${token}`;
+function getCsrfToken() {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrfToken='))?.split('=')[1];
+}
 
 async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  const headers = new Headers(init.headers || {});
+  const csrf = getCsrfToken();
+  if (csrf) headers.set('X-CSRF-Token', csrf);
+  init.headers = headers;
+
   let res = await fetch(input, { credentials: 'include', ...init });
   if (res.status === 401) {
     try {
@@ -25,13 +34,6 @@ async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
           credentials: 'include',
         });
         if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
-          if (init.headers) {
-            const headers = new Headers(init.headers as HeadersInit);
-            headers.set('Authorization', bearer(refreshData.token));
-            init.headers = headers;
-          }
-          localStorage.setItem('token', refreshData.token);
           res = await fetch(input, { credentials: 'include', ...init });
         }
       }
@@ -43,8 +45,6 @@ async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
 }
 
 export interface LoginResponse {
-  token: string;
-  refreshToken: string;
   role: Role;
   name: string;
   bookingsThisMonth?: number;
@@ -127,16 +127,14 @@ export async function changePassword(
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/change-password`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: bearer(token) },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   await handleResponse(res);
 }
 
 export async function getUserProfile(token: string): Promise<UserProfile> {
-  const res = await apiFetch(`${API_BASE}/users/me`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/users/me`);
   return handleResponse(res);
 }
 
@@ -157,7 +155,6 @@ export async function createStaff(
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (token) headers.Authorization = bearer(token);
   const res = await apiFetch(`${API_BASE}/staff`, {
     method: 'POST',
     headers,
@@ -170,9 +167,7 @@ export async function createStaff(
 export async function getSlots(token: string, date?: string) {
   let url = `${API_BASE}/slots`;
   if (date) url += `?date=${encodeURIComponent(date)}`;
-  const res = await apiFetch(url, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(url);
   const data = await handleResponse(res);
   return data.map((s: any) => ({
     id: String(s.id),
@@ -197,7 +192,6 @@ export async function addUser(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({
       firstName,
@@ -217,7 +211,6 @@ export async function createBooking(token: string, slotId: string, date: string)
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ slotId: Number(slotId), date, requestData: '' }),
   });
@@ -225,9 +218,7 @@ export async function createBooking(token: string, slotId: string, date: string)
 }
 
 export async function getBookings(token: string) {
-  const res = await apiFetch(`${API_BASE}/bookings`, {
-    headers: { Authorization: bearer(token) }
-  });
+  const res = await apiFetch(`${API_BASE}/bookings`);
   return handleResponse(res);
 }
 
@@ -241,17 +232,12 @@ export async function getBookingHistory(
   if (opts.userId) params.append('userId', String(opts.userId));
   const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
-    {
-      headers: { Authorization: bearer(token) },
-    }
   );
   return handleResponse(res);
 }
 
 export async function getHolidays(token: string) {
-    const res = await apiFetch(`${API_BASE}/holidays`, {
-      headers: { Authorization: bearer(token) }
-    });
+    const res = await apiFetch(`${API_BASE}/holidays`);
     return handleResponse(res); // returns Holiday[]
   }
 
@@ -260,7 +246,6 @@ export async function addHoliday(token: string, date: string, reason: string): P
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: bearer(token)
       },
     body: JSON.stringify({ date, reason })
     });
@@ -270,15 +255,12 @@ export async function addHoliday(token: string, date: string, reason: string): P
   export async function removeHoliday(token: string, date: string): Promise<void> {
     const res = await apiFetch(`${API_BASE}/holidays/${encodeURIComponent(date)}`, {
       method: 'DELETE',
-      headers: { Authorization: bearer(token) }
     });
     await handleResponse(res);
   }
 
 export async function getAllSlots(token: string) {
-  const res = await apiFetch(`${API_BASE}/slots/all`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/slots/all`);
   const data = await handleResponse(res);
   return data.map((s: any) => ({
     id: String(s.id),
@@ -289,9 +271,7 @@ export async function getAllSlots(token: string) {
 }
 
 export async function getBlockedSlots(token: string, date: string) {
-  const res = await apiFetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`);
   return handleResponse(res); // returns BlockedSlot[]
 }
 
@@ -300,7 +280,6 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ date, slotId, reason }),
   });
@@ -310,15 +289,12 @@ export async function addBlockedSlot(token: string, date: string, slotId: number
 export async function removeBlockedSlot(token: string, date: string, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
     method: 'DELETE',
-    headers: { Authorization: bearer(token) },
   });
   await handleResponse(res);
 }
 
 export async function getBreaks(token: string) {
-  const res = await apiFetch(`${API_BASE}/breaks`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/breaks`);
   return handleResponse(res); // returns Break[]
 }
 
@@ -327,7 +303,6 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ dayOfWeek, slotId, reason }),
   });
@@ -337,7 +312,6 @@ export async function addBreak(token: string, dayOfWeek: number, slotId: number,
 export async function removeBreak(token: string, dayOfWeek: number, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
     method: 'DELETE',
-    headers: { Authorization: bearer(token) },
   });
   await handleResponse(res);
 }
@@ -346,8 +320,7 @@ export async function decideBooking(token: string, bookingId: string, decision: 
   const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/decision`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: bearer(token)
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ decision, reason }),
   });
@@ -359,7 +332,6 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify(reason ? { reason } : {}),
   });
@@ -367,18 +339,13 @@ export async function cancelBooking(token: string, bookingId: string, reason?: s
 }
 
 export async function searchUsers(token: string, search: string) {
-    const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`, {
-      headers: { Authorization: bearer(token) }
-    });
+    const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`);
     return handleResponse(res); // returns array of users
   }
 
 export async function searchVolunteers(token: string, search: string) {
   const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
-    {
-      headers: { Authorization: bearer(token) },
-    }
   );
   return handleResponse(res);
 }
@@ -393,8 +360,7 @@ export async function createBookingForUser(
     const res = await apiFetch(`${API_BASE}/bookings/staff`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: bearer(token)
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ userId, slotId, date, isStaffBooking })
     });
@@ -405,9 +371,7 @@ export async function getVolunteerRolesForVolunteer(
   token: string,
   date: string,
 ): Promise<VolunteerRole[]> {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`);
   return handleResponse(res);
 }
 
@@ -420,7 +384,6 @@ export async function requestVolunteerBooking(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ roleId, date }),
   });
@@ -428,25 +391,19 @@ export async function requestVolunteerBooking(
 }
 
 export async function getMyVolunteerBookings(token: string) {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`);
   return handleResponse(res);
 }
 
 export async function getVolunteerRoles(
   token: string,
 ): Promise<VolunteerRoleWithShifts[]> {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-roles`);
   return handleResponse(res);
 }
 
 export async function getVolunteerMasterRoles(token: string) {
-  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`);
   return handleResponse(res);
 }
 
@@ -459,7 +416,6 @@ export async function updateVolunteerRoleStatus(
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ isActive }),
   });
@@ -467,9 +423,7 @@ export async function updateVolunteerRoleStatus(
 }
 
 export async function getVolunteerBookingsByRole(token: string, roleId: number) {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`);
   return handleResponse(res);
 }
 
@@ -482,7 +436,6 @@ export async function updateVolunteerBookingStatus(
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ status }),
   });
@@ -499,7 +452,6 @@ export async function createVolunteerBookingForVolunteer(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ volunteerId, roleId, date }),
   });
@@ -507,9 +459,7 @@ export async function createVolunteerBookingForVolunteer(
 }
 
 export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`, {
-    headers: { Authorization: bearer(token) },
-  });
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`);
   return handleResponse(res);
 }
 
@@ -527,7 +477,6 @@ export async function createVolunteer(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({
       firstName,
@@ -551,7 +500,6 @@ export async function updateVolunteerTrainedAreas(
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: bearer(token),
     },
     body: JSON.stringify({ roleIds }),
   });
@@ -565,7 +513,6 @@ export async function rescheduleBookingByToken(
   authToken?: string,
 ) : Promise<void> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (authToken) headers.Authorization = bearer(authToken);
   const res = await apiFetch(`${API_BASE}/bookings/reschedule/${token}`, {
     method: 'POST',
     headers,

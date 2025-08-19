@@ -46,8 +46,6 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       return res.json({
-        token,
-        refreshToken,
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
         bookingsThisMonth,
@@ -86,8 +84,6 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.json({
-      token,
-      refreshToken,
       role: staff.role,
       name: `${staff.first_name} ${staff.last_name}`,
     });
