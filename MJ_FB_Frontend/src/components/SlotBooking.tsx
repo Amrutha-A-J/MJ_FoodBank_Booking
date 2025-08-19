@@ -268,7 +268,7 @@ export default function SlotBooking({ token, role }: Props) {
         {role === 'staff' && selectedUser ? `Booking for: ${selectedUser.name}` : `Booking for: ${loggedInName}`}
       </h3>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md="auto">
           <Calendar
             onChange={value => {
               if (value instanceof Date) {
@@ -297,7 +297,7 @@ export default function SlotBooking({ token, role }: Props) {
           />
         </Grid>
         {selectedDate && (
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md>
             <div className="slot-day-container">
               {dayMessage ? (
                 <div className="day-message">{dayMessage}</div>
