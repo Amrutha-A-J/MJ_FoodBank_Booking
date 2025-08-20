@@ -1,0 +1,147 @@
+import pool from '../db';
+import { Pool, PoolClient } from 'pg';
+
+export type Queryable = Pool | PoolClient;
+
+export class SlotCapacityError extends Error {
+  status: number;
+  constructor(message: string) {
+    super(message);
+    this.status = 400;
+  }
+}
+
+export async function checkSlotCapacity(
+  slotId: number,
+  date: string,
+  client: Queryable = pool,
+) {
+  const slotRes = await client.query('SELECT * FROM slots WHERE id = $1', [slotId]);
+  if (slotRes.rowCount === 0) {
+    throw new SlotCapacityError('Invalid slot');
+  }
+  const approvedCountRes = await client.query(
+    `SELECT COUNT(*) FROM bookings WHERE slot_id=$1 AND date=$2 AND status='approved'`,
+    [slotId, date],
+  );
+  const approvedCount = Number(approvedCountRes.rows[0].count);
+  if (approvedCount >= slotRes.rows[0].max_capacity) {
+    throw new SlotCapacityError('Slot full on selected date');
+  }
+}
+
+export async function insertBooking(
+  userId: number,
+  slotId: number,
+  status: string,
+  requestData: string,
+  date: string,
+  isStaffBooking: boolean,
+  rescheduleToken: string,
+  client: Queryable = pool,
+) {
+  await client.query(
+    `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [userId, slotId, status, requestData, date, isStaffBooking, rescheduleToken],
+  );
+}
+
+export async function fetchBookingById(id: number, client: Queryable = pool) {
+  const res = await client.query('SELECT * FROM bookings WHERE id = $1', [id]);
+  return res.rows[0];
+}
+
+export async function fetchBookingByToken(token: string, client: Queryable = pool) {
+  const res = await client.query('SELECT * FROM bookings WHERE reschedule_token = $1', [token]);
+  return res.rows[0];
+}
+
+export async function updateBooking(
+  id: number,
+  fields: Record<string, any>,
+  client: Queryable = pool,
+) {
+  const keys = Object.keys(fields);
+  if (keys.length === 0) return;
+  const setClause = keys.map((key, idx) => `${key}=$${idx + 2}`).join(', ');
+  const params = [id, ...keys.map((k) => fields[k])];
+  await client.query(`UPDATE bookings SET ${setClause} WHERE id=$1`, params);
+}
+
+export async function fetchBookings(
+  status: string | undefined,
+  client: Queryable = pool,
+) {
+  const params: any[] = [];
+  let where = '';
+  if (status) {
+    params.push(status === 'pending' ? 'submitted' : status);
+    where = 'WHERE b.status = $1';
+  }
+  const res = await client.query(
+    `SELECT
+        b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
+        b.reschedule_token,
+        u.first_name || ' ' || u.last_name as user_name,
+        u.email as user_email, u.phone as user_phone,
+        u.client_id,
+        (
+          SELECT COUNT(*) FROM bookings b2
+          WHERE b2.user_id = b.user_id
+            AND b2.status = 'approved'
+            AND DATE_TRUNC('month', b2.date) = DATE_TRUNC('month', b.date)
+        ) AS bookings_this_month,
+        s.start_time, s.end_time
+      FROM bookings b
+      INNER JOIN users u ON b.user_id = u.id
+      INNER JOIN slots s ON b.slot_id = s.id
+      ${where}
+      ORDER BY b.date ASC, s.start_time ASC`,
+    params,
+  );
+  return res.rows;
+}
+
+export async function fetchBookingHistory(
+  userId: number,
+  past: boolean,
+  status: string | undefined,
+  client: Queryable = pool,
+) {
+  const params: any[] = [userId];
+  let where = `b.user_id = $1 AND b.date >= CURRENT_DATE - INTERVAL '6 months'`;
+  if (past) {
+    where += ' AND b.date < CURRENT_DATE';
+  }
+  if (status) {
+    const mapped = status === 'pending' ? 'submitted' : status;
+    params.push(mapped);
+    where += ` AND b.status = $${params.length}`;
+  }
+  const res = await client.query(
+    `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time, b.created_at, b.is_staff_booking, b.reschedule_token
+       FROM bookings b
+       INNER JOIN slots s ON b.slot_id = s.id
+       WHERE ${where}
+       ORDER BY b.created_at DESC`,
+    params,
+  );
+  return res.rows;
+}
+
+export async function insertWalkinUser(
+  firstName: string,
+  lastName: string,
+  email: string,
+  clientId: number,
+  client: Queryable,
+) {
+  const res = await client.query(
+    `INSERT INTO users (first_name, last_name, email, phone, client_id, role)
+     VALUES ($1, $2, $3, NULL, $4, 'shopper') RETURNING id`,
+    [firstName, lastName, email, clientId],
+  );
+  return res.rows[0].id;
+}
+
