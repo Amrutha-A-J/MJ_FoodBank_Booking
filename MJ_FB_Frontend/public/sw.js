@@ -1,3 +1,4 @@
+
 const CACHE_NAME = 'mj-foodbank-cache-v1';
 const URLS_TO_CACHE = ['/', '/index.html'];
 
