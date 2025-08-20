@@ -1,6 +1,14 @@
 import type { Shift } from '../types';
 import { formatHHMM } from '../utils/time';
-import { useMediaQuery, useTheme } from '@mui/material';
+import {
+  useMediaQuery,
+  useTheme,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@mui/material';
 
 interface Props {
   shifts: Shift[];
@@ -13,54 +21,56 @@ export default function ScheduleTable({ shifts }: Props) {
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const cellStyle: React.CSSProperties = {
-    padding: isSmall ? 4 : 8,
+  const cellSx = {
+    p: isSmall ? 0.5 : 1,
     fontSize: isSmall ? '0.75rem' : undefined,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
-  };
+  } as const;
 
   const maxSlots = Math.max(...shifts.map((s) => s.maxVolunteers), 0);
 
   return (
-    <table
-      style={{
+    <Table
+      sx={{
         width: '100%',
         tableLayout: 'fixed',
         borderCollapse: 'collapse',
       }}
     >
-      <thead>
-        <tr>
-          <th style={cellStyle}>Shift</th>
+      <TableHead>
+        <TableRow>
+          <TableCell sx={cellSx}>Shift</TableCell>
           {Array.from({ length: maxSlots }).map((_, i) => (
-            <th key={i} style={cellStyle}>
+            <TableCell key={i} sx={cellSx}>
               Slot {i + 1}
-            </th>
+            </TableCell>
           ))}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHead>
+      <TableBody>
         {shifts.map((shift) => (
-          <tr key={shift.shiftId}>
-            <td style={cellStyle}>
+          <TableRow key={shift.shiftId}>
+            <TableCell sx={cellSx}>
               {formatHHMM(shift.startTime)}–{formatHHMM(shift.endTime)}
-            </td>
+            </TableCell>
             {Array.from({ length: maxSlots }).map((_, i) => (
-              <td
+              <TableCell
                 key={i}
-                style={{
-                  ...cellStyle,
+                sx={{
+                  ...cellSx,
                   backgroundColor:
-                    i >= shift.maxVolunteers ? '#eee' : undefined,
+                    i >= shift.maxVolunteers
+                      ? theme.palette.grey[200]
+                      : 'transparent',
                 }}
               />
             ))}
-          </tr>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   );
 }
 

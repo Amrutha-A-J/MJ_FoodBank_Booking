@@ -33,6 +33,12 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
 import Dashboard from '../pages/Dashboard';
 import EntitySearch from './EntitySearch';
@@ -90,6 +96,8 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
+
+  const cellSx = { border: 1, borderColor: 'divider', p: 0.5 } as const;
 
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
@@ -656,45 +664,72 @@ export default function VolunteerManagement({ token }: { token: string }) {
                     </div>
                   )}
                 </div>
-                <Button onClick={saveTrainedAreas} variant="outlined" color="primary">Save Roles</Button>
-                <h3 style={{ marginTop: 16 }}>History for {selectedVolunteer.name}</h3>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Role</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Date</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Time</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Status</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Button onClick={saveTrainedAreas} variant="outlined" color="primary">
+                  Save Roles
+                </Button>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  History for {selectedVolunteer.name}
+                </Typography>
+                <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={cellSx}>Role</TableCell>
+                      <TableCell sx={cellSx}>Date</TableCell>
+                      <TableCell sx={cellSx}>Time</TableCell>
+                      <TableCell sx={cellSx}>Status</TableCell>
+                      <TableCell sx={cellSx} />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {history.map(h => (
-                      <tr key={h.id}>
-                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.role_name}</td>
-                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.date}</td>
-                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{formatTime(h.start_time || h.startTime || '')} - {formatTime(h.end_time || h.endTime || '')}</td>
-                        <td style={{ border: '1px solid #ccc', padding: 4 }}>{h.status}</td>
-                        <td style={{ border: '1px solid #ccc', padding: 4 }}>
+                      <TableRow key={h.id}>
+                        <TableCell sx={cellSx}>{h.role_name}</TableCell>
+                        <TableCell sx={cellSx}>{h.date}</TableCell>
+                        <TableCell sx={cellSx}>
+                          {formatTime(h.start_time || h.startTime || '')} -
+                          {formatTime(h.end_time || h.endTime || '')}
+                        </TableCell>
+                        <TableCell sx={cellSx}>{h.status}</TableCell>
+                        <TableCell sx={cellSx}>
                           {h.status === 'pending' && (
                             <>
-                              <Button onClick={() => decide(h.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
-                              <Button onClick={() => decide(h.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
+                              <Button
+                                onClick={() => decide(h.id, 'approved')}
+                                variant="outlined"
+                                color="primary"
+                              >
+                                Approve
+                              </Button>{' '}
+                              <Button
+                                onClick={() => decide(h.id, 'rejected')}
+                                variant="outlined"
+                                color="primary"
+                              >
+                                Reject
+                              </Button>
                             </>
                           )}
-                            {h.status === 'approved' && (
-                              <Button onClick={() => decide(h.id, 'cancelled')} variant="outlined" color="primary">Cancel</Button>
-                            )}
-                        </td>
-                      </tr>
+                          {h.status === 'approved' && (
+                            <Button
+                              onClick={() => decide(h.id, 'cancelled')}
+                              variant="outlined"
+                              color="primary"
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
                     ))}
                     {history.length === 0 && (
-                      <tr>
-                        <td colSpan={5} style={{ textAlign: 'center', padding: 8 }}>No bookings.</td>
-                      </tr>
+                      <TableRow>
+                        <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
+                          No bookings.
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </Box>

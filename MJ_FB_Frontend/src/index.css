@@ -241,35 +241,3 @@ select {
   }
 }
 
-/* User history table */
-.history-table-container {
-  overflow-x: auto;
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.history-table th,
-.history-table td {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  text-align: left;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-@media (max-width: 600px) {
-  .history-table th,
-  .history-table td {
-    font-size: 0.85rem;
-    padding: 0.3rem;
-  }
-}
