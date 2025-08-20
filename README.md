@@ -22,9 +22,9 @@ npm install
 npm start   # or npm run dev
 ```
 
-### Required environment variables
+### Environment variables
 
-Create a `.env` file in `MJ_FB_Backend` with the following variables:
+Create a `.env` file in `MJ_FB_Backend` with the following variables. The server fails to start if any required variable is missing.
 
 | Variable | Description |
 | --- | --- |
@@ -36,8 +36,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables:
 | `JWT_SECRET` | Secret used to sign JWT tokens. Generate a strong random value, e.g., `openssl rand -hex 32` |
 | `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens. Use a different strong value from `JWT_SECRET`. |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
-| `PORT` | Port for the backend server |
-| `POWER_AUTOMATE_URL` | HTTP endpoint for the Power Automate email flow |
+| `PORT` | Port for the backend server (defaults to 4000) |
+| `POWER_AUTOMATE_URL` | HTTP endpoint for the Power Automate email flow (optional) |
 | `POWER_AUTOMATE_KEY` | Optional key or code for the Power Automate flow |
 
 You can generate a secure `JWT_SECRET` with:
