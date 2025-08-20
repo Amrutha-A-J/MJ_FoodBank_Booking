@@ -1,47 +1,32 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
+import logger from './utils/logger';
 
 dotenv.config();
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required');
-}
-if (!process.env.JWT_REFRESH_SECRET) {
-  throw new Error('JWT_REFRESH_SECRET environment variable is required');
-}
-
 const envSchema = z.object({
-  PG_USER: z.string().default('postgres'),
-  PG_PASSWORD: z.string().default('password'),
-  PG_HOST: z.string().default('localhost'),
-  PG_PORT: z.coerce.number().default(5432),
-  PG_DATABASE: z.string().default('mj_fb_db'),
+  PG_USER: z.string(),
+  PG_PASSWORD: z.string(),
+  PG_HOST: z.string(),
+  PG_PORT: z.coerce.number(),
+  PG_DATABASE: z.string(),
   JWT_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
-  FRONTEND_ORIGIN: z.string().default('http://localhost:5173,http://127.0.0.1:5173'),
+  FRONTEND_ORIGIN: z.string(),
   PORT: z.coerce.number().default(4000),
   POWER_AUTOMATE_URL: z.string().optional(),
   POWER_AUTOMATE_KEY: z.string().optional(),
 });
 
-const env = envSchema.parse(process.env);
+let env: z.infer<typeof envSchema>;
+try {
+  env = envSchema.parse(process.env);
+} catch (err) {
+  logger.error('❌ Invalid or missing environment variables:', err);
+  process.exit(1);
+}
 
 const frontendOrigins = env.FRONTEND_ORIGIN.split(',').map(o => o.trim());
-
-const requiredVars: Array<keyof typeof env> = [
-  'PG_USER',
-  'PG_PASSWORD',
-  'PG_HOST',
-  'PG_PORT',
-  'PG_DATABASE',
-  'FRONTEND_ORIGIN',
-];
-
-const missing = requiredVars.filter(key => !process.env[key]);
-if (missing.length > 0) {
-  // eslint-disable-next-line no-console
-  console.warn(`Missing environment variables: ${missing.join(', ')}`);
-}
 
 export default {
   pgUser: env.PG_USER,
