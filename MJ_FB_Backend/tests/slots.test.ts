@@ -1,16 +1,14 @@
 import request from 'supertest';
 import express from 'express';
-import slotsRouter from '../src/routes/slots';
+import app from '../src/app';
 import pool from '../src/db';
 
 jest.mock('../src/db');
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
-
-const app = express();
-app.use('/slots', slotsRouter);
 
 describe('GET /slots with invalid dates', () => {
   beforeEach(() => {
