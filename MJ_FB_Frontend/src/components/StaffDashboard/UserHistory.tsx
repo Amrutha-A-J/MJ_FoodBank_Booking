@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getBookingHistory } from '../../api/api';
+import { getBookingHistory } from '../../api/bookings';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';

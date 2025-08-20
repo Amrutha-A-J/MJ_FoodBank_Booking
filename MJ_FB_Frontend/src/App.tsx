@@ -17,7 +17,7 @@ import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
 import type { Role, UserRole } from './types';
-import type { LoginResponse } from './api/api';
+import type { LoginResponse } from './api/client';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';

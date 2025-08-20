@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
-import { loginVolunteer } from '../api/api';
+import { loginVolunteer } from '../api/volunteers';
 
-jest.mock('../api/api', () => ({
+jest.mock('../api/volunteers', () => ({
   loginVolunteer: jest.fn(),
 }));
 

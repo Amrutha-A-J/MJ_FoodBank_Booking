@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import App from '../App';
 
-jest.mock('../api/api', () => ({
+jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),
   getSlots: jest.fn().mockResolvedValue([]),
   getHolidays: jest.fn().mockResolvedValue([]),

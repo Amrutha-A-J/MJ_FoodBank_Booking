@@ -1,0 +1,214 @@
+// src/api/volunteers.ts
+// Volunteer related API calls
+import type {
+  VolunteerRole,
+  VolunteerRoleWithShifts,
+} from '../types';
+import {
+  API_BASE,
+  apiFetch,
+  handleResponse,
+  type LoginResponse,
+} from './client';
+
+export async function loginVolunteer(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
+  const res = await apiFetch(`${API_BASE}/volunteers/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  return handleResponse(res);
+}
+
+export async function searchVolunteers(token: string, search: string) {
+  const res = await apiFetch(
+    `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
+  );
+  return handleResponse(res);
+}
+
+export async function getVolunteerRolesForVolunteer(
+  token: string,
+  date: string,
+): Promise<VolunteerRole[]> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`);
+  return handleResponse(res);
+}
+
+export async function requestVolunteerBooking(
+  token: string,
+  roleId: number,
+  date: string,
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ roleId, date }),
+  });
+  return handleResponse(res);
+}
+
+export async function getMyVolunteerBookings(token: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`);
+  return handleResponse(res);
+}
+
+export async function getVolunteerRoles(
+  token: string,
+): Promise<VolunteerRoleWithShifts[]> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles`);
+  return handleResponse(res);
+}
+
+export async function getVolunteerMasterRoles(token: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`);
+  return handleResponse(res);
+}
+
+export async function updateVolunteerRoleStatus(
+  token: string,
+  id: number,
+  isActive: boolean,
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isActive }),
+  });
+  return handleResponse(res);
+}
+
+export async function getVolunteerBookingsByRole(
+  token: string,
+  roleId: number,
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`);
+  return handleResponse(res);
+}
+
+export async function updateVolunteerBookingStatus(
+  token: string,
+  bookingId: number,
+  status: 'approved' | 'rejected' | 'cancelled',
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  await handleResponse(res);
+}
+
+export async function createVolunteerBookingForVolunteer(
+  token: string,
+  volunteerId: number,
+  roleId: number,
+  date: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/staff`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ volunteerId, roleId, date }),
+  });
+  await handleResponse(res);
+}
+
+export async function getVolunteerBookingHistory(
+  token: string,
+  volunteerId: number,
+) {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`,
+  );
+  return handleResponse(res);
+}
+
+export async function createVolunteer(
+  token: string,
+  firstName: string,
+  lastName: string,
+  username: string,
+  password: string,
+  roleIds: number[],
+  email?: string,
+  phone?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      username,
+      password,
+      roleIds,
+      email,
+      phone,
+    }),
+  });
+  await handleResponse(res);
+}
+
+export async function updateVolunteerTrainedAreas(
+  token: string,
+  id: number,
+  roleIds: number[],
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}/trained-areas`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ roleIds }),
+  });
+  await handleResponse(res);
+}
+
+export async function rescheduleVolunteerBookingByToken(
+  token: string,
+  roleId: number,
+  date: string,
+): Promise<void> {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/reschedule/${token}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId, date }),
+    },
+  );
+  await handleResponse(res);
+}
+
+export async function createVolunteerShopperProfile(
+  token: string,
+  volunteerId: number,
+  clientId: string,
+  password: string,
+  email?: string,
+  phone?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      clientId: Number(clientId),
+      password,
+      email,
+      phone,
+    }),
+  });
+  await handleResponse(res);
+}
+
+export async function removeVolunteerShopperProfile(
+  token: string,
+  volunteerId: number,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {
+    method: 'DELETE',
+  });
+  await handleResponse(res);
+}
+

@@ -11,7 +11,7 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-} from '../api/api';
+} from '../api/volunteers';
 import type { VolunteerBookingDetail } from '../types';
 import { formatTime } from '../utils/time';
 import VolunteerScheduleTable from './VolunteerScheduleTable';

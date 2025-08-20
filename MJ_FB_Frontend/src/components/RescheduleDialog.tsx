@@ -8,7 +8,7 @@ import {
   TextField,
   MenuItem,
 } from '@mui/material';
-import { getSlots, rescheduleBookingByToken } from '../api/api';
+import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import type { Slot } from '../types';

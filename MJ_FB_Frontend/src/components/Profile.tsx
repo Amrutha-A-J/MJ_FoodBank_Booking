@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Typography, List, ListItem } from '@mui/material';
 import type { Role, UserProfile } from '../types';
-import { getUserProfile } from '../api/api';
+import { getUserProfile } from '../api/users';
 import Page from './Page';
 import ChangePasswordForm from './ChangePasswordForm';
 

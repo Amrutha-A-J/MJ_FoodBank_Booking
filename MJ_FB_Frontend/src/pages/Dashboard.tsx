@@ -21,12 +21,8 @@ import {
   EventAvailable,
   Announcement,
 } from '@mui/icons-material';
-import {
-  getBookings,
-  getSlots,
-  getVolunteerRoles,
-  getVolunteerBookingsByRole,
-} from '../api/api';
+import { getBookings, getSlots } from '../api/bookings';
+import { getVolunteerRoles, getVolunteerBookingsByRole } from '../api/volunteers';
 import type { Role, Slot } from '../types';
 import { formatTime } from '../utils/time';
 import EntitySearch from '../components/EntitySearch';

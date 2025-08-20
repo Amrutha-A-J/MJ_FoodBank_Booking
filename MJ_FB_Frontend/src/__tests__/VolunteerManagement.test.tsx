@@ -12,9 +12,9 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-} from '../api/api';
+} from '../api/volunteers';
 
-jest.mock('../api/api', () => ({
+jest.mock('../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   getVolunteerBookingsByRole: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),

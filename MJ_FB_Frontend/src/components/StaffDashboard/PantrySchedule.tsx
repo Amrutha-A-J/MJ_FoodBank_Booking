@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, searchUsers, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/api';
+import {
+  getSlots,
+  getBookings,
+  getHolidays,
+  createBookingForUser,
+  decideBooking,
+  cancelBooking,
+  getBlockedSlots,
+  getBreaks,
+  getAllSlots,
+} from '../../api/bookings';
+import { searchUsers } from '../../api/users';
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';

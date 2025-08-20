@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { TextField, Button } from '@mui/material';
-import { searchUsers, searchVolunteers } from '../api/api';
+import { searchUsers } from '../api/users';
+import { searchVolunteers } from '../api/volunteers';
 
 interface EntitySearchProps {
   token: string;

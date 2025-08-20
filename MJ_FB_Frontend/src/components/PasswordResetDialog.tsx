@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
-import { requestPasswordReset } from '../api/api';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from '@mui/material';
+import { requestPasswordReset } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 
 export default function PasswordResetDialog({
