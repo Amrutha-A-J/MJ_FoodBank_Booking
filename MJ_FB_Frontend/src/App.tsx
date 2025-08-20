@@ -17,43 +17,16 @@ import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
 import type { Role, UserRole } from './types';
-import type { LoginResponse } from './api/api';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
+import { useAuth } from './hooks/useAuth';
 
 export default function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
-  const [role, setRole] = useState<Role>(
-    () => (localStorage.getItem('role') as Role) || ('' as Role)
-  );
-  const [name, setName] = useState(() => localStorage.getItem('name') || '');
-  const [userRole, setUserRole] = useState<UserRole | ''>(
-    () => (localStorage.getItem('userRole') as UserRole) || ''
-  );
+  const { token, role, name, userRole, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
-
-  function handleLogin(u: LoginResponse) {
-    setToken('loggedin');
-    setRole(u.role);
-    setName(u.name);
-    setUserRole(u.userRole || '');
-    if (u.userRole) localStorage.setItem('userRole', u.userRole);
-    else localStorage.removeItem('userRole');
-  }
-
-  function logout() {
-    setToken('');
-    setRole('' as Role);
-    setName('');
-    setUserRole('');
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('name');
-    localStorage.removeItem('userRole');
-  }
 
   const navGroups: NavGroup[] = [];
   if (!token) {
@@ -126,7 +99,7 @@ export default function App() {
           severity="error"
         />
 
-        {token ? (
+          {token ? (
           <main>
             <Breadcrumbs />
             <Routes>
@@ -210,9 +183,9 @@ export default function App() {
         ) : (
           <main>
             <Routes>
-              <Route path="/login/user" element={<Login onLogin={handleLogin} />} />
-              <Route path="/login/staff" element={<StaffLogin onLogin={handleLogin} />} />
-              <Route path="/login/volunteer" element={<VolunteerLogin onLogin={handleLogin} />} />
+                <Route path="/login/user" element={<Login onLogin={login} />} />
+                <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
+                <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
               <Route path="/login" element={<Navigate to="/login/user" replace />} />
               <Route path="*" element={<Navigate to="/login/user" replace />} />
             </Routes>
