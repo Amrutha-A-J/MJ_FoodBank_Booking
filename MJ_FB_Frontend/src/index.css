@@ -67,6 +67,11 @@ p {
   p {
     font-size: 0.9em;
   }
+
+  main {
+    margin: 8px;
+    margin-top: 30px;
+  }
 }
 
 button {
