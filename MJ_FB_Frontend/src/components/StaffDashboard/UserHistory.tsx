@@ -2,7 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory } from '../../api/api';
 import { formatInTimeZone } from 'date-fns-tz';
-import { Box, Button, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';
 import EntitySearch from '../EntitySearch';
 
@@ -77,6 +91,16 @@ export default function UserHistory({
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const cellSx = {
+    border: 1,
+    borderColor: 'divider',
+    p: isSmall ? 0.5 : 1,
+    fontSize: isSmall ? '0.85rem' : undefined,
+    textAlign: 'left',
+  } as const;
+
   return (
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
       <Box width="100%" maxWidth={800} mt={4}>
@@ -107,75 +131,87 @@ export default function UserHistory({
                 <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
-            <div className="history-table-container">
-              <table className="history-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                  <th>Reason</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginated.length === 0 && (
-                  <tr>
-                    <td colSpan={5}>No bookings.</td>
-                  </tr>
-                )}
-                {paginated.map(b => {
-                  const hasStart = b.date && b.start_time;
-                  const hasEnd = b.date && b.end_time;
-                  const startTime =
-                    hasStart && !isNaN(new Date(`${b.date}T${b.start_time}`).getTime())
-                      ? formatInTimeZone(
-                          `${b.date}T${b.start_time}`,
-                          TIMEZONE,
-                          'h:mm a'
-                        )
-                      : 'N/A';
-                  const endTime =
-                    hasEnd && !isNaN(new Date(`${b.date}T${b.end_time}`).getTime())
-                      ? formatInTimeZone(
-                          `${b.date}T${b.end_time}`,
-                          TIMEZONE,
-                          'h:mm a'
-                        )
-                      : 'N/A';
-                  const formattedDate =
-                    b.date && !isNaN(new Date(b.date).getTime())
-                      ? formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')
-                      : 'N/A';
-                  return (
-                    <tr key={b.id}>
-                      <td>{formattedDate}</td>
-                      <td>
-                        {startTime !== 'N/A' && endTime !== 'N/A'
-                          ? `${startTime} - ${endTime}`
-                          : 'N/A'}
-                      </td>
-                      <td>{b.status}</td>
-                      <td>{b.reason || ''}</td>
-                      <td>
-                        {['approved', 'submitted'].includes(b.status.toLowerCase()) && (
-                          <Button
-                            onClick={() => setRescheduleBooking(b)}
-                            variant="outlined"
-                            color="primary"
-                          >
-                            Reschedule
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+            <Box sx={{ overflowX: 'auto' }}>
+              <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={cellSx}>Date</TableCell>
+                    <TableCell sx={cellSx}>Time</TableCell>
+                    <TableCell sx={cellSx}>Status</TableCell>
+                    <TableCell sx={cellSx}>Reason</TableCell>
+                    <TableCell sx={cellSx}>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginated.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
+                        No bookings.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {paginated.map(b => {
+                    const hasStart = b.date && b.start_time;
+                    const hasEnd = b.date && b.end_time;
+                    const startTime =
+                      hasStart && !isNaN(new Date(`${b.date}T${b.start_time}`).getTime())
+                        ? formatInTimeZone(
+                            `${b.date}T${b.start_time}`,
+                            TIMEZONE,
+                            'h:mm a'
+                          )
+                        : 'N/A';
+                    const endTime =
+                      hasEnd && !isNaN(new Date(`${b.date}T${b.end_time}`).getTime())
+                        ? formatInTimeZone(
+                            `${b.date}T${b.end_time}`,
+                            TIMEZONE,
+                            'h:mm a'
+                          )
+                        : 'N/A';
+                    const formattedDate =
+                      b.date && !isNaN(new Date(b.date).getTime())
+                        ? formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')
+                        : 'N/A';
+                    return (
+                      <TableRow key={b.id}>
+                        <TableCell sx={cellSx}>{formattedDate}</TableCell>
+                        <TableCell sx={cellSx}>
+                          {startTime !== 'N/A' && endTime !== 'N/A'
+                            ? `${startTime} - ${endTime}`
+                            : 'N/A'}
+                        </TableCell>
+                        <TableCell sx={cellSx}>{b.status}</TableCell>
+                        <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
+                        <TableCell sx={cellSx}>
+                          {['approved', 'submitted'].includes(
+                            b.status.toLowerCase()
+                          ) && (
+                            <Button
+                              onClick={() => setRescheduleBooking(b)}
+                              variant="outlined"
+                              color="primary"
+                            >
+                              Reschedule
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
             {totalPages > 1 && (
-              <div className="pagination">
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: 1,
+                  mt: 1,
+                }}
+              >
                 <Button
                   disabled={page === 1}
                   onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -195,7 +231,7 @@ export default function UserHistory({
                 >
                   Next
                 </Button>
-              </div>
+              </Box>
             )}
           </div>
         )}
