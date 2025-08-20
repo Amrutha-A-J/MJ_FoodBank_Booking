@@ -3,8 +3,15 @@ import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
+import * as bookingRepository from '../src/models/bookingRepository';
 
 jest.mock('../src/db');
+jest.mock('../src/models/bookingRepository', () => ({
+  __esModule: true,
+  ...jest.requireActual('../src/models/bookingRepository'),
+  checkSlotCapacity: jest.fn(),
+  insertBooking: jest.fn(),
+}));
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
@@ -35,14 +42,13 @@ beforeEach(() => {
 describe('POST /bookings capacity check', () => {
   it('returns 400 when slot is full', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
-    const mockQuery = pool.query as jest.Mock;
-    mockQuery
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
-      })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, max_capacity: 1 }] })
-      .mockResolvedValueOnce({ rows: [{ count: '1' }] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+    });
+    (bookingRepository.checkSlotCapacity as jest.Mock).mockRejectedValue(
+      new bookingRepository.SlotCapacityError('Slot full on selected date'),
+    );
 
     const today = new Date().toLocaleDateString('en-CA');
     const res = await request(app)
@@ -52,5 +58,6 @@ describe('POST /bookings capacity check', () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Slot full on selected date');
+    expect(bookingRepository.insertBooking).not.toHaveBeenCalled();
   });
 });

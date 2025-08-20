@@ -1,11 +1,20 @@
 import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
-import pool from '../src/db';
 import * as bookingUtils from '../src/utils/bookingUtils';
+import * as bookingRepository from '../src/models/bookingRepository';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/models/bookingRepository', () => ({
+  __esModule: true,
+  ...jest.requireActual('../src/models/bookingRepository'),
+  checkSlotCapacity: jest.fn(),
+  insertBooking: jest.fn(),
+  fetchBookingById: jest.fn(),
+  fetchBookingByToken: jest.fn(),
+  updateBooking: jest.fn(),
+}));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -72,11 +81,8 @@ afterEach(() => {
 
 describe('volunteer acting as shopper', () => {
   it('can create a booking', async () => {
-    const mockQuery = pool.query as jest.Mock;
-    mockQuery
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, max_capacity: 5 }] })
-      .mockResolvedValueOnce({ rows: [{ count: '0' }] })
-      .mockResolvedValueOnce({});
+    (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
+    (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -86,20 +92,20 @@ describe('volunteer acting as shopper', () => {
 
     expect(res.status).toBe(201);
     expect(bookingUtils.countApprovedBookingsForMonth).toHaveBeenCalledWith(10, today);
-    expect(mockQuery.mock.calls[2][1][0]).toBe(10);
+    expect((bookingRepository.insertBooking as jest.Mock).mock.calls[0][0]).toBe(10);
   });
 
   it('can cancel their booking', async () => {
-    const mockQuery = pool.query as jest.Mock;
     const futureDate = new Date(Date.now() + 86400000)
       .toISOString()
       .split('T')[0];
-    mockQuery
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, user_id: 10, status: 'submitted', date: futureDate }],
-      })
-      .mockResolvedValueOnce({});
+    (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: 10,
+      status: 'submitted',
+      date: futureDate,
+    });
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app).post('/bookings/1/cancel');
 
@@ -108,18 +114,17 @@ describe('volunteer acting as shopper', () => {
   });
 
   it('can reschedule their booking', async () => {
-    const mockQuery = pool.query as jest.Mock;
     const futureDate = new Date(Date.now() + 86400000)
       .toISOString()
       .split('T')[0];
-    mockQuery
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, user_id: 10, status: 'approved', slot_id: 1 }],
-      })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 2, max_capacity: 5 }] })
-      .mockResolvedValueOnce({ rows: [{ count: '0' }] })
-      .mockResolvedValueOnce({});
+    (bookingRepository.fetchBookingByToken as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: 10,
+      status: 'approved',
+      slot_id: 1,
+    });
+    (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app)
       .post('/bookings/reschedule/token123')
