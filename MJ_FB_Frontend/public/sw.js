@@ -1,6 +1,5 @@
-
 const CACHE_NAME = 'mj-foodbank-cache-v1';
-const URLS_TO_CACHE = ['/', '/index.html'];
+const URLS_TO_CACHE = ['/', '/index.html', '/offline.html'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -34,7 +33,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => caches.match('/offline.html'));
     }),
   );
 });
