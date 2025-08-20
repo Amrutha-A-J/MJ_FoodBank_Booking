@@ -109,6 +109,13 @@ export async function loginVolunteer(
   return data;
 }
 
+export async function logout(): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/auth/logout`, {
+    method: 'POST',
+  });
+  await handleResponse(res);
+}
+
 export async function requestPasswordReset(data: {
   email?: string;
   username?: string;

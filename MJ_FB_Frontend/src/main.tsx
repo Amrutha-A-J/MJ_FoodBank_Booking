@@ -6,16 +6,19 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { registerServiceWorker } from './registerServiceWorker';
+import { AuthProvider } from './hooks/useAuth';
 
 function Main() {
   const queryClient = new QueryClient();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

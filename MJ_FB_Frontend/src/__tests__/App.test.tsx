@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import App from '../App';
+import { AuthProvider } from '../hooks/useAuth';
 
 jest.mock('../api/api', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),
@@ -13,15 +14,23 @@ describe('App authentication persistence', () => {
   });
 
   it('shows login when not authenticated', () => {
-    render(<App />);
+    render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
     expect(screen.getByText(/user login/i)).toBeInTheDocument();
   });
 
   it('keeps user logged in when token exists', () => {
-    localStorage.setItem('token', 'loggedin');
+    localStorage.setItem('token', 'testtoken');
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
-    render(<App />);
+    render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
     expect(screen.queryByText(/user login/i)).not.toBeInTheDocument();
   });
 });
