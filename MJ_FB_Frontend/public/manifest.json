@@ -1,6 +1,6 @@
 {
-  "name": "Food Bank Booking",
-  "short_name": "FoodBank",
+  "name": "Moose Jaw Food Bank Booking",
+  "short_name": "MJ FoodBank",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
