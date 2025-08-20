@@ -5,6 +5,7 @@ import './index.css';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { registerServiceWorker } from './registerServiceWorker';
 
 function Main() {
   const queryClient = new QueryClient();
@@ -24,6 +25,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Main />
   </React.StrictMode>,
 );
+
+registerServiceWorker();
 
 export default Main;
 
