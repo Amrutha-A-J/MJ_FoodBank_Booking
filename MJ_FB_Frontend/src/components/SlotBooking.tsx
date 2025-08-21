@@ -66,7 +66,7 @@ export default function SlotBooking({ token, role }: Props) {
 
   const { data: holidays = [] } = useQuery<Holiday[]>({
     queryKey: ['holidays', token],
-    queryFn: () => getHolidays(token),
+    queryFn: () => getHolidays(),
   });
 
   const isHoliday = useCallback(
@@ -112,7 +112,7 @@ export default function SlotBooking({ token, role }: Props) {
     isFetching: userFetching,
   } = useQuery({
     queryKey: ['userSearch', searchTerm],
-    queryFn: () => searchUsers(token, searchTerm),
+    queryFn: () => searchUsers(searchTerm),
     enabled: role === 'staff' && searchTerm.length >= 3,
     onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'),
   });
@@ -143,7 +143,7 @@ export default function SlotBooking({ token, role }: Props) {
   const slotsEnabled = !!selectedDate && !isWeekend(selectedDate) && !isHoliday(selectedDate);
   const { data: slots = [] } = useQuery<Slot[]>({
     queryKey: ['slots', token, selectedDate ? formatDate(selectedDate) : null],
-    queryFn: () => getSlots(token, formatDate(selectedDate as Date)),
+    queryFn: () => getSlots(formatDate(selectedDate as Date)),
     enabled: slotsEnabled,
     onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'),
   });
@@ -151,11 +151,11 @@ export default function SlotBooking({ token, role }: Props) {
   const queryClient = useQueryClient();
   const bookingMutation = useMutation({
     mutationFn: (vars: { slotId: string; date: string }) =>
-      createBooking(token, vars.slotId, vars.date),
+      createBooking(vars.slotId, vars.date),
   });
   const staffBookingMutation = useMutation({
     mutationFn: (vars: { userId: number; slotId: number; date: string }) =>
-      createBookingForUser(token, vars.userId, vars.slotId, vars.date, true),
+      createBookingForUser(vars.userId, vars.slotId, vars.date, true),
   });
 
   async function submitBooking() {

@@ -42,10 +42,8 @@ interface Booking {
 }
 
 export default function UserHistory({
-  token,
   initialUser,
 }: {
-  token: string;
   initialUser?: User;
 }) {
   const [searchParams] = useSearchParams();
@@ -63,7 +61,7 @@ export default function UserHistory({
     if (!initialUser) opts.userId = selected.id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
-    return getBookingHistory(token, opts)
+    return getBookingHistory(opts)
       .then(data => {
         const sorted = [...data].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -72,7 +70,7 @@ export default function UserHistory({
         setPage(1);
       })
       .catch(err => console.error('Error loading history:', err));
-  }, [selected, filter, token, initialUser]);
+  }, [selected, filter, initialUser]);
 
   useEffect(() => {
     loadBookings();
@@ -106,8 +104,7 @@ export default function UserHistory({
       <Box width="100%" maxWidth={800} mt={4}>
         <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
         {!initialUser && (
-          <EntitySearch
-            token={token}
+            <EntitySearch
             type="user"
             placeholder="Search by name or client ID"
             onSelect={u => setSelected(u as User)}
@@ -238,7 +235,6 @@ export default function UserHistory({
         {rescheduleBooking && (
           <RescheduleDialog
             open={!!rescheduleBooking}
-            token={token}
             rescheduleToken={rescheduleBooking.reschedule_token}
             onClose={() => setRescheduleBooking(null)}
             onRescheduled={() => {

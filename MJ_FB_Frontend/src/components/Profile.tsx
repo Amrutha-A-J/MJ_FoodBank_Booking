@@ -5,17 +5,17 @@ import { getUserProfile } from '../api/users';
 import Page from './Page';
 import ChangePasswordForm from './ChangePasswordForm';
 
-export default function Profile({ token, role }: { token: string; role: Role }) {
+export default function Profile({ role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (role === 'shopper') {
-      getUserProfile(token)
+      getUserProfile()
         .then(setProfile)
         .catch(e => setError(e instanceof Error ? e.message : String(e)));
     }
-  }, [role, token]);
+  }, [role]);
 
   return (
     <Page title="User Profile">
@@ -31,7 +31,7 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
         </List>
       )}
       {role !== 'shopper' && <Typography>No profile information available.</Typography>}
-      <ChangePasswordForm token={token} />
+      <ChangePasswordForm />
     </Page>
   );
 }

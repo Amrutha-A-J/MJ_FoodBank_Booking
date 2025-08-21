@@ -67,7 +67,7 @@ interface VolunteerResult {
 }
 
 
-export default function VolunteerManagement({ token }: { token: string }) {
+export default function VolunteerManagement() {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const [searchParams] = useSearchParams();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
@@ -159,7 +159,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   }, []);
 
   useEffect(() => {
-    getVolunteerRoles(token)
+    getVolunteerRoles()
       .then(data => {
         const flattened: RoleOption[] = data.flatMap(r =>
           r.shifts.map(s => ({
@@ -175,7 +175,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
         setRoles(flattened);
       })
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const groupedRoles = useMemo(() => {
     const groups = new Map<string, { name: string; category_id: number }[]>();
@@ -225,7 +225,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
       const ids = nameToRoleIds.get(selectedRole) || [];
-      Promise.all(ids.map(id => getVolunteerBookingsByRole(token, id)))
+      Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
         .then(data => {
           setBookings(data.flat());
         })
@@ -233,7 +233,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
     } else if (!selectedRole) {
       setBookings([]);
     }
-  }, [selectedRole, token, tab, nameToRoleIds]);
+  }, [selectedRole, tab, nameToRoleIds]);
 
   // volunteer search handled via EntitySearch component
 
@@ -241,7 +241,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
     const all: VolunteerBookingDetail[] = [];
     for (const r of roles) {
       try {
-        const data = await getVolunteerBookingsByRole(token, r.id);
+        const data = await getVolunteerBookingsByRole(r.id);
         const approvedByDate: Record<string, number> = {};
         data.forEach((b: VolunteerBookingDetail) => {
           if (b.status.toLowerCase() === 'approved') {
@@ -260,7 +260,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       }
     }
     setPending(all);
-  }, [roles, token]);
+  }, [roles]);
 
   useEffect(() => {
     if (tab === 'pending') {
@@ -280,11 +280,11 @@ export default function VolunteerManagement({ token }: { token: string }) {
 
   async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
     try {
-      await updateVolunteerBookingStatus(token, id, status);
+      await updateVolunteerBookingStatus(id, status);
       if (selectedRole) {
         const ids = nameToRoleIds.get(selectedRole) || [];
         const data = await Promise.all(
-          ids.map(rid => getVolunteerBookingsByRole(token, rid))
+          ids.map(rid => getVolunteerBookingsByRole(rid))
         );
         setBookings(data.flat());
       }
@@ -296,7 +296,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
 
   async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
     try {
-      const res = await searchVolunteers(token, name);
+      const res = await searchVolunteers(name);
       const found = res.find((v: VolunteerResult) => v.id === id);
       if (found) return found;
     } catch {
@@ -333,7 +333,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       )
     );
     try {
-      const data = await getVolunteerBookingHistory(token, vol.id);
+      const data = await getVolunteerBookingHistory(vol.id);
       setHistory(data);
     } catch {
       setHistory([]);
@@ -352,7 +352,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
     try {
       setAssignMsg('');
       await createVolunteerBookingForVolunteer(
-        token,
         vol.id,
         assignSlot.id,
         formatDate(currentDate)
@@ -362,7 +361,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       setAssignResults([]);
       const ids = nameToRoleIds.get(selectedRole) || [];
       const data = await Promise.all(
-        ids.map(id => getVolunteerBookingsByRole(token, id))
+        ids.map(id => getVolunteerBookingsByRole(id))
       );
       setBookings(data.flat());
     } catch (e) {
@@ -376,7 +375,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       const ids = Array.from(
         new Set(trainedEdit.flatMap(name => nameToRoleIds.get(name) || []))
       );
-      await updateVolunteerTrainedAreas(token, selectedVolunteer.id, ids);
+      await updateVolunteerTrainedAreas(selectedVolunteer.id, ids);
       setEditSeverity('success');
       setEditMsg('Roles updated');
     } catch (e) {
@@ -398,7 +397,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
     if (!selectedVolunteer) return;
     try {
       await createVolunteerShopperProfile(
-        token,
         selectedVolunteer.id,
         shopperClientId,
         shopperPassword,
@@ -422,7 +420,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   async function removeShopper() {
     if (!selectedVolunteer) return;
     try {
-      await removeVolunteerShopperProfile(token, selectedVolunteer.id);
+      await removeVolunteerShopperProfile(selectedVolunteer.id);
       setEditSeverity('success');
       setEditMsg('Shopper profile removed');
       setRemoveShopperOpen(false);
@@ -454,7 +452,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
         )
       );
       await createVolunteer(
-        token,
         firstName,
         lastName,
         username,
@@ -486,7 +483,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       return;
     }
     const delay = setTimeout(() => {
-      searchVolunteers(token, assignSearch)
+      searchVolunteers(assignSearch)
         .then((data: VolunteerResult[]) => {
           const filtered = data
             .filter(v => v.trainedAreas.includes(assignSlot.id))
@@ -496,7 +493,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
         .catch(() => setAssignResults([]));
     }, 300);
     return () => clearTimeout(delay);
-  }, [assignSearch, token, assignSlot]);
+  }, [assignSearch, assignSlot]);
 
   const bookingsForDate = bookings.filter(
     b =>
@@ -551,7 +548,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   return (
     <div>
       <h2>{title}</h2>
-      {tab === 'dashboard' && <Dashboard role="staff" token={token} />}
+      {tab === 'dashboard' && <Dashboard role="staff" />}
       {tab === 'schedule' && (
         <div>
           <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -585,7 +582,6 @@ export default function VolunteerManagement({ token }: { token: string }) {
         <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
           <Box width="100%" maxWidth={600} mt={4}>
             <EntitySearch
-              token={token}
               type="volunteer"
               placeholder="Search volunteers"
               onSelect={selectVolunteer}

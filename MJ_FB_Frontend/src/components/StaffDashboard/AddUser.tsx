@@ -5,7 +5,7 @@ import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
 
-export default function AddUser({ token }: { token: string }) {
+export default function AddUser() {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('shopper');
@@ -26,7 +26,6 @@ export default function AddUser({ token }: { token: string }) {
     }
     try {
       await addUser(
-        token,
         firstName,
         lastName,
         clientId,
@@ -54,7 +53,7 @@ export default function AddUser({ token }: { token: string }) {
       return;
     }
     try {
-      await createStaff(firstName, lastName, staffRole, email, password, token);
+      await createStaff(firstName, lastName, staffRole, email, password);
       setSuccess('Staff added successfully');
       setFirstName('');
       setLastName('');

@@ -13,14 +13,14 @@ import {
   TableBody,
 } from '@mui/material';
 
-export default function VolunteerBookingHistory({ token }: { token: string }) {
+export default function VolunteerBookingHistory() {
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
 
   useEffect(() => {
-    getMyVolunteerBookings(token)
+    getMyVolunteerBookings()
       .then(setHistory)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   return (
     <Page title="Booking History">

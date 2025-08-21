@@ -51,7 +51,7 @@ describe('VolunteerManagement shopper profile', () => {
     render(
       <MemoryRouter initialEntries={['/volunteers/search']}>
         <Routes>
-          <Route path="/volunteers/:tab" element={<VolunteerManagement token="t" />} />
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
         </Routes>
       </MemoryRouter>
     );
@@ -67,7 +67,6 @@ describe('VolunteerManagement shopper profile', () => {
 
     await waitFor(() =>
       expect(createVolunteerShopperProfile).toHaveBeenCalledWith(
-        't',
         1,
         '123',
         'pass',
@@ -87,7 +86,7 @@ describe('VolunteerManagement shopper profile', () => {
     render(
       <MemoryRouter initialEntries={['/volunteers/search']}>
         <Routes>
-          <Route path="/volunteers/:tab" element={<VolunteerManagement token="t" />} />
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
         </Routes>
       </MemoryRouter>
     );
@@ -99,7 +98,7 @@ describe('VolunteerManagement shopper profile', () => {
     fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
 
     await waitFor(() =>
-      expect(removeVolunteerShopperProfile).toHaveBeenCalledWith('t', 1)
+      expect(removeVolunteerShopperProfile).toHaveBeenCalledWith(1)
     );
     await waitFor(() =>
       expect(screen.getByLabelText(/shopper profile/i)).not.toBeChecked()

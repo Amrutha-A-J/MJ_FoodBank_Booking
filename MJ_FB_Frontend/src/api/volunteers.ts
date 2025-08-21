@@ -15,7 +15,7 @@ export async function loginVolunteer(
   return data;
 }
 
-export async function searchVolunteers(token: string, search: string) {
+export async function searchVolunteers(search: string) {
   const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
   );
@@ -23,7 +23,6 @@ export async function searchVolunteers(token: string, search: string) {
 }
 
 export async function getVolunteerRolesForVolunteer(
-  token: string,
   date: string,
 ): Promise<VolunteerRole[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`);
@@ -31,7 +30,6 @@ export async function getVolunteerRolesForVolunteer(
 }
 
 export async function requestVolunteerBooking(
-  token: string,
   roleId: number,
   date: string
 ): Promise<void> {
@@ -45,28 +43,26 @@ export async function requestVolunteerBooking(
   await handleResponse(res);
 }
 
-export async function getMyVolunteerBookings(token: string) {
+export async function getMyVolunteerBookings() {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`);
   return handleResponse(res);
 }
 
 export async function getVolunteerRoles(
-  token: string,
 ): Promise<VolunteerRoleWithShifts[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles`);
   return handleResponse(res);
 }
 
-export async function getVolunteerMasterRoles(token: string) {
+export async function getVolunteerMasterRoles() {
   const res = await apiFetch(`${API_BASE}/volunteer-master-roles`);
   return handleResponse(res);
 }
 
 export async function updateVolunteerRoleStatus(
-  token: string,
   id: number,
   isActive: boolean,
-) {
+ ) {
   const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
     method: 'PATCH',
     headers: {
@@ -77,13 +73,12 @@ export async function updateVolunteerRoleStatus(
   return handleResponse(res);
 }
 
-export async function getVolunteerBookingsByRole(token: string, roleId: number) {
+export async function getVolunteerBookingsByRole(roleId: number) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`);
   return handleResponse(res);
 }
 
 export async function updateVolunteerBookingStatus(
-  token: string,
   bookingId: number,
   status: 'approved' | 'rejected' | 'cancelled'
 ): Promise<void> {
@@ -98,7 +93,6 @@ export async function updateVolunteerBookingStatus(
 }
 
 export async function createVolunteerBookingForVolunteer(
-  token: string,
   volunteerId: number,
   roleId: number,
   date: string
@@ -113,13 +107,12 @@ export async function createVolunteerBookingForVolunteer(
   await handleResponse(res);
 }
 
-export async function getVolunteerBookingHistory(token: string, volunteerId: number) {
+export async function getVolunteerBookingHistory(volunteerId: number) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`);
   return handleResponse(res);
 }
 
 export async function createVolunteer(
-  token: string,
   firstName: string,
   lastName: string,
   username: string,
@@ -147,7 +140,6 @@ export async function createVolunteer(
 }
 
 export async function updateVolunteerTrainedAreas(
-  token: string,
   id: number,
   roleIds: number[]
 ): Promise<void> {
@@ -175,7 +167,6 @@ export async function rescheduleVolunteerBookingByToken(
 }
 
 export async function createVolunteerShopperProfile(
-  token: string,
   volunteerId: number,
   clientId: string,
   password: string,
@@ -196,7 +187,6 @@ export async function createVolunteerShopperProfile(
 }
 
 export async function removeVolunteerShopperProfile(
-  token: string,
   volunteerId: number,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteers/${volunteerId}/shopper`, {

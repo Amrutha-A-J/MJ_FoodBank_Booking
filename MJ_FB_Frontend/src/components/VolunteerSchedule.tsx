@@ -35,7 +35,7 @@ import {
 
 const reginaTimeZone = 'America/Regina';
 
-export default function VolunteerSchedule({ token }: { token: string }) {
+export default function VolunteerSchedule() {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -60,8 +60,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const holiday = holidays.some(h => h.date === dateStr);
     try {
       const [roleData, bookingData] = await Promise.all([
-        getVolunteerRolesForVolunteer(token, dateStr),
-        getMyVolunteerBookings(token),
+        getVolunteerRolesForVolunteer(dateStr),
+        getMyVolunteerBookings(),
       ]);
       const disallowed = weekend || holiday
         ? ['Pantry', 'Warehouse', 'Administrative']
@@ -103,11 +103,11 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, token, holidays]);
+  }, [currentDate, holidays]);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -121,7 +121,6 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     if (!requestRole) return;
     try {
       await requestVolunteerBooking(
-        token,
         requestRole.id,
         formatDate(currentDate),
       );
@@ -141,7 +140,6 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     if (!decisionBooking) return;
     try {
       await updateVolunteerBookingStatus(
-        token,
         decisionBooking.id,
         'cancelled'
       );

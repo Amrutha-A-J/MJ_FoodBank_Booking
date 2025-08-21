@@ -18,7 +18,7 @@ import { Box, Button } from '@mui/material';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-export default function ManageAvailability({ token }: { token: string }) {
+export default function ManageAvailability() {
   const [view, setView] = useState<'holiday' | 'blocked' | 'break'>('holiday');
 
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -41,21 +41,21 @@ export default function ManageAvailability({ token }: { token: string }) {
 
   const fetchHolidays = useCallback(async () => {
     try {
-      const data = await getHolidays(token);
+      const data = await getHolidays();
       setHolidays(data);
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
-  }, [token]);
+  }, []);
 
   const fetchBreaks = useCallback(async () => {
     try {
-      const data = await getBreaks(token);
+      const data = await getBreaks();
       setBreaks(data);
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
-  }, [token]);
+  }, []);
 
   const fetchBlocked = useCallback(async () => {
     if (!blockedDate) {
@@ -63,20 +63,20 @@ export default function ManageAvailability({ token }: { token: string }) {
       return;
     }
     try {
-      const data = await getBlockedSlots(token, blockedDate);
+      const data = await getBlockedSlots(blockedDate);
       setBlockedList(data);
     } catch (err: unknown) {
       setMessage(err instanceof Error ? err.message : String(err));
     }
-  }, [token, blockedDate]);
+  }, [blockedDate]);
 
   useEffect(() => {
     fetchHolidays();
     fetchBreaks();
-    getAllSlots(token)
+    getAllSlots()
       .then(setAllSlots)
       .catch(err => setMessage(err instanceof Error ? err.message : String(err)));
-  }, [fetchHolidays, fetchBreaks, token]);
+  }, [fetchHolidays, fetchBreaks]);
 
   useEffect(() => {
     fetchBlocked();
@@ -85,7 +85,7 @@ export default function ManageAvailability({ token }: { token: string }) {
   async function addHoliday() {
     if (!newHoliday) return setMessage('Select a date to add');
     try {
-      await apiAddHoliday(token, newHoliday, newHolidayReason);
+      await apiAddHoliday(newHoliday, newHolidayReason);
       setMessage('Holiday added');
       setNewHoliday('');
       setNewHolidayReason('');
@@ -97,7 +97,7 @@ export default function ManageAvailability({ token }: { token: string }) {
 
   async function removeHoliday(date: string) {
     try {
-      await apiRemoveHoliday(token, date);
+      await apiRemoveHoliday(date);
       setMessage('Holiday removed');
       fetchHolidays();
     } catch (err: unknown) {
@@ -108,7 +108,7 @@ export default function ManageAvailability({ token }: { token: string }) {
   async function addBlocked() {
     if (!blockedDate || !blockedSlot) return setMessage('Select date and slot');
     try {
-      await apiAddBlockedSlot(token, blockedDate, Number(blockedSlot), blockedReason);
+      await apiAddBlockedSlot(blockedDate, Number(blockedSlot), blockedReason);
       setMessage('Slot blocked');
       setBlockedSlot('');
       setBlockedReason('');
@@ -120,7 +120,7 @@ export default function ManageAvailability({ token }: { token: string }) {
 
   async function removeBlocked(slotId: number) {
     try {
-      await apiRemoveBlockedSlot(token, blockedDate, slotId);
+      await apiRemoveBlockedSlot(blockedDate, slotId);
       setMessage('Blocked slot removed');
       fetchBlocked();
     } catch (err: unknown) {
@@ -131,7 +131,7 @@ export default function ManageAvailability({ token }: { token: string }) {
   async function addBreak() {
     if (breakDay === '' || breakSlot === '') return setMessage('Select day and slot');
     try {
-      await apiAddBreak(token, Number(breakDay), Number(breakSlot), breakReason);
+      await apiAddBreak(Number(breakDay), Number(breakSlot), breakReason);
       setMessage('Break added');
       setBreakDay('');
       setBreakSlot('');
@@ -144,7 +144,7 @@ export default function ManageAvailability({ token }: { token: string }) {
 
   async function removeBreak(day: number, slotId: number) {
     try {
-      await apiRemoveBreak(token, day, slotId);
+      await apiRemoveBreak(day, slotId);
       setMessage('Break removed');
       fetchBreaks();
     } catch (err: unknown) {

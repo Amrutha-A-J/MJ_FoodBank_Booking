@@ -107,20 +107,20 @@ export default function App() {
                 path="/"
                 element={
                   role === 'volunteer' ? (
-                    <VolunteerDashboard token={token} />
+                    <VolunteerDashboard />
                   ) : isStaff ? (
-                    <Dashboard role="staff" token={token} />
+                    <Dashboard role="staff" />
                   ) : (
-                    <UserDashboard token={token} />
+                    <UserDashboard />
                   )
                 }
               />
-              <Route path="/profile" element={<Profile token={token} role={role} />} />
+              <Route path="/profile" element={<Profile role={role} />} />
               {isStaff && (
-                <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                <Route path="/manage-availability" element={<ManageAvailability />} />
               )}
               {isStaff && (
-                <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
+                <Route path="/pantry-schedule" element={<PantrySchedule />} />
               )}
               {role === 'shopper' && (
                 <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
@@ -130,7 +130,6 @@ export default function App() {
                   path="/booking-history"
                   element={
                     <UserHistory
-                      token={token}
                       initialUser={{ id: 0, name, client_id: 0 }}
                     />
                   }
@@ -144,24 +143,23 @@ export default function App() {
                   path="/booking-history"
                   element={
                     <UserHistory
-                      token={token}
                       initialUser={{ id: 0, name, client_id: 0 }}
                     />
                   }
                 />
               )}
-              {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
-              {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-              {isStaff && <Route path="/pending" element={<Pending token={token} />} />}
+              {isStaff && <Route path="/add-user" element={<AddUser />} />}
+              {isStaff && <Route path="/user-history" element={<UserHistory />} />}
+              {isStaff && <Route path="/pending" element={<Pending />} />}
               {isStaff && (
                 <>
                   <Route
                     path="/volunteer-management"
-                    element={<VolunteerManagement token={token} />}
+                    element={<VolunteerManagement />}
                   />
                   <Route
                     path="/volunteer-management/:tab"
-                    element={<VolunteerManagement token={token} />}
+                    element={<VolunteerManagement />}
                   />
                 </>
               )}
@@ -169,11 +167,11 @@ export default function App() {
                 <>
                   <Route
                     path="/volunteer/schedule"
-                    element={<VolunteerSchedule token={token} />}
+                    element={<VolunteerSchedule />}
                   />
                   <Route
                     path="/volunteer/history"
-                    element={<VolunteerBookingHistory token={token} />}
+                    element={<VolunteerBookingHistory />}
                   />
                 </>
               )}

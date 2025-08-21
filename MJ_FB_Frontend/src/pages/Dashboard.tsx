@@ -29,7 +29,6 @@ import EntitySearch from '../components/EntitySearch';
 
 export interface DashboardProps {
   role: Role;
-  token: string;
 }
 
 interface SectionCardProps {
@@ -81,7 +80,7 @@ function formatLocalDate(date: Date) {
   return date.toLocaleDateString('en-CA');
 }
 
-function StaffDashboard({ token }: { token: string }) {
+function StaffDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [coverage, setCoverage] = useState<
     { role: string; filled: number; total: number }[]
@@ -91,14 +90,14 @@ function StaffDashboard({ token }: { token: string }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getBookings(token).then(setBookings).catch(() => {});
+    getBookings().then(setBookings).catch(() => {});
 
     const todayStr = formatLocalDate(new Date());
-    getVolunteerRoles(token)
+    getVolunteerRoles()
       .then(roles =>
         Promise.all(
           roles.map(async r => {
-            const bookings = await getVolunteerBookingsByRole(token, r.id);
+            const bookings = await getVolunteerBookingsByRole(r.id);
             const filled = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
@@ -117,7 +116,7 @@ function StaffDashboard({ token }: { token: string }) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
         const dateStr = formatLocalDate(d);
-        const slots = await getSlots(token, dateStr);
+        const slots = await getSlots(dateStr);
         const open = (slots as Slot[]).reduce(
           (sum, s) => sum + (s.available || 0),
           0,
@@ -130,7 +129,7 @@ function StaffDashboard({ token }: { token: string }) {
     )
       .then(setSchedule)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const todayStr = formatLocalDate(new Date());
   const pending = bookings.filter(b => b.status === 'submitted');
@@ -238,8 +237,7 @@ function StaffDashboard({ token }: { token: string }) {
           <Grid item xs={12}>
             <SectionCard title="Quick Search">
               <Stack spacing={2}>
-                <EntitySearch
-                  token={token}
+            <EntitySearch
                   type={searchType}
                   placeholder="Search"
                   onSelect={res => {
@@ -307,12 +305,12 @@ function StaffDashboard({ token }: { token: string }) {
   );
 }
 
-function UserDashboard({ token }: { token: string }) {
+function UserDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [slotOptions, setSlotOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    getBookings(token).then(setBookings).catch(() => {});
+    getBookings().then(setBookings).catch(() => {});
 
     const today = new Date();
     Promise.all(
@@ -320,7 +318,7 @@ function UserDashboard({ token }: { token: string }) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
         const dateStr = formatLocalDate(d);
-        const slots = await getSlots(token, dateStr);
+        const slots = await getSlots(dateStr);
         return (slots as Slot[])
           .filter(s => s.available > 0)
           .map(s => `${formatDate(dateStr)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`);
@@ -331,7 +329,7 @@ function UserDashboard({ token }: { token: string }) {
         setSlotOptions(merged.slice(0, 3));
       })
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
   const pending = bookings.filter(b => b.status === 'submitted');
@@ -423,8 +421,8 @@ function UserDashboard({ token }: { token: string }) {
   );
 }
 
-export default function Dashboard({ role, token }: DashboardProps) {
-  if (role === 'staff') return <StaffDashboard token={token} />;
-  return <UserDashboard token={token} />;
+export default function Dashboard({ role }: DashboardProps) {
+  if (role === 'staff') return <StaffDashboard />;
+  return <UserDashboard />;
 }
 

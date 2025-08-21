@@ -30,7 +30,7 @@ interface User {
 
 const reginaTimeZone = 'America/Regina';
 
-export default function PantrySchedule({ token }: { token: string }) {
+export default function PantrySchedule() {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -64,9 +64,9 @@ export default function PantrySchedule({ token }: { token: string }) {
     }
     try {
       const [slotsData, bookingsData, blockedData] = await Promise.all([
-        getSlots(token, dateStr),
-        getBookings(token),
-        getBlockedSlots(token, dateStr),
+        getSlots(dateStr),
+        getBookings(),
+        getBlockedSlots(dateStr),
       ]);
       setSlots(slotsData);
       setBlockedSlots(blockedData);
@@ -77,13 +77,13 @@ export default function PantrySchedule({ token }: { token: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, token, holidays]);
+  }, [currentDate, holidays]);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-    getBreaks(token).then(setBreaks).catch(() => {});
-    getAllSlots(token).then(setAllSlots).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+    getBreaks().then(setBreaks).catch(() => {});
+    getAllSlots().then(setAllSlots).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -92,7 +92,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   useEffect(() => {
     if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
-        searchUsers(token, searchTerm)
+        searchUsers(searchTerm)
           .then((data: User[]) => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);
@@ -100,7 +100,7 @@ export default function PantrySchedule({ token }: { token: string }) {
     } else {
       setUserResults([]);
     }
-  }, [searchTerm, token, assignSlot]);
+  }, [searchTerm, assignSlot]);
 
   function changeDay(delta: number) {
     setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
@@ -113,7 +113,7 @@ export default function PantrySchedule({ token }: { token: string }) {
       return;
     }
     try {
-      await decideBooking(token, decisionBooking.id.toString(), decision, decisionReason);
+      await decideBooking(decisionBooking.id.toString(), decision, decisionReason);
       await loadData();
       setSnackbar({ message: `Booking ${decision}d`, severity: 'success' });
     } catch {
@@ -127,7 +127,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   async function cancelSelected() {
     if (!decisionBooking) return;
     try {
-      await cancelBooking(token, decisionBooking.id.toString(), decisionReason);
+      await cancelBooking(decisionBooking.id.toString(), decisionReason);
       await loadData();
       setSnackbar({ message: 'Booking cancelled', severity: 'success' });
     } catch {
@@ -150,7 +150,6 @@ export default function PantrySchedule({ token }: { token: string }) {
     try {
       setAssignMessage('');
       await createBookingForUser(
-        token,
         user.id,
         parseInt(assignSlot.id),
         formatDate(currentDate),
@@ -400,7 +399,6 @@ export default function PantrySchedule({ token }: { token: string }) {
       {rescheduleBooking && (
         <RescheduleDialog
           open={!!rescheduleBooking}
-          token={token}
           rescheduleToken={rescheduleBooking.reschedule_token}
           onClose={() => setRescheduleBooking(null)}
           onRescheduled={() => {
