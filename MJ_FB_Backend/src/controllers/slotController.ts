@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
+import slotRules from '../config/slotRules.json';
 
 async function getSlotsForDate(date: string): Promise<Slot[]> {
   // Parse date in local Regina timezone safely
