@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
+import slotRules from '../config/slotRules.json';
 
 export async function listSlots(req: Request, res: Response, next: NextFunction) {
   const date = req.query.date as string;
@@ -21,22 +22,13 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
     const slotsResult = await pool.query('SELECT * FROM slots');
     let slots = slotsResult.rows;
 
-    if (day !== 3) {
-      // Weekdays except Wednesday: exclude 12:00, 12:30 slots, show from 9:30 to 14:30
-      slots = slots.filter(s =>
-        s.start_time >= '09:30:00' &&
-        s.start_time <= '14:30:00' &&
-        s.start_time !== '12:00:00' &&
-        s.start_time !== '12:30:00'
-      );
-    } else {
-      // Wednesday: exclude 12:00, 12:30, 15:30 slots, show from 9:30 to 18:30
-      slots = slots.filter(s =>
-        s.start_time >= '09:30:00' &&
-        s.start_time <= '18:30:00' &&
-        s.start_time !== '12:00:00' &&
-        s.start_time !== '12:30:00' &&
-        s.start_time !== '15:30:00'
+    const rule = (slotRules as any)[day] || (slotRules as any).default;
+    if (rule) {
+      slots = slots.filter(
+        s =>
+          s.start_time >= rule.startTime &&
+          s.start_time <= rule.endTime &&
+          !(rule.exclude || []).includes(s.start_time),
       );
     }
 
