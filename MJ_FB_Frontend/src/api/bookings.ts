@@ -1,5 +1,5 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { Slot } from '../types';
+import type { Slot, SlotsByDate } from '../types';
 
 export async function getSlots(token: string, date?: string) {
   let url = `${API_BASE}/slots`;
@@ -12,6 +12,27 @@ export async function getSlots(token: string, date?: string) {
     endTime: s.endTime ?? s.end_time,
     available: s.available,
   })) as Slot[];
+}
+
+export async function getSlotsRange(
+  token: string,
+  start: string,
+  days: number,
+): Promise<SlotsByDate[]> {
+  const params = new URLSearchParams();
+  if (start) params.append('start', start);
+  if (days) params.append('days', String(days));
+  const res = await apiFetch(`${API_BASE}/slots/range?${params.toString()}`);
+  const data = await handleResponse(res);
+  return data.map((d: any) => ({
+    date: d.date,
+    slots: (d.slots as any[]).map(s => ({
+      id: String(s.id),
+      startTime: s.startTime ?? s.start_time,
+      endTime: s.endTime ?? s.end_time,
+      available: s.available,
+    })) as Slot[],
+  }));
 }
 
 export async function createBooking(token: string, slotId: string, date: string) {

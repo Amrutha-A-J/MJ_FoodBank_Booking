@@ -21,9 +21,9 @@ import {
   EventAvailable,
   Announcement,
 } from '@mui/icons-material';
-import { getBookings, getSlots } from '../api/bookings';
+import { getBookings, getSlotsRange } from '../api/bookings';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../api/volunteers';
-import type { Role, Slot } from '../types';
+import type { Role } from '../types';
 import { formatTime } from '../utils/time';
 import EntitySearch from '../components/EntitySearch';
 
@@ -112,22 +112,16 @@ function StaffDashboard({ token }: { token: string }) {
       .catch(() => {});
 
     const today = new Date();
-    Promise.all(
-      [...Array(7)].map(async (_, i) => {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const dateStr = formatLocalDate(d);
-        const slots = await getSlots(token, dateStr);
-        const open = (slots as Slot[]).reduce(
-          (sum, s) => sum + (s.available || 0),
-          0,
-        );
-        return {
-          day: d.toLocaleDateString(undefined, { weekday: 'short' }),
-          open,
-        };
-      }),
-    )
+    const todayStr = formatLocalDate(today);
+    getSlotsRange(token, todayStr, 7)
+      .then(days =>
+        days.map(d => ({
+          day: new Date(d.date).toLocaleDateString(undefined, {
+            weekday: 'short',
+          }),
+          open: d.slots.reduce((sum, s) => sum + (s.available || 0), 0),
+        })),
+      )
       .then(setSchedule)
       .catch(() => {});
   }, [token]);
@@ -314,20 +308,16 @@ function UserDashboard({ token }: { token: string }) {
   useEffect(() => {
     getBookings(token).then(setBookings).catch(() => {});
 
-    const today = new Date();
-    Promise.all(
-      [...Array(5)].map(async (_, i) => {
-        const d = new Date(today);
-        d.setDate(today.getDate() + i);
-        const dateStr = formatLocalDate(d);
-        const slots = await getSlots(token, dateStr);
-        return (slots as Slot[])
-          .filter(s => s.available > 0)
-          .map(s => `${formatDate(dateStr)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`);
-      }),
-    )
+    const todayStr = formatLocalDate(new Date());
+    getSlotsRange(token, todayStr, 5)
       .then(days => {
-        const merged = days.flat();
+        const merged = days.flatMap(d =>
+          d.slots
+            .filter(s => s.available > 0)
+            .map(s =>
+              `${formatDate(d.date)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`,
+            ),
+        );
         setSlotOptions(merged.slice(0, 3));
       })
       .catch(() => {});

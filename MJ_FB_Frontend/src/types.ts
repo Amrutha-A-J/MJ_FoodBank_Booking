@@ -9,6 +9,11 @@ export interface Slot {
   available?: number;
 }
 
+export interface SlotsByDate {
+  date: string;
+  slots: Slot[];
+}
+
 export interface Break {
   dayOfWeek: number;
   slotId: number;
