@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addUser, createStaff } from '../../api/api';
+import { addUser, createStaff } from '../../api/users';
 import type { UserRole, StaffRole } from '../../types';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';

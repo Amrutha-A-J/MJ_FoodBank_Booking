@@ -10,7 +10,7 @@ import {
   getBreaks,
   addBreak as apiAddBreak,
   removeBreak as apiRemoveBreak,
-} from '../../api/api';
+} from '../../api/bookings';
 import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../FeedbackSnackbar';

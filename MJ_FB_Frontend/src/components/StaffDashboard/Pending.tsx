@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Grid, Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
-import { getBookings, decideBooking } from '../../api/api';
+import { getBookings, decideBooking } from '../../api/bookings';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 

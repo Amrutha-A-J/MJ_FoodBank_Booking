@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import type { Role, UserRole } from '../types';
-import type { LoginResponse } from '../api/api';
-import { logout as apiLogout } from '../api/api';
+import type { LoginResponse } from '../api/users';
+import { logout as apiLogout } from '../api/users';
 
 interface AuthContextValue {
   token: string;

@@ -1,4 +1,4 @@
-import { handleResponse } from '../api/api';
+import { handleResponse } from '../api/client';
 
 describe('handleResponse', () => {
   it('returns undefined for 204 responses', async () => {
