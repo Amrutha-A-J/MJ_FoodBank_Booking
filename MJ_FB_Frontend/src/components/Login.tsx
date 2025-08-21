@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { loginUser } from '../api/api';
-import type { LoginResponse } from '../api/api';
+import { loginUser } from '../api/users';
+import type { LoginResponse } from '../api/users';
 import { Link, TextField, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';

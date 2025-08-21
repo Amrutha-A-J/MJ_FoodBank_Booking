@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TextField } from '@mui/material';
-import { changePassword } from '../api/api';
+import { changePassword } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormContainer from './FormContainer';
 

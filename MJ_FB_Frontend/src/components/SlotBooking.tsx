@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { searchUsers, createBookingForUser, createBooking, getSlots, getHolidays } from '../api/api';
+import { searchUsers } from '../api/users';
+import { createBookingForUser, createBooking, getSlots, getHolidays } from '../api/bookings';
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';

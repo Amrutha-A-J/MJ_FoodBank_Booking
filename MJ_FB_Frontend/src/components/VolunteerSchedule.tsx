@@ -3,10 +3,10 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   getMyVolunteerBookings,
-  getHolidays,
   updateVolunteerBookingStatus,
   rescheduleVolunteerBookingByToken,
-} from '../api/api';
+} from '../api/volunteers';
+import { getHolidays } from '../api/bookings';
 import type {
   VolunteerRole,
   Holiday,
