@@ -93,7 +93,9 @@ function StaffDashboard({ token }: { token: string }) {
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
 
-    const todayStr = formatLocalDate(new Date());
+    const today = new Date();
+    const todayStr = formatLocalDate(today);
+
     getVolunteerRoles(token)
       .then(roles =>
         Promise.all(
@@ -108,23 +110,21 @@ function StaffDashboard({ token }: { token: string }) {
           }),
         ),
       )
-      .then(data => setCoverage(data))
+      .then(setCoverage)
       .catch(() => {});
 
-    const today = new Date();
-    const todayStr = formatLocalDate(today);
     getSlotsRange(todayStr, 7)
       .then(days =>
         days.map(d => ({
           day: new Date(d.date).toLocaleDateString(undefined, {
             weekday: 'short',
           }),
-          open: d.slots.reduce((sum, s) => sum + (s.available || 0), 0),
+          open: d.slots.reduce((sum, s) => sum + (s.available ?? 0), 0),
         })),
       )
       .then(setSchedule)
       .catch(() => {});
-  }, []);
+  }, [token]);
 
   const todayStr = formatLocalDate(new Date());
   const pending = bookings.filter(b => b.status === 'submitted');
@@ -313,7 +313,7 @@ function UserDashboard() {
       .then(days => {
         const merged = days.flatMap(d =>
           d.slots
-            .filter(s => s.available > 0)
+            .filter(s => (s.available ?? 0) > 0)
             .map(s =>
               `${formatDate(d.date)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`,
             ),
@@ -321,7 +321,7 @@ function UserDashboard() {
         setSlotOptions(merged.slice(0, 3));
       })
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
   const pending = bookings.filter(b => b.status === 'submitted');
