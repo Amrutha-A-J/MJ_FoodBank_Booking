@@ -42,7 +42,7 @@ export async function deleteDonation(id: number): Promise<void> {
   await handleResponse(res);
 }
 
-export async function getDonorAggregations(): Promise<DonorAggregation[]> {
-  const res = await apiFetch(`${API_BASE}/donations/aggregations/donors`);
+export async function getDonorAggregations(year: number): Promise<DonorAggregation[]> {
+  const res = await apiFetch(`${API_BASE}/donations/aggregations/donors?year=${year}`);
   return handleResponse(res);
 }

@@ -1,18 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import {
+  Tabs,
+  Tab,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
 import Page from '../components/Page';
 import { getDonorAggregations, type DonorAggregation } from '../api/donations';
 
 export default function Aggregations() {
   const [tab, setTab] = useState(0);
   const [rows, setRows] = useState<DonorAggregation[]>([]);
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
+  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   useEffect(() => {
     if (tab !== 0) return;
-    getDonorAggregations()
+    getDonorAggregations(year)
       .then(setRows)
       .catch(() => setRows([]));
-  }, [tab]);
+  }, [tab, year]);
 
   const donors = Array.from(new Set(rows.map(r => r.donor))).sort((a, b) => a.localeCompare(b));
   const months = Array.from(new Set(rows.map(r => r.month))).sort();
@@ -25,30 +40,47 @@ export default function Aggregations() {
         <Tab label="Overall" />
       </Tabs>
       {tab === 0 && (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Month</TableCell>
-              {donors.map(d => (
-                <TableCell key={d} align="right">
-                  {d}
-                </TableCell>
+        <>
+          <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
+            <InputLabel id="year-label">Year</InputLabel>
+            <Select
+              labelId="year-label"
+              label="Year"
+              value={year}
+              onChange={e => setYear(Number(e.target.value))}
+            >
+              {years.map(y => (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
               ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {months.map(m => (
-              <TableRow key={m}>
-                <TableCell>{m}</TableCell>
+            </Select>
+          </FormControl>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Month</TableCell>
                 {donors.map(d => (
                   <TableCell key={d} align="right">
-                    {rows.find(r => r.month === m && r.donor === d)?.total || 0}
+                    {d}
                   </TableCell>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {months.map(m => (
+                <TableRow key={m}>
+                  <TableCell>{m}</TableCell>
+                  {donors.map(d => (
+                    <TableCell key={d} align="right">
+                      {rows.find(r => r.month === m && r.donor === d)?.total || 0}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
       )}
       {tab === 1 && null}
       {tab === 2 && null}
