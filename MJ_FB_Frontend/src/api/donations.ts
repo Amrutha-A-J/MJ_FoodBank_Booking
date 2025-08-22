@@ -8,6 +8,12 @@ export interface Donation {
   weight: number;
 }
 
+export interface DonorAggregation {
+  month: string;
+  donor: string;
+  total: number;
+}
+
 export async function getDonations(date: string): Promise<Donation[]> {
   const res = await apiFetch(`${API_BASE}/donations?date=${date}`);
   return handleResponse(res);
@@ -34,4 +40,9 @@ export async function updateDonation(id: number, data: { date: string; donorId: 
 export async function deleteDonation(id: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/donations/${id}`, { method: 'DELETE' });
   await handleResponse(res);
+}
+
+export async function getDonorAggregations(): Promise<DonorAggregation[]> {
+  const res = await apiFetch(`${API_BASE}/donations/aggregations/donors`);
+  return handleResponse(res);
 }
