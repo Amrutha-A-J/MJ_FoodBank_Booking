@@ -4,8 +4,19 @@ import type {
   VolunteerRoleWithShifts,
   RoleOption,
   Shift,
+  VolunteerBooking,
 } from '../types';
 import type { LoginResponse } from './users';
+
+function normalizeVolunteerBooking(b: any): VolunteerBooking {
+  return {
+    ...b,
+    start_time: b.start_time ?? b.startTime,
+    end_time: b.end_time ?? b.endTime,
+    startTime: b.startTime ?? b.start_time,
+    endTime: b.endTime ?? b.end_time,
+  };
+}
 
 export async function loginVolunteer(
   username: string,
@@ -62,7 +73,8 @@ export async function requestVolunteerBooking(
 
 export async function getMyVolunteerBookings(_token: string) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`);
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
 export async function getVolunteerRoles(
@@ -128,9 +140,15 @@ export async function createVolunteerBookingForVolunteer(
   await handleResponse(res);
 }
 
-export async function getVolunteerBookingHistory(_token: string, volunteerId: number) {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`);
-  return handleResponse(res);
+export async function getVolunteerBookingHistory(
+  _token: string,
+  volunteerId: number,
+) {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/volunteer/${volunteerId}`,
+  );
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
 export async function createVolunteer(
