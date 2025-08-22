@@ -24,6 +24,7 @@ export default function Aggregations() {
 
   useEffect(() => {
     if (tab !== 0) return;
+    setRows([]);
     getDonorAggregations(year)
       .then(setRows)
       .catch(() => setRows([]));
@@ -47,7 +48,10 @@ export default function Aggregations() {
               labelId="year-label"
               label="Year"
               value={year}
-              onChange={e => setYear(Number(e.target.value))}
+              onChange={e => {
+                setYear(Number(e.target.value));
+                setRows([]);
+              }}
             >
               {years.map(y => (
                 <MenuItem key={y} value={y}>
@@ -68,16 +72,24 @@ export default function Aggregations() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {months.map(m => (
-                <TableRow key={m}>
-                  <TableCell>{m}</TableCell>
-                  {donors.map(d => (
-                    <TableCell key={d} align="right">
-                      {rows.find(r => r.month === m && r.donor === d)?.total || 0}
-                    </TableCell>
-                  ))}
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={donors.length + 1} align="center">
+                    No data
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                months.map(m => (
+                  <TableRow key={m}>
+                    <TableCell>{m}</TableCell>
+                    {donors.map(d => (
+                      <TableCell key={d} align="right">
+                        {rows.find(r => r.month === m && r.donor === d)?.total || 0}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </>
