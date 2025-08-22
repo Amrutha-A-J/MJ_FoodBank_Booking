@@ -18,6 +18,10 @@ import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import DonationLog from './pages/DonationLog';
+import TrackPigpound from './pages/TrackPigpound';
+import TrackOutgoingDonations from './pages/TrackOutgoingDonations';
+import TrackSurplus from './pages/TrackSurplus';
+import Aggregations from './pages/Aggregations';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -60,6 +64,13 @@ export default function App() {
       links: [
         { label: 'Dashboard', to: '/warehouse-management' },
         { label: 'Donation Log', to: '/warehouse-management/donation-log' },
+        { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
+        {
+          label: 'Track Outgoing Donations',
+          to: '/warehouse-management/track-outgoing-donations',
+        },
+        { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
+        { label: 'Aggregations', to: '/warehouse-management/aggregations' },
       ],
     });
   } else if (role === 'shopper') {
@@ -135,6 +146,30 @@ export default function App() {
               )}
               {isStaff && (
                 <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
+              )}
+              {isStaff && (
+                <Route
+                  path="/warehouse-management/track-pigpound"
+                  element={<TrackPigpound />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/warehouse-management/track-outgoing-donations"
+                  element={<TrackOutgoingDonations />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/warehouse-management/track-surplus"
+                  element={<TrackSurplus />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/warehouse-management/aggregations"
+                  element={<Aggregations />}
+                />
               )}
               {role === 'shopper' && (
                 <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
