@@ -74,9 +74,9 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                     onClick={cell.onClick}
                     sx={{
                       textAlign: 'center',
-                      backgroundColor: cell.backgroundColor,
                       cursor: cell.onClick ? 'pointer' : 'default',
                     }}
+                    style={cell.backgroundColor ? { backgroundColor: cell.backgroundColor } : undefined}
                   >
                     {cell.content}
                   </TableCell>
