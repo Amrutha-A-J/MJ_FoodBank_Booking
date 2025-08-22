@@ -14,6 +14,7 @@ import volunteerBookingsRoutes from './routes/volunteerBookings';
 import volunteerMasterRolesRoutes from './routes/volunteerMasterRoles';
 import authRoutes from './routes/auth';
 import rolesRoutes from './routes/roles';
+import donorsRoutes from './routes/donors';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
 
@@ -43,6 +44,7 @@ app.use('/volunteers', volunteersRoutes);
 app.use('/volunteer-bookings', volunteerBookingsRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/roles', rolesRoutes);
+app.use('/donors', donorsRoutes);
 
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
