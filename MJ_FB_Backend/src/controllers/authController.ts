@@ -86,7 +86,8 @@ function getRefreshTokenFromCookies(req: Request) {
       return [k, v.join('=')];
     }),
   );
-  return cookies.refreshToken;
+  const token = cookies.refreshToken;
+  return token ? decodeURIComponent(token) : undefined;
 }
 
 export async function refreshToken(req: Request, res: Response, next: NextFunction) {
@@ -100,6 +101,8 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       role: string;
       type: string;
       jti: string;
+      userId?: number | string;
+      userRole?: string;
     };
     const subject = `${payload.type}:${payload.id}`;
     const stored = await pool.query(
@@ -114,13 +117,19 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       `UPDATE refresh_tokens SET token_id=$1 WHERE subject=$2`,
       [newJti, subject],
     );
-    const accessToken = jwt.sign(
-      { id: payload.id, role: payload.role, type: payload.type },
-      config.jwtSecret,
-      { expiresIn: '1h' },
-    );
+    const basePayload: any = {
+      id: payload.id,
+      role: payload.role,
+      type: payload.type,
+    };
+    if (payload.userId) basePayload.userId = payload.userId;
+    if (payload.userRole) basePayload.userRole = payload.userRole;
+
+    const accessToken = jwt.sign(basePayload, config.jwtSecret, {
+      expiresIn: '1h',
+    });
     const newRefreshToken = jwt.sign(
-      { id: payload.id, role: payload.role, type: payload.type, jti: newJti },
+      { ...basePayload, jti: newJti },
       config.jwtRefreshSecret,
       { expiresIn: '7d' },
     );
