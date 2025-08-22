@@ -5,6 +5,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  DialogContentText,
   TextField,
   Tabs,
   Tab,
@@ -15,16 +16,19 @@ import {
   TableBody,
   Stack,
   Autocomplete,
+  IconButton,
 } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 import Page from '../components/Page';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getDonors, createDonor } from '../api/donors';
-
-interface Donation {
-  date: string; // YYYY-MM-DD
-  donor: string;
-  weight: number;
-}
+import { getDonors, createDonor, Donor } from '../api/donors';
+import {
+  getDonations,
+  createDonation,
+  updateDonation,
+  deleteDonation,
+  Donation,
+} from '../api/donations';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);
@@ -41,14 +45,17 @@ function format(date: Date) {
 
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [donors, setDonors] = useState<string[]>([]);
+  const [donors, setDonors] = useState<Donor[]>([]);
   const [tab, setTab] = useState(() => {
     const week = startOfWeek(new Date());
     const today = new Date();
     return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
   });
   const [recordOpen, setRecordOpen] = useState(false);
+  const [editing, setEditing] = useState<Donation | null>(null);
   const [newDonorOpen, setNewDonorOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Donation | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   const weekDates = useMemo(() => {
@@ -60,34 +67,53 @@ export default function DonationLog() {
     });
   }, []);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{ date: string; donorId: number | null; weight: string }>({
     date: format(new Date()),
-    donor: '',
+    donorId: null,
     weight: '',
   });
   const [donorName, setDonorName] = useState('');
 
   useEffect(() => {
     getDonors()
-      .then(d => setDonors(d.map(x => x.name).sort()))
+      .then(d => setDonors(d.sort((a, b) => a.name.localeCompare(b.name))))
       .catch(() => setDonors([]));
   }, []);
 
   const selectedDate = weekDates[tab];
-  const dayDonations = donations.filter(d => d.date === format(selectedDate));
 
-  function handleAddDonation() {
-    setDonations([...donations, { date: form.date, donor: form.donor, weight: Number(form.weight) }]);
-    setRecordOpen(false);
-    setForm({ date: format(new Date()), donor: '', weight: '' });
-    setSnackbar({ open: true, message: 'Donation recorded' });
+  function loadDonations() {
+    getDonations(format(selectedDate))
+      .then(setDonations)
+      .catch(() => setDonations([]));
+  }
+
+  useEffect(() => {
+    loadDonations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
+
+  function handleSaveDonation() {
+    if (!form.donorId || !form.weight) return;
+    const action = editing
+      ? updateDonation(editing.id, { date: form.date, donorId: form.donorId, weight: Number(form.weight) })
+      : createDonation({ date: form.date, donorId: form.donorId, weight: Number(form.weight) });
+    action
+      .then(() => {
+        setRecordOpen(false);
+        setEditing(null);
+        setForm({ date: format(selectedDate), donorId: null, weight: '' });
+        loadDonations();
+        setSnackbar({ open: true, message: editing ? 'Donation updated' : 'Donation recorded' });
+      })
+      .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save donation' }));
   }
 
   function handleAddDonor() {
-    if (donorName && !donors.includes(donorName)) {
+    if (donorName && !donors.some(d => d.name === donorName)) {
       createDonor(donorName)
         .then(newDonor => {
-          setDonors([...donors, newDonor.name].sort());
+          setDonors([...donors, newDonor].sort((a, b) => a.name.localeCompare(b.name)));
           setSnackbar({ open: true, message: 'Donor added' });
         })
         .catch(err => {
@@ -103,7 +129,15 @@ export default function DonationLog() {
       title="Donation Log"
       header={
         <Stack direction="row" spacing={1} mb={2}>
-          <Button size="small" variant="contained" onClick={() => setRecordOpen(true)}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setForm({ date: format(selectedDate), donorId: null, weight: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
             Record Donation
           </Button>
           <Button size="small" variant="outlined" onClick={() => setNewDonorOpen(true)}>
@@ -122,20 +156,33 @@ export default function DonationLog() {
           <TableRow>
             <TableCell>Donor</TableCell>
             <TableCell>Weight</TableCell>
+            <TableCell align="right"></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {dayDonations.map((d, i) => (
-            <TableRow key={i}>
+          {donations.map(d => (
+            <TableRow key={d.id}>
               <TableCell>{d.donor}</TableCell>
               <TableCell>{d.weight}</TableCell>
+              <TableCell align="right">
+                <IconButton size="small" onClick={() => {
+                  setEditing(d);
+                  setForm({ date: d.date, donorId: d.donorId, weight: String(d.weight) });
+                  setRecordOpen(true);
+                }} aria-label="Edit donation">
+                  <Edit fontSize="small" />
+                </IconButton>
+                <IconButton size="small" onClick={() => { setToDelete(d); setDeleteOpen(true); }} aria-label="Delete donation">
+                  <Delete fontSize="small" />
+                </IconButton>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      <Dialog open={recordOpen} onClose={() => setRecordOpen(false)}>
-        <DialogTitle>Record Donation</DialogTitle>
+      <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+        <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -153,17 +200,47 @@ export default function DonationLog() {
             />
             <Autocomplete
               options={donors}
-              value={form.donor}
-              onChange={(_e, v) => setForm({ ...form, donor: v || '' })}
+              value={donors.find(d => d.id === form.donorId) || null}
+              onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
               renderInput={params => <TextField {...params} label="Donor" />}
-              freeSolo={false}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              getOptionLabel={option => option.name}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setRecordOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddDonation} disabled={!form.donor || !form.weight}>
+          <Button onClick={() => { setRecordOpen(false); setEditing(null); }}>Cancel</Button>
+          <Button onClick={handleSaveDonation} disabled={!form.donorId || !form.weight}>
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+        <DialogTitle>Delete Donation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Are you sure you want to delete this donation?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setDeleteOpen(false); setToDelete(null); }}>Cancel</Button>
+          <Button
+            onClick={() => {
+              if (toDelete) {
+                deleteDonation(toDelete.id)
+                  .then(() => {
+                    setSnackbar({ open: true, message: 'Donation deleted' });
+                    setDeleteOpen(false);
+                    setToDelete(null);
+                    loadDonations();
+                  })
+                  .catch(err => {
+                    setSnackbar({ open: true, message: err.message || 'Failed to delete donation' });
+                  });
+              }
+            }}
+            autoFocus
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
