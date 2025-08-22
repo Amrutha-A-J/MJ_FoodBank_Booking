@@ -1,5 +1,4 @@
 import { Slot } from './models/slot';
-import type { User } from './models/user';
 
 export type BookingStatus = 'submitted' | 'approved' | 'rejected' | 'preapproved' | 'cancelled';
 
@@ -13,32 +12,6 @@ export interface Booking {
   isStaffBooking?: boolean;
   createdAt?: string;
 }
-
-
-export const users: User[] = [
-  {
-    id: 1,
-    firstName: 'John',
-    lastName: 'Shopper',
-    clientId: 1001,
-    role: 'shopper',
-    email: 'shopper@fb.org',
-    bookingsThisMonth: 0,
-    bookingCountLastUpdated: new Date().toISOString(),
-    password: '',
-  },
-  {
-    id: 2,
-    firstName: 'Dina',
-    lastName: 'Delivery',
-    clientId: 1002,
-    role: 'delivery',
-    email: 'delivery@fb.org',
-    bookingsThisMonth: 0,
-    bookingCountLastUpdated: new Date().toISOString(),
-    password: '',
-  },
-];
 
 export const slots: Slot[] = [];
 
