@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 import config from './config';
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
@@ -45,6 +46,21 @@ app.use('/volunteer-bookings', volunteerBookingsRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/donors', donorsRoutes);
+
+// Serve the frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    'MJ_FB_Frontend',
+    'dist'
+  );
+  app.use(express.static(frontendPath));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
 
 // Global error handler
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
