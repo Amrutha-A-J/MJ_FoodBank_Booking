@@ -1,39 +1,25 @@
-const CACHE_NAME = 'mj-foodbank-cache-v1';
-const URLS_TO_CACHE = ['/', '/index.html', '/offline.html'];
+/**
+ * Network-only service worker
+ *
+ * This service worker clears any existing caches and always serves requests
+ * directly from the network. It intentionally avoids caching so the
+ * application requires an active internet connection to function.
+ */
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE)),
-  );
+self.addEventListener('install', () => {
+  // Activate immediately without waiting
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  // Remove any caches left over from previous versions
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)),
-      ),
-    ),
+    caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-      return fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match('/offline.html'));
-    }),
-  );
+  // Always attempt a network request; no offline fallback
+  event.respondWith(fetch(event.request));
 });
