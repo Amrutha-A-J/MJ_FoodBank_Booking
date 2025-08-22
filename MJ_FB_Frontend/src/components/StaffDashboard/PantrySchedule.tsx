@@ -75,9 +75,10 @@ export default function PantrySchedule({ token }: { token: string }) {
       ]);
       setSlots(slotsData);
       setBlockedSlots(blockedData);
-      const filtered = bookingsData.filter(
-        (b: Booking) => b.date.split('T')[0] === dateStr && ['approved', 'submitted'].includes(b.status)
-      );
+      const filtered = bookingsData.filter((b: Booking) => {
+        const bookingDate = formatInTimeZone(new Date(b.date), reginaTimeZone, 'yyyy-MM-dd');
+        return bookingDate === dateStr && ['approved', 'submitted'].includes(b.status);
+      });
       setBookings(filtered);
     } catch (err) {
       console.error(err);
