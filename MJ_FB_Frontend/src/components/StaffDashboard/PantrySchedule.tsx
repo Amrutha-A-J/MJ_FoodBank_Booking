@@ -6,7 +6,7 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../VolunteerScheduleTable';
 import FeedbackSnackbar from '../FeedbackSnackbar';
-import { Button, type AlertColor } from '@mui/material';
+import { Button, type AlertColor, useTheme } from '@mui/material';
 import RescheduleDialog from '../RescheduleDialog';
 
 interface Booking {
@@ -50,6 +50,8 @@ export default function PantrySchedule({ token }: { token: string }) {
   const [showRejectReason, setShowRejectReason] = useState(false);
   const [assignMessage, setAssignMessage] = useState('');
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+
+  const theme = useTheme();
 
   const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
@@ -227,8 +229,8 @@ export default function PantrySchedule({ token }: { token: string }) {
           content: booking ? booking.user_name : '',
           backgroundColor: booking
             ? booking.status === 'submitted'
-              ? '#ffe5b4'
-              : '#e0f7e0'
+              ? theme.palette.warning.light
+              : theme.palette.success.light
             : undefined,
           onClick: () => {
             if (booking) {

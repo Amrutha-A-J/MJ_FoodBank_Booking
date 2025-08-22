@@ -39,6 +39,7 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useTheme,
 } from '@mui/material';
 import Dashboard from '../pages/Dashboard';
 import EntitySearch from './EntitySearch';
@@ -98,6 +99,8 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
   const cellSx = { border: 1, borderColor: 'divider', p: 0.5 } as const;
+
+  const theme = useTheme();
 
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
@@ -526,8 +529,8 @@ export default function VolunteerManagement({ token }: { token: string }) {
                 : 'Available',
               backgroundColor: booking
                 ? booking.status.toLowerCase() === 'approved'
-                  ? '#c8e6c9'
-                  : '#ffd8b2'
+                  ? theme.palette.success.light
+                  : theme.palette.warning.light
                 : undefined,
               onClick: () => {
                 if (booking) {
