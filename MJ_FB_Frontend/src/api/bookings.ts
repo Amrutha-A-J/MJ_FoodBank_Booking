@@ -45,12 +45,31 @@ export async function createBooking(slotId: string, date: string) {
   return handleResponse(res);
 }
 
+interface BookingResponse {
+  [key: string]: unknown;
+  start_time?: string;
+  end_time?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+function normalizeBooking(b: BookingResponse) {
+  return {
+    ...b,
+    start_time: b.start_time ?? b.startTime,
+    end_time: b.end_time ?? b.endTime,
+    startTime: b.startTime ?? b.start_time,
+    endTime: b.endTime ?? b.end_time,
+  };
+}
+
 export async function getBookings(opts: { status?: string } = {}) {
   const params = new URLSearchParams();
   if (opts.status) params.append('status', opts.status);
   const query = params.toString();
   const res = await apiFetch(`${API_BASE}/bookings${query ? `?${query}` : ''}`);
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeBooking) : data;
 }
 
 export async function getBookingHistory(
@@ -63,7 +82,8 @@ export async function getBookingHistory(
   const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
   );
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeBooking) : data;
 }
 
 export async function getHolidays() {
