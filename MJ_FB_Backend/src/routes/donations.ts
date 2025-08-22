@@ -7,7 +7,7 @@ import { addDonationSchema, updateDonationSchema } from '../schemas/donationSche
 const router = Router();
 
 router.get('/', authMiddleware, authorizeRoles('staff'), listDonations);
-router.get('/aggregations/donors', authMiddleware, authorizeRoles('staff'), donorAggregations);
+router.get('/aggregations/donors', donorAggregations);
 router.post('/', authMiddleware, authorizeRoles('staff'), validate(addDonationSchema), addDonation);
 router.put('/:id', authMiddleware, authorizeRoles('staff'), validate(updateDonationSchema), updateDonation);
 router.delete('/:id', authMiddleware, authorizeRoles('staff'), deleteDonation);
