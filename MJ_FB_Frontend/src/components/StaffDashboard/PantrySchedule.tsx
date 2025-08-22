@@ -7,6 +7,7 @@ import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../VolunteerScheduleTable';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import { Button, type AlertColor, useTheme } from '@mui/material';
+import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../RescheduleDialog';
 
 interface Booking {
@@ -52,6 +53,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
   const theme = useTheme();
+  const approvedColor = lighten(theme.palette.success.light, 0.4);
 
   const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
@@ -230,7 +232,7 @@ export default function PantrySchedule({ token }: { token: string }) {
           backgroundColor: booking
             ? booking.status === 'submitted'
               ? theme.palette.warning.light
-              : theme.palette.success.light
+              : approvedColor
             : undefined,
           onClick: () => {
             if (booking) {

@@ -33,6 +33,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { lighten } from '@mui/material/styles';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -51,6 +52,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [decisionReason, setDecisionReason] = useState('');
   const [message, setMessage] = useState('');
   const theme = useTheme();
+  const approvedColor = lighten(theme.palette.success.light, 0.4);
 
   const formatDate = (date: Date) =>
     formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
@@ -214,7 +216,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         backgroundColor:
           myBooking.status === 'pending'
             ? theme.palette.warning.light
-            : theme.palette.success.light,
+            : approvedColor,
         onClick: () => {
           setDecisionBooking(myBooking);
           setDecisionReason('');

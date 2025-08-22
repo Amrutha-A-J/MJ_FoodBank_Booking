@@ -41,6 +41,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { lighten } from '@mui/material/styles';
 import Dashboard from '../pages/Dashboard';
 import EntitySearch from './EntitySearch';
 import ConfirmDialog from './ConfirmDialog';
@@ -101,6 +102,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const cellSx = { border: 1, borderColor: 'divider', p: 0.5 } as const;
 
   const theme = useTheme();
+  const approvedColor = lighten(theme.palette.success.light, 0.4);
 
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
@@ -529,7 +531,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
                 : 'Available',
               backgroundColor: booking
                 ? booking.status.toLowerCase() === 'approved'
-                  ? theme.palette.success.light
+                  ? approvedColor
                   : theme.palette.warning.light
                 : undefined,
               onClick: () => {
