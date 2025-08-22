@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { RoleOption } from '../types';
+import { getRoles } from '../api/volunteers';
 
 interface Props {
   onChange: (roleId: number) => void;
 }
-
-const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 export default function RoleSelect({ onChange }: Props) {
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -17,10 +16,9 @@ export default function RoleSelect({ onChange }: Props) {
     const fetchRoles = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/roles`);
-        if (!res.ok) throw new Error('Failed to load roles');
-        const data: RoleOption[] = await res.json();
+        const data = await getRoles();
         setRoles(data);
+        setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error fetching roles');
       } finally {

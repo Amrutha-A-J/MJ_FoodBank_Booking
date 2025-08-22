@@ -1,5 +1,10 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { VolunteerRole, VolunteerRoleWithShifts } from '../types';
+import type {
+  VolunteerRole,
+  VolunteerRoleWithShifts,
+  RoleOption,
+  Shift,
+} from '../types';
 import type { LoginResponse } from './users';
 
 export async function loginVolunteer(
@@ -19,6 +24,16 @@ export async function searchVolunteers(_token: string, search: string) {
   const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
   );
+  return handleResponse(res);
+}
+
+export async function getRoles(): Promise<RoleOption[]> {
+  const res = await apiFetch(`${API_BASE}/api/roles`);
+  return handleResponse(res);
+}
+
+export async function getRoleShifts(roleId: number): Promise<Shift[]> {
+  const res = await apiFetch(`${API_BASE}/api/roles/${roleId}/shifts`);
   return handleResponse(res);
 }
 
