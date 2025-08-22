@@ -53,7 +53,7 @@ export async function requestPasswordReset(data: {
 }
 
 export async function changePassword(
-  token: string,
+  _token: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
@@ -65,7 +65,7 @@ export async function changePassword(
   await handleResponse(res);
 }
 
-export async function getUserProfile(token: string): Promise<UserProfile> {
+export async function getUserProfile(_token: string): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`);
   return handleResponse(res);
 }
@@ -82,7 +82,7 @@ export async function createStaff(
   role: StaffRole,
   email: string,
   password: string,
-  token?: string
+  _token?: string
 ): Promise<void> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export async function createStaff(
 }
 
 export async function addUser(
-  token: string,
+  _token: string,
   firstName: string,
   lastName: string,
   clientId: string,
@@ -123,7 +123,7 @@ export async function addUser(
   await handleResponse(res);
 }
 
-export async function searchUsers(token: string, search: string) {
+export async function searchUsers(_token: string, search: string) {
   const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`);
   return handleResponse(res);
 }

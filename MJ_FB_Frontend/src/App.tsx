@@ -18,7 +18,6 @@ import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
 import WarehouseDashboard from './pages/WarehouseDashboard';
 import DonationLog from './pages/DonationLog';
-import type { Role, UserRole } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';

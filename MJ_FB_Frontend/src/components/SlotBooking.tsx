@@ -110,12 +110,20 @@ export default function SlotBooking({ token, role }: Props) {
   const {
     data: userResults = [],
     isFetching: userFetching,
-  } = useQuery({
+    error: userError,
+  } = useQuery<User[]>({
     queryKey: ['userSearch', searchTerm],
     queryFn: () => searchUsers(token, searchTerm),
     enabled: role === 'staff' && searchTerm.length >= 3,
-    onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Search failed'),
   });
+
+  useEffect(() => {
+    if (userError) {
+      setMessage(
+        userError instanceof Error ? userError.message : 'Search failed',
+      );
+    }
+  }, [userError]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -141,12 +149,24 @@ export default function SlotBooking({ token, role }: Props) {
   }, [selectedDate, isWeekend, isHoliday, getNextAvailableDate]);
 
   const slotsEnabled = !!selectedDate && !isWeekend(selectedDate) && !isHoliday(selectedDate);
-  const { data: slots = [] } = useQuery<Slot[]>({
+  const {
+    data: slots = [],
+    error: slotsError,
+  } = useQuery<Slot[]>({
     queryKey: ['slots', token, selectedDate ? formatDate(selectedDate) : null],
     queryFn: () => getSlots(formatDate(selectedDate as Date)),
     enabled: slotsEnabled,
-    onError: (err: unknown) => setMessage(err instanceof Error ? err.message : 'Failed to load slots'),
   });
+
+  useEffect(() => {
+    if (slotsError) {
+      setMessage(
+        slotsError instanceof Error
+          ? slotsError.message
+          : 'Failed to load slots',
+      );
+    }
+  }, [slotsError]);
 
   const queryClient = useQueryClient();
   const bookingMutation = useMutation({

@@ -513,7 +513,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
         ).length;
         const canBook = approvedCount < role.max_volunteers;
         return {
-          time: `${formatTime(role.start_time || role.startTime || '')} - ${formatTime(role.end_time || role.endTime || '')}`,
+          time: `${formatTime(role.start_time || '')} - ${formatTime(role.end_time || '')}`,
           cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
             const booking = slotBookings[i];
             return {
@@ -686,8 +686,8 @@ export default function VolunteerManagement({ token }: { token: string }) {
                         <TableCell sx={cellSx}>{h.role_name}</TableCell>
                         <TableCell sx={cellSx}>{h.date}</TableCell>
                         <TableCell sx={cellSx}>
-                          {formatTime(h.start_time || h.startTime || '')} -
-                          {formatTime(h.end_time || h.endTime || '')}
+                          {formatTime(h.start_time || '')} -
+                          {formatTime(h.end_time || '')}
                         </TableCell>
                         <TableCell sx={cellSx}>{h.status}</TableCell>
                         <TableCell sx={cellSx}>
@@ -850,7 +850,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
                 <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
                 <div><strong>Role:</strong> {p.role_name}</div>
                 <div><strong>Date:</strong> {p.date}</div>
-                <div><strong>Time:</strong> {formatTime(p.start_time || p.startTime || '')} - {formatTime(p.end_time || p.endTime || '')}</div>
+                <div><strong>Time:</strong> {formatTime(p.start_time || '')} - {formatTime(p.end_time || '')}</div>
                 <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
                 <div style={{ marginTop: 4 }}>
                   <Button onClick={() => decide(p.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}

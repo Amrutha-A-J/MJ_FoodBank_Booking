@@ -25,7 +25,7 @@ export default function Pending() {
 
   function loadBookings() {
     getBookings({ status: 'pending' })
-      .then(b => setBookings(b.filter(x => x.status === 'submitted')))
+      .then(b => setBookings(b.filter((x: Booking) => x.status === 'submitted')))
       .catch(() => {});
   }
 

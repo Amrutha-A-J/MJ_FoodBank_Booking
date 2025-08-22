@@ -1,7 +1,7 @@
 import { Box, Stack, Button, Typography, type BoxProps } from '@mui/material';
 import type { ReactNode, FormEvent } from 'react';
 
-interface FormContainerProps extends Omit<BoxProps, 'component' | 'onSubmit'> {
+interface FormContainerProps extends Omit<BoxProps<'form'>, 'onSubmit'> {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   submitLabel: string;
   children: ReactNode;
