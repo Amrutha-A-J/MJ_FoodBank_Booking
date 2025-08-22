@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import RoleSelect from '../components/RoleSelect';
 import ScheduleTable from '../components/ScheduleTable';
 import type { Shift } from '../types';
-
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+import { getRoleShifts } from '../api/volunteers';
 
 export default function CoordinatorSchedule() {
   const [roleId, setRoleId] = useState<number | null>(null);
@@ -16,9 +15,7 @@ export default function CoordinatorSchedule() {
     const fetchShifts = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/roles/${roleId}/shifts`);
-        if (!res.ok) throw new Error('Failed to load shifts');
-        const data: Shift[] = await res.json();
+        const data = await getRoleShifts(roleId);
         setShifts(data);
         setError(null);
       } catch (err) {
