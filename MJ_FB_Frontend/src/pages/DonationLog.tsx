@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Button,
   Dialog,
@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import Page from '../components/Page';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getDonors } from '../data/donors';
+import { getDonors, createDonor } from '../api/donors';
 
 interface Donation {
   date: string; // YYYY-MM-DD
@@ -41,7 +41,7 @@ function format(date: Date) {
 
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [donors, setDonors] = useState<string[]>(getDonors());
+  const [donors, setDonors] = useState<string[]>([]);
   const [tab, setTab] = useState(() => {
     const week = startOfWeek(new Date());
     const today = new Date();
@@ -67,6 +67,12 @@ export default function DonationLog() {
   });
   const [donorName, setDonorName] = useState('');
 
+  useEffect(() => {
+    getDonors()
+      .then(d => setDonors(d.map(x => x.name).sort()))
+      .catch(() => setDonors([]));
+  }, []);
+
   const selectedDate = weekDates[tab];
   const dayDonations = donations.filter(d => d.date === format(selectedDate));
 
@@ -79,8 +85,14 @@ export default function DonationLog() {
 
   function handleAddDonor() {
     if (donorName && !donors.includes(donorName)) {
-      setDonors([...donors, donorName].sort());
-      setSnackbar({ open: true, message: 'Donor added' });
+      createDonor(donorName)
+        .then(newDonor => {
+          setDonors([...donors, newDonor.name].sort());
+          setSnackbar({ open: true, message: 'Donor added' });
+        })
+        .catch(err => {
+          setSnackbar({ open: true, message: err.message || 'Failed to add donor' });
+        });
     }
     setDonorName('');
     setNewDonorOpen(false);
