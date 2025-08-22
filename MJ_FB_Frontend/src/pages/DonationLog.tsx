@@ -21,14 +21,10 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../components/Page';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getDonors, createDonor, Donor } from '../api/donors';
-import {
-  getDonations,
-  createDonation,
-  updateDonation,
-  deleteDonation,
-  Donation,
-} from '../api/donations';
+import { getDonors, createDonor } from '../api/donors';
+import { getDonations, createDonation, updateDonation, deleteDonation } from '../api/donations';
+import type { Donor } from '../api/donors';
+import type { Donation } from '../api/donations';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);
