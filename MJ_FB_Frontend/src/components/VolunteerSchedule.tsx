@@ -31,6 +31,7 @@ import {
   DialogActions,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
@@ -49,6 +50,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     useState<VolunteerBooking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [message, setMessage] = useState('');
+  const theme = useTheme();
 
   const formatDate = (date: Date) =>
     formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
@@ -210,7 +212,9 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       cells.push({
         content: 'My Booking',
         backgroundColor:
-          myBooking.status === 'pending' ? '#ffe5b4' : '#e0f7e0',
+          myBooking.status === 'pending'
+            ? theme.palette.warning.light
+            : theme.palette.success.light,
         onClick: () => {
           setDecisionBooking(myBooking);
           setDecisionReason('');
@@ -219,7 +223,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     }
     for (let i = cells.length; i < role.max_volunteers; i++) {
       if (i - (myBooking ? 1 : 0) < othersBooked) {
-        cells.push({ content: 'Booked', backgroundColor: '#f5f5f5' });
+        cells.push({
+          content: 'Booked',
+          backgroundColor: theme.palette.grey[200],
+        });
       } else {
         cells.push({
           content: 'Available',
