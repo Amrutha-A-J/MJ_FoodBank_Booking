@@ -16,6 +16,7 @@ import volunteerMasterRolesRoutes from './routes/volunteerMasterRoles';
 import authRoutes from './routes/auth';
 import rolesRoutes from './routes/roles';
 import donorsRoutes from './routes/donors';
+import donationsRoutes from './routes/donations';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
 
@@ -46,6 +47,7 @@ app.use('/volunteer-bookings', volunteerBookingsRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/roles', rolesRoutes);
 app.use('/donors', donorsRoutes);
+app.use('/donations', donationsRoutes);
 
 // Serve the frontend in production
 if (process.env.NODE_ENV === 'production') {
