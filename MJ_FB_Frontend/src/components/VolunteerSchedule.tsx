@@ -106,8 +106,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   }, [currentDate, token, holidays]);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadData();

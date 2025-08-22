@@ -111,13 +111,13 @@ export default function App() {
                   ) : isStaff ? (
                     <Dashboard role="staff" token={token} />
                   ) : (
-                    <UserDashboard token={token} />
+                    <UserDashboard />
                   )
                 }
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
               {isStaff && (
-                <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                <Route path="/manage-availability" element={<ManageAvailability />} />
               )}
               {isStaff && (
                 <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
@@ -152,7 +152,7 @@ export default function App() {
               )}
               {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
               {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-              {isStaff && <Route path="/pending" element={<Pending token={token} />} />}
+              {isStaff && <Route path="/pending" element={<Pending />} />}
               {isStaff && (
                 <>
                   <Route

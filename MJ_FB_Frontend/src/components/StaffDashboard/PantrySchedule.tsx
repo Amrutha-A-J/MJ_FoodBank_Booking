@@ -64,9 +64,9 @@ export default function PantrySchedule({ token }: { token: string }) {
     }
     try {
       const [slotsData, bookingsData, blockedData] = await Promise.all([
-        getSlots(token, dateStr),
-        getBookings(token),
-        getBlockedSlots(token, dateStr),
+        getSlots(dateStr),
+        getBookings(),
+        getBlockedSlots(dateStr),
       ]);
       setSlots(slotsData);
       setBlockedSlots(blockedData);
@@ -77,13 +77,13 @@ export default function PantrySchedule({ token }: { token: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, token, holidays]);
+  }, [currentDate, holidays]);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-    getBreaks(token).then(setBreaks).catch(() => {});
-    getAllSlots(token).then(setAllSlots).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+    getBreaks().then(setBreaks).catch(() => {});
+    getAllSlots().then(setAllSlots).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -113,7 +113,7 @@ export default function PantrySchedule({ token }: { token: string }) {
       return;
     }
     try {
-      await decideBooking(token, decisionBooking.id.toString(), decision, decisionReason);
+      await decideBooking(decisionBooking.id.toString(), decision, decisionReason);
       await loadData();
       setSnackbar({ message: `Booking ${decision}d`, severity: 'success' });
     } catch {
@@ -127,7 +127,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   async function cancelSelected() {
     if (!decisionBooking) return;
     try {
-      await cancelBooking(token, decisionBooking.id.toString(), decisionReason);
+      await cancelBooking(decisionBooking.id.toString(), decisionReason);
       await loadData();
       setSnackbar({ message: 'Booking cancelled', severity: 'success' });
     } catch {
@@ -150,7 +150,6 @@ export default function PantrySchedule({ token }: { token: string }) {
     try {
       setAssignMessage('');
       await createBookingForUser(
-        token,
         user.id,
         parseInt(assignSlot.id),
         formatDate(currentDate),
@@ -400,7 +399,6 @@ export default function PantrySchedule({ token }: { token: string }) {
       {rescheduleBooking && (
         <RescheduleDialog
           open={!!rescheduleBooking}
-          token={token}
           rescheduleToken={rescheduleBooking.reschedule_token}
           onClose={() => setRescheduleBooking(null)}
           onRescheduled={() => {

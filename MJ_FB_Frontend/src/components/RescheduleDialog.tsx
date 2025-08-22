@@ -15,7 +15,6 @@ import type { Slot } from '../types';
 
 interface RescheduleDialogProps {
   open: boolean;
-  token: string;
   rescheduleToken: string;
   onClose: () => void;
   onRescheduled: () => void;
@@ -23,7 +22,6 @@ interface RescheduleDialogProps {
 
 export default function RescheduleDialog({
   open,
-  token,
   rescheduleToken,
   onClose,
   onRescheduled,
@@ -35,14 +33,14 @@ export default function RescheduleDialog({
 
   useEffect(() => {
     if (open && date) {
-      getSlots(token, date)
+      getSlots(date)
         .then(setSlots)
         .catch(() => setSlots([]));
     } else {
       setSlots([]);
       setSlotId('');
     }
-  }, [open, date, token]);
+  }, [open, date]);
 
   async function submit() {
     if (!date || !slotId) {
@@ -50,7 +48,7 @@ export default function RescheduleDialog({
       return;
     }
     try {
-      await rescheduleBookingByToken(rescheduleToken, slotId, date, token);
+      await rescheduleBookingByToken(rescheduleToken, slotId, date);
       onRescheduled();
       onClose();
       setDate('');

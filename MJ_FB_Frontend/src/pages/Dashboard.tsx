@@ -91,7 +91,7 @@ function StaffDashboard({ token }: { token: string }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getBookings(token).then(setBookings).catch(() => {});
+    getBookings().then(setBookings).catch(() => {});
 
     const todayStr = formatLocalDate(new Date());
     getVolunteerRoles(token)
@@ -113,7 +113,7 @@ function StaffDashboard({ token }: { token: string }) {
 
     const today = new Date();
     const todayStr = formatLocalDate(today);
-    getSlotsRange(token, todayStr, 7)
+    getSlotsRange(todayStr, 7)
       .then(days =>
         days.map(d => ({
           day: new Date(d.date).toLocaleDateString(undefined, {
@@ -124,7 +124,7 @@ function StaffDashboard({ token }: { token: string }) {
       )
       .then(setSchedule)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const todayStr = formatLocalDate(new Date());
   const pending = bookings.filter(b => b.status === 'submitted');
@@ -301,15 +301,15 @@ function StaffDashboard({ token }: { token: string }) {
   );
 }
 
-function UserDashboard({ token }: { token: string }) {
+function UserDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [slotOptions, setSlotOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    getBookings(token).then(setBookings).catch(() => {});
+    getBookings().then(setBookings).catch(() => {});
 
     const todayStr = formatLocalDate(new Date());
-    getSlotsRange(token, todayStr, 5)
+    getSlotsRange(todayStr, 5)
       .then(days => {
         const merged = days.flatMap(d =>
           d.slots
@@ -415,6 +415,6 @@ function UserDashboard({ token }: { token: string }) {
 
 export default function Dashboard({ role, token }: DashboardProps) {
   if (role === 'staff') return <StaffDashboard token={token} />;
-  return <UserDashboard token={token} />;
+  return <UserDashboard />;
 }
 
