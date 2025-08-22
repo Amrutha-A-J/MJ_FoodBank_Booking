@@ -60,3 +60,21 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
     next(error);
   }
 }
+
+export async function donorAggregations(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await pool.query(
+      `SELECT to_char(date_trunc('month', d.date), 'YYYY-MM') as month,
+              o.name as donor,
+              SUM(d.weight)::int as total
+       FROM donations d
+       JOIN donors o ON d.donor_id = o.id
+       GROUP BY month, donor
+       ORDER BY month, donor`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error fetching donor aggregations:', error);
+    next(error);
+  }
+}
