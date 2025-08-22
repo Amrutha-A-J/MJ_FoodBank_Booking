@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from '../components/Login';
-import { loginUser } from '../api/api';
+import { loginUser } from '../api/users';
 
-jest.mock('../api/api', () => ({
+jest.mock('../api/users', () => ({
   loginUser: jest.fn(),
 }));
 

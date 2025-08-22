@@ -16,6 +16,8 @@ import Dashboard from './pages/Dashboard';
 import UserDashboard from './pages/UserDashboard';
 import VolunteerBookingHistory from './components/VolunteerBookingHistory';
 import VolunteerSchedule from './components/VolunteerSchedule';
+import WarehouseDashboard from './pages/WarehouseDashboard';
+import DonationLog from './pages/DonationLog';
 import type { Role, UserRole } from './types';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
@@ -52,6 +54,13 @@ export default function App() {
         { label: 'Search', to: '/volunteer-management/search' },
         { label: 'Create', to: '/volunteer-management/create' },
         { label: 'Pending', to: '/volunteer-management/pending' },
+      ],
+    });
+    navGroups.push({
+      label: 'Warehouse Management',
+      links: [
+        { label: 'Dashboard', to: '/warehouse-management' },
+        { label: 'Donation Log', to: '/warehouse-management/donation-log' },
       ],
     });
   } else if (role === 'shopper') {
@@ -111,16 +120,22 @@ export default function App() {
                   ) : isStaff ? (
                     <Dashboard role="staff" token={token} />
                   ) : (
-                    <UserDashboard token={token} />
+                    <UserDashboard />
                   )
                 }
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
               {isStaff && (
-                <Route path="/manage-availability" element={<ManageAvailability token={token} />} />
+                <Route path="/manage-availability" element={<ManageAvailability />} />
               )}
               {isStaff && (
                 <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
+              )}
+              {isStaff && (
+                <Route path="/warehouse-management" element={<WarehouseDashboard />} />
+              )}
+              {isStaff && (
+                <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
               )}
               {role === 'shopper' && (
                 <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
@@ -152,7 +167,7 @@ export default function App() {
               )}
               {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
               {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-              {isStaff && <Route path="/pending" element={<Pending token={token} />} />}
+              {isStaff && <Route path="/pending" element={<Pending />} />}
               {isStaff && (
                 <>
                   <Route

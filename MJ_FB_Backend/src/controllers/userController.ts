@@ -2,11 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { randomUUID } from 'crypto';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
-import config from '../config';
 import logger from '../utils/logger';
+import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -31,29 +29,8 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const bookingsThisMonth = await updateBookingsThisMonth(user.id);
-      const payload = { id: user.id, role: user.role, type: 'user' };
-      const jti = randomUUID();
-      const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-      const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
-        expiresIn: '7d',
-      });
-      await pool.query(
-        `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
-         ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
-        [jti, `user:${user.id}`],
-      );
-      res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 1000,
-        secure: process.env.NODE_ENV !== 'development',
-      });
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        secure: process.env.NODE_ENV !== 'development',
-      });
+      const payload: AuthPayload = { id: user.id, role: user.role, type: 'user' };
+      await issueAuthTokens(res, payload, `user:${user.id}`);
       return res.json({
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
@@ -77,29 +54,8 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const payload = { id: staff.id, role: staff.role, type: 'staff' };
-    const jti = randomUUID();
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-    const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
-      expiresIn: '7d',
-    });
-    await pool.query(
-      `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
-       ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
-      [jti, `staff:${staff.id}`],
-    );
-    res.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
-    });
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
-    });
+    const payload: AuthPayload = { id: staff.id, role: staff.role, type: 'staff' };
+    await issueAuthTokens(res, payload, `staff:${staff.id}`);
     res.json({
       role: staff.role,
       name: `${staff.first_name} ${staff.last_name}`,

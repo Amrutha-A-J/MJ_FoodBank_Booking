@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { loginVolunteer } from '../api/api';
-import type { LoginResponse } from '../api/api';
+import { loginVolunteer } from '../api/volunteers';
+import type { LoginResponse } from '../api/users';
 import { TextField, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';

@@ -1,7 +1,7 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { Role, UserRole } from '../types';
-import type { LoginResponse } from '../api/api';
-import { logout as apiLogout } from '../api/api';
+import type { LoginResponse } from '../api/users';
+import { logout as apiLogout } from '../api/users';
 
 interface AuthContextValue {
   token: string;
@@ -24,6 +24,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => (localStorage.getItem('userRole') as UserRole) || ''
   );
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+
+  useEffect(() => {
+    if (token) return;
+    fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+      .then(r => r.json().catch(() => ({})))
+      .then(data => {
+        if (data?.token) {
+          setToken(data.token);
+          localStorage.setItem('token', data.token);
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function login(u: LoginResponse) {
     setRole(u.role);

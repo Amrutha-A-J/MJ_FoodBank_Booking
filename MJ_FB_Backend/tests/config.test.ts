@@ -36,29 +36,17 @@ describe('config', () => {
     ]);
   });
 
-  it('exits if JWT_SECRET is missing', () => {
+  it('throws if JWT_SECRET is missing', () => {
     delete process.env.JWT_SECRET;
     process.env.JWT_REFRESH_SECRET = 'testrefresh';
     jest.resetModules();
-    const exitMock = jest
-      .spyOn(process, 'exit')
-      .mockImplementation(((code?: number) => {
-        throw new Error(`process.exit: ${code}`);
-      }) as never);
-    expect(() => require('../src/config')).toThrow('process.exit: 1');
-    exitMock.mockRestore();
+    expect(() => require('../src/config')).toThrow(/JWT_SECRET/);
   });
 
-  it('exits if JWT_REFRESH_SECRET is missing', () => {
+  it('throws if JWT_REFRESH_SECRET is missing', () => {
     process.env.JWT_SECRET = 'testsecret';
     delete process.env.JWT_REFRESH_SECRET;
     jest.resetModules();
-    const exitMock = jest
-      .spyOn(process, 'exit')
-      .mockImplementation(((code?: number) => {
-        throw new Error(`process.exit: ${code}`);
-      }) as never);
-    expect(() => require('../src/config')).toThrow('process.exit: 1');
-    exitMock.mockRestore();
+    expect(() => require('../src/config')).toThrow(/JWT_REFRESH_SECRET/);
   });
 });

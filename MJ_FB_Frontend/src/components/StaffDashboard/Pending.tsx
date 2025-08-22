@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Grid, Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
-import { getBookings, decideBooking } from '../../api/api';
+import { getBookings, decideBooking } from '../../api/bookings';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 
@@ -17,25 +17,25 @@ interface Booking {
   endTime?: string;
 }
 
-export default function Pending({ token }: { token: string }) {
+export default function Pending() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reasons, setReasons] = useState<Record<number, string>>({});
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
 
   function loadBookings() {
-    getBookings(token, { status: 'pending' })
+    getBookings({ status: 'pending' })
       .then(b => setBookings(b.filter(x => x.status === 'submitted')))
       .catch(() => {});
   }
 
   useEffect(() => {
     loadBookings();
-  }, [token]);
+  }, []);
 
   async function handleDecision(id: number, decision: 'approve' | 'reject') {
     try {
-      await decideBooking(token, String(id), decision, reasons[id] || '');
+      await decideBooking(String(id), decision, reasons[id] || '');
       setSeverity('success');
       setMessage(`Booking ${decision === 'approve' ? 'approved' : 'rejected'}`);
       setReasons(r => {

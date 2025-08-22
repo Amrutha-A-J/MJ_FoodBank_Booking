@@ -18,13 +18,13 @@ const envSchema = z.object({
   POWER_AUTOMATE_KEY: z.string().optional(),
 });
 
-let env: z.infer<typeof envSchema>;
-try {
-  env = envSchema.parse(process.env);
-} catch (err) {
-  logger.error('❌ Invalid or missing environment variables:', err);
-  process.exit(1);
+const parsedEnv = envSchema.safeParse(process.env);
+if (!parsedEnv.success) {
+  logger.error('❌ Invalid or missing environment variables:', parsedEnv.error.format());
+  throw parsedEnv.error;
 }
+
+const env = parsedEnv.data;
 
 const frontendOrigins = env.FRONTEND_ORIGIN.split(',').map(o => o.trim());
 

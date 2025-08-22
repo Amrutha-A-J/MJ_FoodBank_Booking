@@ -3,10 +3,10 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   getMyVolunteerBookings,
-  getHolidays,
   updateVolunteerBookingStatus,
   rescheduleVolunteerBookingByToken,
-} from '../api/api';
+} from '../api/volunteers';
+import { getHolidays } from '../api/bookings';
 import type {
   VolunteerRole,
   Holiday,
@@ -106,8 +106,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   }, [currentDate, token, holidays]);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+  }, []);
 
   useEffect(() => {
     loadData();

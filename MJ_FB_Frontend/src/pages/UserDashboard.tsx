@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { EventAvailable, Announcement, History } from '@mui/icons-material';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/api';
+import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/bookings';
 import type { Slot, Holiday } from '../types';
 import { formatTime } from '../utils/time';
 
@@ -79,7 +79,7 @@ function statusColor(status: string):
   }
 }
 
-export default function UserDashboard({ token }: { token: string }) {
+export default function UserDashboard() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [nextSlots, setNextSlots] = useState<NextSlot[]>([]);
@@ -88,10 +88,10 @@ export default function UserDashboard({ token }: { token: string }) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    getBookingHistory(token)
+    getBookingHistory()
       .then(setBookings)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     const today = new Date();
@@ -100,18 +100,18 @@ export default function UserDashboard({ token }: { token: string }) {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
         const dateStr = d.toISOString().split('T')[0];
-        const slots = (await getSlots(token, dateStr)) as Slot[];
+        const slots = (await getSlots(dateStr)) as Slot[];
         const first = slots.find(s => (s.available ?? 0) > 0);
         return first ? { date: dateStr, slot: first } : null;
       }),
     )
       .then(res => setNextSlots(res.filter(Boolean).slice(0, 3) as NextSlot[]))
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    getHolidays(token).then(setHolidays).catch(() => {});
-  }, [token]);
+    getHolidays().then(setHolidays).catch(() => {});
+  }, []);
 
   const today = new Date();
   const approved = bookings
@@ -128,7 +128,7 @@ export default function UserDashboard({ token }: { token: string }) {
   async function confirmCancel() {
     if (!cancelId) return;
     try {
-      await cancelBooking(token, String(cancelId));
+      await cancelBooking(String(cancelId));
       setMessage('Booking cancelled');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {

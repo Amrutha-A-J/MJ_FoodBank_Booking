@@ -24,7 +24,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-} from '../api/api';
+} from '../api/volunteers';
 import type { VolunteerBooking, VolunteerRole } from '../types';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';

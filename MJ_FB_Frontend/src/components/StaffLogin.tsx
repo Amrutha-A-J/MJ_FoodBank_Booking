@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { loginStaff, staffExists, createStaff } from '../api/api';
-import type { LoginResponse } from '../api/api';
+import { loginStaff, staffExists, createStaff } from '../api/users';
+import type { LoginResponse } from '../api/users';
 import { Typography, TextField, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';
