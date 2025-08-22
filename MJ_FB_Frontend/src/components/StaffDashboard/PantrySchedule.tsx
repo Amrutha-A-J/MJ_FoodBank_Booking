@@ -47,6 +47,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor } | null>(null);
   const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
+  const [showRejectReason, setShowRejectReason] = useState(false);
   const [assignMessage, setAssignMessage] = useState('');
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
@@ -121,6 +122,7 @@ export default function PantrySchedule({ token }: { token: string }) {
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
+      setShowRejectReason(false);
     }
   }
 
@@ -135,6 +137,7 @@ export default function PantrySchedule({ token }: { token: string }) {
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
+      setShowRejectReason(false);
     }
   }
 
@@ -143,6 +146,7 @@ export default function PantrySchedule({ token }: { token: string }) {
     setRescheduleBooking(decisionBooking);
     setDecisionBooking(null);
     setDecisionReason('');
+    setShowRejectReason(false);
   }
 
   async function assignUser(user: User) {
@@ -231,6 +235,7 @@ export default function PantrySchedule({ token }: { token: string }) {
               if (['submitted', 'approved'].includes(booking.status)) {
                 setDecisionBooking(booking);
                 setDecisionReason('');
+                setShowRejectReason(false);
               }
             } else if (!isClosed) {
               setAssignSlot(slot);
@@ -342,33 +347,45 @@ export default function PantrySchedule({ token }: { token: string }) {
               Client ID: {decisionBooking.client_id}<br />
               Uses This Month: {decisionBooking.bookings_this_month}
             </p>
-            <textarea
-              placeholder={
-                decisionBooking.status === 'submitted'
-                  ? 'Reason for rejection'
-                  : 'Reason for cancellation'
-              }
-              value={decisionReason}
-              onChange={e => setDecisionReason(e.target.value)}
-              style={{ width: '100%', marginTop: 8 }}
-            />
+            {decisionBooking.status === 'submitted' && showRejectReason && (
+              <textarea
+                placeholder="Reason for rejection"
+                value={decisionReason}
+                onChange={e => setDecisionReason(e.target.value)}
+                style={{ width: '100%', marginTop: 8 }}
+              />
+            )}
+            {decisionBooking.status !== 'submitted' && (
+              <textarea
+                placeholder="Reason for cancellation"
+                value={decisionReason}
+                onChange={e => setDecisionReason(e.target.value)}
+                style={{ width: '100%', marginTop: 8 }}
+              />
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               {decisionBooking.status === 'submitted' ? (
                 <>
-                  <Button onClick={openReschedule} variant="outlined" color="primary">Reschedule</Button>
                   <Button onClick={() => decideSelected('approve')} variant="outlined" color="primary">Approve</Button>
                   <Button
-                    onClick={() => decideSelected('reject')}
+                    onClick={() => {
+                      if (!showRejectReason) {
+                        setShowRejectReason(true);
+                      } else {
+                        decideSelected('reject');
+                      }
+                    }}
                     variant="outlined"
                     color="primary"
-                    disabled={!decisionReason.trim()}
+                    disabled={showRejectReason && !decisionReason.trim()}
                   >
-                    Reject
+                    {showRejectReason ? 'Confirm Reject' : 'Reject'}
                   </Button>
                   <Button
                     onClick={() => {
                       setDecisionBooking(null);
                       setDecisionReason('');
+                      setShowRejectReason(false);
                     }}
                     variant="outlined"
                     color="primary"
@@ -384,6 +401,7 @@ export default function PantrySchedule({ token }: { token: string }) {
                     onClick={() => {
                       setDecisionBooking(null);
                       setDecisionReason('');
+                      setShowRejectReason(false);
                     }}
                     variant="outlined"
                     color="primary"
