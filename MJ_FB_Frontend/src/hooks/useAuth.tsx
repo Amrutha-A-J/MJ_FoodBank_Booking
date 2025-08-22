@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { Role, UserRole } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
+import { API_BASE, apiFetch } from '../api/client';
 
 interface AuthContextValue {
   token: string;
@@ -23,14 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole | ''>(
     () => (localStorage.getItem('userRole') as UserRole) || ''
   );
-  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 
   useEffect(() => {
     if (token) return;
-    fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    })
+    apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
       .then(r => r.json().catch(() => ({})))
       .then(data => {
         if (data?.token) {
@@ -50,10 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('name', u.name);
     if (u.userRole) localStorage.setItem('userRole', u.userRole);
     else localStorage.removeItem('userRole');
-    fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    })
+    apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
       .then(r => r.json().catch(() => ({})))
       .then(data => {
         if (data?.token) {
