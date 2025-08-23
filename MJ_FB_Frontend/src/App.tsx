@@ -22,6 +22,9 @@ import TrackPigpound from './pages/TrackPigpound';
 import TrackOutgoingDonations from './pages/TrackOutgoingDonations';
 import TrackSurplus from './pages/TrackSurplus';
 import Aggregations from './pages/Aggregations';
+import DonorManagementDashboard from './pages/DonorManagementDashboard';
+import DonorSearch from './pages/DonorSearch';
+import Donations from './pages/Donations';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -72,6 +75,15 @@ export default function App() {
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
     ];
     navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+
+    navGroups.push({
+      label: 'Donor Management',
+      links: [
+        { label: 'Dashboard', to: '/donor-management' },
+        { label: 'Donor Search', to: '/donor-management/donor-search' },
+        { label: 'Donations', to: '/donor-management/donations' },
+      ],
+    });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
@@ -168,6 +180,24 @@ export default function App() {
                 <Route
                   path="/warehouse-management/aggregations"
                   element={<Aggregations />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/donor-management"
+                  element={<DonorManagementDashboard />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/donor-management/donor-search"
+                  element={<DonorSearch />}
+                />
+              )}
+              {isStaff && (
+                <Route
+                  path="/donor-management/donations"
+                  element={<Donations />}
                 />
               )}
               {role === 'shopper' && (
