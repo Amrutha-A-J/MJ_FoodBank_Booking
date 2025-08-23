@@ -252,6 +252,11 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
 
+### Warehouse Management
+- `/warehouse-overall` routes provide yearly summaries of donations, surplus, pig pound, and outgoing donations.
+- `GET /warehouse-overall?year=YYYY` lists monthly aggregates, `POST /warehouse-overall/rebuild?year=YYYY` rebuilds data, and `GET /warehouse-overall/export?year=YYYY` exports it as a spreadsheet.
+- Frontend pages under `/warehouse-management/*` (Dashboard, Donation Log, Track Pigpound, Track Outgoing Donations, Track Surplus, Aggregations) surface these warehouse features.
+
 ## Slot API
 
 `GET /volunteer-roles` returns all volunteer roles with their shifts:
