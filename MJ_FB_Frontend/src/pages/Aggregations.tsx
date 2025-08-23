@@ -60,6 +60,15 @@ export default function Aggregations() {
   );
   const months = Array.from(new Set(rows.map(r => r.month))).sort();
 
+  const donorTotals: Record<string, number> = {};
+  const monthTotals: Record<number, number> = {};
+  let grandTotal = 0;
+  rows.forEach(r => {
+    donorTotals[r.donor] = (donorTotals[r.donor] || 0) + r.total;
+    monthTotals[r.month] = (monthTotals[r.month] || 0) + r.total;
+    grandTotal += r.total;
+  });
+
   useEffect(() => {
     if (tab !== 2) return;
     setOverallLoading(true);
@@ -151,31 +160,33 @@ export default function Aggregations() {
             </Button>
           </Stack>
           <Table size="small" ref={tableRef}>
-            <TableHead>
+          <TableHead>
+            <TableRow>
+              <TableCell>Donor</TableCell>
+              {months.map(m => (
+                <TableCell key={m} align="right">
+                  {m}
+                </TableCell>
+              ))}
+              <TableCell align="right">Total</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading ? (
               <TableRow>
-                <TableCell>Donor</TableCell>
-                {months.map(m => (
-                  <TableCell key={m} align="right">
-                    {m}
-                  </TableCell>
-                ))}
+                <TableCell colSpan={months.length + 2} align="center">
+                  <CircularProgress size={24} />
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={months.length + 1} align="center">
-                    <CircularProgress size={24} />
-                  </TableCell>
-                </TableRow>
-              ) : rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={months.length + 1} align="center">
-                    No data
-                  </TableCell>
-                </TableRow>
-              ) : (
-                donors.map(d => (
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={months.length + 2} align="center">
+                  No data
+                </TableCell>
+              </TableRow>
+            ) : (
+              <>
+                {donors.map(d => (
                   <TableRow key={d}>
                     <TableCell>{d}</TableCell>
                     {months.map(m => (
@@ -183,13 +194,24 @@ export default function Aggregations() {
                         {rows.find(r => r.donor === d && r.month === m)?.total || 0}
                       </TableCell>
                     ))}
+                    <TableCell align="right">{donorTotals[d] || 0}</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </>
-      )}
+                ))}
+                <TableRow>
+                  <TableCell>Total</TableCell>
+                  {months.map(m => (
+                    <TableCell key={m} align="right">
+                      {monthTotals[m] || 0}
+                    </TableCell>
+                  ))}
+                  <TableCell align="right">{grandTotal}</TableCell>
+                </TableRow>
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </>
+    )}
       {tab === 1 && null}
       {tab === 2 && (
         <>
