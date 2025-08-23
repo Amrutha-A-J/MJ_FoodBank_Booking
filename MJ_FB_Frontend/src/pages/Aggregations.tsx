@@ -49,6 +49,24 @@ export default function Aggregations() {
   );
   const months = Array.from(new Set(rows.map(r => r.month))).sort();
 
+  const dataMap = rows.reduce((acc, r) => {
+    acc[r.donor] = acc[r.donor] || {};
+    acc[r.donor][r.month] = r.total;
+    return acc;
+  }, {} as Record<string, Record<string, number>>);
+
+  const totalsByDonor = donors.reduce((acc, d) => {
+    acc[d] = months.reduce((sum, m) => sum + (dataMap[d]?.[m] || 0), 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  const totalsByMonth = months.reduce((acc, m) => {
+    acc[m] = donors.reduce((sum, d) => sum + (dataMap[d]?.[m] || 0), 0);
+    return acc;
+  }, {} as Record<string, number>);
+
+  const yearTotal = Object.values(totalsByMonth).reduce((sum, t) => sum + t, 0);
+
   return (
     <Page title="Aggregations">
       <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
@@ -87,32 +105,49 @@ export default function Aggregations() {
                     {m}
                   </TableCell>
                 ))}
+                <TableCell align="right">Total</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={months.length + 1} align="center">
+                  <TableCell colSpan={months.length + 2} align="center">
                     <CircularProgress size={24} />
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={months.length + 1} align="center">
+                  <TableCell colSpan={months.length + 2} align="center">
                     No data
                   </TableCell>
                 </TableRow>
               ) : (
-                donors.map(d => (
-                  <TableRow key={d}>
-                    <TableCell>{d}</TableCell>
+                <>
+                  {donors.map(d => (
+                    <TableRow key={d}>
+                      <TableCell>{d}</TableCell>
+                      {months.map(m => (
+                        <TableCell key={m} align="right">
+                          {dataMap[d]?.[m] || 0}
+                        </TableCell>
+                      ))}
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {totalsByDonor[d] || 0}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
                     {months.map(m => (
-                      <TableCell key={m} align="right">
-                        {rows.find(r => r.donor === d && r.month === m)?.total || 0}
+                      <TableCell key={m} align="right" sx={{ fontWeight: 'bold' }}>
+                        {totalsByMonth[m] || 0}
                       </TableCell>
                     ))}
+                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                      {yearTotal}
+                    </TableCell>
                   </TableRow>
-                ))
+                </>
               )}
             </TableBody>
           </Table>
