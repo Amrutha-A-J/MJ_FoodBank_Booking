@@ -13,6 +13,7 @@ import {
   MenuItem,
   Stack,
   Button,
+  CircularProgress,
 } from '@mui/material';
 import Page from '../components/Page';
 import { getDonorAggregations, type DonorAggregation } from '../api/donations';
@@ -21,6 +22,7 @@ import { exportTableToExcel } from '../utils/exportTableToExcel';
 export default function Aggregations() {
   const [tab, setTab] = useState(0);
   const [rows, setRows] = useState<DonorAggregation[]>([]);
+  const [loading, setLoading] = useState(false);
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -34,9 +36,12 @@ export default function Aggregations() {
 
   useEffect(() => {
     if (tab !== 0) return;
+    setLoading(true);
+    setRows([]);
     getDonorAggregations(year)
       .then(setRows)
-      .catch(() => setRows([]));
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
   }, [tab, year]);
 
   const donors = Array.from(new Set(rows.map(r => r.donor))).sort((a, b) => a.localeCompare(b));
@@ -83,16 +88,30 @@ export default function Aggregations() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {months.map(m => (
-                <TableRow key={m}>
-                  <TableCell>{m}</TableCell>
-                  {donors.map(d => (
-                    <TableCell key={d} align="right">
-                      {rows.find(r => r.month === m && r.donor === d)?.total || 0}
-                    </TableCell>
-                  ))}
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={donors.length + 1} align="center">
+                    <CircularProgress size={24} />
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : rows.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={donors.length + 1} align="center">
+                    No data
+                  </TableCell>
+                </TableRow>
+              ) : (
+                months.map(m => (
+                  <TableRow key={m}>
+                    <TableCell>{m}</TableCell>
+                    {donors.map(d => (
+                      <TableCell key={d} align="right">
+                        {rows.find(r => r.month === m && r.donor === d)?.total || 0}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </>
