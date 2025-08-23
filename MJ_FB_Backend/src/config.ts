@@ -16,6 +16,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(4000),
   POWER_AUTOMATE_URL: z.string().optional(),
   POWER_AUTOMATE_KEY: z.string().optional(),
+  BREAD_WEIGHT_MULTIPLIER: z.coerce.number().default(10),
+  CANS_WEIGHT_MULTIPLIER: z.coerce.number().default(20),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -40,4 +42,6 @@ export default {
   port: env.PORT,
   powerAutomateUrl: env.POWER_AUTOMATE_URL ?? '',
   powerAutomateKey: env.POWER_AUTOMATE_KEY ?? '',
+  breadWeightMultiplier: env.BREAD_WEIGHT_MULTIPLIER,
+  cansWeightMultiplier: env.CANS_WEIGHT_MULTIPLIER,
 };

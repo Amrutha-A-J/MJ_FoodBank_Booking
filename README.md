@@ -62,6 +62,12 @@ npm start   # or npm run dev
 
 Refer to the submodule repositories for detailed configuration and environment variables.
 
+The backend surplus tracking feature uses two optional environment variables to
+control weight calculations:
+
+- `BREAD_WEIGHT_MULTIPLIER` (default `10`)
+- `CANS_WEIGHT_MULTIPLIER` (default `20`)
+
 ### Frontend features
 
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
