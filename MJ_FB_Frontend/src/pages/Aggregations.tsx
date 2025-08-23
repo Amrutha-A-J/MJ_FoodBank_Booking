@@ -44,7 +44,9 @@ export default function Aggregations() {
       .finally(() => setLoading(false));
   }, [tab, year]);
 
-  const donors = Array.from(new Set(rows.map(r => r.donor))).sort((a, b) => a.localeCompare(b));
+  const donors = Array.from(new Set(rows.map(r => r.donor))).sort((a, b) =>
+    a.localeCompare(b)
+  );
   const months = Array.from(new Set(rows.map(r => r.month))).sort();
 
   return (
@@ -79,10 +81,10 @@ export default function Aggregations() {
           <Table size="small" ref={tableRef}>
             <TableHead>
               <TableRow>
-                <TableCell>Month</TableCell>
-                {donors.map(d => (
-                  <TableCell key={d} align="right">
-                    {d}
+                <TableCell>Donor</TableCell>
+                {months.map(m => (
+                  <TableCell key={m} align="right">
+                    {m}
                   </TableCell>
                 ))}
               </TableRow>
@@ -90,23 +92,23 @@ export default function Aggregations() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={donors.length + 1} align="center">
+                  <TableCell colSpan={months.length + 1} align="center">
                     <CircularProgress size={24} />
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={donors.length + 1} align="center">
+                  <TableCell colSpan={months.length + 1} align="center">
                     No data
                   </TableCell>
                 </TableRow>
               ) : (
-                months.map(m => (
-                  <TableRow key={m}>
-                    <TableCell>{m}</TableCell>
-                    {donors.map(d => (
-                      <TableCell key={d} align="right">
-                        {rows.find(r => r.month === m && r.donor === d)?.total || 0}
+                donors.map(d => (
+                  <TableRow key={d}>
+                    <TableCell>{d}</TableCell>
+                    {months.map(m => (
+                      <TableCell key={m} align="right">
+                        {rows.find(r => r.donor === d && r.month === m)?.total || 0}
                       </TableCell>
                     ))}
                   </TableRow>
