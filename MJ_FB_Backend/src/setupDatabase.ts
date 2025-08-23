@@ -313,6 +313,26 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_reschedule_token_idx ON volunteer_bookings (reschedule_token);`
   );
 
+  // Create indexes for donation and warehouse log tables
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS donations_donor_id_idx ON donations (donor_id);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS donations_date_idx ON donations (date);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS surplus_log_date_idx ON surplus_log (date);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS pig_pound_log_date_idx ON pig_pound_log (date);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS outgoing_donation_log_receiver_date_idx ON outgoing_donation_log (receiver_id, date);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS warehouse_overall_year_idx ON warehouse_overall (year);`
+  );
+
   // Insert master data
   await client.query(`
 INSERT INTO slots (start_time, end_time, max_capacity) VALUES
