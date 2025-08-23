@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
+import ExcelJS from 'exceljs';
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
@@ -15,6 +16,50 @@ export async function listWarehouseOverall(req: Request, res: Response, next: Ne
     res.json(result.rows);
   } catch (error) {
     logger.error('Error listing warehouse overall:', error);
+    next(error);
+  }
+}
+
+export async function exportWarehouseOverall(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const result = await pool.query(
+      `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
+       FROM warehouse_overall
+       WHERE year = $1
+       ORDER BY month`,
+      [year],
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Warehouse ${year}`);
+
+    worksheet.columns = [
+      { header: 'Month', key: 'month', width: 15 },
+      { header: 'Donations', key: 'donations', width: 15 },
+      { header: 'Surplus', key: 'surplus', width: 15 },
+      { header: 'Pig Pound', key: 'pigPound', width: 15 },
+      { header: 'Outgoing Donations', key: 'outgoingDonations', width: 20 },
+    ];
+
+    result.rows.forEach(row => {
+      worksheet.addRow(row);
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    res
+      .setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      .setHeader(
+        'Content-Disposition',
+        `attachment; filename=warehouse-overall-${year}.xlsx`,
+      );
+
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    logger.error('Error exporting warehouse overall:', error);
     next(error);
   }
 }
