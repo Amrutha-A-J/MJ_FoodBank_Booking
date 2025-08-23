@@ -59,20 +59,19 @@ export default function App() {
         { label: 'Pending', to: '/volunteer-management/pending' },
       ],
     });
-    navGroups.push({
-      label: 'Warehouse Management',
-      links: [
-        { label: 'Dashboard', to: '/warehouse-management' },
-        { label: 'Donation Log', to: '/warehouse-management/donation-log' },
-        { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
-        {
-          label: 'Track Outgoing Donations',
-          to: '/warehouse-management/track-outgoing-donations',
-        },
-        { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
-        { label: 'Aggregations', to: '/warehouse-management/aggregations' },
-      ],
-    });
+
+    const warehouseLinks = [
+      { label: 'Dashboard', to: '/warehouse-management' },
+      { label: 'Donation Log', to: '/warehouse-management/donation-log' },
+      { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
+      {
+        label: 'Track Outgoing Donations',
+        to: '/warehouse-management/track-outgoing-donations',
+      },
+      { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
+      { label: 'Aggregations', to: '/warehouse-management/aggregations' },
+    ];
+    navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
