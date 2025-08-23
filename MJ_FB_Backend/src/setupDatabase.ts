@@ -293,6 +293,26 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_slots_unique_role_time ON volunteer_slots (role_id, start_time, end_time);`
   );
 
+  // Create indexes for faster lookups on bookings and volunteer_bookings
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS bookings_user_id_idx ON bookings (user_id);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS bookings_slot_date_status_idx ON bookings (slot_id, date, status);`
+  );
+  await client.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS bookings_reschedule_token_idx ON bookings (reschedule_token);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS volunteer_bookings_volunteer_id_idx ON volunteer_bookings (volunteer_id);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS volunteer_bookings_slot_date_status_idx ON volunteer_bookings (slot_id, date, status);`
+  );
+  await client.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_reschedule_token_idx ON volunteer_bookings (reschedule_token);`
+  );
+
   // Insert master data
   await client.query(`
 INSERT INTO slots (start_time, end_time, max_capacity) VALUES
