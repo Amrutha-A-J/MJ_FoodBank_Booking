@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardContent,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  List,
-  ListItem,
-  Typography,
-} from '@mui/material';
+import { Button, Card, CardContent, Grid, List, ListItem, Typography } from '@mui/material';
 import Page from '../components/Page';
+import EventForm from '../components/EventForm';
 import { getEvents, type Event } from '../api/events';
 
 function groupEvents(events: Event[] = []) {
@@ -47,28 +36,18 @@ function EventList({ events }: { events: Event[] }) {
   );
 }
 
-function EventFormDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Create Event</DialogTitle>
-      <DialogContent>
-        <Typography variant="body2">Event form coming soon.</Typography>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
 export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
+  function fetchEvents() {
     getEvents()
       .then(data => setEvents(Array.isArray(data) ? data : []))
       .catch(() => setEvents([]));
+  }
+
+  useEffect(() => {
+    fetchEvents();
   }, []);
 
   const { today, upcoming, past } = groupEvents(events);
@@ -108,7 +87,11 @@ export default function Events() {
           </Card>
         </Grid>
       </Grid>
-      <EventFormDialog open={open} onClose={() => setOpen(false)} />
+      <EventForm
+        open={open}
+        onClose={() => setOpen(false)}
+        onCreated={fetchEvents}
+      />
     </Page>
   );
 }
