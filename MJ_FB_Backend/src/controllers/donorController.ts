@@ -79,7 +79,7 @@ export async function donorDonations(
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC',
+      'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC, id DESC',
       [id],
     );
     res.json(result.rows);

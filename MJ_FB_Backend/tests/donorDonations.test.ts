@@ -1,0 +1,53 @@
+import request from 'supertest';
+import express from 'express';
+import donorsRoutes from '../src/routes/donors';
+import pool from '../src/db';
+import jwt from 'jsonwebtoken';
+
+jest.mock('../src/db');
+jest.mock('jsonwebtoken');
+
+const app = express();
+app.use('/donors', donorsRoutes);
+
+beforeAll(() => {
+  process.env.JWT_SECRET = 'testsecret';
+  process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe('GET /donors/:id/donations', () => {
+  it('returns donations in reverse chronological order', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 2, date: '2024-03-01', weight: 30 },
+          { id: 1, date: '2024-02-01', weight: 20 },
+        ],
+      });
+
+    const res = await request(app)
+      .get('/donors/5/donations')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC, id DESC',
+      ['5'],
+    );
+    expect(res.body).toEqual([
+      { id: 2, date: '2024-03-01', weight: 30 },
+      { id: 1, date: '2024-02-01', weight: 20 },
+    ]);
+  });
+});
+
