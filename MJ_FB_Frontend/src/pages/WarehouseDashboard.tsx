@@ -63,8 +63,9 @@ function monthName(m: number) {
   return new Date(2000, m - 1).toLocaleString(undefined, { month: 'short' });
 }
 
-function fmtLbs(n: number) {
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs`;
+function fmtLbs(n?: number) {
+  const safe = typeof n === 'number' && !Number.isNaN(n) ? n : 0;
+  return `${safe.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs`;
 }
 
 function kpiDelta(curr: number, prev?: number) {
