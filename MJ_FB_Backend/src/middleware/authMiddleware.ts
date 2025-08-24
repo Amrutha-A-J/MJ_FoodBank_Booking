@@ -171,3 +171,4 @@ export function authorizeRoles(...allowedRoles: string[]) {
     next();
   };
 }
+

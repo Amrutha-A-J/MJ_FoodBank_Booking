@@ -1,4 +1,4 @@
-export type StaffRole = 'staff';
+export type StaffRole = 'staff' | 'admin';
 
 export interface Staff {
   id: number;

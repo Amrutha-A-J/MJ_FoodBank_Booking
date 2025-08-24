@@ -23,6 +23,8 @@ import TrackOutgoingDonations from './pages/TrackOutgoingDonations';
 import TrackSurplus from './pages/TrackSurplus';
 import Aggregations from './pages/Aggregations';
 import DonorProfile from './pages/DonorProfile';
+import AdminStaffList from './pages/AdminStaffList';
+import AdminStaffForm from './pages/AdminStaffForm';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -32,7 +34,8 @@ export default function App() {
   const { token, role, name, userRole, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
-  const isStaff = role === 'staff';
+  const isStaff = role === 'staff' || role === 'admin';
+  const isAdmin = role === 'admin';
 
   const navGroups: NavGroup[] = [];
   if (!token) {
@@ -73,6 +76,15 @@ export default function App() {
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
     ];
     navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+    if (isAdmin) {
+      navGroups.push({
+        label: 'Admin',
+        links: [
+          { label: 'Staff List', to: '/admin/staff' },
+          { label: 'Add Staff', to: '/admin/staff/new' },
+        ],
+      });
+    }
 
   } else if (role === 'shopper') {
     navGroups.push({
@@ -215,6 +227,22 @@ export default function App() {
                   <Route
                     path="/volunteer-management/:tab"
                     element={<VolunteerManagement token={token} />}
+                  />
+                </>
+              )}
+              {isAdmin && (
+                <>
+                  <Route
+                    path="/admin/staff"
+                    element={<AdminStaffList token={token} />}
+                  />
+                  <Route
+                    path="/admin/staff/new"
+                    element={<AdminStaffForm token={token} />}
+                  />
+                  <Route
+                    path="/admin/staff/:id"
+                    element={<AdminStaffForm token={token} />}
                   />
                 </>
               )}
