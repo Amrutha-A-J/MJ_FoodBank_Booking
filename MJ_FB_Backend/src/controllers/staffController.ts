@@ -62,3 +62,28 @@ export async function createStaff(
   }
 }
 
+export async function searchStaff(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { query } = req.query as { query?: string };
+  if (!query) {
+    return res.json([]);
+  }
+  try {
+    const result = await pool.query(
+      `SELECT id, first_name, last_name FROM staff WHERE first_name ILIKE $1 OR last_name ILIKE $1 OR email ILIKE $1`,
+      [`%${query}%`],
+    );
+    const staff = result.rows.map((row) => ({
+      id: row.id,
+      name: `${row.first_name} ${row.last_name}`,
+    }));
+    res.json(staff);
+  } catch (error) {
+    logger.error('Error searching staff:', error);
+    next(error);
+  }
+}
+

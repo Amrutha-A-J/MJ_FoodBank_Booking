@@ -1,11 +1,12 @@
 import express, { NextFunction } from 'express';
-import { checkStaffExists, createStaff } from '../controllers/staffController';
+import { checkStaffExists, createStaff, searchStaff } from '../controllers/staffController';
 import { authMiddleware, authorizeRoles, authorizeAccess } from '../middleware/authMiddleware';
 import pool from '../db';
 
 const router = express.Router();
 
 router.get('/exists', checkStaffExists);
+router.get('/search', authMiddleware, authorizeRoles('staff'), searchStaff);
 
 // Allow creation of the first staff account without authentication. Once at
 // least one staff member exists, require standard staff authorization.
