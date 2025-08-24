@@ -151,33 +151,30 @@ export default function WarehouseDashboard() {
   const currentTotals = totals.find(t => t.month === currentMonth);
   const prevTotals = totals.find(t => t.month === currentMonth - 1);
 
-  const incoming =
+  const incoming = currentTotals?.donationsKg ?? 0;
+  const prevIncoming = prevTotals?.donationsKg ?? 0;
+  const totalIncoming =
     (currentTotals?.donationsKg ?? 0) +
     (currentTotals?.surplusKg ?? 0) +
     (currentTotals?.pigPoundKg ?? 0);
-  const prevIncoming =
-    (prevTotals?.donationsKg ?? 0) +
-    (prevTotals?.surplusKg ?? 0) +
-    (prevTotals?.pigPoundKg ?? 0);
   const outgoing = currentTotals?.outgoingKg ?? 0;
   const prevOutgoing = prevTotals?.outgoingKg ?? 0;
-  const anomalyRatio = incoming ? outgoing / incoming : 0;
-  const showAnomaly = incoming > 0 && anomalyRatio > 1.25;
+  const anomalyRatio = totalIncoming ? outgoing / totalIncoming : 0;
+  const showAnomaly = totalIncoming > 0 && anomalyRatio > 1.25;
 
   const chartData = useMemo(
     () =>
       Array.from({ length: 12 }, (_, i) => {
         const m = i + 1;
         const t = totals.find(tt => tt.month === m);
-        const incoming =
-          (t?.donationsKg ?? 0) + (t?.surplusKg ?? 0) + (t?.pigPoundKg ?? 0);
+        const incoming = t?.donationsKg ?? 0;
         const outgoing = t?.outgoingKg ?? 0;
         return {
           month: monthName(m),
           incoming,
           outgoing,
           net: incoming - outgoing,
-          donations: t?.donationsKg ?? 0,
+          donations: incoming,
           surplus: t?.surplusKg ?? 0,
           pigPound: t?.pigPoundKg ?? 0,
         };
