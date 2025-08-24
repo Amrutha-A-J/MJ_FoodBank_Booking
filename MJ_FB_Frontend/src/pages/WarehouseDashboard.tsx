@@ -173,7 +173,6 @@ export default function WarehouseDashboard() {
           month: monthName(m),
           incoming,
           outgoing,
-          net: incoming - outgoing,
           donations: incoming,
           surplus: t?.surplusKg ?? 0,
           pigPound: t?.pigPoundKg ?? 0,
@@ -346,40 +345,45 @@ export default function WarehouseDashboard() {
       >
         <Card variant="outlined">
           <CardHeader title="Monthly Trend" />
-          <CardContent sx={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <RTooltip formatter={(val: number) => fmtKg(val)} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="incoming"
-                  name="Incoming"
-                  stroke={theme.palette.success.main}
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="outgoing"
-                  name="Outgoing"
-                  stroke={theme.palette.error.main}
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="net"
-                  name="Net"
-                  stroke={theme.palette.warning.main}
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent sx={{ height: 300, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ flex: 1 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RTooltip formatter={(val: number) => fmtKg(val)} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="incoming"
+                    name="Incoming"
+                    stroke={theme.palette.success.main}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RTooltip formatter={(val: number) => fmtKg(val)} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="outgoing"
+                    name="Outgoing"
+                    stroke={theme.palette.error.main}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Box>
           </CardContent>
         </Card>
         <Card variant="outlined">
