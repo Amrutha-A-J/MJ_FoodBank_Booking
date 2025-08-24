@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listDonations, addDonation, updateDonation, deleteDonation } from '../controllers/donationController';
+import { listDonations, addDonation, updateDonation, deleteDonation, donorAggregations } from '../controllers/donationController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import { addDonationSchema, updateDonationSchema } from '../schemas/donationSchemas';
@@ -7,6 +7,7 @@ import { addDonationSchema, updateDonationSchema } from '../schemas/donationSche
 const router = Router();
 
 router.get('/', authMiddleware, authorizeRoles('staff'), listDonations);
+router.get('/aggregations', authMiddleware, authorizeRoles('staff'), donorAggregations);
 router.post('/', authMiddleware, authorizeRoles('staff'), validate(addDonationSchema), addDonation);
 router.put('/:id', authMiddleware, authorizeRoles('staff'), validate(updateDonationSchema), updateDonation);
 router.delete('/:id', authMiddleware, authorizeRoles('staff'), deleteDonation);

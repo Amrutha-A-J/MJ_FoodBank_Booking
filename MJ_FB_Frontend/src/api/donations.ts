@@ -35,3 +35,14 @@ export async function deleteDonation(id: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/donations/${id}`, { method: 'DELETE' });
   await handleResponse(res);
 }
+
+export interface DonorAggregation {
+  donor: string;
+  monthlyTotals: number[];
+  total: number;
+}
+
+export async function getDonorAggregations(year: number): Promise<DonorAggregation[]> {
+  const res = await apiFetch(`${API_BASE}/donations/aggregations?year=${year}`);
+  return handleResponse(res);
+}

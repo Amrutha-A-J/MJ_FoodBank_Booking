@@ -15,7 +15,6 @@ import {
   CircularProgress,
   Tabs,
   Tab,
-  Box,
 } from '@mui/material';
 import Page from '../components/Page';
 import {
@@ -24,6 +23,7 @@ import {
   exportWarehouseOverall,
   type WarehouseOverall,
 } from '../api/warehouseOverall';
+import { getDonorAggregations, type DonorAggregation } from '../api/donations';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 
 export default function Aggregations() {
@@ -34,8 +34,11 @@ export default function Aggregations() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = new Date().getFullYear();
   const [overallYear, setOverallYear] = useState(currentYear);
+  const [donorYear, setDonorYear] = useState(currentYear);
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
   const [tab, setTab] = useState(1);
+  const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
+  const [donorLoading, setDonorLoading] = useState(false);
 
   useEffect(() => {
     setOverallLoading(true);
@@ -45,6 +48,19 @@ export default function Aggregations() {
       .catch(() => setOverallRows([]))
       .finally(() => setOverallLoading(false));
   }, [overallYear]);
+
+  useEffect(() => {
+    if (tab !== 0) return;
+    setDonorLoading(true);
+    setDonorRows([]);
+    getDonorAggregations(donorYear)
+      .then(setDonorRows)
+      .catch(() => {
+        setSnackbar({ open: true, message: 'Failed to load donor aggregations', severity: 'error' });
+        setDonorRows([]);
+      })
+      .finally(() => setDonorLoading(false));
+  }, [donorYear, tab]);
 
   const monthNames = [
     'January',
@@ -124,7 +140,84 @@ export default function Aggregations() {
         <Tab label="Yearly Overall Aggregations" />
       </Tabs>
       {tab === 0 ? (
-        <Box sx={{ p: 2 }} />
+        <>
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel id="donor-year-label">Year</InputLabel>
+              <Select
+                labelId="donor-year-label"
+                label="Year"
+                value={donorYear}
+                onChange={e => setDonorYear(Number(e.target.value))}
+              >
+                {years.map(y => (
+                  <MenuItem key={y} value={y}>
+                    {y}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Month</TableCell>
+                  {donorRows.map(d => (
+                    <TableCell key={d.donor} align="right">
+                      {d.donor}
+                    </TableCell>
+                  ))}
+                  <TableCell align="right">Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {donorLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={donorRows.length + 2} align="center">
+                      <CircularProgress size={24} />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  (() => {
+                    const monthTotals = Array(12).fill(0);
+                    donorRows.forEach(d =>
+                      d.monthlyTotals.forEach((v, i) => {
+                        monthTotals[i] += v;
+                      }),
+                    );
+                    return (
+                      <>
+                        {monthNames.map((name, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell>{name}</TableCell>
+                            {donorRows.map(d => (
+                              <TableCell key={d.donor} align="right">
+                                {d.monthlyTotals[idx]}
+                              </TableCell>
+                            ))}
+                            <TableCell align="right">{monthTotals[idx]}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell>Total</TableCell>
+                          {donorRows.map(d => (
+                            <TableCell key={d.donor} align="right">
+                              {d.total}
+                            </TableCell>
+                          ))}
+                          <TableCell align="right">
+                            {monthTotals.reduce((a, b) => a + b, 0)}
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    );
+                  })()
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       ) : (
         <>
           <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
