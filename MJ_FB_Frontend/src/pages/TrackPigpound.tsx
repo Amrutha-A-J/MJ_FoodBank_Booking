@@ -102,7 +102,7 @@ export default function TrackPigpound() {
           {entries.map(e => (
             <TableRow key={e.id}>
               <TableCell>
-                {new Date(`${e.date}T00:00:00`).toLocaleDateString()}
+                {new Date(e.date).toLocaleDateString('en-CA')}
               </TableCell>
               <TableCell>{e.weight}</TableCell>
               <TableCell align="right">
