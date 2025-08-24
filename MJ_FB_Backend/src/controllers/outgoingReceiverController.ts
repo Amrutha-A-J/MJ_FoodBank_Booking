@@ -39,7 +39,7 @@ export async function topOutgoingReceivers(
        FROM outgoing_donation_log l JOIN outgoing_receivers r ON l.receiver_id = r.id
        WHERE EXTRACT(YEAR FROM l.date) = $1
        GROUP BY r.id, r.name
-       ORDER BY "totalKg" DESC, MAX(l.date) DESC
+       ORDER BY "totalLbs" DESC, MAX(l.date) DESC
        LIMIT $2`,
       [year, limit],
     );
