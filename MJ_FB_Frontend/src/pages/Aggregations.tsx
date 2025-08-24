@@ -17,6 +17,7 @@ import Page from '../components/Page';
 import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
+  exportWarehouseOverall,
   type WarehouseOverall,
 } from '../api/warehouseOverall';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
@@ -25,6 +26,7 @@ export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
   const [overallLoading, setOverallLoading] = useState(false);
   const [rebuilding, setRebuilding] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = new Date().getFullYear();
   const [overallYear, setOverallYear] = useState(currentYear);
@@ -90,6 +92,26 @@ export default function Aggregations() {
       .finally(() => setRebuilding(false));
   };
 
+  const handleExportOverall = () => {
+    setExporting(true);
+    exportWarehouseOverall(overallYear)
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `warehouse-overall-${overallYear}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setSnackbar({ open: true, message: 'Export ready', severity: 'success' });
+      })
+      .catch(() => {
+        setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
+      })
+      .finally(() => setExporting(false));
+  };
+
   return (
     <Page title="Aggregations">
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -115,6 +137,14 @@ export default function Aggregations() {
           disabled={rebuilding}
         >
           {rebuilding ? <CircularProgress size={20} /> : 'Calculate Overall'}
+        </Button>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleExportOverall}
+          disabled={exporting}
+        >
+          {exporting ? <CircularProgress size={20} /> : 'Export'}
         </Button>
       </Stack>
       <Table size="small">
