@@ -17,3 +17,9 @@ export async function rebuildWarehouseOverall(year: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/warehouse-overall/rebuild?year=${year}`, { method: 'POST' });
   await handleResponse(res);
 }
+
+export async function exportWarehouseOverall(year: number): Promise<Blob> {
+  const res = await apiFetch(`${API_BASE}/warehouse-overall/export?year=${year}`);
+  if (!res.ok) await handleResponse(res);
+  return res.blob();
+}
