@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import type { Role, UserRole } from '../types';
+import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
 import { API_BASE, apiFetch } from '../api/client';
@@ -9,6 +9,7 @@ interface AuthContextValue {
   role: Role;
   name: string;
   userRole: UserRole | '';
+  access: StaffAccess[];
   login: (u: LoginResponse) => void;
   logout: () => Promise<void>;
 }
@@ -24,6 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<UserRole | ''>(
     () => (localStorage.getItem('userRole') as UserRole) || ''
   );
+  const [access, setAccess] = useState<StaffAccess[]>(() => {
+    const stored = localStorage.getItem('access');
+    return stored ? (JSON.parse(stored) as StaffAccess[]) : [];
+  });
 
   useEffect(() => {
     if (token) return;
@@ -43,10 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(u.role);
     setName(u.name);
     setUserRole(u.userRole || '');
+    setAccess(u.access || []);
     localStorage.setItem('role', u.role);
     localStorage.setItem('name', u.name);
     if (u.userRole) localStorage.setItem('userRole', u.userRole);
     else localStorage.removeItem('userRole');
+    localStorage.setItem('access', JSON.stringify(u.access || []));
     apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
       .then(r => r.json().catch(() => ({})))
       .then(data => {
@@ -66,10 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole('' as Role);
     setName('');
     setUserRole('');
+    setAccess([]);
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('name');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('access');
   }
 
   const value: AuthContextValue = {
@@ -77,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role,
     name,
     userRole,
+    access,
     login,
     logout,
   };

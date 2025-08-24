@@ -89,7 +89,7 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await createStaff(firstName, lastName, 'staff', email, password);
+      await createStaff(firstName, lastName, ['admin'], email, password);
       setMessage('Staff account created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {

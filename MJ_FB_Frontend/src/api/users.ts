@@ -1,12 +1,12 @@
-import type { Role, UserRole, StaffRole, UserProfile } from '../types';
+import type {
+  UserRole,
+  StaffRole,
+  UserProfile,
+  StaffAccess,
+  LoginResponse,
+} from '../types';
 import { API_BASE, apiFetch, handleResponse } from './client';
-
-export interface LoginResponse {
-  role: Role;
-  name: string;
-  bookingsThisMonth?: number;
-  userRole?: UserRole;
-}
+export type { LoginResponse } from '../types';
 
 export async function loginUser(
   clientId: string,
@@ -79,10 +79,10 @@ export async function staffExists(): Promise<boolean> {
 export async function createStaff(
   firstName: string,
   lastName: string,
-  role: StaffRole,
+  access: StaffAccess[],
   email: string,
   password: string,
-  _token?: string
+  _token?: string,
 ): Promise<void> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -90,7 +90,14 @@ export async function createStaff(
   const res = await apiFetch(`${API_BASE}/staff`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ firstName, lastName, role, email, password }),
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      role: 'staff' as StaffRole,
+      email,
+      password,
+      access,
+    }),
   });
   await handleResponse(res);
 }

@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { addUser, createStaff } from '../../api/users';
-import type { UserRole, StaffRole } from '../../types';
+import type { UserRole, StaffAccess } from '../../types';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';
-import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Stack,
+  TextField,
+  MenuItem,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+} from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
@@ -16,8 +25,8 @@ export default function AddUser({ token }: { token: string }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
-  const [staffRole, setStaffRole] = useState<StaffRole>('staff');
   const [password, setPassword] = useState('');
+  const [access, setAccess] = useState<StaffAccess[]>([]);
 
   async function submitUser() {
     if (!firstName || !lastName || !clientId || !password) {
@@ -54,13 +63,13 @@ export default function AddUser({ token }: { token: string }) {
       return;
     }
     try {
-      await createStaff(firstName, lastName, staffRole, email, password, token);
+      await createStaff(firstName, lastName, access, email, password, token);
       setSuccess('Staff added successfully');
       setFirstName('');
       setLastName('');
       setEmail('');
       setPassword('');
-      setStaffRole('staff');
+      setAccess([]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -84,44 +93,96 @@ export default function AddUser({ token }: { token: string }) {
         <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
         {mode === 'user' ? (
           <Stack spacing={2}>
-          <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-          <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
-          <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
-          <TextField label="Email (optional)" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <TextField
-            label="Phone (optional)"
-            type="tel"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-          />
-          <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
-            <MenuItem value="shopper">Shopper</MenuItem>
-            <MenuItem value="delivery">Delivery</MenuItem>
-          </TextField>
-          <Button variant="contained" color="primary" onClick={submitUser}>
-            Add User
-          </Button>
-        </Stack>
-      ) : (
-        <Stack spacing={2}>
-          <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-          <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
-          <TextField
-            select
-            label="Staff Role"
-            value={staffRole}
-            onChange={e => setStaffRole(e.target.value as StaffRole)}
-          >
-            <MenuItem value="staff">Staff</MenuItem>
-          </TextField>
-          <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <Button variant="contained" color="primary" onClick={submitStaff}>
-            Add Staff
-          </Button>
-        </Stack>
-      )}
+            <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+            <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+            <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
+            <TextField label="Email (optional)" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+            <TextField
+              label="Phone (optional)"
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+            />
+            <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+            <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
+              <MenuItem value="shopper">Shopper</MenuItem>
+              <MenuItem value="delivery">Delivery</MenuItem>
+            </TextField>
+            <Button variant="contained" color="primary" onClick={submitUser}>
+              Add User
+            </Button>
+          </Stack>
+        ) : (
+          <Stack spacing={2}>
+            <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+            <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+            <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+            <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={access.includes('staff')}
+                  onChange={e =>
+                    setAccess(prev =>
+                      e.target.checked
+                        ? [...prev, 'staff']
+                        : prev.filter(a => a !== 'staff'),
+                    )
+                  }
+                />
+              }
+              label="Staff"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={access.includes('volunteer_management')}
+                  onChange={e =>
+                    setAccess(prev =>
+                      e.target.checked
+                        ? [...prev, 'volunteer_management']
+                        : prev.filter(a => a !== 'volunteer_management'),
+                    )
+                  }
+                />
+              }
+              label="Volunteer Management"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={access.includes('warehouse')}
+                  onChange={e =>
+                    setAccess(prev =>
+                      e.target.checked
+                        ? [...prev, 'warehouse']
+                        : prev.filter(a => a !== 'warehouse'),
+                    )
+                  }
+                />
+              }
+              label="Warehouse"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={access.includes('admin')}
+                  onChange={e =>
+                    setAccess(prev =>
+                      e.target.checked
+                        ? [...prev, 'admin']
+                        : prev.filter(a => a !== 'admin'),
+                    )
+                  }
+                />
+              }
+              label="Admin"
+            />
+            <Button variant="contained" color="primary" onClick={submitStaff}>
+              Add Staff
+            </Button>
+          </Stack>
+        )}
       </Box>
     </Box>
   );
