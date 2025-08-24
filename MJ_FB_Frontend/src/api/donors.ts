@@ -7,7 +7,7 @@ export interface Donor {
 
 export interface TopDonor {
   name: string;
-  totalKg: number;
+  totalLbs: number;
   lastDonationISO: string;
 }
 
@@ -35,5 +35,11 @@ export async function getTopDonors(
   const res = await apiFetch(
     `${API_BASE}/donors/top?year=${year}&limit=${limit}`,
   );
-  return handleResponse(res);
+  const data: { name: string; totalKg: number; lastDonationISO: string }[] =
+    await handleResponse(res);
+  return data.map(d => ({
+    name: d.name,
+    totalLbs: d.totalKg,
+    lastDonationISO: d.lastDonationISO,
+  }));
 }

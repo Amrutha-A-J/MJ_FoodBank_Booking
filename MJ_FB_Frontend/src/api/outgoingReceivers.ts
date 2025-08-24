@@ -7,7 +7,7 @@ export interface OutgoingReceiver {
 
 export interface TopReceiver {
   name: string;
-  totalKg: number;
+  totalLbs: number;
   lastPickupISO: string;
 }
 
@@ -34,5 +34,11 @@ export async function getTopReceivers(
   const res = await apiFetch(
     `${API_BASE}/outgoing-receivers/top?year=${year}&limit=${limit}`,
   );
-  return handleResponse(res);
+  const data: { name: string; totalKg: number; lastPickupISO: string }[] =
+    await handleResponse(res);
+  return data.map(r => ({
+    name: r.name,
+    totalLbs: r.totalKg,
+    lastPickupISO: r.lastPickupISO,
+  }));
 }
