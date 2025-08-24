@@ -10,7 +10,8 @@ import { addOutgoingReceiverSchema } from '../schemas/outgoingReceiverSchemas';
 
 const router = Router();
 
-router.get('/top', authMiddleware, authorizeRoles('staff'), topOutgoingReceivers);
+// Public endpoint to list top outgoing receivers
+router.get('/top', topOutgoingReceivers);
 router.get('/', authMiddleware, authorizeRoles('staff'), listOutgoingReceivers);
 router.post('/', authMiddleware, authorizeRoles('staff'), validate(addOutgoingReceiverSchema), addOutgoingReceiver);
 
