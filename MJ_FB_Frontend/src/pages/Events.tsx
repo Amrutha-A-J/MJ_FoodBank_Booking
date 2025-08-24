@@ -15,7 +15,7 @@ import {
 import Page from '../components/Page';
 import { getEvents, type Event } from '../api/events';
 
-function groupEvents(events: Event[]) {
+function groupEvents(events: Event[] = []) {
   const todayStr = new Date().toISOString().split('T')[0];
   const today: Event[] = [];
   const upcoming: Event[] = [];
@@ -67,7 +67,7 @@ export default function Events() {
 
   useEffect(() => {
     getEvents()
-      .then(setEvents)
+      .then(data => setEvents(Array.isArray(data) ? data : []))
       .catch(() => setEvents([]));
   }, []);
 
