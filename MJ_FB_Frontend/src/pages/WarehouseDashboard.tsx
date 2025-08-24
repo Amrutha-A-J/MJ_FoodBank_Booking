@@ -110,8 +110,8 @@ export default function WarehouseDashboard() {
     setLoadingTotals(true);
     const [tRes, dRes, rRes] = await Promise.allSettled([
       getWarehouseOverall(selectedYear),
-      getTopDonors(selectedYear, 7),
-      getTopReceivers(selectedYear, 7),
+      getTopDonors(selectedYear),
+      getTopReceivers(selectedYear),
     ]);
     if (tRes.status === 'fulfilled')
       setTotals(

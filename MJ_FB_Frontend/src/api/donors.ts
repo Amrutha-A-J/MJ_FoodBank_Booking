@@ -26,7 +26,14 @@ export async function createDonor(name: string): Promise<Donor> {
   return handleResponse(res);
 }
 
-export async function getTopDonors(year: number, limit: number): Promise<TopDonor[]> {
-  const res = await apiFetch(`${API_BASE}/donors/top?year=${year}&limit=${limit}`);
+// Fetch the top donors for a given year.
+// `limit` defaults to 7, mirroring the dashboard display.
+export async function getTopDonors(
+  year: number,
+  limit = 7,
+): Promise<TopDonor[]> {
+  const res = await apiFetch(
+    `${API_BASE}/donors/top?year=${year}&limit=${limit}`,
+  );
   return handleResponse(res);
 }
