@@ -1,5 +1,11 @@
 export type StaffRole = 'staff';
 
+export type StaffAccess =
+  | 'pantry'
+  | 'volunteer_management'
+  | 'warehouse'
+  | 'admin';
+
 export interface Staff {
   id: number;
   first_name: string;
@@ -7,4 +13,5 @@ export interface Staff {
   role: StaffRole;
   email: string;
   password: string;
+  access: StaffAccess[];
 }
