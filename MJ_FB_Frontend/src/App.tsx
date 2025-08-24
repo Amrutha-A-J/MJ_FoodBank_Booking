@@ -25,6 +25,7 @@ import Aggregations from './pages/Aggregations';
 import DonorProfile from './pages/DonorProfile';
 import AdminStaffList from './pages/AdminStaffList';
 import AdminStaffForm from './pages/AdminStaffForm';
+import Events from './pages/Events';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -56,6 +57,7 @@ export default function App() {
       { label: 'Add User', to: '/add-user' },
       { label: 'User History', to: '/user-history' },
       { label: 'Pending', to: '/pending' },
+      { label: 'Events', to: '/events' },
     ];
     if (showStaff) navGroups.push({ label: 'Staff', links: staffLinks });
     if (showVolunteerManagement)
@@ -223,6 +225,7 @@ export default function App() {
               {showStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
               {showStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pending" element={<Pending />} />}
+              {showStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
