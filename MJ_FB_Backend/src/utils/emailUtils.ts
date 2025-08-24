@@ -2,24 +2,27 @@ import config from '../config';
 import logger from './logger';
 
 export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
-  // Skip sending if the URL is missing or still set to the placeholder value
-  if (!config.powerAutomateUrl || config.powerAutomateUrl === 'your_flow_url') {
-    logger.warn('POWER_AUTOMATE_URL is not configured');
+  if (!config.brevoApiKey || !config.brevoSenderEmail) {
+    logger.warn('Brevo email configuration is missing');
     return;
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (config.powerAutomateKey) {
-    headers['x-functions-key'] = config.powerAutomateKey;
-  }
-
   try {
-    const response = await fetch(config.powerAutomateUrl, {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
-      headers,
-      body: JSON.stringify({ to, subject, body }),
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': config.brevoApiKey,
+      },
+      body: JSON.stringify({
+        sender: {
+          email: config.brevoSenderEmail,
+          ...(config.brevoSenderName ? { name: config.brevoSenderName } : {}),
+        },
+        to: [{ email: to }],
+        subject,
+        htmlContent: body,
+      }),
     });
 
     if (!response.ok) {
