@@ -26,11 +26,18 @@ import {
   type PigPound,
 } from '../api/pigPounds';
 
+function format(date: Date) {
+  return date.toLocaleDateString('en-CA');
+}
+
 export default function TrackPigpound() {
   const [entries, setEntries] = useState<PigPound[]>([]);
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<PigPound | null>(null);
-  const [form, setForm] = useState<{ date: string; weight: string }>({ date: '', weight: '' });
+  const [form, setForm] = useState<{ date: string; weight: string }>({
+    date: format(new Date()),
+    weight: '',
+  });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<PigPound | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({
@@ -57,7 +64,7 @@ export default function TrackPigpound() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: '', weight: '' });
+        setForm({ date: format(new Date()), weight: '' });
         load();
         setSnackbar({ open: true, message: editing ? 'Entry updated' : 'Entry recorded' });
       })
@@ -74,7 +81,7 @@ export default function TrackPigpound() {
           size="small"
           variant="contained"
           onClick={() => {
-            setForm({ date: '', weight: '' });
+            setForm({ date: format(new Date()), weight: '' });
             setEditing(null);
             setRecordOpen(true);
           }}
@@ -94,7 +101,9 @@ export default function TrackPigpound() {
         <TableBody>
           {entries.map(e => (
             <TableRow key={e.id}>
-              <TableCell>{e.date}</TableCell>
+              <TableCell>
+                {new Date(`${e.date}T00:00:00`).toLocaleDateString()}
+              </TableCell>
               <TableCell>{e.weight}</TableCell>
               <TableCell align="right">
                 <IconButton
