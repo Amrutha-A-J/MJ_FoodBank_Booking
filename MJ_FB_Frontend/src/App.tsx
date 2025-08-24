@@ -25,7 +25,7 @@ import Aggregations from './pages/Aggregations';
 import DonorProfile from './pages/DonorProfile';
 import AdminStaffList from './pages/AdminStaffList';
 import AdminStaffForm from './pages/AdminStaffForm';
-import Navbar, { type NavGroup } from './components/Navbar';
+import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
 import { useAuth } from './hooks/useAuth';
@@ -43,6 +43,9 @@ export default function App() {
   const showAdmin = isStaff && access.includes('admin');
 
   const navGroups: NavGroup[] = [];
+  const profileLinks: NavLink[] | undefined = isStaff
+    ? [{ label: 'Events', to: '/events' }]
+    : undefined;
   if (!token) {
     navGroups.push(
       { label: 'User Login', links: [{ label: 'User Login', to: '/login/user' }] },
@@ -127,6 +130,8 @@ export default function App() {
           onLogout={token ? logout : undefined}
           name={token ? name || undefined : undefined}
           loading={loading}
+          role={role}
+          profileLinks={profileLinks}
         />
 
         <FeedbackSnackbar
