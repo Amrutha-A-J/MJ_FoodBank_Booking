@@ -130,8 +130,8 @@ export default function TrackOutgoingDonations() {
   return (
     <Page
       title="Track Outgoing Donations"
-      actions={
-        <Stack direction="row" spacing={1}>
+      header={
+        <Stack direction="row" spacing={1} mb={2}>
           <Button
             size="small"
             variant="contained"
