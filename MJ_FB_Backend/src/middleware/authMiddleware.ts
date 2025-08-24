@@ -160,7 +160,12 @@ export function authorizeRoles(...allowedRoles: string[]) {
 
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { role, type, userRole } = req.user as any;
+    const { role, type, userRole, access = [] } = req.user as any;
+
+    // Admins (by role or access token) are permitted to access any route
+    if (role === 'admin' || (access as string[]).includes('admin')) {
+      return next();
+    }
 
     const effectiveRoles = new Set([role, type]);
     if (userRole) effectiveRoles.add(userRole);
@@ -177,7 +182,13 @@ export function authorizeRoles(...allowedRoles: string[]) {
 export function authorizeAccess(...allowed: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { access = [] } = req.user as any;
+    const { role, access = [] } = req.user as any;
+
+    // Admins have implicit access to all areas
+    if (role === 'admin' || (access as string[]).includes('admin')) {
+      return next();
+    }
+
     if (!allowed.some(a => (access as string[]).includes(a))) {
       return res.status(403).json({ message: 'Forbidden' });
     }

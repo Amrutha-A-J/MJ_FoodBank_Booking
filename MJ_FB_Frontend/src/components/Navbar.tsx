@@ -23,9 +23,18 @@ interface NavbarProps {
   onLogout?: () => void;
   name?: string;
   loading?: boolean;
+  profileLinks?: NavLink[];
+  role?: string;
 }
 
-export default function Navbar({ groups, onLogout, name, loading }: NavbarProps) {
+export default function Navbar({
+  groups,
+  onLogout,
+  name,
+  loading,
+  profileLinks,
+  role,
+}: NavbarProps) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -158,6 +167,21 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                     <MenuItem disabled sx={menuItemStyles}>
                       Hello, {name}
                     </MenuItem>
+                    {role === 'staff' &&
+                      profileLinks?.map(({ label, to }) => (
+                        <MenuItem
+                          key={to}
+                          component={RouterLink}
+                          to={to}
+                          onClick={() => {
+                            setMobileAnchorEl(null);
+                          }}
+                          disabled={loading}
+                          sx={menuItemStyles}
+                        >
+                          {label}
+                        </MenuItem>
+                      ))}
                     <MenuItem
                       component={RouterLink}
                       to="/profile"
@@ -258,6 +282,19 @@ export default function Navbar({ groups, onLogout, name, loading }: NavbarProps)
                 onClose={closeProfileMenu}
                 PaperProps={menuPaperProps}
               >
+                {role === 'staff' &&
+                  profileLinks?.map(({ label, to }) => (
+                    <MenuItem
+                      key={to}
+                      component={RouterLink}
+                      to={to}
+                      onClick={closeProfileMenu}
+                      disabled={loading}
+                      sx={menuItemStyles}
+                    >
+                      {label}
+                    </MenuItem>
+                  ))}
                 <MenuItem
                   component={RouterLink}
                   to="/profile"

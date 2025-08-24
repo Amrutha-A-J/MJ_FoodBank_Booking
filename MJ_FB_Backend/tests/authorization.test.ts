@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import blockedSlotsRouter from '../src/routes/blockedSlots';
 import slotsRouter from '../src/routes/slots';
-import { authMiddleware, authorizeRoles } from '../src/middleware/authMiddleware';
+import { authMiddleware, authorizeRoles, authorizeAccess } from '../src/middleware/authMiddleware';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 
@@ -15,6 +15,13 @@ app.use('/blocked-slots', blockedSlotsRouter);
 app.use('/slots', slotsRouter);
 app.get('/volunteer-area', authMiddleware, authorizeRoles('volunteer'), (_req, res) => res.json({ ok: true }));
 app.get('/staff-area', authMiddleware, authorizeRoles('staff'), (_req, res) => res.json({ ok: true }));
+app.get(
+  '/warehouse-area',
+  authMiddleware,
+  authorizeRoles('staff'),
+  authorizeAccess('warehouse'),
+  (_req, res) => res.json({ ok: true }),
+);
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -75,6 +82,45 @@ describe('Authorization middleware', () => {
 
     const res = await request(app)
       .get('/volunteer-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+  });
+
+  it('allows admin to access staff endpoint', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 4, role: 'admin', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 4, first_name: 'Admin', last_name: 'User', email: 'admin@example.com', role: 'admin' }],
+    });
+
+    const res = await request(app)
+      .get('/staff-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+  });
+
+  it('allows admin to access volunteer endpoint', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 4, role: 'admin', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 4, first_name: 'Admin', last_name: 'User', email: 'admin@example.com', role: 'admin' }],
+    });
+
+    const res = await request(app)
+      .get('/volunteer-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+  });
+
+  it('allows admin to bypass access checks', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 4, role: 'admin', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 4, first_name: 'Admin', last_name: 'User', email: 'admin@example.com', role: 'admin' }],
+    });
+
+    const res = await request(app)
+      .get('/warehouse-area')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
   });
