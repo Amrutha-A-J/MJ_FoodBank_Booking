@@ -45,4 +45,12 @@ Authorization: Bearer <token>
 
 The token payload includes the user's `id`, `role`, and `type` and expires after one hour.
 
+## Donation Aggregations Endpoint
+
+`GET /donations/aggregations?year=YYYY`
+
+Returns a list of donors with their total donated weight for each month of the specified year.
+Every donor in the system is included even if they have no donations in that year; months
+without records report `0`.
+
 

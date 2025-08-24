@@ -65,26 +65,32 @@ export async function donorAggregations(req: Request, res: Response, next: NextF
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
     const result = await pool.query(
-      `SELECT o.name as donor, EXTRACT(MONTH FROM d.date)::int AS month, SUM(d.weight)::int AS total
-       FROM donations d JOIN donors o ON d.donor_id = o.id
-       WHERE EXTRACT(YEAR FROM d.date) = $1
-       GROUP BY o.name, month
-       ORDER BY o.name, month`,
+      `SELECT o.name AS donor, m.month, COALESCE(SUM(d.weight)::int, 0) AS total
+       FROM donors o
+       CROSS JOIN generate_series(1, 12) AS m(month)
+       LEFT JOIN donations d ON d.donor_id = o.id
+         AND EXTRACT(YEAR FROM d.date) = $1
+         AND EXTRACT(MONTH FROM d.date) = m.month
+       GROUP BY o.name, m.month
+       ORDER BY o.name, m.month`,
       [year],
     );
 
-    const data: { donor: string; monthlyTotals: number[]; total: number }[] = [];
-    for (const row of result.rows as { donor: string; month: number; total: number }[]) {
-      let entry = data.find(d => d.donor === row.donor);
-      if (!entry) {
-        entry = { donor: row.donor, monthlyTotals: Array(12).fill(0), total: 0 };
-        data.push(entry);
+    const donorMap = new Map<string, { donor: string; monthlyTotals: number[]; total: number }>();
+    for (const { donor, month, total } of result.rows as {
+      donor: string;
+      month: number;
+      total: number;
+    }[]) {
+      if (!donorMap.has(donor)) {
+        donorMap.set(donor, { donor, monthlyTotals: Array(12).fill(0), total: 0 });
       }
-      entry.monthlyTotals[row.month - 1] = row.total;
-      entry.total += row.total;
+      const entry = donorMap.get(donor)!;
+      entry.monthlyTotals[month - 1] = total ?? 0;
+      entry.total += total ?? 0;
     }
 
-    res.json(data);
+    res.json(Array.from(donorMap.values()));
   } catch (error) {
     logger.error('Error listing donor aggregations:', error);
     next(error);
