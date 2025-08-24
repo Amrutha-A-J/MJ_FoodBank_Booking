@@ -38,6 +38,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -675,8 +676,9 @@ export default function VolunteerManagement({ token }: { token: string }) {
                 <Typography variant="h6" sx={{ mt: 2 }}>
                   History for {selectedVolunteer.name}
                 </Typography>
-                <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <TableHead>
+                <TableContainer sx={{ overflowX: 'auto' }}>
+                  <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <TableHead>
                     <TableRow>
                       <TableCell sx={cellSx}>Role</TableCell>
                       <TableCell sx={cellSx}>Date</TableCell>
@@ -684,57 +686,58 @@ export default function VolunteerManagement({ token }: { token: string }) {
                       <TableCell sx={cellSx}>Status</TableCell>
                       <TableCell sx={cellSx} />
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {history.map(h => (
-                      <TableRow key={h.id}>
-                        <TableCell sx={cellSx}>{h.role_name}</TableCell>
-                        <TableCell sx={cellSx}>{h.date}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {formatTime(h.start_time || '')} -
-                          {formatTime(h.end_time || '')}
-                        </TableCell>
-                        <TableCell sx={cellSx}>{h.status}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {h.status === 'pending' && (
-                            <>
+                    </TableHead>
+                    <TableBody>
+                      {history.map(h => (
+                        <TableRow key={h.id}>
+                          <TableCell sx={cellSx}>{h.role_name}</TableCell>
+                          <TableCell sx={cellSx}>{h.date}</TableCell>
+                          <TableCell sx={cellSx}>
+                            {formatTime(h.start_time || '')} -
+                            {formatTime(h.end_time || '')}
+                          </TableCell>
+                          <TableCell sx={cellSx}>{h.status}</TableCell>
+                          <TableCell sx={cellSx}>
+                            {h.status === 'pending' && (
+                              <>
+                                <Button
+                                  onClick={() => decide(h.id, 'approved')}
+                                  variant="outlined"
+                                  color="primary"
+                                >
+                                  Approve
+                                </Button>{' '}
+                                <Button
+                                  onClick={() => decide(h.id, 'rejected')}
+                                  variant="outlined"
+                                  color="primary"
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {h.status === 'approved' && (
                               <Button
-                                onClick={() => decide(h.id, 'approved')}
+                                onClick={() => decide(h.id, 'cancelled')}
                                 variant="outlined"
                                 color="primary"
                               >
-                                Approve
-                              </Button>{' '}
-                              <Button
-                                onClick={() => decide(h.id, 'rejected')}
-                                variant="outlined"
-                                color="primary"
-                              >
-                                Reject
+                                Cancel
                               </Button>
-                            </>
-                          )}
-                          {h.status === 'approved' && (
-                            <Button
-                              onClick={() => decide(h.id, 'cancelled')}
-                              variant="outlined"
-                              color="primary"
-                            >
-                              Cancel
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {history.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
-                          No bookings.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {history.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
+                            No bookings.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </div>
             )}
           </Box>

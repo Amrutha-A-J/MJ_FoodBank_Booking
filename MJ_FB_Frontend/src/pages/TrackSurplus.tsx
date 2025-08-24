@@ -11,6 +11,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   TextField,
   MenuItem,
   IconButton,
@@ -134,8 +135,9 @@ export default function TrackSurplus() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Type</TableCell>
@@ -143,8 +145,8 @@ export default function TrackSurplus() {
             <TableCell>Weight</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-        </TableHead>
-        <TableBody>
+          </TableHead>
+          <TableBody>
           {filteredRecords.map(r => (
             <TableRow key={r.id}>
               <TableCell>
@@ -183,8 +185,9 @@ export default function TrackSurplus() {
               </TableCell>
             </TableRow>
           ))}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Surplus' : 'Record Surplus'}</DialogTitle>

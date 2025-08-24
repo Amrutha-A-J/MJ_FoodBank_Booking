@@ -14,6 +14,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   Stack,
   Autocomplete,
   IconButton,
@@ -155,8 +156,9 @@ export default function TrackOutgoingDonations() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Receiver</TableCell>
@@ -164,8 +166,8 @@ export default function TrackOutgoingDonations() {
             <TableCell>Note</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-        </TableHead>
-        <TableBody>
+          </TableHead>
+          <TableBody>
           {donations.map(d => (
             <TableRow key={d.id}>
               <TableCell>{d.date}</TableCell>
@@ -190,8 +192,9 @@ export default function TrackOutgoingDonations() {
               </TableCell>
             </TableRow>
           ))}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Outgoing Donation' : 'Record Outgoing Donation'}</DialogTitle>

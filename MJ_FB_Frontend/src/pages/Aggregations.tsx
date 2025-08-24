@@ -5,6 +5,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   FormControl,
   InputLabel,
   Select,
@@ -147,8 +148,9 @@ export default function Aggregations() {
           {exporting ? <CircularProgress size={20} /> : 'Export'}
         </Button>
       </Stack>
-      <Table size="small">
-        <TableHead>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
           <TableRow>
             <TableCell>Month</TableCell>
             <TableCell align="right">Donations</TableCell>
@@ -156,8 +158,8 @@ export default function Aggregations() {
             <TableCell align="right">Pig Pound</TableCell>
             <TableCell align="right">Outgoing Donations</TableCell>
           </TableRow>
-        </TableHead>
-        <TableBody>
+          </TableHead>
+          <TableBody>
           {overallLoading ? (
             <TableRow>
               <TableCell colSpan={5} align="center">
@@ -184,8 +186,9 @@ export default function Aggregations() {
               </TableRow>
             </>
           )}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </TableContainer>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

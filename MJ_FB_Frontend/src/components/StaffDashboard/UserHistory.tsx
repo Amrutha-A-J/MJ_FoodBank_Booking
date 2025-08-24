@@ -14,6 +14,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -131,8 +132,8 @@ export default function UserHistory({
                 <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
-            <Box sx={{ overflowX: 'auto' }}>
-              <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
+            <TableContainer sx={{ overflowX: 'auto' }}>
+              <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow>
                     <TableCell sx={cellSx}>Date</TableCell>
@@ -201,7 +202,7 @@ export default function UserHistory({
                   })}
                 </TableBody>
               </Table>
-            </Box>
+            </TableContainer>
             {totalPages > 1 && (
               <Box
                 sx={{
