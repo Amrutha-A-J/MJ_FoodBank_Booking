@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Button,
   Dialog,
@@ -71,15 +71,23 @@ export default function TrackPigpound() {
     message: '',
   });
 
+  const fetchId = useRef(0);
+
   useEffect(() => {
-    load();
+    load(selectedDate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
-  function load() {
-    getPigPounds(format(selectedDate))
-      .then(setEntries)
-      .catch(() => setEntries([]));
+  function load(date: Date) {
+    const id = ++fetchId.current;
+    const dateStr = format(date);
+    getPigPounds(dateStr)
+      .then(data => {
+        if (fetchId.current === id) setEntries(data);
+      })
+      .catch(() => {
+        if (fetchId.current === id) setEntries([]);
+      });
   }
 
   function handleSave() {
@@ -92,7 +100,7 @@ export default function TrackPigpound() {
         setRecordOpen(false);
         setEditing(null);
         setForm({ date: format(selectedDate), weight: '' });
-        load();
+        load(selectedDate);
         setSnackbar({ open: true, message: editing ? 'Entry updated' : 'Entry recorded' });
       })
       .catch(err =>
@@ -132,37 +140,45 @@ export default function TrackPigpound() {
           </TableRow>
           </TableHead>
           <TableBody>
-          {entries.map(e => (
-            <TableRow key={e.id}>
-              <TableCell>
-                {new Date(e.date).toLocaleDateString('en-CA')}
-              </TableCell>
-              <TableCell>{e.weight}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(e);
-                    setForm({ date: e.date, weight: String(e.weight) });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit entry"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(e);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete entry"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
+          {entries.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={3} align="center">
+                No records
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            entries.map(e => (
+              <TableRow key={e.id}>
+                <TableCell>
+                  {new Date(e.date).toLocaleDateString('en-CA')}
+                </TableCell>
+                <TableCell>{e.weight}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditing(e);
+                      setForm({ date: e.date, weight: String(e.weight) });
+                      setRecordOpen(true);
+                    }}
+                    aria-label="Edit entry"
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setToDelete(e);
+                      setDeleteOpen(true);
+                    }}
+                    aria-label="Delete entry"
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
           </TableBody>
         </Table>
       </TableContainer>
