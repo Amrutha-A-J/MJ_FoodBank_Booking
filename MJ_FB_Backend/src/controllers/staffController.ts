@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
-import type { StaffRole } from '../models/staff';
 import logger from '../utils/logger';
 
 export async function checkStaffExists(
@@ -19,22 +18,41 @@ export async function checkStaffExists(
   }
 }
 
-export async function createStaff(req: Request, res: Response, next: NextFunction) {
-  const { firstName, lastName, role, email, password } = req.body as {
+export async function createStaff(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  defaultAccess?: string[],
+) {
+  const { firstName, lastName, email, password, access } = req.body as {
     firstName: string;
     lastName: string;
-    role: StaffRole;
     email: string;
     password: string;
+    access?: string[];
   };
 
-  if (!firstName || !lastName || !role || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
 
-  if (role !== 'staff') {
-    return res.status(400).json({ message: 'Invalid role' });
+  let finalAccess: string[];
+  if (defaultAccess) {
+    if (access !== undefined) {
+      return res
+        .status(400)
+        .json({ message: 'Cannot set access for first staff member' });
+    }
+    finalAccess = defaultAccess;
+  } else {
+    finalAccess = Array.isArray(access) && access.length > 0 ? access : ['staff'];
   }
+
+  if (!finalAccess.every(r => r === 'staff' || r === 'admin')) {
+    return res.status(400).json({ message: 'Invalid access' });
+  }
+
+  const role = finalAccess.includes('admin') ? 'admin' : 'staff';
 
   try {
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
