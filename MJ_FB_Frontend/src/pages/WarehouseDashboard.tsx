@@ -140,7 +140,12 @@ export default function WarehouseDashboard() {
   }, [year]);
 
   const currentMonth = useMemo(() => {
-    return totals.length ? Math.max(...totals.map(t => t.month)) : 1;
+    const thisMonth = new Date().getMonth() + 1;
+    const monthsWithData = totals
+      .filter(t => t.donationsKg || t.surplusKg || t.pigPoundKg || t.outgoingKg)
+      .map(t => t.month);
+    if (monthsWithData.includes(thisMonth)) return thisMonth;
+    return monthsWithData.length ? Math.max(...monthsWithData) : thisMonth;
   }, [totals]);
 
   const currentTotals = totals.find(t => t.month === currentMonth);
