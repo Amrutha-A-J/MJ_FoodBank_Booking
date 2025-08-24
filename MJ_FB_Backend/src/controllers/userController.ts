@@ -43,7 +43,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     }
 
     const staffQuery = await pool.query(
-      `SELECT id, first_name, last_name, email, password, role FROM staff WHERE email = $1`,
+      `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
       [email]
     );
     if (staffQuery.rowCount === 0) {
@@ -54,11 +54,17 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const payload: AuthPayload = { id: staff.id, role: staff.role, type: 'staff' };
+    const payload: AuthPayload = {
+      id: staff.id,
+      role: staff.role,
+      type: 'staff',
+      access: staff.access || [],
+    };
     await issueAuthTokens(res, payload, `staff:${staff.id}`);
     res.json({
       role: staff.role,
       name: `${staff.first_name} ${staff.last_name}`,
+      access: staff.access || [],
     });
   } catch (error) {
     logger.error('Error logging in:', error);

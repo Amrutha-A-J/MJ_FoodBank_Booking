@@ -11,6 +11,7 @@ jest.mock('jsonwebtoken');
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
 
 const app = express();

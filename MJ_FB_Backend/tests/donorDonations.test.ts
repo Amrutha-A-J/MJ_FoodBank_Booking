@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('GET /donors/:id/donations', () => {
   it('returns donations in reverse chronological order', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
