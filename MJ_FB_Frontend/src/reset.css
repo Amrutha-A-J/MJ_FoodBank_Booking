@@ -67,7 +67,6 @@ pre {
 
 a {
     background-color: transparent;
-    color: #c36;
     text-decoration: none
 }
 
@@ -236,9 +235,7 @@ button,select {
 
 [type=button],[type=submit],button {
     background-color: transparent;
-    border: 1px solid #c36;
     border-radius: 10px;
-    color: #c36;
     display: inline-block;
     font-size: 1rem;
     font-weight: 400;
@@ -256,7 +253,6 @@ button,select {
 }
 
 [type=button]:focus,[type=button]:hover,[type=submit]:focus,[type=submit]:hover,button:focus,button:hover {
-    background-color: #c36;
     color: #fff;
     text-decoration: none
 }
