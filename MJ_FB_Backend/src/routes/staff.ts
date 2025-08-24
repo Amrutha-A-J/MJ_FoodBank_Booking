@@ -1,6 +1,6 @@
 import express, { NextFunction } from 'express';
 import { checkStaffExists, createStaff } from '../controllers/staffController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeRoles, authorizeAccess } from '../middleware/authMiddleware';
 import pool from '../db';
 
 const router = express.Router();
@@ -15,9 +15,11 @@ router.post('/', async (req, res, next: NextFunction) => {
   if (count === 0) {
     return createStaff(req, res, next, ['admin']);
   }
-  authMiddleware(req, res, () => {
-    authorizeRoles('staff')(req, res, () => createStaff(req, res, next));
+    authMiddleware(req, res, () => {
+      authorizeRoles('staff')(req, res, () => {
+        authorizeAccess('admin')(req, res, () => createStaff(req, res, next));
+      });
+    });
   });
-});
 
 export default router;

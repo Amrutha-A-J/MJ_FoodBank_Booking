@@ -35,7 +35,7 @@ export default function App() {
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
   const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
-  const showStaff = isStaff && hasAccess('staff');
+  const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
 
