@@ -60,7 +60,7 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ message: 'Email already exists' });
     }
     const hashed = await bcrypt.hash(password, 10);
-    const role = access.includes('admin') ? 'admin' : 'staff';
+    const role = 'staff';
     await pool.query(
       `INSERT INTO staff (first_name, last_name, role, email, password, access) VALUES ($1, $2, $3, $4, $5, $6)`,
       [firstName, lastName, role, email, hashed, access],
@@ -80,7 +80,7 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
     return res.status(400).json({ errors: parsed.error.errors });
   }
   const { firstName, lastName, email, password, access } = parsed.data;
-  const role = access.includes('admin') ? 'admin' : 'staff';
+  const role = 'staff';
   try {
     let query =
       'UPDATE staff SET first_name=$1, last_name=$2, email=$3, access=$4, role=$5';

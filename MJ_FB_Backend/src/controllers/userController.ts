@@ -54,15 +54,16 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    const role = 'staff';
     const payload: AuthPayload = {
       id: staff.id,
-      role: staff.role,
+      role,
       type: 'staff',
       access: staff.access || [],
     };
     await issueAuthTokens(res, payload, `staff:${staff.id}`);
     res.json({
-      role: staff.role,
+      role,
       name: `${staff.first_name} ${staff.last_name}`,
       access: staff.access || [],
     });

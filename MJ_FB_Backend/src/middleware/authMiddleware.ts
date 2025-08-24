@@ -177,8 +177,7 @@ export function authorizeRoles(...allowedRoles: string[]) {
 export function authorizeAccess(...allowed: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { access = [], role } = req.user as any;
-    if (role === 'admin') return next();
+    const { access = [] } = req.user as any;
     if (!allowed.some(a => (access as string[]).includes(a))) {
       return res.status(403).json({ message: 'Forbidden' });
     }
