@@ -11,3 +11,10 @@ export const createStaffSchema = z.object({
 });
 
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
+
+export const updateStaffSchema = createStaffSchema.extend({
+  password: z.string().min(1).optional(),
+  access: z.array(staffAccessEnum),
+});
+
+export type UpdateStaffInput = z.infer<typeof updateStaffSchema>;

@@ -23,6 +23,8 @@ import TrackOutgoingDonations from './pages/TrackOutgoingDonations';
 import TrackSurplus from './pages/TrackSurplus';
 import Aggregations from './pages/Aggregations';
 import DonorProfile from './pages/DonorProfile';
+import AdminStaffList from './pages/AdminStaffList';
+import AdminStaffForm from './pages/AdminStaffForm';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -38,6 +40,7 @@ export default function App() {
   const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
+  const showAdmin = isStaff && access.includes('admin');
 
   const navGroups: NavGroup[] = [];
   if (!token) {
@@ -79,6 +82,14 @@ export default function App() {
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
     ];
     if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+    if (showAdmin)
+      navGroups.push({
+        label: 'Admin',
+        links: [
+          { label: 'Staff', to: '/admin/staff' },
+          { label: 'Add Staff', to: '/admin/staff/create' },
+        ],
+      });
 
   } else if (role === 'shopper') {
     navGroups.push({
@@ -212,6 +223,9 @@ export default function App() {
               {showStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
               {showStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pending" element={<Pending />} />}
+              {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
+              {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
+              {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
               {showVolunteerManagement && (
                 <>
                   <Route
