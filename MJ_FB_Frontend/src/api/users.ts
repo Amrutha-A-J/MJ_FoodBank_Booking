@@ -1,6 +1,5 @@
 import type {
   UserRole,
-  StaffRole,
   UserProfile,
   StaffAccess,
   LoginResponse,
@@ -90,15 +89,14 @@ export async function createStaff(
   const res = await apiFetch(`${API_BASE}/staff`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      role: 'staff' as StaffRole,
-      email,
-      password,
-      access,
-    }),
-  });
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        email,
+        password,
+        access,
+      }),
+    });
   await handleResponse(res);
 }
 

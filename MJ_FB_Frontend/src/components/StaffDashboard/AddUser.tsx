@@ -118,21 +118,21 @@ export default function AddUser({ token }: { token: string }) {
             <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
             <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
             <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={access.includes('staff')}
-                  onChange={e =>
-                    setAccess(prev =>
-                      e.target.checked
-                        ? [...prev, 'staff']
-                        : prev.filter(a => a !== 'staff'),
-                    )
-                  }
-                />
-              }
-              label="Staff"
-            />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={access.includes('pantry')}
+                    onChange={e =>
+                      setAccess(prev =>
+                        e.target.checked
+                          ? [...prev, 'pantry']
+                          : prev.filter(a => a !== 'pantry'),
+                      )
+                    }
+                  />
+                }
+                label="Pantry"
+              />
             <FormControlLabel
               control={
                 <Checkbox
