@@ -14,6 +14,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   Stack,
   Autocomplete,
   IconButton,
@@ -140,43 +141,45 @@ export default function TrackOutgoingDonations() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Receiver</TableCell>
-            <TableCell>Weight</TableCell>
-            <TableCell>Note</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {donations.map(d => (
-            <TableRow key={d.id}>
-              <TableCell>{d.date}</TableCell>
-              <TableCell>{d.receiver}</TableCell>
-              <TableCell>{d.weight}</TableCell>
-              <TableCell>{d.note}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(d);
-                    setForm({ date: d.date, receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit outgoing donation"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => { setToDelete(d); setDeleteOpen(true); }} aria-label="Delete outgoing donation">
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Receiver</TableCell>
+              <TableCell>Weight</TableCell>
+              <TableCell>Note</TableCell>
+              <TableCell align="right"></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {donations.map(d => (
+              <TableRow key={d.id}>
+                <TableCell>{d.date}</TableCell>
+                <TableCell>{d.receiver}</TableCell>
+                <TableCell>{d.weight}</TableCell>
+                <TableCell>{d.note}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditing(d);
+                      setForm({ date: d.date, receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
+                      setRecordOpen(true);
+                    }}
+                    aria-label="Edit outgoing donation"
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => { setToDelete(d); setDeleteOpen(true); }} aria-label="Delete outgoing donation">
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Outgoing Donation' : 'Record Outgoing Donation'}</DialogTitle>

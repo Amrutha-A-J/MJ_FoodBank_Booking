@@ -11,6 +11,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableContainer,
   TextField,
   MenuItem,
   IconButton,
@@ -134,57 +135,59 @@ export default function TrackSurplus() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Count</TableCell>
-            <TableCell>Weight</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredRecords.map(r => (
-            <TableRow key={r.id}>
-              <TableCell>
-                {new Date(r.date).toLocaleDateString(undefined, {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </TableCell>
-              <TableCell>{r.type}</TableCell>
-              <TableCell>{r.count}</TableCell>
-              <TableCell>{r.weight}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(r);
-                    setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit surplus"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(r);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete surplus"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Count</TableCell>
+              <TableCell>Weight</TableCell>
+              <TableCell align="right"></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {filteredRecords.map(r => (
+              <TableRow key={r.id}>
+                <TableCell>
+                  {new Date(r.date).toLocaleDateString(undefined, {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </TableCell>
+                <TableCell>{r.type}</TableCell>
+                <TableCell>{r.count}</TableCell>
+                <TableCell>{r.weight}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditing(r);
+                      setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
+                      setRecordOpen(true);
+                    }}
+                    aria-label="Edit surplus"
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setToDelete(r);
+                      setDeleteOpen(true);
+                    }}
+                    aria-label="Delete surplus"
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Surplus' : 'Record Surplus'}</DialogTitle>

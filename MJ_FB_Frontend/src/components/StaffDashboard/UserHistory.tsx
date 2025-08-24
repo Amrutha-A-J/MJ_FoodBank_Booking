@@ -9,6 +9,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  TableContainer,
   Table,
   TableBody,
   TableCell,
@@ -131,7 +132,7 @@ export default function UserHistory({
                 <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
-            <Box sx={{ overflowX: 'auto' }}>
+            <TableContainer sx={{ overflowX: 'auto' }}>
               <Table sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow>
@@ -201,7 +202,7 @@ export default function UserHistory({
                   })}
                 </TableBody>
               </Table>
-            </Box>
+            </TableContainer>
             {totalPages > 1 && (
               <Box
                 sx={{

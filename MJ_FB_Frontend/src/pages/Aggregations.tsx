@@ -5,6 +5,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   FormControl,
   InputLabel,
   Select,
@@ -117,45 +118,47 @@ export default function Aggregations() {
           {rebuilding ? <CircularProgress size={20} /> : 'Calculate Overall'}
         </Button>
       </Stack>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Month</TableCell>
-            <TableCell align="right">Donations</TableCell>
-            <TableCell align="right">Surplus</TableCell>
-            <TableCell align="right">Pig Pound</TableCell>
-            <TableCell align="right">Outgoing Donations</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {overallLoading ? (
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
             <TableRow>
-              <TableCell colSpan={5} align="center">
-                <CircularProgress size={24} />
-              </TableCell>
+              <TableCell>Month</TableCell>
+              <TableCell align="right">Donations</TableCell>
+              <TableCell align="right">Surplus</TableCell>
+              <TableCell align="right">Pig Pound</TableCell>
+              <TableCell align="right">Outgoing Donations</TableCell>
             </TableRow>
-          ) : (
-            <>
-              {overallData.map((r, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{monthNames[r.month - 1]}</TableCell>
-                  <TableCell align="right">{r.donations}</TableCell>
-                  <TableCell align="right">{r.surplus}</TableCell>
-                  <TableCell align="right">{r.pigPound}</TableCell>
-                  <TableCell align="right">{r.outgoingDonations}</TableCell>
-                </TableRow>
-              ))}
+          </TableHead>
+          <TableBody>
+            {overallLoading ? (
               <TableRow>
-                <TableCell>Total</TableCell>
-                <TableCell align="right">{totals.donations}</TableCell>
-                <TableCell align="right">{totals.surplus}</TableCell>
-                <TableCell align="right">{totals.pigPound}</TableCell>
-                <TableCell align="right">{totals.outgoingDonations}</TableCell>
+                <TableCell colSpan={5} align="center">
+                  <CircularProgress size={24} />
+                </TableCell>
               </TableRow>
-            </>
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              <>
+                {overallData.map((r, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{monthNames[r.month - 1]}</TableCell>
+                    <TableCell align="right">{r.donations}</TableCell>
+                    <TableCell align="right">{r.surplus}</TableCell>
+                    <TableCell align="right">{r.pigPound}</TableCell>
+                    <TableCell align="right">{r.outgoingDonations}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow>
+                  <TableCell>Total</TableCell>
+                  <TableCell align="right">{totals.donations}</TableCell>
+                  <TableCell align="right">{totals.surplus}</TableCell>
+                  <TableCell align="right">{totals.pigPound}</TableCell>
+                  <TableCell align="right">{totals.outgoingDonations}</TableCell>
+                </TableRow>
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

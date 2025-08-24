@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   Stack,
   TextField,
   IconButton,
@@ -90,48 +91,50 @@ export default function TrackPigpound() {
         </Button>
       }
     >
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Weight</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {entries.map(e => (
-            <TableRow key={e.id}>
-              <TableCell>
-                {new Date(e.date).toLocaleDateString('en-CA')}
-              </TableCell>
-              <TableCell>{e.weight}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(e);
-                    setForm({ date: e.date, weight: String(e.weight) });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit entry"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(e);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete entry"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Weight</TableCell>
+              <TableCell align="right"></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {entries.map(e => (
+              <TableRow key={e.id}>
+                <TableCell>
+                  {new Date(e.date).toLocaleDateString('en-CA')}
+                </TableCell>
+                <TableCell>{e.weight}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditing(e);
+                      setForm({ date: e.date, weight: String(e.weight) });
+                      setRecordOpen(true);
+                    }}
+                    aria-label="Edit entry"
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setToDelete(e);
+                      setDeleteOpen(true);
+                    }}
+                    aria-label="Delete entry"
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog
         open={recordOpen}

@@ -32,7 +32,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   return (
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
       <Table
         size="small"
         sx={{
