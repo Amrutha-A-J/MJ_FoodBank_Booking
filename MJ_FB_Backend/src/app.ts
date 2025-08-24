@@ -23,6 +23,7 @@ import pigPoundsRoutes from './routes/pigPounds';
 import outgoingReceiversRoutes from './routes/outgoingReceivers';
 import outgoingDonationsRoutes from './routes/outgoingDonations';
 import warehouseOverallRoutes from './routes/warehouseOverall';
+import eventsRoutes from './routes/events';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
 
@@ -60,6 +61,7 @@ app.use('/pig-pounds', pigPoundsRoutes);
 app.use('/outgoing-receivers', outgoingReceiversRoutes);
 app.use('/outgoing-donations', outgoingDonationsRoutes);
 app.use('/warehouse-overall', warehouseOverallRoutes);
+app.use('/events', eventsRoutes);
 
 // Serve the frontend in production
 if (process.env.NODE_ENV === 'production') {
