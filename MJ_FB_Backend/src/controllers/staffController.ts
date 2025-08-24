@@ -35,11 +35,6 @@ export async function createStaff(
 
   let finalAccess: StaffAccess[];
   if (defaultAccess) {
-    if (access !== undefined) {
-      return res
-        .status(400)
-        .json({ message: 'Cannot set access for first staff member' });
-    }
     finalAccess = defaultAccess;
   } else {
     finalAccess = access && access.length > 0 ? access : ['pantry'];
