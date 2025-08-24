@@ -36,7 +36,7 @@ export default function Aggregations() {
   const [overallYear, setOverallYear] = useState(currentYear);
   const [donorYear, setDonorYear] = useState(currentYear);
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const [tab, setTab] = useState(1);
+  const [tab, setTab] = useState(0);
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
 
