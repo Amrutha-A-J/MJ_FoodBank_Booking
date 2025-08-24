@@ -14,6 +14,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   Stack,
   Autocomplete,
   IconButton,
@@ -147,15 +148,16 @@ export default function DonationLog() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
           <TableRow>
             <TableCell>Donor</TableCell>
             <TableCell>Weight</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-        </TableHead>
-        <TableBody>
+          </TableHead>
+          <TableBody>
           {donations.map(d => (
             <TableRow key={d.id}>
               <TableCell>{d.donor}</TableCell>
@@ -174,8 +176,9 @@ export default function DonationLog() {
               </TableCell>
             </TableRow>
           ))}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>

@@ -24,8 +24,8 @@ export default function VolunteerBookingHistory({ token }: { token: string }) {
 
   return (
     <Page title="Booking History">
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Role</TableCell>

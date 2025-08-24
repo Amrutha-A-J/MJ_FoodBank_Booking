@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableContainer,
   Stack,
   TextField,
   IconButton,
@@ -121,15 +122,16 @@ export default function TrackPigpound() {
           <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
         ))}
       </Tabs>
-      <Table size="small">
-        <TableHead>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Weight</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-        </TableHead>
-        <TableBody>
+          </TableHead>
+          <TableBody>
           {entries.map(e => (
             <TableRow key={e.id}>
               <TableCell>
@@ -161,8 +163,9 @@ export default function TrackPigpound() {
               </TableCell>
             </TableRow>
           ))}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       <Dialog
         open={recordOpen}
