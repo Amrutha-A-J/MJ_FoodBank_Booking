@@ -162,10 +162,10 @@ export default function Aggregations() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Month</TableCell>
-                  {donorRows.map(d => (
-                    <TableCell key={d.donor} align="right">
-                      {d.donor}
+                  <TableCell>Donor</TableCell>
+                  {monthNames.map((name, idx) => (
+                    <TableCell key={idx} align="right">
+                      {name}
                     </TableCell>
                   ))}
                   <TableCell align="right">Total</TableCell>
@@ -174,7 +174,7 @@ export default function Aggregations() {
               <TableBody>
                 {donorLoading ? (
                   <TableRow>
-                    <TableCell colSpan={donorRows.length + 2} align="center">
+                    <TableCell colSpan={monthNames.length + 2} align="center">
                       <CircularProgress size={24} />
                     </TableCell>
                   </TableRow>
@@ -188,22 +188,22 @@ export default function Aggregations() {
                     );
                     return (
                       <>
-                        {monthNames.map((name, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{name}</TableCell>
-                            {donorRows.map(d => (
-                              <TableCell key={d.donor} align="right">
-                                {d.monthlyTotals[idx]}
+                        {donorRows.map(d => (
+                          <TableRow key={d.donor}>
+                            <TableCell>{d.donor}</TableCell>
+                            {d.monthlyTotals.map((value, idx) => (
+                              <TableCell key={idx} align="right">
+                                {value}
                               </TableCell>
                             ))}
-                            <TableCell align="right">{monthTotals[idx]}</TableCell>
+                            <TableCell align="right">{d.total}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow>
                           <TableCell>Total</TableCell>
-                          {donorRows.map(d => (
-                            <TableCell key={d.donor} align="right">
-                              {d.total}
+                          {monthTotals.map((total, idx) => (
+                            <TableCell key={idx} align="right">
+                              {total}
                             </TableCell>
                           ))}
                           <TableCell align="right">
