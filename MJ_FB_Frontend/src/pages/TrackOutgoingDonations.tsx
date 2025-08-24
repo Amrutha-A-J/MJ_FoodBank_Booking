@@ -108,14 +108,16 @@ export default function TrackOutgoingDonations() {
   }
 
   function handleAddReceiver() {
-    if (!receiverName) return;
-    if (receivers.some(r => r.name === receiverName)) {
+    const name = receiverName.trim();
+    if (!name) return;
+    if (receivers.some(r => r.name.toLowerCase() === name.toLowerCase())) {
       setSnackbar({ open: true, message: 'Receiver already exists' });
       return;
     }
-    createOutgoingReceiver(receiverName)
+    createOutgoingReceiver(name)
       .then(newReceiver => {
         setReceivers([...receivers, newReceiver].sort((a, b) => a.name.localeCompare(b.name)));
+        setForm(prev => ({ ...prev, receiverId: newReceiver.id }));
         setSnackbar({ open: true, message: 'Receiver added' });
         setNewReceiverOpen(false);
         setReceiverName('');
