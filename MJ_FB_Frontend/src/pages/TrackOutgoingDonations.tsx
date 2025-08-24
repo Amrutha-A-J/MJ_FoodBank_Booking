@@ -167,7 +167,7 @@ export default function TrackOutgoingDonations() {
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Receiver</TableCell>
-            <TableCell>Weight</TableCell>
+            <TableCell>Weight (lbs)</TableCell>
             <TableCell>Note</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
@@ -177,7 +177,7 @@ export default function TrackOutgoingDonations() {
             <TableRow key={d.id}>
               <TableCell>{d.date}</TableCell>
               <TableCell>{d.receiver}</TableCell>
-              <TableCell>{d.weight}</TableCell>
+              <TableCell>{d.weight} lbs</TableCell>
               <TableCell>{d.note}</TableCell>
               <TableCell align="right">
                 <IconButton
@@ -213,7 +213,7 @@ export default function TrackOutgoingDonations() {
               InputLabelProps={{ shrink: true }}
             />
             <TextField
-              label="Weight"
+              label="Weight (lbs)"
               type="number"
               value={form.weight}
               onChange={e => setForm({ ...form, weight: e.target.value })}

@@ -17,13 +17,13 @@ beforeEach(() => {
 describe('GET /donors/top', () => {
   it('returns top donors for the year', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ name: 'Alice', totalKg: 100, lastDonationISO: '2024-01-10' }],
+      rows: [{ name: 'Alice', totalLbs: 100, lastDonationISO: '2024-01-10' }],
     });
 
     const res = await request(app).get('/donors/top?year=2024&limit=5');
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
-      { name: 'Alice', totalKg: 100, lastDonationISO: '2024-01-10' },
+      { name: 'Alice', totalLbs: 100, lastDonationISO: '2024-01-10' },
     ]);
   });
 });
@@ -31,13 +31,13 @@ describe('GET /donors/top', () => {
 describe('GET /outgoing-receivers/top', () => {
   it('returns top receivers for the year', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ name: 'Org', totalKg: 50, lastPickupISO: '2024-02-15' }],
+      rows: [{ name: 'Org', totalLbs: 50, lastPickupISO: '2024-02-15' }],
     });
 
     const res = await request(app).get('/outgoing-receivers/top?year=2024&limit=5');
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
-      { name: 'Org', totalKg: 50, lastPickupISO: '2024-02-15' },
+      { name: 'Org', totalLbs: 50, lastPickupISO: '2024-02-15' },
     ]);
   });
 });

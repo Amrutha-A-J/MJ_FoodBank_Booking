@@ -153,7 +153,7 @@ export default function DonationLog() {
           <TableHead>
           <TableRow>
             <TableCell>Donor</TableCell>
-            <TableCell>Weight</TableCell>
+            <TableCell>Weight (lbs)</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
           </TableHead>
@@ -161,7 +161,7 @@ export default function DonationLog() {
           {donations.map(d => (
             <TableRow key={d.id}>
               <TableCell>{d.donor}</TableCell>
-              <TableCell>{d.weight}</TableCell>
+              <TableCell>{d.weight} lbs</TableCell>
               <TableCell align="right">
                 <IconButton size="small" onClick={() => {
                   setEditing(d);
@@ -192,7 +192,7 @@ export default function DonationLog() {
               InputLabelProps={{ shrink: true }}
             />
             <TextField
-              label="Weight"
+              label="Weight (lbs)"
               type="number"
               value={form.weight}
               onChange={e => setForm({ ...form, weight: e.target.value })}
