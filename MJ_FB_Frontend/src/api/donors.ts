@@ -11,6 +11,17 @@ export interface TopDonor {
   lastDonationISO: string;
 }
 
+export interface DonorDetail extends Donor {
+  totalLbs: number;
+  lastDonationISO: string | null;
+}
+
+export interface DonorDonation {
+  id: number;
+  date: string;
+  weight: number;
+}
+
 export async function getDonors(search?: string): Promise<Donor[]> {
   const query = search ? `?search=${encodeURIComponent(search)}` : '';
   const res = await apiFetch(`${API_BASE}/donors${query}`);
@@ -23,6 +34,18 @@ export async function createDonor(name: string): Promise<Donor> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
+  return handleResponse(res);
+}
+
+export async function getDonor(id: number): Promise<DonorDetail> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}`);
+  return handleResponse(res);
+}
+
+export async function getDonorDonations(
+  id: number,
+): Promise<DonorDonation[]> {
+  const res = await apiFetch(`${API_BASE}/donors/${id}/donations`);
   return handleResponse(res);
 }
 
