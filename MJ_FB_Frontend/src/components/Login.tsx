@@ -28,7 +28,7 @@ export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => v
       <FormContainer
         onSubmit={handleSubmit}
         submitLabel="Login"
-        title="User Login"
+        title="Client Login"
         header={
           <Stack direction="row" spacing={2} justifyContent="center">
             <Link component={RouterLink} to="/login/staff" underline="hover">

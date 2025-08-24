@@ -49,7 +49,7 @@ export default function App() {
     : undefined;
   if (!token) {
     navGroups.push(
-      { label: 'User Login', links: [{ label: 'User Login', to: '/login/user' }] },
+      { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
       { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
       { label: 'Staff Login', links: [{ label: 'Staff Login', to: '/login/staff' }] },
     );
@@ -57,12 +57,12 @@ export default function App() {
     const staffLinks = [
       { label: 'Manage Availability', to: '/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry-schedule' },
-      { label: 'Add User', to: '/add-user' },
-      { label: 'User History', to: '/user-history' },
+      { label: 'Add Client', to: '/add-user' },
+      { label: 'Client History', to: '/user-history' },
       { label: 'Pending', to: '/pending' },
       { label: 'Events', to: '/events' },
     ];
-    if (showStaff) navGroups.push({ label: 'Staff', links: staffLinks });
+    if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
       navGroups.push({
         label: 'Volunteer Management',

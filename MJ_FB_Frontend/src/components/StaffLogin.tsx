@@ -60,7 +60,7 @@ function StaffLoginForm({ onLogin, error: initError }: { onLogin: (u: LoginRespo
         onSubmit={submit}
         submitLabel="Login"
         title="Staff Login"
-        header={<Link component={RouterLink} to="/login/user" underline="hover">User Login</Link>}
+        header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
       >
         <TextField
           type="email"

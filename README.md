@@ -2,6 +2,8 @@
 
 This repository uses Git submodules for the backend and frontend components. After cloning, make sure to pull in the submodules and install their dependencies.
 
+Individuals who use the food bank are referred to as clients throughout the application.
+
 ## Clone and initialize submodules
 
 ```bash
