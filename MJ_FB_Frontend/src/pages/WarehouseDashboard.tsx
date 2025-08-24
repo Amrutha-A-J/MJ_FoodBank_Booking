@@ -168,15 +168,22 @@ export default function WarehouseDashboard() {
 
   const chartData = useMemo(
     () =>
-      totals.map(t => ({
-        month: monthName(t.month),
-        incoming: t.donationsKg + t.surplusKg + t.pigPoundKg,
-        outgoing: t.outgoingKg,
-        net: t.donationsKg + t.surplusKg + t.pigPoundKg - t.outgoingKg,
-        donations: t.donationsKg,
-        surplus: t.surplusKg,
-        pigPound: t.pigPoundKg,
-      })),
+      Array.from({ length: 12 }, (_, i) => {
+        const m = i + 1;
+        const t = totals.find(tt => tt.month === m);
+        const incoming =
+          (t?.donationsKg ?? 0) + (t?.surplusKg ?? 0) + (t?.pigPoundKg ?? 0);
+        const outgoing = t?.outgoingKg ?? 0;
+        return {
+          month: monthName(m),
+          incoming,
+          outgoing,
+          net: incoming - outgoing,
+          donations: t?.donationsKg ?? 0,
+          surplus: t?.surplusKg ?? 0,
+          pigPound: t?.pigPoundKg ?? 0,
+        };
+      }),
     [totals],
   );
 
@@ -362,7 +369,7 @@ export default function WarehouseDashboard() {
                   type="monotone"
                   dataKey="incoming"
                   name="Incoming"
-                  stroke={theme.palette.primary.main}
+                  stroke={theme.palette.success.main}
                   strokeWidth={2}
                   dot={false}
                 />
@@ -370,7 +377,7 @@ export default function WarehouseDashboard() {
                   type="monotone"
                   dataKey="outgoing"
                   name="Outgoing"
-                  stroke={theme.palette.success.main}
+                  stroke={theme.palette.error.main}
                   strokeWidth={2}
                   dot={false}
                 />
