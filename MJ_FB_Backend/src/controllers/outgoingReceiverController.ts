@@ -35,11 +35,11 @@ export async function topOutgoingReceivers(
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
     const limit = parseInt((req.query.limit as string) ?? '', 10) || 7;
     const result = await pool.query(
-      `SELECT r.name, SUM(l.weight)::int AS "totalKg", MAX(l.date) AS "lastPickupISO"
+      `SELECT r.name, SUM(l.weight)::int AS "totalLbs", MAX(l.date) AS "lastPickupISO"
        FROM outgoing_donation_log l JOIN outgoing_receivers r ON l.receiver_id = r.id
        WHERE EXTRACT(YEAR FROM l.date) = $1
        GROUP BY r.id, r.name
-       ORDER BY "totalKg" DESC
+       ORDER BY "totalLbs" DESC
        LIMIT $2`,
       [year, limit],
     );

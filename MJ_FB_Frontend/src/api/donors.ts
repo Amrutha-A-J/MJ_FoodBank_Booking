@@ -7,7 +7,7 @@ export interface Donor {
 
 export interface TopDonor {
   name: string;
-  totalKg: number;
+  totalLbs: number;
   lastDonationISO: string;
 }
 

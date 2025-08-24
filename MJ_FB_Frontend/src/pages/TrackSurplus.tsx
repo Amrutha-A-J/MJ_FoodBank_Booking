@@ -142,7 +142,7 @@ export default function TrackSurplus() {
             <TableCell>Date</TableCell>
             <TableCell>Type</TableCell>
             <TableCell>Count</TableCell>
-            <TableCell>Weight</TableCell>
+            <TableCell>Weight (lbs)</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
           </TableHead>
@@ -159,7 +159,7 @@ export default function TrackSurplus() {
               </TableCell>
               <TableCell>{r.type}</TableCell>
               <TableCell>{r.count}</TableCell>
-              <TableCell>{r.weight}</TableCell>
+              <TableCell>{r.weight} lbs</TableCell>
               <TableCell align="right">
                 <IconButton
                   size="small"
@@ -215,7 +215,7 @@ export default function TrackSurplus() {
               value={form.count}
               onChange={e => setForm({ ...form, count: e.target.value })}
             />
-            <TextField label="Weight" type="number" value={weight} InputProps={{ readOnly: true }} />
+            <TextField label="Weight (lbs)" type="number" value={weight} InputProps={{ readOnly: true }} />
           </Stack>
         </DialogContent>
         <DialogActions>

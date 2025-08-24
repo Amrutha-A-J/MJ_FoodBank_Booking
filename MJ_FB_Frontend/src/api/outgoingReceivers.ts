@@ -7,7 +7,7 @@ export interface OutgoingReceiver {
 
 export interface TopReceiver {
   name: string;
-  totalKg: number;
+  totalLbs: number;
   lastPickupISO: string;
 }
 

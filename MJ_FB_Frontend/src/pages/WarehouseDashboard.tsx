@@ -52,10 +52,10 @@ import type { AlertColor } from '@mui/material';
 interface MonthlyTotal {
   year: number;
   month: number;
-  donationsKg: number;
-  surplusKg: number;
-  pigPoundKg: number;
-  outgoingKg: number;
+  donationsLbs: number;
+  surplusLbs: number;
+  pigPoundLbs: number;
+  outgoingLbs: number;
 }
 
 
@@ -63,8 +63,8 @@ function monthName(m: number) {
   return new Date(2000, m - 1).toLocaleString(undefined, { month: 'short' });
 }
 
-function fmtKg(n: number) {
-  return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg`;
+function fmtLbs(n: number) {
+  return `${n.toLocaleString(undefined, { maximumFractionDigits: 0 })} lbs`;
 }
 
 function kpiDelta(curr: number, prev?: number) {
@@ -118,10 +118,10 @@ export default function WarehouseDashboard() {
         tRes.value.map(t => ({
           year: selectedYear,
           month: t.month,
-          donationsKg: t.donations,
-          surplusKg: t.surplus,
-          pigPoundKg: t.pigPound,
-          outgoingKg: t.outgoingDonations,
+          donationsLbs: t.donations,
+          surplusLbs: t.surplus,
+          pigPoundLbs: t.pigPound,
+          outgoingLbs: t.outgoingDonations,
         })),
       );
     else
@@ -142,7 +142,7 @@ export default function WarehouseDashboard() {
   const currentMonth = useMemo(() => {
     const thisMonth = new Date().getMonth() + 1;
     const monthsWithData = totals
-      .filter(t => t.donationsKg || t.surplusKg || t.pigPoundKg || t.outgoingKg)
+      .filter(t => t.donationsLbs || t.surplusLbs || t.pigPoundLbs || t.outgoingLbs)
       .map(t => t.month);
     if (monthsWithData.includes(thisMonth)) return thisMonth;
     return monthsWithData.length ? Math.max(...monthsWithData) : thisMonth;
@@ -151,14 +151,14 @@ export default function WarehouseDashboard() {
   const currentTotals = totals.find(t => t.month === currentMonth);
   const prevTotals = totals.find(t => t.month === currentMonth - 1);
 
-  const incoming = currentTotals?.donationsKg ?? 0;
-  const prevIncoming = prevTotals?.donationsKg ?? 0;
+  const incoming = currentTotals?.donationsLbs ?? 0;
+  const prevIncoming = prevTotals?.donationsLbs ?? 0;
   const totalIncoming =
-    (currentTotals?.donationsKg ?? 0) +
-    (currentTotals?.surplusKg ?? 0) +
-    (currentTotals?.pigPoundKg ?? 0);
-  const outgoing = currentTotals?.outgoingKg ?? 0;
-  const prevOutgoing = prevTotals?.outgoingKg ?? 0;
+    (currentTotals?.donationsLbs ?? 0) +
+    (currentTotals?.surplusLbs ?? 0) +
+    (currentTotals?.pigPoundLbs ?? 0);
+  const outgoing = currentTotals?.outgoingLbs ?? 0;
+  const prevOutgoing = prevTotals?.outgoingLbs ?? 0;
   const anomalyRatio = totalIncoming ? outgoing / totalIncoming : 0;
   const showAnomaly = totalIncoming > 0 && anomalyRatio > 1.25;
 
@@ -167,15 +167,15 @@ export default function WarehouseDashboard() {
       Array.from({ length: 12 }, (_, i) => {
         const m = i + 1;
         const t = totals.find(tt => tt.month === m);
-        const incoming = t?.donationsKg ?? 0;
-        const outgoing = t?.outgoingKg ?? 0;
+        const incoming = t?.donationsLbs ?? 0;
+        const outgoing = t?.outgoingLbs ?? 0;
         return {
           month: monthName(m),
           incoming,
           outgoing,
           donations: incoming,
-          surplus: t?.surplusKg ?? 0,
-          pigPound: t?.pigPoundKg ?? 0,
+          surplus: t?.surplusLbs ?? 0,
+          pigPound: t?.pigPoundLbs ?? 0,
         };
       }),
     [totals],
@@ -225,9 +225,9 @@ export default function WarehouseDashboard() {
   }
 
   const kpis = [
-    { title: 'Incoming (Donations)', value: currentTotals?.donationsKg ?? 0, prev: prevTotals?.donationsKg ?? 0 },
-    { title: 'Surplus Logged', value: currentTotals?.surplusKg ?? 0, prev: prevTotals?.surplusKg ?? 0 },
-    { title: 'Pig Pound', value: currentTotals?.pigPoundKg ?? 0, prev: prevTotals?.pigPoundKg ?? 0 },
+    { title: 'Incoming (Donations)', value: currentTotals?.donationsLbs ?? 0, prev: prevTotals?.donationsLbs ?? 0 },
+    { title: 'Surplus Logged', value: currentTotals?.surplusLbs ?? 0, prev: prevTotals?.surplusLbs ?? 0 },
+    { title: 'Pig Pound', value: currentTotals?.pigPoundLbs ?? 0, prev: prevTotals?.pigPoundLbs ?? 0 },
     { title: 'Outgoing Shipments', value: outgoing, prev: prevOutgoing },
   ];
 
@@ -320,7 +320,7 @@ export default function WarehouseDashboard() {
               />
               <CardContent>
                 <Typography variant="h5" gutterBottom>
-                  {fmtKg(k.value)}
+                  {fmtLbs(k.value)}
                 </Typography>
                 <Stack direction="row" spacing={0.5} alignItems="center">
                   <TrendingUp
@@ -352,7 +352,7 @@ export default function WarehouseDashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <RTooltip formatter={(val: number) => fmtKg(val)} />
+                  <RTooltip formatter={(val: number) => fmtLbs(val)} />
                   <Legend />
                   <Line
                     type="monotone"
@@ -371,7 +371,7 @@ export default function WarehouseDashboard() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <RTooltip formatter={(val: number) => fmtKg(val)} />
+                  <RTooltip formatter={(val: number) => fmtLbs(val)} />
                   <Legend />
                   <Line
                     type="monotone"
@@ -394,7 +394,7 @@ export default function WarehouseDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <RTooltip formatter={(val: number) => fmtKg(val)} />
+                <RTooltip formatter={(val: number) => fmtLbs(val)} />
                 <Legend />
                 <Bar
                   dataKey="donations"
@@ -434,7 +434,7 @@ export default function WarehouseDashboard() {
         <Card variant="outlined">
           <CardHeader
             title="Top Donors"
-            subheader="This year by total kg"
+            subheader="This year by total lbs"
             action={<Chip label={filteredDonors.length} size="small" />}
           />
           <CardContent>
@@ -448,7 +448,7 @@ export default function WarehouseDashboard() {
                         Last: {new Date(d.lastDonationISO).toLocaleDateString()}
                       </Typography>
                     </Box>
-                    <Typography variant="body2">{fmtKg(d.totalKg)}</Typography>
+                    <Typography variant="body2">{fmtLbs(d.totalLbs)}</Typography>
                   </Stack>
                 ))}
               </Stack>
@@ -462,7 +462,7 @@ export default function WarehouseDashboard() {
         <Card variant="outlined">
           <CardHeader
             title="Top Receivers"
-            subheader="This year by total kg"
+            subheader="This year by total lbs"
             action={<Chip label={filteredReceivers.length} size="small" />}
           />
           <CardContent>
@@ -476,7 +476,7 @@ export default function WarehouseDashboard() {
                         Last: {new Date(r.lastPickupISO).toLocaleDateString()}
                       </Typography>
                     </Box>
-                    <Typography variant="body2">{fmtKg(r.totalKg)}</Typography>
+                    <Typography variant="body2">{fmtLbs(r.totalLbs)}</Typography>
                   </Stack>
                 ))}
               </Stack>
@@ -524,7 +524,7 @@ export default function WarehouseDashboard() {
                 </Button>
               </li>
               <li>Outgoing weight &gt; incoming by 25% this month — verify logs.</li>
-              <li>Surplus records missing count-to-kg conversion factor — check categories.</li>
+              <li>Surplus records missing count-to-lb conversion factor — check categories.</li>
             </ul>
           </CardContent>
         </Card>
