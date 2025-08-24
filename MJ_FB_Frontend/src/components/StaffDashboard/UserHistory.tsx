@@ -105,7 +105,7 @@ export default function UserHistory({
   return (
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
       <Box width="100%" maxWidth={800} mt={4}>
-        <h2>{initialUser ? 'Booking History' : 'User History'}</h2>
+        <h2>{initialUser ? 'Booking History' : 'Client History'}</h2>
         {!initialUser && (
           <EntitySearch
             token={token}

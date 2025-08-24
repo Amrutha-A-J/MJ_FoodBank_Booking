@@ -29,7 +29,7 @@ export default function VolunteerLogin({ onLogin }: { onLogin: (u: LoginResponse
         onSubmit={submit}
         submitLabel="Login"
         title="Volunteer Login"
-        header={<Link component={RouterLink} to="/login/user" underline="hover">User Login</Link>}
+        header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
       >
         <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />

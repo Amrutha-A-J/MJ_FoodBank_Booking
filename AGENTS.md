@@ -93,19 +93,19 @@
 
 ## Base Requirements
 
-Users with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Even though we track usage in our own table, we do not record visits for walk-in clients in our system. When a client uses the food bank without booking through our app, there is currently no way to capture that visit in our platform. This is why it’s important for staff to check Link2Feed to see if the client has already used the food bank twice this calendar month and is eligible (users can only use the food bank two times in a month). In the future, we plan to implement a feature that allows uploading an Excel sheet to update visit counts for visits not processed through our booking platform.
+Clients with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Even though we track usage in our own table, we do not record visits for walk-in clients in our system. When a client uses the food bank without booking through our app, there is currently no way to capture that visit in our platform. This is why it’s important for staff to check Link2Feed to see if the client has already used the food bank twice this calendar month and is eligible (clients can only use the food bank two times in a month). In the future, we plan to implement a feature that allows uploading an Excel sheet to update visit counts for visits not processed through our booking platform.
 
-Staff must also book appointments for clients who do not have internet access. In these cases, the client visits in person to request an appointment, and the staff member clicks on an empty cell in the pantry schedule to assign the client to that slot. Both users and staff should have the ability to cancel or reschedule appointments.
+Staff must also book appointments for clients who do not have internet access. In these cases, the client visits in person to request an appointment, and the staff member clicks on an empty cell in the pantry schedule to assign the client to that slot. Both clients and staff should have the ability to cancel or reschedule appointments.
 
-Similarly, volunteers should be able to log into the app to see which roles require volunteers for a given day. They will only see roles they are trained in, so they do not sign up for areas they are unfamiliar with. Just like user bookings, staff must approve volunteer requests. Staff can also view which volunteers are available on a given day for each role.
+Similarly, volunteers should be able to log into the app to see which roles require volunteers for a given day. They will only see roles they are trained in, so they do not sign up for areas they are unfamiliar with. Just like client bookings, staff must approve volunteer requests. Staff can also view which volunteers are available on a given day for each role.
 
 ## Functional Overview
 
 ### Backend
-- Express server configures CORS, initializes default slots, and mounts routes for users, slots, bookings, holidays, blocked slots, breaks, staff, volunteer roles, volunteer bookings, and authentication.
+- Express server configures CORS, initializes default slots, and mounts routes for clients, slots, bookings, holidays, blocked slots, breaks, staff, volunteer roles, volunteer bookings, and authentication.
 - Booking logic checks slot capacity, enforces monthly visit limits, and sends confirmation emails when a booking is created.
-- JWT-based middleware extracts tokens from headers or cookies, verifies them, and loads the matching staff, user, or volunteer record from PostgreSQL.
-- A setup script provisions PostgreSQL tables for slots, users, staff, volunteer roles, bookings, breaks, and related data when the server starts.
+- JWT-based middleware extracts tokens from headers or cookies, verifies them, and loads the matching staff, client, or volunteer record from PostgreSQL.
+- A setup script provisions PostgreSQL tables for slots, users (clients), staff, volunteer roles, bookings, breaks, and related data when the server starts.
 
 ### Frontend
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
@@ -116,17 +116,17 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 
 ## Booking Workflow
 
-### Users and Staff
-- **Users** book pantry appointments through a calendar, creating a `submitted` (pending) booking.
-- **Staff** manage pending bookings, approving, rejecting, canceling, or rescheduling them. Assigning a user directly to a slot approves the booking immediately. Rejections and cancellations require a reason.
-- Users can view a booking history table listing all pending and approved appointments, each with Cancel and Reschedule options.
+### Clients and Staff
+- **Clients** book pantry appointments through a calendar, creating a `submitted` (pending) booking.
+- **Staff** manage pending bookings, approving, rejecting, canceling, or rescheduling them. Assigning a client directly to a slot approves the booking immediately. Rejections and cancellations require a reason.
+- Clients can view a booking history table listing all pending and approved appointments, each with Cancel and Reschedule options.
 
 ### Key Components
 - **SlotBooking** – renders the calendar shoppers use to view and reserve open time slots.
 - **BookingHistory** – lists a shopper's pending and approved appointments with actions to cancel or reschedule.
 - **PendingBookings** and the schedule view in the staff dashboard show each slot's status and provide Approve/Reject/Reschedule controls.
 - **ManageAvailability** – lets staff maintain holidays, blocked slots, and recurring breaks.
-- **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and approve user requests, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
+- **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and approve client requests, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
 - **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. The number of slot columns matches each role's `max_volunteers` (e.g., pantry shelf stocker shows one slot, while pantry greeter shows multiple). Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored.
 - Backend controllers such as `bookingController`, `slotController`, `holidayController`, `blockedSlotController`, `breakController`, `volunteerBookingController`, and `volunteerRoleController` enforce business rules and interact with the database.
 
@@ -182,9 +182,9 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /auth/request-password-reset` → 204 No Content.
 - `POST /auth/change-password` → 204 No Content (auth required).
 
-### Users
+### Clients
 - `POST /users/login` → `{ token, role, name, bookingsThisMonth? }`
-- `POST /users` → `{ message: 'User created' }`
+- `POST /users` → `{ message: 'Client created' }`
 - `GET /users/search?search=query` → `[ { id, name, email, phone, client_id } ]`
 - `GET /users/me` → `{ id, firstName, lastName, email, phone, clientId, role, bookingsThisMonth }`
 
@@ -204,7 +204,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /bookings/:id/cancel` → `{ message: 'Booking cancelled' }`
 - `POST /bookings/reschedule/:token` → `{ message: 'Booking rescheduled', rescheduleToken }`
 - `POST /bookings/preapproved` → `{ message: 'Preapproved booking created', rescheduleToken }`
-- `POST /bookings/staff` → `{ message: 'Booking created for user', rescheduleToken }`
+- `POST /bookings/staff` → `{ message: 'Booking created for client', rescheduleToken }`
 
 ### Holidays
 - `GET /holidays` → `[ { date, reason } ]`

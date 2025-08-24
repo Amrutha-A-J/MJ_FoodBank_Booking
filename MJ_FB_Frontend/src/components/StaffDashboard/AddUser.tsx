@@ -7,7 +7,7 @@ import FeedbackModal from '../FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {
-  const [mode, setMode] = useState<'user' | 'staff'>('user');
+  const [mode, setMode] = useState<'client' | 'staff'>('client');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('shopper');
   const [phone, setPhone] = useState('');
@@ -35,7 +35,7 @@ export default function AddUser({ token }: { token: string }) {
         email || undefined,
         phone || undefined
       );
-      setSuccess('User added successfully');
+      setSuccess('Client added successfully');
       setFirstName('');
       setLastName('');
       setClientId('');
@@ -62,23 +62,23 @@ export default function AddUser({ token }: { token: string }) {
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
       <Box maxWidth={400} width="100%" mt={4}>
         <Typography variant="h5" gutterBottom>
-          {mode === 'user' ? 'Create User' : 'Create Staff'}
+          {mode === 'client' ? 'Create Client' : 'Create Staff'}
         </Typography>
         <Stack direction="row" spacing={1} mb={2}>
-          <Button variant="outlined" color="primary" onClick={() => setMode('user')}>
-            Create User
+          <Button variant="outlined" color="primary" onClick={() => setMode('client')}>
+            Create Client
           </Button>
           <Button variant="outlined" color="primary" onClick={() => setMode('staff')}>
             Create Staff
           </Button>
         </Stack>
-        {mode === 'user' && (
+        {mode === 'client' && (
           <>
             <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
             <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
           </>
         )}
-        {mode === 'user' ? (
+        {mode === 'client' ? (
           <Stack spacing={2}>
             <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
             <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
@@ -96,7 +96,7 @@ export default function AddUser({ token }: { token: string }) {
               <MenuItem value="delivery">Delivery</MenuItem>
             </TextField>
             <Button variant="contained" color="primary" onClick={submitUser}>
-              Add User
+              Add Client
             </Button>
           </Stack>
         ) : (
