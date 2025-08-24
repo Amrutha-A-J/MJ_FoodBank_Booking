@@ -23,6 +23,18 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `PORT` – Port for the backend server.
 
+`SMTP_HOST` – SMTP server host (e.g., `smtp.office365.com`).
+
+`SMTP_PORT` – SMTP server port (e.g., `587`).
+
+`SMTP_USER` – Username for SMTP authentication.
+
+`SMTP_PASS` – Password for SMTP authentication.
+
+`SMTP_FROM_EMAIL` – Email address used as the sender.
+
+`SMTP_FROM_NAME` – Optional display name for the sender.
+
 ## Authentication Tokens
 
 Login responses now return a JSON Web Token (JWT) instead of a simple `type:id` string. Clients must send this token in the `Authorization` header using the standard Bearer format:
