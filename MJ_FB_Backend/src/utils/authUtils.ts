@@ -8,6 +8,7 @@ export type AuthPayload = {
   id: number;
   role: string;
   type: 'user' | 'staff';
+  access?: string[];
 };
 
 /**

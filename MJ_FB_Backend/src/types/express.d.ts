@@ -6,6 +6,7 @@ declare namespace Express {
       email?: string;
       userId?: string;
       userRole?: 'shopper' | 'delivery';
+      access?: string[];
     };
   }
 }

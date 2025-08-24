@@ -6,7 +6,7 @@ import {
   getDonor,
   donorDonations,
 } from '../controllers/donorController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import { addDonorSchema } from '../schemas/donorSchemas';
 
@@ -14,9 +14,9 @@ const router = Router();
 
 // Public endpoint to list top donors
 router.get('/top', topDonors);
-router.get('/', authMiddleware, authorizeRoles('staff'), listDonors);
-router.post('/', authMiddleware, authorizeRoles('staff'), validate(addDonorSchema), addDonor);
-router.get('/:id', authMiddleware, authorizeRoles('staff'), getDonor);
-router.get('/:id/donations', authMiddleware, authorizeRoles('staff'), donorDonations);
+router.get('/', authMiddleware, authorizeAccess('warehouse'), listDonors);
+router.post('/', authMiddleware, authorizeAccess('warehouse'), validate(addDonorSchema), addDonor);
+router.get('/:id', authMiddleware, authorizeAccess('warehouse'), getDonor);
+router.get('/:id/donations', authMiddleware, authorizeAccess('warehouse'), donorDonations);
 
 export default router;

@@ -16,6 +16,11 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     _res: express.Response,
     next: express.NextFunction,
   ) => next(),
+  authorizeAccess: () => (
+    _req: express.Request,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => next(),
   optionalAuthMiddleware: (
     _req: express.Request,
     _res: express.Response,

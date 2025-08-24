@@ -43,8 +43,9 @@ async function authenticate(req: Request): Promise<AuthResult> {
       type: string;
       userId?: number | string;
       userRole?: string;
+      access?: string[];
     };
-    const { id, type, role, userId, userRole } = decoded;
+    const { id, type, role, userId, userRole, access } = decoded;
     if (type === 'staff') {
       const staffRes = await pool.query(
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
@@ -61,6 +62,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
           role,
           name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
           email: staffRes.rows[0].email,
+          access: access || [],
         },
       };
     }
@@ -168,6 +170,18 @@ export function authorizeRoles(...allowedRoles: string[]) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
+    next();
+  };
+}
+
+export function authorizeAccess(...allowed: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const { access = [], role } = req.user as any;
+    if (role === 'admin') return next();
+    if (!allowed.some(a => (access as string[]).includes(a))) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
     next();
   };
 }

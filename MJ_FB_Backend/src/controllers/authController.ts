@@ -103,6 +103,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       jti: string;
       userId?: number | string;
       userRole?: string;
+      access?: string[];
     };
     const subject = `${payload.type}:${payload.id}`;
     const stored = await pool.query(
@@ -124,6 +125,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
     };
     if (payload.userId) basePayload.userId = payload.userId;
     if (payload.userRole) basePayload.userRole = payload.userRole;
+    if (payload.access) basePayload.access = payload.access;
 
     const accessToken = jwt.sign(basePayload, config.jwtSecret, {
       expiresIn: '1h',

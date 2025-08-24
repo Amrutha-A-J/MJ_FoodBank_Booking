@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('GET /donations/aggregations', () => {
   it('includes donors with zero yearly donations', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse'] });
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const rows = [
       ...months.map(month => ({ donor: 'Alice', month, total: month === 1 ? 100 : month === 2 ? 50 : 0 })),
