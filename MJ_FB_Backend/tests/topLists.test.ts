@@ -39,5 +39,6 @@ describe('GET /outgoing-receivers/top', () => {
     expect(res.body).toEqual([
       { name: 'Org', totalLbs: 50, lastPickupISO: '2024-02-15' },
     ]);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/ORDER BY "totalLbs" DESC/);
   });
 });
