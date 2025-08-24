@@ -40,7 +40,13 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { API_BASE, apiFetch, handleResponse } from '../api/client';
+import {
+  getWarehouseOverall,
+  rebuildWarehouseOverall,
+  exportWarehouseOverall,
+} from '../api/warehouseOverall';
+import { getTopDonors, type TopDonor } from '../api/donors';
+import { getTopReceivers, type TopReceiver } from '../api/outgoingReceivers';
 import type { AlertColor } from '@mui/material';
 
 interface MonthlyTotal {
@@ -52,17 +58,6 @@ interface MonthlyTotal {
   outgoingKg: number;
 }
 
-interface Donor {
-  name: string;
-  totalKg: number;
-  lastDonationISO: string;
-}
-
-interface Receiver {
-  name: string;
-  totalKg: number;
-  lastPickupISO: string;
-}
 
 function monthName(m: number) {
   return new Date(2000, m - 1).toLocaleString(undefined, { month: 'short' });
@@ -89,8 +84,8 @@ export default function WarehouseDashboard() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState(0);
   const [totals, setTotals] = useState<MonthlyTotal[]>([]);
-  const [donors, setDonors] = useState<Donor[]>([]);
-  const [receivers, setReceivers] = useState<Receiver[]>([]);
+  const [donors, setDonors] = useState<TopDonor[]>([]);
+  const [receivers, setReceivers] = useState<TopReceiver[]>([]);
   const [loadingTotals, setLoadingTotals] = useState(false);
   const [loadingRebuild, setLoadingRebuild] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
@@ -114,11 +109,21 @@ export default function WarehouseDashboard() {
   async function loadData(selectedYear: number) {
     setLoadingTotals(true);
     const [tRes, dRes, rRes] = await Promise.allSettled([
-      apiFetch(`${API_BASE}/warehouse-overall?year=${selectedYear}`).then(handleResponse),
-      apiFetch(`${API_BASE}/donors/top?year=${selectedYear}&limit=7`).then(handleResponse),
-      apiFetch(`${API_BASE}/receivers/top?year=${selectedYear}&limit=7`).then(handleResponse),
+      getWarehouseOverall(selectedYear),
+      getTopDonors(selectedYear, 7),
+      getTopReceivers(selectedYear, 7),
     ]);
-    if (tRes.status === 'fulfilled') setTotals(tRes.value ?? []);
+    if (tRes.status === 'fulfilled')
+      setTotals(
+        tRes.value.map(t => ({
+          year: selectedYear,
+          month: t.month,
+          donationsKg: t.donations,
+          surplusKg: t.surplus,
+          pigPoundKg: t.pigPound,
+          outgoingKg: t.outgoingDonations,
+        })),
+      );
     else
       setSnackbar({ open: true, message: tRes.reason?.message || 'Failed to load totals', severity: 'error' });
     if (dRes.status === 'fulfilled') setDonors(dRes.value ?? []);
@@ -186,7 +191,7 @@ export default function WarehouseDashboard() {
   async function handleRebuild() {
     setLoadingRebuild(true);
     try {
-      await apiFetch(`${API_BASE}/warehouse-overall/rebuild?year=${year}`, { method: 'POST' }).then(handleResponse);
+      await rebuildWarehouseOverall(year);
       setSnackbar({ open: true, message: 'Rebuilt aggregates' });
       loadData(year);
     } catch (err: any) {
@@ -199,9 +204,7 @@ export default function WarehouseDashboard() {
   async function handleExport() {
     setLoadingExport(true);
     try {
-      const res = await apiFetch(`${API_BASE}/warehouse-overall/export?year=${year}`);
-      if (!res.ok) await handleResponse(res);
-      const blob = await res.blob();
+      const blob = await exportWarehouseOverall(year);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

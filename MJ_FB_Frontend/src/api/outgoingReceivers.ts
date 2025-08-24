@@ -5,6 +5,12 @@ export interface OutgoingReceiver {
   name: string;
 }
 
+export interface TopReceiver {
+  name: string;
+  totalKg: number;
+  lastPickupISO: string;
+}
+
 export async function getOutgoingReceivers(): Promise<OutgoingReceiver[]> {
   const res = await apiFetch(`${API_BASE}/outgoing-receivers`);
   return handleResponse(res);
@@ -16,5 +22,15 @@ export async function createOutgoingReceiver(name: string): Promise<OutgoingRece
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name }),
   });
+  return handleResponse(res);
+}
+
+export async function getTopReceivers(
+  year: number,
+  limit: number,
+): Promise<TopReceiver[]> {
+  const res = await apiFetch(
+    `${API_BASE}/outgoing-receivers/top?year=${year}&limit=${limit}`,
+  );
   return handleResponse(res);
 }
