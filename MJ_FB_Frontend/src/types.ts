@@ -7,6 +7,14 @@ export type StaffAccess =
   | 'warehouse'
   | 'admin';
 
+export interface Staff {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  access: StaffAccess[];
+}
+
 export interface LoginResponse {
   role: Role;
   name: string;

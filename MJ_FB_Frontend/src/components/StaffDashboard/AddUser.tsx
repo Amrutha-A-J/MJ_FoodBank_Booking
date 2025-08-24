@@ -1,18 +1,10 @@
 import { useState } from 'react';
 import { addUser, createStaff } from '../../api/users';
-import type { UserRole, StaffAccess } from '../../types';
+import type { UserRole } from '../../types';
+import StaffForm from './StaffForm';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-  MenuItem,
-  Typography,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material';
+import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'user' | 'staff'>('user');
@@ -26,7 +18,6 @@ export default function AddUser({ token }: { token: string }) {
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
-  const [access, setAccess] = useState<StaffAccess[]>([]);
 
   async function submitUser() {
     if (!firstName || !lastName || !clientId || !password) {
@@ -57,22 +48,14 @@ export default function AddUser({ token }: { token: string }) {
     }
   }
 
-  async function submitStaff() {
-    if (!firstName || !lastName || !email || !password) {
-      setError('All fields required');
-      return;
-    }
-    try {
-      await createStaff(firstName, lastName, access, email, password, token);
-      setSuccess('Staff added successfully');
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPassword('');
-      setAccess([]);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
-    }
+  async function submitStaff(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password?: string;
+    access: any[];
+  }) {
+    await createStaff(data.firstName, data.lastName, data.access, data.email, data.password || '', token);
   }
 
   return (
@@ -89,8 +72,12 @@ export default function AddUser({ token }: { token: string }) {
             Create Staff
           </Button>
         </Stack>
-        <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-        <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
+        {mode === 'user' && (
+          <>
+            <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+            <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
+          </>
+        )}
         {mode === 'user' ? (
           <Stack spacing={2}>
             <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
@@ -113,75 +100,7 @@ export default function AddUser({ token }: { token: string }) {
             </Button>
           </Stack>
         ) : (
-          <Stack spacing={2}>
-            <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-            <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
-            <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-            <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={access.includes('pantry')}
-                    onChange={e =>
-                      setAccess(prev =>
-                        e.target.checked
-                          ? [...prev, 'pantry']
-                          : prev.filter(a => a !== 'pantry'),
-                      )
-                    }
-                  />
-                }
-                label="Pantry"
-              />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={access.includes('volunteer_management')}
-                  onChange={e =>
-                    setAccess(prev =>
-                      e.target.checked
-                        ? [...prev, 'volunteer_management']
-                        : prev.filter(a => a !== 'volunteer_management'),
-                    )
-                  }
-                />
-              }
-              label="Volunteer Management"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={access.includes('warehouse')}
-                  onChange={e =>
-                    setAccess(prev =>
-                      e.target.checked
-                        ? [...prev, 'warehouse']
-                        : prev.filter(a => a !== 'warehouse'),
-                    )
-                  }
-                />
-              }
-              label="Warehouse"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={access.includes('admin')}
-                  onChange={e =>
-                    setAccess(prev =>
-                      e.target.checked
-                        ? [...prev, 'admin']
-                        : prev.filter(a => a !== 'admin'),
-                    )
-                  }
-                />
-              }
-              label="Admin"
-            />
-            <Button variant="contained" color="primary" onClick={submitStaff}>
-              Add Staff
-            </Button>
-          </Stack>
+          <StaffForm submitLabel="Add Staff" onSubmit={submitStaff} />
         )}
       </Box>
     </Box>
