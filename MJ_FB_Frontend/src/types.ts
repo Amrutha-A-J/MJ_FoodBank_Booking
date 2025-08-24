@@ -1,6 +1,19 @@
 export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer';
 export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff';
+export type StaffAccess =
+  | 'admin'
+  | 'staff'
+  | 'volunteer_management'
+  | 'warehouse';
+
+export interface LoginResponse {
+  role: Role;
+  name: string;
+  bookingsThisMonth?: number;
+  userRole?: UserRole;
+  access: StaffAccess[];
+}
 
 export interface Slot {
   id: string;

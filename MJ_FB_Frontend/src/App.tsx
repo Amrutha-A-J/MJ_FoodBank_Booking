@@ -27,12 +27,17 @@ import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
 import { useAuth } from './hooks/useAuth';
+import type { StaffAccess } from './types';
 
 export default function App() {
-  const { token, role, name, userRole, login, logout } = useAuth();
+  const { token, role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
+  const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
+  const showStaff = isStaff && hasAccess('staff');
+  const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
+  const showWarehouse = isStaff && hasAccess('warehouse');
 
   const navGroups: NavGroup[] = [];
   if (!token) {
@@ -49,17 +54,18 @@ export default function App() {
       { label: 'User History', to: '/user-history' },
       { label: 'Pending', to: '/pending' },
     ];
-    navGroups.push({ label: 'Staff', links: staffLinks });
-    navGroups.push({
-      label: 'Volunteer Management',
-      links: [
-        { label: 'Dashboard', to: '/volunteer-management' },
-        { label: 'Schedule', to: '/volunteer-management/schedule' },
-        { label: 'Search', to: '/volunteer-management/search' },
-        { label: 'Create', to: '/volunteer-management/create' },
-        { label: 'Pending', to: '/volunteer-management/pending' },
-      ],
-    });
+    if (showStaff) navGroups.push({ label: 'Staff', links: staffLinks });
+    if (showVolunteerManagement)
+      navGroups.push({
+        label: 'Volunteer Management',
+        links: [
+          { label: 'Dashboard', to: '/volunteer-management' },
+          { label: 'Schedule', to: '/volunteer-management/schedule' },
+          { label: 'Search', to: '/volunteer-management/search' },
+          { label: 'Create', to: '/volunteer-management/create' },
+          { label: 'Pending', to: '/volunteer-management/pending' },
+        ],
+      });
 
     const warehouseLinks = [
       { label: 'Dashboard', to: '/warehouse-management' },
@@ -72,7 +78,7 @@ export default function App() {
       { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
     ];
-    navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+    if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
 
   } else if (role === 'shopper') {
     navGroups.push({
@@ -136,40 +142,40 @@ export default function App() {
                 }
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
-              {isStaff && (
+              {showStaff && (
                 <Route path="/manage-availability" element={<ManageAvailability />} />
               )}
-              {isStaff && (
+              {showStaff && (
                 <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route path="/warehouse-management" element={<WarehouseDashboard />} />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route
                   path="/warehouse-management/track-pigpound"
                   element={<TrackPigpound />}
                 />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route
                   path="/warehouse-management/track-outgoing-donations"
                   element={<TrackOutgoingDonations />}
                 />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route
                   path="/warehouse-management/track-surplus"
                   element={<TrackSurplus />}
                 />
               )}
-              {isStaff && (
+              {showWarehouse && (
                 <Route
                   path="/warehouse-management/aggregations"
                   element={<Aggregations />}
@@ -203,10 +209,10 @@ export default function App() {
                   }
                 />
               )}
-              {isStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
-              {isStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-              {isStaff && <Route path="/pending" element={<Pending />} />}
-              {isStaff && (
+              {showStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
+              {showStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
+              {showStaff && <Route path="/pending" element={<Pending />} />}
+              {showVolunteerManagement && (
                 <>
                   <Route
                     path="/volunteer-management"
