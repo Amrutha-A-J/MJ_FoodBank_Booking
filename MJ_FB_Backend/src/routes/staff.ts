@@ -13,7 +13,7 @@ router.post('/', async (req, res, next: NextFunction) => {
   const result = await pool.query('SELECT COUNT(*) FROM staff');
   const count = parseInt(result.rows[0].count, 10);
   if (count === 0) {
-    return createStaff(req, res, next);
+    return createStaff(req, res, next, ['admin']);
   }
   authMiddleware(req, res, () => {
     authorizeRoles('staff')(req, res, () => createStaff(req, res, next));
