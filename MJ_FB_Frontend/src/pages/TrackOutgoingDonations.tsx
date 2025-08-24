@@ -126,10 +126,25 @@ export default function TrackOutgoingDonations() {
       title="Track Outgoing Donations"
       actions={
         <Stack direction="row" spacing={1}>
-          <Button size="small" variant="contained" onClick={() => setRecordOpen(true)}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
             Record Outgoing Donation
           </Button>
-          <Button size="small" variant="outlined" onClick={() => setNewReceiverOpen(true)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => {
+              setReceiverName('');
+              setNewReceiverOpen(true);
+            }}
+          >
             Add Receiver
           </Button>
         </Stack>
