@@ -29,3 +29,23 @@ export async function addDonor(req: Request, res: Response, next: NextFunction) 
     next(error);
   }
 }
+
+export async function topDonors(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const limit = parseInt((req.query.limit as string) ?? '', 10) || 7;
+    const result = await pool.query(
+      `SELECT o.name, SUM(d.weight)::int AS "totalKg", MAX(d.date) AS "lastDonationISO"
+       FROM donations d JOIN donors o ON d.donor_id = o.id
+       WHERE EXTRACT(YEAR FROM d.date) = $1
+       GROUP BY o.id, o.name
+       ORDER BY "totalKg" DESC
+       LIMIT $2`,
+      [year, limit],
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error listing top donors:', error);
+    next(error);
+  }
+}
