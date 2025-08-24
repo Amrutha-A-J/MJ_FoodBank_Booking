@@ -2,10 +2,13 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 
-export async function listPigPounds(_req: Request, res: Response, next: NextFunction) {
+export async function listPigPounds(req: Request, res: Response, next: NextFunction) {
   try {
+    const date = req.query.date as string;
+    if (!date) return res.status(400).json({ message: 'Date required' });
     const result = await pool.query(
-      'SELECT id, date, weight FROM pig_pound_log ORDER BY date DESC, id DESC',
+      'SELECT id, date, weight FROM pig_pound_log WHERE date = $1 ORDER BY id',
+      [date],
     );
     res.json(result.rows);
   } catch (error) {
