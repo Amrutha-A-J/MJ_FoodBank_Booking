@@ -37,9 +37,12 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens. Use a different strong value from `JWT_SECRET`. |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
 | `PORT` | Port for the backend server (defaults to 4000) |
-| `BREVO_API_KEY` | API key for sending transactional emails through Brevo (optional) |
-| `BREVO_SENDER_EMAIL` | Email address used as the sender for Brevo emails |
-| `BREVO_SENDER_NAME` | Optional sender name displayed in Brevo emails |
+| `SMTP_HOST` | SMTP server host (e.g., `smtp.office365.com`) |
+| `SMTP_PORT` | SMTP server port (e.g., `587`) |
+| `SMTP_USER` | Username for SMTP authentication |
+| `SMTP_PASS` | Password for SMTP authentication |
+| `SMTP_FROM_EMAIL` | Email address used as the sender |
+| `SMTP_FROM_NAME` | Optional sender name displayed in emails |
 
 You can generate a secure `JWT_SECRET` with:
 
