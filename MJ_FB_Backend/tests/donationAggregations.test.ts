@@ -20,20 +20,20 @@ beforeEach(() => {
 });
 
 describe('GET /donations/aggregations', () => {
-  it('returns donor aggregations for the year', async () => {
+  it('includes donors with zero yearly donations', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    const rows = [
+      ...months.map(month => ({ donor: 'Alice', month, total: month === 1 ? 100 : month === 2 ? 50 : 0 })),
+      ...months.map(month => ({ donor: 'Bob', month, total: 0 })),
+    ];
+
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
       })
-      .mockResolvedValueOnce({
-        rows: [
-          { donor: 'Alice', month: 1, total: 100 },
-          { donor: 'Alice', month: 2, total: 50 },
-          { donor: 'Bob', month: 1, total: 25 },
-        ],
-      });
+      .mockResolvedValueOnce({ rows });
 
     const res = await request(app)
       .get('/donations/aggregations?year=2024')
@@ -42,7 +42,7 @@ describe('GET /donations/aggregations', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       { donor: 'Alice', monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 150 },
-      { donor: 'Bob', monthlyTotals: [25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 25 },
+      { donor: 'Bob', monthlyTotals: Array(12).fill(0), total: 0 },
     ]);
   });
 });
