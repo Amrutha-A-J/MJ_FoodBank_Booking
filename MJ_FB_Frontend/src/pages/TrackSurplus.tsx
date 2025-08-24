@@ -14,6 +14,8 @@ import {
   TextField,
   MenuItem,
   IconButton,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../components/Page';
@@ -26,10 +28,42 @@ import {
   type Surplus,
 } from '../api/surplus';
 
+function startOfWeek(date: Date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function format(date: Date) {
+  return date.toISOString().split('T')[0];
+}
+
+function normalize(date: string) {
+  return date.split('T')[0];
+}
+
 const BREAD_MULTIPLIER = Number(import.meta.env.VITE_BREAD_WEIGHT_MULTIPLIER) || 10;
 const CANS_MULTIPLIER = Number(import.meta.env.VITE_CANS_WEIGHT_MULTIPLIER) || 20;
 
 export default function TrackSurplus() {
+  const weekDates = useMemo(() => {
+    const start = startOfWeek(new Date());
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return d;
+    });
+  }, []);
+  const [tab, setTab] = useState(() => {
+    const week = startOfWeek(new Date());
+    const today = new Date();
+    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
+  });
+  const selectedDate = weekDates[tab];
+
   const [records, setRecords] = useState<Surplus[]>([]);
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<Surplus | null>(null);
@@ -38,7 +72,7 @@ export default function TrackSurplus() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   const [form, setForm] = useState<{ date: string; type: 'BREAD' | 'CANS'; count: string }>({
-    date: '',
+    date: format(selectedDate),
     type: 'BREAD',
     count: '',
   });
@@ -58,6 +92,11 @@ export default function TrackSurplus() {
     load();
   }, []);
 
+  const filteredRecords = useMemo(() => {
+    const dateStr = format(selectedDate);
+    return records.filter(r => normalize(r.date) === dateStr);
+  }, [records, selectedDate]);
+
   function handleSave() {
     if (!form.date || !form.count) return;
     const data = { date: form.date, type: form.type, count: Number(form.count) };
@@ -66,7 +105,7 @@ export default function TrackSurplus() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: '', type: 'BREAD', count: '' });
+        setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
         load();
         setSnackbar({ open: true, message: editing ? 'Surplus updated' : 'Surplus recorded' });
       })
@@ -81,7 +120,7 @@ export default function TrackSurplus() {
           size="small"
           variant="contained"
           onClick={() => {
-            setForm({ date: '', type: 'BREAD', count: '' });
+            setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
             setEditing(null);
             setRecordOpen(true);
           }}
@@ -90,6 +129,11 @@ export default function TrackSurplus() {
         </Button>
       }
     >
+      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
+        {weekDates.map((d, i) => (
+          <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
+        ))}
+      </Tabs>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -101,9 +145,16 @@ export default function TrackSurplus() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {records.map(r => (
+          {filteredRecords.map(r => (
             <TableRow key={r.id}>
-              <TableCell>{r.date}</TableCell>
+              <TableCell>
+                {new Date(r.date).toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </TableCell>
               <TableCell>{r.type}</TableCell>
               <TableCell>{r.count}</TableCell>
               <TableCell>{r.weight}</TableCell>
@@ -112,7 +163,7 @@ export default function TrackSurplus() {
                   size="small"
                   onClick={() => {
                     setEditing(r);
-                    setForm({ date: r.date, type: r.type, count: String(r.count) });
+                    setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
                     setRecordOpen(true);
                   }}
                   aria-label="Edit surplus"
