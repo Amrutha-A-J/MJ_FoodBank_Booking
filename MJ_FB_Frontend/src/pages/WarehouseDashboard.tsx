@@ -161,8 +161,6 @@ export default function WarehouseDashboard() {
     (prevTotals?.pigPoundKg ?? 0);
   const outgoing = currentTotals?.outgoingKg ?? 0;
   const prevOutgoing = prevTotals?.outgoingKg ?? 0;
-  const net = incoming - outgoing;
-  const prevNet = prevIncoming - prevOutgoing;
   const anomalyRatio = incoming ? outgoing / incoming : 0;
   const showAnomaly = incoming > 0 && anomalyRatio > 1.25;
 
@@ -235,12 +233,6 @@ export default function WarehouseDashboard() {
     { title: 'Surplus Logged', value: currentTotals?.surplusKg ?? 0, prev: prevTotals?.surplusKg ?? 0 },
     { title: 'Pig Pound', value: currentTotals?.pigPoundKg ?? 0, prev: prevTotals?.pigPoundKg ?? 0 },
     { title: 'Outgoing Shipments', value: outgoing, prev: prevOutgoing },
-    {
-      title: 'Net Flow',
-      value: net,
-      prev: prevNet,
-      tooltip: 'Incoming (donations + surplus + pig pound) minus outgoing.',
-    },
   ];
 
   return (
@@ -312,7 +304,7 @@ export default function WarehouseDashboard() {
 
       <Box
         display="grid"
-        gridTemplateColumns={{ xs: '1fr', md: 'repeat(3,1fr)', lg: 'repeat(5,1fr)' }}
+        gridTemplateColumns={{ xs: '1fr', md: 'repeat(3,1fr)', lg: 'repeat(4,1fr)' }}
         gap={2}
         mb={2}
       >
