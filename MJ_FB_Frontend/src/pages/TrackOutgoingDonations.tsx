@@ -108,18 +108,21 @@ export default function TrackOutgoingDonations() {
   }
 
   function handleAddReceiver() {
-    if (receiverName && !receivers.some(r => r.name === receiverName)) {
-      createOutgoingReceiver(receiverName)
-        .then(newReceiver => {
-          setReceivers([...receivers, newReceiver].sort((a, b) => a.name.localeCompare(b.name)));
-          setSnackbar({ open: true, message: 'Receiver added' });
-        })
-        .catch(err => {
-          setSnackbar({ open: true, message: err.message || 'Failed to add receiver' });
-        });
+    if (!receiverName) return;
+    if (receivers.some(r => r.name === receiverName)) {
+      setSnackbar({ open: true, message: 'Receiver already exists' });
+      return;
     }
-    setReceiverName('');
-    setNewReceiverOpen(false);
+    createOutgoingReceiver(receiverName)
+      .then(newReceiver => {
+        setReceivers([...receivers, newReceiver].sort((a, b) => a.name.localeCompare(b.name)));
+        setSnackbar({ open: true, message: 'Receiver added' });
+        setNewReceiverOpen(false);
+        setReceiverName('');
+      })
+      .catch(err => {
+        setSnackbar({ open: true, message: err.message || 'Failed to add receiver' });
+      });
   }
 
   return (
