@@ -6,7 +6,8 @@ import { addDonorSchema } from '../schemas/donorSchemas';
 
 const router = Router();
 
-router.get('/top', authMiddleware, authorizeRoles('staff'), topDonors);
+// Public endpoint to list top donors
+router.get('/top', topDonors);
 router.get('/', authMiddleware, authorizeRoles('staff'), listDonors);
 router.post('/', authMiddleware, authorizeRoles('staff'), validate(addDonorSchema), addDonor);
 
