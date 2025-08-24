@@ -6,8 +6,8 @@ export interface PigPound {
   weight: number;
 }
 
-export async function getPigPounds(): Promise<PigPound[]> {
-  const res = await apiFetch(`${API_BASE}/pig-pounds`);
+export async function getPigPounds(date: string): Promise<PigPound[]> {
+  const res = await apiFetch(`${API_BASE}/pig-pounds?date=${date}`);
   return handleResponse(res);
 }
 
