@@ -158,17 +158,45 @@ export default function Aggregations() {
               </Select>
             </FormControl>
           </Stack>
-          <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small">
+          <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
+            <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell>Donor</TableCell>
+                  <TableCell
+                    sx={{
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 3,
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    Donor
+                  </TableCell>
                   {monthNames.map((name, idx) => (
-                    <TableCell key={idx} align="right">
+                    <TableCell
+                      key={idx}
+                      align="right"
+                      sx={{
+                        top: 0,
+                        zIndex: 2,
+                        backgroundColor: 'background.paper',
+                      }}
+                    >
                       {name}
                     </TableCell>
                   ))}
-                  <TableCell align="right">Total</TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{
+                      position: 'sticky',
+                      right: 0,
+                      top: 0,
+                      zIndex: 3,
+                      backgroundColor: 'background.paper',
+                    }}
+                  >
+                    Total
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -188,25 +216,85 @@ export default function Aggregations() {
                     );
                     return (
                       <>
-                        {donorRows.map(d => (
-                          <TableRow key={d.donor}>
-                            <TableCell>{d.donor}</TableCell>
-                            {d.monthlyTotals.map((value, idx) => (
-                              <TableCell key={idx} align="right">
-                                {value}
+                        {donorRows.map(d => {
+                          const hasDonation = d.total > 0;
+                          return (
+                            <TableRow key={d.donor}>
+                              <TableCell
+                                sx={{
+                                  position: 'sticky',
+                                  left: 0,
+                                  zIndex: 2,
+                                  backgroundColor: 'background.paper',
+                                  fontWeight: hasDonation ? 'bold' : undefined,
+                                }}
+                              >
+                                {d.donor}
                               </TableCell>
-                            ))}
-                            <TableCell align="right">{d.total}</TableCell>
-                          </TableRow>
-                        ))}
+                              {d.monthlyTotals.map((value, idx) => (
+                                <TableCell
+                                  key={idx}
+                                  align="right"
+                                  sx={{
+                                    fontWeight: value > 0 ? 'bold' : undefined,
+                                  }}
+                                >
+                                  {value}
+                                </TableCell>
+                              ))}
+                              <TableCell
+                                align="right"
+                                sx={{
+                                  position: 'sticky',
+                                  right: 0,
+                                  zIndex: 2,
+                                  backgroundColor: 'background.paper',
+                                  fontWeight: hasDonation ? 'bold' : undefined,
+                                }}
+                              >
+                                {d.total}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                         <TableRow>
-                          <TableCell>Total</TableCell>
+                          <TableCell
+                            sx={{
+                              position: 'sticky',
+                              left: 0,
+                              bottom: 0,
+                              zIndex: 3,
+                              backgroundColor: 'background.paper',
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            Total
+                          </TableCell>
                           {monthTotals.map((total, idx) => (
-                            <TableCell key={idx} align="right">
+                            <TableCell
+                              key={idx}
+                              align="right"
+                              sx={{
+                                bottom: 0,
+                                position: 'sticky',
+                                backgroundColor: 'background.paper',
+                                fontWeight: 'bold',
+                              }}
+                            >
                               {total}
                             </TableCell>
                           ))}
-                          <TableCell align="right">
+                          <TableCell
+                            align="right"
+                            sx={{
+                              position: 'sticky',
+                              right: 0,
+                              bottom: 0,
+                              zIndex: 3,
+                              backgroundColor: 'background.paper',
+                              fontWeight: 'bold',
+                            }}
+                          >
                             {monthTotals.reduce((a, b) => a + b, 0)}
                           </TableCell>
                         </TableRow>

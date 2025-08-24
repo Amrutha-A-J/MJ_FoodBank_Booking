@@ -3,26 +3,16 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import VolunteerManagement from '../components/VolunteerManagement';
 import {
   getVolunteerRoles,
-  getVolunteerBookingsByRole,
-  updateVolunteerBookingStatus,
   searchVolunteers,
   getVolunteerBookingHistory,
-  createVolunteer,
-  updateVolunteerTrainedAreas,
-  createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
-  getVolunteerBookingsByRole: jest.fn(),
-  updateVolunteerBookingStatus: jest.fn(),
   searchVolunteers: jest.fn(),
   getVolunteerBookingHistory: jest.fn(),
-  createVolunteer: jest.fn(),
-  updateVolunteerTrainedAreas: jest.fn(),
-  createVolunteerBookingForVolunteer: jest.fn(),
   createVolunteerShopperProfile: jest.fn(),
   removeVolunteerShopperProfile: jest.fn(),
 }));
