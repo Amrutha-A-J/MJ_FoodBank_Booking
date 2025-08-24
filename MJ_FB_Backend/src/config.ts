@@ -14,8 +14,9 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string(),
   FRONTEND_ORIGIN: z.string(),
   PORT: z.coerce.number().default(4000),
-  POWER_AUTOMATE_URL: z.string().optional(),
-  POWER_AUTOMATE_KEY: z.string().optional(),
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_SENDER_EMAIL: z.string().optional(),
+  BREVO_SENDER_NAME: z.string().optional(),
   BREAD_WEIGHT_MULTIPLIER: z.coerce.number().default(10),
   CANS_WEIGHT_MULTIPLIER: z.coerce.number().default(20),
 });
@@ -40,8 +41,9 @@ export default {
   jwtRefreshSecret: env.JWT_REFRESH_SECRET,
   frontendOrigins,
   port: env.PORT,
-  powerAutomateUrl: env.POWER_AUTOMATE_URL ?? '',
-  powerAutomateKey: env.POWER_AUTOMATE_KEY ?? '',
+  brevoApiKey: env.BREVO_API_KEY ?? '',
+  brevoSenderEmail: env.BREVO_SENDER_EMAIL ?? '',
+  brevoSenderName: env.BREVO_SENDER_NAME ?? '',
   breadWeightMultiplier: env.BREAD_WEIGHT_MULTIPLIER,
   cansWeightMultiplier: env.CANS_WEIGHT_MULTIPLIER,
 };
