@@ -1,6 +1,6 @@
 import express, { NextFunction } from 'express';
 import { checkStaffExists, createStaff } from '../controllers/staffController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { authMiddleware } from '../middleware/authMiddleware';
 import pool from '../db';
 
 const router = express.Router();
@@ -16,7 +16,11 @@ router.post('/', async (req, res, next: NextFunction) => {
     return createStaff(req, res, next);
   }
   authMiddleware(req, res, () => {
-    authorizeRoles('staff')(req, res, () => createStaff(req, res, next));
+    const user = req.user as any;
+    if (!user || user.role !== 'staff' || !user.access?.includes('admin')) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    return createStaff(req, res, next);
   });
 });
 

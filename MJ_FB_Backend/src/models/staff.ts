@@ -1,5 +1,7 @@
 export type StaffRole = 'staff';
 
+export type StaffAccess = 'admin';
+
 export interface Staff {
   id: number;
   first_name: string;
@@ -7,4 +9,5 @@ export interface Staff {
   role: StaffRole;
   email: string;
   password: string;
+  access: StaffAccess[];
 }

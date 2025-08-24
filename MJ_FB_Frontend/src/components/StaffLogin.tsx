@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../api/users';
 import type { LoginResponse } from '../api/users';
+import type { StaffAccess } from '../types';
 import { Typography, TextField, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from './FeedbackSnackbar';
@@ -89,7 +90,7 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await createStaff(firstName, lastName, 'staff', email, password);
+      await createStaff(firstName, lastName, 'staff', email, password, ['admin'] as StaffAccess[]);
       setMessage('Staff account created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {

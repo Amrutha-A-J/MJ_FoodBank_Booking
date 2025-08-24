@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import bcrypt from 'bcrypt';
-import type { StaffRole } from '../models/staff';
+import type { StaffRole, StaffAccess } from '../models/staff';
 import logger from '../utils/logger';
 
 export async function checkStaffExists(
@@ -20,16 +20,28 @@ export async function checkStaffExists(
 }
 
 export async function createStaff(req: Request, res: Response, next: NextFunction) {
-  const { firstName, lastName, role, email, password } = req.body as {
+  const { firstName, lastName, role, email, password, access } = req.body as {
     firstName: string;
     lastName: string;
     role: StaffRole;
     email: string;
     password: string;
+    access: StaffAccess[];
   };
 
-  if (!firstName || !lastName || !role || !email || !password) {
+  if (
+    !firstName ||
+    !lastName ||
+    !role ||
+    !email ||
+    !password ||
+    !Array.isArray(access)
+  ) {
     return res.status(400).json({ message: 'Missing fields' });
+  }
+
+  if (!access.every(a => a === 'admin')) {
+    return res.status(400).json({ message: 'Invalid access' });
   }
 
   if (role !== 'staff') {
@@ -45,8 +57,8 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
     const hashed = await bcrypt.hash(password, 10);
 
     await pool.query(
-      `INSERT INTO staff (first_name, last_name, role, email, password) VALUES ($1, $2, $3, $4, $5)`,
-      [firstName, lastName, role, email, hashed]
+      `INSERT INTO staff (first_name, last_name, role, email, password, access) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [firstName, lastName, role, email, hashed, access]
     );
 
     res.status(201).json({ message: 'Staff created' });

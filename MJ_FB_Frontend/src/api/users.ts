@@ -1,4 +1,4 @@
-import type { Role, UserRole, StaffRole, UserProfile } from '../types';
+import type { Role, UserRole, StaffRole, UserProfile, StaffAccess } from '../types';
 import { API_BASE, apiFetch, handleResponse } from './client';
 
 export interface LoginResponse {
@@ -6,6 +6,7 @@ export interface LoginResponse {
   name: string;
   bookingsThisMonth?: number;
   userRole?: UserRole;
+  access?: StaffAccess[];
 }
 
 export async function loginUser(
@@ -82,6 +83,7 @@ export async function createStaff(
   role: StaffRole,
   email: string,
   password: string,
+  access: StaffAccess[],
   _token?: string
 ): Promise<void> {
   const headers: Record<string, string> = {
@@ -90,7 +92,7 @@ export async function createStaff(
   const res = await apiFetch(`${API_BASE}/staff`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ firstName, lastName, role, email, password }),
+    body: JSON.stringify({ firstName, lastName, role, email, password, access }),
   });
   await handleResponse(res);
 }

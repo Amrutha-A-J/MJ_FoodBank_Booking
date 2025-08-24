@@ -3,6 +3,7 @@ import pool from '../db';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
+import type { StaffAccess } from '../models/staff';
 
 function getTokenFromCookies(req: Request) {
   const cookie = req.headers.cookie;
@@ -41,13 +42,14 @@ async function authenticate(req: Request): Promise<AuthResult> {
       id: number | string;
       role: string;
       type: string;
+      access?: StaffAccess[];
       userId?: number | string;
       userRole?: string;
     };
-    const { id, type, role, userId, userRole } = decoded;
+    const { id, type, role, userId, userRole, access } = decoded;
     if (type === 'staff') {
       const staffRes = await pool.query(
-        'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+        'SELECT id, first_name, last_name, email, access FROM staff WHERE id = $1',
         [id],
       );
       if (staffRes.rowCount === 0) {
@@ -59,6 +61,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
           id: staffRes.rows[0].id.toString(),
           type: 'staff',
           role,
+          access: staffRes.rows[0].access ?? access ?? [],
           name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
           email: staffRes.rows[0].email,
         },

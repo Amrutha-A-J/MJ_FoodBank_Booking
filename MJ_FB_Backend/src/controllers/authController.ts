@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
+import type { StaffAccess } from '../models/staff';
 
 export async function requestPasswordReset(
   req: Request,
@@ -100,6 +101,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       id: number | string;
       role: string;
       type: string;
+      access?: StaffAccess[];
       jti: string;
       userId?: number | string;
       userRole?: string;
@@ -122,6 +124,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       role: payload.role,
       type: payload.type,
     };
+    if (payload.access) basePayload.access = payload.access;
     if (payload.userId) basePayload.userId = payload.userId;
     if (payload.userRole) basePayload.userRole = payload.userRole;
 

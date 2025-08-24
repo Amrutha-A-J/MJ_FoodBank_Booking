@@ -3,11 +3,13 @@ import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 import pool from '../db';
 import config from '../config';
+import type { StaffAccess } from '../models/staff';
 
 export type AuthPayload = {
   id: number;
   role: string;
   type: 'user' | 'staff';
+  access?: StaffAccess[];
 };
 
 /**

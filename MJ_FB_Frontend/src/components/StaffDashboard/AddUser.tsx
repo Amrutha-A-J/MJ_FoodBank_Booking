@@ -54,7 +54,7 @@ export default function AddUser({ token }: { token: string }) {
       return;
     }
     try {
-      await createStaff(firstName, lastName, staffRole, email, password, token);
+      await createStaff(firstName, lastName, staffRole, email, password, [], token);
       setSuccess('Staff added successfully');
       setFirstName('');
       setLastName('');
