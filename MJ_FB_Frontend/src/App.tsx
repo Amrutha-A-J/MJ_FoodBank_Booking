@@ -22,6 +22,7 @@ import TrackPigpound from './pages/TrackPigpound';
 import TrackOutgoingDonations from './pages/TrackOutgoingDonations';
 import TrackSurplus from './pages/TrackSurplus';
 import Aggregations from './pages/Aggregations';
+import DonorProfile from './pages/DonorProfile';
 import Navbar, { type NavGroup } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -146,6 +147,9 @@ export default function App() {
               )}
               {isStaff && (
                 <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
+              )}
+              {isStaff && (
+                <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
               )}
               {isStaff && (
                 <Route

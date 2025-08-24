@@ -7,6 +7,7 @@ import {
   Typography,
   Button,
   TextField,
+  Autocomplete,
   Tooltip,
   Chip,
   Tabs,
@@ -45,7 +46,12 @@ import {
   rebuildWarehouseOverall,
   exportWarehouseOverall,
 } from '../api/warehouseOverall';
-import { getTopDonors, type TopDonor } from '../api/donors';
+import {
+  getTopDonors,
+  type TopDonor,
+  getDonors,
+  type Donor,
+} from '../api/donors';
 import { getTopReceivers, type TopReceiver } from '../api/outgoingReceivers';
 import type { AlertColor } from '@mui/material';
 
@@ -83,6 +89,7 @@ export default function WarehouseDashboard() {
     return years.includes(y) ? y : years[0];
   });
   const [search, setSearch] = useState('');
+  const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
   const [tab, setTab] = useState(0);
   const [totals, setTotals] = useState<MonthlyTotal[]>([]);
   const [donors, setDonors] = useState<TopDonor[]>([]);
@@ -106,6 +113,24 @@ export default function WarehouseDashboard() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(() => {
+    if (search.length < 2) {
+      setDonorOptions([]);
+      return;
+    }
+    let active = true;
+    getDonors(search)
+      .then(d => {
+        if (active) setDonorOptions(d);
+      })
+      .catch(() => {
+        if (active) setDonorOptions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [search]);
 
   async function loadData(selectedYear: number) {
     setLoadingTotals(true);
@@ -263,12 +288,23 @@ export default function WarehouseDashboard() {
               ))}
             </Select>
           </FormControl>
-          <TextField
+          <Autocomplete
             size="small"
-            placeholder="Find donor/receiver"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            inputRef={searchRef}
+            options={donorOptions}
+            getOptionLabel={o => o.name}
+            inputValue={search}
+            onInputChange={(_e, v) => setSearch(v)}
+            onChange={(_e, v) => {
+              if (v) navigate(`/warehouse-management/donors/${v.id}`);
+            }}
+            renderInput={params => (
+              <TextField
+                {...params}
+                placeholder="Find donor/receiver"
+                inputRef={searchRef}
+              />
+            )}
+            sx={{ minWidth: 200 }}
           />
           <Button
             size="small"

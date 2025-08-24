@@ -49,3 +49,42 @@ export async function topDonors(req: Request, res: Response, next: NextFunction)
     next(error);
   }
 }
+
+export async function getDonor(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT d.id, d.name,
+              COALESCE(SUM(n.weight), 0)::int AS "totalLbs",
+              TO_CHAR(MAX(n.date), 'YYYY-MM-DD') AS "lastDonationISO"
+       FROM donors d
+       LEFT JOIN donations n ON n.donor_id = d.id
+       WHERE d.id = $1
+       GROUP BY d.id, d.name`,
+      [id],
+    );
+    if (result.rowCount === 0) return res.status(404).json({ message: 'Donor not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error fetching donor:', error);
+    next(error);
+  }
+}
+
+export async function donorDonations(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC',
+      [id],
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error listing donor donations:', error);
+    next(error);
+  }
+}
