@@ -60,6 +60,27 @@ export async function setupDatabase() {
         `ALTER TABLE clients ALTER COLUMN profile_link SET NOT NULL;`
       );
     }
+    
+    const eventVisClientRes = await client.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'events' AND column_name = 'visible_to_clients';
+    `);
+    if (eventVisClientRes.rowCount === 0) {
+      await client.query(
+        `ALTER TABLE events ADD COLUMN visible_to_clients boolean NOT NULL DEFAULT false;`
+      );
+    }
+    
+    const eventVisVolRes = await client.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'events' AND column_name = 'visible_to_volunteers';
+    `);
+    if (eventVisVolRes.rowCount === 0) {
+      await client.query(
+        `ALTER TABLE events ADD COLUMN visible_to_volunteers boolean NOT NULL DEFAULT false;`
+      );
+    }
+    
     const recurringTableRes = await client.query(`
       SELECT to_regclass('public.volunteer_recurring_bookings') AS exists;
     `);
@@ -126,6 +147,8 @@ export async function setupDatabase() {
         category text,
         date date NOT NULL,
         created_by integer NOT NULL REFERENCES public.staff(id),
+        visible_to_volunteers boolean NOT NULL DEFAULT false,
+        visible_to_clients boolean NOT NULL DEFAULT false,
         created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
         updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
       );
@@ -182,6 +205,8 @@ CREATE TABLE IF NOT EXISTS events (
     category text,
     date date NOT NULL,
     created_by integer NOT NULL REFERENCES public.staff(id),
+    visible_to_volunteers boolean NOT NULL DEFAULT false,
+    visible_to_clients boolean NOT NULL DEFAULT false,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );

@@ -4,16 +4,26 @@ import logger from '../utils/logger';
 import { createEventSchema } from '../schemas/eventSchemas';
 import { formatReginaDate } from '../utils/dateUtils';
 
-export async function listEvents(_req: Request, res: Response, next: NextFunction) {
+export async function listEvents(req: Request, res: Response, next: NextFunction) {
   try {
+    const role = (req.user as any)?.role;
+    let where = '';
+    if (role === 'volunteer') {
+      where = 'WHERE e.visible_to_volunteers = true';
+    } else if (role === 'shopper' || role === 'delivery') {
+      where = 'WHERE e.visible_to_clients = true';
+    }
     const result = await pool.query(
       `SELECT e.id, e.title, e.details, e.category, e.date, e.created_at, e.updated_at,
               e.created_by AS "createdBy",
+              e.visible_to_volunteers AS "visibleToVolunteers",
+              e.visible_to_clients AS "visibleToClients",
               CONCAT(s.first_name, ' ', s.last_name) AS "createdByName",
               COALESCE(json_agg(es.staff_id) FILTER (WHERE es.staff_id IS NOT NULL), '[]') AS "staffIds"
        FROM events e
        JOIN staff s ON e.created_by = s.id
        LEFT JOIN event_staff es ON e.id = es.event_id
+       ${where}
        GROUP BY e.id, s.first_name, s.last_name
        ORDER BY e.date ASC`
     );
@@ -46,13 +56,21 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
   if (!parsed.success) {
     return res.status(400).json({ errors: parsed.error.issues });
   }
-  const { title, details, category, date, staffIds } = parsed.data;
+  const {
+    title,
+    details,
+    category,
+    date,
+    staffIds,
+    visibleToVolunteers = false,
+    visibleToClients = false,
+  } = parsed.data;
   try {
     const createdBy = Number((req.user as any).id);
     const reginaDate = formatReginaDate(date);
     const inserted = await pool.query(
-      `INSERT INTO events (title, details, category, date, created_by) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-      [title, details, category, reginaDate, createdBy]
+      `INSERT INTO events (title, details, category, date, created_by, visible_to_volunteers, visible_to_clients) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [title, details, category, reginaDate, createdBy, visibleToVolunteers, visibleToClients]
     );
     const eventId = inserted.rows[0].id;
     if (staffIds && staffIds.length > 0) {

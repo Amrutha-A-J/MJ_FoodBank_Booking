@@ -6,7 +6,7 @@ import { createEventSchema } from '../schemas/eventSchemas';
 
 const router = Router();
 
-router.get('/', listEvents);
+router.get('/', authMiddleware, listEvents);
 router.post('/', authMiddleware, authorizeRoles('staff'), validate(createEventSchema), createEvent);
 router.delete('/:id', authMiddleware, authorizeRoles('staff'), deleteEvent);
 
