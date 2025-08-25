@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../db';
+import { formatReginaDate } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
   countApprovedBookingsForMonth,
@@ -200,7 +201,7 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Only pending or approved bookings can be cancelled' });
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = formatReginaDate(new Date());
     if (booking.date < todayStr) {
       return res.status(400).json({ message: 'Cannot cancel past bookings' });
     }

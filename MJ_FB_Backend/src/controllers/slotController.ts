@@ -3,10 +3,11 @@ import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
 import slotRules from '../config/slotRules.json';
+import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
 
 async function getSlotsForDate(date: string): Promise<Slot[]> {
-  // Parse date in local Regina timezone safely
-  const dateObj = new Date(date + 'T00:00:00-06:00'); // Regina is UTC-6
+  const reginaDate = formatReginaDate(date);
+  const dateObj = new Date(reginaStartOfDayISO(reginaDate));
   if (isNaN(dateObj.getTime())) {
     throw new Error('Invalid date');
   }
@@ -41,7 +42,7 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
 
   const blockedResult = await pool.query(
     'SELECT slot_id FROM blocked_slots WHERE date = $1',
-    [date],
+    [reginaDate],
   );
   const blockedSet = new Set(blockedResult.rows.map(r => Number(r.slot_id)));
   const breakResult = await pool.query(
@@ -57,7 +58,7 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
        FROM bookings
        WHERE status = 'approved' AND date = $1
        GROUP BY slot_id`,
-    [date],
+    [reginaDate],
   );
 
   const approvedMap: Record<string, number> = {};
@@ -96,10 +97,11 @@ export async function listSlotsRange(
   next: NextFunction,
 ) {
   const days = Number(req.query.days) || 7;
-  const start = (req.query.start as string) || new Date().toLocaleDateString('en-CA');
+  const start = (req.query.start as string) || formatReginaDate(new Date());
 
   try {
-    const startDate = new Date(start + 'T00:00:00-06:00');
+    const reginaStart = formatReginaDate(start);
+    const startDate = new Date(reginaStartOfDayISO(reginaStart));
     if (isNaN(startDate.getTime())) {
       return res.status(400).json({ message: 'Invalid start date' });
     }
@@ -108,7 +110,7 @@ export async function listSlotsRange(
     for (let i = 0; i < days; i++) {
       const d = new Date(startDate);
       d.setDate(startDate.getDate() + i);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = formatReginaDate(d);
       const slots = await getSlotsForDate(dateStr);
       results.push({ date: dateStr, slots });
     }
