@@ -117,7 +117,7 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
       'SELECT reason FROM holidays WHERE date = $1',
       [reginaDate],
     );
-    if (holidayResult.rowCount > 0) {
+    if ((holidayResult.rowCount ?? 0) > 0) {
       const reason = holidayResult.rows[0].reason || 'Holiday';
       return res
         .status(400)

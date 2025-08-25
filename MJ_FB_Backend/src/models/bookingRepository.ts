@@ -22,7 +22,7 @@ export async function checkSlotCapacity(
     'SELECT max_capacity FROM slots WHERE id = $1 FOR UPDATE',
     [slotId],
   );
-  if (slotRes.rowCount === 0) {
+  if ((slotRes.rowCount ?? 0) === 0) {
     throw new SlotCapacityError('Invalid slot');
   }
   const approvedCountRes = await client.query(

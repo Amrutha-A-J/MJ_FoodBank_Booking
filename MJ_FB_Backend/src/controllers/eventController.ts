@@ -94,7 +94,7 @@ export async function deleteEvent(req: Request, res: Response, next: NextFunctio
   }
   try {
     const result = await pool.query('DELETE FROM events WHERE id = $1', [id]);
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Event not found' });
     }
     res.json({ message: 'Deleted' });

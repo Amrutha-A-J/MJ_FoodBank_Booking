@@ -169,7 +169,7 @@ export async function updateVolunteerRole(
        RETURNING role_id, slot_id, is_active`,
       [startTime, endTime, maxVolunteers, isWednesdaySlot || false, id]
     );
-    if (slotRes.rowCount === 0) {
+    if ((slotRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     const roleId = slotRes.rows[0].role_id;
@@ -217,7 +217,7 @@ export async function updateVolunteerRoleStatus(
                   vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active, vmr.name AS category_name`,
       [isActive, id]
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     res.json(result.rows[0]);
@@ -234,7 +234,7 @@ export async function deleteVolunteerRole(req: Request, res: Response, next: Nex
       `DELETE FROM volunteer_slots WHERE slot_id = $1 RETURNING slot_id`,
       [id]
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Role not found' });
     }
     res.json({ message: 'Role deleted' });
@@ -260,7 +260,7 @@ export async function listVolunteerRolesForVolunteer(
       'SELECT role_id FROM volunteer_trained_roles WHERE volunteer_id=$1',
       [user.id]
     );
-    if (volunteerRes.rowCount === 0) {
+    if ((volunteerRes.rowCount ?? 0) === 0) {
       return res.json([]);
     }
     const roleIds = volunteerRes.rows.map(r => r.role_id);

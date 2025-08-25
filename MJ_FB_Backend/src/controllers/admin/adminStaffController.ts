@@ -31,7 +31,7 @@ export async function getStaff(req: Request, res: Response, next: NextFunction) 
       'SELECT id, first_name, last_name, email, access FROM staff WHERE id = $1',
       [id],
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Staff not found' });
     }
     const r = result.rows[0];
@@ -56,7 +56,7 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
   const { firstName, lastName, email, password, access = ['pantry'] } = parsed.data;
   try {
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
-    if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+    if ((emailCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
     const hashed = await bcrypt.hash(password, 10);
@@ -94,7 +94,7 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
       values.push(id);
     }
     const result = await pool.query(query, values);
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Staff not found' });
     }
     res.json({ message: 'Staff updated' });
@@ -109,7 +109,7 @@ export async function deleteStaff(req: Request, res: Response, next: NextFunctio
   if (!id) return res.status(400).json({ message: 'Invalid ID' });
   try {
     const result = await pool.query('DELETE FROM staff WHERE id = $1', [id]);
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Staff not found' });
     }
     res.json({ message: 'Staff deleted' });

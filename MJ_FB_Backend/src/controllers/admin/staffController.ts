@@ -44,7 +44,7 @@ export async function createStaff(
 
   try {
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
-    if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+    if ((emailCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 

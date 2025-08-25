@@ -47,7 +47,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
         'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
         [id],
       );
-      if (staffRes.rowCount === 0) {
+      if ((staffRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
       return {
@@ -68,7 +68,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
           'SELECT id, first_name, last_name, email, role, phone FROM clients WHERE id = $1',
           [id],
         );
-      if (userRes.rowCount && userRes.rowCount > 0) {
+      if ((userRes.rowCount ?? 0) > 0) {
         return {
           status: 'ok',
           user: {
@@ -89,7 +89,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
         'SELECT id, first_name, last_name, email FROM volunteers WHERE id = $1',
         [id],
       );
-      if (volRes.rowCount === 0) {
+      if ((volRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
       return {
@@ -111,7 +111,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
         'SELECT id, name, email FROM agencies WHERE id = $1',
         [id],
       );
-      if (agRes.rowCount === 0) {
+      if ((agRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
       return {
