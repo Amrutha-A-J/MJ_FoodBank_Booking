@@ -8,6 +8,8 @@ import {
   MenuItem,
   Button,
   Autocomplete,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -39,6 +41,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([tagAllOption]);
   const [selectedStaff, setSelectedStaff] = useState<StaffOption[]>([]);
+  const [visibleToVolunteers, setVisibleToVolunteers] = useState(false);
+  const [visibleToClients, setVisibleToClients] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -85,6 +89,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
         category,
         date: date.toISOString().split('T')[0],
         staffIds: selectedStaff.map(s => s.id),
+        visibleToVolunteers,
+        visibleToClients,
       });
       setSuccess('Event created');
       setTitle('');
@@ -92,6 +98,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
       setCategory('');
       setDate(null);
       setSelectedStaff([]);
+      setVisibleToVolunteers(false);
+      setVisibleToClients(false);
       onCreated();
       onClose();
     } catch (err) {
@@ -152,6 +160,24 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
             renderInput={params => (
               <TextField {...params} label="Staff Involved" margin="normal" />
             )}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={visibleToVolunteers}
+                onChange={e => setVisibleToVolunteers(e.target.checked)}
+              />
+            }
+            label="Visible to Volunteers"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={visibleToClients}
+                onChange={e => setVisibleToClients(e.target.checked)}
+              />
+            }
+            label="Visible to Clients"
           />
         </DialogContent>
         <DialogActions>

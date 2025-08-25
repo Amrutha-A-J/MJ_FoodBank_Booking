@@ -9,6 +9,8 @@ export interface Event {
   staffIds?: number[];
   createdBy: number;
   createdByName: string;
+  visibleToVolunteers?: boolean;
+  visibleToClients?: boolean;
 }
 
 export interface EventGroups {
@@ -28,6 +30,8 @@ export async function createEvent(data: {
   category: string;
   date: string;
   staffIds: number[];
+  visibleToVolunteers?: boolean;
+  visibleToClients?: boolean;
 }) {
   const res = await apiFetch(`${API_BASE}/events`, {
     method: 'POST',
