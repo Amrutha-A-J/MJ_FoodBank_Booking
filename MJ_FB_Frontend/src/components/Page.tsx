@@ -1,5 +1,5 @@
 import { Box, Typography, type BoxProps } from '@mui/material';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 interface PageProps extends BoxProps {
   title: string;
@@ -8,6 +8,10 @@ interface PageProps extends BoxProps {
 }
 
 export default function Page({ title, header, children, ...boxProps }: PageProps) {
+  useEffect(() => {
+    document.title = `MJ Foodbank - ${title}`;
+  }, [title]);
+
   return (
     <Box {...boxProps}>
       {header}
