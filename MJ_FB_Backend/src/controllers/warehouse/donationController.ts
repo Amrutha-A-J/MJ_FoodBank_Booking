@@ -153,9 +153,9 @@ export async function exportDonorAggregations(req: Request, res: Response, next:
     ];
 
     const dataRows: Row[] = Array.from(donorMap.entries()).map(([donor, monthly]) => [
-      donor,
-      ...monthly,
-      monthly.reduce((a, b) => a + b, 0),
+      { value: donor },
+      ...monthly.map(total => ({ value: total })),
+      { value: monthly.reduce((a, b) => a + b, 0) },
     ]);
 
     const rows: Row[] = [headerRow, ...dataRows];
