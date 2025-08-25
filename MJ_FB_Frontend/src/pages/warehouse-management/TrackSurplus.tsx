@@ -19,15 +19,15 @@ import {
   Tab,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import Page from '../components/Page';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import Page from '../../components/Page';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getSurplus,
   createSurplus,
   updateSurplus,
   deleteSurplus,
   type Surplus,
-} from '../api/surplus';
+} from '../../api/surplus';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);

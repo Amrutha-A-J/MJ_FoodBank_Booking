@@ -20,12 +20,12 @@ import {
   IconButton,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import Page from '../components/Page';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { getOutgoingReceivers, createOutgoingReceiver } from '../api/outgoingReceivers';
-import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../api/outgoingDonations';
-import type { OutgoingReceiver } from '../api/outgoingReceivers';
-import type { OutgoingDonation } from '../api/outgoingDonations';
+import Page from '../../components/Page';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoingReceivers';
+import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../api/outgoingDonations';
+import type { OutgoingReceiver } from '../../api/outgoingReceivers';
+import type { OutgoingDonation } from '../../api/outgoingDonations';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);

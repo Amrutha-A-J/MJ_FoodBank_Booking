@@ -19,15 +19,15 @@ import {
   Tab,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import Page from '../components/Page';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import Page from '../../components/Page';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getPigPounds,
   createPigPound,
   updatePigPound,
   deletePigPound,
   type PigPound,
-} from '../api/pigPounds';
+} from '../../api/pigPounds';
 
 function startOfWeek(date: Date) {
   const d = new Date(date);

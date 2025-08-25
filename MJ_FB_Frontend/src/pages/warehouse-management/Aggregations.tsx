@@ -16,15 +16,15 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
-import Page from '../components/Page';
+import Page from '../../components/Page';
 import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
   exportWarehouseOverall,
   type WarehouseOverall,
-} from '../api/warehouseOverall';
-import { getDonorAggregations, type DonorAggregation } from '../api/donations';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
+} from '../../api/warehouseOverall';
+import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);

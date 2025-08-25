@@ -40,19 +40,19 @@ import {
   Bar,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
   exportWarehouseOverall,
-} from '../api/warehouseOverall';
+} from '../../api/warehouseOverall';
 import {
   getTopDonors,
   type TopDonor,
   getDonors,
   type Donor,
-} from '../api/donors';
-import { getTopReceivers, type TopReceiver } from '../api/outgoingReceivers';
+} from '../../api/donors';
+import { getTopReceivers, type TopReceiver } from '../../api/outgoingReceivers';
 import type { AlertColor } from '@mui/material';
 
 interface MonthlyTotal {

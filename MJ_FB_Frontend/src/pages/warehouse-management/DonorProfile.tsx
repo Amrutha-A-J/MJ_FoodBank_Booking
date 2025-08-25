@@ -11,13 +11,13 @@ import {
   TableCell,
   TableBody,
 } from '@mui/material';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getDonor,
   getDonorDonations,
   type DonorDetail,
   type DonorDonation,
-} from '../api/donors';
+} from '../../api/donors';
 
 export default function DonorProfile() {
   const { id } = useParams<{ id: string }>();

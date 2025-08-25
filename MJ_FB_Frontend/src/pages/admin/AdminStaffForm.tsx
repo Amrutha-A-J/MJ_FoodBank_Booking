@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import StaffForm from '../components/StaffForm';
-import { getStaff, createStaff, updateStaff } from '../api/adminStaff';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import type { Staff } from '../types';
+import StaffForm from '../../components/StaffForm';
+import { getStaff, createStaff, updateStaff } from '../../api/adminStaff';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import type { Staff } from '../../types';
 
 export default function AdminStaffForm() {
   const { id } = useParams();
