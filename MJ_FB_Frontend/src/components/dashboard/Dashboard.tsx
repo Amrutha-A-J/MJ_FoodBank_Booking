@@ -86,16 +86,26 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
     getEvents().then(setEvents).catch(() => {});
 
     const today = new Date();
-    const todayStr = formatLocalDate(today);
+    const start = new Date(today);
+    start.setDate(today.getDate() - today.getDay());
+    const startStr = formatLocalDate(start);
 
-    getSlotsRange(todayStr, 7)
+    getSlotsRange(startStr, 7)
       .then(days =>
-        days.map(d => ({
-          day: new Date(d.date).toLocaleDateString(undefined, {
-            weekday: 'short',
-          }),
-          open: d.slots.reduce((sum, s) => sum + (s.available ?? 0), 0),
-        })),
+        days.map(d => {
+          const date = new Date(d.date);
+          const dayOfWeek = date.getDay();
+          const open =
+            dayOfWeek === 0 || dayOfWeek === 6
+              ? 0
+              : d.slots.reduce((sum, s) => sum + (s.available ?? 0), 0);
+          return {
+            day: date.toLocaleDateString(undefined, {
+              weekday: 'short',
+            }),
+            open,
+          };
+        }),
       )
       .then(setSchedule)
       .catch(() => {});
@@ -183,7 +193,7 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
                     <Stack alignItems="center" spacing={1}>
                       <Typography variant="body2">{day.day}</Typography>
                       <Chip
-                        label={`Open: ${day.open}`}
+                        label={day.open > 0 ? `Open: ${day.open}` : 'Closed'}
                         color={day.open > 0 ? 'success' : 'default'}
                       />
                     </Stack>
