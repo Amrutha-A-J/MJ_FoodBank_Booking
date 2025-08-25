@@ -282,7 +282,7 @@ export async function listUsersMissingInfo(
 ) {
   try {
     const result = await pool.query(
-      `SELECT id, client_id, first_name, last_name, email, phone
+      `SELECT id, client_id, first_name, last_name, email, phone, profile_link
        FROM clients
        WHERE first_name IS NULL AND last_name IS NULL
        ORDER BY client_id ASC`,
@@ -294,6 +294,7 @@ export async function listUsersMissingInfo(
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      profileLink: row.profile_link,
     }));
     res.json(users);
   } catch (error) {
@@ -322,7 +323,7 @@ export async function updateUserByClientId(
       `UPDATE clients
        SET first_name = $1, last_name = $2, email = $3, phone = $4
        WHERE client_id = $5
-       RETURNING id, client_id, first_name, last_name, email, phone`,
+       RETURNING id, client_id, first_name, last_name, email, phone, profile_link`,
       [firstName, lastName, email || null, phone || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -336,6 +337,7 @@ export async function updateUserByClientId(
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      profileLink: row.profile_link,
     });
   } catch (error) {
     logger.error('Error updating user info:', error);
