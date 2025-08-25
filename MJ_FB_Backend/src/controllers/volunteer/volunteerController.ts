@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import config from '../../config';
 import logger from '../../utils/logger';
+import { validatePassword } from '../../utils/passwordUtils';
 
 export async function updateTrainedArea(
   req: Request,
@@ -145,6 +146,11 @@ export async function createVolunteer(
     });
   }
 
+  const pwError = validatePassword(password);
+  if (pwError) {
+    return res.status(400).json({ message: pwError });
+  }
+
   try {
     const usernameCheck = await pool.query('SELECT id FROM volunteers WHERE username=$1', [
       username,
@@ -204,6 +210,11 @@ export async function createVolunteerShopperProfile(
   };
   if (!clientId || !password) {
     return res.status(400).json({ message: 'Client ID and password required' });
+  }
+
+  const pwError2 = validatePassword(password);
+  if (pwError2) {
+    return res.status(400).json({ message: pwError2 });
   }
   try {
     const volRes = await pool.query(

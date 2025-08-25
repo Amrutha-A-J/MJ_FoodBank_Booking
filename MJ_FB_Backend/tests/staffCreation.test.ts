@@ -29,7 +29,7 @@ describe('POST /staff (first staff member)', () => {
         firstName: 'Admin',
         lastName: 'Admin',
         email: 'harvestpantry@mjfoodbank.org',
-        password: 'Abcd12345',
+        password: 'Abcd12345!',
         access: ['admin'],
       });
 

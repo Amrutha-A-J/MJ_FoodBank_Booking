@@ -36,7 +36,7 @@ describe('Volunteer routes role ID validation', () => {
       firstName: 'John',
       lastName: 'Doe',
       username: 'johndoe',
-      password: 'secret',
+      password: 'Secret1!',
       email: 'john@example.com',
       phone: '123',
       roleIds: [1, 2],
@@ -70,7 +70,7 @@ describe('Volunteer routes role ID validation', () => {
       firstName: 'John',
       lastName: 'Doe',
       username: 'johndoe',
-      password: 'secret',
+      password: 'Secret1!',
       roleIds: [1, 2],
     });
     expect(res.status).toBe(400);
@@ -105,7 +105,7 @@ describe('Volunteer shopper profile', () => {
 
     const res = await request(app)
       .post('/volunteers/1/shopper')
-      .send({ clientId: 123, password: 'pass' });
+      .send({ clientId: 123, password: 'Passw0rd!' });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ userId: 9 });
@@ -149,7 +149,7 @@ describe('Volunteer login with shopper profile', () => {
 
     const res = await request(app)
       .post('/volunteers/login')
-      .send({ username: 'john', password: 'secret' });
+      .send({ username: 'john', password: 'Secret1!' });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
