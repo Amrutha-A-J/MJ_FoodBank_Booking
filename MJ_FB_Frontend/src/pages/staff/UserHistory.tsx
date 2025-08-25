@@ -1,26 +1,34 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getBookingHistory } from '../../api/bookings';
+import { getBookingHistory, cancelBooking } from '../../api/bookings';
 import { formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
   TableContainer,
+  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import type { AlertColor } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
 const TIMEZONE = 'America/Regina';
 
@@ -56,6 +64,9 @@ export default function UserHistory({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  const [cancelId, setCancelId] = useState<number | null>(null);
+  const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<AlertColor>('success');
 
   const pageSize = 10;
 
@@ -102,6 +113,21 @@ export default function UserHistory({
     fontSize: isSmall ? '0.85rem' : undefined,
     textAlign: 'left',
   } as const;
+
+  async function confirmCancel() {
+    if (cancelId == null) return;
+    try {
+      await cancelBooking(String(cancelId));
+      setSeverity('success');
+      setMessage('Booking cancelled');
+      loadBookings();
+    } catch {
+      setSeverity('error');
+      setMessage('Failed to cancel booking');
+    } finally {
+      setCancelId(null);
+    }
+  }
 
   return (
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
@@ -173,13 +199,22 @@ export default function UserHistory({
                           {['approved', 'submitted'].includes(
                             b.status.toLowerCase()
                           ) && (
-                            <Button
-                              onClick={() => setRescheduleBooking(b)}
-                              variant="outlined"
-                              color="primary"
-                            >
-                              Reschedule
-                            </Button>
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                onClick={() => setCancelId(b.id)}
+                                variant="outlined"
+                                color="primary"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() => setRescheduleBooking(b)}
+                                variant="outlined"
+                                color="primary"
+                              >
+                                Reschedule
+                              </Button>
+                            </Stack>
                           )}
                         </TableCell>
                       </TableRow>
@@ -231,6 +266,34 @@ export default function UserHistory({
             }}
           />
         )}
+        <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+          <DialogTitle>Cancel booking</DialogTitle>
+          <DialogContent>
+            <Typography>Are you sure you want to cancel this booking?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setCancelId(null)}
+            >
+              Keep booking
+            </Button>
+            <Button
+              color="error"
+              variant="contained"
+              onClick={confirmCancel}
+            >
+              Cancel booking
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <FeedbackSnackbar
+          open={!!message}
+          onClose={() => setMessage('')}
+          message={message}
+          severity={severity}
+        />
       </Box>
     </Box>
   );
