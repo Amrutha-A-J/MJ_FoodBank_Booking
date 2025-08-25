@@ -239,7 +239,7 @@ function StaffDashboard({ token }: { token: string }) {
                   onSelect={res => {
                     if (searchType === 'user') {
                       navigate(
-                        `/user-history?id=${res.id}&name=${encodeURIComponent(
+                        `/pantry/user-history?id=${res.id}&name=${encodeURIComponent(
                           res.name,
                         )}&clientId=${res.client_id}`,
                       );
