@@ -10,8 +10,6 @@ import {
   Autocomplete,
   Tooltip,
   Chip,
-  Tabs,
-  Tab,
   FormControl,
   InputLabel,
   Select,
@@ -26,6 +24,7 @@ import {
   InfoOutlined,
   TrendingUp,
   WarningAmber,
+  Announcement,
 } from '@mui/icons-material';
 import {
   ResponsiveContainer,
@@ -43,6 +42,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
+import EventList from '../../components/EventList';
 import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
@@ -55,6 +55,7 @@ import {
   type Donor,
 } from '../../api/donors';
 import { getTopReceivers, type TopReceiver } from '../../api/outgoingReceivers';
+import { getEvents, type EventGroups } from '../../api/events';
 import type { AlertColor } from '@mui/material';
 
 interface MonthlyTotal {
@@ -84,7 +85,7 @@ function kpiDelta(curr: number, prev?: number) {
 export default function WarehouseDashboard() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, id } = useAuth();
   const searchRef = useRef<HTMLInputElement>(null);
   const years = [2024, 2025, 2026];
   const [year, setYear] = useState(() => {
@@ -93,10 +94,10 @@ export default function WarehouseDashboard() {
   });
   const [search, setSearch] = useState('');
   const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
-  const [tab, setTab] = useState(0);
   const [totals, setTotals] = useState<MonthlyTotal[]>([]);
   const [donors, setDonors] = useState<TopDonor[]>([]);
   const [receivers, setReceivers] = useState<TopReceiver[]>([]);
+  const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [loadingTotals, setLoadingTotals] = useState(false);
   const [loadingRebuild, setLoadingRebuild] = useState(false);
   const [loadingExport, setLoadingExport] = useState(false);
@@ -134,6 +135,10 @@ export default function WarehouseDashboard() {
       active = false;
     };
   }, [search]);
+
+  useEffect(() => {
+    getEvents().then(setEvents).catch(() => {});
+  }, []);
 
   async function loadData(selectedYear: number) {
     setLoadingTotals(true);
@@ -217,6 +222,14 @@ export default function WarehouseDashboard() {
   const filteredReceivers = useMemo(
     () => receivers.filter(r => r.name.toLowerCase().includes(search.toLowerCase())),
     [receivers, search],
+  );
+
+  const visibleEvents = useMemo(
+    () =>
+      [...events.today, ...events.upcoming].filter(
+        ev => !ev.staffIds || ev.staffIds.includes(id ?? -1),
+      ),
+    [events, id],
   );
 
   function go(path: string) {
@@ -537,59 +550,12 @@ export default function WarehouseDashboard() {
         <VolunteerCoverageCard token={token} masterRoleFilter={['Warehouse']} />
       </Box>
 
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
-        <Tab label="Data Quality" />
-        <Tab label="Admin & Indexes" />
-      </Tabs>
-      {tab === 0 && (
-        <Card variant="outlined" sx={{ mb: 2 }}>
-          <CardHeader title="Potential Issues" />
-          <CardContent>
-            <ul>
-              <li>
-                Donor name conflicts detected (e.g., "Co-Op" vs "CO-OP").
-                <Button size="small" variant="text" sx={{ ml: 1 }} onClick={() => console.log('resolve donors')}>
-                  Resolve
-                </Button>
-              </li>
-              <li>Outgoing weight &gt; incoming by 25% this month — verify logs.</li>
-              <li>Surplus records missing count-to-lb conversion factor — check categories.</li>
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-      {tab === 1 && (
-        <Card variant="outlined" sx={{ mb: 2 }}>
-          <CardHeader title="Warehouse Overall Controls" />
-          <CardContent>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} mb={1}>
-              <Button
-                size="small"
-                variant="contained"
-                startIcon={<Autorenew />}
-                onClick={handleRebuild}
-                disabled={loadingRebuild}
-                aria-busy={loadingRebuild}
-              >
-                Rebuild Aggregates ({year})
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<Download />}
-                onClick={handleExport}
-                disabled={loadingExport}
-                aria-busy={loadingExport}
-              >
-                Export to Excel
-              </Button>
-            </Stack>
-            <Typography variant="caption" color="text.secondary">
-              Calls /warehouse-overall/rebuild and /warehouse-overall/export endpoints.
-            </Typography>
-          </CardContent>
-        </Card>
-      )}
+      <Card variant="outlined" sx={{ mb: 2 }}>
+        <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
+        <CardContent>
+          <EventList events={visibleEvents} limit={5} />
+        </CardContent>
+      </Card>
 
       <Typography variant="caption" color="text.secondary">
         Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
