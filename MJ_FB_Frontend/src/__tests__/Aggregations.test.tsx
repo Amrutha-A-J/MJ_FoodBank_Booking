@@ -1,5 +1,5 @@
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
-import Aggregations from '../pages/Aggregations';
+import Aggregations from '../pages/warehouse-management/Aggregations';
 
 const mockGetWarehouseOverall = jest.fn().mockResolvedValue([]);
 jest.mock('../api/warehouseOverall', () => ({

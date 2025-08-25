@@ -13,9 +13,9 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FeedbackSnackbar from '../components/FeedbackSnackbar';
-import { listStaff, deleteStaff, searchStaff } from '../api/adminStaff';
-import type { Staff } from '../types';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import { listStaff, deleteStaff, searchStaff } from '../../api/adminStaff';
+import type { Staff } from '../../types';
 
 export default function AdminStaffList() {
   const [staff, setStaff] = useState<Staff[]>([]);
