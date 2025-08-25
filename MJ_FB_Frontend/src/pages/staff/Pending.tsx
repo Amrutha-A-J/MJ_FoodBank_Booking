@@ -60,7 +60,7 @@ export default function Pending() {
       </Typography>
       <Grid container spacing={2}>
         {bookings.map(b => (
-          <Grid item xs={12} sm={6} md={4} key={b.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={b.id}>
             <Card variant="outlined" sx={{ borderRadius: 1 }}>
               <CardContent>
                 <Typography variant="subtitle1">{b.user_name || 'Unknown'}</Typography>
@@ -101,7 +101,7 @@ export default function Pending() {
           </Grid>
         ))}
         {bookings.length === 0 && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography>No pending bookings.</Typography>
           </Grid>
         )}
