@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react';
+
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -21,18 +22,19 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { AccessTime } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import type { Slot } from '../types';
-import { getSlots, createBooking } from '../api/bookings';
+import type { Slot, Holiday } from '../types';
+import { getSlots, createBooking, getHolidays } from '../api/bookings';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import { Link as RouterLink } from 'react-router-dom';
 
 // Wrappers to match required signatures
-function useSlots(date: Dayjs) {
+function useSlots(date: Dayjs, enabled: boolean) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<Slot[]>({
     queryKey: ['slots', dateStr],
     queryFn: () => getSlots(dateStr),
+    enabled,
   });
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
@@ -50,9 +52,24 @@ export default function BookingUI({
   shopperName = 'John Shopper',
   initialDate = dayjs(),
 }: BookingUIProps) {
-  const [date, setDate] = useState<Dayjs>(initialDate);
+  const [date, setDate] = useState<Dayjs>(() => {
+    let d = initialDate;
+    while (d.day() === 0 || d.day() === 6) {
+      d = d.add(1, 'day');
+    }
+    return d;
+  });
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const { slots, isLoading, refetch, error } = useSlots(date);
+  const { data: holidays = [] } = useQuery<Holiday[]>({
+    queryKey: ['holidays'],
+    queryFn: getHolidays,
+  });
+  const holidaySet = new Set(holidays.map(h => h.date));
+  const isDisabled = (d: Dayjs) =>
+    d.day() === 0 ||
+    d.day() === 6 ||
+    holidaySet.has(d.format('YYYY-MM-DD'));
+  const { slots, isLoading, refetch, error } = useSlots(date, !isDisabled(date));
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -63,6 +80,16 @@ export default function BookingUI({
     message: null,
   });
   const [booking, setBooking] = useState(false);
+
+  useEffect(() => {
+    if (!isDisabled(date)) return;
+    let next = date;
+    while (isDisabled(next)) {
+      next = next.add(1, 'day');
+    }
+    setDate(next);
+    setSelectedSlotId(null);
+  }, [date, holidays]);
 
   const morningSlots = slots.filter(s =>
     dayjs(s.startTime, 'HH:mm:ss').hour() < 12,
@@ -194,8 +221,9 @@ export default function BookingUI({
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <DateCalendar
               value={date}
+              shouldDisableDate={isDisabled}
               onChange={newDate => {
-                if (newDate) {
+                if (newDate && !isDisabled(newDate)) {
                   setDate(newDate);
                   setSelectedSlotId(null);
                 }
