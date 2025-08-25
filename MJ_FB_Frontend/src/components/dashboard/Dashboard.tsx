@@ -22,7 +22,7 @@ import {
   Announcement,
 } from '@mui/icons-material';
 import { getBookings, getSlotsRange } from '../../api/bookings';
-import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
+import VolunteerCoverageCard from './VolunteerCoverageCard';
 import type { Role } from '../../types';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
@@ -32,6 +32,7 @@ import EventList from '../EventList';
 export interface DashboardProps {
   role: Role;
   token: string;
+  masterRoleFilter?: string[];
 }
 
 interface SectionCardProps {
@@ -83,11 +84,8 @@ function formatLocalDate(date: Date) {
   return date.toLocaleDateString('en-CA');
 }
 
-function StaffDashboard({ token }: { token: string }) {
+function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [coverage, setCoverage] = useState<
-    { role: string; filled: number; total: number }[]
-  >([]);
   const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
   const [events, setEvents] = useState<EventGroups>({
     today: [],
@@ -95,31 +93,14 @@ function StaffDashboard({ token }: { token: string }) {
     past: [],
   });
   const [searchType, setSearchType] = useState<'user' | 'volunteer'>('user');
+  const [volunteerCount, setVolunteerCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
     getEvents().then(setEvents).catch(() => {});
 
-    const today = new Date();
-    const todayStr = formatLocalDate(today);
-
-    getVolunteerRoles(token)
-      .then(roles =>
-        Promise.all(
-          roles.map(async r => {
-            const bookings = await getVolunteerBookingsByRole(token, r.id);
-            const filled = bookings.filter(
-              (b: any) =>
-                b.status === 'approved' &&
-                formatLocalDate(new Date(b.date)) === todayStr,
-            ).length;
-            return { role: r.name, filled, total: r.max_volunteers };
-          }),
-        ),
-      )
-      .then(setCoverage)
-      .catch(() => {});
+    const todayStr = formatLocalDate(new Date());
 
     getSlotsRange(todayStr, 7)
       .then(days =>
@@ -143,7 +124,7 @@ function StaffDashboard({ token }: { token: string }) {
         b.status === 'approved' &&
         formatLocalDate(new Date(b.date)) === todayStr,
     ).length,
-    volunteers: coverage.reduce((sum, c) => sum + c.filled, 0),
+    volunteers: volunteerCount,
     approvals: pending.length,
     cancellations: cancellations.filter(
       b => formatLocalDate(new Date(b.date)) === todayStr,
@@ -198,25 +179,11 @@ function StaffDashboard({ token }: { token: string }) {
         </SectionCard>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Volunteer Coverage">
-          <List>
-            {coverage.map((c, i) => {
-              const ratio = c.filled / c.total;
-              let color: 'success' | 'warning' | 'error' | 'default' = 'default';
-              if (ratio >= 1) color = 'success';
-              else if (ratio >= 0.5) color = 'warning';
-              else color = 'error';
-              return (
-                <ListItem
-                  key={i}
-                  secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
-                >
-                  <ListItemText primary={c.role} />
-                </ListItem>
-              );
-            })}
-          </List>
-        </SectionCard>
+        <VolunteerCoverageCard
+          token={token}
+          masterRoleFilter={masterRoleFilter}
+          onVolunteerCount={setVolunteerCount}
+        />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={2}>
@@ -426,8 +393,9 @@ function UserDashboard() {
   );
 }
 
-export default function Dashboard({ role, token }: DashboardProps) {
-  if (role === 'staff') return <StaffDashboard token={token} />;
+export default function Dashboard({ role, token, masterRoleFilter }: DashboardProps) {
+  if (role === 'staff')
+    return <StaffDashboard token={token} masterRoleFilter={masterRoleFilter} />;
   return <UserDashboard />;
 }
 
