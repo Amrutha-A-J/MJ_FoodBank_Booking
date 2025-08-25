@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.post('/login', validate(loginSchema), loginUser);
 router.post(
-  '/',
+  '/add-client',
   authMiddleware,
   authorizeRoles('staff'),
   validate(createUserSchema),
