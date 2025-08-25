@@ -162,60 +162,65 @@ export default function Navbar({
                 </Box>
               ))}
               {onLogout &&
-                (name ? (
-                  <>
-                    <MenuItem disabled sx={menuItemStyles}>
-                      Hello, {name}
-                    </MenuItem>
-                    {role === 'staff' &&
-                      profileLinks?.map(({ label, to }) => (
-                        <MenuItem
-                          key={to}
-                          component={RouterLink}
-                          to={to}
-                          onClick={() => {
-                            setMobileAnchorEl(null);
-                          }}
-                          disabled={loading}
-                          sx={menuItemStyles}
-                        >
-                          {label}
-                        </MenuItem>
-                      ))}
-                    <MenuItem
-                      component={RouterLink}
-                      to="/profile"
-                      onClick={() => {
-                        setMobileAnchorEl(null);
-                      }}
-                      disabled={loading}
-                      sx={menuItemStyles}
-                    >
-                      Profile
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        setMobileAnchorEl(null);
-                        onLogout();
-                      }}
-                      disabled={loading}
-                      sx={menuItemStyles}
-                    >
-                      Logout
-                    </MenuItem>
-                  </>
-                ) : (
-                  <MenuItem
-                    onClick={() => {
-                      setMobileAnchorEl(null);
-                      onLogout();
-                    }}
-                    disabled={loading}
-                    sx={menuItemStyles}
-                  >
-                    Logout
-                  </MenuItem>
-                ))}
+                (name
+                  ? [
+                      <MenuItem key="hello" disabled sx={menuItemStyles}>
+                        Hello, {name}
+                      </MenuItem>,
+                      ...(role === 'staff'
+                        ? (profileLinks?.map(({ label, to }) => (
+                            <MenuItem
+                              key={to}
+                              component={RouterLink}
+                              to={to}
+                              onClick={() => {
+                                setMobileAnchorEl(null);
+                              }}
+                              disabled={loading}
+                              sx={menuItemStyles}
+                            >
+                              {label}
+                            </MenuItem>
+                          )) ?? [])
+                        : []),
+                      <MenuItem
+                        key="profile"
+                        component={RouterLink}
+                        to="/profile"
+                        onClick={() => {
+                          setMobileAnchorEl(null);
+                        }}
+                        disabled={loading}
+                        sx={menuItemStyles}
+                      >
+                        Profile
+                      </MenuItem>,
+                      <MenuItem
+                        key="logout"
+                        onClick={() => {
+                          setMobileAnchorEl(null);
+                          onLogout();
+                        }}
+                        disabled={loading}
+                        sx={menuItemStyles}
+                      >
+                        Logout
+                      </MenuItem>,
+                    ]
+                  : [
+                      <MenuItem
+                        key="logout"
+                        onClick={() => {
+                          setMobileAnchorEl(null);
+                          onLogout();
+                        }}
+                        disabled={loading}
+                        sx={menuItemStyles}
+                      >
+                        Logout
+                      </MenuItem>,
+                    ])
+              }
             </Menu>
           </>
         ) : (
