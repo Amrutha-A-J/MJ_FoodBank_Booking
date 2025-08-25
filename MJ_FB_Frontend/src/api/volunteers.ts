@@ -71,6 +71,47 @@ export async function requestVolunteerBooking(
   await handleResponse(res);
 }
 
+export async function createRecurringVolunteerBooking(
+  _token: string,
+  roleId: number,
+  startDate: string,
+  frequency: 'one-time' | 'daily' | 'weekly',
+  weekdays?: number[],
+  endDate?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/recurring`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ roleId, startDate, frequency, weekdays, endDate }),
+  });
+  await handleResponse(res);
+}
+
+export async function cancelVolunteerBooking(
+  _token: string,
+  bookingId: number,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
+    method: 'DELETE',
+  });
+  await handleResponse(res);
+}
+
+export async function cancelRecurringVolunteerBooking(
+  _token: string,
+  recurringId: number,
+): Promise<void> {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/recurring/${recurringId}`,
+    {
+      method: 'DELETE',
+    },
+  );
+  await handleResponse(res);
+}
+
 export async function getMyVolunteerBookings(_token: string) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/mine`);
   const data = await handleResponse(res);
