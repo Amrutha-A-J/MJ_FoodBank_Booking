@@ -11,7 +11,7 @@ export function validate(schema: ZodTypeAny) {
       next();
     } catch (err) {
       if (err instanceof ZodError) {
-        return res.status(400).json({ errors: err.errors });
+        return res.status(400).json({ errors: err.issues });
       }
       next(err);
     }

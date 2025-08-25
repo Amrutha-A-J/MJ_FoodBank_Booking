@@ -28,7 +28,7 @@ export async function createStaff(
 ) {
   const parsed = createStaffSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ errors: parsed.error.errors });
+    return res.status(400).json({ errors: parsed.error.issues });
   }
 
   const { firstName, lastName, email, password, access } = parsed.data;
