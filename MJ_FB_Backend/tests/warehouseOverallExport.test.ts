@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouseOverall';
 import pool from '../src/db';
-import * as XLSX from 'xlsx';
+import readXlsxFile from 'read-excel-file/node';
 
 jest.mock('../src/db');
 
@@ -32,9 +32,7 @@ describe('GET /warehouse-overall/export', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
 
-    const workbook = XLSX.read(res.body, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+    const rows = await readXlsxFile(res.body);
     expect(rows[0]).toEqual([
       'Month',
       'Donations',
