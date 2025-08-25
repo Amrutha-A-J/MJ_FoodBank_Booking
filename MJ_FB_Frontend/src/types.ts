@@ -140,9 +140,12 @@ export interface UserProfile {
   lastName: string;
   email: string | null;
   phone: string | null;
-  clientId: number;
   role: Role;
-  bookingsThisMonth: number;
+  clientId?: number;
+  bookingsThisMonth?: number;
+  roles?: StaffAccess[];
+  username?: string;
+  trainedAreas?: string[];
 }
 
 export interface RoleOption {

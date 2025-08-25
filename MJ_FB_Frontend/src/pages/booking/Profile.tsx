@@ -13,16 +13,20 @@ import {
 } from '@mui/material';
 import { AccountCircle, Lock } from '@mui/icons-material';
 import type { Role, UserProfile } from '../../types';
-import { getUserProfile, changePassword } from '../../api/users';
+import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-export default function Profile({ token, role }: { token: string; role: Role }) {
+export default function Profile({ token, role: _role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{
     open: boolean;
     message: string;
@@ -34,12 +38,14 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
   }, []);
 
   useEffect(() => {
-    if (role === 'shopper') {
-      getUserProfile(token)
-        .then(setProfile)
-        .catch(e => setError(e instanceof Error ? e.message : String(e)));
-    }
-  }, [role, token]);
+    getUserProfile(token)
+      .then(p => {
+        setProfile(p);
+        setEmail(p.email ?? '');
+        setPhone(p.phone ?? '');
+      })
+      .catch(e => setError(e instanceof Error ? e.message : String(e)));
+  }, [token]);
 
   const initials = profile
     ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
@@ -59,6 +65,28 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
       setToast({ open: true, message: msg, severity: 'error' });
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleEdit() {
+    if (!profile) return;
+    if (editing) {
+      setSaving(true);
+      try {
+        const updated = await updateMyProfile({ email, phone });
+        setProfile(updated);
+        setEmail(updated.email ?? '');
+        setPhone(updated.phone ?? '');
+        setToast({ open: true, message: 'Profile updated.', severity: 'success' });
+        setEditing(false);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setToast({ open: true, message: msg, severity: 'error' });
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      setEditing(true);
     }
   }
 
@@ -84,32 +112,64 @@ export default function Profile({ token, role }: { token: string; role: Role }) 
 
             {/* Profile info */}
             {error && <Typography color="error">{error}</Typography>}
-            {role === 'shopper' && !profile && !error && <Typography>Loading...</Typography>}
-            {role === 'shopper' && profile && (
-              <Stack spacing={0.5}>
+            {!profile && !error && <Typography>Loading...</Typography>}
+            {profile && (
+              <Stack spacing={1}>
                 <Typography>
                   <strong>Name:</strong> {profile.firstName} {profile.lastName}
                 </Typography>
-                <Typography>
-                  <strong>Client ID:</strong> {profile.clientId}
-                </Typography>
-                <Typography color={profile.email ? undefined : 'text.secondary'}>
-                  <strong>Email:</strong> {profile.email ?? 'N/A'}
-                </Typography>
-                <Typography color={profile.phone ? undefined : 'text.secondary'}>
-                  <strong>Phone:</strong> {profile.phone ?? 'N/A'}
-                </Typography>
-                <Typography>
-                  <strong>Visits this month:</strong> {profile.bookingsThisMonth}
-                </Typography>
+                {profile.clientId !== undefined && (
+                  <Typography>
+                    <strong>Client ID:</strong> {profile.clientId}
+                  </Typography>
+                )}
+                {profile.roles && profile.roles.length > 0 && (
+                  <Typography>
+                    <strong>Roles:</strong> {profile.roles.join(', ')}
+                  </Typography>
+                )}
+                {profile.username && (
+                  <Typography>
+                    <strong>Username:</strong> {profile.username}
+                  </Typography>
+                )}
+                {profile.trainedAreas && profile.trainedAreas.length > 0 && (
+                  <Typography>
+                    <strong>Trained Areas:</strong> {profile.trainedAreas.join(', ')}
+                  </Typography>
+                )}
+                <TextField
+                  label="Email"
+                  size="small"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  disabled={!editing}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label="Phone"
+                  size="small"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  disabled={!editing}
+                  InputLabelProps={{ shrink: true }}
+                />
+                {profile.bookingsThisMonth !== undefined && (
+                  <Typography>
+                    <strong>Visits this month:</strong> {profile.bookingsThisMonth}
+                  </Typography>
+                )}
               </Stack>
             )}
-            {role !== 'shopper' && !error && (
-              <Typography color="text.secondary">No profile information available.</Typography>
-            )}
 
-            <Button variant="outlined" size="small" startIcon={<AccountCircle />}>
-              Edit Profile
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={saving ? <CircularProgress size={20} /> : <AccountCircle />}
+              disabled={saving || !profile}
+              onClick={handleEdit}
+            >
+              {editing ? 'Save' : 'Edit Profile'}
             </Button>
 
             <Divider sx={{ my: 1 }} />
