@@ -51,7 +51,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
       [email]
     );
-    if (staffQuery.rowCount > 0) {
+    if ((staffQuery.rowCount ?? 0) > 0) {
       const staff = staffQuery.rows[0];
       const match = await bcrypt.compare(password, staff.password);
       if (!match) {
