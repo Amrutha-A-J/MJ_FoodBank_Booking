@@ -51,7 +51,7 @@ export async function getStaff(req: Request, res: Response, next: NextFunction) 
 export async function createStaff(req: Request, res: Response, next: NextFunction) {
   const parsed = createStaffSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ errors: parsed.error.errors });
+    return res.status(400).json({ errors: parsed.error.issues });
   }
   const { firstName, lastName, email, password, access = ['pantry'] } = parsed.data;
   try {
@@ -77,7 +77,7 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
   if (!id) return res.status(400).json({ message: 'Invalid ID' });
   const parsed = updateStaffSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ errors: parsed.error.errors });
+    return res.status(400).json({ errors: parsed.error.issues });
   }
   const { firstName, lastName, email, password, access } = parsed.data;
   const role = 'staff';

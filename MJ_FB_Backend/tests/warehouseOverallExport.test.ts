@@ -2,19 +2,19 @@ import request from 'supertest';
 import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouseOverall';
 import pool from '../src/db';
+
 jest.mock(
-  'exceljs',
+  'xlsx',
   () => ({
-  __esModule: true,
-  default: {
-    Workbook: class {
-      worksheet = { columns: [], addRow: jest.fn() };
-      xlsx = { writeBuffer: jest.fn().mockResolvedValue(Buffer.from('test')) };
-      addWorksheet() {
-        return this.worksheet;
-      }
+    __esModule: true,
+    default: {
+      utils: {
+        book_new: jest.fn(() => ({})),
+        json_to_sheet: jest.fn(() => ({})),
+        book_append_sheet: jest.fn(),
+      },
+      write: jest.fn(() => Buffer.from('test')),
     },
-  },
   }),
   { virtual: true },
 );

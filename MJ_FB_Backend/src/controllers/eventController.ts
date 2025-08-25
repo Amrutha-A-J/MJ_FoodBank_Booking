@@ -40,7 +40,7 @@ export async function listEvents(_req: Request, res: Response, next: NextFunctio
 export async function createEvent(req: Request, res: Response, next: NextFunction) {
   const parsed = createEventSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ errors: parsed.error.errors });
+    return res.status(400).json({ errors: parsed.error.issues });
   }
   const { title, details, category, date, staffIds } = parsed.data;
   try {
