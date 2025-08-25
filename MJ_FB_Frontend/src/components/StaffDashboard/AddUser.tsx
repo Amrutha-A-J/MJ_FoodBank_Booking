@@ -4,7 +4,7 @@ import type { UserRole } from '../../types';
 import StaffForm from './StaffForm';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import FeedbackModal from '../FeedbackModal';
-import { Box, Button, Stack, TextField, MenuItem, Typography } from '@mui/material';
+import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {
   const [mode, setMode] = useState<'client' | 'staff'>('client');
@@ -18,10 +18,16 @@ export default function AddUser({ token }: { token: string }) {
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
+  const [onlineAccess, setOnlineAccess] = useState(false);
 
   async function submitUser() {
-    if (!firstName || !lastName || !clientId || !password) {
-      setError('First name, last name, client ID and password required');
+    if (onlineAccess) {
+      if (!firstName || !lastName || !clientId || !password) {
+        setError('First name, last name, client ID and password required');
+        return;
+      }
+    } else if (!clientId) {
+      setError('Client ID required');
       return;
     }
     try {
@@ -31,7 +37,8 @@ export default function AddUser({ token }: { token: string }) {
         lastName,
         clientId,
         role,
-        password,
+        onlineAccess ? password : undefined,
+        onlineAccess,
         email || undefined,
         phone || undefined
       );
@@ -42,6 +49,7 @@ export default function AddUser({ token }: { token: string }) {
       setEmail('');
       setPhone('');
       setPassword('');
+      setOnlineAccess(false);
       setRole('shopper');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -80,6 +88,10 @@ export default function AddUser({ token }: { token: string }) {
         )}
         {mode === 'client' ? (
           <Stack spacing={2}>
+            <FormControlLabel
+              control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
+              label="Online Access"
+            />
             <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
             <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
             <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
@@ -90,7 +102,9 @@ export default function AddUser({ token }: { token: string }) {
               value={phone}
               onChange={e => setPhone(e.target.value)}
             />
-            <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+            {onlineAccess && (
+              <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+            )}
             <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
               <MenuItem value="shopper">Shopper</MenuItem>
               <MenuItem value="delivery">Delivery</MenuItem>

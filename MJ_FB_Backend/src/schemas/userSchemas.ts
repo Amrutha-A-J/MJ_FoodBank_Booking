@@ -19,13 +19,24 @@ export const loginSchema = z
 
 // Schema for creating a user. Validates all required fields and
 // basic constraints like clientId range and role values.
-export const createUserSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  clientId: z.coerce.number().int().min(1).max(9_999_999),
-  role: z.enum(['shopper', 'delivery']),
-  password: z.string().min(1),
-});
+export const createUserSchema = z
+  .object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    clientId: z.coerce.number().int().min(1).max(9_999_999),
+    role: z.enum(['shopper', 'delivery']),
+    password: z.string().optional(),
+    onlineAccess: z.boolean(),
+  })
+  .refine(
+    data =>
+      !data.onlineAccess ||
+      (!!data.firstName && !!data.lastName && !!data.password),
+    {
+      message: 'firstName, lastName and password required for online access',
+      path: ['onlineAccess'],
+    },
+  );
 

@@ -67,11 +67,11 @@ async function authenticate(req: Request): Promise<AuthResult> {
       };
     }
 
-    if (type === 'user') {
-      const userRes = await pool.query(
-        'SELECT id, first_name, last_name, email, role, phone FROM users WHERE id = $1',
-        [id],
-      );
+      if (type === 'user') {
+        const userRes = await pool.query(
+          'SELECT id, first_name, last_name, email, role, phone FROM clients WHERE id = $1',
+          [id],
+        );
       if (userRes.rowCount && userRes.rowCount > 0) {
         return {
           status: 'ok',

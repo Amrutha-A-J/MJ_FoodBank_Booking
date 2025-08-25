@@ -106,9 +106,10 @@ export async function addUser(
   lastName: string,
   clientId: string,
   role: UserRole,
-  password: string,
+  password: string | undefined,
+  onlineAccess: boolean,
   email?: string,
-  phone?: string
+  phone?: string,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/users`, {
     method: 'POST',
@@ -121,6 +122,7 @@ export async function addUser(
       clientId: Number(clientId),
       role,
       password,
+      onlineAccess,
       email,
       phone,
     }),
