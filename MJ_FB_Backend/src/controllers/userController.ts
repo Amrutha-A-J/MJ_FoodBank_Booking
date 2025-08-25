@@ -22,7 +22,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         `SELECT id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId]
       );
-      if (userQuery.rowCount === 0) {
+      if ((userQuery.rowCount ?? 0) === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const user = userQuery.rows[0];
@@ -143,13 +143,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
   try {
     const check = await pool.query('SELECT id FROM clients WHERE client_id = $1', [clientId]);
-    if (check.rowCount && check.rowCount > 0) {
+    if ((check.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
     if (email) {
       const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [email]);
-      if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+      if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
     }
@@ -224,7 +224,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
@@ -252,7 +252,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
        FROM clients WHERE id = $1`,
       [user.id]
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];

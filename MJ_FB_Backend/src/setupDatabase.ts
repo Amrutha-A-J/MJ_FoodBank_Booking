@@ -14,7 +14,7 @@ export async function setupDatabase() {
   const adminClient = new Client({ ...dbConfig, database: 'postgres' });
   await adminClient.connect();
   const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
-  if (dbExists.rowCount === 0) {
+  if ((dbExists.rowCount ?? 0) === 0) {
     await adminClient.query(`CREATE DATABASE ${dbName}`);
     console.log(`Created database ${dbName}`);
   }
@@ -33,7 +33,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'volunteers' AND column_name = 'user_id';
     `);
-    if (userIdRes.rowCount === 0) {
+    if ((userIdRes.rowCount ?? 0) === 0) {
       await client.query(
         `ALTER TABLE volunteers ADD COLUMN user_id integer REFERENCES public.clients(id);`,
       );
@@ -42,7 +42,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'staff' AND column_name = 'access';
     `);
-    if (staffAccessRes.rowCount === 0) {
+    if ((staffAccessRes.rowCount ?? 0) === 0) {
       await client.query(
         `ALTER TABLE staff ADD COLUMN access text[] NOT NULL DEFAULT '{}'::text[] CHECK (access <@ ARRAY['pantry','volunteer_management','warehouse','admin']);`
       );
@@ -51,7 +51,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'clients' AND column_name = 'profile_link';
     `);
-    if (profileLinkRes.rowCount === 0) {
+    if ((profileLinkRes.rowCount ?? 0) === 0) {
       await client.query(`ALTER TABLE clients ADD COLUMN profile_link text;`);
       await client.query(
         `UPDATE clients SET profile_link = 'https://portal.link2feed.ca/org/1605/intake/' || client_id;`
@@ -65,7 +65,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'events' AND column_name = 'visible_to_clients';
     `);
-    if (eventVisClientRes.rowCount === 0) {
+    if ((eventVisClientRes.rowCount ?? 0) === 0) {
       await client.query(
         `ALTER TABLE events ADD COLUMN visible_to_clients boolean NOT NULL DEFAULT false;`
       );
@@ -75,7 +75,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'events' AND column_name = 'visible_to_volunteers';
     `);
-    if (eventVisVolRes.rowCount === 0) {
+    if ((eventVisVolRes.rowCount ?? 0) === 0) {
       await client.query(
         `ALTER TABLE events ADD COLUMN visible_to_volunteers boolean NOT NULL DEFAULT false;`
       );
@@ -102,7 +102,7 @@ export async function setupDatabase() {
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'volunteer_bookings' AND column_name = 'recurring_id';
     `);
-    if (recurringIdRes.rowCount === 0) {
+    if ((recurringIdRes.rowCount ?? 0) === 0) {
       await client.query(
         `ALTER TABLE volunteer_bookings ADD COLUMN recurring_id integer REFERENCES public.volunteer_recurring_bookings(id);`
       );
@@ -431,7 +431,7 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     SELECT column_name FROM information_schema.columns
     WHERE table_name = 'volunteer_slots' AND column_name = 'max_volunteers';
   `);
-  if (maxVolRes.rowCount === 0) {
+  if ((maxVolRes.rowCount ?? 0) === 0) {
     await client.query(
       `ALTER TABLE volunteer_slots ADD COLUMN max_volunteers integer NOT NULL DEFAULT 1;`
     );

@@ -63,7 +63,8 @@ export async function getDonor(req: Request, res: Response, next: NextFunction) 
        GROUP BY d.id, d.name`,
       [id],
     );
-    if (result.rowCount === 0) return res.status(404).json({ message: 'Donor not found' });
+    if ((result.rowCount ?? 0) === 0)
+      return res.status(404).json({ message: 'Donor not found' });
     res.json(result.rows[0]);
   } catch (error) {
     logger.error('Error fetching donor:', error);
