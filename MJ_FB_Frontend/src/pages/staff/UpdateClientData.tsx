@@ -85,7 +85,7 @@ export default function UpdateClientData({ token }: { token: string }) {
         <TableHead>
           <TableRow>
             <TableCell>Client ID</TableCell>
-            <TableCell>Profile</TableCell>
+            <TableCell>Profile Link</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -99,7 +99,7 @@ export default function UpdateClientData({ token }: { token: string }) {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Profile
+                  {client.profileLink}
                 </Link>
               </TableCell>
               <TableCell align="right">
