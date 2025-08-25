@@ -559,7 +559,9 @@ export default function VolunteerManagement({ token }: { token: string }) {
   return (
     <div>
       <h2>{title}</h2>
-      {tab === 'dashboard' && <Dashboard role="staff" token={token} />}
+      {tab === 'dashboard' && (
+        <Dashboard role="staff" token={token} masterRoleFilter={undefined} />
+      )}
       {tab === 'schedule' && (
         <div>
           <FormControl size="small" sx={{ minWidth: 200 }}>
