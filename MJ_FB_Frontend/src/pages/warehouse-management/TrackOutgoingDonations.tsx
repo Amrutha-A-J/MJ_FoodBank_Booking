@@ -40,6 +40,10 @@ function format(date: Date) {
   return date.toISOString().split('T')[0];
 }
 
+function normalize(date: string) {
+  return date.split('T')[0];
+}
+
 export default function TrackOutgoingDonations() {
   const [donations, setDonations] = useState<OutgoingDonation[]>([]);
   const [receivers, setReceivers] = useState<OutgoingReceiver[]>([]);
@@ -175,7 +179,14 @@ export default function TrackOutgoingDonations() {
           <TableBody>
           {donations.map(d => (
             <TableRow key={d.id}>
-              <TableCell>{d.date}</TableCell>
+              <TableCell>
+                {new Date(d.date).toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </TableCell>
               <TableCell>{d.receiver}</TableCell>
               <TableCell>{d.weight} lbs</TableCell>
               <TableCell>{d.note}</TableCell>
@@ -184,7 +195,7 @@ export default function TrackOutgoingDonations() {
                   size="small"
                   onClick={() => {
                     setEditing(d);
-                    setForm({ date: d.date, receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
+                    setForm({ date: normalize(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
                     setRecordOpen(true);
                   }}
                   aria-label="Edit outgoing donation"
