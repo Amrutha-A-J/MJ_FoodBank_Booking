@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import pool from '../db';
+import logger from '../utils/logger';
 
 const router = Router();
 
 // GET /api/roles - returns unique roles grouped by category
-router.get('/', async (_req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const query = `
       SELECT
@@ -27,7 +28,11 @@ router.get('/', async (_req: Request, res: Response) => {
     }));
     res.json(result);
   } catch (err) {
-    console.error('Failed to fetch roles', err);
+    logger.error('GET /roles - Failed to fetch roles', {
+      params: req.params,
+      query: req.query,
+      error: err,
+    });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -59,7 +64,11 @@ router.get('/:roleId/shifts', async (req: Request, res: Response) => {
     }));
     res.json(result);
   } catch (err) {
-    console.error('Failed to fetch shifts', err);
+    logger.error('GET /roles/:roleId/shifts - Failed to fetch shifts', {
+      params: req.params,
+      query: req.query,
+      error: err,
+    });
     res.status(500).json({ message: 'Internal server error' });
   }
 });
