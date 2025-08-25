@@ -31,7 +31,15 @@ interface User {
 
 const reginaTimeZone = 'America/Regina';
 
-export default function PantrySchedule({ token }: { token: string }) {
+export default function PantrySchedule({
+  token,
+  clientIds,
+  searchUsersFn,
+}: {
+  token: string;
+  clientIds?: number[];
+  searchUsersFn?: (token: string, search: string) => Promise<User[]>;
+}) {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -76,7 +84,12 @@ export default function PantrySchedule({ token }: { token: string }) {
       setBlockedSlots(blockedData);
       const filtered = bookingsData.filter((b: Booking) => {
         const bookingDate = formatInTimeZone(new Date(b.date), reginaTimeZone, 'yyyy-MM-dd');
-        return bookingDate === dateStr && ['approved', 'submitted'].includes(b.status);
+        const inClient = !clientIds || clientIds.includes(b.client_id);
+        return (
+          bookingDate === dateStr &&
+          ['approved', 'submitted'].includes(b.status) &&
+          inClient
+        );
       });
       setBookings(filtered);
     } catch (err) {
@@ -96,7 +109,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   useEffect(() => {
     if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
-        searchUsers(token, searchTerm)
+        (searchUsersFn || searchUsers)(token, searchTerm)
           .then((data: User[]) => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);

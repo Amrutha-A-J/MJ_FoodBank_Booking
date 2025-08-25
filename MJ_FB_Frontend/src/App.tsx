@@ -6,6 +6,8 @@ import UserHistory from './pages/staff/UserHistory';
 import BookingUI from './pages/BookingUI';
 import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
+import AgencySchedule from './pages/agency/AgencySchedule';
+import ClientList from './pages/agency/ClientList';
 import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
@@ -32,7 +34,7 @@ import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
-import { useAuth } from './hooks/useAuth';
+import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 
 export default function App() {
@@ -116,7 +118,10 @@ export default function App() {
   } else if (role === 'agency') {
     navGroups.push({
       label: 'Agency',
-      links: [{ label: 'Client Bookings', to: '/agency/clients' }],
+      links: [
+        { label: 'Schedule', to: '/agency/schedule' },
+        { label: 'Clients', to: '/agency/clients' },
+      ],
     });
   } else if (role === 'shopper') {
     navGroups.push({
@@ -174,6 +179,10 @@ export default function App() {
                 element={
                   role === 'volunteer' ? (
                     <VolunteerDashboard token={token} />
+                  ) : role === 'agency' ? (
+                    <AgencyGuard>
+                      <AgencySchedule />
+                    </AgencyGuard>
                   ) : isStaff ? (
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
@@ -295,6 +304,26 @@ export default function App() {
                   <Route
                     path="/volunteer/history"
                     element={<VolunteerBookingHistory token={token} />}
+                  />
+                </>
+              )}
+              {role === 'agency' && (
+                <>
+                  <Route
+                    path="/agency/schedule"
+                    element={
+                      <AgencyGuard>
+                        <AgencySchedule />
+                      </AgencyGuard>
+                    }
+                  />
+                  <Route
+                    path="/agency/clients"
+                    element={
+                      <AgencyGuard>
+                        <ClientList />
+                      </AgencyGuard>
+                    }
                   />
                 </>
               )}
