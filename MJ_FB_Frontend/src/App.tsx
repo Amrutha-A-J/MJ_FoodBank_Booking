@@ -170,7 +170,7 @@ export default function App() {
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
                     ) : (
-                      <Dashboard role="staff" token={token} />
+                      <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
                     )
                   ) : (
                     <ClientDashboard />
@@ -179,7 +179,7 @@ export default function App() {
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
               {showStaff && (
-                <Route path="/pantry" element={<Dashboard role="staff" token={token} />} />
+                <Route path="/pantry" element={<Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />} />
               )}
               {showStaff && (
                 <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
