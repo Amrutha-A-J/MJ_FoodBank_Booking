@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
+import pool from '../../db';
 import bcrypt from 'bcrypt';
-import logger from '../utils/logger';
-import { createStaffSchema } from '../schemas/staffSchemas';
-import { StaffAccess } from '../models/staff';
+import logger from '../../utils/logger';
+import { createStaffSchema } from '../../schemas/admin/staffSchemas';
+import { StaffAccess } from '../../models/staff';
 
 export async function checkStaffExists(
   _req: Request,

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { listOutgoingDonations, addOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../controllers/outgoingDonationController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { addOutgoingDonationSchema, updateOutgoingDonationSchema } from '../schemas/outgoingDonationSchemas';
+import { listOutgoingDonations, addOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../controllers/warehouse/outgoingDonationController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { addOutgoingDonationSchema, updateOutgoingDonationSchema } from '../../schemas/warehouse/outgoingDonationSchemas';
 
 const router = Router();
 

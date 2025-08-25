@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import staffRoutes from '../src/routes/staff';
+import staffRoutes from '../src/routes/admin/staff';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 

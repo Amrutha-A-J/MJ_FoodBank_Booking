@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import volunteerRolesRouter from '../src/routes/volunteerRoles';
+import volunteerRolesRouter from '../src/routes/volunteer/volunteerRoles';
 import pool from '../src/db';
 
 jest.mock('../src/db');

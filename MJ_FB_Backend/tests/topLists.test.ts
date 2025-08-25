@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import donorsRoutes from '../src/routes/donors';
-import outgoingReceiversRoutes from '../src/routes/outgoingReceivers';
+import outgoingReceiversRoutes from '../src/routes/warehouse/outgoingReceivers';
 import pool from '../src/db';
 
 jest.mock('../src/db');

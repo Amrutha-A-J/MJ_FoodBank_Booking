@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { listSurplus, addSurplus, updateSurplus, deleteSurplus } from '../controllers/surplusController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { addSurplusSchema, updateSurplusSchema } from '../schemas/surplusSchemas';
+import { listSurplus, addSurplus, updateSurplus, deleteSurplus } from '../../controllers/warehouse/surplusController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { addSurplusSchema, updateSurplusSchema } from '../../schemas/warehouse/surplusSchemas';
 
 const router = Router();
 
