@@ -143,32 +143,32 @@ function StaffDashboard({ token }: { token: string }) {
   };
 
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Today at a Glance">
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid container spacing={2}>
+              <Grid size={6}>
               <Stat
                 icon={<CalendarToday color="primary" />}
                 label="Appointments Today"
                 value={stats.appointments}
               />
-            </Grid>
-            <Grid item xs={6}>
+              </Grid>
+              <Grid size={6}>
               <Stat
                 icon={<People color="primary" />}
                 label="Volunteers Scheduled"
                 value={stats.volunteers}
               />
-            </Grid>
-            <Grid item xs={6}>
+              </Grid>
+              <Grid size={6}>
               <Stat
                 icon={<WarningAmber color="warning" />}
                 label="Pending Approvals"
                 value={stats.approvals}
               />
-            </Grid>
-            <Grid item xs={6}>
+              </Grid>
+              <Grid size={6}>
               <Stat
                 icon={<CancelIcon color="error" />}
                 label="Cancellations"
@@ -177,8 +177,8 @@ function StaffDashboard({ token }: { token: string }) {
             </Grid>
           </Grid>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Pending Approvals">
           <List>
             {pending.map(b => (
@@ -188,8 +188,8 @@ function StaffDashboard({ token }: { token: string }) {
             ))}
           </List>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Volunteer Coverage">
           <List>
             {coverage.map((c, i) => {
@@ -209,14 +209,14 @@ function StaffDashboard({ token }: { token: string }) {
             })}
           </List>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Grid container spacing={2}>
+            <Grid size={12}>
             <SectionCard title="Pantry Schedule (This Week)">
-              <Grid container columns={7} spacing={2}>
-                {schedule.map((day, i) => (
-                  <Grid item xs={1} key={i}>
+                <Grid container columns={7} spacing={2}>
+                  {schedule.map((day, i) => (
+                    <Grid size={1} key={i}>
                     <Stack alignItems="center" spacing={1}>
                       <Typography variant="body2">{day.day}</Typography>
                       <Chip
@@ -228,8 +228,8 @@ function StaffDashboard({ token }: { token: string }) {
                 ))}
               </Grid>
             </SectionCard>
-          </Grid>
-          <Grid item xs={12}>
+            </Grid>
+            <Grid size={12}>
             <SectionCard title="Quick Search">
               <Stack spacing={2}>
                 <EntitySearch
@@ -272,8 +272,8 @@ function StaffDashboard({ token }: { token: string }) {
                 </Stack>
               </Stack>
             </SectionCard>
-          </Grid>
-          <Grid item xs={12}>
+            </Grid>
+            <Grid size={12}>
             <SectionCard title="Recent Cancellations">
               <List>
                 {cancellations.slice(0, 5).map(c => (
@@ -285,8 +285,8 @@ function StaffDashboard({ token }: { token: string }) {
                 ))}
               </List>
             </SectionCard>
-          </Grid>
-          <Grid item xs={12}>
+            </Grid>
+            <Grid size={12}>
             <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
               <List>
                 <ListItem>
@@ -326,9 +326,9 @@ function UserDashboard() {
   const appointments = bookings.filter(b => b.status === 'approved');
   const pending = bookings.filter(b => b.status === 'submitted');
 
-  return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
+    return (
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="My Upcoming Appointments" icon={<EventAvailable color="primary" />}>
           <List>
             {appointments.map(a => (
@@ -352,8 +352,8 @@ function UserDashboard() {
             ))}
           </List>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Pending Requests">
           <List>
             {pending.map(p => (
@@ -368,8 +368,8 @@ function UserDashboard() {
             ))}
           </List>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Next Available Slots" icon={<EventAvailable color="primary" />}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {slotOptions.map((s, i) => (
@@ -384,8 +384,8 @@ function UserDashboard() {
             ))}
           </Stack>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12} md={6}>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Notices" icon={<Announcement color="primary" />}>
           <List>
             <ListItem>
@@ -393,8 +393,8 @@ function UserDashboard() {
             </ListItem>
           </List>
         </SectionCard>
-      </Grid>
-      <Grid item xs={12}>
+        </Grid>
+        <Grid size={12}>
         <SectionCard title="Quick Actions">
           <Stack direction="row" spacing={1}>
             <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
@@ -408,8 +408,8 @@ function UserDashboard() {
             </Button>
           </Stack>
         </SectionCard>
+        </Grid>
       </Grid>
-    </Grid>
   );
 }
 

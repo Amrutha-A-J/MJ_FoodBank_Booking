@@ -141,7 +141,7 @@ export default function UserDashboard() {
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard
             title="My Upcoming Appointment"
             icon={<EventAvailable color="primary" />}
@@ -192,7 +192,7 @@ export default function UserDashboard() {
             )}
           </SectionCard>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="Pending Requests">
             <List>
               {pending.length ? (
@@ -221,7 +221,7 @@ export default function UserDashboard() {
             </List>
           </SectionCard>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard
             title="Next Available Slots"
             icon={<EventAvailable color="primary" />}
@@ -257,7 +257,7 @@ export default function UserDashboard() {
             </List>
           </SectionCard>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="Notices" icon={<Announcement color="primary" />}>
             <List>
               {holidays.map(h => (
@@ -273,7 +273,7 @@ export default function UserDashboard() {
             </List>
           </SectionCard>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <SectionCard title="Quick Actions">
             <Stack direction="row" spacing={1}>
               <Button
@@ -303,7 +303,7 @@ export default function UserDashboard() {
             </Stack>
           </SectionCard>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <SectionCard title="Recent Bookings" icon={<History color="primary" />}>
             <List>
               {history.slice(0, 3).map(b => (

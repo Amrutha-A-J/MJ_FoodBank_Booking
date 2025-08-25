@@ -133,8 +133,8 @@ export default function VolunteerDashboard({ token }: { token: string }) {
 
   return (
     <Page title="Volunteer Dashboard">
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="My Next Shift" />
             <CardContent>
@@ -167,9 +167,9 @@ export default function VolunteerDashboard({ token }: { token: string }) {
               )}
             </CardContent>
           </Card>
-        </Grid>
+          </Grid>
 
-        <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Pending Requests" />
             <CardContent>
@@ -188,9 +188,9 @@ export default function VolunteerDashboard({ token }: { token: string }) {
               </List>
             </CardContent>
           </Card>
-        </Grid>
+          </Grid>
 
-        <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Available in My Roles" />
             <CardContent>
@@ -244,9 +244,9 @@ export default function VolunteerDashboard({ token }: { token: string }) {
               </List>
             </CardContent>
           </Card>
-        </Grid>
+          </Grid>
 
-        <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Quick Actions" />
             <CardContent>
@@ -280,18 +280,18 @@ export default function VolunteerDashboard({ token }: { token: string }) {
               </Stack>
             </CardContent>
           </Card>
-        </Grid>
+          </Grid>
 
-        <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Announcements" />
             <CardContent>
               <Typography>No announcements</Typography>
             </CardContent>
           </Card>
-        </Grid>
+          </Grid>
 
-        <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
           <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
             <CardHeader title="Profile & Training" />
             <CardContent>
