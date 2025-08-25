@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -15,6 +15,7 @@ import {
   Button,
   Toolbar,
   Skeleton,
+  Link,
 } from '@mui/material';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { AccessTime } from '@mui/icons-material';
@@ -23,6 +24,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { Slot } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import FeedbackModal from '../components/FeedbackModal';
+import { Link as RouterLink } from 'react-router-dom';
 
 // Wrappers to match required signatures
 function useSlots(date: Dayjs) {
@@ -55,6 +58,10 @@ export default function BookingUI({
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
+  const [modal, setModal] = useState<{ open: boolean; message: ReactNode }>({
+    open: false,
+    message: null,
+  });
   const [booking, setBooking] = useState(false);
 
   const morningSlots = slots.filter(s =>
@@ -79,12 +86,44 @@ export default function BookingUI({
       });
       setSelectedSlotId(null);
       refetch();
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: err instanceof Error ? err.message : 'Booking failed',
-        severity: 'error',
-      });
+    } catch (err: any) {
+      const existing = err?.details?.existingBooking;
+      if (existing) {
+        const dateStr = dayjs(existing.date).format('MMM D');
+        const timeStr = dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A');
+        const status = existing.status;
+        setModal({
+          open: true,
+          message: (
+            <Stack spacing={2}>
+              <Typography>
+                You already have an appointment booked for {dateStr} at {timeStr}, which is
+                currently {status}.
+              </Typography>
+              <Typography>
+                If you need to reschedule, please go to your bookings{' '}
+                <Link component={RouterLink} to="/booking-history" underline="hover">
+                  page
+                </Link>{' '}and make the change there.
+              </Typography>
+              <Typography>
+                Please note that we do not encourage auto-booking weeks in advance, as our
+                services are meant to be used for emergencies only.
+              </Typography>
+              <Typography>
+                Once you complete this shopping appointment, you may book another one if
+                you still need assistance.
+              </Typography>
+            </Stack>
+          ),
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: err instanceof Error ? err.message : 'Booking failed',
+          severity: 'error',
+        });
+      }
     } finally {
       setBooking(false);
     }
@@ -255,6 +294,12 @@ export default function BookingUI({
         message={snackbar.message}
         severity={snackbar.severity}
         duration={4000}
+      />
+      <FeedbackModal
+        open={modal.open}
+        onClose={() => setModal(m => ({ ...m, open: false }))}
+        message={modal.message}
+        severity="warning"
       />
     </Container>
   );
