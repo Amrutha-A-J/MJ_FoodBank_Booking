@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { List, ListItem, ListItemText, Chip } from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
+import { formatReginaDate } from '../../utils/time';
 
 interface CoverageItem {
   roleName: string;
@@ -16,10 +17,6 @@ interface VolunteerCoverageCardProps {
   onCoverageLoaded?: (data: CoverageItem[]) => void;
 }
 
-function formatLocalDate(date: Date) {
-  return date.toLocaleDateString('en-CA');
-}
-
 export default function VolunteerCoverageCard({
   token,
   masterRoleFilter,
@@ -28,7 +25,7 @@ export default function VolunteerCoverageCard({
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
 
   useEffect(() => {
-    const todayStr = formatLocalDate(new Date());
+    const todayStr = formatReginaDate(new Date());
 
     getVolunteerRoles(token)
       .then(roles =>
@@ -43,7 +40,7 @@ export default function VolunteerCoverageCard({
             const filled = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
-                formatLocalDate(new Date(b.date)) === todayStr,
+                formatReginaDate(new Date(b.date)) === todayStr,
             ).length;
             return {
               roleName: r.name,
