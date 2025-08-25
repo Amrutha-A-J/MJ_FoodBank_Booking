@@ -38,6 +38,7 @@ describe('GET /slots applies slot rules', () => {
 
   it('uses weekday rules', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
           { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
@@ -47,6 +48,7 @@ describe('GET /slots applies slot rules', () => {
           { id: 5, start_time: '14:30:00', end_time: '15:00:00', max_capacity: 10 },
         ],
       })
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
@@ -62,6 +64,7 @@ describe('GET /slots applies slot rules', () => {
 
   it('uses Wednesday rules', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
           { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
@@ -69,6 +72,7 @@ describe('GET /slots applies slot rules', () => {
           { id: 3, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
         ],
       })
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
@@ -84,6 +88,7 @@ describe('GET /slots applies slot rules', () => {
 
   it('marks slots blocked from recurring entries', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
           { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
@@ -107,5 +112,27 @@ describe('GET /slots applies slot rules', () => {
         status: 'blocked',
       },
     ]);
+  });
+});
+
+describe('GET /slots closed days', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns empty array on weekends', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
+    const res = await request(app).get('/slots').query({ date: '2024-06-16' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns empty array on holidays', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ reason: 'Holiday' }] });
+    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 });
