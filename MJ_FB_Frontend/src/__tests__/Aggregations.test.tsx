@@ -2,9 +2,13 @@ import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import Aggregations from '../pages/warehouse-management/Aggregations';
 
 const mockGetWarehouseOverall = jest.fn().mockResolvedValue([]);
+const mockGetWarehouseOverallYears = jest
+  .fn()
+  .mockResolvedValue([new Date().getFullYear()]);
 jest.mock('../api/warehouseOverall', () => ({
   getWarehouseOverall: (...args: unknown[]) => mockGetWarehouseOverall(...args),
-  rebuildWarehouseOverall: jest.fn(),
+  getWarehouseOverallYears: (...args: unknown[]) =>
+    mockGetWarehouseOverallYears(...args),
   exportWarehouseOverall: jest.fn(),
 }));
 

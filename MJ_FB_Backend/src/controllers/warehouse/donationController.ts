@@ -3,6 +3,7 @@ import pool from '../../db';
 import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 import type { Row } from 'write-excel-file';
+import { refreshWarehouseOverall } from './warehouseOverallController';
 
 export async function listDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -29,6 +30,8 @@ export async function addDonation(req: Request, res: Response, next: NextFunctio
       [date, donorId, weight],
     );
     const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+    const dt = new Date(date);
+    await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json({ ...result.rows[0], donor: donorRes.rows[0].name });
   } catch (error) {
     logger.error('Error adding donation:', error);
@@ -40,11 +43,24 @@ export async function updateDonation(req: Request, res: Response, next: NextFunc
   try {
     const { id } = req.params;
     const { date, donorId, weight } = req.body;
+    const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
+    const oldDate = existing.rows[0]?.date as string | undefined;
     const result = await pool.query(
       'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, donor_id as "donorId", weight',
       [date, donorId, weight, id],
     );
     const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+    const newDt = new Date(date);
+    await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
+    if (oldDate) {
+      const oldDt = new Date(oldDate);
+      if (
+        oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
+        oldDt.getUTCMonth() !== newDt.getUTCMonth()
+      ) {
+        await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
+      }
+    }
     res.json({ ...result.rows[0], donor: donorRes.rows[0].name });
   } catch (error) {
     logger.error('Error updating donation:', error);
@@ -55,7 +71,12 @@ export async function updateDonation(req: Request, res: Response, next: NextFunc
 export async function deleteDonation(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
     await pool.query('DELETE FROM donations WHERE id = $1', [id]);
+    if (existing.rows[0]) {
+      const dt = new Date(existing.rows[0].date);
+      await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+    }
     res.json({ message: 'Deleted' });
   } catch (error) {
     logger.error('Error deleting donation:', error);
