@@ -41,8 +41,19 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       [year],
     );
 
+    const headerStyle = {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    };
     const rows = [
-      ['Month', 'Donations', 'Surplus', 'Pig Pound', 'Outgoing Donations'],
+      [
+        { value: 'Month', ...headerStyle },
+        { value: 'Donations', ...headerStyle },
+        { value: 'Surplus', ...headerStyle },
+        { value: 'Pig Pound', ...headerStyle },
+        { value: 'Outgoing Donations', ...headerStyle },
+      ],
       ...result.rows.map(row => [
         row.month,
         row.donations,
