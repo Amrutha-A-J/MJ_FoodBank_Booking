@@ -62,7 +62,7 @@ export default function Events() {
       }
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6">Today</Typography>
@@ -70,7 +70,7 @@ export default function Events() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6">Upcoming</Typography>
@@ -78,7 +78,7 @@ export default function Events() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card sx={{ maxHeight: 200, overflowY: 'auto' }}>
             <CardContent>
               <Typography variant="h6">Past</Typography>
