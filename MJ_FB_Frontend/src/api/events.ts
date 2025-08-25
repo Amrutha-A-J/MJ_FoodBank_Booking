@@ -10,7 +10,13 @@ export interface Event {
   createdBy: number;
 }
 
-export async function getEvents(): Promise<Event[]> {
+export interface EventGroups {
+  today: Event[];
+  upcoming: Event[];
+  past: Event[];
+}
+
+export async function getEvents(): Promise<EventGroups> {
   const res = await apiFetch(`${API_BASE}/events`);
   return handleResponse(res);
 }

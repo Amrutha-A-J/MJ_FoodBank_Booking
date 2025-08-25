@@ -26,6 +26,8 @@ import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunte
 import type { Role } from '../../types';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
+import { getEvents, type EventGroups } from '../../api/events';
+import EventList from '../EventList';
 
 export interface DashboardProps {
   role: Role;
@@ -87,11 +89,17 @@ function StaffDashboard({ token }: { token: string }) {
     { role: string; filled: number; total: number }[]
   >([]);
   const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
+  const [events, setEvents] = useState<EventGroups>({
+    today: [],
+    upcoming: [],
+    past: [],
+  });
   const [searchType, setSearchType] = useState<'user' | 'volunteer'>('user');
   const navigate = useNavigate();
 
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
+    getEvents().then(setEvents).catch(() => {});
 
     const today = new Date();
     const todayStr = formatLocalDate(today);
@@ -288,11 +296,10 @@ function StaffDashboard({ token }: { token: string }) {
           </Grid>
           <Grid size={12}>
             <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
-              <List>
-                <ListItem>
-                  <ListItemText primary="" />
-                </ListItem>
-              </List>
+              <EventList
+                events={[...events.today, ...events.upcoming]}
+                limit={5}
+              />
             </SectionCard>
           </Grid>
         </Grid>
@@ -304,6 +311,11 @@ function StaffDashboard({ token }: { token: string }) {
 function UserDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [slotOptions, setSlotOptions] = useState<string[]>([]);
+  const [events, setEvents] = useState<EventGroups>({
+    today: [],
+    upcoming: [],
+    past: [],
+  });
 
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
@@ -321,6 +333,8 @@ function UserDashboard() {
         setSlotOptions(merged.slice(0, 3));
       })
       .catch(() => {});
+
+    getEvents().then(setEvents).catch(() => {});
   }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
@@ -387,11 +401,10 @@ function UserDashboard() {
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title="Notices" icon={<Announcement color="primary" />}>
-          <List>
-            <ListItem>
-              <ListItemText primary="" />
-            </ListItem>
-          </List>
+          <EventList
+            events={[...events.today, ...events.upcoming]}
+            limit={5}
+          />
         </SectionCard>
       </Grid>
       <Grid size={12}>
