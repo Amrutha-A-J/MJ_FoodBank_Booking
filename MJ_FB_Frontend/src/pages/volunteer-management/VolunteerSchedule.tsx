@@ -17,6 +17,7 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import {
   Box,
   FormControl,
@@ -50,6 +51,8 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
+  const [rescheduleBooking, setRescheduleBooking] =
+    useState<VolunteerBooking | null>(null);
   const [message, setMessage] = useState('');
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -158,23 +161,20 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     }
   }
 
-  async function rescheduleSelected() {
-    if (!decisionBooking) return;
-    const date = prompt('Enter new date (YYYY-MM-DD)');
-    const role = prompt('Enter new role ID');
-    if (!date || !role) return;
+  async function handleReschedule(date: string, roleId: number) {
+    if (!rescheduleBooking) return;
     try {
       await rescheduleVolunteerBookingByToken(
-        decisionBooking.reschedule_token || '',
-        Number(role),
+        rescheduleBooking.reschedule_token || '',
+        roleId,
         date,
       );
+      setMessage('Booking rescheduled');
       await loadData();
     } catch {
       setMessage('Failed to reschedule booking');
     } finally {
-      setDecisionBooking(null);
-      setDecisionReason('');
+      setRescheduleBooking(null);
     }
   }
 
@@ -347,7 +347,17 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={rescheduleSelected} variant="outlined" color="primary">Reschedule</Button>
+          <Button
+            onClick={() => {
+              setRescheduleBooking(decisionBooking);
+              setDecisionBooking(null);
+              setDecisionReason('');
+            }}
+            variant="outlined"
+            color="primary"
+          >
+            Reschedule
+          </Button>
           <Button onClick={cancelSelected} variant="outlined" color="primary">Cancel Booking</Button>
           <Button
             onClick={() => {
@@ -361,6 +371,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RescheduleDialog
+        open={!!rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onSubmit={handleReschedule}
+      />
     </Box>
   );
 }
