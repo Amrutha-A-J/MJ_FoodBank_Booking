@@ -45,6 +45,7 @@ import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageC
 import EventList from '../../components/EventList';
 import {
   getWarehouseOverall,
+  getWarehouseOverallYears,
   rebuildWarehouseOverall,
   exportWarehouseOverall,
 } from '../../api/warehouseOverall';
@@ -87,11 +88,8 @@ export default function WarehouseDashboard() {
   const navigate = useNavigate();
   const { token, id } = useAuth();
   const searchRef = useRef<HTMLInputElement>(null);
-  const years = [2024, 2025, 2026];
-  const [year, setYear] = useState(() => {
-    const y = new Date().getFullYear();
-    return years.includes(y) ? y : years[0];
-  });
+  const [years, setYears] = useState<number[]>([]);
+  const [year, setYear] = useState<number>();
   const [search, setSearch] = useState('');
   const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
   const [totals, setTotals] = useState<MonthlyTotal[]>([]);
@@ -116,6 +114,22 @@ export default function WarehouseDashboard() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    async function loadYears() {
+      try {
+        const ys = await getWarehouseOverallYears();
+        setYears(ys);
+        setYear(ys[0]);
+      } catch {
+        const currentYear = new Date().getFullYear();
+        const fallback = Array.from({ length: 5 }, (_, i) => currentYear - i);
+        setYears(fallback);
+        setYear(fallback[0]);
+      }
+    }
+    loadYears();
   }, []);
 
   useEffect(() => {
@@ -170,7 +184,9 @@ export default function WarehouseDashboard() {
   }
 
   useEffect(() => {
-    loadData(year);
+    if (year !== undefined) {
+      loadData(year);
+    }
   }, [year]);
 
   const currentMonth = useMemo(() => {
@@ -239,9 +255,9 @@ export default function WarehouseDashboard() {
   async function handleRebuild() {
     setLoadingRebuild(true);
     try {
-      await rebuildWarehouseOverall(year);
+      await rebuildWarehouseOverall(year!);
       setSnackbar({ open: true, message: 'Rebuilt aggregates' });
-      loadData(year);
+      loadData(year!);
     } catch (err: any) {
       setSnackbar({ open: true, message: err.message || 'Rebuild failed', severity: 'error' });
     } finally {
@@ -252,7 +268,7 @@ export default function WarehouseDashboard() {
   async function handleExport() {
     setLoadingExport(true);
     try {
-      const blob = await exportWarehouseOverall(year);
+      const blob = await exportWarehouseOverall(year!);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -293,7 +309,7 @@ export default function WarehouseDashboard() {
             <InputLabel id="year-label">Year</InputLabel>
             <Select
               labelId="year-label"
-              value={year}
+              value={year ?? ''}
               label="Year"
               onChange={e => setYear(Number(e.target.value))}
             >

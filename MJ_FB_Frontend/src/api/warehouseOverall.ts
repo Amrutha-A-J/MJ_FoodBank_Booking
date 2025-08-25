@@ -8,6 +8,11 @@ export interface WarehouseOverall {
   outgoingDonations: number;
 }
 
+export async function getWarehouseOverallYears(): Promise<number[]> {
+  const res = await apiFetch(`${API_BASE}/warehouse-overall/years`);
+  return handleResponse(res);
+}
+
 export async function getWarehouseOverall(year: number): Promise<WarehouseOverall[]> {
   const res = await apiFetch(`${API_BASE}/warehouse-overall?year=${year}`);
   return handleResponse(res);
