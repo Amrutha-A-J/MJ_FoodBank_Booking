@@ -28,7 +28,8 @@ interface Props {
 }
 
 export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
-  const slotWidth = `calc((100% - 160px) / ${maxSlots})`;
+  const safeMaxSlots = Math.max(1, maxSlots);
+  const slotWidth = `calc((100% - 160px) / ${safeMaxSlots})`;
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   return (
@@ -49,14 +50,14 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
       >
         <colgroup>
           <col style={{ width: 160 }} />
-          {Array.from({ length: maxSlots }).map((_, i) => (
+          {Array.from({ length: safeMaxSlots }).map((_, i) => (
             <col key={i} style={{ width: slotWidth }} />
           ))}
         </colgroup>
         <TableHead>
           <TableRow>
             <TableCell>Time</TableCell>
-            {Array.from({ length: maxSlots }).map((_, i) => (
+            {Array.from({ length: safeMaxSlots }).map((_, i) => (
               <TableCell key={i}>Slot {i + 1}</TableCell>
             ))}
           </TableRow>
@@ -81,7 +82,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                     {cell.content}
                   </TableCell>
                 ))}
-                {Array.from({ length: maxSlots - used }).map((_, i) => (
+                {Array.from({ length: safeMaxSlots - used }).map((_, i) => (
                   <TableCell key={`empty-${i}`} />
                 ))}
               </TableRow>
@@ -89,7 +90,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
           })}
           {rows.length === 0 && (
             <TableRow>
-              <TableCell colSpan={maxSlots + 1} align="center">
+              <TableCell colSpan={safeMaxSlots + 1} align="center">
                 No bookings.
               </TableCell>
             </TableRow>
