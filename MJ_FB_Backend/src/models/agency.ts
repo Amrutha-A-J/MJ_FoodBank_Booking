@@ -29,7 +29,7 @@ export async function isAgencyClient(
     'SELECT 1 FROM agency_clients WHERE agency_id=$1 AND client_id=$2',
     [agencyId, clientId],
   );
-  return res.rowCount > 0;
+  return (res.rowCount ?? 0) > 0;
 }
 
 export async function addAgencyClient(
