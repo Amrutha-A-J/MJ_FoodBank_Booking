@@ -1,10 +1,11 @@
 import type { AlertColor } from '@mui/material';
 import { Dialog, DialogContent, DialogActions, Button, Alert } from '@mui/material';
+import type { ReactNode } from 'react';
 
 interface FeedbackModalProps {
   open: boolean;
   onClose: () => void;
-  message: string;
+  message: ReactNode;
   severity?: AlertColor;
 }
 
