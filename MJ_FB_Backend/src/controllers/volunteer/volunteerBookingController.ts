@@ -474,6 +474,28 @@ export async function createRecurringVolunteerBooking(
   }
 }
 
+export async function listMyRecurringVolunteerBookings(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const result = await pool.query(
+      `SELECT id, slot_id AS role_id, start_date, end_date, pattern, days_of_week
+       FROM volunteer_recurring_bookings
+       WHERE volunteer_id=$1 AND active
+       ORDER BY start_date`,
+      [user.id],
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error listing recurring volunteer bookings:', error);
+    next(error);
+  }
+}
+
 export async function cancelVolunteerBookingOccurrence(
   req: Request,
   res: Response,

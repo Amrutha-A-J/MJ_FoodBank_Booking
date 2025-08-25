@@ -45,4 +45,31 @@ describe('recurring volunteer bookings', () => {
     const firstCall = (pool.query as jest.Mock).mock.calls[0][0];
     expect(firstCall).toMatch(/UPDATE volunteer_bookings SET status='cancelled'/);
   });
+
+  it('lists recurring bookings', async () => {
+    (pool.query as jest.Mock).mockResolvedValue({
+      rows: [
+        {
+          id: 1,
+          role_id: 2,
+          start_date: '2025-01-01',
+          end_date: '2025-01-10',
+          pattern: 'daily',
+          days_of_week: [],
+        },
+      ],
+    });
+    const res = await request(app).get('/volunteer-bookings/recurring');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: 1,
+        role_id: 2,
+        start_date: '2025-01-01',
+        end_date: '2025-01-10',
+        pattern: 'daily',
+        days_of_week: [],
+      },
+    ]);
+  });
 });
