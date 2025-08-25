@@ -115,7 +115,7 @@ export default function PantryVisits({ token }: { token: string }) {
   }, [form.weightWithCart, cartTare, autoWeight, recordOpen]);
 
   useEffect(() => {
-    if (!form.clientId) {
+    if (!form.clientId || form.clientId.length < 4) {
       setClientFound(null);
       return;
     }
