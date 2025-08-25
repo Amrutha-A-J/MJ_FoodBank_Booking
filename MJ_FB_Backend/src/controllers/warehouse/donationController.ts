@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
+import writeXlsxFile from 'write-excel-file/node';
 
 export async function listDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -93,6 +94,88 @@ export async function donorAggregations(req: Request, res: Response, next: NextF
     res.json(Array.from(donorMap.values()));
   } catch (error) {
     logger.error('Error listing donor aggregations:', error);
+    next(error);
+  }
+}
+
+export async function exportDonorAggregations(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const result = await pool.query(
+      `SELECT o.name AS donor, m.month, COALESCE(SUM(d.weight)::int, 0) AS total
+       FROM donors o
+       CROSS JOIN generate_series(1, 12) AS m(month)
+       LEFT JOIN donations d ON d.donor_id = o.id
+         AND EXTRACT(YEAR FROM d.date) = $1
+         AND EXTRACT(MONTH FROM d.date) = m.month
+       GROUP BY o.name, m.month
+       ORDER BY o.name, m.month`,
+      [year],
+    );
+
+    const headerStyle = {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    } as const;
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const donorMap = new Map<string, number[]>();
+    for (const { donor, month, total } of result.rows as {
+      donor: string;
+      month: number;
+      total: number;
+    }[]) {
+      if (!donorMap.has(donor)) {
+        donorMap.set(donor, Array(12).fill(0));
+      }
+      donorMap.get(donor)![month - 1] = total ?? 0;
+    }
+
+    const rows = [
+      [
+        { value: 'Donor', ...headerStyle },
+        ...monthNames.map(m => ({ value: m, ...headerStyle })),
+        { value: 'Total', ...headerStyle },
+      ],
+      ...Array.from(donorMap.entries()).map(([donor, monthly]) => [
+        donor,
+        ...monthly,
+        monthly.reduce((a, b) => a + b, 0),
+      ]),
+    ];
+
+    const buffer = await writeXlsxFile(rows, {
+      sheet: `Donor Aggregations ${year}`,
+      buffer: true,
+    });
+
+    res
+      .setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      .setHeader(
+        'Content-Disposition',
+        `attachment; filename=${year}_donor_aggregations.xlsx`,
+      );
+
+    res.send(buffer);
+  } catch (error) {
+    logger.error('Error exporting donor aggregations:', error);
     next(error);
   }
 }

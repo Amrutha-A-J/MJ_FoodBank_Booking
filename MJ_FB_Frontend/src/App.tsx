@@ -26,6 +26,7 @@ import TrackOutgoingDonations from './pages/warehouse-management/TrackOutgoingDo
 import TrackSurplus from './pages/warehouse-management/TrackSurplus';
 import Aggregations from './pages/warehouse-management/Aggregations';
 import DonorProfile from './pages/warehouse-management/DonorProfile';
+import Exports from './pages/warehouse-management/Exports';
 import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import Events from './pages/events/Events';
@@ -107,6 +108,7 @@ export default function App() {
       },
       { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
+      { label: 'Exports', to: '/warehouse-management/exports' },
     ];
     if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
     if (showAdmin)
@@ -244,6 +246,12 @@ export default function App() {
                 <Route
                   path="/warehouse-management/aggregations"
                   element={<Aggregations />}
+                />
+              )}
+              {showWarehouse && (
+                <Route
+                  path="/warehouse-management/exports"
+                  element={<Exports />}
                 />
               )}
               {role === 'agency' && (
