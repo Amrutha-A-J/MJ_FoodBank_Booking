@@ -1,22 +1,46 @@
-import { List, ListItem, Typography } from '@mui/material';
+import { List, ListItem, Typography, ListItemText, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import type { Event } from '../api/events';
 
 interface EventListProps {
   events: Event[];
   limit?: number;
+  onDelete?: (id: number) => void;
 }
 
-export default function EventList({ events, limit }: EventListProps) {
+export default function EventList({ events, limit, onDelete }: EventListProps) {
   const items = limit ? events.slice(0, limit) : events;
   if (!items.length)
     return <Typography variant="body2">No events</Typography>;
   return (
     <List>
       {items.map(ev => (
-        <ListItem key={ev.id} disableGutters>
-          <Typography variant="body2">
-            {new Date(ev.date).toLocaleDateString()} - {ev.title}
-          </Typography>
+        <ListItem
+          key={ev.id}
+          disableGutters
+          secondaryAction={
+            onDelete && (
+              <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
+                <DeleteIcon />
+              </IconButton>
+            )
+          }
+        >
+          <ListItemText
+            primary={`${new Date(ev.date).toLocaleDateString()} - ${ev.title}`}
+            secondary={
+              <>
+                {ev.details && (
+                  <Typography variant="body2" component="span" display="block">
+                    {ev.details}
+                  </Typography>
+                )}
+                <Typography variant="caption" component="span" display="block">
+                  Created by {ev.createdByName}
+                </Typography>
+              </>
+            }
+          />
         </ListItem>
       ))}
     </List>
