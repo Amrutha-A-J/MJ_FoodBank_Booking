@@ -3,10 +3,10 @@ import {
   listOutgoingReceivers,
   addOutgoingReceiver,
   topOutgoingReceivers,
-} from '../controllers/outgoingReceiverController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { addOutgoingReceiverSchema } from '../schemas/outgoingReceiverSchemas';
+} from '../../controllers/warehouse/outgoingReceiverController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { addOutgoingReceiverSchema } from '../../schemas/warehouse/outgoingReceiverSchemas';
 
 const router = Router();
 

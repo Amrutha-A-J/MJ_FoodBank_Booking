@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import warehouseOverallRoutes from '../src/routes/warehouseOverall';
+import warehouseOverallRoutes from '../src/routes/warehouse/warehouseOverall';
 import pool from '../src/db';
 import * as XLSX from 'xlsx';
 

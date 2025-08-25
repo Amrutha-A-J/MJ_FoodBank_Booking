@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
-import logger from '../utils/logger';
+import pool from '../../db';
+import logger from '../../utils/logger';
 
 export async function listOutgoingReceivers(_req: Request, res: Response, next: NextFunction) {
   try {

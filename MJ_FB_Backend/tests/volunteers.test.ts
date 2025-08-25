@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import volunteersRouter from '../src/routes/volunteers';
+import volunteersRouter from '../src/routes/volunteer/volunteers';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

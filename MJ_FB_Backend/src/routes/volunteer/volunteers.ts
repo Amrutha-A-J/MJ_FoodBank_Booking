@@ -6,8 +6,8 @@ import {
   searchVolunteers,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-} from '../controllers/volunteerController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+} from '../../controllers/volunteer/volunteerController';
+import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 
 const router = express.Router();
 

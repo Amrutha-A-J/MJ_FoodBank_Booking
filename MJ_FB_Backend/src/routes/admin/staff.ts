@@ -1,7 +1,7 @@
 import express, { NextFunction } from 'express';
-import { checkStaffExists, createStaff, searchStaff } from '../controllers/staffController';
-import { authMiddleware, authorizeRoles, authorizeAccess } from '../middleware/authMiddleware';
-import pool from '../db';
+import { checkStaffExists, createStaff, searchStaff } from '../../controllers/admin/staffController';
+import { authMiddleware, authorizeRoles, authorizeAccess } from '../../middleware/authMiddleware';
+import pool from '../../db';
 
 const router = express.Router();
 

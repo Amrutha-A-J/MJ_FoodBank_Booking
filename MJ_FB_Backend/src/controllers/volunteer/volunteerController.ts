@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
+import pool from '../../db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import config from '../config';
-import logger from '../utils/logger';
+import config from '../../config';
+import logger from '../../utils/logger';
 
 export async function updateTrainedArea(
   req: Request,

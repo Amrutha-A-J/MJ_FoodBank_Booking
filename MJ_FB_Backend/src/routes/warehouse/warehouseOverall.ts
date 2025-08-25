@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { listWarehouseOverall, rebuildWarehouseOverall, exportWarehouseOverall } from '../controllers/warehouseOverallController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
+import { listWarehouseOverall, rebuildWarehouseOverall, exportWarehouseOverall } from '../../controllers/warehouse/warehouseOverallController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
 
 const router = Router();
 

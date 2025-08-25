@@ -8,12 +8,12 @@ import {
   listVolunteerBookingsByVolunteer,
   createVolunteerBookingForVolunteer,
   rescheduleVolunteerBooking,
-} from '../controllers/volunteerBookingController';
+} from '../../controllers/volunteer/volunteerBookingController';
 import {
   authMiddleware,
   authorizeRoles,
   optionalAuthMiddleware,
-} from '../middleware/authMiddleware';
+} from '../../middleware/authMiddleware';
 
 const router = express.Router();
 

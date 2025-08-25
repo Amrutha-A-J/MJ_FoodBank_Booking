@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
-import pool from '../db';
-import { sendEmail } from '../utils/emailUtils';
-import logger from '../utils/logger';
+import pool from '../../db';
+import { sendEmail } from '../../utils/emailUtils';
+import logger from '../../utils/logger';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',

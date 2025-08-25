@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { listPigPounds, addPigPound, updatePigPound, deletePigPound } from '../controllers/pigPoundController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { addPigPoundSchema, updatePigPoundSchema } from '../schemas/pigPoundSchemas';
+import { listPigPounds, addPigPound, updatePigPound, deletePigPound } from '../../controllers/warehouse/pigPoundController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { addPigPoundSchema, updatePigPoundSchema } from '../../schemas/warehouse/pigPoundSchemas';
 
 const router = Router();
 
