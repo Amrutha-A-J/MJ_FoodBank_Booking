@@ -47,8 +47,8 @@ function format(date: Date) {
 }
 
 function formatDisplay(dateStr: string) {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return dateStr;
   return date.toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -256,7 +256,7 @@ export default function PantryVisits({ token }: { token: string }) {
                     onClick={() => {
                       setEditing(v);
                       setForm({
-                        date: v.date,
+                        date: format(new Date(v.date)),
                         anonymous: v.anonymous,
                         clientId: v.clientId ? String(v.clientId) : '',
                         weightWithCart: String(v.weightWithCart),
