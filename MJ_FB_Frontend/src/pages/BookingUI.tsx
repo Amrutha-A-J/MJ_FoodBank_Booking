@@ -97,22 +97,21 @@ export default function BookingUI({
           message: (
             <Stack spacing={2}>
               <Typography>
-                You already have an appointment booked for {dateStr} at {timeStr}, which is
-                currently {status}.
+                You already have an {status} appointment on {dateStr} at {timeStr}.
               </Typography>
               <Typography>
-                If you need to reschedule, please go to your bookings{' '}
+                If you need to reschedule, please do so from your bookings{' '}
                 <Link component={RouterLink} to="/booking-history" underline="hover">
                   page
-                </Link>{' '}and make the change there.
+                </Link>
+                .
               </Typography>
               <Typography>
-                Please note that we do not encourage auto-booking weeks in advance, as our
-                services are meant to be used for emergencies only.
+                Our services are for emergencies, so we don’t encourage auto-booking
+                weeks ahead.
               </Typography>
               <Typography>
-                Once you complete this shopping appointment, you may book another one if
-                you still need assistance.
+                After completing this appointment, you may book another if needed.
               </Typography>
             </Stack>
           ),
