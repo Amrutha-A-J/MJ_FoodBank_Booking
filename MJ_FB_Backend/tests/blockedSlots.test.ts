@@ -32,3 +32,18 @@ describe('blocked slots validation', () => {
     expect(pool.query).not.toHaveBeenCalled();
   });
 });
+
+describe('GET /blocked-slots', () => {
+  it('includes recurring blocked slots', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ slot_id: 1, reason: 'special' }] })
+      .mockResolvedValueOnce({ rows: [{ slot_id: 2, reason: 'weekly' }] });
+
+    const res = await request(app).get('/blocked-slots').query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      { slotId: 1, reason: 'special' },
+      { slotId: 2, reason: 'weekly' },
+    ]);
+  });
+});

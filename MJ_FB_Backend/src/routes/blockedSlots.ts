@@ -6,6 +6,7 @@ import {
   addBlockedSlotSchema,
   deleteBlockedSlotParamsSchema,
 } from '../schemas/blockedSlotSchemas';
+import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
 
 const router = express.Router();
 
@@ -16,8 +17,32 @@ router.get(
   async (req, res) => {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Date required' });
-    const result = await pool.query('SELECT slot_id, reason FROM blocked_slots WHERE date = $1', [date]);
-    res.json(result.rows.map(r => ({ slotId: Number(r.slot_id), reason: r.reason ?? '' })));
+
+    const reginaDate = formatReginaDate(date);
+    const dateObj = new Date(reginaStartOfDayISO(reginaDate));
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
+    const day = dateObj.getDay();
+    const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
+
+    const blockedResult = await pool.query(
+      'SELECT slot_id, reason FROM blocked_slots WHERE date = $1',
+      [reginaDate],
+    );
+    const recurringResult = await pool.query(
+      'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
+      [day, weekOfMonth],
+    );
+    const map = new Map<number, string>();
+    for (const r of recurringResult.rows) {
+      map.set(Number(r.slot_id), r.reason ?? '');
+    }
+    for (const r of blockedResult.rows) {
+      map.set(Number(r.slot_id), r.reason ?? '');
+    }
+
+    res.json(Array.from(map.entries()).map(([slotId, reason]) => ({ slotId, reason })));
   },
 );
 
