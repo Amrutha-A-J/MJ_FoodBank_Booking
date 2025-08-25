@@ -26,14 +26,14 @@ import {
   updateVolunteerBookingStatus,
 } from '../../api/volunteers';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
-import { formatTime } from '../../utils/time';
+import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, {
+  return formatReginaDate(d, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -68,7 +68,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
           : [today];
       const all: VolunteerRole[] = [];
       for (const day of days) {
-        const ds = day.toISOString().split('T')[0];
+        const ds = formatRegina(day, 'yyyy-MM-dd');
         try {
           const roles = await getVolunteerRolesForVolunteer(token, ds);
           all.push(...roles);

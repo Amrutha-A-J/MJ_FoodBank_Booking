@@ -21,7 +21,7 @@ import { EventAvailable, Announcement, History } from '@mui/icons-material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
 import type { Slot, Holiday } from '../../types';
-import { formatTime } from '../../utils/time';
+import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
 
 interface Booking {
@@ -55,7 +55,7 @@ const SectionCard = ({
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return formatReginaDate(d, { month: 'short', day: 'numeric' });
 }
 
 function statusColor(status: string):
@@ -101,7 +101,7 @@ export default function ClientDashboard() {
       [...Array(7)].map(async (_, i) => {
         const d = new Date(today);
         d.setDate(today.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatRegina(d, 'yyyy-MM-dd');
         const slots = (await getSlots(dateStr)) as Slot[];
         const first = slots.find(s => (s.available ?? 0) > 0);
         return first ? { date: dateStr, slot: first } : null;
