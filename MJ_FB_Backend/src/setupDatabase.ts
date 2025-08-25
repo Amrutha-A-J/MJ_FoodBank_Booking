@@ -351,6 +351,14 @@ CREATE TABLE IF NOT EXISTS warehouse_overall (
     PRIMARY KEY (year, month)
 );
 
+CREATE TABLE IF NOT EXISTS donor_aggregations (
+    year integer NOT NULL,
+    month integer NOT NULL CHECK (month BETWEEN 1 AND 12),
+    donor_id integer NOT NULL REFERENCES public.donors(id),
+    total integer NOT NULL DEFAULT 0,
+    PRIMARY KEY (year, month, donor_id)
+);
+
 CREATE TABLE IF NOT EXISTS volunteer_trained_roles (
     volunteer_id integer NOT NULL,
     role_id integer NOT NULL,
@@ -523,6 +531,9 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
   );
   await client.query(
     `CREATE INDEX IF NOT EXISTS warehouse_overall_year_idx ON warehouse_overall (year);`
+  );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS donor_aggregations_year_idx ON donor_aggregations (year);`
   );
 
   // Insert master data

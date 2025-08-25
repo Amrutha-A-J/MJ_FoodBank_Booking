@@ -4,7 +4,7 @@ import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 
 export async function refreshWarehouseOverall(year: number, month: number) {
-  const [donationsRes, surplusRes, pigRes, outgoingRes] = await Promise.all([
+  const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
     pool.query(
       `SELECT COALESCE(SUM(weight)::int, 0) AS total
          FROM donations
@@ -29,6 +29,13 @@ export async function refreshWarehouseOverall(year: number, month: number) {
          WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
       [year, month],
     ),
+    pool.query(
+      `SELECT donor_id AS "donorId", COALESCE(SUM(weight)::int, 0) AS total
+         FROM donations
+         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2
+         GROUP BY donor_id`,
+      [year, month],
+    ),
   ]);
 
   const donations = Number(donationsRes.rows[0]?.total ?? 0);
@@ -46,6 +53,20 @@ export async function refreshWarehouseOverall(year: number, month: number) {
                      outgoing_donations = EXCLUDED.outgoing_donations`,
     [year, month, donations, surplus, pigPound, outgoingDonations],
   );
+
+  // Refresh donor aggregations for the given month
+  const donorRows = donorAggRes.rows as { donorId: number; total: number }[];
+  await pool.query('DELETE FROM donor_aggregations WHERE year = $1 AND month = $2', [year, month]);
+  if (donorRows.length > 0) {
+    const valueClauses = donorRows
+      .map((_, i) => `($1, $2, $${i * 2 + 3}, $${i * 2 + 4})`)
+      .join(',');
+    const params = [year, month, ...donorRows.flatMap(r => [r.donorId, r.total])];
+    await pool.query(
+      `INSERT INTO donor_aggregations (year, month, donor_id, total) VALUES ${valueClauses}`,
+      params,
+    );
+  }
 }
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
