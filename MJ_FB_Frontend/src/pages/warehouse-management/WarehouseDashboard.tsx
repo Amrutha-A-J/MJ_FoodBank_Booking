@@ -444,6 +444,7 @@ export default function WarehouseDashboard() {
                 <Bar
                   dataKey="outgoing"
                   name="Outgoing"
+                  stackId="a"
                   fill={theme.palette.error.main}
                 />
               </BarChart>
