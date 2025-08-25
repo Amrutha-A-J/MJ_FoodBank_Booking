@@ -28,6 +28,8 @@ export interface Slot {
   startTime: string;
   endTime: string;
   available?: number;
+  reason?: string;
+  status?: 'blocked' | 'break';
 }
 
 export interface SlotsByDate {
