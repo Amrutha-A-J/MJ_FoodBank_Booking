@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
-import slotRules from '../config/slotRules.json';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
 
 async function getSlotsForDate(date: string): Promise<Slot[]> {
@@ -41,17 +40,19 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
   }
 
   const blockedResult = await pool.query(
-    'SELECT slot_id FROM blocked_slots WHERE date = $1',
+    'SELECT slot_id, reason FROM blocked_slots WHERE date = $1',
     [reginaDate],
   );
-  const blockedSet = new Set(blockedResult.rows.map(r => Number(r.slot_id)));
+  const blockedMap = new Map<number, string>(
+    blockedResult.rows.map(r => [Number(r.slot_id), r.reason || '']),
+  );
   const breakResult = await pool.query(
-    'SELECT slot_id FROM breaks WHERE day_of_week = $1',
+    'SELECT slot_id, reason FROM breaks WHERE day_of_week = $1',
     [day],
   );
-  const breakSet = new Set(breakResult.rows.map(r => Number(r.slot_id)));
-
-  slots = slots.filter(s => !blockedSet.has(s.id) && !breakSet.has(s.id));
+  const breakMap = new Map<number, string>(
+    breakResult.rows.map(r => [Number(r.slot_id), r.reason || '']),
+  );
 
   const bookingsResult = await pool.query(
     `SELECT slot_id, COUNT(*) AS approved_count
@@ -66,13 +67,29 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
     approvedMap[row.slot_id] = Number(row.approved_count);
   }
 
-  return slots.map((slot: any) => ({
-    id: slot.id.toString(),
-    startTime: slot.start_time,
-    endTime: slot.end_time,
-    maxCapacity: slot.max_capacity,
-    available: slot.max_capacity - (approvedMap[slot.id] || 0),
-  }));
+  return slots.map((slot: any) => {
+    const blockedReason = blockedMap.get(slot.id);
+    const breakReason = breakMap.get(slot.id);
+    const reason = blockedReason ?? breakReason;
+    const status = blockedReason
+      ? 'blocked'
+      : breakReason
+      ? 'break'
+      : undefined;
+    const available = reason
+      ? 0
+      : slot.max_capacity - (approvedMap[slot.id] || 0);
+    const result: Slot = {
+      id: slot.id.toString(),
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      maxCapacity: slot.max_capacity,
+      available,
+    };
+    if (reason) result.reason = reason;
+    if (status) result.status = status as 'blocked' | 'break';
+    return result;
+  });
 }
 
 export async function listSlots(req: Request, res: Response, next: NextFunction) {
@@ -80,7 +97,25 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
   if (!date) return res.status(400).json({ message: 'Date query parameter required' });
 
   try {
-    const slotsWithAvailability = await getSlotsForDate(date);
+    const reginaDate = formatReginaDate(date);
+    const dateObj = new Date(reginaStartOfDayISO(reginaDate));
+    const day = dateObj.getDay();
+    if (day === 0 || day === 6) {
+      return res
+        .status(400)
+        .json({ message: 'Moose Jaw Food Bank is closed on weekends' });
+    }
+    const holidayResult = await pool.query(
+      'SELECT reason FROM holidays WHERE date = $1',
+      [reginaDate],
+    );
+    if (holidayResult.rowCount > 0) {
+      const reason = holidayResult.rows[0].reason || 'Holiday';
+      return res
+        .status(400)
+        .json({ message: `Moose Jaw Food Bank is closed: ${reason}` });
+    }
+    const slotsWithAvailability = await getSlotsForDate(reginaDate);
     res.json(slotsWithAvailability);
   } catch (error: any) {
     if (error.message === 'Invalid date') {

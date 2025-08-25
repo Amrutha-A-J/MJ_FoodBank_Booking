@@ -11,6 +11,8 @@ export async function getSlots(date?: string) {
     startTime: s.startTime ?? s.start_time,
     endTime: s.endTime ?? s.end_time,
     available: s.available,
+    reason: s.reason,
+    status: s.status,
   })) as Slot[];
 }
 
@@ -30,6 +32,8 @@ export async function getSlotsRange(
       startTime: s.startTime ?? s.start_time,
       endTime: s.endTime ?? s.end_time,
       available: s.available,
+      reason: s.reason,
+      status: s.status,
     })) as Slot[],
   }));
 }

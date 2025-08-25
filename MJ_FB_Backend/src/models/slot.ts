@@ -4,5 +4,7 @@ export interface Slot {
   endTime: string;   // e.g., "10:00"
   maxCapacity: number;
   available?: number;
+  reason?: string;
+  status?: 'blocked' | 'break';
 }
 

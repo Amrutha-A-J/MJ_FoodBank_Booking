@@ -27,11 +27,11 @@ import FeedbackSnackbar from '../components/FeedbackSnackbar';
 // Wrappers to match required signatures
 function useSlots(date: Dayjs) {
   const dateStr = date.format('YYYY-MM-DD');
-  const { data, isFetching, refetch } = useQuery<Slot[]>({
+  const { data, isFetching, refetch, error } = useQuery<Slot[]>({
     queryKey: ['slots', dateStr],
     queryFn: () => getSlots(dateStr),
   });
-  return { slots: data ?? [], isLoading: isFetching, refetch };
+  return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
 function bookSlot(payload: { date: string; slotId: string }): Promise<void> {
@@ -49,7 +49,7 @@ export default function BookingUI({
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(initialDate);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const { slots, isLoading, refetch } = useSlots(date);
+  const { slots, isLoading, refetch, error } = useSlots(date);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -116,7 +116,9 @@ export default function BookingUI({
       >
         <ListItemText
           primary={label}
-          secondary={isFull ? 'Fully booked' : 'Choose this time'}
+          secondary={
+            isFull ? (slot.reason ? slot.reason : 'Fully booked') : 'Choose this time'
+          }
         />
         <Chip
           label={isFull ? 'Full' : `Available: ${available}`}
@@ -187,6 +189,17 @@ export default function BookingUI({
                     sx={{ mb: 1, borderRadius: 1 }}
                   />
                 ))}
+              </Box>
+            ) : error ? (
+              <Box
+                sx={{
+                  minHeight: 200,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Typography>{error instanceof Error ? error.message : 'Error loading slots'}</Typography>
               </Box>
             ) : slots.length === 0 ? (
               <Box
