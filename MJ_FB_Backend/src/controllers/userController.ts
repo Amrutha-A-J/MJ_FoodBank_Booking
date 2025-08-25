@@ -126,9 +126,10 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
+    const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         firstName || null,
         lastName || null,
@@ -138,6 +139,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
         role,
         hashedPassword,
         onlineAccess,
+        profileLink,
       ]
     );
 
