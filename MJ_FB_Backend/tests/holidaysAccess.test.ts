@@ -26,7 +26,47 @@ describe('GET /holidays', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+        rows: [
+          {
+            id: 1,
+            first_name: 'Test',
+            last_name: 'User',
+            email: 'test@example.com',
+            role: 'shopper',
+            phone: '123',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ date: new Date('2024-12-25'), reason: 'Christmas' }],
+      });
+
+    const res = await request(app)
+      .get('/holidays')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([{ date: '2024-12-25', reason: 'Christmas' }]);
+  });
+
+  it('allows staff to fetch holidays', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'coordinator',
+      type: 'staff',
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'Test',
+            last_name: 'Staff',
+            email: 'staff@example.com',
+            role: 'coordinator',
+          },
+        ],
       })
       .mockResolvedValueOnce({
         rows: [{ date: new Date('2024-12-25'), reason: 'Christmas' }],
