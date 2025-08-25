@@ -81,6 +81,17 @@ export async function getUserProfile(_token: string): Promise<UserProfile> {
   return handleResponse(res);
 }
 
+export async function updateMyProfile(
+  data: { email?: string; phone?: string },
+): Promise<UserProfile> {
+  const res = await apiFetch(`${API_BASE}/users/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function staffExists(): Promise<boolean> {
   const res = await apiFetch(`${API_BASE}/staff/exists`);
   const data = (await handleResponse(res)) as { exists?: boolean } | undefined;

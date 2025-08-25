@@ -7,10 +7,16 @@ import {
   getUserByClientId,
   listUsersMissingInfo,
   updateUserByClientId,
+  updateMyProfile,
 } from '../controllers/userController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
-import { loginSchema, createUserSchema, updateUserSchema } from '../schemas/userSchemas';
+import {
+  loginSchema,
+  createUserSchema,
+  updateUserSchema,
+  updateMyProfileSchema,
+} from '../schemas/userSchemas';
 
 const router = express.Router();
 
@@ -43,6 +49,7 @@ router.get(
   listUsersMissingInfo,
 );
 router.get('/me', authMiddleware, getUserProfile);
+router.patch('/me', authMiddleware, validate(updateMyProfileSchema), updateMyProfile);
 
 
 export default router;
