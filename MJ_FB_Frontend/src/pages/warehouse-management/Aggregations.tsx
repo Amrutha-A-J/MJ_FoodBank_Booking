@@ -21,6 +21,7 @@ import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
   exportWarehouseOverall,
+  getWarehouseOverallYears,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
@@ -33,12 +34,35 @@ export default function Aggregations() {
   const [exporting, setExporting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = new Date().getFullYear();
-  const [overallYear, setOverallYear] = useState(currentYear);
-  const [donorYear, setDonorYear] = useState(currentYear);
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const [years, setYears] = useState<number[]>(fallbackYears);
+  const [overallYear, setOverallYear] = useState(fallbackYears[0]);
+  const [donorYear, setDonorYear] = useState(fallbackYears[0]);
   const [tab, setTab] = useState(0);
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadYears() {
+      try {
+        const ys = await getWarehouseOverallYears();
+        if (ys.length) {
+          setYears(ys);
+          setOverallYear(ys[0]);
+          setDonorYear(ys[0]);
+        } else {
+          setYears(fallbackYears);
+          setOverallYear(fallbackYears[0]);
+          setDonorYear(fallbackYears[0]);
+        }
+      } catch {
+        setYears(fallbackYears);
+        setOverallYear(fallbackYears[0]);
+        setDonorYear(fallbackYears[0]);
+      }
+    }
+    loadYears();
+  }, []);
 
   useEffect(() => {
     setOverallLoading(true);
