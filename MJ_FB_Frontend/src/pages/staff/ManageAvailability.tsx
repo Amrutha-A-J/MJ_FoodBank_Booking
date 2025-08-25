@@ -58,7 +58,7 @@ const slotOptions = [
   { id: 2, label: '10:00–11:00' },
   { id: 3, label: '11:00–12:00' },
 ];
-const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 160 } } };
+const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 200 } } };
 
 interface HolidayItem {
   id: number;
@@ -274,7 +274,7 @@ export default function ManageAvailability() {
                   {isRecurring ? (
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
                           <InputLabel id="blocked-day-label">Day</InputLabel>
                           <Select
                             labelId="blocked-day-label"
@@ -292,7 +292,7 @@ export default function ManageAvailability() {
                         </FormControl>
                       </Grid>
                       <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
                           <InputLabel id="blocked-week-label">Week</InputLabel>
                           <Select
                             labelId="blocked-week-label"
@@ -390,7 +390,7 @@ export default function ManageAvailability() {
               <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="break-day-label">Day</InputLabel>
                       <Select
                         labelId="break-day-label"
@@ -408,7 +408,7 @@ export default function ManageAvailability() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="break-slot-label">Slot</InputLabel>
                       <Select
                         labelId="break-slot-label"
