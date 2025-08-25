@@ -7,7 +7,8 @@ export async function listEvents(_req: Request, res: Response, next: NextFunctio
   try {
     const result = await pool.query(
       `SELECT e.id, e.title, e.details, e.category, e.date, e.created_at, e.updated_at,
-              COALESCE(json_agg(es.staff_id) FILTER (WHERE es.staff_id IS NOT NULL), '[]') AS staff_ids
+              e.created_by AS "createdBy",
+              COALESCE(json_agg(es.staff_id) FILTER (WHERE es.staff_id IS NOT NULL), '[]') AS "staffIds"
        FROM events e
        LEFT JOIN event_staff es ON e.id = es.event_id
        GROUP BY e.id
@@ -44,9 +45,10 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
   }
   const { title, details, category, date, staffIds } = parsed.data;
   try {
+    const createdBy = Number((req.user as any).id);
     const inserted = await pool.query(
-      `INSERT INTO events (title, details, category, date) VALUES ($1,$2,$3,$4) RETURNING id`,
-      [title, details, category, date]
+      `INSERT INTO events (title, details, category, date, created_by) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+      [title, details, category, date, createdBy]
     );
     const eventId = inserted.rows[0].id;
     if (staffIds && staffIds.length > 0) {
