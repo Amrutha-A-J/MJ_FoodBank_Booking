@@ -46,7 +46,7 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
-    ? [{ label: 'Events', to: '/events' }]
+    ? [{ label: 'Events', to: '/pantry/events' }]
     : undefined;
   if (!token) {
     navGroups.push(
@@ -56,13 +56,13 @@ export default function App() {
     );
   } else if (isStaff) {
     const staffLinks = [
-      { label: 'Manage Availability', to: '/manage-availability' },
-      { label: 'Pantry Schedule', to: '/pantry-schedule' },
-      { label: 'Pantry Visits', to: '/pantry-visits' },
-      { label: 'Add Client', to: '/add-user' },
-      { label: 'Client History', to: '/user-history' },
-      { label: 'Pending', to: '/pending' },
-      { label: 'Events', to: '/events' },
+      { label: 'Manage Availability', to: '/pantry/manage-availability' },
+      { label: 'Pantry Schedule', to: '/pantry/schedule' },
+      { label: 'Pantry Visits', to: '/pantry/visits' },
+      { label: 'Add Client', to: '/pantry/add-user' },
+      { label: 'Client History', to: '/pantry/user-history' },
+      { label: 'Pending', to: '/pantry/pending' },
+      { label: 'Events', to: '/pantry/events' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -163,13 +163,13 @@ export default function App() {
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
               {showStaff && (
-                <Route path="/manage-availability" element={<ManageAvailability />} />
+                <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
               )}
               {showStaff && (
-                <Route path="/pantry-schedule" element={<PantrySchedule token={token} />} />
+                <Route path="/pantry/schedule" element={<PantrySchedule token={token} />} />
               )}
               {showStaff && (
-                <Route path="/pantry-visits" element={<PantryVisits token={token} />} />
+                <Route path="/pantry/visits" element={<PantryVisits token={token} />} />
               )}
               {showWarehouse && (
                 <Route path="/warehouse-management" element={<WarehouseDashboard />} />
@@ -232,10 +232,10 @@ export default function App() {
                   }
                 />
               )}
-              {showStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
-              {showStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
-              {showStaff && <Route path="/pending" element={<Pending />} />}
-              {showStaff && <Route path="/events" element={<Events />} />}
+              {showStaff && <Route path="/pantry/add-user" element={<AddUser token={token} />} />}
+              {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
+              {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
+              {showStaff && <Route path="/pantry/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
