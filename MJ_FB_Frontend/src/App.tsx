@@ -25,7 +25,7 @@ import Aggregations from './pages/warehouse-management/Aggregations';
 import DonorProfile from './pages/warehouse-management/DonorProfile';
 import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
-import Events from './pages/Events';
+import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';

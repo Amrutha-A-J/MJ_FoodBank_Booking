@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, CardContent, Grid, List, ListItem, Typography } from '@mui/material';
-import Page from '../components/Page';
-import EventForm from '../components/EventForm';
-import { getEvents, type Event } from '../api/events';
+import Page from '../../components/Page';
+import EventForm from '../../components/EventForm';
+import { getEvents, type Event } from '../../api/events';
 
 function groupEvents(events: Event[] = []) {
   const todayStr = new Date().toISOString().split('T')[0];
