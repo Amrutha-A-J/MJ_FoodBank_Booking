@@ -1,6 +1,11 @@
 import express from 'express';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import pool from '../db';
+import { validate, validateParams } from '../middleware/validate';
+import {
+  addBlockedSlotSchema,
+  deleteBlockedSlotParamsSchema,
+} from '../schemas/blockedSlotSchemas';
 
 const router = express.Router();
 
@@ -20,9 +25,9 @@ router.post(
   '/',
   authMiddleware,
   authorizeRoles('staff'),
+  validate(addBlockedSlotSchema),
   async (req, res) => {
     const { date, slotId, reason } = req.body;
-    if (!date || !slotId) return res.status(400).json({ message: 'Date and slotId required' });
     await pool.query(
       'INSERT INTO blocked_slots (date, slot_id, reason) VALUES ($1, $2, $3) ON CONFLICT (date, slot_id) DO UPDATE SET reason = EXCLUDED.reason',
       [date, slotId, reason ?? null]
@@ -35,6 +40,7 @@ router.delete(
   '/:date/:slotId',
   authMiddleware,
   authorizeRoles('staff'),
+  validateParams(deleteBlockedSlotParamsSchema),
   async (req, res) => {
     const { date, slotId } = req.params;
     await pool.query('DELETE FROM blocked_slots WHERE date = $1 AND slot_id = $2', [date, slotId]);

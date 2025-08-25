@@ -53,6 +53,13 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `SMTP_FROM_EMAIL` | Email address used as the sender |
 | `SMTP_FROM_NAME` | Optional sender name displayed in emails |
 
+### Password Requirements
+
+All API endpoints that create or change passwords enforce the following rules:
+- Minimum length of 8 characters
+- Must include uppercase, lowercase, numeric, and special characters
+Requests with passwords that do not meet these requirements are rejected before hashing.
+
 You can generate a secure `JWT_SECRET` with:
 
 ```bash

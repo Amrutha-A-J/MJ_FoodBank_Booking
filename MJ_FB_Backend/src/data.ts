@@ -17,8 +17,15 @@ export const slots: Slot[] = [];
 
 export const bookings: Booking[] = [];
 
+let slotsInitialized = false;
+
 // Initialize slots: 9:30 to 14:30 every 30 minutes (10 slots)
 export function initializeSlots() {
+  if (slotsInitialized) {
+    return;
+  }
+
+  slots.length = 0;
   let hour = 9;
   let minute = 30;
 
@@ -38,4 +45,6 @@ export function initializeSlots() {
       maxCapacity: 4,
     });
   }
+
+  slotsInitialized = true;
 }

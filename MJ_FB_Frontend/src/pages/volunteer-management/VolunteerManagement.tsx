@@ -92,6 +92,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
 
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
@@ -296,6 +297,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
       }
       if (tab === 'pending') loadPending();
     } catch (e) {
+      setSnackbarSeverity('error');
       setMessage(e instanceof Error ? e.message : String(e));
     }
   }
@@ -929,7 +931,7 @@ export default function VolunteerManagement({ token }: { token: string }) {
         />
       )}
 
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       <FeedbackSnackbar
         open={!!editMsg}
         onClose={() => setEditMsg('')}

@@ -53,19 +53,34 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
     }
 
-    await checkSlotCapacity(slotIdNum, date);
+    const client = await pool.connect();
+    let token: string | undefined;
     const status = isStaffBooking ? 'approved' : 'submitted';
-    const token = randomUUID();
-
-    await insertBooking(
-      userId,
-      slotIdNum,
-      status,
-      '',
-      date,
-      isStaffBooking || false,
-      token,
-    );
+    try {
+      await client.query('BEGIN');
+      await checkSlotCapacity(slotIdNum, date, client);
+      token = randomUUID();
+      await insertBooking(
+        userId,
+        slotIdNum,
+        status,
+        '',
+        date,
+        isStaffBooking || false,
+        token,
+        client,
+      );
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      if (err instanceof SlotCapacityError) {
+        client.release();
+        return res.status(err.status).json({ message: err.message });
+      }
+      client.release();
+      throw err;
+    }
+    client.release();
 
     await sendEmail(
       user.email || 'test@example.com',
@@ -124,11 +139,25 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
       if (approvedCount >= 2) {
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
-      await checkSlotCapacity(booking.slot_id, booking.date);
-      await updateBooking(Number(bookingId), {
-        status: 'approved',
-        request_data: reason,
-      });
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await checkSlotCapacity(booking.slot_id, booking.date, client);
+        await updateBooking(Number(bookingId), {
+          status: 'approved',
+          request_data: reason,
+        }, client);
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        if (err instanceof SlotCapacityError) {
+          client.release();
+          return res.status(err.status).json({ message: err.message });
+        }
+        client.release();
+        throw err;
+      }
+      client.release();
       await updateBookingsThisMonth(booking.user_id);
     } else {
       await updateBooking(Number(bookingId), {

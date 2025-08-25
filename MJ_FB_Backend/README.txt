@@ -35,6 +35,10 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `SMTP_FROM_NAME` – Optional display name for the sender.
 
+## Password Policy
+
+Passwords must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. Requests with weak passwords are rejected before hashing.
+
 ## Authentication Tokens
 
 Login responses now return a JSON Web Token (JWT) instead of a simple `type:id` string. Clients must send this token in the `Authorization` header using the standard Bearer format:

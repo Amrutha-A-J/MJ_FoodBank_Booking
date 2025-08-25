@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
+import { validatePassword } from '../utils/passwordUtils';
+import cookie from 'cookie';
 
 export async function requestPasswordReset(
   req: Request,
@@ -54,6 +56,11 @@ export async function changePassword(
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Missing fields' });
   }
+
+  const pwError = validatePassword(newPassword);
+  if (pwError) {
+    return res.status(400).json({ message: pwError });
+  }
   try {
     let table = 'clients';
     if (user.type === 'staff') table = 'staff';
@@ -78,16 +85,10 @@ export async function changePassword(
 }
 
 function getRefreshTokenFromCookies(req: Request) {
-  const cookie = req.headers.cookie;
-  if (!cookie) return undefined;
-  const cookies = Object.fromEntries(
-    cookie.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    }),
-  );
-  const token = cookies.refreshToken;
-  return token ? decodeURIComponent(token) : undefined;
+  const header = req.headers.cookie;
+  if (!header) return undefined;
+  const cookies = cookie.parse(header);
+  return cookies.refreshToken;
 }
 
 export async function refreshToken(req: Request, res: Response, next: NextFunction) {

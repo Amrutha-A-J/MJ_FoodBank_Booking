@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '../utils/passwordUtils';
 
 // Schema for the login endpoint. Requires a password and either
 // an email or a clientId (but not both).
@@ -27,7 +28,7 @@ export const createUserSchema = z
     phone: z.string().optional(),
     clientId: z.coerce.number().int().min(1).max(9_999_999),
     role: z.enum(['shopper', 'delivery']),
-    password: z.string().optional(),
+    password: passwordSchema.optional(),
     onlineAccess: z.boolean(),
   })
   .refine(

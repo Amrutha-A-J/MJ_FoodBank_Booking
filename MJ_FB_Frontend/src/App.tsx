@@ -62,7 +62,6 @@ export default function App() {
       { label: 'Add Client', to: '/pantry/add-user' },
       { label: 'Client History', to: '/pantry/user-history' },
       { label: 'Pending', to: '/pantry/pending' },
-      { label: 'Events', to: '/pantry/events' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)

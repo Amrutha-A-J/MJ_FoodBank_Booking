@@ -17,6 +17,7 @@ import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import {
   Box,
   FormControl,
@@ -34,6 +35,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
+import type { AlertColor } from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -50,7 +52,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
+  const [rescheduleBooking, setRescheduleBooking] =
+    useState<VolunteerBooking | null>(null);
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
 
@@ -133,10 +138,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
+      setSnackbarSeverity('success');
       setMessage(`Booking request for ${dateLabel} · ${timeLabel} submitted`);
       setRequestRole(null);
       await loadData();
     } catch (err) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -151,6 +158,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       );
       await loadData();
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to cancel booking');
     } finally {
       setDecisionBooking(null);
@@ -158,23 +166,21 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     }
   }
 
-  async function rescheduleSelected() {
-    if (!decisionBooking) return;
-    const date = prompt('Enter new date (YYYY-MM-DD)');
-    const role = prompt('Enter new role ID');
-    if (!date || !role) return;
+  async function handleReschedule(date: string, roleId: number) {
+    if (!rescheduleBooking) return;
     try {
       await rescheduleVolunteerBookingByToken(
-        decisionBooking.reschedule_token || '',
-        Number(role),
+        rescheduleBooking.reschedule_token || '',
+        roleId,
         date,
       );
+      setMessage('Booking rescheduled');
       await loadData();
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to reschedule booking');
     } finally {
-      setDecisionBooking(null);
-      setDecisionReason('');
+      setRescheduleBooking(null);
     }
   }
 
@@ -237,6 +243,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
               setRequestRole(role);
               setMessage('');
             } else {
+              setSnackbarSeverity('error');
               setMessage('Booking not allowed on weekends or holidays');
             }
           },
@@ -300,7 +307,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             open={!!message}
             onClose={() => setMessage('')}
             message={message}
-            severity={message.startsWith('Booking') ? 'success' : 'error'}
+            severity={snackbarSeverity}
           />
           {isClosed ? (
             <Typography align="center">
@@ -347,7 +354,17 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={rescheduleSelected} variant="outlined" color="primary">Reschedule</Button>
+          <Button
+            onClick={() => {
+              setRescheduleBooking(decisionBooking);
+              setDecisionBooking(null);
+              setDecisionReason('');
+            }}
+            variant="outlined"
+            color="primary"
+          >
+            Reschedule
+          </Button>
           <Button onClick={cancelSelected} variant="outlined" color="primary">Cancel Booking</Button>
           <Button
             onClick={() => {
@@ -361,6 +378,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RescheduleDialog
+        open={!!rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onSubmit={handleReschedule}
+      />
     </Box>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 import { requestPasswordReset } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import type { AlertColor } from '@mui/material';
 
 export default function PasswordResetDialog({
   open,
@@ -15,6 +16,7 @@ export default function PasswordResetDialog({
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   const label =
     type === 'staff' ? 'Email' : type === 'volunteer' ? 'Username' : 'Client ID';
@@ -29,6 +31,7 @@ export default function PasswordResetDialog({
           ? { username: identifier }
           : { clientId: identifier };
       await requestPasswordReset(body);
+      setSnackbarSeverity('success');
       setMessage('If the account exists, a reset link has been sent.');
       setIdentifier('');
     } catch (err: unknown) {
@@ -56,7 +59,7 @@ export default function PasswordResetDialog({
           <Button type="submit" variant="contained">Submit</Button>
         </DialogActions>
       </Dialog>
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="success" />
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>
   );
