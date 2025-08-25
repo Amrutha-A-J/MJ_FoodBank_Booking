@@ -34,6 +34,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
+import type { AlertColor } from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -51,6 +52,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     useState<VolunteerBooking | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
 
@@ -133,10 +135,12 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
+      setSnackbarSeverity('success');
       setMessage(`Booking request for ${dateLabel} · ${timeLabel} submitted`);
       setRequestRole(null);
       await loadData();
     } catch (err) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -151,6 +155,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       );
       await loadData();
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to cancel booking');
     } finally {
       setDecisionBooking(null);
@@ -171,6 +176,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       );
       await loadData();
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to reschedule booking');
     } finally {
       setDecisionBooking(null);
@@ -237,6 +243,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
               setRequestRole(role);
               setMessage('');
             } else {
+              setSnackbarSeverity('error');
               setMessage('Booking not allowed on weekends or holidays');
             }
           },
@@ -300,7 +307,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
             open={!!message}
             onClose={() => setMessage('')}
             message={message}
-            severity={message.startsWith('Booking') ? 'success' : 'error'}
+            severity={snackbarSeverity}
           />
           {isClosed ? (
             <Typography align="center">

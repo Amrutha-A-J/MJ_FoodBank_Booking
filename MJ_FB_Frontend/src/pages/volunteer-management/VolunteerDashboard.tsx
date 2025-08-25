@@ -29,6 +29,7 @@ import type { VolunteerBooking, VolunteerRole } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
+import type { AlertColor } from '@mui/material';
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -45,6 +46,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -111,10 +113,12 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   async function request(role: VolunteerRole) {
     try {
       await requestVolunteerBooking(token, role.id, role.date);
+      setSnackbarSeverity('success');
       setMessage('Request submitted');
       const data = await getMyVolunteerBookings(token);
       setBookings(data);
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to request shift');
     }
   }
@@ -123,10 +127,12 @@ export default function VolunteerDashboard({ token }: { token: string }) {
     if (!nextShift) return;
     try {
       await updateVolunteerBookingStatus(token, nextShift.id, 'cancelled');
+      setSnackbarSeverity('success');
       setMessage('Booking cancelled');
       const data = await getMyVolunteerBookings(token);
       setBookings(data);
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to cancel booking');
     }
   }
@@ -316,7 +322,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
         open={!!message}
         onClose={() => setMessage('')}
         message={message}
-        severity="info"
+        severity={snackbarSeverity}
       />
     </Page>
   );
