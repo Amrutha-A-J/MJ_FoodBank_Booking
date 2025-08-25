@@ -5,10 +5,10 @@ import {
   searchUsers,
   getUserProfile,
   getUserByClientId,
-} from '../controllers/userController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { loginSchema, createUserSchema } from '../schemas/userSchemas';
+} from '../../controllers/admin/userController';
+import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { loginSchema, createUserSchema } from '../../schemas/userSchemas';
 
 const router = express.Router();
 

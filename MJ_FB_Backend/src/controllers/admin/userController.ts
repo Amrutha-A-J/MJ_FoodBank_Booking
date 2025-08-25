@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
-import { UserRole } from '../models/user';
+import pool from '../../db';
+import { UserRole } from '../../models/user';
 import bcrypt from 'bcrypt';
-import { updateBookingsThisMonth } from '../utils/bookingUtils';
-import logger from '../utils/logger';
-import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
+import { updateBookingsThisMonth } from '../../utils/bookingUtils';
+import logger from '../../utils/logger';
+import issueAuthTokens, { AuthPayload } from '../../utils/authUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;

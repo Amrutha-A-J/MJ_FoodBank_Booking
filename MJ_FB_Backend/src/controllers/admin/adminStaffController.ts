@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
+import pool from '../../db';
 import bcrypt from 'bcrypt';
-import logger from '../utils/logger';
-import { createStaffSchema, updateStaffSchema } from '../schemas/staffSchemas';
+import logger from '../../utils/logger';
+import { createStaffSchema, updateStaffSchema } from '../../schemas/staffSchemas';
 
 export async function listStaff(_req: Request, res: Response, next: NextFunction) {
   try {

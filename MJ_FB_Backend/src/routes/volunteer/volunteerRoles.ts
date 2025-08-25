@@ -6,8 +6,8 @@ import {
   deleteVolunteerRole,
   listVolunteerRolesForVolunteer,
   updateVolunteerRoleStatus,
-} from '../controllers/volunteerRoleController';
-import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+} from '../../controllers/volunteer/volunteerRoleController';
+import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 
 const router = express.Router();
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listVolunteerRolesForVolunteer);

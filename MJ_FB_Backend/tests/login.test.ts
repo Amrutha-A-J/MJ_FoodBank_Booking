@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import usersRouter from '../src/routes/users';
+import usersRouter from '../src/routes/admin/users';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';

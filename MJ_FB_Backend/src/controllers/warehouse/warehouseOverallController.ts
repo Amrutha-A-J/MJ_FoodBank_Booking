@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
-import logger from '../utils/logger';
+import pool from '../../db';
+import logger from '../../utils/logger';
 import XLSX from 'xlsx';
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {

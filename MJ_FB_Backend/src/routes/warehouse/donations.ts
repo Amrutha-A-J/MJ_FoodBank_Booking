@@ -1,8 +1,14 @@
 import { Router } from 'express';
-import { listDonations, addDonation, updateDonation, deleteDonation, donorAggregations } from '../controllers/donationController';
-import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { addDonationSchema, updateDonationSchema } from '../schemas/donationSchemas';
+import {
+  listDonations,
+  addDonation,
+  updateDonation,
+  deleteDonation,
+  donorAggregations,
+} from '../../controllers/warehouse/donationController';
+import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { addDonationSchema, updateDonationSchema } from '../../schemas/donationSchemas';
 
 const router = Router();
 

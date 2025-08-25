@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import donorsRoutes from '../src/routes/donors';
+import donorsRoutes from '../src/routes/warehouse/donors';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 

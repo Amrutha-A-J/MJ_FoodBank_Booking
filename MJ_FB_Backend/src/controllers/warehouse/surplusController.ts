@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import pool from '../db';
-import config from '../config';
-import logger from '../utils/logger';
+import pool from '../../db';
+import config from '../../config';
+import logger from '../../utils/logger';
 
 function calculateWeight(type: 'BREAD' | 'CANS', count: number) {
   const multiplier = type === 'BREAD' ? config.breadWeightMultiplier : config.cansWeightMultiplier;

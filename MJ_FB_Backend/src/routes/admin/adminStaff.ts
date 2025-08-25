@@ -6,10 +6,14 @@ import {
   updateStaff,
   deleteStaff,
   searchStaff,
-} from '../controllers/adminStaffController';
-import { authMiddleware, authorizeRoles, authorizeAccess } from '../middleware/authMiddleware';
-import { validate } from '../middleware/validate';
-import { createStaffSchema, updateStaffSchema } from '../schemas/staffSchemas';
+} from '../../controllers/admin/adminStaffController';
+import {
+  authMiddleware,
+  authorizeRoles,
+  authorizeAccess,
+} from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { createStaffSchema, updateStaffSchema } from '../../schemas/staffSchemas';
 
 const router = Router();
 
