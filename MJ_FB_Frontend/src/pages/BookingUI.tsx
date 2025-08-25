@@ -136,7 +136,7 @@ export default function BookingUI({
     : '';
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="lg" sx={{ pb: { xs: 9, md: 0 } }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
         Booking for: {shopperName}
@@ -216,7 +216,16 @@ export default function BookingUI({
         </Grid>
       </Grid>
       <Paper
-        sx={{ position: 'sticky', bottom: 0, mt: 2, p: 2, borderRadius: 2 }}
+        sx={{
+          position: { xs: 'fixed', md: 'sticky' },
+          bottom: 0,
+          left: 0,
+          right: 0,
+          mt: 2,
+          p: 2,
+          borderRadius: { xs: 0, md: 2 },
+          zIndex: theme => theme.zIndex.appBar,
+        }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography>
