@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
@@ -252,7 +252,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     const myBooking = bookings.find(b => b.role_id === role.id);
     const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
     const cells: {
-      content: string;
+      content: ReactNode;
       backgroundColor?: string;
       onClick?: () => void;
     }[] = [];
@@ -277,7 +277,13 @@ export default function VolunteerSchedule({ token }: { token: string }) {
         });
       } else {
         cells.push({
-          content: 'Available',
+          content: (
+            <>
+              Volunteer Needed
+              <br />
+              Click Here to Book
+            </>
+          ),
           onClick: () => {
             if (!isClosed) {
               setFrequency('one-time');

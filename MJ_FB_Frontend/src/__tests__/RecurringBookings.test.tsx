@@ -61,7 +61,7 @@ test('submits weekly recurring booking', async () => {
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Available'));
+  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
   fireEvent.mouseDown(screen.getByLabelText(/frequency/i));
   const freqList = await screen.findAllByRole('listbox');
   fireEvent.click(within(freqList[freqList.length - 1]).getByText('Weekly'));
