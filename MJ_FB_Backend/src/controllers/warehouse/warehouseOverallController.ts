@@ -86,11 +86,29 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       [year],
     );
 
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const dataByMonth = new Map(result.rows.map(r => [r.month, r]));
+
     const headerStyle = {
       backgroundColor: '#000000',
       color: '#FFFFFF',
       fontWeight: 'bold',
     };
+
     const rows = [
       [
         { value: 'Month', ...headerStyle },
@@ -98,15 +116,41 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
         { value: 'Surplus', ...headerStyle },
         { value: 'Pig Pound', ...headerStyle },
         { value: 'Outgoing Donations', ...headerStyle },
+        { value: 'Total', ...headerStyle },
       ],
-      ...result.rows.map(row => [
-        row.month,
+    ];
+
+    let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0, total: 0 };
+
+    for (let m = 1; m <= 12; m++) {
+      const row = dataByMonth.get(m) || { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
+      const monthTotal = row.donations + row.surplus + row.pigPound + row.outgoingDonations;
+      rows.push([
+        monthNames[m - 1],
         row.donations,
         row.surplus,
         row.pigPound,
         row.outgoingDonations,
-      ]),
-    ];
+        monthTotal,
+      ]);
+      totals = {
+        donations: totals.donations + row.donations,
+        surplus: totals.surplus + row.surplus,
+        pigPound: totals.pigPound + row.pigPound,
+        outgoingDonations: totals.outgoingDonations + row.outgoingDonations,
+        total: totals.total + monthTotal,
+      };
+    }
+
+    rows.push([
+      { value: 'Total', fontWeight: 'bold' },
+      { value: totals.donations, fontWeight: 'bold' },
+      { value: totals.surplus, fontWeight: 'bold' },
+      { value: totals.pigPound, fontWeight: 'bold' },
+      { value: totals.outgoingDonations, fontWeight: 'bold' },
+      { value: totals.total, fontWeight: 'bold' },
+    ]);
+
     const buffer = await writeXlsxFile(rows, {
       sheet: `Warehouse ${year}`,
       buffer: true,
