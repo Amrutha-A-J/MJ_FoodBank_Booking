@@ -7,7 +7,7 @@ import config from '../config';
 export type AuthPayload = {
   id: number;
   role: string;
-  type: 'user' | 'staff';
+  type: 'user' | 'staff' | 'agency';
   access?: string[];
 };
 

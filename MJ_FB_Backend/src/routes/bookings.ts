@@ -19,9 +19,9 @@ const router = express.Router();
 
 // Wrapper to handle bookings created by staff or regular users
 const handleCreateBooking = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user && req.user.role === 'staff') {
+  if (req.user && (req.user.role === 'staff' || req.user.role === 'agency')) {
     // Allow staff to create a booking for themselves or another user
-    if (!req.body.userId) {
+    if (req.user.role === 'staff' && !req.body.userId) {
       req.body.userId = req.user.id;
     }
     return createBookingForUser(req, res, next);
@@ -33,7 +33,7 @@ const handleCreateBooking = (req: Request, res: Response, next: NextFunction) =>
 router.post(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff'),
+  authorizeRoles('shopper', 'delivery', 'staff', 'agency'),
   handleCreateBooking
 );
 
@@ -74,7 +74,7 @@ router.post(
 router.post(
   '/staff',
   authMiddleware,
-  authorizeRoles('staff'),
+  authorizeRoles('staff', 'agency'),
   createBookingForUser
 );
 

@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
+import { getAgencyByEmail } from '../models/agency';
 import { validatePassword } from '../utils/passwordUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
@@ -50,26 +51,47 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
       [email]
     );
-    if (staffQuery.rowCount === 0) {
+    if (staffQuery.rowCount > 0) {
+      const staff = staffQuery.rows[0];
+      const match = await bcrypt.compare(password, staff.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      const role = 'staff';
+      const payload: AuthPayload = {
+        id: staff.id,
+        role,
+        type: 'staff',
+        access: staff.access || [],
+      };
+      await issueAuthTokens(res, payload, `staff:${staff.id}`);
+      return res.json({
+        role,
+        name: `${staff.first_name} ${staff.last_name}`,
+        access: staff.access || [],
+        id: staff.id,
+      });
+    }
+
+    const agency = await getAgencyByEmail(email);
+    if (!agency) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const staff = staffQuery.rows[0];
-    const match = await bcrypt.compare(password, staff.password);
+    const match = await bcrypt.compare(password, agency.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const role = 'staff';
     const payload: AuthPayload = {
-      id: staff.id,
-      role,
-      type: 'staff',
-      access: staff.access || [],
+      id: agency.id,
+      role: 'agency',
+      type: 'agency',
     };
-    await issueAuthTokens(res, payload, `staff:${staff.id}`);
+    await issueAuthTokens(res, payload, `agency:${agency.id}`);
     res.json({
-      role,
-      name: `${staff.first_name} ${staff.last_name}`,
-      access: staff.access || [],
+      role: 'agency',
+      name: agency.name,
+      id: agency.id,
+      access: [],
     });
   } catch (error) {
     logger.error('Error logging in:', error);

@@ -1,4 +1,4 @@
-export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer';
+export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer' | 'agency';
 export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff';
 export type StaffAccess =
@@ -21,6 +21,7 @@ export interface LoginResponse {
   bookingsThisMonth?: number;
   userRole?: UserRole;
   access: StaffAccess[];
+  id?: number;
 }
 
 export interface Slot {

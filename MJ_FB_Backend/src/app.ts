@@ -26,6 +26,7 @@ import outgoingReceiversRoutes from './routes/warehouse/outgoingReceivers';
 import outgoingDonationsRoutes from './routes/warehouse/outgoingDonations';
 import warehouseOverallRoutes from './routes/warehouse/warehouseOverall';
 import eventsRoutes from './routes/events';
+import agenciesRoutes from './routes/agencies';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
 
@@ -43,6 +44,7 @@ app.use(express.json());
 initializeSlots();
 
 app.use('/users', usersRoutes);
+app.use('/agencies', agenciesRoutes);
 app.use('/slots', slotsRoutes);
 app.use('/bookings', bookingsRoutes);
 app.use('/holidays', holidaysRoutes);
