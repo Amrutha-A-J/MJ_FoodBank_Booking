@@ -240,7 +240,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
                     </Button>
                   }>
                     <ListItemText
-                      primary={`${r.name} • ${formatDateLabel(r.date)} ${formatTime(r.start_time)}-${formatTime(r.end_time)} • ${r.available} spots left`}
+                      primary={`${r.name} • ${formatDateLabel(r.date)} ${formatTime(r.start_time)}-${formatTime(r.end_time)} • ${r.available} volunteer${r.available === 1 ? '' : 's'} needed`}
                     />
                   </ListItem>
                 ))}

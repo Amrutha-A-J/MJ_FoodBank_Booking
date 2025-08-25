@@ -9,9 +9,10 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { ReactNode } from 'react';
 
 interface Cell {
-  content: string;
+  content: ReactNode;
   backgroundColor?: string;
   onClick?: () => void;
   colSpan?: number;
