@@ -130,61 +130,73 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Today at a Glance">
-          <Grid container spacing={2}>
-            <Grid size={6}>
-              <Stat
-                icon={<CalendarToday color="primary" />}
-                label="Appointments Today"
-                value={stats.appointments}
-              />
-            </Grid>
-            <Grid size={6}>
-              <Stat
-                icon={<People color="primary" />}
-                label="Volunteers Scheduled"
-                value={stats.volunteers}
-              />
-            </Grid>
-            <Grid size={6}>
-              <Stat
-                icon={<WarningAmber color="warning" />}
-                label="Pending Approvals"
-                value={stats.approvals}
-              />
-            </Grid>
-            <Grid size={6}>
-              <Stat
-                icon={<CancelIcon color="error" />}
-                label="Cancellations"
-                value={stats.cancellations}
-              />
-            </Grid>
+        <Grid container spacing={2}>
+          <Grid size={12}>
+            <SectionCard title="Today at a Glance">
+              <Grid container spacing={2}>
+                <Grid size={6}>
+                  <Stat
+                    icon={<CalendarToday color="primary" />}
+                    label="Appointments Today"
+                    value={stats.appointments}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <Stat
+                    icon={<People color="primary" />}
+                    label="Volunteers Scheduled"
+                    value={stats.volunteers}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <Stat
+                    icon={<WarningAmber color="warning" />}
+                    label="Pending Approvals"
+                    value={stats.approvals}
+                  />
+                </Grid>
+                <Grid size={6}>
+                  <Stat
+                    icon={<CancelIcon color="error" />}
+                    label="Cancellations"
+                    value={stats.cancellations}
+                  />
+                </Grid>
+              </Grid>
+            </SectionCard>
           </Grid>
-        </SectionCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Pending Approvals">
-          <List>
-            {pending.map(b => (
-              <ListItem key={b.id} secondaryAction={<Chip label="User" />}>
-                <ListItemText primary={b.user_name || 'Unknown'} />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <VolunteerCoverageCard
-          token={token}
-          masterRoleFilter={masterRoleFilter}
-          onCoverageLoaded={data =>
-            setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
-          }
-        />
+          <Grid size={12}>
+            <VolunteerCoverageCard
+              token={token}
+              masterRoleFilter={masterRoleFilter}
+              onCoverageLoaded={data =>
+                setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
+              }
+            />
+          </Grid>
+          <Grid size={12}>
+            <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
+              <EventList
+                events={[...events.today, ...events.upcoming]}
+                limit={5}
+              />
+            </SectionCard>
+          </Grid>
+        </Grid>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={2}>
+          <Grid size={12}>
+            <SectionCard title="Pending Approvals">
+              <List>
+                {pending.map(b => (
+                  <ListItem key={b.id} secondaryAction={<Chip label="User" />}>
+                    <ListItemText primary={b.user_name || 'Unknown'} />
+                  </ListItem>
+                ))}
+              </List>
+            </SectionCard>
+          </Grid>
           <Grid size={12}>
             <SectionCard title="Pantry Schedule (This Week)">
               <Grid container columns={7} spacing={2}>
@@ -252,19 +264,13 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
                 {cancellations.slice(0, 5).map(c => (
                   <ListItem key={c.id}>
                     <ListItemText
-                      primary={`${c.user_name || 'Unknown'} - ${formatTime(c.start_time || '')}`}
+                      primary={`${c.user_name || 'Unknown'} - ${formatTime(
+                        c.start_time || '',
+                      )}`}
                     />
                   </ListItem>
                 ))}
               </List>
-            </SectionCard>
-          </Grid>
-          <Grid size={12}>
-            <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
-              <EventList
-                events={[...events.today, ...events.upcoming]}
-                limit={5}
-              />
             </SectionCard>
           </Grid>
         </Grid>
