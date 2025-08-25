@@ -51,6 +51,7 @@ export interface Holiday {
 export interface BlockedSlot {
   slotId: number;
   reason: string;
+  status?: 'blocked' | 'break';
 }
 
 export interface RecurringBlockedSlot {

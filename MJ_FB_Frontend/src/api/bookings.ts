@@ -1,5 +1,5 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { Slot, SlotsByDate, RecurringBlockedSlot } from '../types';
+import type { Slot, SlotsByDate, RecurringBlockedSlot, BlockedSlot } from '../types';
 
 export async function getSlots(date?: string) {
   let url = `${API_BASE}/slots`;
@@ -124,7 +124,7 @@ export async function getAllSlots() {
   })) as Slot[];
 }
 
-export async function getBlockedSlots(date: string) {
+export async function getBlockedSlots(date: string): Promise<BlockedSlot[]> {
   const res = await apiFetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`);
   return handleResponse(res);
 }
