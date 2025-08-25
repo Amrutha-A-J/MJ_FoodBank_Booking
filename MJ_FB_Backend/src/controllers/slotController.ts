@@ -107,21 +107,15 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
   try {
     const reginaDate = formatReginaDate(date);
     const dateObj = new Date(reginaStartOfDayISO(reginaDate));
-    const day = dateObj.getDay();
-    if (day === 0 || day === 6) {
-      return res
-        .status(400)
-        .json({ message: 'Moose Jaw Food Bank is closed on weekends' });
+    if (isNaN(dateObj.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
     }
     const holidayResult = await pool.query(
       'SELECT reason FROM holidays WHERE date = $1',
       [reginaDate],
     );
     if ((holidayResult.rowCount ?? 0) > 0) {
-      const reason = holidayResult.rows[0].reason || 'Holiday';
-      return res
-        .status(400)
-        .json({ message: `Moose Jaw Food Bank is closed: ${reason}` });
+      return res.json([]);
     }
     const slotsWithAvailability = await getSlotsForDate(reginaDate);
     res.json(slotsWithAvailability);
