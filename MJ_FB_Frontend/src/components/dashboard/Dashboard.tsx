@@ -60,8 +60,13 @@ interface Booking {
   end_time?: string;
 }
 
+function parseLocalDate(dateStr: string) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
@@ -93,7 +98,7 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
     getSlotsRange(startStr, 7)
       .then(days =>
         days.map(d => {
-          const date = new Date(d.date);
+          const date = parseLocalDate(d.date);
           const dayOfWeek = date.getDay();
           const open =
             dayOfWeek === 0 || dayOfWeek === 6
@@ -118,12 +123,12 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
     appointments: bookings.filter(
       b =>
         b.status === 'approved' &&
-        formatLocalDate(new Date(b.date)) === todayStr,
+        formatLocalDate(parseLocalDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
     approvals: pending.length,
     cancellations: cancellations.filter(
-      b => formatLocalDate(new Date(b.date)) === todayStr,
+      b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
     ).length,
   };
 
