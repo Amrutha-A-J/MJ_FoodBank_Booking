@@ -9,7 +9,7 @@ jest.mock('../api/volunteers', () => ({
 jest.mock('../pages/volunteer/VolunteerDashboard', () => () => <div>VolunteerDashboard</div>);
 jest.mock('../pages/volunteer/VolunteerSchedule', () => () => <div>VolunteerSchedule</div>);
 jest.mock('../pages/volunteer/VolunteerBookingHistory', () => () => <div>VolunteerHistory</div>);
-jest.mock('../pages/booking/SlotBooking', () => () => <div>SlotBooking Component</div>);
+jest.mock('../pages/BookingUI', () => () => <div>BookingUI Component</div>);
 jest.mock('../pages/staff/UserHistory', () => () => <div>BookingHistory Component</div>);
 
 
@@ -34,6 +34,6 @@ describe('Volunteer with shopper profile', () => {
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('link', { name: /Booking Slots/i }));
-    expect(screen.getByText(/SlotBooking Component/i)).toBeInTheDocument();
+    expect(screen.getByText(/BookingUI Component/i)).toBeInTheDocument();
   });
 });

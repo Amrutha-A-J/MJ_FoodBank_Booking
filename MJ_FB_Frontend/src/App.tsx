@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './pages/booking/Profile';
 import ManageAvailability from './pages/staff/ManageAvailability';
 import UserHistory from './pages/staff/UserHistory';
-import SlotBooking from './pages/booking/SlotBooking';
+import BookingUI from './pages/BookingUI';
 import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
 import Pending from './pages/staff/Pending';
@@ -224,7 +224,7 @@ export default function App() {
                 />
               )}
               {role === 'shopper' && (
-                <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
+                <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
               )}
               {role === 'shopper' && (
                 <Route
@@ -238,7 +238,7 @@ export default function App() {
                 />
               )}
               {role === 'volunteer' && userRole === 'shopper' && (
-                <Route path="/slots" element={<SlotBooking token={token} role="shopper" />} />
+                <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
               )}
               {role === 'volunteer' && userRole === 'shopper' && (
                 <Route
