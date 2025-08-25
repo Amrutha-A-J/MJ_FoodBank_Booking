@@ -11,7 +11,6 @@ import {
   Select,
   MenuItem,
   Stack,
-  Button,
   CircularProgress,
   Tabs,
   Tab,
@@ -19,7 +18,6 @@ import {
 import Page from '../../components/Page';
 import {
   getWarehouseOverall,
-  rebuildWarehouseOverall,
   getWarehouseOverallYears,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
@@ -29,7 +27,6 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
   const [overallLoading, setOverallLoading] = useState(false);
-  const [rebuilding, setRebuilding] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = new Date().getFullYear();
   const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -120,21 +117,6 @@ export default function Aggregations() {
     }),
     { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 },
   );
-
-  const handleRebuildOverall = () => {
-    setRebuilding(true);
-    rebuildWarehouseOverall(overallYear)
-      .then(() => {
-        setSnackbar({ open: true, message: 'Totals recalculated', severity: 'success' });
-        return getWarehouseOverall(overallYear);
-      })
-      .then(setOverallRows)
-      .catch(() => {
-        setSnackbar({ open: true, message: 'Failed to recalculate totals', severity: 'error' });
-      })
-      .finally(() => setRebuilding(false));
-  };
-
 
   return (
     <Page title="Aggregations">
@@ -327,14 +309,6 @@ export default function Aggregations() {
                 ))}
               </Select>
             </FormControl>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={handleRebuildOverall}
-              disabled={rebuilding}
-            >
-              {rebuilding ? <CircularProgress size={20} /> : 'Calculate Overall'}
-            </Button>
           </Stack>
           <TableContainer sx={{ overflowX: 'auto' }}>
             <Table size="small">

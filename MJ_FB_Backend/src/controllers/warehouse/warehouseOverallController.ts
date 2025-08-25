@@ -3,6 +3,51 @@ import pool from '../../db';
 import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 
+export async function refreshWarehouseOverall(year: number, month: number) {
+  const [donationsRes, surplusRes, pigRes, outgoingRes] = await Promise.all([
+    pool.query(
+      `SELECT COALESCE(SUM(weight)::int, 0) AS total
+         FROM donations
+         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
+      [year, month],
+    ),
+    pool.query(
+      `SELECT COALESCE(SUM(weight)::int, 0) AS total
+         FROM surplus_log
+         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
+      [year, month],
+    ),
+    pool.query(
+      `SELECT COALESCE(SUM(weight)::int, 0) AS total
+         FROM pig_pound_log
+         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
+      [year, month],
+    ),
+    pool.query(
+      `SELECT COALESCE(SUM(weight)::int, 0) AS total
+         FROM outgoing_donation_log
+         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
+      [year, month],
+    ),
+  ]);
+
+  const donations = Number(donationsRes.rows[0]?.total ?? 0);
+  const surplus = Number(surplusRes.rows[0]?.total ?? 0);
+  const pigPound = Number(pigRes.rows[0]?.total ?? 0);
+  const outgoingDonations = Number(outgoingRes.rows[0]?.total ?? 0);
+
+  await pool.query(
+    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (year, month)
+       DO UPDATE SET donations = EXCLUDED.donations,
+                     surplus = EXCLUDED.surplus,
+                     pig_pound = EXCLUDED.pig_pound,
+                     outgoing_donations = EXCLUDED.outgoing_donations`,
+    [year, month, donations, surplus, pigPound, outgoingDonations],
+  );
+}
+
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
@@ -86,68 +131,8 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
 export async function rebuildWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
-
-    const [donationsRes, surplusRes, pigRes, outgoingRes] = await Promise.all([
-      pool.query(
-        `SELECT EXTRACT(MONTH FROM date) as month, SUM(weight)::int as total
-         FROM donations
-         WHERE EXTRACT(YEAR FROM date) = $1
-         GROUP BY month`,
-        [year],
-      ),
-      pool.query(
-        `SELECT EXTRACT(MONTH FROM date) as month, SUM(weight)::int as total
-         FROM surplus_log
-         WHERE EXTRACT(YEAR FROM date) = $1
-         GROUP BY month`,
-        [year],
-      ),
-      pool.query(
-        `SELECT EXTRACT(MONTH FROM date) as month, SUM(weight)::int as total
-         FROM pig_pound_log
-         WHERE EXTRACT(YEAR FROM date) = $1
-         GROUP BY month`,
-        [year],
-      ),
-      pool.query(
-        `SELECT EXTRACT(MONTH FROM date) as month, SUM(weight)::int as total
-         FROM outgoing_donation_log
-         WHERE EXTRACT(YEAR FROM date) = $1
-         GROUP BY month`,
-        [year],
-      ),
-    ]);
-
-    const data: { [month: number]: { donations: number; surplus: number; pig_pound: number; outgoing_donations: number } } = {};
     for (let m = 1; m <= 12; m++) {
-      data[m] = { donations: 0, surplus: 0, pig_pound: 0, outgoing_donations: 0 };
-    }
-
-    donationsRes.rows.forEach(r => {
-      data[Number(r.month)].donations = Number(r.total);
-    });
-    surplusRes.rows.forEach(r => {
-      data[Number(r.month)].surplus = Number(r.total);
-    });
-    pigRes.rows.forEach(r => {
-      data[Number(r.month)].pig_pound = Number(r.total);
-    });
-    outgoingRes.rows.forEach(r => {
-      data[Number(r.month)].outgoing_donations = Number(r.total);
-    });
-
-    for (let m = 1; m <= 12; m++) {
-      const d = data[m];
-      await pool.query(
-        `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (year, month)
-         DO UPDATE SET donations = EXCLUDED.donations,
-                       surplus = EXCLUDED.surplus,
-                       pig_pound = EXCLUDED.pig_pound,
-                       outgoing_donations = EXCLUDED.outgoing_donations`,
-        [year, m, d.donations, d.surplus, d.pig_pound, d.outgoing_donations],
-      );
+      await refreshWarehouseOverall(year, m);
     }
 
     res.json({ message: 'Rebuilt' });

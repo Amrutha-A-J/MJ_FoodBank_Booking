@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
+import { refreshWarehouseOverall } from './warehouseOverallController';
 
 export async function listOutgoingDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -27,6 +28,8 @@ export async function addOutgoingDonation(req: Request, res: Response, next: Nex
       [date, receiverId, weight, note ?? null],
     );
     const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
+    const dt = new Date(date);
+    await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json({ ...result.rows[0], receiver: recRes.rows[0].name });
   } catch (error) {
     logger.error('Error adding outgoing donation:', error);
@@ -38,11 +41,24 @@ export async function updateOutgoingDonation(req: Request, res: Response, next: 
   try {
     const { id } = req.params;
     const { date, receiverId, weight, note } = req.body;
+    const existing = await pool.query('SELECT date FROM outgoing_donation_log WHERE id = $1', [id]);
+    const oldDate = existing.rows[0]?.date as string | undefined;
     const result = await pool.query(
       'UPDATE outgoing_donation_log SET date = $1, receiver_id = $2, weight = $3, note = $4 WHERE id = $5 RETURNING id, date, receiver_id as "receiverId", weight, note',
       [date, receiverId, weight, note ?? null, id],
     );
     const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
+    const newDt = new Date(date);
+    await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
+    if (oldDate) {
+      const oldDt = new Date(oldDate);
+      if (
+        oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
+        oldDt.getUTCMonth() !== newDt.getUTCMonth()
+      ) {
+        await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
+      }
+    }
     res.json({ ...result.rows[0], receiver: recRes.rows[0].name });
   } catch (error) {
     logger.error('Error updating outgoing donation:', error);
@@ -53,7 +69,12 @@ export async function updateOutgoingDonation(req: Request, res: Response, next: 
 export async function deleteOutgoingDonation(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    const existing = await pool.query('SELECT date FROM outgoing_donation_log WHERE id = $1', [id]);
     await pool.query('DELETE FROM outgoing_donation_log WHERE id = $1', [id]);
+    if (existing.rows[0]) {
+      const dt = new Date(existing.rows[0].date);
+      await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+    }
     res.json({ message: 'Deleted' });
   } catch (error) {
     logger.error('Error deleting outgoing donation:', error);
