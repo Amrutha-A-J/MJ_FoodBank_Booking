@@ -44,6 +44,18 @@ export default function App() {
   const showWarehouse = isStaff && hasAccess('warehouse');
   const showAdmin = isStaff && access.includes('admin');
 
+  const singleAccessOnly =
+    isStaff && access.length === 1 && access[0] !== 'admin';
+  const staffRootPath = singleAccessOnly
+    ? access[0] === 'pantry'
+      ? '/pantry'
+      : access[0] === 'volunteer_management'
+        ? '/volunteer-management'
+        : access[0] === 'warehouse'
+          ? '/warehouse-management'
+          : '/'
+    : '/';
+
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
     ? [{ label: 'Events', to: '/events' }]
@@ -155,7 +167,11 @@ export default function App() {
                   role === 'volunteer' ? (
                     <VolunteerDashboard token={token} />
                   ) : isStaff ? (
-                    <Dashboard role="staff" token={token} />
+                    singleAccessOnly && staffRootPath !== '/' ? (
+                      <Navigate to={staffRootPath} replace />
+                    ) : (
+                      <Dashboard role="staff" token={token} />
+                    )
                   ) : (
                     <ClientDashboard />
                   )
