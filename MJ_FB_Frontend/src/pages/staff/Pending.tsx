@@ -3,6 +3,7 @@ import { Grid, Card, CardContent, CardActions, Typography, TextField, Button } f
 import { getBookings, decideBooking } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
+import type { AlertColor } from '@mui/material';
 
 interface Booking {
   id: number;
@@ -21,7 +22,7 @@ export default function Pending() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [reasons, setReasons] = useState<Record<number, string>>({});
   const [message, setMessage] = useState('');
-  const [severity, setSeverity] = useState<'success' | 'error'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   function loadBookings() {
     getBookings({ status: 'pending' })
@@ -36,7 +37,7 @@ export default function Pending() {
   async function handleDecision(id: number, decision: 'approve' | 'reject') {
     try {
       await decideBooking(String(id), decision, reasons[id] || '');
-      setSeverity('success');
+      setSnackbarSeverity('success');
       setMessage(`Booking ${decision === 'approve' ? 'approved' : 'rejected'}`);
       setReasons(r => {
         const copy = { ...r };
@@ -48,7 +49,7 @@ export default function Pending() {
       // Fetch latest pending bookings in case new ones were added
       loadBookings();
     } catch (e) {
-      setSeverity('error');
+      setSnackbarSeverity('error');
       setMessage(e instanceof Error ? e.message : String(e));
     }
   }
@@ -106,7 +107,7 @@ export default function Pending() {
           </Grid>
         )}
       </Grid>
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={severity} />
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
     </>
   );
 }

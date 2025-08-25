@@ -8,6 +8,7 @@ import type { Slot, Holiday } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Grid } from '@mui/material';
+import type { AlertColor } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -40,6 +41,7 @@ export default function SlotBooking({ token, role }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const [dayMessage, setDayMessage] = useState('');
   const [bookingsThisMonth, setBookingsThisMonth] = useState<number>(() => {
     const currentMonth = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM');
@@ -119,6 +121,7 @@ export default function SlotBooking({ token, role }: Props) {
 
   useEffect(() => {
     if (userError) {
+      setSnackbarSeverity('error');
       setMessage(
         userError instanceof Error ? userError.message : 'Search failed',
       );
@@ -160,6 +163,7 @@ export default function SlotBooking({ token, role }: Props) {
 
   useEffect(() => {
     if (slotsError) {
+      setSnackbarSeverity('error');
       setMessage(
         slotsError instanceof Error
           ? slotsError.message
@@ -180,6 +184,7 @@ export default function SlotBooking({ token, role }: Props) {
 
   async function submitBooking() {
     if (!selectedSlotId || !selectedDate) {
+      setSnackbarSeverity('error');
       setMessage('Please select a date and time slot');
       return;
     }
@@ -193,6 +198,7 @@ export default function SlotBooking({ token, role }: Props) {
         : '';
       if (role === 'staff') {
         if (!selectedUser) {
+          setSnackbarSeverity('error');
           setMessage('Please select a user');
           return;
         }
@@ -201,6 +207,7 @@ export default function SlotBooking({ token, role }: Props) {
           slotId: parseInt(selectedSlotId),
           date: dateStr,
         });
+        setSnackbarSeverity('success');
         setMessage(`Booking for ${dateLabel} · ${timeLabel} submitted!`);
         setSelectedUser(null);
       } else {
@@ -208,6 +215,7 @@ export default function SlotBooking({ token, role }: Props) {
           slotId: selectedSlotId,
           date: dateStr,
         });
+        setSnackbarSeverity('success');
         setMessage(`Booking for ${dateLabel} · ${timeLabel} submitted!`);
         if (res.bookingsThisMonth !== undefined) {
           setBookingsThisMonth(res.bookingsThisMonth);
@@ -235,6 +243,7 @@ export default function SlotBooking({ token, role }: Props) {
           localStorage.setItem('bookingsThisMonth', '2');
           localStorage.setItem('bookingsMonth', currentMonth);
         }
+        setSnackbarSeverity('error');
         setMessage('Booking failed: ' + msg);
       }
     }
@@ -278,7 +287,7 @@ export default function SlotBooking({ token, role }: Props) {
             <li>No search results.</li>
           )}
         </ul>
-        <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity="error" />
+        <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       </div>
     );
   }
@@ -364,7 +373,7 @@ export default function SlotBooking({ token, role }: Props) {
         open={!!message}
         onClose={() => setMessage('')}
         message={message}
-        severity={message.startsWith('Booking') ? 'success' : 'error'}
+        severity={snackbarSeverity}
       />
       <Dialog open={!!conflict} onClose={() => setConflict(null)}>
         <DialogTitle>Upcoming booking</DialogTitle>

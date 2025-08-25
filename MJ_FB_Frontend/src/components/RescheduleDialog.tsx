@@ -12,6 +12,7 @@ import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import type { Slot } from '../types';
+import type { AlertColor } from '@mui/material';
 
 interface RescheduleDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ export default function RescheduleDialog({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotId, setSlotId] = useState('');
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   useEffect(() => {
     if (open && date) {
@@ -44,6 +46,7 @@ export default function RescheduleDialog({
 
   async function submit() {
     if (!date || !slotId) {
+      setSnackbarSeverity('error');
       setMessage('Please select date and time');
       return;
     }
@@ -54,6 +57,7 @@ export default function RescheduleDialog({
       setDate('');
       setSlotId('');
     } catch {
+      setSnackbarSeverity('error');
       setMessage('Failed to reschedule booking');
     }
   }
@@ -90,7 +94,7 @@ export default function RescheduleDialog({
           open={!!message}
           message={message}
           onClose={() => setMessage('')}
-          severity="error"
+          severity={snackbarSeverity}
         />
       </DialogContent>
       <DialogActions>

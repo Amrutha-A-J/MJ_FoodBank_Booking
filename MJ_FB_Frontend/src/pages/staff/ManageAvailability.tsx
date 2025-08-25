@@ -15,6 +15,7 @@ import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Box, Button } from '@mui/material';
+import type { AlertColor } from '@mui/material';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -38,12 +39,14 @@ export default function ManageAvailability() {
   const [breaks, setBreaks] = useState<Break[]>([]);
 
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   const fetchHolidays = useCallback(async () => {
     try {
       const data = await getHolidays();
       setHolidays(data);
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }, []);
@@ -53,6 +56,7 @@ export default function ManageAvailability() {
       const data = await getBreaks();
       setBreaks(data);
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }, []);
@@ -66,6 +70,7 @@ export default function ManageAvailability() {
       const data = await getBlockedSlots(blockedDate);
       setBlockedList(data);
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }, [blockedDate]);
@@ -75,7 +80,10 @@ export default function ManageAvailability() {
     fetchBreaks();
     getAllSlots()
       .then(setAllSlots)
-      .catch(err => setMessage(err instanceof Error ? err.message : String(err)));
+      .catch(err => {
+        setSnackbarSeverity('error');
+        setMessage(err instanceof Error ? err.message : String(err));
+      });
   }, [fetchHolidays, fetchBreaks]);
 
   useEffect(() => {
@@ -83,14 +91,19 @@ export default function ManageAvailability() {
   }, [fetchBlocked]);
 
   async function addHoliday() {
-    if (!newHoliday) return setMessage('Select a date to add');
+    if (!newHoliday) {
+      setSnackbarSeverity('error');
+      return setMessage('Select a date to add');
+    }
     try {
       await apiAddHoliday(newHoliday, newHolidayReason);
+      setSnackbarSeverity('success');
       setMessage('Holiday added');
       setNewHoliday('');
       setNewHolidayReason('');
       fetchHolidays();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -98,22 +111,29 @@ export default function ManageAvailability() {
   async function removeHoliday(date: string) {
     try {
       await apiRemoveHoliday(date);
+      setSnackbarSeverity('success');
       setMessage('Holiday removed');
       fetchHolidays();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
   async function addBlocked() {
-    if (!blockedDate || !blockedSlot) return setMessage('Select date and slot');
+    if (!blockedDate || !blockedSlot) {
+      setSnackbarSeverity('error');
+      return setMessage('Select date and slot');
+    }
     try {
       await apiAddBlockedSlot(blockedDate, Number(blockedSlot), blockedReason);
+      setSnackbarSeverity('success');
       setMessage('Slot blocked');
       setBlockedSlot('');
       setBlockedReason('');
       fetchBlocked();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -121,23 +141,30 @@ export default function ManageAvailability() {
   async function removeBlocked(slotId: number) {
     try {
       await apiRemoveBlockedSlot(blockedDate, slotId);
+      setSnackbarSeverity('success');
       setMessage('Blocked slot removed');
       fetchBlocked();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
 
   async function addBreak() {
-    if (breakDay === '' || breakSlot === '') return setMessage('Select day and slot');
+    if (breakDay === '' || breakSlot === '') {
+      setSnackbarSeverity('error');
+      return setMessage('Select day and slot');
+    }
     try {
       await apiAddBreak(Number(breakDay), Number(breakSlot), breakReason);
+      setSnackbarSeverity('success');
       setMessage('Break added');
       setBreakDay('');
       setBreakSlot('');
       setBreakReason('');
       fetchBreaks();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -145,9 +172,11 @@ export default function ManageAvailability() {
   async function removeBreak(day: number, slotId: number) {
     try {
       await apiRemoveBreak(day, slotId);
+      setSnackbarSeverity('success');
       setMessage('Break removed');
       fetchBreaks();
     } catch (err: unknown) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
     }
   }
@@ -160,7 +189,7 @@ export default function ManageAvailability() {
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
       <Box maxWidth={600} width="100%" mt={4}>
         <h2>Manage Availability</h2>
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} />
+      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
 
       <div style={{ marginBottom: 16 }}>
         <label>

@@ -22,6 +22,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
 import type { Slot, Holiday } from '../../types';
 import { formatTime } from '../../utils/time';
+import type { AlertColor } from '@mui/material';
 
 interface Booking {
   id: number;
@@ -86,6 +87,7 @@ export default function ClientDashboard() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   useEffect(() => {
     getBookingHistory()
@@ -129,9 +131,11 @@ export default function ClientDashboard() {
     if (!cancelId) return;
     try {
       await cancelBooking(String(cancelId));
+      setSnackbarSeverity('success');
       setMessage('Booking cancelled');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {
+      setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : 'Cancel failed');
     } finally {
       setCancelId(null);
@@ -352,7 +356,7 @@ export default function ClientDashboard() {
         open={!!message}
         onClose={() => setMessage('')}
         message={message}
-        severity={message.includes('failed') ? 'error' : 'success'}
+        severity={snackbarSeverity}
       />
     </>
   );
