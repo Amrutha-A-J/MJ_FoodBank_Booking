@@ -63,10 +63,10 @@ export async function updateBookingsThisMonth(userId: number): Promise<number> {
     [userId, start, end],
   );
   const count = Number(res.rows[0].count);
-  await pool.query(
-    `UPDATE users SET bookings_this_month=$1, booking_count_last_updated=NOW() WHERE id=$2`,
-    [count, userId],
-  );
+    await pool.query(
+      `UPDATE clients SET bookings_this_month=$1, booking_count_last_updated=NOW() WHERE id=$2`,
+      [count, userId],
+    );
   return count;
 }
 

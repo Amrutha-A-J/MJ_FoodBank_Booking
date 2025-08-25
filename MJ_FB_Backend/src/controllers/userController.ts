@@ -17,13 +17,16 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           .json({ message: 'Client ID and password required' });
       }
       const userQuery = await pool.query(
-        `SELECT id, first_name, last_name, role, password FROM users WHERE client_id = $1`,
+        `SELECT id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId]
       );
       if (userQuery.rowCount === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const user = userQuery.rows[0];
+      if (!user.password) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -78,19 +81,24 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { firstName, lastName, email, phone, clientId, role, password } =
+  const { firstName, lastName, email, phone, clientId, role, password, onlineAccess } =
     req.body as {
-      firstName: string;
-      lastName: string;
+      firstName?: string;
+      lastName?: string;
       email?: string;
       phone?: string;
       clientId: number;
       role: UserRole;
-      password: string;
+      password?: string;
+      onlineAccess: boolean;
     };
 
-  if (!firstName || !lastName || !clientId || !role || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
+  if (!clientId || !role) {
+    return res.status(400).json({ message: 'Client ID and role required' });
+  }
+
+  if (onlineAccess && (!firstName || !lastName || !password)) {
+    return res.status(400).json({ message: 'Missing fields for online account' });
   }
 
   if (!['shopper', 'delivery'].includes(role)) {
@@ -104,24 +112,33 @@ export async function createUser(req: Request, res: Response, next: NextFunction
   }
 
   try {
-    const check = await pool.query('SELECT id FROM users WHERE client_id = $1', [clientId]);
+    const check = await pool.query('SELECT id FROM clients WHERE client_id = $1', [clientId]);
     if (check.rowCount && check.rowCount > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
     if (email) {
-      const emailCheck = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+      const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [email]);
       if (emailCheck.rowCount && emailCheck.rowCount > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
     await pool.query(
-      `INSERT INTO users (first_name, last_name, email, phone, client_id, role, password)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [firstName, lastName, email || null, phone || null, clientId, role, hashedPassword]
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        firstName || null,
+        lastName || null,
+        email || null,
+        phone || null,
+        clientId,
+        role,
+        hashedPassword,
+        onlineAccess,
+      ]
     );
 
     res.status(201).json({ message: 'User created' });
@@ -142,7 +159,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
 
     const usersResult = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id
-       FROM users
+       FROM clients
        WHERE (first_name || ' ' || last_name) ILIKE $1
           OR email ILIKE $1
           OR phone ILIKE $1
@@ -174,7 +191,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     const bookingsThisMonth = await updateBookingsThisMonth(Number(user.id));
     const result = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
-       FROM users WHERE id = $1`,
+       FROM clients WHERE id = $1`,
       [user.id]
     );
     if (result.rowCount === 0) {

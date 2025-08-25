@@ -29,7 +29,7 @@ export async function requestPasswordReset(
         logger.info(`Password reset requested for volunteer ${username}`);
       }
     } else if (clientId) {
-      const userRes = await pool.query('SELECT id FROM users WHERE client_id=$1', [clientId]);
+      const userRes = await pool.query('SELECT id FROM clients WHERE client_id=$1', [clientId]);
       if (userRes.rowCount) {
         logger.info(`Password reset requested for client ${clientId}`);
       }
@@ -55,7 +55,7 @@ export async function changePassword(
     return res.status(400).json({ message: 'Missing fields' });
   }
   try {
-    let table = 'users';
+    let table = 'clients';
     if (user.type === 'staff') table = 'staff';
     else if (user.type === 'volunteer') table = 'volunteers';
     const result = await pool.query(

@@ -93,9 +93,9 @@ export async function fetchBookings(
             AND DATE_TRUNC('month', b2.date) = DATE_TRUNC('month', b.date)
         ) AS bookings_this_month,
         s.start_time, s.end_time
-      FROM bookings b
-      INNER JOIN users u ON b.user_id = u.id
-      INNER JOIN slots s ON b.slot_id = s.id
+        FROM bookings b
+        INNER JOIN clients u ON b.user_id = u.id
+        INNER JOIN slots s ON b.slot_id = s.id
       ${where}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
@@ -130,18 +130,18 @@ export async function fetchBookingHistory(
   return res.rows;
 }
 
-export async function insertWalkinUser(
-  firstName: string,
-  lastName: string,
-  email: string,
-  clientId: number,
-  client: Queryable,
-) {
-  const res = await client.query(
-    `INSERT INTO users (first_name, last_name, email, phone, client_id, role)
-     VALUES ($1, $2, $3, NULL, $4, 'shopper') RETURNING id`,
-    [firstName, lastName, email, clientId],
-  );
-  return res.rows[0].id;
-}
+  export async function insertWalkinUser(
+    firstName: string,
+    lastName: string,
+    email: string,
+    clientId: number,
+    client: Queryable,
+  ) {
+    const res = await client.query(
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role)
+       VALUES ($1, $2, $3, NULL, $4, 'shopper') RETURNING id`,
+      [firstName, lastName, email, clientId],
+    );
+    return res.rows[0].id;
+  }
 

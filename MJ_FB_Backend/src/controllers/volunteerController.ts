@@ -53,10 +53,10 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
   }
   try {
     const result = await pool.query(
-      `SELECT v.id, v.first_name, v.last_name, v.username, v.password, v.user_id, u.role AS user_role
-       FROM volunteers v
-       LEFT JOIN users u ON v.user_id = u.id
-       WHERE v.username = $1`,
+        `SELECT v.id, v.first_name, v.last_name, v.username, v.password, v.user_id, u.role AS user_role
+         FROM volunteers v
+         LEFT JOIN clients u ON v.user_id = u.id
+         WHERE v.username = $1`,
       [username]
     );
     if (result.rowCount === 0) {
@@ -214,7 +214,7 @@ export async function createVolunteerShopperProfile(
       return res.status(404).json({ message: 'Volunteer not found' });
     }
     const clientCheck = await pool.query(
-      `SELECT id FROM users WHERE client_id = $1`,
+      `SELECT id FROM clients WHERE client_id = $1`,
       [clientId],
     );
     if (clientCheck.rowCount && clientCheck.rowCount > 0) {
@@ -222,8 +222,8 @@ export async function createVolunteerShopperProfile(
     }
     const hashed = await bcrypt.hash(password, 10);
     const userRes = await pool.query(
-      `INSERT INTO users (first_name, last_name, email, phone, client_id, role, password)
-       VALUES ($1,$2,$3,$4,$5,'shopper',$6) RETURNING id`,
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access)
+       VALUES ($1,$2,$3,$4,$5,'shopper',$6, true) RETURNING id`,
       [
         volRes.rows[0].first_name,
         volRes.rows[0].last_name,
@@ -260,7 +260,7 @@ export async function removeVolunteerShopperProfile(
       return res.status(404).json({ message: 'Shopper profile not found' });
     }
     const userId = volRes.rows[0].user_id;
-    await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+    await pool.query(`DELETE FROM clients WHERE id = $1`, [userId]);
     await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
     res.json({ message: 'Shopper profile removed' });
   } catch (error) {
