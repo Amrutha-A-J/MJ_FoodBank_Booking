@@ -93,7 +93,7 @@ export default function BookingUI({
   function renderSlot(slot: Slot) {
     const start = dayjs(slot.startTime, 'HH:mm:ss');
     const end = dayjs(slot.endTime, 'HH:mm:ss');
-    const label = `${start.format('HH:mm')} – ${end.format('HH:mm')}`;
+    const label = `${start.format('h:mm a')} – ${end.format('h:mm a')}`;
     const available = slot.available ?? 0;
     const isFull = available <= 0;
     const selected = selectedSlotId === slot.id;
@@ -103,7 +103,7 @@ export default function BookingUI({
         disabled={isFull}
         selected={selected}
         onClick={() => setSelectedSlotId(slot.id)}
-        aria-label={`Select ${start.format('H:mm')} to ${end.format('H:mm')} time slot`}
+        aria-label={`Select ${start.format('h:mm a')} to ${end.format('h:mm a')} time slot`}
         sx={{
           borderBottom: 1,
           borderColor: 'divider',
@@ -129,10 +129,10 @@ export default function BookingUI({
 
   const selectedSlot = slots.find(s => s.id === selectedSlotId);
   const selectedLabel = selectedSlot
-    ? `${dayjs(selectedSlot.startTime, 'HH:mm:ss').format('HH:mm')} – ${dayjs(
+    ? `${dayjs(selectedSlot.startTime, 'HH:mm:ss').format('h:mm a')} – ${dayjs(
         selectedSlot.endTime,
         'HH:mm:ss',
-      ).format('HH:mm')}`
+      ).format('h:mm a')}`
     : '';
 
   return (
