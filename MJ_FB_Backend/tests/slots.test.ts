@@ -49,6 +49,7 @@ describe('GET /slots applies slot rules', () => {
       })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app).get('/slots').query({ date: '2024-06-17' });
@@ -70,6 +71,7 @@ describe('GET /slots applies slot rules', () => {
       })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app).get('/slots').query({ date: '2024-06-19' });
@@ -77,6 +79,33 @@ describe('GET /slots applies slot rules', () => {
     expect(res.body.map((s: any) => s.startTime)).toEqual([
       '09:30:00',
       '18:30:00',
+    ]);
+  });
+
+  it('marks slots blocked from recurring entries', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ slot_id: 1, reason: 'maintenance' }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: '1',
+        startTime: '09:30:00',
+        endTime: '10:00:00',
+        maxCapacity: 5,
+        available: 0,
+        reason: 'maintenance',
+        status: 'blocked',
+      },
     ]);
   });
 });

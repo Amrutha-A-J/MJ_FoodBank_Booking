@@ -11,6 +11,7 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
     throw new Error('Invalid date');
   }
   const day = dateObj.getDay(); // Sunday=0, Monday=1, etc.
+  const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
 
   // Closed on weekends
   if (day === 0 || day === 6) return [];
@@ -43,8 +44,15 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
     'SELECT slot_id, reason FROM blocked_slots WHERE date = $1',
     [reginaDate],
   );
+  const recurringBlockedResult = await pool.query(
+    'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
+    [day, weekOfMonth],
+  );
   const blockedMap = new Map<number, string>(
-    blockedResult.rows.map(r => [Number(r.slot_id), r.reason || '']),
+    [...recurringBlockedResult.rows, ...blockedResult.rows].map(r => [
+      Number(r.slot_id),
+      r.reason || '',
+    ]),
   );
   const breakResult = await pool.query(
     'SELECT slot_id, reason FROM breaks WHERE day_of_week = $1',
