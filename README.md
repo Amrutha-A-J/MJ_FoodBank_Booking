@@ -21,6 +21,7 @@ Install and run:
 ```bash
 cd MJ_FB_Backend
 npm install
+npm run migrate up   # Run pending database migrations
 npm start   # or npm run dev
 ```
 
