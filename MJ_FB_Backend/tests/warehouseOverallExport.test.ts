@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouseOverall';
 import pool from '../src/db';
-import ExcelJS from 'exceljs';
+import * as XLSX from 'xlsx';
 
 jest.mock('../src/db');
 
@@ -32,20 +32,17 @@ describe('GET /warehouse-overall/export', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
 
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(res.body);
-    const sheet = workbook.worksheets[0];
-    const header = sheet.getRow(1).values as any[];
-    const row1 = sheet.getRow(2).values as any[];
-    const row2 = sheet.getRow(3).values as any[];
-    expect(header.slice(1)).toEqual([
+    const workbook = XLSX.read(res.body, { type: 'buffer' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+    expect(rows[0]).toEqual([
       'Month',
       'Donations',
       'Surplus',
       'Pig Pound',
       'Outgoing Donations',
     ]);
-    expect(row1.slice(1)).toEqual([1, 10, 2, 1, 0]);
-    expect(row2.slice(1)).toEqual([2, 5, 3, 0, 1]);
+    expect(rows[1]).toEqual([1, 10, 2, 1, 0]);
+    expect(rows[2]).toEqual([2, 5, 3, 0, 1]);
   });
 });
