@@ -27,6 +27,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
+  "overrides": {
+    "test-exclude": "^7.0.1"
+  },
   "scripts": {
     "dev": "ts-node src/server.ts",
     "build": "tsc",
