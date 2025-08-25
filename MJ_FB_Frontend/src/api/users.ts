@@ -123,7 +123,7 @@ export async function addUser(
   email?: string,
   phone?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/users`, {
+  const res = await apiFetch(`${API_BASE}/users/add-client`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
