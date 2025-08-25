@@ -13,7 +13,7 @@ import {
 } from '../../api/bookings';
 import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
 import { formatTime } from '../../utils/time';
-import FeedbackSnackbar from '../FeedbackSnackbar';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Box, Button } from '@mui/material';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

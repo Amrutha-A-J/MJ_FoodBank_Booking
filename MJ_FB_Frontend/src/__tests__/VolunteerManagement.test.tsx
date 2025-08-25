@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import VolunteerManagement from '../components/VolunteerManagement';
+import VolunteerManagement from '../pages/volunteer-management/VolunteerManagement';
 import {
   getVolunteerRoles,
   searchVolunteers,

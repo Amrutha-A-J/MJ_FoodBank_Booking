@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Typography, List, ListItem } from '@mui/material';
-import type { Role, UserProfile } from '../types';
-import { getUserProfile } from '../api/users';
-import Page from './Page';
-import ChangePasswordForm from './ChangePasswordForm';
+import type { Role, UserProfile } from '../../types';
+import { getUserProfile } from '../../api/users';
+import Page from '../../components/Page';
+import ChangePasswordForm from '../auth/ChangePasswordForm';
 
 export default function Profile({ token, role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);

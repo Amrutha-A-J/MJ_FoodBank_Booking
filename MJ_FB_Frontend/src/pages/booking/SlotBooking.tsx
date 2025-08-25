@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { searchUsers } from '../api/users';
-import { createBookingForUser, createBooking, getSlots, getHolidays } from '../api/bookings';
+import { searchUsers } from '../../api/users';
+import { createBookingForUser, createBooking, getSlots, getHolidays } from '../../api/bookings';
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz';
-import type { Slot, Holiday } from '../types';
-import { formatTime } from '../utils/time';
-import FeedbackSnackbar from './FeedbackSnackbar';
+import type { Slot, Holiday } from '../../types';
+import { formatTime } from '../../utils/time';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Grid } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

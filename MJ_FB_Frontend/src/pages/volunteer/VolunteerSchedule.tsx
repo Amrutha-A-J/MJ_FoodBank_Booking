@@ -5,18 +5,18 @@ import {
   getMyVolunteerBookings,
   updateVolunteerBookingStatus,
   rescheduleVolunteerBookingByToken,
-} from '../api/volunteers';
-import { getHolidays } from '../api/bookings';
+} from '../../api/volunteers';
+import { getHolidays } from '../../api/bookings';
 import type {
   VolunteerRole,
   Holiday,
   VolunteerBooking,
   VolunteerRoleGroup,
-} from '../types';
+} from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
-import { formatTime } from '../utils/time';
-import VolunteerScheduleTable from './VolunteerScheduleTable';
-import FeedbackSnackbar from './FeedbackSnackbar';
+import { formatTime } from '../../utils/time';
+import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   Box,
   FormControl,

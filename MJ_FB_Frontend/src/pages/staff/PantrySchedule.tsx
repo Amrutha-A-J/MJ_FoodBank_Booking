@@ -4,11 +4,11 @@ import { searchUsers } from '../../api/users';
 import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
-import VolunteerScheduleTable from '../VolunteerScheduleTable';
-import FeedbackSnackbar from '../FeedbackSnackbar';
+import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Button, type AlertColor, useTheme } from '@mui/material';
 import { lighten } from '@mui/material/styles';
-import RescheduleDialog from '../RescheduleDialog';
+import RescheduleDialog from '../../components/RescheduleDialog';
 
 interface Booking {
   id: number;

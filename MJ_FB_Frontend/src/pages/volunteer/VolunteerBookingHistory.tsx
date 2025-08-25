@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { getMyVolunteerBookings } from '../api/volunteers';
-import type { VolunteerBooking } from '../types';
-import { formatTime } from '../utils/time';
-import Page from './Page';
+import { getMyVolunteerBookings } from '../../api/volunteers';
+import type { VolunteerBooking } from '../../types';
+import { formatTime } from '../../utils/time';
+import Page from '../../components/Page';
 import {
   TableContainer,
   Paper,

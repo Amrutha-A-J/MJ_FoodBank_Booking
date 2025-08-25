@@ -18,8 +18,8 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import RescheduleDialog from '../RescheduleDialog';
-import EntitySearch from '../EntitySearch';
+import RescheduleDialog from '../../components/RescheduleDialog';
+import EntitySearch from '../../components/EntitySearch';
 
 const TIMEZONE = 'America/Regina';
 
