@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
+import type { Row } from 'write-excel-file';
 
 export async function listDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -145,18 +146,19 @@ export async function exportDonorAggregations(req: Request, res: Response, next:
       donorMap.get(donor)![month - 1] = total ?? 0;
     }
 
-    const rows = [
-      [
-        { value: 'Donor', ...headerStyle },
-        ...monthNames.map(m => ({ value: m, ...headerStyle })),
-        { value: 'Total', ...headerStyle },
-      ],
-      ...Array.from(donorMap.entries()).map(([donor, monthly]) => [
-        donor,
-        ...monthly,
-        monthly.reduce((a, b) => a + b, 0),
-      ]),
+    const headerRow: Row = [
+      { value: 'Donor', ...headerStyle },
+      ...monthNames.map(m => ({ value: m, ...headerStyle })),
+      { value: 'Total', ...headerStyle },
     ];
+
+    const dataRows: Row[] = Array.from(donorMap.entries()).map(([donor, monthly]) => [
+      donor,
+      ...monthly,
+      monthly.reduce((a, b) => a + b, 0),
+    ]);
+
+    const rows: Row[] = [headerRow, ...dataRows];
 
     const buffer = await writeXlsxFile(rows, {
       sheet: `Donor Aggregations ${year}`,
