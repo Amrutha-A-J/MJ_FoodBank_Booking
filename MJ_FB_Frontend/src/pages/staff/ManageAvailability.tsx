@@ -58,6 +58,7 @@ const slotOptions = [
   { id: 2, label: '10:00–11:00' },
   { id: 3, label: '11:00–12:00' },
 ];
+const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 160 } } };
 
 interface HolidayItem {
   id: number;
@@ -280,6 +281,7 @@ export default function ManageAvailability() {
                             value={blockedDay}
                             label="Day"
                             onChange={(e) => setBlockedDay(e.target.value)}
+                            MenuProps={selectMenuProps}
                           >
                             {days.map((d, i) => (
                               <MenuItem key={d} value={i}>
@@ -297,6 +299,7 @@ export default function ManageAvailability() {
                             value={blockedWeek}
                             label="Week"
                             onChange={(e) => setBlockedWeek(e.target.value)}
+                            MenuProps={selectMenuProps}
                           >
                             {weekOrdinals.map((w, i) => (
                               <MenuItem key={w} value={i + 1}>
@@ -322,6 +325,7 @@ export default function ManageAvailability() {
                       value={blockedSlotId}
                       label="Slot"
                       onChange={(e) => setBlockedSlotId(e.target.value)}
+                      MenuProps={selectMenuProps}
                     >
                       {slotOptions.map((s) => (
                         <MenuItem key={s.id} value={s.id}>
@@ -393,6 +397,7 @@ export default function ManageAvailability() {
                         value={breakDay}
                         label="Day"
                         onChange={(e) => setBreakDay(e.target.value)}
+                        MenuProps={selectMenuProps}
                       >
                         {days.map((d, i) => (
                           <MenuItem key={d} value={i}>
@@ -410,6 +415,7 @@ export default function ManageAvailability() {
                         value={breakSlotId}
                         label="Slot"
                         onChange={(e) => setBreakSlotId(e.target.value)}
+                        MenuProps={selectMenuProps}
                       >
                         {slotOptions.map(s => (
                           <MenuItem key={s.id} value={s.id}>
