@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   getVolunteerRolesForVolunteer,
-  requestVolunteerBooking,
+  createRecurringVolunteerBooking,
   getMyVolunteerBookings,
-  updateVolunteerBookingStatus,
+  cancelVolunteerBooking,
+  cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
 } from '../../api/volunteers';
 import { getHolidays } from '../../api/bookings';
@@ -32,6 +33,8 @@ import {
   DialogActions,
   TextField,
   Typography,
+  Checkbox,
+  FormControlLabel,
   useTheme,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
@@ -54,6 +57,10 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const [decisionReason, setDecisionReason] = useState('');
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBooking | null>(null);
+  const [frequency, setFrequency] =
+    useState<'one-time' | 'daily' | 'weekly'>('one-time');
+  const [weekdays, setWeekdays] = useState<number[]>([]);
+  const [endDate, setEndDate] = useState('');
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const theme = useTheme();
@@ -129,12 +136,19 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   async function submitRequest() {
     if (!requestRole) return;
     try {
-      await requestVolunteerBooking(
+      await createRecurringVolunteerBooking(
         token,
         requestRole.id,
         formatDate(currentDate),
+        frequency,
+        frequency === 'weekly' ? weekdays : undefined,
+        frequency === 'weekly' && endDate ? endDate : undefined,
       );
-      const dateLabel = formatInTimeZone(currentDate, reginaTimeZone, 'EEE, MMM d');
+      const dateLabel = formatInTimeZone(
+        currentDate,
+        reginaTimeZone,
+        'EEE, MMM d',
+      );
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
@@ -151,15 +165,32 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   async function cancelSelected() {
     if (!decisionBooking) return;
     try {
-      await updateVolunteerBookingStatus(
-        token,
-        decisionBooking.id,
-        'cancelled'
-      );
+      await cancelVolunteerBooking(token, decisionBooking.id);
+      setSnackbarSeverity('success');
+      setMessage('Booking cancelled');
       await loadData();
     } catch {
       setSnackbarSeverity('error');
       setMessage('Failed to cancel booking');
+    } finally {
+      setDecisionBooking(null);
+      setDecisionReason('');
+    }
+  }
+
+  async function cancelSeries() {
+    if (!decisionBooking?.recurring_id) return;
+    try {
+      await cancelRecurringVolunteerBooking(
+        token,
+        decisionBooking.recurring_id,
+      );
+      setSnackbarSeverity('success');
+      setMessage('Series cancelled');
+      await loadData();
+    } catch {
+      setSnackbarSeverity('error');
+      setMessage('Failed to cancel series');
     } finally {
       setDecisionBooking(null);
       setDecisionReason('');
@@ -240,6 +271,9 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           content: 'Available',
           onClick: () => {
             if (!isClosed) {
+              setFrequency('one-time');
+              setWeekdays([reginaDate.getDay()]);
+              setEndDate('');
               setRequestRole(role);
               setMessage('');
             } else {
@@ -326,11 +360,72 @@ export default function VolunteerSchedule({ token }: { token: string }) {
       <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
         <DialogTitle>Request Booking</DialogTitle>
         <DialogContent dividers>
-          <Typography>Request booking for {requestRole?.name}?</Typography>
+          <Typography sx={{ mb: 2 }}>
+            Request booking for {requestRole?.name}?
+          </Typography>
+          <FormControl fullWidth size="small">
+            <InputLabel id="freq-label">Frequency</InputLabel>
+            <Select
+              labelId="freq-label"
+              value={frequency}
+              label="Frequency"
+              onChange={e =>
+                setFrequency(e.target.value as 'one-time' | 'daily' | 'weekly')
+              }
+            >
+              <MenuItem value="one-time">One-time</MenuItem>
+              <MenuItem value="daily">Daily</MenuItem>
+              <MenuItem value="weekly">Weekly</MenuItem>
+            </Select>
+          </FormControl>
+          {frequency === 'weekly' && (
+            <>
+              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+                  (d, i) => (
+                    <FormControlLabel
+                      key={d}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={weekdays.includes(i)}
+                          onChange={() =>
+                            setWeekdays(prev =>
+                              prev.includes(i)
+                                ? prev.filter(x => x !== i)
+                                : [...prev, i],
+                            )
+                          }
+                        />
+                      }
+                      label={d}
+                    />
+                  ),
+                )}
+              </Box>
+              <TextField
+                label="End date"
+                type="date"
+                size="small"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ mt: 2 }}
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={submitRequest} variant="outlined" color="primary">Submit</Button>
-          <Button onClick={() => setRequestRole(null)} variant="outlined" color="primary">Cancel</Button>
+          <Button onClick={submitRequest} variant="outlined" color="primary">
+            Submit
+          </Button>
+          <Button
+            onClick={() => setRequestRole(null)}
+            variant="outlined"
+            color="primary"
+          >
+            Cancel
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -365,7 +460,18 @@ export default function VolunteerSchedule({ token }: { token: string }) {
           >
             Reschedule
           </Button>
-          <Button onClick={cancelSelected} variant="outlined" color="primary">Cancel Booking</Button>
+          {decisionBooking?.recurring_id && (
+            <Button
+              onClick={cancelSeries}
+              variant="outlined"
+              color="primary"
+            >
+              Cancel All Upcoming
+            </Button>
+          )}
+          <Button onClick={cancelSelected} variant="outlined" color="primary">
+            Cancel Booking
+          </Button>
           <Button
             onClick={() => {
               setDecisionBooking(null);
