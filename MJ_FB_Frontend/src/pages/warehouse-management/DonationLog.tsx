@@ -129,7 +129,8 @@ export default function DonationLog() {
           <Button
             size="small"
             variant="contained"
-            onClick={() => {
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
               setForm({ date: format(selectedDate), donorId: null, weight: '' });
               setEditing(null);
               setRecordOpen(true);
@@ -137,7 +138,14 @@ export default function DonationLog() {
           >
             Record Donation
           </Button>
-          <Button size="small" variant="outlined" onClick={() => setNewDonorOpen(true)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setNewDonorOpen(true);
+            }}
+          >
             Add Donor
           </Button>
         </Stack>
@@ -163,14 +171,27 @@ export default function DonationLog() {
               <TableCell>{d.donor}</TableCell>
               <TableCell>{d.weight} lbs</TableCell>
               <TableCell align="right">
-                <IconButton size="small" onClick={() => {
-                  setEditing(d);
-                  setForm({ date: d.date, donorId: d.donorId, weight: String(d.weight) });
-                  setRecordOpen(true);
-                }} aria-label="Edit donation">
+                <IconButton
+                  size="small"
+                  onClick={e => {
+                    (e.currentTarget as HTMLButtonElement).blur();
+                    setEditing(d);
+                    setForm({ date: d.date, donorId: d.donorId, weight: String(d.weight) });
+                    setRecordOpen(true);
+                  }}
+                  aria-label="Edit donation"
+                >
                   <Edit fontSize="small" />
                 </IconButton>
-                <IconButton size="small" onClick={() => { setToDelete(d); setDeleteOpen(true); }} aria-label="Delete donation">
+                <IconButton
+                  size="small"
+                  onClick={e => {
+                    (e.currentTarget as HTMLButtonElement).blur();
+                    setToDelete(d);
+                    setDeleteOpen(true);
+                  }}
+                  aria-label="Delete donation"
+                >
                   <Delete fontSize="small" />
                 </IconButton>
               </TableCell>
