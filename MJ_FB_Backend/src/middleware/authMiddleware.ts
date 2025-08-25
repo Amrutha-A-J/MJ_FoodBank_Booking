@@ -155,9 +155,11 @@ export async function optionalAuthMiddleware(
   return next();
 }
 
-export function authorizeRoles(...allowedRoles: string[]) {
-  const hierarchy: Record<string, string[]> = {};
+const roleHierarchy: Record<string, string[]> = {
+  staff: ['volunteer'],
+};
 
+export function authorizeRoles(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     const { role, type, userRole, access = [] } = req.user as any;
@@ -169,7 +171,7 @@ export function authorizeRoles(...allowedRoles: string[]) {
 
     const effectiveRoles = new Set([role, type]);
     if (userRole) effectiveRoles.add(userRole);
-    (hierarchy[role] || []).forEach(r => effectiveRoles.add(r));
+    (roleHierarchy[role] || []).forEach(r => effectiveRoles.add(r));
 
     if (!allowedRoles.some(r => effectiveRoles.has(r))) {
       return res.status(403).json({ message: 'Forbidden' });
