@@ -2,9 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Grid,
-  Card,
-  CardHeader,
-  CardContent,
   Typography,
   Button,
   Stack,
@@ -22,30 +19,19 @@ import {
   Announcement,
 } from '@mui/icons-material';
 import { getBookings, getSlotsRange } from '../../api/bookings';
-import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import type { Role } from '../../types';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
 import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
+import SectionCard from './SectionCard';
+import VolunteerCoverageCard from './VolunteerCoverageCard';
 
 export interface DashboardProps {
   role: Role;
   token: string;
+  masterRoleFilter?: string[];
 }
-
-interface SectionCardProps {
-  title: string;
-  icon?: ReactNode;
-  children: ReactNode;
-}
-
-const SectionCard = ({ title, icon, children }: SectionCardProps) => (
-  <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-    <CardHeader title={title} avatar={icon} />
-    <CardContent>{children}</CardContent>
-  </Card>
-);
 
 interface StatProps {
   icon: ReactNode;
@@ -83,11 +69,9 @@ function formatLocalDate(date: Date) {
   return date.toLocaleDateString('en-CA');
 }
 
-function StaffDashboard({ token }: { token: string }) {
+function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [coverage, setCoverage] = useState<
-    { role: string; filled: number; total: number }[]
-  >([]);
+  const [volunteerCount, setVolunteerCount] = useState(0);
   const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
   const [events, setEvents] = useState<EventGroups>({
     today: [],
@@ -103,23 +87,6 @@ function StaffDashboard({ token }: { token: string }) {
 
     const today = new Date();
     const todayStr = formatLocalDate(today);
-
-    getVolunteerRoles(token)
-      .then(roles =>
-        Promise.all(
-          roles.map(async r => {
-            const bookings = await getVolunteerBookingsByRole(token, r.id);
-            const filled = bookings.filter(
-              (b: any) =>
-                b.status === 'approved' &&
-                formatLocalDate(new Date(b.date)) === todayStr,
-            ).length;
-            return { role: r.name, filled, total: r.max_volunteers };
-          }),
-        ),
-      )
-      .then(setCoverage)
-      .catch(() => {});
 
     getSlotsRange(todayStr, 7)
       .then(days =>
@@ -143,7 +110,7 @@ function StaffDashboard({ token }: { token: string }) {
         b.status === 'approved' &&
         formatLocalDate(new Date(b.date)) === todayStr,
     ).length,
-    volunteers: coverage.reduce((sum, c) => sum + c.filled, 0),
+    volunteers: volunteerCount,
     approvals: pending.length,
     cancellations: cancellations.filter(
       b => formatLocalDate(new Date(b.date)) === todayStr,
@@ -198,25 +165,13 @@ function StaffDashboard({ token }: { token: string }) {
         </SectionCard>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Volunteer Coverage">
-          <List>
-            {coverage.map((c, i) => {
-              const ratio = c.filled / c.total;
-              let color: 'success' | 'warning' | 'error' | 'default' = 'default';
-              if (ratio >= 1) color = 'success';
-              else if (ratio >= 0.5) color = 'warning';
-              else color = 'error';
-              return (
-                <ListItem
-                  key={i}
-                  secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
-                >
-                  <ListItemText primary={c.role} />
-                </ListItem>
-              );
-            })}
-          </List>
-        </SectionCard>
+        <VolunteerCoverageCard
+          token={token}
+          masterRoleFilter={masterRoleFilter}
+          onCoverageLoaded={data =>
+            setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
+          }
+        />
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={2}>
@@ -426,8 +381,9 @@ function UserDashboard() {
   );
 }
 
-export default function Dashboard({ role, token }: DashboardProps) {
-  if (role === 'staff') return <StaffDashboard token={token} />;
+export default function Dashboard({ role, token, masterRoleFilter }: DashboardProps) {
+  if (role === 'staff')
+    return <StaffDashboard token={token} masterRoleFilter={masterRoleFilter} />;
   return <UserDashboard />;
 }
 
