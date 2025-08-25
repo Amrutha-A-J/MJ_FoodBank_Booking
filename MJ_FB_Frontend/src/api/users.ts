@@ -151,3 +151,30 @@ export async function getUserByClientId(_token: string, clientId: string) {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`);
   return handleResponse(res);
 }
+
+export interface IncompleteUser {
+  id: number;
+  clientId: number;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
+export async function getIncompleteUsers(_token: string): Promise<IncompleteUser[]> {
+  const res = await apiFetch(`${API_BASE}/users/missing-info`);
+  return handleResponse(res);
+}
+
+export async function updateUserInfo(
+  _token: string,
+  clientId: number,
+  data: { firstName: string; lastName: string; email?: string; phone?: string },
+): Promise<IncompleteUser> {
+  const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}

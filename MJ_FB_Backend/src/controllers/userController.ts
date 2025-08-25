@@ -275,3 +275,71 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function listUsersMissingInfo(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await pool.query(
+      `SELECT id, client_id, first_name, last_name, email, phone
+       FROM clients
+       WHERE first_name IS NULL AND last_name IS NULL
+       ORDER BY client_id ASC`,
+    );
+    const users = result.rows.map(row => ({
+      id: row.id,
+      clientId: row.client_id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+    }));
+    res.json(users);
+  } catch (error) {
+    logger.error('Error listing users missing info:', error);
+    next(error);
+  }
+}
+
+export async function updateUserByClientId(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user || req.user.role !== 'staff') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { clientId } = req.params;
+  const { firstName, lastName, email, phone } = req.body as {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  try {
+    const result = await pool.query(
+      `UPDATE clients
+       SET first_name = $1, last_name = $2, email = $3, phone = $4
+       WHERE client_id = $5
+       RETURNING id, client_id, first_name, last_name, email, phone`,
+      [firstName, lastName, email || null, phone || null, clientId],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const row = result.rows[0];
+    res.json({
+      id: row.id,
+      clientId: row.client_id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+    });
+  } catch (error) {
+    logger.error('Error updating user info:', error);
+    next(error);
+  }
+}
+

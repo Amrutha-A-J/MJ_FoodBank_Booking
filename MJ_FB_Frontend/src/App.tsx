@@ -30,6 +30,7 @@ import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
+import UpdateClientData from './pages/staff/UpdateClientData';
 import AgencyLogin from './pages/agency/Login';
 import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
@@ -79,6 +80,7 @@ export default function App() {
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Add Client', to: '/pantry/add-client' },
+      { label: 'Update Client Data', to: '/pantry/update-client-data' },
       { label: 'Client History', to: '/pantry/user-history' },
       { label: 'Pending', to: '/pantry/pending' },
     ];
@@ -279,6 +281,9 @@ export default function App() {
                 />
               )}
               {showStaff && <Route path="/pantry/add-client" element={<AddClient token={token} />} />}
+              {showStaff && (
+                <Route path="/pantry/update-client-data" element={<UpdateClientData token={token} />} />
+              )}
               {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
