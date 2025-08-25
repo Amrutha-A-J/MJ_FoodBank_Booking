@@ -3,16 +3,12 @@ import pool from '../db';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
+import cookie from 'cookie';
 
 function getTokenFromCookies(req: Request) {
-  const cookie = req.headers.cookie;
-  if (!cookie) return undefined;
-  const cookies = Object.fromEntries(
-    cookie.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    }),
-  );
+  const header = req.headers.cookie;
+  if (!header) return undefined;
+  const cookies = cookie.parse(header);
   return cookies.token;
 }
 
