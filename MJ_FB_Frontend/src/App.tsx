@@ -12,7 +12,7 @@ import StaffLogin from './pages/auth/StaffLogin';
 import VolunteerLogin from './pages/auth/VolunteerLogin';
 import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
 import VolunteerManagement from './pages/volunteer-management/VolunteerManagement';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import UserDashboard from './pages/user/UserDashboard';
 import VolunteerBookingHistory from './pages/volunteer/VolunteerBookingHistory';
 import VolunteerSchedule from './pages/volunteer/VolunteerSchedule';
