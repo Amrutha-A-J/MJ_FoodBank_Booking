@@ -149,7 +149,7 @@ export default function BookingUI({
         Available Slots for {date.format('ddd, MMM D')}
       </Typography>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md="auto">
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             <DateCalendar
               value={date}
@@ -162,7 +162,7 @@ export default function BookingUI({
             />
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md sx={{ flexGrow: 1 }}>
           <Paper
             sx={{
               p: 2,
