@@ -159,6 +159,7 @@ export interface IncompleteUser {
   lastName: string | null;
   email: string | null;
   phone: string | null;
+  profileLink: string;
 }
 
 export async function getIncompleteUsers(_token: string): Promise<IncompleteUser[]> {

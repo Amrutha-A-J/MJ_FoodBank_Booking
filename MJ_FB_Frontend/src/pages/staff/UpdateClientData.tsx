@@ -12,6 +12,7 @@ import {
   DialogActions,
   TextField,
   Stack,
+  Link,
 } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -84,6 +85,7 @@ export default function UpdateClientData({ token }: { token: string }) {
         <TableHead>
           <TableRow>
             <TableCell>Client ID</TableCell>
+            <TableCell>Profile</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -91,6 +93,15 @@ export default function UpdateClientData({ token }: { token: string }) {
           {clients.map(client => (
             <TableRow key={client.clientId}>
               <TableCell>{client.clientId}</TableCell>
+              <TableCell>
+                <Link
+                  href={client.profileLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Profile
+                </Link>
+              </TableCell>
               <TableCell align="right">
                 <Button
                   size="small"
@@ -106,7 +117,18 @@ export default function UpdateClientData({ token }: { token: string }) {
       </Table>
 
       <Dialog open={!!selected} onClose={() => setSelected(null)}>
-        <DialogTitle>Edit Client</DialogTitle>
+        <DialogTitle>
+          Edit Client -{' '}
+          {selected && (
+            <Link
+              href={selected.profileLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {selected.clientId}
+            </Link>
+          )}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
