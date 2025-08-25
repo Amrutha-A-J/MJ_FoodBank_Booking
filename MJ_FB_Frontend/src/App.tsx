@@ -56,6 +56,7 @@ export default function App() {
     );
   } else if (isStaff) {
     const staffLinks = [
+      { label: 'Dashboard', to: '/pantry' },
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
@@ -161,6 +162,9 @@ export default function App() {
                 }
               />
               <Route path="/profile" element={<Profile token={token} role={role} />} />
+              {showStaff && (
+                <Route path="/pantry" element={<Dashboard role="staff" token={token} />} />
+              )}
               {showStaff && (
                 <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
               )}
