@@ -7,7 +7,8 @@ import { theme } from './theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { registerServiceWorker } from './registerServiceWorker';
 import { AuthProvider } from './hooks/useAuth';
-import { LocalizationProvider, AdapterDayjs } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function Main() {
   const queryClient = new QueryClient();
