@@ -7,11 +7,20 @@ import {
   getBlockedSlots,
   addBlockedSlot as apiAddBlockedSlot,
   removeBlockedSlot as apiRemoveBlockedSlot,
+  getRecurringBlockedSlots,
+  addRecurringBlockedSlot as apiAddRecurringBlockedSlot,
+  removeRecurringBlockedSlot as apiRemoveRecurringBlockedSlot,
   getBreaks,
   addBreak as apiAddBreak,
   removeBreak as apiRemoveBreak,
 } from '../../api/bookings';
-import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
+import type {
+  Slot,
+  Holiday,
+  Break,
+  BlockedSlot,
+  RecurringBlockedSlot,
+} from '../../types';
 import { formatTime } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Box, Button } from '@mui/material';
@@ -32,6 +41,10 @@ export default function ManageAvailability() {
   const [blockedSlot, setBlockedSlot] = useState('');
   const [blockedReason, setBlockedReason] = useState('');
   const [blockedList, setBlockedList] = useState<BlockedSlot[]>([]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringDay, setRecurringDay] = useState('');
+  const [recurringWeeks, setRecurringWeeks] = useState<string[]>([]);
+  const [recurringList, setRecurringList] = useState<RecurringBlockedSlot[]>([]);
 
   const [breakDay, setBreakDay] = useState('');
   const [breakSlot, setBreakSlot] = useState('');
@@ -61,6 +74,16 @@ export default function ManageAvailability() {
     }
   }, []);
 
+  const fetchRecurring = useCallback(async () => {
+    try {
+      const data = await getRecurringBlockedSlots();
+      setRecurringList(data);
+    } catch (err: unknown) {
+      setSnackbarSeverity('error');
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }, []);
+
   const fetchBlocked = useCallback(async () => {
     if (!blockedDate) {
       setBlockedList([]);
@@ -78,13 +101,14 @@ export default function ManageAvailability() {
   useEffect(() => {
     fetchHolidays();
     fetchBreaks();
+    fetchRecurring();
     getAllSlots()
       .then(setAllSlots)
       .catch(err => {
         setSnackbarSeverity('error');
         setMessage(err instanceof Error ? err.message : String(err));
       });
-  }, [fetchHolidays, fetchBreaks]);
+  }, [fetchHolidays, fetchBreaks, fetchRecurring]);
 
   useEffect(() => {
     fetchBlocked();
@@ -121,6 +145,35 @@ export default function ManageAvailability() {
   }
 
   async function addBlocked() {
+    if (isRecurring) {
+      if (recurringDay === '' || !blockedSlot || recurringWeeks.length === 0) {
+        setSnackbarSeverity('error');
+        return setMessage('Select day, week and slot');
+      }
+      try {
+        await Promise.all(
+          recurringWeeks.map(w =>
+            apiAddRecurringBlockedSlot(
+              Number(recurringDay),
+              Number(w),
+              Number(blockedSlot),
+              blockedReason,
+            ),
+          ),
+        );
+        setSnackbarSeverity('success');
+        setMessage('Recurring slot blocked');
+        setBlockedSlot('');
+        setBlockedReason('');
+        setRecurringDay('');
+        setRecurringWeeks([]);
+        fetchRecurring();
+      } catch (err: unknown) {
+        setSnackbarSeverity('error');
+        setMessage(err instanceof Error ? err.message : String(err));
+      }
+      return;
+    }
     if (!blockedDate || !blockedSlot) {
       setSnackbarSeverity('error');
       return setMessage('Select date and slot');
@@ -144,6 +197,18 @@ export default function ManageAvailability() {
       setSnackbarSeverity('success');
       setMessage('Blocked slot removed');
       fetchBlocked();
+    } catch (err: unknown) {
+      setSnackbarSeverity('error');
+      setMessage(err instanceof Error ? err.message : String(err));
+    }
+  }
+
+  async function removeRecurring(id: number) {
+    try {
+      await apiRemoveRecurringBlockedSlot(id);
+      setSnackbarSeverity('success');
+      setMessage('Recurring block removed');
+      fetchRecurring();
     } catch (err: unknown) {
       setSnackbarSeverity('error');
       setMessage(err instanceof Error ? err.message : String(err));
@@ -234,11 +299,54 @@ export default function ManageAvailability() {
       {view === 'blocked' && (
         <section style={{ marginBottom: 24 }}>
           <h3>Blocked Slots</h3>
-          <input
-            type="date"
-            value={blockedDate}
-            onChange={(e) => setBlockedDate(e.target.value)}
-          />
+          <label>
+            <input
+              type="checkbox"
+              checked={isRecurring}
+              onChange={e => {
+                setIsRecurring(e.target.checked);
+                setBlockedDate('');
+              }}
+              style={{ marginRight: 4 }}
+            />
+            Recurring
+          </label>
+          {isRecurring ? (
+            <>
+              <select
+                value={recurringDay}
+                onChange={e => setRecurringDay(e.target.value)}
+                style={{ marginLeft: 8 }}
+              >
+                <option value="">Select day</option>
+                {dayNames.map((d, i) => (
+                  <option key={i} value={i}>{d}</option>
+                ))}
+              </select>
+              <select
+                multiple
+                value={recurringWeeks}
+                onChange={e =>
+                  setRecurringWeeks(
+                    Array.from(e.target.selectedOptions, o => o.value),
+                  )
+                }
+                style={{ marginLeft: 8 }}
+              >
+                {[1, 2, 3, 4, 5].map(w => (
+                  <option key={w} value={w}>
+                    {`${w}${w === 1 ? 'st' : w === 2 ? 'nd' : w === 3 ? 'rd' : 'th'}`}
+                  </option>
+                ))}
+              </select>
+            </>
+          ) : (
+            <input
+              type="date"
+              value={blockedDate}
+              onChange={e => setBlockedDate(e.target.value)}
+            />
+          )}
           <select
             value={blockedSlot}
             onChange={(e) => setBlockedSlot(e.target.value)}
@@ -260,7 +368,7 @@ export default function ManageAvailability() {
           />
           <Button onClick={addBlocked} style={{ marginLeft: 8 }} variant="outlined" color="primary">Block Slot</Button>
 
-          {blockedDate && (
+          {!isRecurring && blockedDate && (
             <ul>
               {blockedList.map(b => (
                 <li key={b.slotId}>
@@ -270,6 +378,30 @@ export default function ManageAvailability() {
                   </Button>
                 </li>
               ))}
+            </ul>
+          )}
+
+          {isRecurring && recurringDay !== '' && (
+            <ul>
+              {recurringList
+                .filter(r => r.dayOfWeek === Number(recurringDay))
+                .map(r => (
+                  <li key={r.id}>
+                    {`${r.weekOfMonth}${
+                      r.weekOfMonth === 1
+                        ? 'st'
+                        : r.weekOfMonth === 2
+                        ? 'nd'
+                        : r.weekOfMonth === 3
+                        ? 'rd'
+                        : 'th'
+                    } week`} {slotLabel(r.slotId)}
+                    {r.reason ? ` - ${r.reason}` : ''}{' '}
+                    <Button onClick={() => removeRecurring(r.id)} variant="outlined" color="primary">
+                      Remove
+                    </Button>
+                  </li>
+                ))}
             </ul>
           )}
         </section>
