@@ -43,7 +43,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
-import Dashboard from '../Dashboard';
+import Dashboard from '../../components/dashboard/Dashboard';
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
