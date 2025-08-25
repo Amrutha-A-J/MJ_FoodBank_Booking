@@ -138,6 +138,7 @@ export default function Profile({ token, role: _role }: { token: string; role: R
                     <strong>Trained Areas:</strong> {profile.trainedAreas.join(', ')}
                   </Typography>
                 )}
+                <Divider sx={{ my: 1 }} />
                 <TextField
                   label="Email"
                   size="small"
