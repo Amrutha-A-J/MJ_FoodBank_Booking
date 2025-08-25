@@ -8,6 +8,7 @@ export interface Event {
   category?: string;
   staffIds?: number[];
   createdBy: number;
+  createdByName: string;
 }
 
 export interface EventGroups {
@@ -32,6 +33,13 @@ export async function createEvent(data: {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteEvent(id: number) {
+  const res = await apiFetch(`${API_BASE}/events/${id}`, {
+    method: 'DELETE',
   });
   return handleResponse(res);
 }

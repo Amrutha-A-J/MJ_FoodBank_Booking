@@ -8,10 +8,12 @@ export async function listEvents(_req: Request, res: Response, next: NextFunctio
     const result = await pool.query(
       `SELECT e.id, e.title, e.details, e.category, e.date, e.created_at, e.updated_at,
               e.created_by AS "createdBy",
+              CONCAT(s.first_name, ' ', s.last_name) AS "createdByName",
               COALESCE(json_agg(es.staff_id) FILTER (WHERE es.staff_id IS NOT NULL), '[]') AS "staffIds"
        FROM events e
+       JOIN staff s ON e.created_by = s.id
        LEFT JOIN event_staff es ON e.id = es.event_id
-       GROUP BY e.id
+       GROUP BY e.id, s.first_name, s.last_name
        ORDER BY e.date ASC`
     );
 
@@ -61,6 +63,20 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     res.status(201).json({ id: eventId });
   } catch (error) {
     logger.error('Error creating event:', error);
+    next(error);
+  }
+}
+
+export async function deleteEvent(req: Request, res: Response, next: NextFunction) {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM events WHERE id = $1', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    logger.error('Error deleting event:', error);
     next(error);
   }
 }
