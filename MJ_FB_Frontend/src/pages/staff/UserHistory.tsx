@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory } from '../../api/bookings';
 import { formatInTimeZone } from 'date-fns-tz';
+import { formatTime } from '../../utils/time';
 import {
   Box,
   Button,
@@ -152,24 +153,8 @@ export default function UserHistory({
                     </TableRow>
                   )}
                   {paginated.map(b => {
-                    const hasStart = b.date && b.start_time;
-                    const hasEnd = b.date && b.end_time;
-                    const startTime =
-                      hasStart && !isNaN(new Date(`${b.date}T${b.start_time}`).getTime())
-                        ? formatInTimeZone(
-                            `${b.date}T${b.start_time}`,
-                            TIMEZONE,
-                            'h:mm a'
-                          )
-                        : 'N/A';
-                    const endTime =
-                      hasEnd && !isNaN(new Date(`${b.date}T${b.end_time}`).getTime())
-                        ? formatInTimeZone(
-                            `${b.date}T${b.end_time}`,
-                            TIMEZONE,
-                            'h:mm a'
-                          )
-                        : 'N/A';
+                    const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
+                    const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
                     const formattedDate =
                       b.date && !isNaN(new Date(b.date).getTime())
                         ? formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')
