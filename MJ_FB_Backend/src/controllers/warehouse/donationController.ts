@@ -88,13 +88,12 @@ export async function donorAggregations(req: Request, res: Response, next: NextF
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
     const result = await pool.query(
-      `SELECT o.name AS donor, m.month, COALESCE(SUM(d.weight)::int, 0) AS total
+      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
-       LEFT JOIN donations d ON d.donor_id = o.id
-         AND EXTRACT(YEAR FROM d.date) = $1
-         AND EXTRACT(MONTH FROM d.date) = m.month
-       GROUP BY o.name, m.month
+       LEFT JOIN donor_aggregations a ON a.donor_id = o.id
+         AND a.year = $1
+         AND a.month = m.month
        ORDER BY o.name, m.month`,
       [year],
     );
@@ -124,13 +123,12 @@ export async function exportDonorAggregations(req: Request, res: Response, next:
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
     const result = await pool.query(
-      `SELECT o.name AS donor, m.month, COALESCE(SUM(d.weight)::int, 0) AS total
+      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
-       LEFT JOIN donations d ON d.donor_id = o.id
-         AND EXTRACT(YEAR FROM d.date) = $1
-         AND EXTRACT(MONTH FROM d.date) = m.month
-       GROUP BY o.name, m.month
+       LEFT JOIN donor_aggregations a ON a.donor_id = o.id
+         AND a.year = $1
+         AND a.month = m.month
        ORDER BY o.name, m.month`,
       [year],
     );
