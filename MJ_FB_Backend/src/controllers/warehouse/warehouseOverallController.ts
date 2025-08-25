@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
+import type { Row } from 'write-excel-file';
 
 export async function refreshWarehouseOverall(year: number, month: number) {
   const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
@@ -127,10 +128,10 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
     const headerStyle = {
       backgroundColor: '#000000',
       color: '#FFFFFF',
-      fontWeight: 'bold',
+      fontWeight: 'bold' as const,
     };
 
-    const rows = [
+    const rows: Row[] = [
       [
         { value: 'Month', ...headerStyle },
         { value: 'Donations', ...headerStyle },
@@ -147,12 +148,12 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       const row = dataByMonth.get(m) || { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
       const monthTotal = row.donations + row.surplus + row.pigPound + row.outgoingDonations;
       rows.push([
-        monthNames[m - 1],
-        row.donations,
-        row.surplus,
-        row.pigPound,
-        row.outgoingDonations,
-        monthTotal,
+        { value: monthNames[m - 1] },
+        { value: row.donations },
+        { value: row.surplus },
+        { value: row.pigPound },
+        { value: row.outgoingDonations },
+        { value: monthTotal },
       ]);
       totals = {
         donations: totals.donations + row.donations,
