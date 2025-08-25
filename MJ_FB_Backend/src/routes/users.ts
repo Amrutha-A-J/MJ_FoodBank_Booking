@@ -1,5 +1,11 @@
 import express from 'express';
-import { loginUser, createUser, searchUsers, getUserProfile } from '../controllers/userController';
+import {
+  loginUser,
+  createUser,
+  searchUsers,
+  getUserProfile,
+  getUserByClientId,
+} from '../controllers/userController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import { loginSchema, createUserSchema } from '../schemas/userSchemas';
@@ -15,6 +21,12 @@ router.post(
   createUser,
 );
 router.get('/search', authMiddleware, authorizeRoles('staff'), searchUsers);
+router.get(
+  '/id/:clientId',
+  authMiddleware,
+  authorizeRoles('staff'),
+  getUserByClientId,
+);
 router.get('/me', authMiddleware, getUserProfile);
 
 
