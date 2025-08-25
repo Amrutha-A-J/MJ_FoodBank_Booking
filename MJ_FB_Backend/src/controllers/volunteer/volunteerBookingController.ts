@@ -70,7 +70,7 @@ export async function createVolunteerBooking(
     const insertRes = await pool.query(
       `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token`,
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
       [roleId, user.id, date, token]
     );
 
@@ -150,7 +150,7 @@ export async function createVolunteerBookingForVolunteer(
     const insertRes = await pool.query(
       `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
        VALUES ($1, $2, $3, 'approved', $4)
-       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token`,
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
       [roleId, volunteerId, date, token]
     );
 
@@ -173,7 +173,7 @@ export async function listVolunteerBookings(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
-              vb.reschedule_token,
+              vb.reschedule_token, vb.recurring_id,
               vs.start_time, vs.end_time, vs.max_volunteers, vr.name AS role_name, vmr.name AS category_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
@@ -203,7 +203,7 @@ export async function listVolunteerBookingsByRole(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
-              vb.reschedule_token,
+              vb.reschedule_token, vb.recurring_id,
               vs.start_time, vs.end_time, vs.max_volunteers, vr.name AS role_name, vmr.name AS category_name,
               v.first_name || ' ' || v.last_name AS volunteer_name
        FROM volunteer_bookings vb
@@ -236,7 +236,7 @@ export async function listMyVolunteerBookings(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
-              vb.reschedule_token,
+              vb.reschedule_token, vb.recurring_id,
               vs.start_time, vs.end_time, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
@@ -266,7 +266,7 @@ export async function listVolunteerBookingsByVolunteer(
   try {
     const result = await pool.query(
       `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
-              vb.reschedule_token,
+              vb.reschedule_token, vb.recurring_id,
               vs.start_time, vs.end_time, vs.max_volunteers, vr.name AS role_name, vmr.name AS category_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
@@ -329,7 +329,7 @@ export async function updateVolunteerBookingStatus(
 
     const updateRes = await pool.query(
       `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
-       RETURNING id, slot_id, volunteer_id, date, status`,
+       RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
       [status, id]
     );
     const updated = updateRes.rows[0];
@@ -411,6 +411,119 @@ export async function rescheduleVolunteerBooking(
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
     logger.error('Error rescheduling volunteer booking:', error);
+    next(error);
+  }
+}
+
+export async function createRecurringVolunteerBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  const {
+    roleId,
+    startDate,
+    endDate,
+    pattern,
+    daysOfWeek = [],
+  } = req.body as {
+    roleId?: number;
+    startDate?: string;
+    endDate?: string;
+    pattern?: 'daily' | 'weekly';
+    daysOfWeek?: number[];
+  };
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (!roleId || !startDate || !pattern) {
+    return res
+      .status(400)
+      .json({ message: 'roleId, startDate and pattern are required' });
+  }
+  try {
+    const recurringRes = await pool.query(
+      `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
+       VALUES ($1,$2,$3,$4,$5,$6,true)
+       RETURNING id`,
+      [user.id, roleId, startDate, endDate || null, pattern, daysOfWeek],
+    );
+    const recurringId = recurringRes.rows[0].id;
+    const dates: string[] = [];
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : new Date(startDate);
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      if (
+        pattern === 'daily' ||
+        (pattern === 'weekly' && daysOfWeek.includes(d.getUTCDay()))
+      ) {
+        dates.push(d.toISOString().split('T')[0]);
+      }
+    }
+    for (const date of dates) {
+      const token = randomUUID();
+      await pool.query(
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token, recurring_id)
+         VALUES ($1,$2,$3,$4,$5)`,
+        [roleId, user.id, date, token, recurringId],
+      );
+    }
+    res.status(201).json({ recurringId, count: dates.length });
+  } catch (error) {
+    logger.error('Error creating recurring volunteer bookings:', error);
+    next(error);
+  }
+}
+
+export async function cancelVolunteerBookingOccurrence(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1
+       RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
+      [id],
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    const booking = result.rows[0];
+    booking.role_id = booking.slot_id;
+    delete booking.slot_id;
+    booking.status_color = statusColor(booking.status);
+    res.json(booking);
+  } catch (error) {
+    logger.error('Error cancelling volunteer booking:', error);
+    next(error);
+  }
+}
+
+export async function cancelRecurringVolunteerBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { id } = req.params;
+  const from =
+    (req.query.from as string) ||
+    new Date().toISOString().split('T')[0];
+  try {
+    await pool.query(
+      `UPDATE volunteer_bookings SET status='cancelled'
+       WHERE recurring_id=$1 AND date >= $2`,
+      [id, from],
+    );
+    await pool.query(
+      `UPDATE volunteer_recurring_bookings
+       SET active=false, end_date = COALESCE(end_date, $2::date)
+       WHERE id=$1`,
+      [id, from],
+    );
+    res.json({ message: 'Recurring bookings cancelled' });
+  } catch (error) {
+    logger.error('Error cancelling recurring volunteer bookings:', error);
     next(error);
   }
 }

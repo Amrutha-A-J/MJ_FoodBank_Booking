@@ -8,6 +8,9 @@ import {
   listVolunteerBookingsByVolunteer,
   createVolunteerBookingForVolunteer,
   rescheduleVolunteerBooking,
+  createRecurringVolunteerBooking,
+  cancelRecurringVolunteerBooking,
+  cancelVolunteerBookingOccurrence,
 } from '../../controllers/volunteer/volunteerBookingController';
 import {
   authMiddleware,
@@ -24,6 +27,12 @@ router.post(
   authorizeRoles('staff'),
   createVolunteerBookingForVolunteer
 );
+router.post(
+  '/recurring',
+  authMiddleware,
+  authorizeRoles('volunteer'),
+  createRecurringVolunteerBooking,
+);
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listMyVolunteerBookings);
 router.get(
   '/volunteer/:volunteer_id',
@@ -38,6 +47,18 @@ router.post(
   '/reschedule/:token',
   optionalAuthMiddleware,
   rescheduleVolunteerBooking,
+);
+router.patch(
+  '/:id/cancel',
+  authMiddleware,
+  authorizeRoles('volunteer', 'staff'),
+  cancelVolunteerBookingOccurrence,
+);
+router.delete(
+  '/recurring/:id',
+  authMiddleware,
+  authorizeRoles('volunteer', 'staff'),
+  cancelRecurringVolunteerBooking,
 );
 
 export default router;
