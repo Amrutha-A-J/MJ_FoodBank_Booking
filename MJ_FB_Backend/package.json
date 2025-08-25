@@ -6,11 +6,11 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "xlsx": "^0.18.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^7.0.5",
     "pg": "^8.16.3",
+    "write-excel-file": "^2.1.0",
     "zod": "^4.1.1"
   },
   "devDependencies": {
@@ -24,6 +24,7 @@
     "jest": "^30.0.5",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
+    "read-excel-file": "^5.8.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
-import * as XLSX from 'xlsx';
+import writeXlsxFile from 'write-excel-file/node';
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
@@ -31,25 +31,20 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       [year],
     );
 
-    const workbook = XLSX.utils.book_new();
-    const rows = result.rows.map(row => ({
-      Month: row.month,
-      Donations: row.donations,
-      Surplus: row.surplus,
-      'Pig Pound': row.pigPound,
-      'Outgoing Donations': row.outgoingDonations,
-    }));
-    const worksheet = XLSX.utils.json_to_sheet(rows, {
-      header: [
-        'Month',
-        'Donations',
-        'Surplus',
-        'Pig Pound',
-        'Outgoing Donations',
-      ],
+    const rows = [
+      ['Month', 'Donations', 'Surplus', 'Pig Pound', 'Outgoing Donations'],
+      ...result.rows.map(row => [
+        row.month,
+        row.donations,
+        row.surplus,
+        row.pigPound,
+        row.outgoingDonations,
+      ]),
+    ];
+    const buffer = await writeXlsxFile(rows, {
+      sheet: `Warehouse ${year}`,
+      buffer: true,
     });
-    XLSX.utils.book_append_sheet(workbook, worksheet, `Warehouse ${year}`);
-    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
     res
       .setHeader(
         'Content-Type',
@@ -60,7 +55,7 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
         `attachment; filename=warehouse-overall-${year}.xlsx`,
       );
 
-    res.send(Buffer.from(buffer));
+    res.send(buffer);
   } catch (error) {
     logger.error('Error exporting warehouse overall:', error);
     next(error);
