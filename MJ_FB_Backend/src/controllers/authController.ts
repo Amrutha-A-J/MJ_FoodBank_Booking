@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config';
 import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
+import { validatePassword } from '../utils/passwordUtils';
 import cookie from 'cookie';
 
 export async function requestPasswordReset(
@@ -54,6 +55,11 @@ export async function changePassword(
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Missing fields' });
+  }
+
+  const pwError = validatePassword(newPassword);
+  if (pwError) {
+    return res.status(400).json({ message: pwError });
   }
   try {
     let table = 'clients';

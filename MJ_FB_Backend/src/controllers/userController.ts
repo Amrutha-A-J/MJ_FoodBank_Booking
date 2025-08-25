@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
+import { validatePassword } from '../utils/passwordUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -99,6 +100,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
   if (onlineAccess && (!firstName || !lastName || !password)) {
     return res.status(400).json({ message: 'Missing fields for online account' });
+  }
+
+  if (password) {
+    const pwError = validatePassword(password);
+    if (pwError) {
+      return res.status(400).json({ message: pwError });
+    }
   }
 
   if (!['shopper', 'delivery'].includes(role)) {
