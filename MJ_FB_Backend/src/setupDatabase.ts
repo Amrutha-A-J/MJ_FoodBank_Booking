@@ -99,6 +99,7 @@ export async function setupDatabase() {
         details text,
         category text,
         date date NOT NULL,
+        created_by integer NOT NULL REFERENCES public.staff(id),
         created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
         updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
       );
@@ -154,6 +155,7 @@ CREATE TABLE IF NOT EXISTS events (
     details text,
     category text,
     date date NOT NULL,
+    created_by integer NOT NULL REFERENCES public.staff(id),
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );

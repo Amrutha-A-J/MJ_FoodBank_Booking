@@ -46,7 +46,7 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
-    ? [{ label: 'Events', to: '/pantry/events' }]
+    ? [{ label: 'Events', to: '/events' }]
     : undefined;
   if (!token) {
     navGroups.push(
@@ -234,7 +234,7 @@ export default function App() {
               {showStaff && <Route path="/pantry/add-user" element={<AddUser token={token} />} />}
               {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
-              {showStaff && <Route path="/pantry/events" element={<Events />} />}
+              {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}

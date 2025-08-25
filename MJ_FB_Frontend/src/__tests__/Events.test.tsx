@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import Events from '../pages/Events';
+import Events from '../pages/events/Events';
 import { getEvents } from '../api/events';
 
 jest.mock('../api/events', () => ({

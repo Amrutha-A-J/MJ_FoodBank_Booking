@@ -7,6 +7,7 @@ export interface Event {
   details?: string;
   category?: string;
   staffIds?: number[];
+  createdBy: number;
 }
 
 export async function getEvents(): Promise<Event[]> {
