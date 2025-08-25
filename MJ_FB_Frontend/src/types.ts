@@ -53,6 +53,14 @@ export interface BlockedSlot {
   reason: string;
 }
 
+export interface RecurringBlockedSlot {
+  id: number;
+  dayOfWeek: number;
+  weekOfMonth: number;
+  slotId: number;
+  reason: string;
+}
+
 export interface VolunteerRole {
   id: number;
   role_id: number;
