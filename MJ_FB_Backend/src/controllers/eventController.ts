@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { createEventSchema } from '../schemas/eventSchemas';
+import { formatReginaDate } from '../utils/dateUtils';
 
 export async function listEvents(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -20,10 +21,10 @@ export async function listEvents(_req: Request, res: Response, next: NextFunctio
     const today: any[] = [];
     const upcoming: any[] = [];
     const past: any[] = [];
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = formatReginaDate(new Date());
 
     for (const row of result.rows) {
-      const dateStr = row.date instanceof Date ? row.date.toISOString().split('T')[0] : row.date;
+      const dateStr = formatReginaDate(row.date);
       if (dateStr === todayStr) {
         today.push(row);
       } else if (dateStr > todayStr) {
@@ -48,9 +49,10 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
   const { title, details, category, date, staffIds } = parsed.data;
   try {
     const createdBy = Number((req.user as any).id);
+    const reginaDate = formatReginaDate(date);
     const inserted = await pool.query(
       `INSERT INTO events (title, details, category, date, created_by) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-      [title, details, category, date, createdBy]
+      [title, details, category, reginaDate, createdBy]
     );
     const eventId = inserted.rows[0].id;
     if (staffIds && staffIds.length > 0) {

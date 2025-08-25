@@ -1,5 +1,6 @@
 import pool from '../db';
 import { Pool, PoolClient } from 'pg';
+import { formatReginaDate } from '../utils/dateUtils';
 
 export type Queryable = Pool | PoolClient;
 
@@ -16,6 +17,7 @@ export async function checkSlotCapacity(
   date: string,
   client: Queryable = pool,
 ) {
+  const reginaDate = formatReginaDate(date);
   const slotRes = await client.query(
     'SELECT max_capacity FROM slots WHERE id = $1 FOR UPDATE',
     [slotId],
@@ -25,7 +27,7 @@ export async function checkSlotCapacity(
   }
   const approvedCountRes = await client.query(
     `SELECT COUNT(*) FROM bookings WHERE slot_id=$1 AND date=$2 AND status='approved'`,
-    [slotId, date],
+    [slotId, reginaDate],
   );
   const approvedCount = Number(approvedCountRes.rows[0].count);
   if (approvedCount >= slotRes.rows[0].max_capacity) {
@@ -43,10 +45,11 @@ export async function insertBooking(
   rescheduleToken: string,
   client: Queryable = pool,
 ) {
+  const reginaDate = formatReginaDate(date);
   await client.query(
     `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [userId, slotId, status, requestData, date, isStaffBooking, rescheduleToken],
+    [userId, slotId, status, requestData, reginaDate, isStaffBooking, rescheduleToken],
   );
 }
 

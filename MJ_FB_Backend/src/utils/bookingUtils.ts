@@ -1,18 +1,19 @@
 import pool from '../db';
+import { formatReginaDate, reginaStartOfDayISO } from './dateUtils';
 
-export function getMonthRange(date: Date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  const format = (d: Date) => d.toLocaleDateString('en-CA');
+export function getMonthRange(date: Date | string) {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const start = new Date(d.getFullYear(), d.getMonth(), 1);
+  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
   return {
-    start: format(start),
-    end: format(end),
+    start: formatReginaDate(start),
+    end: formatReginaDate(end),
   };
 }
 
 export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
-  const today = new Date();
-  const bookingDate = new Date(dateStr);
+  const today = new Date(reginaStartOfDayISO(new Date()));
+  const bookingDate = new Date(reginaStartOfDayISO(dateStr));
 
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
@@ -46,8 +47,7 @@ export async function countApprovedBookingsForMonth(
   userId: number,
   dateStr: string,
 ): Promise<number> {
-  const date = new Date(dateStr);
-  const { start, end } = getMonthRange(date);
+  const { start, end } = getMonthRange(formatReginaDate(dateStr));
   const res = await pool.query(
     `SELECT COUNT(*) FROM bookings WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3`,
     [userId, start, end],
@@ -56,8 +56,7 @@ export async function countApprovedBookingsForMonth(
 }
 
 export async function updateBookingsThisMonth(userId: number): Promise<number> {
-  const now = new Date();
-  const { start, end } = getMonthRange(now);
+  const { start, end } = getMonthRange(formatReginaDate(new Date()));
   const res = await pool.query(
     `SELECT COUNT(*) FROM bookings WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3`,
     [userId, start, end],
