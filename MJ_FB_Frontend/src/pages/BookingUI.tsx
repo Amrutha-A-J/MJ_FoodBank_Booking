@@ -138,7 +138,7 @@ export default function BookingUI({
     : '';
 
   return (
-    <Container maxWidth="lg" sx={{ pb: { xs: 9, md: 0 } }}>
+    <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
         Booking for: {shopperName}
@@ -236,7 +236,7 @@ export default function BookingUI({
       </Grid>
       <Paper
         sx={{
-          position: { xs: 'fixed', md: 'sticky' },
+          position: 'fixed',
           bottom: 0,
           left: 0,
           right: 0,
