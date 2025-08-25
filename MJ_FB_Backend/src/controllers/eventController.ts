@@ -68,7 +68,10 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
 }
 
 export async function deleteEvent(req: Request, res: Response, next: NextFunction) {
-  const { id } = req.params;
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ message: 'Invalid id' });
+  }
   try {
     const result = await pool.query('DELETE FROM events WHERE id = $1', [id]);
     if (result.rowCount === 0) {
