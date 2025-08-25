@@ -406,12 +406,22 @@ export async function getBookingHistory(req: Request, res: Response, next: NextF
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
 
     let userId: number | null = null;
-    if (requester.role === 'staff') {
+    if (requester.role === 'staff' || requester.role === 'agency') {
       const paramId = req.query.userId as string;
       if (!paramId) {
-        return res.status(400).json({ message: 'userId query parameter required' });
+        return res
+          .status(400)
+          .json({ message: 'userId query parameter required' });
       }
       userId = Number(paramId);
+      if (requester.role === 'agency') {
+        const allowed = await isAgencyClient(Number(requester.id), userId);
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ message: 'Client not associated with agency' });
+        }
+      }
     } else {
       userId = Number((requester as any).userId ?? requester.id);
     }
