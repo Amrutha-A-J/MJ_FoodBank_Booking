@@ -5,9 +5,9 @@ export type Queryable = Pool | PoolClient;
 
 export class SlotCapacityError extends Error {
   status: number;
-  constructor(message: string) {
+  constructor(message: string, status = 400) {
     super(message);
-    this.status = 400;
+    this.status = status;
   }
 }
 
@@ -16,7 +16,10 @@ export async function checkSlotCapacity(
   date: string,
   client: Queryable = pool,
 ) {
-  const slotRes = await client.query('SELECT * FROM slots WHERE id = $1', [slotId]);
+  const slotRes = await client.query(
+    'SELECT max_capacity FROM slots WHERE id = $1 FOR UPDATE',
+    [slotId],
+  );
   if (slotRes.rowCount === 0) {
     throw new SlotCapacityError('Invalid slot');
   }
@@ -26,7 +29,7 @@ export async function checkSlotCapacity(
   );
   const approvedCount = Number(approvedCountRes.rows[0].count);
   if (approvedCount >= slotRes.rows[0].max_capacity) {
-    throw new SlotCapacityError('Slot full on selected date');
+    throw new SlotCapacityError('Slot full on selected date', 409);
   }
 }
 
