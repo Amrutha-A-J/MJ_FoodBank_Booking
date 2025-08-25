@@ -46,6 +46,17 @@ function format(date: Date) {
   return date.toISOString().split('T')[0];
 }
 
+function formatDisplay(dateStr: string) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export default function PantryVisits({ token }: { token: string }) {
   const [visits, setVisits] = useState<ClientVisit[]>([]);
   const [tab, setTab] = useState(() => {
@@ -220,7 +231,7 @@ export default function PantryVisits({ token }: { token: string }) {
           <TableBody>
             {visits.map(v => (
               <TableRow key={v.id}>
-                <TableCell>{v.date}</TableCell>
+                <TableCell>{formatDisplay(v.date)}</TableCell>
                 <TableCell>{v.clientId ?? 'N/A'}</TableCell>
                 <TableCell>{v.clientName ?? ''}</TableCell>
                 <TableCell>
