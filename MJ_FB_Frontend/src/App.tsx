@@ -4,7 +4,7 @@ import Profile from './pages/booking/Profile';
 import ManageAvailability from './pages/staff/ManageAvailability';
 import UserHistory from './pages/staff/UserHistory';
 import SlotBooking from './pages/booking/SlotBooking';
-import AddUser from './pages/staff/AddUser';
+import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
 import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
@@ -72,7 +72,7 @@ export default function App() {
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
-      { label: 'Add Client', to: '/pantry/add-user' },
+      { label: 'Add Client', to: '/pantry/add-client' },
       { label: 'Client History', to: '/pantry/user-history' },
       { label: 'Pending', to: '/pantry/pending' },
     ];
@@ -251,7 +251,7 @@ export default function App() {
                   }
                 />
               )}
-              {showStaff && <Route path="/pantry/add-user" element={<AddUser token={token} />} />}
+              {showStaff && <Route path="/pantry/add-client" element={<AddClient token={token} />} />}
               {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
