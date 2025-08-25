@@ -159,6 +159,12 @@ export default function BookingUI({
                   setSelectedSlotId(null);
                 }
               }}
+              sx={{
+                width: '100%',
+                maxWidth: 320,
+                mx: 'auto',
+                '& .MuiPickersSlideTransition-root': { minWidth: 0 },
+              }}
             />
           </Paper>
         </Grid>
