@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
-import XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
@@ -31,21 +31,26 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       [year],
     );
 
-    const workbook = XLSX.utils.book_new();
-    const worksheetData = result.rows.map(row => ({
-      Month: row.month,
-      Donations: row.donations,
-      Surplus: row.surplus,
-      'Pig Pound': row.pigPound,
-      'Outgoing Donations': row.outgoingDonations,
-    }));
-    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, `Warehouse ${year}`);
-
-    const buffer = XLSX.write(workbook, {
-      type: 'buffer',
-      bookType: 'xlsx',
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Warehouse ${year}`);
+    worksheet.columns = [
+      { header: 'Month', key: 'Month' },
+      { header: 'Donations', key: 'Donations' },
+      { header: 'Surplus', key: 'Surplus' },
+      { header: 'Pig Pound', key: 'Pig Pound' },
+      { header: 'Outgoing Donations', key: 'Outgoing Donations' },
+    ];
+    result.rows.forEach(row => {
+      worksheet.addRow({
+        Month: row.month,
+        Donations: row.donations,
+        Surplus: row.surplus,
+        'Pig Pound': row.pigPound,
+        'Outgoing Donations': row.outgoingDonations,
+      });
     });
+
+    const buffer = await workbook.xlsx.writeBuffer();
     res
       .setHeader(
         'Content-Type',
