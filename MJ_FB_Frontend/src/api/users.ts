@@ -134,3 +134,8 @@ export async function searchUsers(_token: string, search: string) {
   const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`);
   return handleResponse(res);
 }
+
+export async function getUserByClientId(_token: string, clientId: string) {
+  const res = await apiFetch(`${API_BASE}/users/id/${clientId}`);
+  return handleResponse(res);
+}
