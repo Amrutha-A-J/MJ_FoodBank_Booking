@@ -221,9 +221,10 @@ export async function createVolunteerShopperProfile(
       return res.status(400).json({ message: 'Client ID already exists' });
     }
     const hashed = await bcrypt.hash(password, 10);
+    const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access)
-       VALUES ($1,$2,$3,$4,$5,'shopper',$6, true) RETURNING id`,
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
+       VALUES ($1,$2,$3,$4,$5,'shopper',$6, true, $7) RETURNING id`,
       [
         volRes.rows[0].first_name,
         volRes.rows[0].last_name,
@@ -231,6 +232,7 @@ export async function createVolunteerShopperProfile(
         volRes.rows[0].phone,
         clientId,
         hashed,
+        profileLink,
       ],
     );
     const userId = userRes.rows[0].id;

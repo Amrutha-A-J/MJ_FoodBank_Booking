@@ -137,10 +137,11 @@ export async function fetchBookingHistory(
     clientId: number,
     client: Queryable,
   ) {
+    const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const res = await client.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role)
-       VALUES ($1, $2, $3, NULL, $4, 'shopper') RETURNING id`,
-      [firstName, lastName, email, clientId],
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, profile_link)
+       VALUES ($1, $2, $3, NULL, $4, 'shopper', $5) RETURNING id`,
+      [firstName, lastName, email, clientId, profileLink],
     );
     return res.rows[0].id;
   }
