@@ -62,7 +62,6 @@ export default function App() {
       { label: 'Add Client', to: '/add-user' },
       { label: 'Client History', to: '/user-history' },
       { label: 'Pending', to: '/pending' },
-      { label: 'Events', to: '/events' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -235,7 +234,7 @@ export default function App() {
               {showStaff && <Route path="/add-user" element={<AddUser token={token} />} />}
               {showStaff && <Route path="/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pending" element={<Pending />} />}
-              {showStaff && <Route path="/events" element={<Events />} />}
+              {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}

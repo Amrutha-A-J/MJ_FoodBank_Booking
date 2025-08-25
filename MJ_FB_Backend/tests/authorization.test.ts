@@ -73,6 +73,19 @@ describe('Authorization middleware', () => {
     expect(res.status).toBe(200);
   });
 
+  it('allows staff to access volunteer endpoint due to hierarchy', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 2, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 2, first_name: 'Staff', last_name: 'Member', email: 'staff@example.com', role: 'staff' }],
+    });
+
+    const res = await request(app)
+      .get('/volunteer-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+  });
+
   it('allows volunteer to access volunteer endpoint', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 3, role: 'volunteer', type: 'volunteer' });
     (pool.query as jest.Mock).mockResolvedValue({
@@ -84,6 +97,19 @@ describe('Authorization middleware', () => {
       .get('/volunteer-area')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
+  });
+
+  it('prevents volunteer from accessing staff endpoint', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 3, role: 'volunteer', type: 'volunteer' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 3, first_name: 'Vol', last_name: 'unteer', email: 'vol@example.com' }],
+    });
+
+    const res = await request(app)
+      .get('/staff-area')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(403);
   });
 
   it('allows admin to access staff endpoint', async () => {

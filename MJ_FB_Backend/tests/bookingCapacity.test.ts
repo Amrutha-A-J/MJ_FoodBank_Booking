@@ -40,14 +40,14 @@ beforeEach(() => {
 });
 
 describe('POST /bookings capacity check', () => {
-  it('returns 400 when slot is full', async () => {
+  it('returns 409 when slot is full', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
       rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
     });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockRejectedValue(
-      new bookingRepository.SlotCapacityError('Slot full on selected date'),
+      new bookingRepository.SlotCapacityError('Slot full on selected date', 409),
     );
 
     const today = new Date().toLocaleDateString('en-CA');
@@ -56,7 +56,7 @@ describe('POST /bookings capacity check', () => {
       .set('Authorization', 'Bearer token')
       .send({ slotId: 1, date: today });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
     expect(res.body).toHaveProperty('message', 'Slot full on selected date');
     expect(bookingRepository.insertBooking).not.toHaveBeenCalled();
   });
