@@ -19,7 +19,6 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
-  Download,
   Autorenew,
   InfoOutlined,
   TrendingUp,
@@ -47,7 +46,6 @@ import {
   getWarehouseOverall,
   getWarehouseOverallYears,
   rebuildWarehouseOverall,
-  exportWarehouseOverall,
 } from '../../api/warehouseOverall';
 import {
   getTopDonors,
@@ -98,7 +96,6 @@ export default function WarehouseDashboard() {
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [loadingTotals, setLoadingTotals] = useState(false);
   const [loadingRebuild, setLoadingRebuild] = useState(false);
-  const [loadingExport, setLoadingExport] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -265,22 +262,6 @@ export default function WarehouseDashboard() {
     }
   }
 
-  async function handleExport() {
-    setLoadingExport(true);
-    try {
-      const blob = await exportWarehouseOverall(year!);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `warehouse_overall_${year}.xlsx`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setSnackbar({ open: true, message: err.message || 'Export failed', severity: 'error' });
-    } finally {
-      setLoadingExport(false);
-    }
-  }
 
   const kpis = [
     { title: 'Incoming (Donations)', value: currentTotals?.donationsLbs ?? 0, prev: prevTotals?.donationsLbs ?? 0 },
@@ -347,16 +328,6 @@ export default function WarehouseDashboard() {
             aria-busy={loadingRebuild}
           >
             Rebuild Year
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<Download />}
-            onClick={handleExport}
-            disabled={loadingExport}
-            aria-busy={loadingExport}
-          >
-            Export Excel
           </Button>
         </Stack>
       </Stack>

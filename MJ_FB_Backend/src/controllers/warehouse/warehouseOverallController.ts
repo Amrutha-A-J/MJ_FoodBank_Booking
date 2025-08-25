@@ -73,7 +73,7 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       )
       .setHeader(
         'Content-Disposition',
-        `attachment; filename=warehouse-overall-${year}.xlsx`,
+        `attachment; filename=${year}_warehouse_overall_stats.xlsx`,
       );
 
     res.send(buffer);

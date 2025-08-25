@@ -46,3 +46,9 @@ export async function getDonorAggregations(year: number): Promise<DonorAggregati
   const res = await apiFetch(`${API_BASE}/donations/aggregations?year=${year}`);
   return handleResponse(res);
 }
+
+export async function exportDonorAggregations(year: number): Promise<Blob> {
+  const res = await apiFetch(`${API_BASE}/donations/aggregations/export?year=${year}`);
+  if (!res.ok) await handleResponse(res);
+  return res.blob();
+}
