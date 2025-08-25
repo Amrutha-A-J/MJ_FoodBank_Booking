@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/bookings';
+import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getAllSlots } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
-import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
+import type { Slot, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
@@ -48,7 +48,6 @@ export default function PantrySchedule({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
-  const [breaks, setBreaks] = useState<Break[]>([]);
   const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +99,6 @@ export default function PantrySchedule({
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});
-    getBreaks().then(setBreaks).catch(() => {});
     getAllSlots().then(setAllSlots).catch(() => {});
   }, []);
 
@@ -196,15 +194,16 @@ export default function PantrySchedule({
   const isClosed = isHoliday || isWeekend;
 
   const slotMap = new Map(allSlots.map(s => [s.id, s]));
-  const dayBreaks = breaks.filter(b => b.dayOfWeek === reginaDate.getDay());
-  const displaySlots: (Slot & { break?: boolean; blocked?: boolean; reason?: string })[] = [];
-  for (const b of dayBreaks) {
-    const s = slotMap.get(b.slotId.toString());
-    if (s) displaySlots.push({ ...s, available: 0, break: true, reason: b.reason });
-  }
+  const displaySlots: Slot[] = [];
   for (const b of blockedSlots) {
     const s = slotMap.get(b.slotId.toString());
-    if (s) displaySlots.push({ ...s, available: 0, blocked: true, reason: b.reason });
+    if (s)
+      displaySlots.push({
+        ...s,
+        available: 0,
+        status: b.status ?? 'blocked',
+        reason: b.reason,
+      });
   }
   for (const s of slots) {
     displaySlots.push(s);
@@ -212,7 +211,7 @@ export default function PantrySchedule({
   displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const rows = displaySlots.map(slot => {
-    if (slot.break) {
+    if (slot.status === 'break') {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [
@@ -224,7 +223,7 @@ export default function PantrySchedule({
         ],
       };
     }
-    if (slot.blocked) {
+    if (slot.status === 'blocked') {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [

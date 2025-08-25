@@ -21,6 +21,7 @@ export interface LoginResponse {
   bookingsThisMonth?: number;
   userRole?: UserRole;
   access: StaffAccess[];
+  id?: number;
 }
 
 export interface Slot {
@@ -51,6 +52,7 @@ export interface Holiday {
 export interface BlockedSlot {
   slotId: number;
   reason: string;
+  status?: 'blocked' | 'break';
 }
 
 export interface RecurringBlockedSlot {

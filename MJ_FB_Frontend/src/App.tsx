@@ -29,6 +29,8 @@ import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
+import AgencyLogin from './pages/agency/Login';
+import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
@@ -67,6 +69,7 @@ export default function App() {
       { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
       { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
       { label: 'Staff Login', links: [{ label: 'Staff Login', to: '/login/staff' }] },
+      { label: 'Agency Login', links: [{ label: 'Agency Login', to: '/login/agency' }] },
     );
   } else if (isStaff) {
     const staffLinks = [
@@ -186,6 +189,8 @@ export default function App() {
                     ) : (
                       <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
                     )
+                  ) : role === 'agency' ? (
+                    <AgencyClientBookings />
                   ) : (
                     <ClientDashboard />
                   )
@@ -235,6 +240,12 @@ export default function App() {
                 <Route
                   path="/warehouse-management/aggregations"
                   element={<Aggregations />}
+                />
+              )}
+              {role === 'agency' && (
+                <Route
+                  path="/agency/clients"
+                  element={<AgencyClientBookings />}
                 />
               )}
               {role === 'shopper' && (
@@ -325,6 +336,7 @@ export default function App() {
                 <Route path="/login/user" element={<Login onLogin={login} />} />
                 <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
                 <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
+                <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
               <Route path="/login" element={<Navigate to="/login/user" replace />} />
               <Route path="*" element={<Navigate to="/login/user" replace />} />
             </Routes>

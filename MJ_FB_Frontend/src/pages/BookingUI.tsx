@@ -39,18 +39,20 @@ function useSlots(date: Dayjs, enabled: boolean) {
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-function bookSlot(payload: { date: string; slotId: string }): Promise<void> {
-  return createBooking(payload.slotId, payload.date);
+function bookSlot(payload: { date: string; slotId: string; userId?: number }): Promise<void> {
+  return createBooking(payload.slotId, payload.date, payload.userId);
 }
 
 export type BookingUIProps = {
   shopperName?: string;
   initialDate?: Dayjs;
+  userId?: number;
 };
 
 export default function BookingUI({
   shopperName = 'John Shopper',
   initialDate = dayjs(),
+  userId,
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
@@ -105,6 +107,7 @@ export default function BookingUI({
       await bookSlot({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
+        userId,
       });
       setSnackbar({
         open: true,

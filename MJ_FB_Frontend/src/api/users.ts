@@ -31,6 +31,18 @@ export async function loginStaff(
   return handleResponse(res);
 }
 
+export async function loginAgency(
+  email: string,
+  password: string,
+): Promise<LoginResponse> {
+  const res = await apiFetch(`${API_BASE}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  return handleResponse(res);
+}
+
 export async function logout(): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/logout`, {
     method: 'POST',

@@ -11,6 +11,7 @@ interface AuthContextValue {
   name: string;
   userRole: UserRole | '';
   access: StaffAccess[];
+  id: number | null;
   login: (u: LoginResponse) => void;
   logout: () => Promise<void>;
 }
@@ -29,6 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [access, setAccess] = useState<StaffAccess[]>(() => {
     const stored = localStorage.getItem('access');
     return stored ? (JSON.parse(stored) as StaffAccess[]) : [];
+  });
+  const [id, setId] = useState<number | null>(() => {
+    const stored = localStorage.getItem('id');
+    return stored ? Number(stored) : null;
   });
 
   useEffect(() => {
@@ -50,11 +55,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setName(u.name);
     setUserRole(u.userRole || '');
     setAccess(u.access || []);
+    setId(u.id ?? null);
     localStorage.setItem('role', u.role);
     localStorage.setItem('name', u.name);
     if (u.userRole) localStorage.setItem('userRole', u.userRole);
     else localStorage.removeItem('userRole');
     localStorage.setItem('access', JSON.stringify(u.access || []));
+    if (u.id) localStorage.setItem('id', String(u.id));
+    else localStorage.removeItem('id');
     apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
       .then(r => r.json().catch(() => ({})))
       .then(data => {
@@ -75,11 +83,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setName('');
     setUserRole('');
     setAccess([]);
+    setId(null);
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('name');
     localStorage.removeItem('userRole');
     localStorage.removeItem('access');
+    localStorage.removeItem('id');
   }
 
   const value: AuthContextValue = {
@@ -88,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     name,
     userRole,
     access,
+    id,
     login,
     logout,
   };

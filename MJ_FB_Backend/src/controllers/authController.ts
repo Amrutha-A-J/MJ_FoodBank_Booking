@@ -65,6 +65,7 @@ export async function changePassword(
     let table = 'clients';
     if (user.type === 'staff') table = 'staff';
     else if (user.type === 'volunteer') table = 'volunteers';
+    else if (user.type === 'agency') table = 'agencies';
     const result = await pool.query(
       `SELECT password FROM ${table} WHERE id=$1`,
       [user.id],

@@ -37,6 +37,9 @@ export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => v
             <Link component={RouterLink} to="/login/volunteer" underline="hover">
               Volunteer Login
             </Link>
+            <Link component={RouterLink} to="/login/agency" underline="hover">
+              Agency Login
+            </Link>
           </Stack>
         }
       >
