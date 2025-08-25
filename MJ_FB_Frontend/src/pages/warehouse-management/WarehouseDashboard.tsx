@@ -40,7 +40,9 @@ import {
   Bar,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
 import {
   getWarehouseOverall,
   rebuildWarehouseOverall,
@@ -82,6 +84,7 @@ function kpiDelta(curr: number, prev?: number) {
 export default function WarehouseDashboard() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { token } = useAuth();
   const searchRef = useRef<HTMLInputElement>(null);
   const years = [2024, 2025, 2026];
   const [year, setYear] = useState(() => {
@@ -451,7 +454,7 @@ export default function WarehouseDashboard() {
 
       <Box
         display="grid"
-        gridTemplateColumns={{ xs: '1fr', lg: '1fr 1fr 1fr' }}
+        gridTemplateColumns={{ xs: '1fr', lg: '1fr 1fr 1fr 1fr' }}
         gap={2}
         mb={2}
       >
@@ -530,6 +533,7 @@ export default function WarehouseDashboard() {
             </Stack>
           </CardContent>
         </Card>
+        <VolunteerCoverageCard token={token} masterRoleFilter={['Warehouse']} />
       </Box>
 
       <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
