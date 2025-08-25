@@ -110,7 +110,7 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 
 ### Frontend
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
-- `SlotBooking` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
+- `BookingUI` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
 - Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API.
 - `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to four shoppers across Slot 1–Slot 4, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and approve pending requests (highlighted in yellow).
 - Volunteers view role-specific schedules and request, cancel, or reschedule bookings through `VolunteerSchedule`. Gardening and special events shifts remain bookable on holidays and weekends, while pantry, warehouse, and administrative roles are disabled when a holiday is set.
@@ -123,7 +123,7 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 - Clients can view a booking history table listing all pending and approved appointments, each with Cancel and Reschedule options.
 
 ### Key Components
-- **SlotBooking** – renders the calendar shoppers use to view and reserve open time slots.
+- **BookingUI** – renders the calendar shoppers use to view and reserve open time slots.
 - **BookingHistory** – lists a shopper's pending and approved appointments with actions to cancel or reschedule.
 - **PendingBookings** and the schedule view in the staff dashboard show each slot's status and provide Approve/Reject/Reschedule controls.
 - **ManageAvailability** – lets staff maintain holidays, blocked slots, and recurring breaks.

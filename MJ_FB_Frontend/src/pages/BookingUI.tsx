@@ -14,16 +14,15 @@ import {
   Stack,
   Button,
   Toolbar,
-  Snackbar,
-  Alert,
   Skeleton,
 } from '@mui/material';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { AccessTime, CheckCircle } from '@mui/icons-material';
+import { AccessTime } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
+import FeedbackSnackbar from '../components/FeedbackSnackbar';
 
 // Wrappers to match required signatures
 function useSlots(date: Dayjs) {
@@ -235,24 +234,13 @@ export default function BookingUI({
           </Button>
         </Stack>
       </Paper>
-      <Snackbar
+      <FeedbackSnackbar
         open={snackbar.open}
-        autoHideDuration={4000}
         onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-      >
-        <Alert
-          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-          severity={snackbar.severity}
-          icon={
-            snackbar.severity === 'success' ? (
-              <CheckCircle fontSize="inherit" />
-            ) : undefined
-          }
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        message={snackbar.message}
+        severity={snackbar.severity}
+        duration={4000}
+      />
     </Container>
   );
 }
