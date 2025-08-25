@@ -7,6 +7,7 @@ import { theme } from './theme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { registerServiceWorker } from './registerServiceWorker';
 import { AuthProvider } from './hooks/useAuth';
+import { LocalizationProvider, AdapterDayjs } from '@mui/x-date-pickers';
 
 function Main() {
   const queryClient = new QueryClient();
@@ -14,10 +15,12 @@ function Main() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </LocalizationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
