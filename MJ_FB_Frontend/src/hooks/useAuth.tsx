@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
@@ -98,5 +99,11 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
+}
+
+export function AgencyGuard({ children }: { children: React.ReactNode }) {
+  const { role } = useAuth();
+  if (role !== 'agency') return <Navigate to="/" replace />;
+  return <>{children}</>;
 }
 
