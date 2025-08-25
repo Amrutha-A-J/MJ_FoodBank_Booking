@@ -5,7 +5,6 @@ import { formatReginaDate } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
   countApprovedBookingsForMonth,
-  updateBookingsThisMonth,
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
@@ -89,11 +88,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       'Appointment request received',
       `Booking request submitted for ${date}`,
     );
-
-    const newCount = await updateBookingsThisMonth(userId);
+    const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE id=$1', [userId]);
+    const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
     res
       .status(201)
-      .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
+      .json({ message: 'Booking created', bookingsThisMonth, rescheduleToken: token });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
     return next(error);
@@ -160,7 +159,6 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
         throw err;
       }
       client.release();
-      await updateBookingsThisMonth(booking.user_id);
     } else {
       await updateBooking(Number(bookingId), {
         status: 'rejected',
@@ -208,9 +206,6 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     }
 
     await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
-    if (booking.status === 'approved') {
-      await updateBookingsThisMonth(booking.user_id);
-    }
 
     await sendEmail(
       'test@example.com',
@@ -253,7 +248,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       reschedule_token: newToken,
       status: newStatus,
     });
-    await updateBookingsThisMonth(booking.user_id);
 
     await sendEmail(
       'test@example.com',
@@ -324,7 +318,6 @@ export async function createPreapprovedBooking(
     );
 
     await client.query('COMMIT');
-    await updateBookingsThisMonth(newUserId);
     res.status(201).json({ message: 'Preapproved booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -388,8 +381,6 @@ export async function createBookingForUser(
       staffBookingFlag,
       token,
     );
-
-    await updateBookingsThisMonth(userId);
     res
       .status(201)
       .json({ message: 'Booking created for user', rescheduleToken: token });

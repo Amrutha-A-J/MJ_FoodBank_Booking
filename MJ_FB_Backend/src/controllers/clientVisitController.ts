@@ -2,6 +2,20 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 
+async function refreshClientVisitCount(clientId: number) {
+  await pool.query(
+    `UPDATE clients c
+     SET bookings_this_month = (
+       SELECT COUNT(*) FROM client_visits v
+       WHERE v.client_id = c.client_id
+         AND DATE_TRUNC('month', v.date) = DATE_TRUNC('month', CURRENT_DATE)
+     ),
+     booking_count_last_updated = NOW()
+     WHERE c.client_id = $1`,
+    [clientId],
+  );
+}
+
 export async function listVisits(req: Request, res: Response, next: NextFunction) {
   try {
     const date = req.query.date as string;
@@ -42,6 +56,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       if ((clientRes.rowCount ?? 0) > 0) {
         clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
       }
+      await refreshClientVisitCount(clientId);
     }
     res.status(201).json({ ...result.rows[0], clientName });
   } catch (error) {
@@ -54,6 +69,8 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
   try {
     const { id } = req.params;
     const { date, clientId, weightWithCart, weightWithoutCart, petItem } = req.body;
+    const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
+    const prevClientId: number | null = existing.rows[0]?.client_id ?? null;
     const result = await pool.query(
       `UPDATE client_visits
        SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0)
@@ -72,6 +89,8 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
       }
     }
+    if (prevClientId) await refreshClientVisitCount(prevClientId);
+    if (clientId && clientId !== prevClientId) await refreshClientVisitCount(clientId);
     res.json({ ...result.rows[0], clientName });
   } catch (error) {
     logger.error('Error updating client visit:', error);
@@ -82,7 +101,10 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
 export async function deleteVisit(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
     await pool.query('DELETE FROM client_visits WHERE id = $1', [id]);
+    const clientId: number | null = existing.rows[0]?.client_id ?? null;
+    if (clientId) await refreshClientVisitCount(clientId);
     res.json({ message: 'Deleted' });
   } catch (error) {
     logger.error('Error deleting client visit:', error);

@@ -17,7 +17,6 @@ jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
   countApprovedBookingsForMonth: jest.fn().mockResolvedValue(0),
   findUpcomingBooking: jest.fn().mockResolvedValue(null),
-  updateBookingsThisMonth: jest.fn().mockResolvedValue(0),
   LIMIT_MESSAGE: 'limit',
 }));
 
@@ -37,6 +36,11 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (pool.connect as jest.Mock).mockResolvedValue({
+    query: jest.fn(),
+    release: jest.fn(),
+  });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
 });
 
 describe('POST /bookings capacity check', () => {
