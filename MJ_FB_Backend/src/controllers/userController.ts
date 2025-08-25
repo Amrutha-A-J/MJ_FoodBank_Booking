@@ -184,6 +184,32 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
   }
 }
 
+export async function getUserByClientId(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { clientId } = req.params;
+    const result = await pool.query(
+      `SELECT id, first_name, last_name, email, phone, client_id
+       FROM clients WHERE client_id = $1`,
+      [clientId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const row = result.rows[0];
+    res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      clientId: row.client_id,
+    });
+  } catch (error) {
+    logger.error('Error fetching user by client ID:', error);
+    next(error);
+  }
+}
+
 export async function getUserProfile(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
