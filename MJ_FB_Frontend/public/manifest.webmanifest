@@ -1,6 +1,6 @@
 {
-  "name": "MJ Food Bank Booking",
-  "short_name": "FoodBank",
+  "name": "MJ Foodbank",
+  "short_name": "MJFoodbank",
   "description": "Booking platform for MJ Food Bank",
   "start_url": "/",
   "scope": "/",
