@@ -1,7 +1,7 @@
 import Dashboard, { type DashboardProps } from '../components/dashboard/Dashboard';
 
 export default function DashboardPage(props: DashboardProps) {
-  return <Dashboard {...props} />;
+  return <Dashboard {...props} masterRoleFilter={['Pantry']} />;
 }
 
 export { type DashboardProps };
