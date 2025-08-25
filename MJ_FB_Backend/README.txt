@@ -58,3 +58,9 @@ Every donor in the system is included even if they have no donations in that yea
 without records report `0`.
 
 
+
+## Warehouse Overall Available Years Endpoint
+
+`GET /warehouse-overall/years`
+
+Returns an array of years for which warehouse summary data exists, ordered from most recent to oldest.

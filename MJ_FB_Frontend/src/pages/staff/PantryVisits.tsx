@@ -104,27 +104,28 @@ export default function PantryVisits({ token }: { token: string }) {
   }, [form.weightWithCart, cartTare, autoWeight, recordOpen]);
 
   useEffect(() => {
-    if (form.anonymous || !form.clientId) {
+    if (!form.clientId) {
       setClientFound(null);
       return;
     }
     getUserByClientId(token, form.clientId)
       .then(() => setClientFound(true))
       .catch(() => setClientFound(false));
-  }, [form.clientId, form.anonymous, token]);
+  }, [form.clientId, token]);
 
   function handleSaveVisit() {
     if (!form.date || !form.weightWithCart || !form.weightWithoutCart) {
       setSnackbar({ open: true, message: 'Date and weights required', severity: 'error' });
       return;
     }
-    if (!form.anonymous && !form.clientId) {
+    if (!form.clientId) {
       setSnackbar({ open: true, message: 'Client ID required', severity: 'error' });
       return;
     }
     const payload = {
       date: form.date,
-      clientId: form.anonymous ? undefined : Number(form.clientId),
+      clientId: Number(form.clientId),
+      anonymous: form.anonymous,
       weightWithCart: Number(form.weightWithCart),
       weightWithoutCart: Number(form.weightWithoutCart),
       petItem: Number(form.petItem || 0),
@@ -245,7 +246,7 @@ export default function PantryVisits({ token }: { token: string }) {
                       setEditing(v);
                       setForm({
                         date: v.date,
-                        anonymous: !v.clientId,
+                        anonymous: v.anonymous,
                         clientId: v.clientId ? String(v.clientId) : '',
                         weightWithCart: String(v.weightWithCart),
                         weightWithoutCart: String(v.weightWithoutCart),
@@ -290,24 +291,20 @@ export default function PantryVisits({ token }: { token: string }) {
               control={<Checkbox checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} />}
               label="Anonymous"
             />
-            {!form.anonymous && (
-              <>
-                <TextField
-                  label="Client ID"
-                  value={form.clientId}
-                  onChange={e => setForm({ ...form, clientId: e.target.value })}
-                />
-                {clientFound === false && (
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
-                      Client not present in database
-                    </Typography>
-                    <Button size="small" variant="outlined" onClick={handleCreateClient}>
-                      Create
-                    </Button>
-                  </Stack>
-                )}
-              </>
+            <TextField
+              label="Client ID"
+              value={form.clientId}
+              onChange={e => setForm({ ...form, clientId: e.target.value })}
+            />
+            {clientFound === false && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
+                  Client not present in database
+                </Typography>
+                <Button size="small" variant="outlined" onClick={handleCreateClient}>
+                  Create
+                </Button>
+              </Stack>
             )}
             <TextField
               label="Weight With Cart"
@@ -337,7 +334,7 @@ export default function PantryVisits({ token }: { token: string }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setRecordOpen(false); setEditing(null); }}>Cancel</Button>
-          <Button onClick={handleSaveVisit} disabled={!form.weightWithCart || !form.weightWithoutCart || (!form.anonymous && !form.clientId)}>
+          <Button onClick={handleSaveVisit} disabled={!form.weightWithCart || !form.weightWithoutCart || !form.clientId}>
             Save
           </Button>
         </DialogActions>

@@ -20,6 +20,16 @@ export async function listWarehouseOverall(req: Request, res: Response, next: Ne
   }
 }
 
+export async function listAvailableYears(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await pool.query('SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC');
+    res.json(result.rows.map(r => r.year));
+  } catch (error) {
+    logger.error('Error listing warehouse overall years:', error);
+    next(error);
+  }
+}
+
 export async function exportWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
     const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
