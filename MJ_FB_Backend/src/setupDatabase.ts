@@ -26,9 +26,9 @@ export async function setupDatabase() {
 
   // Check if the database has already been initialized
   const tableCheck = await client.query(
-    "SELECT to_regclass('public.slots') as table_exists;"
+    "SELECT to_regclass('public.slots') as slots_exists, to_regclass('public.clients') as clients_exists;"
   );
-  if (tableCheck.rows[0].table_exists) {
+  if (tableCheck.rows[0].slots_exists && tableCheck.rows[0].clients_exists) {
     const userIdRes = await client.query(`
       SELECT column_name FROM information_schema.columns
       WHERE table_name = 'volunteers' AND column_name = 'user_id';
