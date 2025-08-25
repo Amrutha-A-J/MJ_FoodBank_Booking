@@ -79,7 +79,7 @@ function statusColor(status: string):
   }
 }
 
-export default function UserDashboard() {
+export default function ClientDashboard() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [nextSlots, setNextSlots] = useState<NextSlot[]>([]);

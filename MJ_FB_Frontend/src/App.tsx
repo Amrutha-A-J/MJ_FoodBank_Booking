@@ -10,12 +10,12 @@ import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
 import VolunteerLogin from './pages/auth/VolunteerLogin';
-import VolunteerDashboard from './pages/volunteer/VolunteerDashboard';
+import VolunteerDashboard from './pages/volunteer-management/VolunteerDashboard';
 import VolunteerManagement from './pages/volunteer-management/VolunteerManagement';
 import Dashboard from './components/dashboard/Dashboard';
-import UserDashboard from './pages/user/UserDashboard';
-import VolunteerBookingHistory from './pages/volunteer/VolunteerBookingHistory';
-import VolunteerSchedule from './pages/volunteer/VolunteerSchedule';
+import ClientDashboard from './pages/client/ClientDashboard';
+import VolunteerBookingHistory from './pages/volunteer-management/VolunteerBookingHistory';
+import VolunteerSchedule from './pages/volunteer-management/VolunteerSchedule';
 import WarehouseDashboard from './pages/warehouse-management/WarehouseDashboard';
 import DonationLog from './pages/warehouse-management/DonationLog';
 import TrackPigpound from './pages/warehouse-management/TrackPigpound';
@@ -157,7 +157,7 @@ export default function App() {
                   ) : isStaff ? (
                     <Dashboard role="staff" token={token} />
                   ) : (
-                    <UserDashboard />
+                    <ClientDashboard />
                   )
                 }
               />
