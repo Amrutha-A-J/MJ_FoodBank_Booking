@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { TextField } from '@mui/material';
-import { changePassword } from '../api/users';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import FormContainer from './FormContainer';
+import { changePassword } from '../../api/users';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormContainer from '../../components/FormContainer';
 
 export default function ChangePasswordForm({ token }: { token: string }) {
   const [currentPassword, setCurrentPassword] = useState('');

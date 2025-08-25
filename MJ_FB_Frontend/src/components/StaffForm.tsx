@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Stack, TextField, Checkbox, FormControlLabel, Button, Typography } from '@mui/material';
-import FeedbackSnackbar from '../FeedbackSnackbar';
-import type { StaffAccess } from '../../types';
+import FeedbackSnackbar from './FeedbackSnackbar';
+import type { StaffAccess } from '../types';
 
 interface StaffFormProps {
   initial?: {

@@ -24,11 +24,11 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-} from '../api/volunteers';
-import type { VolunteerBooking, VolunteerRole } from '../types';
-import { formatTime } from '../utils/time';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import Page from './Page';
+} from '../../api/volunteers';
+import type { VolunteerBooking, VolunteerRole } from '../../types';
+import { formatTime } from '../../utils/time';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import Page from '../../components/Page';
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);

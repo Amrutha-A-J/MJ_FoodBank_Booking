@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { loginVolunteer } from '../api/volunteers';
-import type { LoginResponse } from '../api/users';
+import { loginVolunteer } from '../../api/volunteers';
+import type { LoginResponse } from '../../api/users';
 import { TextField, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import FormContainer from './FormContainer';
-import PasswordResetDialog from './PasswordResetDialog';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormContainer from '../../components/FormContainer';
+import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function VolunteerLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [username, setUsername] = useState('');

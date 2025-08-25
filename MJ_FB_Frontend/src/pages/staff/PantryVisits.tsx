@@ -21,8 +21,8 @@ import {
   Typography,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import Page from '../Page';
-import FeedbackSnackbar from '../FeedbackSnackbar';
+import Page from '../../components/Page';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getClientVisits,
   createClientVisit,

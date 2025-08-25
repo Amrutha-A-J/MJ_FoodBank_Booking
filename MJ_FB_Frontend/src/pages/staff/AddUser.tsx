@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { addUser, createStaff } from '../../api/users';
 import type { UserRole } from '../../types';
-import StaffForm from './StaffForm';
-import FeedbackSnackbar from '../FeedbackSnackbar';
-import FeedbackModal from '../FeedbackModal';
+import StaffForm from '../../components/StaffForm';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FeedbackModal from '../../components/FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
 
 export default function AddUser({ token }: { token: string }) {

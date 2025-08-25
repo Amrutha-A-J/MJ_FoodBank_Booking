@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { loginStaff, staffExists, createStaff } from '../api/users';
-import type { LoginResponse } from '../api/users';
+import { loginStaff, staffExists, createStaff } from '../../api/users';
+import type { LoginResponse } from '../../api/users';
 import { Typography, TextField, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import FeedbackModal from './FeedbackModal';
-import FormContainer from './FormContainer';
-import PasswordResetDialog from './PasswordResetDialog';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FeedbackModal from '../../components/FeedbackModal';
+import FormContainer from '../../components/FormContainer';
+import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function StaffLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
   const [checking, setChecking] = useState(true);

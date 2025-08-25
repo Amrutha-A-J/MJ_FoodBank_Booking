@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { loginUser } from '../api/users';
-import type { LoginResponse } from '../api/users';
+import { loginUser } from '../../api/users';
+import type { LoginResponse } from '../../api/users';
 import { Link, TextField, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import FormContainer from './FormContainer';
-import PasswordResetDialog from './PasswordResetDialog';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormContainer from '../../components/FormContainer';
+import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => void }) {
   const [clientId, setClientId] = useState('');

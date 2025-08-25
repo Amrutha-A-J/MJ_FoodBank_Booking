@@ -11,13 +11,13 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-} from '../api/volunteers';
-import type { VolunteerBookingDetail } from '../types';
-import { formatTime } from '../utils/time';
-import VolunteerScheduleTable from './VolunteerScheduleTable';
+} from '../../api/volunteers';
+import type { VolunteerBookingDetail } from '../../types';
+import { formatTime } from '../../utils/time';
+import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
-import FeedbackSnackbar from './FeedbackSnackbar';
-import FormContainer from './FormContainer';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormContainer from '../../components/FormContainer';
 import {
   Box,
   Button,
@@ -43,9 +43,9 @@ import {
   useTheme,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
-import Dashboard from '../pages/Dashboard';
-import EntitySearch from './EntitySearch';
-import ConfirmDialog from './ConfirmDialog';
+import Dashboard from '../Dashboard';
+import EntitySearch from '../../components/EntitySearch';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 
 
