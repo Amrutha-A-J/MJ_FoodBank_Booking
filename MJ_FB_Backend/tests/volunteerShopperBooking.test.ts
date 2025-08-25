@@ -3,6 +3,7 @@ import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import * as bookingUtils from '../src/utils/bookingUtils';
 import * as bookingRepository from '../src/models/bookingRepository';
+import pool from '../src/db';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
@@ -74,10 +75,14 @@ app.use(
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (pool.connect as jest.Mock).mockResolvedValue({
+    query: jest.fn(),
+    release: jest.fn(),
+  });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
   jest.spyOn(bookingUtils, 'isDateWithinCurrentOrNextMonth').mockReturnValue(true);
   jest.spyOn(bookingUtils, 'countApprovedBookingsForMonth').mockResolvedValue(0);
   jest.spyOn(bookingUtils, 'findUpcomingBooking').mockResolvedValue(null);
-  jest.spyOn(bookingUtils, 'updateBookingsThisMonth').mockResolvedValue(0);
 });
 
 afterEach(() => {
@@ -137,7 +142,6 @@ describe('volunteer acting as shopper', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking rescheduled');
-    expect(bookingUtils.updateBookingsThisMonth).toHaveBeenCalledWith(10);
   });
 });
 

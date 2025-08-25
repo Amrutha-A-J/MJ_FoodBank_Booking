@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import * as bookingRepository from '../src/models/bookingRepository';
 import { getAgencyByEmail, isAgencyClient } from '../src/models/agency';
 import * as bookingUtils from '../src/utils/bookingUtils';
+import pool from '../src/db';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -73,7 +74,11 @@ beforeEach(() => {
   (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
   (bookingUtils.countApprovedBookingsForMonth as jest.Mock).mockResolvedValue(0);
   (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
-  (bookingUtils.updateBookingsThisMonth as jest.Mock).mockResolvedValue(0);
+  (pool.connect as jest.Mock).mockResolvedValue({
+    query: jest.fn(),
+    release: jest.fn(),
+  });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
 });
 
 describe('Agency login and token issuance', () => {

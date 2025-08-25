@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
-import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
@@ -33,7 +32,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const bookingsThisMonth = await updateBookingsThisMonth(user.id);
+      const bookingsRes = await pool.query(
+        'SELECT bookings_this_month FROM clients WHERE id = $1',
+        [user.id],
+      );
+      const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
       const payload: AuthPayload = { id: user.id, role: user.role, type: 'user' };
       await issueAuthTokens(res, payload, `user:${user.id}`);
       return res.json({
@@ -246,12 +249,12 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
-    const bookingsThisMonth = await updateBookingsThisMonth(Number(user.id));
     const result = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
        FROM clients WHERE id = $1`,
       [user.id]
     );
+    const bookingsThisMonth = result.rows[0]?.bookings_this_month ?? 0;
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }

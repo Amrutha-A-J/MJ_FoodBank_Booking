@@ -55,20 +55,6 @@ export async function countApprovedBookingsForMonth(
   return Number(res.rows[0].count);
 }
 
-export async function updateBookingsThisMonth(userId: number): Promise<number> {
-  const { start, end } = getMonthRange(formatReginaDate(new Date()));
-  const res = await pool.query(
-    `SELECT COUNT(*) FROM bookings WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3`,
-    [userId, start, end],
-  );
-  const count = Number(res.rows[0].count);
-    await pool.query(
-      `UPDATE clients SET bookings_this_month=$1, booking_count_last_updated=NOW() WHERE id=$2`,
-      [count, userId],
-    );
-  return count;
-}
-
 export async function findUpcomingBooking(
   userId: number,
 ): Promise<{ date: string; start_time: string; status: string } | null> {
