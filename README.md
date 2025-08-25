@@ -4,6 +4,12 @@ This repository uses Git submodules for the backend and frontend components. Aft
 
 Individuals who use the food bank are referred to as clients throughout the application.
 
+## Features
+
+- Appointment booking workflow for clients with staff approval and rescheduling.
+- Volunteer role management and scheduling restricted to trained areas.
+- Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
+
 ## Clone and initialize submodules
 
 ```bash
@@ -76,6 +82,8 @@ control weight calculations:
 
 ### Frontend features
 
+- Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
+- A shared dashboard component lives in `src/components/dashboard`.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 
 ## Deploying to Azure

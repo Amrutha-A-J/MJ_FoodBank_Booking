@@ -9,16 +9,16 @@
 
 ### Backend (`MJ_FB_Backend`)
 - Node.js + Express API written in TypeScript.
-- `controllers/` – business logic for each resource.
-- `routes/` – REST endpoints wiring.
+- `controllers/` – business logic for each resource, grouped by domain (e.g., volunteer, warehouse, admin).
+- `routes/` – REST endpoints wiring, organized by matching domain directories.
 - `models/` and `db.ts` – PostgreSQL access.
 - `middleware/` – shared Express middleware (authentication, validation, etc.).
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
-- `pages/` define top-level views.
-- `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications.
+- `pages/` define top-level views and are organized into feature-based directories (booking, staff, volunteer-management, warehouse-management, etc.).
+- `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications. The dashboard UI lives in `components/dashboard`.
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 
@@ -29,6 +29,7 @@
 - In the frontend, favor composition of reusable components and keep pages focused on layout and data flow.
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Document new environment variables in the repository README and `.env.example` files.
+- Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 
 ## UI Rules & Design System (Global)
 
