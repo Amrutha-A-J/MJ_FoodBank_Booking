@@ -13,3 +13,20 @@ export const deleteBlockedSlotParamsSchema = z.object({
 
 export type AddBlockedSlotInput = z.infer<typeof addBlockedSlotSchema>;
 export type DeleteBlockedSlotParams = z.infer<typeof deleteBlockedSlotParamsSchema>;
+
+export const addRecurringBlockedSlotSchema = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6),
+  slotId: z.coerce.number().int().positive(),
+  reason: z.string().optional(),
+});
+
+export const deleteRecurringBlockedSlotParamsSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+export type AddRecurringBlockedSlotInput = z.infer<
+  typeof addRecurringBlockedSlotSchema
+>;
+export type DeleteRecurringBlockedSlotParams = z.infer<
+  typeof deleteRecurringBlockedSlotParamsSchema
+>;
