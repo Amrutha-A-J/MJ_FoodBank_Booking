@@ -8,6 +8,7 @@ import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
 import AgencySchedule from './pages/agency/AgencySchedule';
 import ClientList from './pages/agency/ClientList';
+import ClientHistory from './pages/agency/ClientHistory';
 import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
@@ -121,6 +122,7 @@ export default function App() {
       links: [
         { label: 'Schedule', to: '/agency/schedule' },
         { label: 'Clients', to: '/agency/clients' },
+        { label: 'Client History', to: '/agency/history' },
       ],
     });
   } else if (role === 'shopper') {
@@ -322,6 +324,14 @@ export default function App() {
                     element={
                       <AgencyGuard>
                         <ClientList />
+                      </AgencyGuard>
+                    }
+                  />
+                  <Route
+                    path="/agency/history"
+                    element={
+                      <AgencyGuard>
+                        <ClientHistory />
                       </AgencyGuard>
                     }
                   />
