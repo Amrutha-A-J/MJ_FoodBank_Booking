@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory, cancelBooking } from '../../../api/bookings';
+import { getUserByClientId, updateUserInfo } from '../../../api/users';
 import { formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../../utils/time';
 import {
@@ -14,6 +15,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  TextField,
+  FormControlLabel,
+  Checkbox,
   Stack,
   Table,
   TableBody,
@@ -65,6 +69,15 @@ export default function UserHistory({
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    onlineAccess: false,
+    password: '',
+  });
 
   const pageSize = 10;
 
@@ -127,6 +140,49 @@ export default function UserHistory({
     }
   }
 
+  async function handleEditClient() {
+    if (!selected) return;
+    try {
+      const data = await getUserByClientId(String(selected.client_id));
+      setForm({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        onlineAccess: Boolean((data as any).onlineAccess),
+        password: '',
+      });
+      setEditOpen(true);
+    } catch (err) {
+      setSeverity('error');
+      setMessage(err instanceof Error ? err.message : 'Failed to load client');
+    }
+  }
+
+  async function handleSaveClient() {
+    if (!selected) return;
+    try {
+      await updateUserInfo(selected.client_id, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email || undefined,
+        phone: form.phone || undefined,
+        onlineAccess: form.onlineAccess,
+        password: form.password || undefined,
+      });
+      setSelected(s =>
+        s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
+      );
+      setSeverity('success');
+      setMessage('Client updated');
+      setEditOpen(false);
+      loadBookings();
+    } catch (err) {
+      setSeverity('error');
+      setMessage(err instanceof Error ? err.message : 'Update failed');
+    }
+  }
+
   return (
     <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
       <Box width="100%" maxWidth={800} mt={4}>
@@ -140,7 +196,12 @@ export default function UserHistory({
         )}
         {selected && (
           <div>
-            {selected.name && <h3>History for {selected.name}</h3>}
+            <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+              {selected.name && <h3>History for {selected.name}</h3>}
+              <Button size="small" variant="contained" onClick={handleEditClient}>
+                Edit Client
+              </Button>
+            </Stack>
             <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
               <InputLabel id="filter-label">Filter</InputLabel>
               <Select
@@ -262,6 +323,75 @@ export default function UserHistory({
               loadBookings();
             }}
           />
+        )}
+        {editOpen && (
+          <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+            <DialogTitle>Edit Client</DialogTitle>
+            <DialogContent>
+              <Stack spacing={2} mt={1}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.onlineAccess}
+                      onChange={e =>
+                        setForm({ ...form, onlineAccess: e.target.checked })
+                      }
+                    />
+                  }
+                  label="Online Access"
+                />
+                <TextField
+                  label="First Name"
+                  value={form.firstName}
+                  onChange={e => setForm({ ...form, firstName: e.target.value })}
+                />
+                <TextField
+                  label="Last Name"
+                  value={form.lastName}
+                  onChange={e => setForm({ ...form, lastName: e.target.value })}
+                />
+                <TextField
+                  label="Email (optional)"
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                />
+                <TextField
+                  label="Phone (optional)"
+                  type="tel"
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                />
+                {form.onlineAccess && (
+                  <TextField
+                    label="Password"
+                    type="password"
+                    value={form.password}
+                    onChange={e =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                  />
+                )}
+              </Stack>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={() => setEditOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSaveClient}
+                disabled={!form.firstName || !form.lastName}
+              >
+                Save
+              </Button>
+            </DialogActions>
+          </Dialog>
         )}
         <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
           <DialogTitle>Cancel booking</DialogTitle>

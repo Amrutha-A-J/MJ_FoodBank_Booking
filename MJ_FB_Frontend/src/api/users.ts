@@ -177,7 +177,14 @@ export async function getIncompleteUsers(): Promise<IncompleteUser[]> {
 
 export async function updateUserInfo(
   clientId: number,
-  data: { firstName: string; lastName: string; email?: string; phone?: string },
+  data: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    onlineAccess?: boolean;
+    password?: string;
+  },
 ): Promise<IncompleteUser> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {
     method: 'PATCH',
