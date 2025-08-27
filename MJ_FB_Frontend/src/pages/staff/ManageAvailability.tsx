@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -31,6 +31,9 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import { getAllSlots } from '../../api/bookings';
+import { formatTime } from '../../utils/time';
+import type { Slot } from '../../types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -53,11 +56,6 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const weekOrdinals = ['1st', '2nd', '3rd', '4th', '5th'];
-const slotOptions = [
-  { id: 1, label: '9:00–10:00' },
-  { id: 2, label: '10:00–11:00' },
-  { id: 3, label: '11:00–12:00' },
-];
 const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 200 } } };
 
 interface HolidayItem {
@@ -102,6 +100,8 @@ export default function ManageAvailability() {
   const [breakSlotId, setBreakSlotId] = useState('');
   const [breakReason, setBreakReason] = useState('');
 
+  const [slotOptions, setSlotOptions] = useState<Slot[]>([]);
+
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -110,6 +110,23 @@ export default function ManageAvailability() {
 
   const showSnackbar = (message: string, severity: AlertColor) => {
     setSnackbar({ open: true, message, severity });
+  };
+
+  useEffect(() => {
+    async function loadSlots() {
+      try {
+        const slots = await getAllSlots();
+        setSlotOptions(slots);
+      } catch {
+        showSnackbar('Failed to load slots', 'error');
+      }
+    }
+    loadSlots();
+  }, []);
+
+  const slotLabel = (id: number) => {
+    const slot = slotOptions.find(s => Number(s.id) === id);
+    return slot ? `${formatTime(slot.startTime)}-${formatTime(slot.endTime)}` : id;
   };
 
   const handleAddHoliday = () => {
@@ -180,8 +197,6 @@ export default function ManageAvailability() {
     setBreaks(prev => prev.filter(b => b.id !== id));
     showSnackbar('Break removed', 'error');
   };
-
-  const slotLabel = (id: number) => slotOptions.find(s => s.id === id)?.label || id;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -327,9 +342,9 @@ export default function ManageAvailability() {
                       onChange={(e) => setBlockedSlotId(e.target.value)}
                       MenuProps={selectMenuProps}
                     >
-                      {slotOptions.map((s) => (
+                      {slotOptions.map(s => (
                         <MenuItem key={s.id} value={s.id}>
-                          {s.label}
+                          {slotLabel(Number(s.id))}
                         </MenuItem>
                       ))}
                     </Select>
@@ -419,7 +434,7 @@ export default function ManageAvailability() {
                       >
                         {slotOptions.map(s => (
                           <MenuItem key={s.id} value={s.id}>
-                            {s.label}
+                            {slotLabel(Number(s.id))}
                           </MenuItem>
                         ))}
                       </Select>
