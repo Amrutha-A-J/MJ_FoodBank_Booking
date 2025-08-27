@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory, cancelBooking } from '../../../api/bookings';
 import { getUserByClientId, updateUserInfo } from '../../../api/users';
-import { formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../../utils/time';
 import {
   Box,
@@ -33,6 +32,7 @@ import type { AlertColor } from '@mui/material';
 import RescheduleDialog from '../../../components/RescheduleDialog';
 import EntitySearch from '../../../components/EntitySearch';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import { toDate, formatDate } from '../../../utils/date';
 
 const TIMEZONE = 'America/Regina';
 
@@ -90,7 +90,7 @@ export default function UserHistory({
     return getBookingHistory(opts)
       .then(data => {
         const sorted = [...data].sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => toDate(b.created_at).getTime() - toDate(a.created_at).getTime()
         );
         setBookings(sorted);
         setPage(1);
@@ -240,8 +240,8 @@ export default function UserHistory({
                     const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
                     const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
                     const formattedDate =
-                      b.date && !isNaN(new Date(b.date).getTime())
-                        ? formatInTimeZone(`${b.date}`, TIMEZONE, 'MMM d, yyyy')
+                      b.date && !isNaN(toDate(b.date).getTime())
+                        ? formatDate(b.date, 'MMM D, YYYY')
                         : 'N/A';
                     return (
                       <TableRow key={b.id}>

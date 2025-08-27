@@ -31,9 +31,10 @@ import {
 } from '../../api/clientVisits';
 import { addUser, getUserByClientId } from '../../api/users';
 import type { AlertColor } from '@mui/material';
+import { toDayjs, toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = new Date(date);
+  const d = toDate(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
   d.setDate(diff);
@@ -42,13 +43,13 @@ function startOfWeek(date: Date) {
 }
 
 function format(date: Date) {
-  return date.toISOString().split('T')[0];
+  return formatDate(date);
 }
 
 function formatDisplay(dateStr: string) {
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString(undefined, {
+  const d = toDayjs(dateStr);
+  if (!d.isValid()) return dateStr;
+  return formatLocaleDate(d, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -59,8 +60,8 @@ function formatDisplay(dateStr: string) {
 export default function PantryVisits() {
   const [visits, setVisits] = useState<ClientVisit[]>([]);
   const [tab, setTab] = useState(() => {
-    const week = startOfWeek(new Date());
-    const today = new Date();
+    const week = startOfWeek(toDate());
+    const today = toDate();
     return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
   });
   const [recordOpen, setRecordOpen] = useState(false);
@@ -72,18 +73,14 @@ export default function PantryVisits() {
   const [cartTare, setCartTare] = useState(27);
 
   const weekDates = useMemo(() => {
-    const start = startOfWeek(new Date());
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      return d;
-    });
+    const start = startOfWeek(toDate());
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, []);
 
   const selectedDate = weekDates[tab];
 
   const [form, setForm] = useState({
-    date: format(new Date()),
+    date: formatDate(),
     anonymous: false,
     clientId: '',
     weightWithCart: '',
@@ -216,7 +213,7 @@ export default function PantryVisits() {
                   onClick={() => {
                     setEditing(v);
                     setForm({
-                      date: format(new Date(v.date)),
+                date: formatDate(v.date),
                       anonymous: v.anonymous,
                       clientId: v.clientId ? String(v.clientId) : '',
                       weightWithCart: String(v.weightWithCart),
@@ -249,7 +246,7 @@ export default function PantryVisits() {
   );
 
   const tabs = weekDates.map(d => ({
-    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    label: formatLocaleDate(d, { weekday: 'short' }),
     content: table,
   }));
 

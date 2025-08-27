@@ -16,7 +16,7 @@ import {
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
-import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
@@ -48,6 +48,7 @@ import { lighten } from '@mui/material/styles';
 import Dashboard from '../../components/dashboard/Dashboard';
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import { formatDate, addDays } from '../../utils/date';
 
 
 
@@ -158,14 +159,12 @@ export default function VolunteerManagement() {
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
-    const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
+    const todayStr = formatDate();
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
 
-  const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
-
   function changeDay(delta: number) {
-    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
+    setCurrentDate(d => addDays(d, delta));
   }
 
   useEffect(() => {
@@ -579,11 +578,7 @@ export default function VolunteerManagement() {
   }, [assignSearch, assignSlot]);
 
   const bookingsForDate = bookings.filter(b => {
-    const bookingDate = formatInTimeZone(
-      new Date(b.date),
-      reginaTimeZone,
-      'yyyy-MM-dd',
-    );
+    const bookingDate = formatDate(b.date);
     return (
       bookingDate === formatDate(currentDate) &&
       ['approved', 'pending'].includes(b.status.toLowerCase())

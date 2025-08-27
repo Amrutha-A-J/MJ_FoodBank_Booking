@@ -34,9 +34,10 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
+import { toDate } from '../../utils/date';
 
 function formatDateLabel(dateStr: string) {
-  const d = new Date(dateStr);
+  const d = toDate(dateStr);
   return formatReginaDate(d, {
     weekday: 'short',
     month: 'short',
@@ -61,11 +62,11 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     async function loadAvailability() {
-      const today = new Date();
+      const today = toDate();
       const days =
         dateMode === 'week'
           ? Array.from({ length: 7 }, (_, i) => {
-              const d = new Date(today);
+              const d = toDate(today);
               d.setDate(d.getDate() + i);
               return d;
             })
@@ -86,17 +87,14 @@ export default function VolunteerDashboard() {
   }, [dateMode]);
 
   const nextShift = useMemo(() => {
-    const now = new Date();
+  const now = toDate();
     const upcoming = bookings
       .filter(b => b.status === 'approved')
-      .filter(
-        b =>
-          fromZonedTime(`${b.date}T${b.start_time}`, REGINA_TIMEZONE) >= now,
-      )
+      .filter(b => toDate(`${b.date}T${b.start_time}`) >= now)
       .sort(
         (a, b) =>
-          fromZonedTime(`${a.date}T${a.start_time}`, REGINA_TIMEZONE).getTime() -
-          fromZonedTime(`${b.date}T${b.start_time}`, REGINA_TIMEZONE).getTime(),
+          toDate(`${a.date}T${a.start_time}`).getTime() -
+          toDate(`${b.date}T${b.start_time}`).getTime(),
       );
     return upcoming[0];
   }, [bookings]);

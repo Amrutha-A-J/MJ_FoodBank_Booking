@@ -22,12 +22,13 @@ import {
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
+import { toDate } from '../../utils/date';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
   const [overallLoading, setOverallLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
-  const currentYear = new Date().getFullYear();
+  const currentYear = toDate().getFullYear();
   const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
   const [years, setYears] = useState<number[]>(fallbackYears);
   const [overallYear, setOverallYear] = useState(fallbackYears[0]);

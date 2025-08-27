@@ -25,9 +25,10 @@ import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
+import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = new Date(date);
+  const d = toDate(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
   d.setDate(diff);
@@ -36,15 +37,15 @@ function startOfWeek(date: Date) {
 }
 
 function format(date: Date) {
-  return date.toISOString().split('T')[0];
+  return formatDate(date);
 }
 
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [donors, setDonors] = useState<Donor[]>([]);
   const [tab, setTab] = useState(() => {
-    const week = startOfWeek(new Date());
-    const today = new Date();
+    const week = startOfWeek(toDate());
+    const today = toDate();
     return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
   });
   const [recordOpen, setRecordOpen] = useState(false);
@@ -55,16 +56,12 @@ export default function DonationLog() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   const weekDates = useMemo(() => {
-    const start = startOfWeek(new Date());
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      return d;
-    });
+    const start = startOfWeek(toDate());
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, []);
 
   const [form, setForm] = useState<{ date: string; donorId: number | null; weight: string }>({
-    date: format(new Date()),
+    date: formatDate(),
     donorId: null,
     weight: '',
   });
@@ -168,7 +165,7 @@ export default function DonationLog() {
   );
 
   const tabs = weekDates.map(d => ({
-    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    label: formatLocaleDate(d, { weekday: 'short' }),
     content: table,
   }));
 
