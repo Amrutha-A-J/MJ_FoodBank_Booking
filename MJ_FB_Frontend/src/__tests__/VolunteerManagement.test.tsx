@@ -1,5 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import '@testing-library/jest-dom';
+import { act } from 'react-dom/test-utils';
+import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import VolunteerManagement from '../pages/volunteer-management/VolunteerManagement';
 import {
   getVolunteerRoles,
@@ -93,6 +95,36 @@ describe('VolunteerManagement shopper profile', () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/shopper profile/i)).not.toBeChecked()
     );
+  });
+});
+
+describe('VolunteerManagement search reset', () => {
+  it('clears selected volunteer when leaving search tab', async () => {
+    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+    (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
+
+    let navigateFn: (path: string) => void = () => {};
+    function NavHelper() {
+      navigateFn = useNavigate();
+      return null;
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/search']}>
+        <NavHelper />
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(await screen.findByText(/Edit Roles for Test Vol/i)).toBeInTheDocument();
+
+    act(() => navigateFn('/volunteers/schedule'));
+    act(() => navigateFn('/volunteers/search'));
+
+    expect(screen.queryByText(/Edit Roles for Test Vol/i)).not.toBeInTheDocument();
   });
 });
 

@@ -23,7 +23,13 @@ import {
   updateVolunteerBookingStatus,
 } from '../../api/volunteers';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
-import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
+import {
+  formatTime,
+  formatReginaDate,
+  formatRegina,
+  REGINA_TIMEZONE,
+} from '../../utils/time';
+import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';

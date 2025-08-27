@@ -55,6 +55,7 @@ import { formatDate, addDays } from '../../utils/date';
 
 interface RoleOption {
   id: number; // unique slot id
+  role_id: number; // underlying role id
   category_id: number; // category identifier
   category_name: string; // category display name
   name: string;
@@ -75,7 +76,7 @@ interface VolunteerResult {
 
 export default function VolunteerManagement() {
   const { tab: tabParam } = useParams<{ tab?: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
     tabParam === 'schedule' ||
     tabParam === 'search' ||
@@ -109,6 +110,13 @@ export default function VolunteerManagement() {
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
 
+  useEffect(() => {
+    if (tab !== 'search') {
+      setSelectedVolunteer(null);
+      setSearchParams({});
+    }
+  }, [tab, setSearchParams]);
+
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
   const [shopperPassword, setShopperPassword] = useState('');
@@ -141,6 +149,7 @@ export default function VolunteerManagement() {
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
+  const [confirmAssign, setConfirmAssign] = useState<VolunteerResult | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBookingDetail | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
@@ -177,6 +186,7 @@ export default function VolunteerManagement() {
         const flattened: RoleOption[] = data.flatMap(r =>
           r.shifts.map(s => ({
             id: s.id,
+            role_id: r.id,
             category_id: r.category_id,
             category_name: r.category_name,
             name: r.name,
@@ -390,21 +400,46 @@ export default function VolunteerManagement() {
   }
 
 
-  async function assignVolunteer(vol: VolunteerResult) {
+  function assignVolunteer(vol: VolunteerResult) {
     if (!assignSlot || !selectedRole) return;
+    if (!vol.trainedAreas.includes(assignSlot.role_id)) {
+      setConfirmAssign(vol);
+      return;
+    }
+    completeAssignment(vol, false);
+  }
+
+  async function completeAssignment(
+    vol: VolunteerResult,
+    addTraining: boolean,
+  ) {
+    if (!assignSlot || !selectedRole) return;
+    const slotBookings = bookingsForDate.filter(
+      b => b.role_id === assignSlot.id,
+    );
+    if (slotBookings.some(b => b.volunteer_id === vol.id)) {
+      setAssignMsg('Volunteer already booked for this shift');
+      return;
+    }
     try {
       setAssignMsg('');
+      if (addTraining) {
+        const newRoles = Array.from(
+          new Set([...vol.trainedAreas, assignSlot.role_id]),
+        );
+        await updateVolunteerTrainedAreas(vol.id, newRoles);
+      }
       await createVolunteerBookingForVolunteer(
         vol.id,
         assignSlot.id,
-        formatDate(currentDate)
+        formatDate(currentDate),
       );
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
       const ids = nameToRoleIds.get(selectedRole) || [];
       const data = await Promise.all(
-        ids.map(id => getVolunteerBookingsByRole(id))
+        ids.map(id => getVolunteerBookingsByRole(id)),
       );
       setBookings(data.flat());
     } catch (e) {
@@ -528,10 +563,14 @@ export default function VolunteerManagement() {
     const delay = setTimeout(() => {
       searchVolunteers(assignSearch)
         .then((data: VolunteerResult[]) => {
-          const filtered = data
-            .filter(v => v.trainedAreas.includes(assignSlot.id))
+          const sorted = data
+            .sort(
+              (a, b) =>
+                Number(b.trainedAreas.includes(assignSlot.role_id)) -
+                Number(a.trainedAreas.includes(assignSlot.role_id)),
+            )
             .slice(0, 5);
-          setAssignResults(filtered);
+          setAssignResults(sorted);
         })
         .catch(() => setAssignResults([]));
     }, 300);
@@ -971,6 +1010,17 @@ export default function VolunteerManagement() {
         />
       )}
 
+      {confirmAssign && assignSlot && (
+        <ConfirmDialog
+          message={`${confirmAssign.name} is not trained in ${assignSlot.category_name}-${assignSlot.name}. Confirm assigning this volunteer to this role?`}
+          onConfirm={() => {
+            completeAssignment(confirmAssign, true);
+            setConfirmAssign(null);
+          }}
+          onCancel={() => setConfirmAssign(null)}
+        />
+      )}
+
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       <FeedbackSnackbar
         open={!!editMsg}
@@ -1079,7 +1129,7 @@ export default function VolunteerManagement() {
                 style={{ width: '100%', marginTop: 8 }}
               />
             )}
-            {decisionBooking.status.toLowerCase() !== 'pending' && (
+            {(!showRejectReason || decisionBooking.status.toLowerCase() !== 'pending') && (
               <textarea
                 placeholder="Reason for cancellation"
                 value={decisionReason}
@@ -1133,6 +1183,7 @@ export default function VolunteerManagement() {
                   </Button>
                   <Button
                     onClick={() => {
+                      decide(decisionBooking.id, 'cancelled', decisionReason);
                       setDecisionBooking(null);
                       setDecisionReason('');
                       setShowRejectReason(false);
@@ -1140,7 +1191,18 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Cancel
+                    Cancel Booking
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                      setShowRejectReason(false);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Close
                   </Button>
                 </>
               ) : (
@@ -1165,7 +1227,7 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Confirm
+                    Cancel Booking
                   </Button>
                   <Button
                     onClick={() => {
@@ -1175,7 +1237,7 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Cancel
+                    Close
                   </Button>
                 </>
               )}

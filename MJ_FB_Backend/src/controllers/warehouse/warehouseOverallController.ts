@@ -3,6 +3,7 @@ import pool from '../../db';
 import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 import type { Row } from 'write-excel-file';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function refreshWarehouseOverall(year: number, month: number) {
   const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
@@ -72,7 +73,9 @@ export async function refreshWarehouseOverall(year: number, month: number) {
 
 export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
       `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
@@ -99,7 +102,9 @@ export async function listAvailableYears(req: Request, res: Response, next: Next
 
 export async function exportWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
       `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
@@ -196,7 +201,9 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
 
 export async function rebuildWarehouseOverall(req: Request, res: Response, next: NextFunction) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     for (let m = 1; m <= 12; m++) {
       await refreshWarehouseOverall(year, m);
     }
