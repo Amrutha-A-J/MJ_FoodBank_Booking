@@ -61,6 +61,15 @@ export async function createVolunteerBooking(
       return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
     }
 
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+      [roleId, date, user.id]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
+
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
        WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
@@ -141,6 +150,15 @@ export async function createVolunteerBookingForVolunteer(
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
       return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
+    }
+
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+      [roleId, date, volunteerId]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
     const countRes = await pool.query(
@@ -408,6 +426,15 @@ export async function rescheduleVolunteerBooking(
     );
     if ((trainedRes.rowCount ?? 0) === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved') AND id <> $4`,
+      [roleId, date, booking.volunteer_id, booking.id]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
     const countRes = await pool.query(
