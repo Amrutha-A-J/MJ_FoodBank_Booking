@@ -67,7 +67,7 @@ export default function App() {
   const profileLinks: NavLink[] | undefined = isStaff
     ? [{ label: 'Events', to: '/events' }]
     : undefined;
-  if (!token) {
+  if (!role) {
     navGroups.push(
       { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
       { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
@@ -160,14 +160,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        <Navbar
-          groups={navGroups}
-          onLogout={token ? logout : undefined}
-          name={token ? name || undefined : undefined}
-          loading={loading}
-          role={role}
-          profileLinks={profileLinks}
-        />
+    <Navbar
+      groups={navGroups}
+      onLogout={role ? logout : undefined}
+      name={role ? name || undefined : undefined}
+      loading={loading}
+      role={role}
+      profileLinks={profileLinks}
+    />
 
         <FeedbackSnackbar
           open={!!error}
@@ -176,7 +176,7 @@ export default function App() {
           severity="error"
         />
 
-          {token ? (
+            {role ? (
           <main>
             <Breadcrumbs />
             <Routes>
@@ -184,7 +184,7 @@ export default function App() {
                 path="/"
                 element={
                   role === 'volunteer' ? (
-                    <VolunteerDashboard token={token} />
+                      <VolunteerDashboard token={token} />
                   ) : role === 'agency' ? (
                     <AgencyGuard>
                       <AgencySchedule />
@@ -193,14 +193,14 @@ export default function App() {
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
                     ) : (
-                      <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
+                        <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
                     )
                   ) : (
                     <ClientDashboard />
                   )
                 }
               />
-              <Route path="/profile" element={<Profile token={token} role={role} />} />
+                <Route path="/profile" element={<Profile token={token} role={role} />} />
               {showStaff && (
                 <Route path="/pantry" element={<Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />} />
               )}

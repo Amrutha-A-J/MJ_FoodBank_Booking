@@ -19,12 +19,22 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState('');
-  const [role, setRole] = useState<Role>('' as Role);
-  const [name, setName] = useState('');
-  const [userRole, setUserRole] = useState<UserRole | ''>('');
-  const [access, setAccess] = useState<StaffAccess[]>([]);
-  const [id, setId] = useState<number | null>(null);
+  const [role, setRole] = useState<Role>(
+    () => (localStorage.getItem('role') as Role) || ('' as Role),
+  );
+  const [name, setName] = useState(() => localStorage.getItem('name') || '');
+  const [userRole, setUserRole] = useState<UserRole | ''>(
+    () => (localStorage.getItem('userRole') as UserRole) || '',
+  );
+  const [access, setAccess] = useState<StaffAccess[]>(() => {
+    const stored = localStorage.getItem('access');
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [id, setId] = useState<number | null>(() => {
+    const stored = localStorage.getItem('id');
+    return stored ? Number(stored) : null;
+  });
+  const [token, setToken] = useState(role ? 'cookie' : '');
 
   function clearAuth() {
     setToken('');
@@ -33,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserRole('');
     setAccess([]);
     setId(null);
-    localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('name');
     localStorage.removeItem('userRole');
@@ -43,22 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
-      .then(async r => {
-        const data = await r.json().catch(() => ({}));
-        if (r.ok && data?.token) {
-          setToken(data.token);
-          localStorage.setItem('token', data.token);
-          const storedRole = localStorage.getItem('role') as Role | null;
-          const storedName = localStorage.getItem('name') || '';
-          const storedUserRole =
-            (localStorage.getItem('userRole') as UserRole) || '';
-          const storedAccess = localStorage.getItem('access');
-          const storedId = localStorage.getItem('id');
-          if (storedRole) setRole(storedRole);
-          if (storedName) setName(storedName);
-          if (storedUserRole) setUserRole(storedUserRole);
-          setAccess(storedAccess ? JSON.parse(storedAccess) : []);
-          setId(storedId ? Number(storedId) : null);
+      .then(r => {
+        if (r.ok) {
+          setToken('cookie');
         } else {
           clearAuth();
         }
@@ -72,10 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(u: LoginResponse) {
     try {
       const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.token) throw new Error('Invalid refresh');
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
+      if (!res.ok) throw new Error('Invalid refresh');
+      setToken('cookie');
       setRole(u.role);
       setName(u.name);
       setUserRole(u.userRole || '');

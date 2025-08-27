@@ -152,7 +152,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       expires: new Date(Date.now() + refreshExpiry),
       secure,
     });
-    return res.json({ token: accessToken, refreshToken: newRefreshToken });
+    return res.status(204).send();
   } catch (err) {
     logger.warn('Invalid refresh token');
     res.clearCookie('token');
