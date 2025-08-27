@@ -84,7 +84,7 @@ function kpiDelta(curr: number, prev?: number) {
 export default function WarehouseDashboard() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { token, id } = useAuth();
+  const { id } = useAuth();
   const searchRef = useRef<HTMLInputElement>(null);
   const [years, setYears] = useState<number[]>([]);
   const [year, setYear] = useState<number>();
@@ -94,7 +94,7 @@ export default function WarehouseDashboard() {
   const [donors, setDonors] = useState<TopDonor[]>([]);
   const [receivers, setReceivers] = useState<TopReceiver[]>([]);
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
-  const [loadingTotals, setLoadingTotals] = useState(false);
+  const [, setLoadingTotals] = useState(false);
   const [loadingRebuild, setLoadingRebuild] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -198,8 +198,6 @@ export default function WarehouseDashboard() {
   const currentTotals = totals.find(t => t.month === currentMonth);
   const prevTotals = totals.find(t => t.month === currentMonth - 1);
 
-  const incoming = currentTotals?.donationsLbs ?? 0;
-  const prevIncoming = prevTotals?.donationsLbs ?? 0;
   const totalIncoming =
     (currentTotals?.donationsLbs ?? 0) +
     (currentTotals?.surplusLbs ?? 0) +
@@ -255,8 +253,9 @@ export default function WarehouseDashboard() {
       await rebuildWarehouseOverall(year!);
       setSnackbar({ open: true, message: 'Rebuilt aggregates' });
       loadData(year!);
-    } catch (err: any) {
-      setSnackbar({ open: true, message: err.message || 'Rebuild failed', severity: 'error' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Rebuild failed';
+      setSnackbar({ open: true, message, severity: 'error' });
     } finally {
       setLoadingRebuild(false);
     }
@@ -534,7 +533,7 @@ export default function WarehouseDashboard() {
             </Stack>
           </CardContent>
         </Card>
-        <VolunteerCoverageCard token={token} masterRoleFilter={['Warehouse']} />
+        <VolunteerCoverageCard masterRoleFilter={['Warehouse']} />
       </Box>
 
       <Card variant="outlined" sx={{ mb: 2 }}>

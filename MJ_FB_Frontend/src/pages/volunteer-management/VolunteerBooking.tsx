@@ -15,7 +15,6 @@ import {
   Skeleton,
 } from '@mui/material';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { useTheme } from '@mui/material/styles';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import type { VolunteerRole, Holiday } from '../../types';
@@ -24,17 +23,17 @@ import { getHolidays } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 
-function useVolunteerSlots(token: string, date: Dayjs, enabled: boolean) {
+function useVolunteerSlots(date: Dayjs, enabled: boolean) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<VolunteerRole[]>({
     queryKey: ['volunteer-slots', dateStr],
-    queryFn: () => getVolunteerRolesForVolunteer(token, dateStr),
+    queryFn: () => getVolunteerRolesForVolunteer(dateStr),
     enabled,
   });
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-export default function VolunteerBooking({ token }: { token: string }) {
+export default function VolunteerBooking() {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = dayjs();
     while (d.day() === 0 || d.day() === 6) d = d.add(1, 'day');
@@ -51,7 +50,6 @@ export default function VolunteerBooking({ token }: { token: string }) {
     d.day() === 6 ||
     holidaySet.has(d.format('YYYY-MM-DD'));
   const { slots, isLoading, refetch, error } = useVolunteerSlots(
-    token,
     date,
     !isDisabled(date),
   );
@@ -61,7 +59,6 @@ export default function VolunteerBooking({ token }: { token: string }) {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
-  const theme = useTheme();
   const slotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,7 +79,7 @@ export default function VolunteerBooking({ token }: { token: string }) {
     if (!selected) return;
     setBooking(true);
     try {
-      await requestVolunteerBooking(token, selected.id, selected.date);
+      await requestVolunteerBooking(selected.id, selected.date);
       setSnackbar({ open: true, message: 'Request submitted', severity: 'success' });
       setSelected(null);
       refetch();

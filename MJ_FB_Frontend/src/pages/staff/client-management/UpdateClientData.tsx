@@ -23,7 +23,7 @@ import {
 } from '../../../api/users';
 import type { AlertColor } from '@mui/material';
 
-export default function UpdateClientData({ token }: { token: string }) {
+export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
   const [selected, setSelected] = useState<IncompleteUser | null>(null);
   const [form, setForm] = useState({
@@ -39,7 +39,7 @@ export default function UpdateClientData({ token }: { token: string }) {
   } | null>(null);
 
   function loadClients() {
-    getIncompleteUsers(token)
+    getIncompleteUsers()
       .then(setClients)
       .catch(() => setClients([]));
   }
@@ -61,7 +61,7 @@ export default function UpdateClientData({ token }: { token: string }) {
   async function handleSave() {
     if (!selected) return;
     try {
-      await updateUserInfo(token, selected.clientId, {
+      await updateUserInfo(selected.clientId, {
         firstName: form.firstName,
         lastName: form.lastName,
         email: form.email || undefined,
@@ -70,10 +70,10 @@ export default function UpdateClientData({ token }: { token: string }) {
       setSnackbar({ open: true, message: 'Client updated', severity: 'success' });
       setSelected(null);
       loadClients();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setSnackbar({
         open: true,
-        message: err.message || 'Update failed',
+        message: err instanceof Error ? err.message : 'Update failed',
         severity: 'error',
       });
     }

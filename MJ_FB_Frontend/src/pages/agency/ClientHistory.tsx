@@ -20,7 +20,6 @@ import {
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
-import { useAuth } from '../../hooks/useAuth';
 
 const TIMEZONE = 'America/Regina';
 
@@ -44,7 +43,6 @@ interface Booking {
 }
 
 export default function ClientHistory() {
-  const { token } = useAuth();
   const [selected, setSelected] = useState<User | null>(null);
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -97,7 +95,6 @@ export default function ClientHistory() {
       <Box width="100%" maxWidth={800} mt={4}>
         <h2>Client History</h2>
         <EntitySearch
-          token={token}
           type="user"
           placeholder="Search by name or client ID"
           onSelect={u => setSelected(u as User)}

@@ -40,7 +40,7 @@ import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 
 export default function App() {
-  const { token, role, name, userRole, access, login, logout } = useAuth();
+  const { role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
@@ -181,7 +181,7 @@ export default function App() {
                 path="/"
                 element={
                   role === 'volunteer' ? (
-                      <VolunteerDashboard token={token} />
+                      <VolunteerDashboard />
                   ) : role === 'agency' ? (
                     <AgencyGuard>
                       <AgencySchedule />
@@ -190,25 +190,25 @@ export default function App() {
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
                     ) : (
-                        <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
+                        <Dashboard role="staff" masterRoleFilter={['Pantry']} />
                     )
                   ) : (
                     <ClientDashboard />
                   )
                 }
               />
-                <Route path="/profile" element={<Profile token={token} role={role} />} />
+                <Route path="/profile" element={<Profile role={role} />} />
               {showStaff && (
-                <Route path="/pantry" element={<Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />} />
+                <Route path="/pantry" element={<Dashboard role="staff" masterRoleFilter={['Pantry']} />} />
               )}
               {showStaff && (
                 <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
               )}
               {showStaff && (
-                <Route path="/pantry/schedule" element={<PantrySchedule token={token} />} />
+                <Route path="/pantry/schedule" element={<PantrySchedule />} />
               )}
               {showStaff && (
-                <Route path="/pantry/visits" element={<PantryVisits token={token} />} />
+                <Route path="/pantry/visits" element={<PantryVisits />} />
               )}
               {showWarehouse && (
                 <Route path="/warehouse-management" element={<WarehouseDashboard />} />
@@ -263,7 +263,6 @@ export default function App() {
                   path="/booking-history"
                   element={
                     <UserHistory
-                      token={token}
                       initialUser={{ id: 0, name, client_id: 0 }}
                     />
                   }
@@ -277,7 +276,6 @@ export default function App() {
                   path="/booking-history"
                   element={
                     <UserHistory
-                      token={token}
                       initialUser={{ id: 0, name, client_id: 0 }}
                     />
                   }
@@ -286,7 +284,7 @@ export default function App() {
               {showStaff && (
                 <Route
                   path="/pantry/client-management"
-                  element={<ClientManagement token={token} />}
+                  element={<ClientManagement />}
                 />
               )}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
@@ -298,11 +296,11 @@ export default function App() {
                 <>
                   <Route
                     path="/volunteer-management"
-                    element={<VolunteerManagement token={token} />}
+                    element={<VolunteerManagement />}
                   />
                   <Route
                     path="/volunteer-management/:tab"
-                    element={<VolunteerManagement token={token} />}
+                    element={<VolunteerManagement />}
                   />
                 </>
               )}
@@ -310,11 +308,11 @@ export default function App() {
                 <>
                   <Route
                     path="/volunteer/schedule"
-                    element={<VolunteerBooking token={token} />}
+                    element={<VolunteerBooking />}
                   />
                   <Route
                     path="/volunteer/history"
-                    element={<VolunteerBookingHistory token={token} />}
+                    element={<VolunteerBookingHistory />}
                   />
                 </>
               )}

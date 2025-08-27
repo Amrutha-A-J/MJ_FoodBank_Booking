@@ -12,13 +12,11 @@ interface CoverageItem {
 }
 
 interface VolunteerCoverageCardProps {
-  token: string;
   masterRoleFilter?: string[];
   onCoverageLoaded?: (data: CoverageItem[]) => void;
 }
 
 export default function VolunteerCoverageCard({
-  token,
   masterRoleFilter,
   onCoverageLoaded,
 }: VolunteerCoverageCardProps) {
@@ -27,7 +25,7 @@ export default function VolunteerCoverageCard({
   useEffect(() => {
     const todayStr = formatReginaDate(new Date());
 
-    getVolunteerRoles(token)
+    getVolunteerRoles()
       .then(roles =>
         masterRoleFilter
           ? roles.filter(r => masterRoleFilter.includes(r.category_name))
@@ -36,7 +34,7 @@ export default function VolunteerCoverageCard({
       .then(roles =>
         Promise.all(
           roles.map(async r => {
-            const bookings = await getVolunteerBookingsByRole(token, r.id);
+            const bookings = await getVolunteerBookingsByRole(r.id);
             const filled = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
@@ -56,7 +54,7 @@ export default function VolunteerCoverageCard({
         onCoverageLoaded?.(data);
       })
       .catch(() => {});
-  }, [token, masterRoleFilter, onCoverageLoaded]);
+  }, [masterRoleFilter, onCoverageLoaded]);
 
   return (
     <SectionCard title="Volunteer Coverage">
