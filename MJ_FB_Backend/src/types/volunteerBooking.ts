@@ -1,7 +1,7 @@
 export interface CreateRecurringVolunteerBookingRequest {
   roleId: number;
   startDate: string;
-  endDate?: string;
+  endDate: string;
   pattern: 'daily' | 'weekly';
   daysOfWeek?: number[];
 }

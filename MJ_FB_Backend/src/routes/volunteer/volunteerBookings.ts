@@ -18,6 +18,7 @@ import {
   authorizeRoles,
   optionalAuthMiddleware,
 } from '../../middleware/authMiddleware';
+import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.post(
   authorizeRoles('staff'),
   createVolunteerBookingForVolunteer
 );
-router.post(
+router.post<{}, any, CreateRecurringVolunteerBookingRequest>(
   '/recurring',
   authMiddleware,
   authorizeRoles('volunteer'),
