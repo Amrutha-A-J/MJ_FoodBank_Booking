@@ -26,16 +26,54 @@ describe('recurring volunteer bookings', () => {
 
   it('creates a recurring booking series', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ role_id: 2, max_volunteers: 3, category_name: 'Pantry' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 10 }] })
-      .mockResolvedValue({});
+      .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
 
     const res = await request(app)
       .post('/volunteer-bookings/recurring')
       .send({ roleId: 2, startDate: '2025-01-01', endDate: '2025-01-03', pattern: 'daily' });
 
     expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('recurringId', 10);
-    expect((pool.query as jest.Mock).mock.calls.length).toBe(1 + 3); // 3 dates
+    expect(res.body.recurringId).toBe(10);
+    expect(res.body.successes).toEqual([
+      '2025-01-01',
+      '2025-01-02',
+      '2025-01-03',
+    ]);
+    expect(res.body.skipped).toEqual([]);
+  });
+
+  it('skips dates that fail validation', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ role_id: 2, max_volunteers: 3, category_name: 'Pantry' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 20 }] })
+      .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
+
+    const res = await request(app)
+      .post('/volunteer-bookings/recurring')
+      .send({
+        roleId: 2,
+        startDate: '2025-01-03',
+        endDate: '2025-01-05',
+        pattern: 'daily',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.recurringId).toBe(20);
+    expect(res.body.successes).toEqual(['2025-01-03']);
+    expect(res.body.skipped).toEqual([
+      { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
+      { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
+    ]);
   });
 
   it('cancels future recurring bookings', async () => {

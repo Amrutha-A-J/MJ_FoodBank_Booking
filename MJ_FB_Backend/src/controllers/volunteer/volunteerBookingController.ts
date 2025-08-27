@@ -441,6 +441,27 @@ export async function createRecurringVolunteerBooking(
       .json({ message: 'roleId, startDate and pattern are required' });
   }
   try {
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
+      [roleId],
+    );
+    if ((slotRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const slot = slotRes.rows[0];
+
+    const trainedRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [user.id, slot.role_id],
+    );
+    if ((trainedRes.rowCount ?? 0) === 0) {
+      return res.status(400).json({ message: 'Not trained for this role' });
+    }
+
     const recurringRes = await pool.query(
       `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
        VALUES ($1,$2,$3,$4,$5,$6,true)
@@ -459,15 +480,52 @@ export async function createRecurringVolunteerBooking(
         dates.push(d.toISOString().split('T')[0]);
       }
     }
+    const successes: string[] = [];
+    const skipped: { date: string; reason: string }[] = [];
     for (const date of dates) {
+      const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+      const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
+        date,
+      ]);
+      const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+      const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+      if (
+        (isWeekend || isHoliday) &&
+        restrictedCategories.includes(slot.category_name)
+      ) {
+        skipped.push({ date, reason: 'Role not bookable on holidays or weekends' });
+        continue;
+      }
+
+      const countRes = await pool.query(
+        `SELECT COUNT(*) FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+        [roleId, date],
+      );
+      if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
+        skipped.push({ date, reason: 'Role is full' });
+        continue;
+      }
+
+      const existingRes = await pool.query(
+        `SELECT 1 FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+        [roleId, date, user.id],
+      );
+      if ((existingRes.rowCount ?? 0) > 0) {
+        skipped.push({ date, reason: 'Already booked' });
+        continue;
+      }
+
       const token = randomUUID();
       await pool.query(
         `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token, recurring_id)
          VALUES ($1,$2,$3,$4,$5)`,
         [roleId, user.id, date, token, recurringId],
       );
+      successes.push(date);
     }
-    res.status(201).json({ recurringId, count: dates.length });
+    res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
     logger.error('Error creating recurring volunteer bookings:', error);
     next(error);
