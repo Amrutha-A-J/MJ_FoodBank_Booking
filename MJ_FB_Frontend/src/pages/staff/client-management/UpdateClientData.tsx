@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Table,
   TableHead,
@@ -13,24 +13,28 @@ import {
   TextField,
   Stack,
   Link,
-} from '@mui/material';
-import Page from '../../../components/Page';
-import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
+import Page from "../../../components/Page";
+import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import {
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
-} from '../../../api/users';
-import type { AlertColor } from '@mui/material';
+} from "../../../api/users";
+import type { AlertColor } from "@mui/material";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
   const [selected, setSelected] = useState<IncompleteUser | null>(null);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    onlineAccess: false,
+    password: "",
   });
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -51,10 +55,12 @@ export default function UpdateClientData() {
   function handleEdit(client: IncompleteUser) {
     setSelected(client);
     setForm({
-      firstName: client.firstName || '',
-      lastName: client.lastName || '',
-      email: client.email || '',
-      phone: client.phone || '',
+      firstName: client.firstName || "",
+      lastName: client.lastName || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      onlineAccess: false,
+      password: "",
     });
   }
 
@@ -66,15 +72,21 @@ export default function UpdateClientData() {
         lastName: form.lastName,
         email: form.email || undefined,
         phone: form.phone || undefined,
+        onlineAccess: form.onlineAccess,
+        password: form.onlineAccess ? form.password : undefined,
       });
-      setSnackbar({ open: true, message: 'Client updated', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Client updated",
+        severity: "success",
+      });
       setSelected(null);
       loadClients();
     } catch (err: unknown) {
       setSnackbar({
         open: true,
-        message: err instanceof Error ? err.message : 'Update failed',
-        severity: 'error',
+        message: err instanceof Error ? err.message : "Update failed",
+        severity: "error",
       });
     }
   }
@@ -90,7 +102,7 @@ export default function UpdateClientData() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {clients.map(client => (
+          {clients.map((client) => (
             <TableRow key={client.clientId}>
               <TableCell>{client.clientId}</TableCell>
               <TableCell>
@@ -118,7 +130,7 @@ export default function UpdateClientData() {
 
       <Dialog open={!!selected} onClose={() => setSelected(null)}>
         <DialogTitle>
-          Edit Client -{' '}
+          Edit Client -{" "}
           {selected && (
             <Link
               href={selected.profileLink}
@@ -131,35 +143,66 @@ export default function UpdateClientData() {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={form.onlineAccess}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      onlineAccess: e.target.checked,
+                      password: "",
+                    })
+                  }
+                />
+              }
+              label="Online Access"
+            />
             <TextField
               label="First Name"
               value={form.firstName}
-              onChange={e => setForm({ ...form, firstName: e.target.value })}
+              onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+              required
             />
             <TextField
               label="Last Name"
               value={form.lastName}
-              onChange={e => setForm({ ...form, lastName: e.target.value })}
+              onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+              required
             />
             <TextField
               label="Email (optional)"
               type="email"
               value={form.email}
-              onChange={e => setForm({ ...form, email: e.target.value })}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
             <TextField
               label="Phone (optional)"
               type="tel"
               value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
+            {form.onlineAccess && (
+              <TextField
+                label="Password"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                error={form.onlineAccess && !form.password}
+              />
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSelected(null)}>Cancel</Button>
           <Button
             onClick={handleSave}
-            disabled={!form.firstName || !form.lastName}
+            disabled={
+              !form.firstName ||
+              !form.lastName ||
+              (form.onlineAccess && !form.password)
+            }
           >
             Save
           </Button>
@@ -169,10 +212,9 @@ export default function UpdateClientData() {
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
-        message={snackbar?.message || ''}
+        message={snackbar?.message || ""}
         severity={snackbar?.severity}
       />
     </Page>
   );
 }
-

@@ -3,17 +3,17 @@ import type {
   UserProfile,
   StaffAccess,
   LoginResponse,
-} from '../types';
-import { API_BASE, apiFetch, handleResponse } from './client';
-export type { LoginResponse } from '../types';
+} from "../types";
+import { API_BASE, apiFetch, handleResponse } from "./client";
+export type { LoginResponse } from "../types";
 
 export async function loginUser(
   clientId: string,
-  password: string
+  password: string,
 ): Promise<LoginResponse> {
   const res = await apiFetch(`${API_BASE}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientId: Number(clientId), password }),
   });
   return handleResponse(res);
@@ -21,11 +21,11 @@ export async function loginUser(
 
 export async function loginStaff(
   email: string,
-  password: string
+  password: string,
 ): Promise<LoginResponse> {
   const res = await apiFetch(`${API_BASE}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   return handleResponse(res);
@@ -36,8 +36,8 @@ export async function loginAgency(
   password: string,
 ): Promise<LoginResponse> {
   const res = await apiFetch(`${API_BASE}/users/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   return handleResponse(res);
@@ -45,7 +45,7 @@ export async function loginAgency(
 
 export async function logout(): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/logout`, {
-    method: 'POST',
+    method: "POST",
   });
   await handleResponse(res);
 }
@@ -56,8 +56,8 @@ export async function requestPasswordReset(data: {
   clientId?: string;
 }): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/request-password-reset`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   await handleResponse(res);
@@ -68,8 +68,8 @@ export async function changePassword(
   newPassword: string,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/change-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
   await handleResponse(res);
@@ -80,12 +80,13 @@ export async function getUserProfile(): Promise<UserProfile> {
   return handleResponse(res);
 }
 
-export async function updateMyProfile(
-  data: { email?: string; phone?: string },
-): Promise<UserProfile> {
+export async function updateMyProfile(data: {
+  email?: string;
+  phone?: string;
+}): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return handleResponse(res);
@@ -105,19 +106,19 @@ export async function createStaff(
   password: string,
 ): Promise<void> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
   const res = await apiFetch(`${API_BASE}/staff`, {
-    method: 'POST',
+    method: "POST",
     headers,
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        password,
-        access,
-      }),
-    });
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      email,
+      password,
+      access,
+    }),
+  });
   await handleResponse(res);
 }
 
@@ -132,9 +133,9 @@ export async function addUser(
   phone?: string,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/users/add-client`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       firstName,
@@ -151,7 +152,9 @@ export async function addUser(
 }
 
 export async function searchUsers(search: string) {
-  const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`);
+  const res = await apiFetch(
+    `${API_BASE}/users/search?search=${encodeURIComponent(search)}`,
+  );
   return handleResponse(res);
 }
 
@@ -177,11 +180,18 @@ export async function getIncompleteUsers(): Promise<IncompleteUser[]> {
 
 export async function updateUserInfo(
   clientId: number,
-  data: { firstName: string; lastName: string; email?: string; phone?: string },
+  data: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    onlineAccess: boolean;
+    password?: string;
+  },
 ): Promise<IncompleteUser> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   return handleResponse(res);
