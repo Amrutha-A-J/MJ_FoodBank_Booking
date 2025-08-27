@@ -29,6 +29,7 @@ import eventsRoutes from './routes/events';
 import agenciesRoutes from './routes/agencies';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
+import csrfMiddleware from './middleware/csrf';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(csrfMiddleware);
 
 initializeSlots();
 
