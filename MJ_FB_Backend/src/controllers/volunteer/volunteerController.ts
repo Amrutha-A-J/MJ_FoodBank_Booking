@@ -1,11 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { randomUUID } from 'crypto';
-import config from '../../config';
 import logger from '../../utils/logger';
 import { validatePassword } from '../../utils/passwordUtils';
+import issueAuthTokens, { AuthPayload } from '../../utils/authUtils';
 
 export async function updateTrainedArea(
   req: Request,
@@ -68,33 +66,20 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const payload: any = { id: volunteer.id, role: 'volunteer', type: 'volunteer' };
-    if (volunteer.user_id) {
-      payload.userId = volunteer.user_id;
-      payload.userRole = volunteer.user_role || 'shopper';
-    }
-    const jti = randomUUID();
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
-    const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
-      expiresIn: '7d',
-    });
-    await pool.query(
-      `INSERT INTO refresh_tokens (token_id, subject) VALUES ($1,$2)
-       ON CONFLICT (subject) DO UPDATE SET token_id = EXCLUDED.token_id`,
-      [jti, `volunteer:${volunteer.id}`],
+    const payload: AuthPayload = {
+      id: volunteer.id,
+      role: 'volunteer',
+      type: 'volunteer',
+      ...(volunteer.user_id && {
+        userId: volunteer.user_id,
+        userRole: volunteer.user_role || 'shopper',
+      }),
+    };
+    const tokens = await issueAuthTokens(
+      res,
+      payload,
+      `volunteer:${volunteer.id}`,
     );
-    res.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
-    });
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
-    });
     res.json({
       role: 'volunteer',
       name: `${volunteer.first_name} ${volunteer.last_name}`,
@@ -102,6 +87,7 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
         userId: volunteer.user_id,
         userRole: volunteer.user_role || 'shopper',
       }),
+      ...tokens,
     });
   } catch (error) {
     logger.error('Error logging in volunteer:', error);
