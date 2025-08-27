@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Box, Stack, TextField, Checkbox, FormControlLabel, Button, Typography } from '@mui/material';
+import { useState, type FormEvent } from 'react';
+import { TextField, Checkbox, FormControlLabel, Button } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import FormCard from './FormCard';
 import type { StaffAccess } from '../types';
 
 interface StaffFormProps {
@@ -29,7 +30,8 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  async function handleSubmit() {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     if (!firstName || !lastName || !email || (!initial && !password)) {
       setError('All fields required');
       return;
@@ -56,44 +58,44 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-      <Box maxWidth={400} width="100%" mt={4}>
-        <Typography variant="h5" gutterBottom>
-          {submitLabel}
-        </Typography>
-        <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-        <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} />
-        <Stack spacing={2}>
-          <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-          <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
-          <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <FormControlLabel
-            control={<Checkbox checked={access.includes('pantry')} onChange={() => toggleAccess('pantry')} />}
-            label="Pantry"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={access.includes('volunteer_management')}
-                onChange={() => toggleAccess('volunteer_management')}
-              />
-            }
-            label="Volunteer Management"
-          />
-          <FormControlLabel
-            control={<Checkbox checked={access.includes('warehouse')} onChange={() => toggleAccess('warehouse')} />}
-            label="Warehouse"
-          />
-          <FormControlLabel
-            control={<Checkbox checked={access.includes('admin')} onChange={() => toggleAccess('admin')} />}
-            label="Admin"
-          />
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
+    <>
+      <FormCard
+        title={submitLabel}
+        onSubmit={handleSubmit}
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
             {submitLabel}
           </Button>
-        </Stack>
-      </Box>
-    </Box>
+        }
+      >
+        <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+        <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+        <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+        <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        <FormControlLabel
+          control={<Checkbox checked={access.includes('pantry')} onChange={() => toggleAccess('pantry')} />}
+          label="Pantry"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={access.includes('volunteer_management')}
+              onChange={() => toggleAccess('volunteer_management')}
+            />
+          }
+          label="Volunteer Management"
+        />
+        <FormControlLabel
+          control={<Checkbox checked={access.includes('warehouse')} onChange={() => toggleAccess('warehouse')} />}
+          label="Warehouse"
+        />
+        <FormControlLabel
+          control={<Checkbox checked={access.includes('admin')} onChange={() => toggleAccess('admin')} />}
+          label="Admin"
+        />
+      </FormCard>
+      <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+      <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} />
+    </>
   );
 }
