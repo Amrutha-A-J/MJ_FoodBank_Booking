@@ -229,7 +229,7 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
                   onSelect={res => {
                     if (searchType === 'user') {
                       navigate(
-                        `/pantry/client-management/history?id=${res.id}&name=${encodeURIComponent(
+                        `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
                           res.name,
                         )}&clientId=${res.client_id}`,
                       );

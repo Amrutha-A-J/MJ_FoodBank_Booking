@@ -285,7 +285,7 @@ export default function App() {
               )}
               {showStaff && (
                 <Route
-                  path="/pantry/client-management/*"
+                  path="/pantry/client-management"
                   element={<ClientManagement token={token} />}
                 />
               )}
