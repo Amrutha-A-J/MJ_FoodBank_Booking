@@ -4,14 +4,16 @@ import jwt from 'jsonwebtoken';
 import pool from '../db';
 import config from '../config';
 
-const secure = process.env.NODE_ENV !== 'development';
+// Use HTTPS cookies in production; allow HTTP cookies in development.
+// sameSite is set to 'none' when secure (for cross-site usage) and 'lax' otherwise.
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Options applied to auth cookies across the app. Cookies are scoped to the
 // root path and optionally to a specific domain via the COOKIE_DOMAIN env var.
 export const cookieOptions: CookieOptions = {
   httpOnly: true,
-  sameSite: 'strict',
-  secure,
+  sameSite: isProduction ? 'none' : 'lax',
+  secure: isProduction,
   path: '/',
   ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
 };
