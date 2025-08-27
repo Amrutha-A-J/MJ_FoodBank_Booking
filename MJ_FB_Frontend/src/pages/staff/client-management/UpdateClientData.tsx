@@ -14,13 +14,13 @@ import {
   Stack,
   Link,
 } from '@mui/material';
-import Page from '../../components/Page';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import Page from '../../../components/Page';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import {
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
-} from '../../api/users';
+} from '../../../api/users';
 import type { AlertColor } from '@mui/material';
 
 export default function UpdateClientData({ token }: { token: string }) {

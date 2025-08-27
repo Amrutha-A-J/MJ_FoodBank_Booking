@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getBookingHistory, cancelBooking } from '../../api/bookings';
+import { getBookingHistory, cancelBooking } from '../../../api/bookings';
 import { formatInTimeZone } from 'date-fns-tz';
-import { formatTime } from '../../utils/time';
+import { formatTime } from '../../../utils/time';
 import {
   Box,
   Button,
@@ -26,9 +26,9 @@ import {
   useTheme,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import RescheduleDialog from '../../components/RescheduleDialog';
-import EntitySearch from '../../components/EntitySearch';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import RescheduleDialog from '../../../components/RescheduleDialog';
+import EntitySearch from '../../../components/EntitySearch';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 
 const TIMEZONE = 'America/Regina';
 
