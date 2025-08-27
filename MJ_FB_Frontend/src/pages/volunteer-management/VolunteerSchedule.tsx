@@ -148,7 +148,7 @@ export default function VolunteerSchedule() {
           formatDate(currentDate),
           frequency,
           frequency === 'weekly' ? weekdays : undefined,
-          frequency === 'weekly' && endDate ? endDate : undefined,
+          endDate || undefined,
         );
       }
       const dateLabel = formatInTimeZone(
@@ -391,40 +391,38 @@ export default function VolunteerSchedule() {
             </Select>
           </FormControl>
           {frequency === 'weekly' && (
-            <>
-              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
-                  (d, i) => (
-                    <FormControlLabel
-                      key={d}
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={weekdays.includes(i)}
-                          onChange={() =>
-                            setWeekdays(prev =>
-                              prev.includes(i)
-                                ? prev.filter(x => x !== i)
-                                : [...prev, i],
-                            )
-                          }
-                        />
+            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
+                <FormControlLabel
+                  key={d}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={weekdays.includes(i)}
+                      onChange={() =>
+                        setWeekdays(prev =>
+                          prev.includes(i)
+                            ? prev.filter(x => x !== i)
+                            : [...prev, i],
+                        )
                       }
-                      label={d}
                     />
-                  ),
-                )}
-              </Box>
-              <TextField
-                label="End date"
-                type="date"
-                size="small"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ mt: 2 }}
-              />
-            </>
+                  }
+                  label={d}
+                />
+              ))}
+            </Box>
+          )}
+          {(frequency === 'daily' || frequency === 'weekly') && (
+            <TextField
+              label="End date"
+              type="date"
+              size="small"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mt: 2 }}
+            />
           )}
         </DialogContent>
         <DialogActions>
