@@ -206,6 +206,20 @@ export default function PantrySchedule({
   for (const s of slots) {
     displaySlots.push(s);
   }
+  if (
+    !isClosed &&
+    !displaySlots.some(
+      s => s.startTime === '12:00:00' || s.startTime === '12:30:00',
+    )
+  ) {
+    displaySlots.push({
+      id: 'lunch-break',
+      startTime: '12:00:00',
+      endTime: '13:00:00',
+      status: 'break',
+      reason: 'Lunch',
+    });
+  }
   displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const rows = displaySlots.map(slot => {
