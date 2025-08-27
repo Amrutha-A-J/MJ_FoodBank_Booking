@@ -11,6 +11,7 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  rescheduleVolunteerBookingByToken,
 } from '../../api/volunteers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
@@ -18,6 +19,7 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
+import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import {
   Box,
   Button,
@@ -142,6 +144,8 @@ export default function VolunteerManagement() {
     useState<VolunteerBookingDetail | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rescheduleBooking, setRescheduleBooking] =
+    useState<VolunteerBookingDetail | null>(null);
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -306,6 +310,31 @@ export default function VolunteerManagement() {
     } catch (e) {
       setSnackbarSeverity('error');
       setMessage(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function handleReschedule(date: string, roleId: number) {
+    if (!rescheduleBooking) return;
+    try {
+      await rescheduleVolunteerBookingByToken(
+        rescheduleBooking.reschedule_token || '',
+        roleId,
+        date,
+      );
+      setMessage('Booking rescheduled');
+      if (selectedRole) {
+        const ids = nameToRoleIds.get(selectedRole) || [];
+        const data = await Promise.all(
+          ids.map(rid => getVolunteerBookingsByRole(rid))
+        );
+        setBookings(data.flat());
+      }
+      if (tab === 'pending') loadPending();
+    } catch (e) {
+      setSnackbarSeverity('error');
+      setMessage('Failed to reschedule booking');
+    } finally {
+      setRescheduleBooking(null);
     }
   }
 
@@ -1038,8 +1067,8 @@ export default function VolunteerManagement() {
             <h4>Manage Booking</h4>
             <p>
               {decisionBooking.status.toLowerCase() === 'pending'
-                ? `Approve or reject booking for ${decisionBooking.volunteer_name}?`
-                : `Cancel booking for ${decisionBooking.volunteer_name}?`}
+                ? `Approve, reject, or reschedule booking for ${decisionBooking.volunteer_name}?`
+                : `Reschedule or cancel booking for ${decisionBooking.volunteer_name}?`}
               {decisionBooking.status.toLowerCase() === 'pending' && (
                 <>
                   <br />
@@ -1097,6 +1126,18 @@ export default function VolunteerManagement() {
                   </Button>
                   <Button
                     onClick={() => {
+                      setRescheduleBooking(decisionBooking);
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                      setShowRejectReason(false);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Reschedule
+                  </Button>
+                  <Button
+                    onClick={() => {
                       setDecisionBooking(null);
                       setDecisionReason('');
                       setShowRejectReason(false);
@@ -1109,6 +1150,17 @@ export default function VolunteerManagement() {
                 </>
               ) : (
                 <>
+                  <Button
+                    onClick={() => {
+                      setRescheduleBooking(decisionBooking);
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Reschedule
+                  </Button>
                   <Button
                     onClick={() => {
                       decide(decisionBooking.id, 'cancelled', decisionReason);
@@ -1135,6 +1187,13 @@ export default function VolunteerManagement() {
             </div>
           </div>
         </div>
+      )}
+      {rescheduleBooking && (
+        <RescheduleDialog
+          open={!!rescheduleBooking}
+          onClose={() => setRescheduleBooking(null)}
+          onSubmit={handleReschedule}
+        />
       )}
     </div>
   );

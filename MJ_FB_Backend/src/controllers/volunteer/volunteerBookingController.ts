@@ -294,26 +294,35 @@ export async function updateVolunteerBookingStatus(
   next: NextFunction,
 ) {
   const { id } = req.params;
-  const { status } = req.body as { status?: string };
+  const { status, reason } = req.body as {
+    status?: string;
+    reason?: string;
+  };
   if (!status || !['approved', 'rejected', 'cancelled'].includes(status)) {
     return res
       .status(400)
       .json({ message: 'Status must be approved, rejected or cancelled' });
   }
+  if (status === 'rejected' && !reason) {
+    return res
+      .status(400)
+      .json({ message: 'Reason required for rejection' });
+  }
 
   try {
-    const bookingRes = await pool.query('SELECT * FROM volunteer_bookings WHERE id=$1', [
-      id,
-    ]);
+    const bookingRes = await pool.query(
+      'SELECT * FROM volunteer_bookings WHERE id=$1',
+      [id]
+    );
     if ((bookingRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Booking not found' });
     }
     const booking = bookingRes.rows[0];
-    if (booking.status !== 'pending') {
-      return res.status(400).json({ message: 'Booking already processed' });
-    }
 
     if (status === 'approved') {
+      if (booking.status !== 'pending') {
+        return res.status(400).json({ message: 'Booking already processed' });
+      }
       const roleRes = await pool.query(
         `SELECT max_volunteers FROM volunteer_slots WHERE slot_id=$1`,
         [booking.slot_id]
@@ -326,12 +335,20 @@ export async function updateVolunteerBookingStatus(
       if (Number(countRes.rows[0].count) >= roleRes.rows[0].max_volunteers) {
         return res.status(400).json({ message: 'Role is full' });
       }
+    } else if (status === 'rejected') {
+      if (booking.status !== 'pending') {
+        return res.status(400).json({ message: 'Booking already processed' });
+      }
+    } else if (status === 'cancelled') {
+      if (!['pending', 'approved'].includes(booking.status)) {
+        return res.status(400).json({ message: 'Booking already processed' });
+      }
     }
 
     const updateRes = await pool.query(
-      `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
+      `UPDATE volunteer_bookings SET status=$1, reason=$2 WHERE id=$3
        RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
-      [status, id]
+      [status, reason || null, id]
     );
     const updated = updateRes.rows[0];
     updated.role_id = updated.slot_id;
@@ -399,9 +416,9 @@ export async function rescheduleVolunteerBooking(
 
     const newToken = randomUUID();
     const isStaffReschedule = req.user && (req.user as any).role === 'staff';
-    const newStatus = isStaffReschedule ? booking.status : 'pending';
+    const newStatus = isStaffReschedule ? 'approved' : 'pending';
     await pool.query(
-      'UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4 WHERE id=$5',
+      'UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4, reason=NULL WHERE id=$5',
       [roleId, date, newToken, newStatus, booking.id],
     );
     await sendEmail(

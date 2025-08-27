@@ -132,6 +132,8 @@ export interface VolunteerBookingDetail {
   status_color?: string;
   role_name?: string;
   can_book?: boolean;
+  reschedule_token?: string;
+  recurring_id?: number;
 }
 
 export interface UserProfile {
