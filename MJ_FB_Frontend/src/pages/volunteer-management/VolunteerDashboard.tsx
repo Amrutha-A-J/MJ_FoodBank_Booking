@@ -29,7 +29,7 @@ import {
   formatRegina,
   REGINA_TIMEZONE,
 } from '../../utils/time';
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
@@ -91,12 +91,12 @@ export default function VolunteerDashboard() {
       .filter(b => b.status === 'approved')
       .filter(
         b =>
-          zonedTimeToUtc(`${b.date}T${b.start_time}`, REGINA_TIMEZONE) >= now,
+          fromZonedTime(`${b.date}T${b.start_time}`, REGINA_TIMEZONE) >= now,
       )
       .sort(
         (a, b) =>
-          zonedTimeToUtc(`${a.date}T${a.start_time}`, REGINA_TIMEZONE).getTime() -
-          zonedTimeToUtc(`${b.date}T${b.start_time}`, REGINA_TIMEZONE).getTime(),
+          fromZonedTime(`${a.date}T${a.start_time}`, REGINA_TIMEZONE).getTime() -
+          fromZonedTime(`${b.date}T${b.start_time}`, REGINA_TIMEZONE).getTime(),
       );
     return upcoming[0];
   }, [bookings]);
