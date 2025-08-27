@@ -5,7 +5,7 @@ import AddClient from './client-management/AddClient';
 import UpdateClientData from './client-management/UpdateClientData';
 import UserHistory from './client-management/UserHistory';
 
-export default function ClientManagement({ token }: { token: string }) {
+export default function ClientManagement() {
   const [searchParams] = useSearchParams();
   const initial = searchParams.get('tab');
   const [value, setValue] = useState<'add' | 'update' | 'history'>(
@@ -22,11 +22,11 @@ export default function ClientManagement({ token }: { token: string }) {
   const renderContent = () => {
     switch (value) {
       case 'update':
-        return <UpdateClientData token={token} />;
+        return <UpdateClientData />;
       case 'history':
-        return <UserHistory token={token} />;
+        return <UserHistory />;
       default:
-        return <AddClient token={token} />;
+        return <AddClient />;
     }
   };
 

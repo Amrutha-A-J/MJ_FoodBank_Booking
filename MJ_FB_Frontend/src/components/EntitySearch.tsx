@@ -4,7 +4,6 @@ import { searchUsers } from '../api/users';
 import { searchVolunteers } from '../api/volunteers';
 
 interface EntitySearchProps {
-  token: string;
   type: 'user' | 'volunteer';
   placeholder?: string;
   onSelect: (result: any) => void;
@@ -12,7 +11,6 @@ interface EntitySearchProps {
 }
 
 export default function EntitySearch({
-  token,
   type,
   placeholder,
   onSelect,
@@ -28,7 +26,7 @@ export default function EntitySearch({
     }
     let active = true;
     const fn = type === 'user' ? searchUsers : searchVolunteers;
-    fn(token, query)
+    fn(query)
       .then(data => {
         if (active) setResults(data);
       })
@@ -36,7 +34,7 @@ export default function EntitySearch({
     return () => {
       active = false;
     };
-  }, [query, token, type]);
+  }, [query, type]);
 
   const getLabel = (r: any) =>
     type === 'user' ? `${r.name} (${r.client_id})` : r.name;

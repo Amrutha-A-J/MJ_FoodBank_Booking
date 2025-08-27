@@ -4,7 +4,7 @@ import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormContainer from '../../components/FormContainer';
 
-export default function ChangePasswordForm({ token }: { token: string }) {
+export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [success, setSuccess] = useState('');
@@ -13,7 +13,7 @@ export default function ChangePasswordForm({ token }: { token: string }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await changePassword(token, currentPassword, newPassword);
+      await changePassword(currentPassword, newPassword);
       setSuccess('Password updated');
       setCurrentPassword('');
       setNewPassword('');
