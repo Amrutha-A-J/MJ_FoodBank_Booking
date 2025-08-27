@@ -80,12 +80,32 @@ test('submits weekly recurring booking', async () => {
   expect(args[3]).toEqual(expect.arrayContaining([1, 3]));
 });
 
+test('submits daily recurring booking with end date', async () => {
+  render(<VolunteerSchedule />);
+  fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+  const listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Test Role'));
+  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
+  fireEvent.mouseDown(screen.getByLabelText(/frequency/i));
+  const freqList = await screen.findAllByRole('listbox');
+  fireEvent.click(within(freqList[freqList.length - 1]).getByText('Daily'));
+  fireEvent.change(screen.getByLabelText(/end date/i), {
+    target: { value: '2024-12-31' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  await waitFor(() => expect(createRecurringVolunteerBooking).toHaveBeenCalled());
+  const args = (createRecurringVolunteerBooking as jest.Mock).mock.calls[0];
+  expect(args[2]).toBe('daily');
+  expect(args[3]).toBeUndefined();
+  expect(args[4]).toBe('2024-12-31');
+});
+
 test('submits one-time booking', async () => {
   render(<VolunteerSchedule />);
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Available'));
+  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
   fireEvent.click(screen.getByRole('button', { name: /submit/i }));
   await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
