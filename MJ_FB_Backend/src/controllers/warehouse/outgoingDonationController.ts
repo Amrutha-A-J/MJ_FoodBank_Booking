@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
 import { refreshWarehouseOverall } from './warehouseOverallController';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function listOutgoingDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -28,7 +29,7 @@ export async function addOutgoingDonation(req: Request, res: Response, next: Nex
       [date, receiverId, weight, note ?? null],
     );
     const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
-    const dt = new Date(date);
+    const dt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json({ ...result.rows[0], receiver: recRes.rows[0].name });
   } catch (error) {
@@ -48,10 +49,10 @@ export async function updateOutgoingDonation(req: Request, res: Response, next: 
       [date, receiverId, weight, note ?? null, id],
     );
     const recRes = await pool.query('SELECT name FROM outgoing_receivers WHERE id = $1', [receiverId]);
-    const newDt = new Date(date);
+    const newDt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
     if (oldDate) {
-      const oldDt = new Date(oldDate);
+      const oldDt = new Date(reginaStartOfDayISO(oldDate));
       if (
         oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
         oldDt.getUTCMonth() !== newDt.getUTCMonth()
@@ -72,7 +73,7 @@ export async function deleteOutgoingDonation(req: Request, res: Response, next: 
     const existing = await pool.query('SELECT date FROM outgoing_donation_log WHERE id = $1', [id]);
     await pool.query('DELETE FROM outgoing_donation_log WHERE id = $1', [id]);
     if (existing.rows[0]) {
-      const dt = new Date(existing.rows[0].date);
+      const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
       await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     }
     res.json({ message: 'Deleted' });

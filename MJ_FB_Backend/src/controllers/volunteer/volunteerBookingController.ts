@@ -4,6 +4,7 @@ import pool from '../../db';
 import { sendEmail } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
 import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
+import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
@@ -50,7 +51,9 @@ export async function createVolunteerBooking(
       return res.status(400).json({ message: 'Not trained for this role' });
     }
 
-    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const isWeekend = [0, 6].includes(
+      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+    );
     const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
@@ -130,7 +133,9 @@ export async function createVolunteerBookingForVolunteer(
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
     }
 
-    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const isWeekend = [0, 6].includes(
+      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+    );
     const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
@@ -476,20 +481,22 @@ export async function createRecurringVolunteerBooking(
     );
     const recurringId = recurringRes.rows[0].id;
     const dates: string[] = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(reginaStartOfDayISO(startDate));
+    const end = new Date(reginaStartOfDayISO(endDate));
     for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
       if (
         pattern === 'daily' ||
         (pattern === 'weekly' && daysOfWeek.includes(d.getUTCDay()))
       ) {
-        dates.push(d.toISOString().split('T')[0]);
+        dates.push(formatReginaDate(d));
       }
     }
     const successes: string[] = [];
     const skipped: { date: string; reason: string }[] = [];
     for (const date of dates) {
-      const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+      const isWeekend = [0, 6].includes(
+        new Date(reginaStartOfDayISO(date)).getUTCDay(),
+      );
       const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
         date,
       ]);
@@ -594,7 +601,7 @@ export async function cancelRecurringVolunteerBooking(
   const { id } = req.params;
   const from =
     (req.query.from as string) ||
-    new Date().toISOString().split('T')[0];
+    formatReginaDate(new Date());
   try {
     await pool.query(
       `UPDATE volunteer_bookings SET status='cancelled'

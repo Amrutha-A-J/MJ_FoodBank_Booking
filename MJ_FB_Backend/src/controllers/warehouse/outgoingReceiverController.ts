@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function listOutgoingReceivers(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -32,7 +33,9 @@ export async function topOutgoingReceivers(
   next: NextFunction,
 ) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const limit = parseInt((req.query.limit as string) ?? '', 10) || 7;
     const result = await pool.query(
       `SELECT r.name, SUM(l.weight)::int AS "totalLbs", TO_CHAR(MAX(l.date), 'YYYY-MM-DD') AS "lastPickupISO"
