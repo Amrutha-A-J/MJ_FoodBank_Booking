@@ -27,27 +27,51 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       ? input.toString()
       : (input as Request).url;
   const isRefreshCall = urlString.includes('/auth/refresh');
+  const fetchWithRetry = async (
+    resource: RequestInfo | URL,
+    options: RequestInit,
+    retries = 1,
+    backoff = 300,
+  ): Promise<Response> => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fetch(resource, options);
+      } catch (e) {
+        if (i === retries) throw e;
+        await new Promise(res => setTimeout(res, backoff * 2 ** i));
+      }
+    }
+    throw new Error('Unreachable');
+  };
 
-  let res = await fetch(input, { credentials: 'include', ...init });
+  let res: Response;
+  try {
+    res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+  } catch (e) {
+    // network failure; propagate without clearing auth
+    throw e;
+  }
+
   if (res.status === 401) {
     if (isRefreshCall) {
       clearAuthAndRedirect();
       return res;
     }
     try {
-      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-        if (refreshRes.ok) {
-          res = await fetch(input, { credentials: 'include', ...init });
-          if (res.status === 401) clearAuthAndRedirect();
-        } else {
-          clearAuthAndRedirect();
-        }
-      } catch {
+      const refreshRes = await fetchWithRetry(
+        `${API_BASE}/auth/refresh`,
+        { method: 'POST', credentials: 'include' },
+        2,
+      );
+      if (refreshRes.ok) {
+        res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+        if (res.status === 401) clearAuthAndRedirect();
+      } else if (refreshRes.status === 401) {
         clearAuthAndRedirect();
       }
+    } catch {
+      // network error during refresh; propagate original 401 without clearing auth
+    }
   }
   return res;
 }

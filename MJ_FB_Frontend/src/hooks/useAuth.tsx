@@ -51,17 +51,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' })
-      .then(r => {
-        if (r.ok) {
+    (async () => {
+      try {
+        const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
+        if (res.ok) {
           setToken('cookie');
-        } else {
+        } else if (res.status === 401) {
           clearAuth();
         }
-      })
-      .catch(() => {
-        clearAuth();
-      });
+      } catch {
+        /* network errors are ignored to allow retry */
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
