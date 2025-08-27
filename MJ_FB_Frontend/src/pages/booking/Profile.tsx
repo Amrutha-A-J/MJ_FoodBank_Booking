@@ -14,9 +14,10 @@ import {
 import { AccountCircle, Lock } from '@mui/icons-material';
 import type { Role, UserProfile } from '../../types';
 import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
+import { getVolunteerProfile } from '../../api/volunteers';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-export default function Profile({ token, role: _role }: { token: string; role: Role }) {
+export default function Profile({ token, role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,14 +39,15 @@ export default function Profile({ token, role: _role }: { token: string; role: R
   }, []);
 
   useEffect(() => {
-    getUserProfile(token)
+    const loader = role === 'volunteer' ? getVolunteerProfile : getUserProfile;
+    loader(token)
       .then(p => {
         setProfile(p);
         setEmail(p.email ?? '');
         setPhone(p.phone ?? '');
       })
       .catch(e => setError(e instanceof Error ? e.message : String(e)));
-  }, [token]);
+  }, [token, role]);
 
   const initials = profile
     ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()

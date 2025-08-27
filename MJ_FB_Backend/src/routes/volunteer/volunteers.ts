@@ -2,6 +2,7 @@ import express from 'express';
 import {
   updateTrainedArea,
   loginVolunteer,
+  getVolunteerProfile,
   createVolunteer,
   searchVolunteers,
   createVolunteerShopperProfile,
@@ -12,6 +13,8 @@ import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware'
 const router = express.Router();
 
 router.post('/login', loginVolunteer);
+
+router.get('/me', authMiddleware, getVolunteerProfile);
 
 router.post(
   '/',
