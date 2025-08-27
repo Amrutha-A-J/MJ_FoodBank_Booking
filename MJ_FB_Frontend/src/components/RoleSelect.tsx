@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { FormControl, InputLabel, Select, MenuItem, ListSubheader } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import type { RoleOption } from '../types';
 import { getRoles } from '../api/volunteers';
 
@@ -28,7 +30,7 @@ export default function RoleSelect({ onChange }: Props) {
     fetchRoles();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: SelectChangeEvent) => {
     const value = e.target.value;
     setSelected(value);
     const id = Number(value);
@@ -47,18 +49,25 @@ export default function RoleSelect({ onChange }: Props) {
   if (error) return <p>{error}</p>;
 
   return (
-    <select value={selected} onChange={handleChange}>
-      <option value="">Select a role</option>
-      {Object.entries(grouped).map(([category, items]) => (
-        <optgroup key={category} label={category}>
-          {items.map((r) => (
-            <option key={r.roleId} value={r.roleId}>
+    <FormControl size="small" fullWidth>
+      <InputLabel id="role-select-label">Role</InputLabel>
+      <Select
+        labelId="role-select-label"
+        value={selected}
+        label="Role"
+        onChange={handleChange}
+      >
+        <MenuItem value="">Select a role</MenuItem>
+        {Object.entries(grouped).flatMap(([category, items]) => [
+          <ListSubheader key={`${category}-header`}>{category}</ListSubheader>,
+          ...items.map((r) => (
+            <MenuItem key={r.roleId} value={r.roleId}>
               {r.roleName}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
+            </MenuItem>
+          )),
+        ])}
+      </Select>
+    </FormControl>
   );
 }
 
