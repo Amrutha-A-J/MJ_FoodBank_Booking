@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Grid,
-  Card,
-  CardHeader,
-  CardContent,
   Typography,
   Button,
   Stack,
@@ -23,6 +20,7 @@ import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../a
 import type { Slot, Holiday } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
+import SectionCard from '../../components/dashboard/SectionCard';
 
 interface Booking {
   id: number;
@@ -37,21 +35,6 @@ interface NextSlot {
   date: string;
   slot: Slot;
 }
-
-const SectionCard = ({
-  title,
-  icon,
-  children,
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) => (
-  <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-    <CardHeader title={title} avatar={icon} />
-    <CardContent>{children}</CardContent>
-  </Card>
-);
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
@@ -120,23 +103,22 @@ export default function ClientDashboard() {
     .filter(b => b.status === 'approved' && new Date(b.date) >= today)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const next = approved[0];
-  const pending = bookings.filter(
-    b => b.status === 'submitted' || b.status === 'pending',
-  );
-  const history = [...bookings].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  const pending = bookings.filter(b => b.status === 'submitted' || b.status === 'pending');
+  const history = bookings
+    .filter(b => b.status !== 'submitted')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   async function confirmCancel() {
-    if (!cancelId) return;
+    if (cancelId === null) return;
     try {
-      await cancelBooking(String(cancelId));
-      setSnackbarSeverity('success');
+      await cancelBooking(cancelId);
       setMessage('Booking cancelled');
+      setSnackbarSeverity('success');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setMessage(msg);
       setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : 'Cancel failed');
     } finally {
       setCancelId(null);
     }
