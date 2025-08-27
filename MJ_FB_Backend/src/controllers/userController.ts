@@ -38,12 +38,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       );
       const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
       const payload: AuthPayload = { id: user.id, role: user.role, type: 'user' };
-      const tokens = await issueAuthTokens(res, payload, `user:${user.id}`);
+      await issueAuthTokens(res, payload, `user:${user.id}`);
       return res.json({
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
         bookingsThisMonth,
-        ...tokens,
       });
     }
 
@@ -68,13 +67,12 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         type: 'staff',
         access: staff.access || [],
       };
-      const tokens = await issueAuthTokens(res, payload, `staff:${staff.id}`);
+      await issueAuthTokens(res, payload, `staff:${staff.id}`);
       return res.json({
         role,
         name: `${staff.first_name} ${staff.last_name}`,
         access: staff.access || [],
         id: staff.id,
-        ...tokens,
       });
     }
 
@@ -91,13 +89,12 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       role: 'agency',
       type: 'agency',
     };
-    const tokens = await issueAuthTokens(res, payload, `agency:${agency.id}`);
+    await issueAuthTokens(res, payload, `agency:${agency.id}`);
     res.json({
       role: 'agency',
       name: agency.name,
       id: agency.id,
       access: [],
-      ...tokens,
     });
   } catch (error) {
     logger.error('Error logging in:', error);

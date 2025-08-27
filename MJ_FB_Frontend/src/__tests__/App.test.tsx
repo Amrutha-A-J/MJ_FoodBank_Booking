@@ -17,6 +17,12 @@ jest.mock('../api/bookings', () => ({
 
 describe('App authentication persistence', () => {
   beforeEach(() => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
     localStorage.clear();
     window.history.pushState({}, '', '/');
   });
@@ -30,8 +36,7 @@ describe('App authentication persistence', () => {
     expect(screen.getByText(/user login/i)).toBeInTheDocument();
   });
 
-  it('keeps user logged in when token exists', () => {
-    localStorage.setItem('token', 'testtoken');
+  it('keeps user logged in when role exists', () => {
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
     render(
@@ -43,7 +48,6 @@ describe('App authentication persistence', () => {
   });
 
   it('redirects staff with only pantry access to pantry dashboard', () => {
-    localStorage.setItem('token', 'testtoken');
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['pantry']));
@@ -56,7 +60,6 @@ describe('App authentication persistence', () => {
   });
 
   it('redirects staff with only volunteer management access', () => {
-    localStorage.setItem('token', 'testtoken');
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['volunteer_management']));
@@ -69,7 +72,6 @@ describe('App authentication persistence', () => {
   });
 
   it('redirects staff with only warehouse access', () => {
-    localStorage.setItem('token', 'testtoken');
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['warehouse']));

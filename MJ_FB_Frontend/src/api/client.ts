@@ -31,21 +31,15 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
         method: 'POST',
         credentials: 'include',
       });
-      if (refreshRes.ok) {
-        try {
-          const data = await refreshRes.clone().json();
-          if (data?.token) localStorage.setItem('token', data.token);
-        } catch {
-          // ignore
+        if (refreshRes.ok) {
+          res = await fetch(input, { credentials: 'include', ...init });
+          if (res.status === 401) clearAuthAndRedirect();
+        } else {
+          clearAuthAndRedirect();
         }
-        res = await fetch(input, { credentials: 'include', ...init });
-        if (res.status === 401) clearAuthAndRedirect();
-      } else {
+      } catch {
         clearAuthAndRedirect();
       }
-    } catch {
-      clearAuthAndRedirect();
-    }
   }
   return res;
 }
@@ -74,7 +68,6 @@ export async function handleResponse(res: Response) {
 export { API_BASE };
 
 function clearAuthAndRedirect() {
-  localStorage.removeItem('token');
   localStorage.removeItem('role');
   localStorage.removeItem('name');
   localStorage.removeItem('userRole');

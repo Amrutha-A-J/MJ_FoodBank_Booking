@@ -13,6 +13,12 @@ jest.mock('../pages/agency/ClientBookings', () => () => <div>AgencyClientBooking
 
 describe('Agency UI access', () => {
   beforeEach(() => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
     localStorage.clear();
     window.history.pushState({}, '', '/');
   });
