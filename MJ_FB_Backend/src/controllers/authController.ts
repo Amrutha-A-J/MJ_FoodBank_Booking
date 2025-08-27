@@ -137,17 +137,20 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       config.jwtRefreshSecret,
       { expiresIn: '7d' },
     );
+    const secure = process.env.NODE_ENV !== 'development';
+    const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
     res.cookie('token', accessToken, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
+      secure,
     });
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
+      maxAge: refreshExpiry,
+      expires: new Date(Date.now() + refreshExpiry),
+      secure,
     });
     return res.json({ token: accessToken, refreshToken: newRefreshToken });
   } catch (err) {
