@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Grid,
-  Card,
-  CardHeader,
-  CardContent,
   Button,
   List,
   ListItem,
@@ -30,6 +27,7 @@ import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
+import SectionCard from '../../components/dashboard/SectionCard';
 
 function formatDateLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -110,7 +108,7 @@ export default function VolunteerDashboard() {
     return Array.from(map.entries());
   }, [availability]);
 
-async function request(role: VolunteerRole) {
+  async function request(role: VolunteerRole) {
     try {
       await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
@@ -141,181 +139,163 @@ async function request(role: VolunteerRole) {
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="My Next Shift" />
-            <CardContent>
-              {nextShift ? (
-                <Stack spacing={1}>
-                  <Typography>
-                    {`${nextShift.role_name} • ${formatDateLabel(nextShift.date)} ${formatTime(nextShift.start_time)}-${formatTime(nextShift.end_time)}`}
-                  </Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      sx={{ textTransform: 'none' }}
-                      onClick={() => navigate('/volunteer/schedule')}
-                    >
-                      Reschedule
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      sx={{ textTransform: 'none' }}
-                      onClick={cancelNext}
-                    >
-                      Cancel
-                    </Button>
-                  </Stack>
-                </Stack>
-              ) : (
-                <Typography>No upcoming shifts — Request one</Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="Pending Requests" />
-            <CardContent>
-              <List>
-                {pending.map(p => (
-                  <ListItem key={p.id} disableGutters>
-                    <ListItemText
-                      primary={`${p.role_name} • ${formatDateLabel(p.date)} ${formatTime(p.start_time)}-${formatTime(p.end_time)}`}
-                    />
-                    <Chip label="Pending" color="warning" size="small" />
-                  </ListItem>
-                ))}
-                {pending.length === 0 && (
-                  <Typography>No pending requests</Typography>
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="Available in My Roles" />
-            <CardContent>
-              <Stack direction="row" spacing={1} alignItems="center" mb={2}>
-                <ToggleButtonGroup
-                  size="small"
-                  value={dateMode}
-                  exclusive
-                  onChange={(_, v) => v && setDateMode(v)}
-                >
-                  <ToggleButton value="today">Today</ToggleButton>
-                  <ToggleButton value="week">Week</ToggleButton>
-                </ToggleButtonGroup>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel id="role-filter-label">Role</InputLabel>
-                  <Select
-                    labelId="role-filter-label"
-                    label="Role"
-                    value={roleFilter}
-                    onChange={e => setRoleFilter(e.target.value)}
+          <SectionCard title="My Next Shift">
+            {nextShift ? (
+              <Stack spacing={1}>
+                <Typography>
+                  {`${nextShift.role_name} • ${formatDateLabel(nextShift.date)} ${formatTime(nextShift.start_time)}-${formatTime(nextShift.end_time)}`}
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => navigate('/volunteer/schedule')}
                   >
-                    <MenuItem value="">All</MenuItem>
-                    {roleOptions.map(([id, name]) => (
-                      <MenuItem key={id} value={id}>
-                        {name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                    Reschedule
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ textTransform: 'none' }}
+                    onClick={cancelNext}
+                  >
+                    Cancel
+                  </Button>
+                </Stack>
               </Stack>
-              <List>
-                {availableSlots.map(r => (
-                  <ListItem key={`${r.id}-${r.date}`} disableGutters secondaryAction={
-                    <Button
-                      size="small"
-                      variant="contained"
-                      sx={{ textTransform: 'none' }}
-                      onClick={() => request(r)}
-                    >
-                      Request
-                    </Button>
-                  }>
-                    <ListItemText
-                      primary={`${r.name} • ${formatDateLabel(r.date)} ${formatTime(r.start_time)}-${formatTime(r.end_time)} • ${r.available} volunteer${r.available === 1 ? '' : 's'} needed`}
-                    />
-                  </ListItem>
-                ))}
-                {availableSlots.length === 0 && (
-                  <Typography>No available shifts</Typography>
-                )}
-              </List>
-            </CardContent>
-          </Card>
+            ) : (
+              <Typography>No upcoming shifts — Request one</Typography>
+            )}
+          </SectionCard>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="Quick Actions" />
-            <CardContent>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Button
-                  size="small"
-                  variant="contained"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/volunteer/schedule')}
-                >
-                  Request a shift
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={cancelNext}
-                  disabled={!nextShift}
-                >
-                  Cancel upcoming
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/volunteer/schedule')}
-                  disabled={!nextShift}
-                >
-                  Reschedule
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
+          <SectionCard title="Pending Requests">
+            <List>
+              {pending.map(p => (
+                <ListItem key={p.id} disableGutters>
+                  <ListItemText
+                    primary={`${p.role_name} • ${formatDateLabel(p.date)} ${formatTime(p.start_time)}-${formatTime(p.end_time)}`}
+                  />
+                  <Chip label="Pending" color="warning" size="small" />
+                </ListItem>
+              ))}
+              {pending.length === 0 && (
+                <Typography>No pending requests</Typography>
+              )}
+            </List>
+          </SectionCard>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="Announcements" />
-            <CardContent>
-              <Typography>No announcements</Typography>
-            </CardContent>
-          </Card>
+          <SectionCard title="Available in My Roles">
+            <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+              <ToggleButtonGroup
+                size="small"
+                value={dateMode}
+                exclusive
+                onChange={(_, v) => v && setDateMode(v)}
+              >
+                <ToggleButton value="today">Today</ToggleButton>
+                <ToggleButton value="week">Week</ToggleButton>
+              </ToggleButtonGroup>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel id="role-filter-label">Role</InputLabel>
+                <Select
+                  labelId="role-filter-label"
+                  label="Role"
+                  value={roleFilter}
+                  onChange={e => setRoleFilter(e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {roleOptions.map(([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+            <List>
+              {availableSlots.map(r => (
+                <ListItem key={`${r.id}-${r.date}`} disableGutters secondaryAction={
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => request(r)}
+                  >
+                    Request
+                  </Button>
+                }>
+                  <ListItemText
+                    primary={`${r.name} • ${formatDateLabel(r.date)} ${formatTime(r.start_time)}-${formatTime(r.end_time)} • ${r.available} volunteer${r.available === 1 ? '' : 's'} needed`}
+                  />
+                </ListItem>
+              ))}
+              {availableSlots.length === 0 && (
+                <Typography>No available shifts</Typography>
+              )}
+            </List>
+          </SectionCard>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card variant="outlined" sx={{ borderRadius: 1, boxShadow: 1 }}>
-            <CardHeader title="Profile & Training" />
-            <CardContent>
-              <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
-                {roleOptions.map(([id, name]) => (
-                  <Chip key={id} label={name} />
-                ))}
-              </Stack>
+          <SectionCard title="Quick Actions">
+            <Stack direction="row" spacing={1} flexWrap="wrap">
               <Button
                 size="small"
-                variant="text"
+                variant="contained"
                 sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate('/volunteer/schedule')}
               >
-                Update trained roles
+                Request a shift
               </Button>
-            </CardContent>
-          </Card>
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ textTransform: 'none' }}
+                onClick={cancelNext}
+                disabled={!nextShift}
+              >
+                Cancel upcoming
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ textTransform: 'none' }}
+                onClick={() => navigate('/volunteer/schedule')}
+                disabled={!nextShift}
+              >
+                Reschedule
+              </Button>
+            </Stack>
+          </SectionCard>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <SectionCard title="Announcements">
+            <Typography>No announcements</Typography>
+          </SectionCard>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <SectionCard title="Profile & Training">
+            <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
+              {roleOptions.map(([id, name]) => (
+                <Chip key={id} label={name} />
+              ))}
+            </Stack>
+            <Button
+              size="small"
+              variant="text"
+              sx={{ textTransform: 'none' }}
+              onClick={() => navigate('/profile')}
+            >
+              Update trained roles
+            </Button>
+          </SectionCard>
         </Grid>
       </Grid>
       <FeedbackSnackbar
@@ -327,4 +307,3 @@ async function request(role: VolunteerRole) {
     </Page>
   );
 }
-
