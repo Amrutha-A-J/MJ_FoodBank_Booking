@@ -95,7 +95,10 @@ export default function VolunteerBooking({ token }: { token: string }) {
 
   function renderSlot(slot: VolunteerRole) {
     const label = `${formatTime(slot.start_time)}–${formatTime(slot.end_time)}`;
-    const needed = `${slot.available} more volunteer${slot.available === 1 ? '' : 's'} needed`;
+    const needed =
+      slot.available === 0
+        ? 'We have enough volunteers for this role and shift'
+        : `${slot.available} more volunteer${slot.available === 1 ? '' : 's'} needed`;
     return (
       <ListItemButton
         key={slot.id}
