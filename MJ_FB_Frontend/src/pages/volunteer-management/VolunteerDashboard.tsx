@@ -23,7 +23,13 @@ import {
   updateVolunteerBookingStatus,
 } from '../../api/volunteers';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
-import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
+import {
+  formatTime,
+  formatReginaDate,
+  formatRegina,
+  REGINA_TIMEZONE,
+} from '../../utils/time';
+import { zonedTimeToUtc } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
@@ -83,11 +89,14 @@ export default function VolunteerDashboard() {
     const now = new Date();
     const upcoming = bookings
       .filter(b => b.status === 'approved')
-      .filter(b => new Date(`${b.date}T${b.start_time}`) >= now)
+      .filter(
+        b =>
+          zonedTimeToUtc(`${b.date}T${b.start_time}`, REGINA_TIMEZONE) >= now,
+      )
       .sort(
         (a, b) =>
-          new Date(`${a.date}T${a.start_time}`).getTime() -
-          new Date(`${b.date}T${b.start_time}`).getTime(),
+          zonedTimeToUtc(`${a.date}T${a.start_time}`, REGINA_TIMEZONE).getTime() -
+          zonedTimeToUtc(`${b.date}T${b.start_time}`, REGINA_TIMEZONE).getTime(),
       );
     return upcoming[0];
   }, [bookings]);
