@@ -31,7 +31,7 @@ export default function ClientManagement({ token }: { token: string }) {
   };
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} direction="column">
       <Grid item xs={12}>
         <Tabs
           value={value}
