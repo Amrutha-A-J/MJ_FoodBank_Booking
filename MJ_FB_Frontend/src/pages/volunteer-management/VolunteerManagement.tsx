@@ -415,6 +415,13 @@ export default function VolunteerManagement() {
     addTraining: boolean,
   ) {
     if (!assignSlot || !selectedRole) return;
+    const slotBookings = bookingsForDate.filter(
+      b => b.role_id === assignSlot.id,
+    );
+    if (slotBookings.some(b => b.volunteer_id === vol.id)) {
+      setAssignMsg('Volunteer already booked for this shift');
+      return;
+    }
     try {
       setAssignMsg('');
       if (addTraining) {
