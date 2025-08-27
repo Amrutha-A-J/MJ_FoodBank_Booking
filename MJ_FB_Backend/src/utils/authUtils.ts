@@ -1,8 +1,18 @@
-import { Response } from 'express';
+import { Response, CookieOptions } from 'express';
 import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
 import pool from '../db';
 import config from '../config';
+
+const secure = process.env.NODE_ENV !== 'development';
+
+export const cookieOptions: CookieOptions = {
+  httpOnly: true,
+  sameSite: 'strict',
+  secure,
+  path: '/',
+  ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+};
 
 export type AuthPayload = {
   id: number;
@@ -39,20 +49,15 @@ export async function issueAuthTokens(
     [jti, subject],
   );
 
-  const secure = process.env.NODE_ENV !== 'development';
   const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
   res.cookie('token', token, {
-    httpOnly: true,
-    sameSite: 'strict',
+    ...cookieOptions,
     maxAge: 60 * 60 * 1000,
-    secure,
   });
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    sameSite: 'strict',
+    ...cookieOptions,
     maxAge: refreshExpiry,
     expires: new Date(Date.now() + refreshExpiry),
-    secure,
   });
 
   return { token, refreshToken };

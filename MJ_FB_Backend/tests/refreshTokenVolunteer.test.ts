@@ -29,7 +29,7 @@ describe('POST /auth/refresh', () => {
         .set('Cookie', `refreshToken=${refreshToken}`);
 
       expect(res.status).toBe(204);
-      const cookies = res.headers['set-cookie'] as string[];
+      const cookies = res.headers['set-cookie'] as unknown as string[];
       expect(cookies).toBeDefined();
       const accessCookie = cookies.find(c => c.startsWith('token='));
       const refreshCookie = cookies.find(c => c.startsWith('refreshToken='));

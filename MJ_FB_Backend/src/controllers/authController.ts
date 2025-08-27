@@ -7,6 +7,7 @@ import logger from '../utils/logger';
 import { randomUUID } from 'crypto';
 import { validatePassword } from '../utils/passwordUtils';
 import cookie from 'cookie';
+import { cookieOptions } from '../utils/authUtils';
 
 export async function requestPasswordReset(
   req: Request,
@@ -137,26 +138,21 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       config.jwtRefreshSecret,
       { expiresIn: '7d' },
     );
-    const secure = process.env.NODE_ENV !== 'development';
     const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
     res.cookie('token', accessToken, {
-      httpOnly: true,
-      sameSite: 'strict',
+      ...cookieOptions,
       maxAge: 60 * 60 * 1000,
-      secure,
     });
     res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
+      ...cookieOptions,
       maxAge: refreshExpiry,
       expires: new Date(Date.now() + refreshExpiry),
-      secure,
     });
     return res.status(204).send();
   } catch (err) {
     logger.warn('Invalid refresh token');
-    res.clearCookie('token');
-    res.clearCookie('refreshToken');
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     return res.status(401).json({ message: 'Invalid refresh token' });
   }
 }
@@ -177,8 +173,8 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
         // ignore
       }
     }
-    res.clearCookie('token');
-    res.clearCookie('refreshToken');
+    res.clearCookie('token', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
     res.status(204).send();
   } catch (err) {
     next(err);
