@@ -29,7 +29,6 @@ import VolunteerCoverageCard from './VolunteerCoverageCard';
 
 export interface DashboardProps {
   role: Role;
-  token: string;
   masterRoleFilter?: string[];
 }
 
@@ -74,7 +73,7 @@ function formatLocalDate(date: Date) {
   return date.toLocaleDateString('en-CA');
 }
 
-function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRoleFilter?: string[] }) {
+function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [volunteerCount, setVolunteerCount] = useState(0);
   const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
@@ -114,7 +113,7 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
       )
       .then(setSchedule)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   const todayStr = formatLocalDate(new Date());
   const pending = bookings.filter(b => b.status === 'submitted');
@@ -172,7 +171,6 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
           </Grid>
           <Grid size={12}>
             <VolunteerCoverageCard
-              token={token}
               masterRoleFilter={masterRoleFilter}
               onCoverageLoaded={data =>
                 setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
@@ -223,7 +221,6 @@ function StaffDashboard({ token, masterRoleFilter }: { token: string; masterRole
             <SectionCard title="Quick Search">
               <Stack spacing={2}>
                 <EntitySearch
-                  token={token}
                   type={searchType}
                   placeholder="Search"
                   onSelect={res => {
@@ -402,9 +399,9 @@ function UserDashboard() {
   );
 }
 
-export default function Dashboard({ role, token, masterRoleFilter }: DashboardProps) {
+export default function Dashboard({ role, masterRoleFilter }: DashboardProps) {
   if (role === 'staff')
-    return <StaffDashboard token={token} masterRoleFilter={masterRoleFilter} />;
+    return <StaffDashboard masterRoleFilter={masterRoleFilter} />;
   return <UserDashboard />;
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Card,
@@ -16,7 +16,7 @@ import type { Role, UserProfile } from '../../types';
 import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-export default function Profile({ token, role: _role }: { token: string; role: Role }) {
+export default function Profile({ role: _role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,14 +38,14 @@ export default function Profile({ token, role: _role }: { token: string; role: R
   }, []);
 
   useEffect(() => {
-    getUserProfile(token)
+    getUserProfile()
       .then(p => {
         setProfile(p);
         setEmail(p.email ?? '');
         setPhone(p.phone ?? '');
       })
       .catch(e => setError(e instanceof Error ? e.message : String(e)));
-  }, [token]);
+  }, []);
 
   const initials = profile
     ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
@@ -55,7 +55,7 @@ export default function Profile({ token, role: _role }: { token: string; role: R
     setSubmitting(true);
     setPasswordError('');
     try {
-      await changePassword(token, currentPassword, newPassword);
+      await changePassword(currentPassword, newPassword);
       setToast({ open: true, message: 'Password updated.', severity: 'success' });
       setCurrentPassword('');
       setNewPassword('');

@@ -40,7 +40,7 @@ function formatDateLabel(dateStr: string) {
   });
 }
 
-export default function VolunteerDashboard({ token }: { token: string }) {
+export default function VolunteerDashboard() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
@@ -50,10 +50,10 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getMyVolunteerBookings(token)
+    getMyVolunteerBookings()
       .then(setBookings)
       .catch(() => setBookings([]));
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     async function loadAvailability() {
@@ -70,7 +70,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
       for (const day of days) {
         const ds = formatRegina(day, 'yyyy-MM-dd');
         try {
-          const roles = await getVolunteerRolesForVolunteer(token, ds);
+          const roles = await getVolunteerRolesForVolunteer(ds);
           all.push(...roles);
         } catch {
           // ignore
@@ -79,7 +79,7 @@ export default function VolunteerDashboard({ token }: { token: string }) {
       setAvailability(all);
     }
     loadAvailability();
-  }, [token, dateMode]);
+  }, [dateMode]);
 
   const nextShift = useMemo(() => {
     const now = new Date();
@@ -112,10 +112,10 @@ export default function VolunteerDashboard({ token }: { token: string }) {
 
   async function request(role: VolunteerRole) {
     try {
-      await requestVolunteerBooking(token, role.id, role.date);
+      await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
       setMessage('Request submitted');
-      const data = await getMyVolunteerBookings(token);
+      const data = await getMyVolunteerBookings();
       setBookings(data);
     } catch {
       setSnackbarSeverity('error');
@@ -126,10 +126,10 @@ export default function VolunteerDashboard({ token }: { token: string }) {
   async function cancelNext() {
     if (!nextShift) return;
     try {
-      await updateVolunteerBookingStatus(token, nextShift.id, 'cancelled');
+      await updateVolunteerBookingStatus(nextShift.id, 'cancelled');
       setSnackbarSeverity('success');
       setMessage('Booking cancelled');
-      const data = await getMyVolunteerBookings(token);
+      const data = await getMyVolunteerBookings();
       setBookings(data);
     } catch {
       setSnackbarSeverity('error');

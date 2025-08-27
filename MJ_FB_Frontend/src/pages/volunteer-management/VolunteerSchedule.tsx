@@ -43,7 +43,7 @@ import type { AlertColor } from '@mui/material';
 
 const reginaTimeZone = 'America/Regina';
 
-export default function VolunteerSchedule({ token }: { token: string }) {
+export default function VolunteerSchedule() {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -70,16 +70,16 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   const formatDate = (date: Date) =>
     formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
-  const loadData = useCallback(async () => {
-    const dateStr = formatDate(currentDate);
-    const reginaDate = toZonedTime(currentDate, reginaTimeZone);
-    const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-    const holiday = holidays.some(h => h.date === dateStr);
-    try {
-      const [roleData, bookingData] = await Promise.all([
-        getVolunteerRolesForVolunteer(token, dateStr),
-        getMyVolunteerBookings(token),
-      ]);
+    const loadData = useCallback(async () => {
+      const dateStr = formatDate(currentDate);
+      const reginaDate = toZonedTime(currentDate, reginaTimeZone);
+      const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
+      const holiday = holidays.some(h => h.date === dateStr);
+      try {
+        const [roleData, bookingData] = await Promise.all([
+          getVolunteerRolesForVolunteer(dateStr),
+          getMyVolunteerBookings(),
+        ]);
       const disallowed = weekend || holiday
         ? ['Pantry', 'Warehouse', 'Administrative']
         : [];
@@ -120,7 +120,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, token, holidays]);
+    }, [currentDate, holidays]);
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});
@@ -137,22 +137,20 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   async function submitRequest() {
     if (!requestRole) return;
     try {
-      if (frequency === 'one-time') {
-        await requestVolunteerBooking(
-          token,
-          requestRole.id,
-          formatDate(currentDate),
-        );
-      } else {
-        await createRecurringVolunteerBooking(
-          token,
-          requestRole.id,
-          formatDate(currentDate),
-          frequency,
-          frequency === 'weekly' ? weekdays : undefined,
-          frequency === 'weekly' && endDate ? endDate : undefined,
-        );
-      }
+        if (frequency === 'one-time') {
+          await requestVolunteerBooking(
+            requestRole.id,
+            formatDate(currentDate),
+          );
+        } else {
+          await createRecurringVolunteerBooking(
+            requestRole.id,
+            formatDate(currentDate),
+            frequency,
+            frequency === 'weekly' ? weekdays : undefined,
+            frequency === 'weekly' && endDate ? endDate : undefined,
+          );
+        }
       const dateLabel = formatInTimeZone(
         currentDate,
         reginaTimeZone,
@@ -174,7 +172,7 @@ export default function VolunteerSchedule({ token }: { token: string }) {
   async function cancelSelected() {
     if (!decisionBooking) return;
     try {
-      await cancelVolunteerBooking(token, decisionBooking.id);
+        await cancelVolunteerBooking(decisionBooking.id);
       setSnackbarSeverity('success');
       setMessage('Booking cancelled');
       await loadData();
@@ -191,7 +189,6 @@ export default function VolunteerSchedule({ token }: { token: string }) {
     if (!decisionBooking?.recurring_id) return;
     try {
       await cancelRecurringVolunteerBooking(
-        token,
         decisionBooking.recurring_id,
       );
       setSnackbarSeverity('success');

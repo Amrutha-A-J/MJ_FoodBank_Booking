@@ -32,13 +32,11 @@ interface User {
 const reginaTimeZone = 'America/Regina';
 
 export default function PantrySchedule({
-  token,
   clientIds,
   searchUsersFn,
 }: {
-  token: string;
   clientIds?: number[];
-  searchUsersFn?: (token: string, search: string) => Promise<User[]>;
+  searchUsersFn?: (search: string) => Promise<User[]>;
 }) {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
@@ -109,7 +107,7 @@ export default function PantrySchedule({
   useEffect(() => {
     if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
-        (searchUsersFn || searchUsers)(token, searchTerm)
+        (searchUsersFn || searchUsers)(searchTerm)
           .then((data: User[]) => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);
@@ -117,7 +115,7 @@ export default function PantrySchedule({
     } else {
       setUserResults([]);
     }
-  }, [searchTerm, token, assignSlot]);
+  }, [searchTerm, assignSlot, searchUsersFn]);
 
   function changeDay(delta: number) {
     setCurrentDate(d => new Date(d.getTime() + delta * 86400000));

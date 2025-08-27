@@ -52,10 +52,8 @@ interface Booking {
 }
 
 export default function UserHistory({
-  token,
   initialUser,
 }: {
-  token: string;
   initialUser?: User;
 }) {
   const [searchParams] = useSearchParams();
@@ -135,7 +133,6 @@ export default function UserHistory({
         <h2>{initialUser ? 'Booking History' : 'Client History'}</h2>
         {!initialUser && (
           <EntitySearch
-            token={token}
             type="user"
             placeholder="Search by name or client ID"
             onSelect={u => setSelected(u as User)}

@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from 'react';
 import PantrySchedule from '../staff/PantrySchedule';
 import { getMyAgencyClients } from '../../api/agencies';
 import type { Role } from '../../types';
-import { useAuth } from '../../hooks/useAuth';
 
 interface AgencyClient {
   id: number;
@@ -11,7 +10,6 @@ interface AgencyClient {
 }
 
 export default function AgencySchedule() {
-  const { token } = useAuth();
   const [clients, setClients] = useState<AgencyClient[]>([]);
 
   useEffect(() => {
@@ -35,7 +33,7 @@ export default function AgencySchedule() {
   const clientIds = clients.map(c => c.id);
 
   const searchAgencyUsers = useCallback(
-    async (_token: string, term: string) => {
+    async (term: string) => {
       const lower = term.toLowerCase();
       return clients
         .filter(
@@ -50,7 +48,6 @@ export default function AgencySchedule() {
 
   return (
     <PantrySchedule
-      token={token}
       clientIds={clientIds}
       searchUsersFn={searchAgencyUsers}
     />

@@ -64,7 +64,6 @@ export async function requestPasswordReset(data: {
 }
 
 export async function changePassword(
-  _token: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
@@ -76,7 +75,7 @@ export async function changePassword(
   await handleResponse(res);
 }
 
-export async function getUserProfile(_token: string): Promise<UserProfile> {
+export async function getUserProfile(): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`);
   return handleResponse(res);
 }
@@ -104,7 +103,6 @@ export async function createStaff(
   access: StaffAccess[],
   email: string,
   password: string,
-  _token?: string,
 ): Promise<void> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -124,7 +122,6 @@ export async function createStaff(
 }
 
 export async function addUser(
-  _token: string,
   firstName: string,
   lastName: string,
   clientId: string,
@@ -153,12 +150,12 @@ export async function addUser(
   await handleResponse(res);
 }
 
-export async function searchUsers(_token: string, search: string) {
+export async function searchUsers(search: string) {
   const res = await apiFetch(`${API_BASE}/users/search?search=${encodeURIComponent(search)}`);
   return handleResponse(res);
 }
 
-export async function getUserByClientId(_token: string, clientId: string) {
+export async function getUserByClientId(clientId: string) {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`);
   return handleResponse(res);
 }
@@ -173,13 +170,12 @@ export interface IncompleteUser {
   profileLink: string;
 }
 
-export async function getIncompleteUsers(_token: string): Promise<IncompleteUser[]> {
+export async function getIncompleteUsers(): Promise<IncompleteUser[]> {
   const res = await apiFetch(`${API_BASE}/users/missing-info`);
   return handleResponse(res);
 }
 
 export async function updateUserInfo(
-  _token: string,
   clientId: number,
   data: { firstName: string; lastName: string; email?: string; phone?: string },
 ): Promise<IncompleteUser> {

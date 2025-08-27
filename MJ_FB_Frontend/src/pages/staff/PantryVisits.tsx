@@ -57,7 +57,7 @@ function formatDisplay(dateStr: string) {
   });
 }
 
-export default function PantryVisits({ token }: { token: string }) {
+export default function PantryVisits() {
   const [visits, setVisits] = useState<ClientVisit[]>([]);
   const [tab, setTab] = useState(() => {
     const week = startOfWeek(new Date());
@@ -119,10 +119,10 @@ export default function PantryVisits({ token }: { token: string }) {
       setClientFound(null);
       return;
     }
-    getUserByClientId(token, form.clientId)
+    getUserByClientId(form.clientId)
       .then(() => setClientFound(true))
       .catch(() => setClientFound(false));
-  }, [form.clientId, token]);
+  }, [form.clientId]);
 
   function handleSaveVisit() {
     if (!form.date || !form.weightWithCart || !form.weightWithoutCart) {
@@ -166,7 +166,7 @@ export default function PantryVisits({ token }: { token: string }) {
   async function handleCreateClient() {
     if (!form.clientId) return;
     try {
-      await addUser(token, '', '', form.clientId, 'shopper', undefined, false);
+      await addUser('', '', form.clientId, 'shopper', undefined, false);
       setClientFound(true);
       setSnackbar({ open: true, message: 'Client created', severity: 'success' });
     } catch (err: any) {

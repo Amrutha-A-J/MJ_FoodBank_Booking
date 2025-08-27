@@ -41,7 +41,7 @@ import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 
 export default function App() {
-  const { token, role, name, userRole, access, login, logout } = useAuth();
+  const { role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
@@ -183,9 +183,9 @@ export default function App() {
               <Route
                 path="/"
                 element={
-                  role === 'volunteer' ? (
-                      <VolunteerDashboard token={token} />
-                  ) : role === 'agency' ? (
+                    role === 'volunteer' ? (
+                        <VolunteerDashboard />
+                    ) : role === 'agency' ? (
                     <AgencyGuard>
                       <AgencySchedule />
                     </AgencyGuard>
@@ -193,26 +193,26 @@ export default function App() {
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
                     ) : (
-                        <Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />
+                          <Dashboard role="staff" masterRoleFilter={['Pantry']} />
                     )
                   ) : (
                     <ClientDashboard />
                   )
                 }
               />
-                <Route path="/profile" element={<Profile token={token} role={role} />} />
-              {showStaff && (
-                <Route path="/pantry" element={<Dashboard role="staff" token={token} masterRoleFilter={['Pantry']} />} />
-              )}
+                <Route path="/profile" element={<Profile role={role} />} />
+                {showStaff && (
+                  <Route path="/pantry" element={<Dashboard role="staff" masterRoleFilter={['Pantry']} />} />
+                )}
               {showStaff && (
                 <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
               )}
-              {showStaff && (
-                <Route path="/pantry/schedule" element={<PantrySchedule token={token} />} />
-              )}
-              {showStaff && (
-                <Route path="/pantry/visits" element={<PantryVisits token={token} />} />
-              )}
+                {showStaff && (
+                  <Route path="/pantry/schedule" element={<PantrySchedule />} />
+                )}
+                {showStaff && (
+                  <Route path="/pantry/visits" element={<PantryVisits />} />
+                )}
               {showWarehouse && (
                 <Route path="/warehouse-management" element={<WarehouseDashboard />} />
               )}
@@ -261,65 +261,63 @@ export default function App() {
               {role === 'shopper' && (
                 <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
               )}
-              {role === 'shopper' && (
-                <Route
-                  path="/booking-history"
-                  element={
-                    <UserHistory
-                      token={token}
-                      initialUser={{ id: 0, name, client_id: 0 }}
-                    />
-                  }
-                />
-              )}
+                {role === 'shopper' && (
+                  <Route
+                    path="/booking-history"
+                    element={
+                      <UserHistory
+                        initialUser={{ id: 0, name, client_id: 0 }}
+                      />
+                    }
+                  />
+                )}
               {role === 'volunteer' && userRole === 'shopper' && (
                 <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
               )}
-              {role === 'volunteer' && userRole === 'shopper' && (
-                <Route
-                  path="/booking-history"
-                  element={
-                    <UserHistory
-                      token={token}
-                      initialUser={{ id: 0, name, client_id: 0 }}
-                    />
-                  }
-                />
-              )}
-              {showStaff && <Route path="/pantry/add-client" element={<AddClient token={token} />} />}
-              {showStaff && (
-                <Route path="/pantry/update-client-data" element={<UpdateClientData token={token} />} />
-              )}
-              {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
+                {role === 'volunteer' && userRole === 'shopper' && (
+                  <Route
+                    path="/booking-history"
+                    element={
+                      <UserHistory
+                        initialUser={{ id: 0, name, client_id: 0 }}
+                      />
+                    }
+                  />
+                )}
+                {showStaff && <Route path="/pantry/add-client" element={<AddClient />} />}
+                {showStaff && (
+                  <Route path="/pantry/update-client-data" element={<UpdateClientData />} />
+                )}
+                {showStaff && <Route path="/pantry/user-history" element={<UserHistory />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
-              {showVolunteerManagement && (
-                <>
-                  <Route
-                    path="/volunteer-management"
-                    element={<VolunteerManagement token={token} />}
-                  />
-                  <Route
-                    path="/volunteer-management/:tab"
-                    element={<VolunteerManagement token={token} />}
-                  />
-                </>
-              )}
-              {role === 'volunteer' && (
-                <>
-                  <Route
-                    path="/volunteer/schedule"
-                    element={<VolunteerBooking token={token} />}
-                  />
-                  <Route
-                    path="/volunteer/history"
-                    element={<VolunteerBookingHistory token={token} />}
-                  />
-                </>
-              )}
+                {showVolunteerManagement && (
+                  <>
+                    <Route
+                      path="/volunteer-management"
+                      element={<VolunteerManagement />}
+                    />
+                    <Route
+                      path="/volunteer-management/:tab"
+                      element={<VolunteerManagement />}
+                    />
+                  </>
+                )}
+                {role === 'volunteer' && (
+                  <>
+                    <Route
+                      path="/volunteer/schedule"
+                      element={<VolunteerBooking />}
+                    />
+                    <Route
+                      path="/volunteer/history"
+                      element={<VolunteerBookingHistory />}
+                    />
+                  </>
+                )}
               {role === 'agency' && (
                 <>
                   <Route

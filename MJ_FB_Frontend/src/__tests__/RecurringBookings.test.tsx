@@ -57,7 +57,7 @@ afterEach(() => {
 });
 
 test('submits weekly recurring booking', async () => {
-  render(<VolunteerSchedule token="t" />);
+  render(<VolunteerSchedule />);
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
@@ -75,14 +75,13 @@ test('submits weekly recurring booking', async () => {
     expect(createRecurringVolunteerBooking).toHaveBeenCalled(),
   );
   const args = (createRecurringVolunteerBooking as jest.Mock).mock.calls[0];
-  expect(args[0]).toBe('t');
-  expect(args[1]).toBe(1);
-  expect(args[3]).toBe('weekly');
-  expect(args[4]).toEqual(expect.arrayContaining([1, 3]));
+  expect(args[0]).toBe(1);
+  expect(args[2]).toBe('weekly');
+  expect(args[3]).toEqual(expect.arrayContaining([1, 3]));
 });
 
 test('submits one-time booking', async () => {
-  render(<VolunteerSchedule token="t" />);
+  render(<VolunteerSchedule />);
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
@@ -124,18 +123,18 @@ test('cancels single and recurring bookings', async () => {
       status: 'approved',
     },
   ]);
-  render(<VolunteerBookingHistory token="t" />);
+  render(<VolunteerBookingHistory />);
   const cancelButtons = await screen.findAllByText('Cancel');
   fireEvent.click(cancelButtons[2]);
   fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
   await waitFor(() =>
-    expect(cancelVolunteerBooking).toHaveBeenCalledWith('t', 3),
+    expect(cancelVolunteerBooking).toHaveBeenCalledWith(3),
   );
   const cancelAllButtons = await screen.findAllByText('Cancel all upcoming');
   fireEvent.click(cancelAllButtons[0]);
   fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
   await waitFor(() =>
-    expect(cancelRecurringVolunteerBooking).toHaveBeenCalledWith('t', 5),
+    expect(cancelRecurringVolunteerBooking).toHaveBeenCalledWith(5),
   );
 });
 

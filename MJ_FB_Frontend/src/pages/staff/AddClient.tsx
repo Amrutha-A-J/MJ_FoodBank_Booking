@@ -5,7 +5,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FeedbackModal from '../../components/FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
 
-export default function AddClient({ token }: { token: string }) {
+export default function AddClient() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('shopper');
   const [phone, setPhone] = useState('');
@@ -30,7 +30,6 @@ export default function AddClient({ token }: { token: string }) {
     }
     try {
       await addUser(
-        token,
         firstName,
         lastName,
         clientId,

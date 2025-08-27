@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 
-export default function VolunteerBookingHistory({ token }: { token: string }) {
+export default function VolunteerBookingHistory() {
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
   const [cancelBooking, setCancelBooking] =
     useState<VolunteerBooking | null>(null);
@@ -33,10 +33,10 @@ export default function VolunteerBookingHistory({ token }: { token: string }) {
   const [severity, setSeverity] = useState<AlertColor>('success');
 
   const loadHistory = useCallback(() => {
-    getMyVolunteerBookings(token)
+    getMyVolunteerBookings()
       .then(setHistory)
       .catch(() => {});
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     loadHistory();
@@ -54,7 +54,7 @@ export default function VolunteerBookingHistory({ token }: { token: string }) {
   async function handleCancel() {
     if (!cancelBooking) return;
     try {
-      await cancelVolunteerBooking(token, cancelBooking.id);
+      await cancelVolunteerBooking(cancelBooking.id);
       setSeverity('success');
       setMessage('Booking cancelled');
       loadHistory();
@@ -69,7 +69,7 @@ export default function VolunteerBookingHistory({ token }: { token: string }) {
   async function handleCancelSeries() {
     if (cancelSeriesId == null) return;
     try {
-      await cancelRecurringVolunteerBooking(token, cancelSeriesId);
+      await cancelRecurringVolunteerBooking(cancelSeriesId);
       setSeverity('success');
       setMessage('Series cancelled');
       loadHistory();

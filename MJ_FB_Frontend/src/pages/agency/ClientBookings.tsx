@@ -9,7 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 interface User { id: number; name: string; email: string; }
 
 export default function ClientBookings() {
-  const { id: agencyId, token } = useAuth();
+  const { id: agencyId } = useAuth();
   const [search, setSearch] = useState('');
   const [results, setResults] = useState<User[]>([]);
   const [selected, setSelected] = useState<User | null>(null);
@@ -21,12 +21,12 @@ export default function ClientBookings() {
       return;
     }
     const t = setTimeout(() => {
-      searchUsers(token, search)
+      searchUsers(search)
         .then(setResults)
         .catch(() => setResults([]));
     }, 300);
     return () => clearTimeout(t);
-  }, [search, token]);
+  }, [search]);
 
   async function choose(user: User) {
     if (!agencyId) return;
