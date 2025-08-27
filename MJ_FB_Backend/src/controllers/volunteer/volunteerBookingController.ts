@@ -183,7 +183,10 @@ export async function createVolunteerBookingForVolunteer(
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
     res.status(201).json(booking);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
     logger.error('Error creating volunteer booking for volunteer:', error);
     next(error);
   }

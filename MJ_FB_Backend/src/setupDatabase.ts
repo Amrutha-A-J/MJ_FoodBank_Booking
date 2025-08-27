@@ -494,6 +494,19 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_slots_unique_role_time ON volunteer_slots (role_id, start_time, end_time);`
   );
 
+  // Remove duplicate volunteer bookings and enforce uniqueness
+  await client.query(`
+    DELETE FROM volunteer_bookings a
+    USING volunteer_bookings b
+    WHERE a.id > b.id
+      AND a.volunteer_id = b.volunteer_id
+      AND a.slot_id = b.slot_id
+      AND a.date = b.date;
+  `);
+  await client.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_unique_volunteer_slot_date ON volunteer_bookings (volunteer_id, slot_id, date);`
+  );
+
   // Create indexes for faster lookups on bookings and volunteer_bookings
   await client.query(
     `CREATE INDEX IF NOT EXISTS bookings_user_id_idx ON bookings (user_id);`
