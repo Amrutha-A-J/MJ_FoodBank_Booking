@@ -8,7 +8,15 @@ function getCsrfToken() {
 
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
-  const csrf = getCsrfToken();
+  let csrf = getCsrfToken();
+  if (!csrf) {
+    try {
+      await fetch(`${API_BASE}/auth/csrf-token`, { credentials: 'include' });
+      csrf = getCsrfToken();
+    } catch {
+      /* ignore token fetch errors */
+    }
+  }
   if (csrf) headers.set('X-CSRF-Token', csrf);
   init.headers = headers;
 
