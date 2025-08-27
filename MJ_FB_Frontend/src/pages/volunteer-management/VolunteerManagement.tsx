@@ -17,7 +17,7 @@ import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import FormContainer from '../../components/FormContainer';
+import FormCard from '../../components/FormCard';
 import {
   Box,
   Button,
@@ -752,13 +752,18 @@ export default function VolunteerManagement() {
 
       {tab === 'create' && (
         <>
-          <FormContainer
+          <FormCard
+            title="Create Volunteer"
+            centered={false}
             onSubmit={e => {
               e.preventDefault();
               submitVolunteer();
             }}
-            submitLabel="Add Volunteer"
-            centered={false}
+            actions={
+              <Button type="submit" variant="contained" color="primary" fullWidth>
+                Add Volunteer
+              </Button>
+            }
           >
             <TextField
               label="First Name"
@@ -845,7 +850,7 @@ export default function VolunteerManagement() {
                 </div>
               )}
             </div>
-          </FormContainer>
+          </FormCard>
           <FeedbackSnackbar
             open={!!createMsg}
             onClose={() => setCreateMsg('')}

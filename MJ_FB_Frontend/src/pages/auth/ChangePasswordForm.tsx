@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { TextField } from '@mui/material';
+import { TextField, Button } from '@mui/material';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import FormContainer from '../../components/FormContainer';
+import FormCard from '../../components/FormCard';
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -24,7 +24,16 @@ export default function ChangePasswordForm() {
 
   return (
     <>
-      <FormContainer onSubmit={handleSubmit} submitLabel="Reset Password" centered={false}>
+      <FormCard
+        onSubmit={handleSubmit}
+        title="Change Password"
+        centered={false}
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Reset Password
+          </Button>
+        }
+      >
         <TextField
           type="password"
           label="Current Password"
@@ -39,7 +48,7 @@ export default function ChangePasswordForm() {
           onChange={e => setNewPassword(e.target.value)}
           fullWidth
         />
-      </FormContainer>
+      </FormCard>
       <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} severity="success" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>

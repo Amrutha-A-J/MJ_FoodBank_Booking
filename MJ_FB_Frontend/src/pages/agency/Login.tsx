@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { loginAgency, type LoginResponse } from '../../api/users';
-import { TextField } from '@mui/material';
-import FormContainer from '../../components/FormContainer';
+import { TextField, Button } from '@mui/material';
+import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
 export default function AgencyLogin({
@@ -25,7 +25,15 @@ export default function AgencyLogin({
 
   return (
     <>
-      <FormContainer onSubmit={submit} submitLabel="Login" title="Agency Login">
+      <FormCard
+        onSubmit={submit}
+        title="Agency Login"
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+        }
+      >
         <TextField
           type="email"
           value={email}
@@ -40,7 +48,7 @@ export default function AgencyLogin({
           label="Password"
           fullWidth
         />
-      </FormContainer>
+      </FormCard>
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}

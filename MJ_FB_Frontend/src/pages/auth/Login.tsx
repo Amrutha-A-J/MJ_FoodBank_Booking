@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
-import { Link, TextField, Stack } from '@mui/material';
+import { Link, TextField, Stack, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import FormContainer from '../../components/FormContainer';
+import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function Login({
@@ -29,9 +29,8 @@ export default function Login({
 
   return (
     <>
-      <FormContainer
+      <FormCard
         onSubmit={handleSubmit}
-        submitLabel="Login"
         title="Client Login"
         header={
           <Stack direction="row" spacing={2} justifyContent="center">
@@ -46,13 +45,18 @@ export default function Login({
             </Link>
           </Stack>
         }
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+        }
       >
         <TextField value={clientId} onChange={e => setClientId(e.target.value)} label="Client ID" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
           Forgot password?
         </Link>
-      </FormContainer>
+      </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>
