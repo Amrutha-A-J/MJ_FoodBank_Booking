@@ -54,6 +54,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface RoleOption {
   id: number; // unique slot id
+  role_id: number; // underlying role id
   category_id: number; // category identifier
   category_name: string; // category display name
   name: string;
@@ -147,6 +148,7 @@ export default function VolunteerManagement() {
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
+  const [confirmAssign, setConfirmAssign] = useState<VolunteerResult | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBookingDetail | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
@@ -185,6 +187,7 @@ export default function VolunteerManagement() {
         const flattened: RoleOption[] = data.flatMap(r =>
           r.shifts.map(s => ({
             id: s.id,
+            role_id: r.id,
             category_id: r.category_id,
             category_name: r.category_name,
             name: r.name,
@@ -398,21 +401,39 @@ export default function VolunteerManagement() {
   }
 
 
-  async function assignVolunteer(vol: VolunteerResult) {
+  function assignVolunteer(vol: VolunteerResult) {
+    if (!assignSlot || !selectedRole) return;
+    if (!vol.trainedAreas.includes(assignSlot.role_id)) {
+      setConfirmAssign(vol);
+      return;
+    }
+    completeAssignment(vol, false);
+  }
+
+  async function completeAssignment(
+    vol: VolunteerResult,
+    addTraining: boolean,
+  ) {
     if (!assignSlot || !selectedRole) return;
     try {
       setAssignMsg('');
+      if (addTraining) {
+        const newRoles = Array.from(
+          new Set([...vol.trainedAreas, assignSlot.role_id]),
+        );
+        await updateVolunteerTrainedAreas(vol.id, newRoles);
+      }
       await createVolunteerBookingForVolunteer(
         vol.id,
         assignSlot.id,
-        formatDate(currentDate)
+        formatDate(currentDate),
       );
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
       const ids = nameToRoleIds.get(selectedRole) || [];
       const data = await Promise.all(
-        ids.map(id => getVolunteerBookingsByRole(id))
+        ids.map(id => getVolunteerBookingsByRole(id)),
       );
       setBookings(data.flat());
     } catch (e) {
@@ -536,10 +557,14 @@ export default function VolunteerManagement() {
     const delay = setTimeout(() => {
       searchVolunteers(assignSearch)
         .then((data: VolunteerResult[]) => {
-          const filtered = data
-            .filter(v => v.trainedAreas.includes(assignSlot.id))
+          const sorted = data
+            .sort(
+              (a, b) =>
+                Number(b.trainedAreas.includes(assignSlot.role_id)) -
+                Number(a.trainedAreas.includes(assignSlot.role_id)),
+            )
             .slice(0, 5);
-          setAssignResults(filtered);
+          setAssignResults(sorted);
         })
         .catch(() => setAssignResults([]));
     }, 300);
@@ -980,6 +1005,17 @@ export default function VolunteerManagement() {
           message={`Remove shopper profile for ${selectedVolunteer?.name}?`}
           onConfirm={removeShopper}
           onCancel={() => setRemoveShopperOpen(false)}
+        />
+      )}
+
+      {confirmAssign && assignSlot && (
+        <ConfirmDialog
+          message={`${confirmAssign.name} is not trained in ${assignSlot.category_name}-${assignSlot.name}. Confirm assigning this volunteer to this role?`}
+          onConfirm={() => {
+            completeAssignment(confirmAssign, true);
+            setConfirmAssign(null);
+          }}
+          onCancel={() => setConfirmAssign(null)}
         />
       )}
 
