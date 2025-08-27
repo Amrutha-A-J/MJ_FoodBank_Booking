@@ -19,6 +19,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import ClientDashboard from './pages/client/ClientDashboard';
 import VolunteerBookingHistory from './pages/volunteer-management/VolunteerBookingHistory';
 import VolunteerSchedule from './pages/volunteer-management/VolunteerSchedule';
+import VolunteerBooking from './pages/volunteer-management/VolunteerBooking';
 import WarehouseDashboard from './pages/warehouse-management/WarehouseDashboard';
 import DonationLog from './pages/warehouse-management/DonationLog';
 import TrackPigpound from './pages/warehouse-management/TrackPigpound';
@@ -314,7 +315,7 @@ export default function App() {
                 <>
                   <Route
                     path="/volunteer/schedule"
-                    element={<VolunteerSchedule token={token} />}
+                    element={<VolunteerBooking token={token} />}
                   />
                   <Route
                     path="/volunteer/history"
