@@ -138,7 +138,10 @@ export default function VolunteerManagement() {
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
-  const [decisionBooking, setDecisionBooking] = useState<VolunteerBookingDetail | null>(null);
+  const [decisionBooking, setDecisionBooking] =
+    useState<VolunteerBookingDetail | null>(null);
+  const [decisionReason, setDecisionReason] = useState('');
+  const [showRejectReason, setShowRejectReason] = useState(false);
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -285,9 +288,13 @@ export default function VolunteerManagement() {
     }
   }, [tab, searchParams, selectedVolunteer]);
 
-  async function decide(id: number, status: 'approved' | 'rejected' | 'cancelled') {
+  async function decide(
+    id: number,
+    status: 'approved' | 'rejected' | 'cancelled',
+    reason?: string,
+  ) {
     try {
-      await updateVolunteerBookingStatus(id, status);
+      await updateVolunteerBookingStatus(id, status, reason);
       if (selectedRole) {
         const ids = nameToRoleIds.get(selectedRole) || [];
         const data = await Promise.all(
@@ -543,6 +550,8 @@ export default function VolunteerManagement() {
               onClick: () => {
                 if (booking) {
                   setDecisionBooking({ ...booking, can_book: canBook });
+                  setDecisionReason('');
+                  setShowRejectReason(false);
                 } else {
                   setAssignSlot(role);
                   setAssignSearch('');
@@ -1026,7 +1035,8 @@ export default function VolunteerManagement() {
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 320 }}>
+            <h4>Manage Booking</h4>
             <p>
               {decisionBooking.status.toLowerCase() === 'pending'
                 ? `Approve or reject booking for ${decisionBooking.volunteer_name}?`
@@ -1038,6 +1048,22 @@ export default function VolunteerManagement() {
                 </>
               )}
             </p>
+            {decisionBooking.status.toLowerCase() === 'pending' && showRejectReason && (
+              <textarea
+                placeholder="Reason for rejection"
+                value={decisionReason}
+                onChange={e => setDecisionReason(e.target.value)}
+                style={{ width: '100%', marginTop: 8 }}
+              />
+            )}
+            {decisionBooking.status.toLowerCase() !== 'pending' && (
+              <textarea
+                placeholder="Reason for cancellation"
+                value={decisionReason}
+                onChange={e => setDecisionReason(e.target.value)}
+                style={{ width: '100%', marginTop: 8 }}
+              />
+            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
               {decisionBooking.status.toLowerCase() === 'pending' ? (
                 <>
@@ -1045,6 +1071,8 @@ export default function VolunteerManagement() {
                     onClick={() => {
                       decide(decisionBooking.id, 'approved');
                       setDecisionBooking(null);
+                      setDecisionReason('');
+                      setShowRejectReason(false);
                     }}
                     variant="outlined"
                     color="primary"
@@ -1053,15 +1081,30 @@ export default function VolunteerManagement() {
                   </Button>
                   <Button
                     onClick={() => {
-                      decide(decisionBooking.id, 'rejected');
+                      if (!showRejectReason) {
+                        setShowRejectReason(true);
+                      } else {
+                        decide(decisionBooking.id, 'rejected', decisionReason);
+                        setDecisionBooking(null);
+                        setDecisionReason('');
+                        setShowRejectReason(false);
+                      }
+                    }}
+                    variant="outlined"
+                    color="primary"
+                    disabled={showRejectReason && !decisionReason.trim()}
+                  >
+                    {showRejectReason ? 'Confirm Reject' : 'Reject'}
+                  </Button>
+                  <Button
+                    onClick={() => {
                       setDecisionBooking(null);
+                      setDecisionReason('');
+                      setShowRejectReason(false);
                     }}
                     variant="outlined"
                     color="primary"
                   >
-                    Reject
-                  </Button>
-                  <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">
                     Cancel
                   </Button>
                 </>
@@ -1069,15 +1112,23 @@ export default function VolunteerManagement() {
                 <>
                   <Button
                     onClick={() => {
-                      decide(decisionBooking.id, 'cancelled');
+                      decide(decisionBooking.id, 'cancelled', decisionReason);
                       setDecisionBooking(null);
+                      setDecisionReason('');
                     }}
                     variant="outlined"
                     color="primary"
                   >
                     Confirm
                   </Button>
-                  <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">
+                  <Button
+                    onClick={() => {
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
                     Cancel
                   </Button>
                 </>
