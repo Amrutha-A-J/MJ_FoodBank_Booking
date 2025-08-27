@@ -542,9 +542,7 @@ export default function VolunteerManagement() {
                 : undefined,
               onClick: () => {
                 if (booking) {
-                  if (booking.status.toLowerCase() === 'pending') {
-                    setDecisionBooking({ ...booking, can_book: canBook });
-                  }
+                  setDecisionBooking({ ...booking, can_book: canBook });
                 } else {
                   setAssignSlot(role);
                   setAssignSearch('');
@@ -1030,31 +1028,60 @@ export default function VolunteerManagement() {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
             <p>
-              Approve or reject booking for {decisionBooking.volunteer_name}?<br />
-              Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
+              {decisionBooking.status.toLowerCase() === 'pending'
+                ? `Approve or reject booking for ${decisionBooking.volunteer_name}?`
+                : `Cancel booking for ${decisionBooking.volunteer_name}?`}
+              {decisionBooking.status.toLowerCase() === 'pending' && (
+                <>
+                  <br />
+                  Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
+                </>
+              )}
             </p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              <Button
-                onClick={() => {
-                  decide(decisionBooking.id, 'approved');
-                  setDecisionBooking(null);
-                }}
-                variant="outlined"
-                color="primary"
-              >
-                Approve
-              </Button>
-              <Button
-                onClick={() => {
-                  decide(decisionBooking.id, 'rejected');
-                  setDecisionBooking(null);
-                }}
-                variant="outlined"
-                color="primary"
-              >
-                Reject
-              </Button>
-              <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">Cancel</Button>
+              {decisionBooking.status.toLowerCase() === 'pending' ? (
+                <>
+                  <Button
+                    onClick={() => {
+                      decide(decisionBooking.id, 'approved');
+                      setDecisionBooking(null);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      decide(decisionBooking.id, 'rejected');
+                      setDecisionBooking(null);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Reject
+                  </Button>
+                  <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => {
+                      decide(decisionBooking.id, 'cancelled');
+                      setDecisionBooking(null);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Confirm
+                  </Button>
+                  <Button onClick={() => setDecisionBooking(null)} variant="outlined" color="primary">
+                    Cancel
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
