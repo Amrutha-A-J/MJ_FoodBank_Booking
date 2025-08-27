@@ -371,8 +371,13 @@ export async function updateVolunteerBookingStatus(
         return res.status(400).json({ message: 'Booking already processed' });
       }
     } else if (status === 'cancelled') {
-      if (!['pending', 'approved'].includes(booking.status)) {
-        return res.status(400).json({ message: 'Booking already processed' });
+      const bookingDate = new Date(reginaStartOfDayISO(booking.date));
+      const today = new Date(reginaStartOfDayISO(new Date()));
+      if (booking.status === 'cancelled') {
+        return res.status(400).json({ message: 'Booking already cancelled' });
+      }
+      if (bookingDate < today) {
+        return res.status(400).json({ message: 'Booking already occurred' });
       }
     }
 
@@ -613,15 +618,28 @@ export async function cancelVolunteerBookingOccurrence(
 ) {
   const { id } = req.params;
   try {
-    const result = await pool.query(
-      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1
-       RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
+    const bookingRes = await pool.query(
+      `SELECT id, slot_id, volunteer_id, date, status, recurring_id
+       FROM volunteer_bookings WHERE id=$1`,
       [id],
     );
-    if ((result.rowCount ?? 0) === 0) {
+    if ((bookingRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    const booking = result.rows[0];
+    const booking = bookingRes.rows[0];
+    const bookingDate = new Date(reginaStartOfDayISO(booking.date));
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ message: 'Booking already cancelled' });
+    }
+    if (bookingDate < today) {
+      return res.status(400).json({ message: 'Booking already occurred' });
+    }
+    await pool.query(
+      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1`,
+      [id],
+    );
+    booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
