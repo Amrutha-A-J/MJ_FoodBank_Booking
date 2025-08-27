@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import pool from '../../db';
 import { sendEmail } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
+import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
@@ -416,29 +417,17 @@ export async function rescheduleVolunteerBooking(
 }
 
 export async function createRecurringVolunteerBooking(
-  req: Request,
+  req: Request<{}, {}, CreateRecurringVolunteerBookingRequest>,
   res: Response,
   next: NextFunction,
 ) {
   const user = req.user;
-  const {
-    roleId,
-    startDate,
-    endDate,
-    pattern,
-    daysOfWeek = [],
-  } = req.body as {
-    roleId?: number;
-    startDate?: string;
-    endDate?: string;
-    pattern?: 'daily' | 'weekly';
-    daysOfWeek?: number[];
-  };
+  const { roleId, startDate, endDate, pattern, daysOfWeek = [] } = req.body;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  if (!roleId || !startDate || !pattern) {
+  if (!roleId || !startDate || !endDate || !pattern) {
     return res
       .status(400)
-      .json({ message: 'roleId, startDate and pattern are required' });
+      .json({ message: 'roleId, startDate, endDate and pattern are required' });
   }
   try {
     const slotRes = await pool.query(
@@ -466,12 +455,12 @@ export async function createRecurringVolunteerBooking(
       `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
        VALUES ($1,$2,$3,$4,$5,$6,true)
        RETURNING id`,
-      [user.id, roleId, startDate, endDate || null, pattern, daysOfWeek],
+      [user.id, roleId, startDate, endDate, pattern, daysOfWeek],
     );
     const recurringId = recurringRes.rows[0].id;
     const dates: string[] = [];
     const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : new Date(startDate);
+    const end = new Date(endDate);
     for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
       if (
         pattern === 'daily' ||
