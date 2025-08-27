@@ -74,7 +74,7 @@ interface VolunteerResult {
 
 export default function VolunteerManagement() {
   const { tab: tabParam } = useParams<{ tab?: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
     tabParam === 'schedule' ||
     tabParam === 'search' ||
@@ -107,6 +107,13 @@ export default function VolunteerManagement() {
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
+
+  useEffect(() => {
+    if (tab !== 'search') {
+      setSelectedVolunteer(null);
+      setSearchParams({});
+    }
+  }, [tab, setSearchParams]);
 
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
