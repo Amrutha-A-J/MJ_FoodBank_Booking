@@ -21,6 +21,10 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 
 `JWT_REFRESH_SECRET` – Secret key used to sign refresh JSON Web Tokens. **Required**. Use a value different from `JWT_SECRET`.
 
+`COOKIE_DOMAIN` – Optional domain attribute for authentication cookies. Set when cookies should be shared across subdomains.
+
+Authentication cookies are scoped to the `/` path and use the same options when cleared.
+
 `PORT` – Port for the backend server.
 
 `SMTP_HOST` – SMTP server host (e.g., `smtp.office365.com`).

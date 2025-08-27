@@ -6,12 +6,14 @@ import config from '../config';
 
 const secure = process.env.NODE_ENV !== 'development';
 
+// Options applied to auth cookies across the app. Cookies are scoped to the
+// root path and optionally to a specific domain via the COOKIE_DOMAIN env var.
 export const cookieOptions: CookieOptions = {
   httpOnly: true,
   sameSite: 'strict',
   secure,
   path: '/',
-  ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
+  ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
 };
 
 export type AuthPayload = {

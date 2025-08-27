@@ -13,6 +13,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
   FRONTEND_ORIGIN: z.string(),
+  // Domain attribute applied to authentication cookies
+  COOKIE_DOMAIN: z.string().optional(),
   PORT: z.coerce.number().default(4000),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().optional(),
@@ -43,6 +45,7 @@ export default {
   jwtSecret: env.JWT_SECRET,
   jwtRefreshSecret: env.JWT_REFRESH_SECRET,
   frontendOrigins,
+  cookieDomain: env.COOKIE_DOMAIN,
   port: env.PORT,
   smtpHost: env.SMTP_HOST ?? '',
   smtpPort: env.SMTP_PORT ?? 587,

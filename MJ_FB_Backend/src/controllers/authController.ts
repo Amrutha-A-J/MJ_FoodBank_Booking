@@ -187,6 +187,8 @@ export function csrfToken(_req: Request, res: Response) {
   res.cookie('csrfToken', token, {
     sameSite: 'strict',
     secure,
+    path: '/',
+    ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
   });
   res.json({ csrfToken: token });
 }
