@@ -31,6 +31,10 @@ npm run migrate up   # Run pending database migrations
 npm start   # or npm run dev
 ```
 
+The latest migrations add support for agency logins by creating the
+`agencies` table and the `agency_clients` join table. Run the migrate
+command after pulling updates so these tables exist in your database.
+
 ### Environment variables
 
 Create a `.env` file in `MJ_FB_Backend` with the following variables. The server fails to start if any required variable is missing.
@@ -42,8 +46,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `PG_USER` | PostgreSQL username |
 | `PG_PASSWORD` | PostgreSQL password |
 | `PG_DATABASE` | PostgreSQL database name |
-| `JWT_SECRET` | Secret used to sign JWT tokens. Generate a strong random value, e.g., `openssl rand -hex 32` |
-| `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens. Use a different strong value from `JWT_SECRET`. |
+| `JWT_SECRET` | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
+| `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`. |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
 | `PORT` | Port for the backend server (defaults to 4000) |
 | `SMTP_HOST` | SMTP server host (e.g., `smtp.office365.com`) |
@@ -52,6 +56,37 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `SMTP_PASS` | Password for SMTP authentication |
 | `SMTP_FROM_EMAIL` | Email address used as the sender |
 | `SMTP_FROM_NAME` | Optional sender name displayed in emails |
+
+### Agency setup
+
+1. **Create an agency** – hash a password and insert a row into the
+   `agencies` table. For example:
+
+   ```bash
+   node -e "console.log(require('bcrypt').hashSync('secret123', 10))"
+   psql -U $PG_USER -d $PG_DATABASE \
+     -c "INSERT INTO agencies (name,email,password) VALUES ('Sample Agency','agency@example.com','<hashed-password>');"
+   ```
+
+2. **Assign clients to the agency** – authenticate as staff or the
+   agency and call the API:
+
+   ```bash
+   # As staff assigning client 42 to agency 1
+   curl -X POST http://localhost:4000/agencies/1/clients \
+     -H "Authorization: Bearer <token>" \
+     -H "Content-Type: application/json" \
+     -d '{"clientId":42}'
+
+   # As the agency itself
+   curl -X POST http://localhost:4000/agencies/me/clients \
+     -H "Authorization: Bearer <agency-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"clientId":42}'
+   ```
+
+   Remove a client with
+   `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
 
 ### Password Requirements
 

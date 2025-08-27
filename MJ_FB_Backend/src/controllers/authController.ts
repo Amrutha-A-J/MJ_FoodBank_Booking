@@ -22,17 +22,17 @@ export async function requestPasswordReset(
     if (email) {
       const staffRes = await pool.query('SELECT id FROM staff WHERE email=$1', [email]);
       const volRes = await pool.query('SELECT id FROM volunteers WHERE email=$1', [email]);
-      if (staffRes.rowCount || volRes.rowCount) {
+      if ((staffRes.rowCount ?? 0) > 0 || (volRes.rowCount ?? 0) > 0) {
         logger.info(`Password reset requested for ${email}`);
       }
     } else if (username) {
       const volRes = await pool.query('SELECT id FROM volunteers WHERE username=$1', [username]);
-      if (volRes.rowCount) {
+      if ((volRes.rowCount ?? 0) > 0) {
         logger.info(`Password reset requested for volunteer ${username}`);
       }
     } else if (clientId) {
       const userRes = await pool.query('SELECT id FROM clients WHERE client_id=$1', [clientId]);
-      if (userRes.rowCount) {
+      if ((userRes.rowCount ?? 0) > 0) {
         logger.info(`Password reset requested for client ${clientId}`);
       }
     }
@@ -65,11 +65,12 @@ export async function changePassword(
     let table = 'clients';
     if (user.type === 'staff') table = 'staff';
     else if (user.type === 'volunteer') table = 'volunteers';
+    else if (user.type === 'agency') table = 'agencies';
     const result = await pool.query(
       `SELECT password FROM ${table} WHERE id=$1`,
       [user.id],
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const match = await bcrypt.compare(currentPassword, result.rows[0].password);
@@ -111,7 +112,7 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       'SELECT token_id FROM refresh_tokens WHERE subject=$1',
       [subject],
     );
-    if (stored.rowCount === 0 || stored.rows[0].token_id !== payload.jti) {
+    if ((stored.rowCount ?? 0) === 0 || stored.rows[0].token_id !== payload.jti) {
       throw new Error('Invalid refresh token');
     }
     const newJti = randomUUID();
@@ -136,17 +137,20 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       config.jwtRefreshSecret,
       { expiresIn: '7d' },
     );
+    const secure = process.env.NODE_ENV !== 'development';
+    const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
     res.cookie('token', accessToken, {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
+      secure,
     });
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      secure: process.env.NODE_ENV !== 'development',
+      maxAge: refreshExpiry,
+      expires: new Date(Date.now() + refreshExpiry),
+      secure,
     });
     return res.json({ token: accessToken, refreshToken: newRefreshToken });
   } catch (err) {

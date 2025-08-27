@@ -12,21 +12,39 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   if (csrf) headers.set('X-CSRF-Token', csrf);
   init.headers = headers;
 
+  const urlString =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+      ? input.toString()
+      : (input as Request).url;
+  const isRefreshCall = urlString.includes('/auth/refresh');
+
   let res = await fetch(input, { credentials: 'include', ...init });
   if (res.status === 401) {
+    if (isRefreshCall) {
+      clearAuthAndRedirect();
+      return res;
+    }
     try {
-      const data = await res.clone().json();
-      if (data?.message === 'Token expired') {
-        const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-        });
-        if (refreshRes.ok) {
-          res = await fetch(input, { credentials: 'include', ...init });
+      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (refreshRes.ok) {
+        try {
+          const data = await refreshRes.clone().json();
+          if (data?.token) localStorage.setItem('token', data.token);
+        } catch {
+          // ignore
         }
+        res = await fetch(input, { credentials: 'include', ...init });
+        if (res.status === 401) clearAuthAndRedirect();
+      } else {
+        clearAuthAndRedirect();
       }
     } catch {
-      // ignore
+      clearAuthAndRedirect();
     }
   }
   return res;
@@ -54,3 +72,13 @@ export async function handleResponse(res: Response) {
 }
 
 export { API_BASE };
+
+function clearAuthAndRedirect() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('role');
+  localStorage.removeItem('name');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('access');
+  localStorage.removeItem('id');
+  window.location.assign('/login');
+}

@@ -75,7 +75,7 @@ export async function createRecurringVolunteerBooking(
   _token: string,
   roleId: number,
   startDate: string,
-  frequency: 'one-time' | 'daily' | 'weekly',
+  frequency: 'daily' | 'weekly',
   weekdays?: number[],
   endDate?: string,
 ): Promise<void> {
@@ -84,7 +84,13 @@ export async function createRecurringVolunteerBooking(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ roleId, startDate, frequency, weekdays, endDate }),
+    body: JSON.stringify({
+      roleId,
+      startDate,
+      pattern: frequency,
+      daysOfWeek: weekdays,
+      endDate,
+    }),
   });
   await handleResponse(res);
 }

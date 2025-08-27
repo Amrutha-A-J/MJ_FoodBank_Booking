@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getBreaks, getAllSlots } from '../../api/bookings';
+import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getAllSlots } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
-import type { Slot, Break, Holiday, BlockedSlot } from '../../types';
+import type { Slot, Holiday, BlockedSlot } from '../../types';
 import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
@@ -31,7 +31,15 @@ interface User {
 
 const reginaTimeZone = 'America/Regina';
 
-export default function PantrySchedule({ token }: { token: string }) {
+export default function PantrySchedule({
+  token,
+  clientIds,
+  searchUsersFn,
+}: {
+  token: string;
+  clientIds?: number[];
+  searchUsersFn?: (token: string, search: string) => Promise<User[]>;
+}) {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -40,7 +48,6 @@ export default function PantrySchedule({ token }: { token: string }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
-  const [breaks, setBreaks] = useState<Break[]>([]);
   const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,7 +84,12 @@ export default function PantrySchedule({ token }: { token: string }) {
       setBlockedSlots(blockedData);
       const filtered = bookingsData.filter((b: Booking) => {
         const bookingDate = formatInTimeZone(new Date(b.date), reginaTimeZone, 'yyyy-MM-dd');
-        return bookingDate === dateStr && ['approved', 'submitted'].includes(b.status);
+        const inClient = !clientIds || clientIds.includes(b.client_id);
+        return (
+          bookingDate === dateStr &&
+          ['approved', 'submitted'].includes(b.status) &&
+          inClient
+        );
       });
       setBookings(filtered);
     } catch (err) {
@@ -87,7 +99,6 @@ export default function PantrySchedule({ token }: { token: string }) {
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});
-    getBreaks().then(setBreaks).catch(() => {});
     getAllSlots().then(setAllSlots).catch(() => {});
   }, []);
 
@@ -98,7 +109,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   useEffect(() => {
     if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
-        searchUsers(token, searchTerm)
+        (searchUsersFn || searchUsers)(token, searchTerm)
           .then((data: User[]) => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);
@@ -183,15 +194,16 @@ export default function PantrySchedule({ token }: { token: string }) {
   const isClosed = isHoliday || isWeekend;
 
   const slotMap = new Map(allSlots.map(s => [s.id, s]));
-  const dayBreaks = breaks.filter(b => b.dayOfWeek === reginaDate.getDay());
-  const displaySlots: (Slot & { break?: boolean; blocked?: boolean; reason?: string })[] = [];
-  for (const b of dayBreaks) {
-    const s = slotMap.get(b.slotId.toString());
-    if (s) displaySlots.push({ ...s, available: 0, break: true, reason: b.reason });
-  }
+  const displaySlots: Slot[] = [];
   for (const b of blockedSlots) {
     const s = slotMap.get(b.slotId.toString());
-    if (s) displaySlots.push({ ...s, available: 0, blocked: true, reason: b.reason });
+    if (s)
+      displaySlots.push({
+        ...s,
+        available: 0,
+        status: b.status ?? 'blocked',
+        reason: b.reason,
+      });
   }
   for (const s of slots) {
     displaySlots.push(s);
@@ -199,7 +211,7 @@ export default function PantrySchedule({ token }: { token: string }) {
   displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const rows = displaySlots.map(slot => {
-    if (slot.break) {
+    if (slot.status === 'break') {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [
@@ -211,7 +223,7 @@ export default function PantrySchedule({ token }: { token: string }) {
         ],
       };
     }
-    if (slot.blocked) {
+    if (slot.status === 'blocked') {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [

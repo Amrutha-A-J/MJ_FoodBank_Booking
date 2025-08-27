@@ -506,11 +506,17 @@ export default function VolunteerManagement({ token }: { token: string }) {
     return () => clearTimeout(delay);
   }, [assignSearch, token, assignSlot]);
 
-  const bookingsForDate = bookings.filter(
-    b =>
-      b.date === formatDate(currentDate) &&
+  const bookingsForDate = bookings.filter(b => {
+    const bookingDate = formatInTimeZone(
+      new Date(b.date),
+      reginaTimeZone,
+      'yyyy-MM-dd',
+    );
+    return (
+      bookingDate === formatDate(currentDate) &&
       ['approved', 'pending'].includes(b.status.toLowerCase())
-  );
+    );
+  });
   const rows = selectedRole
     ? roleInfos.map(role => {
         const slotBookings = bookingsForDate.filter(

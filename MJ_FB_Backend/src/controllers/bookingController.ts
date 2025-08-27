@@ -5,7 +5,6 @@ import { formatReginaDate } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
   countApprovedBookingsForMonth,
-  updateBookingsThisMonth,
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
@@ -22,6 +21,7 @@ import {
   fetchBookingHistory as repoFetchBookingHistory,
   insertWalkinUser,
 } from '../models/bookingRepository';
+import { isAgencyClient } from '../models/agency';
 
 // --- Create booking for logged-in shopper ---
 export async function createBooking(req: Request, res: Response, next: NextFunction) {
@@ -88,11 +88,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       'Appointment request received',
       `Booking request submitted for ${date}`,
     );
-
-    const newCount = await updateBookingsThisMonth(userId);
+    const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE id=$1', [userId]);
+    const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
     res
       .status(201)
-      .json({ message: 'Booking created', bookingsThisMonth: newCount, rescheduleToken: token });
+      .json({ message: 'Booking created', bookingsThisMonth, rescheduleToken: token });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
     return next(error);
@@ -159,7 +159,6 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
         throw err;
       }
       client.release();
-      await updateBookingsThisMonth(booking.user_id);
     } else {
       await updateBooking(Number(bookingId), {
         status: 'rejected',
@@ -207,9 +206,6 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     }
 
     await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
-    if (booking.status === 'approved') {
-      await updateBookingsThisMonth(booking.user_id);
-    }
 
     await sendEmail(
       'test@example.com',
@@ -252,7 +248,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       reschedule_token: newToken,
       status: newStatus,
     });
-    await updateBookingsThisMonth(booking.user_id);
 
     await sendEmail(
       'test@example.com',
@@ -323,7 +318,6 @@ export async function createPreapprovedBooking(
     );
 
     await client.query('COMMIT');
-    await updateBookingsThisMonth(newUserId);
     res.status(201).json({ message: 'Preapproved booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -340,10 +334,11 @@ export async function createBookingForUser(
   res: Response,
   next: NextFunction,
 ) {
-  if (!req.user || req.user.role !== 'staff')
+  if (!req.user || (req.user.role !== 'staff' && req.user.role !== 'agency'))
     return res.status(403).json({ message: 'Forbidden' });
 
-  const { userId, slotId, date, isStaffBooking } = req.body;
+  const { userId, slotId, date } = req.body;
+  const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
     return res.status(400).json({ message: 'Missing fields' });
   }
@@ -354,6 +349,12 @@ export async function createBookingForUser(
   }
 
   try {
+    if (req.user.role === 'agency') {
+      const allowed = await isAgencyClient(Number(req.user.id), userId);
+      if (!allowed) {
+        return res.status(403).json({ message: 'Client not associated with agency' });
+      }
+    }
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Invalid booking date' });
     }
@@ -368,7 +369,7 @@ export async function createBookingForUser(
     }
 
     await checkSlotCapacity(slotIdNum, date);
-    const status = isStaffBooking ? 'approved' : 'submitted';
+    const status = staffBookingFlag ? 'approved' : 'submitted';
     const token = randomUUID();
 
     await insertBooking(
@@ -377,12 +378,12 @@ export async function createBookingForUser(
       status,
       '',
       date,
-      isStaffBooking || false,
+      staffBookingFlag,
       token,
     );
-
-    await updateBookingsThisMonth(userId);
-    res.status(201).json({ message: 'Booking created for user', rescheduleToken: token });
+    res
+      .status(201)
+      .json({ message: 'Booking created for user', rescheduleToken: token });
   } catch (error: any) {
     logger.error('Error creating booking for user:', error);
     return next(error);
@@ -396,12 +397,22 @@ export async function getBookingHistory(req: Request, res: Response, next: NextF
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
 
     let userId: number | null = null;
-    if (requester.role === 'staff') {
+    if (requester.role === 'staff' || requester.role === 'agency') {
       const paramId = req.query.userId as string;
       if (!paramId) {
-        return res.status(400).json({ message: 'userId query parameter required' });
+        return res
+          .status(400)
+          .json({ message: 'userId query parameter required' });
       }
       userId = Number(paramId);
+      if (requester.role === 'agency') {
+        const allowed = await isAgencyClient(Number(requester.id), userId);
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ message: 'Client not associated with agency' });
+        }
+      }
     } else {
       userId = Number((requester as any).userId ?? requester.id);
     }

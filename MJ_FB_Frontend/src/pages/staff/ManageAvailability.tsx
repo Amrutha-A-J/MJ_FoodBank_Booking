@@ -1,327 +1,484 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
-  getHolidays,
-  addHoliday as apiAddHoliday,
-  removeHoliday as apiRemoveHoliday,
-  getAllSlots,
-  getBlockedSlots,
-  addBlockedSlot as apiAddBlockedSlot,
-  removeBlockedSlot as apiRemoveBlockedSlot,
-  getBreaks,
-  addBreak as apiAddBreak,
-  removeBreak as apiRemoveBreak,
-} from '../../api/bookings';
-import type { Slot, Holiday, Break, BlockedSlot } from '../../types';
-import { formatTime } from '../../utils/time';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Box, Button } from '@mui/material';
+  Box,
+  Paper,
+  Tabs,
+  Tab,
+  Grid,
+  Card,
+  CardHeader,
+  CardContent,
+  Divider,
+  Stack,
+  Typography,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  FormControlLabel,
+  Chip,
+  IconButton,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
+import { DeleteOutline, Add, EventBusy, Restaurant, Block } from '@mui/icons-material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+interface TabPanelProps {
+  children?: React.ReactNode;
+  value: number;
+  index: number;
+}
+
+function TabPanel({ children, value, index }: TabPanelProps) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`availability-tabpanel-${index}`}
+      aria-labelledby={`availability-tab-${index}`}
+    >
+      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
+    </div>
+  );
+}
+
+const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const weekOrdinals = ['1st', '2nd', '3rd', '4th', '5th'];
+const slotOptions = [
+  { id: 1, label: '9:00–10:00' },
+  { id: 2, label: '10:00–11:00' },
+  { id: 3, label: '11:00–12:00' },
+];
+const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 200 } } };
+
+interface HolidayItem {
+  id: number;
+  date: Date;
+  reason: string;
+}
+
+interface BlockedSlotItem {
+  id: number;
+  date?: Date;
+  day?: number;
+  week?: number;
+  slotId: number;
+  reason: string;
+}
+
+interface BreakItem {
+  id: number;
+  day: number;
+  slotId: number;
+  reason: string;
+}
 
 export default function ManageAvailability() {
-  const [view, setView] = useState<'holiday' | 'blocked' | 'break'>('holiday');
+  const [tab, setTab] = useState(0);
 
-  const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [newHoliday, setNewHoliday] = useState('');
-  const [newHolidayReason, setNewHolidayReason] = useState('');
+  const [holidays, setHolidays] = useState<HolidayItem[]>([]);
+  const [holidayDate, setHolidayDate] = useState<Date | null>(new Date());
+  const [holidayReason, setHolidayReason] = useState('');
 
-  const [allSlots, setAllSlots] = useState<Slot[]>([]);
-
-  const [blockedDate, setBlockedDate] = useState('');
-  const [blockedSlot, setBlockedSlot] = useState('');
+  const [blockedSlots, setBlockedSlots] = useState<BlockedSlotItem[]>([]);
+  const [blockedDate, setBlockedDate] = useState<Date | null>(new Date());
+  const [blockedSlotId, setBlockedSlotId] = useState('');
   const [blockedReason, setBlockedReason] = useState('');
-  const [blockedList, setBlockedList] = useState<BlockedSlot[]>([]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [blockedDay, setBlockedDay] = useState('');
+  const [blockedWeek, setBlockedWeek] = useState('');
 
+  const [breaks, setBreaks] = useState<BreakItem[]>([]);
   const [breakDay, setBreakDay] = useState('');
-  const [breakSlot, setBreakSlot] = useState('');
+  const [breakSlotId, setBreakSlotId] = useState('');
   const [breakReason, setBreakReason] = useState('');
-  const [breaks, setBreaks] = useState<Break[]>([]);
 
-  const [message, setMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({ open: false, message: '', severity: 'success' });
 
-  const fetchHolidays = useCallback(async () => {
-    try {
-      const data = await getHolidays();
-      setHolidays(data);
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }, []);
+  const showSnackbar = (message: string, severity: AlertColor) => {
+    setSnackbar({ open: true, message, severity });
+  };
 
-  const fetchBreaks = useCallback(async () => {
-    try {
-      const data = await getBreaks();
-      setBreaks(data);
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }, []);
+  const handleAddHoliday = () => {
+    if (!holidayDate) return;
+    setHolidays(prev => [
+      ...prev,
+      { id: Date.now(), date: holidayDate, reason: holidayReason.trim() },
+    ]);
+    setHolidayReason('');
+    showSnackbar('Holiday added', 'success');
+  };
 
-  const fetchBlocked = useCallback(async () => {
-    if (!blockedDate) {
-      setBlockedList([]);
-      return;
-    }
-    try {
-      const data = await getBlockedSlots(blockedDate);
-      setBlockedList(data);
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }, [blockedDate]);
+  const handleRemoveHoliday = (id: number) => {
+    setHolidays(prev => prev.filter(h => h.id !== id));
+    showSnackbar('Holiday removed', 'error');
+  };
 
-  useEffect(() => {
-    fetchHolidays();
-    fetchBreaks();
-    getAllSlots()
-      .then(setAllSlots)
-      .catch(err => {
-        setSnackbarSeverity('error');
-        setMessage(err instanceof Error ? err.message : String(err));
-      });
-  }, [fetchHolidays, fetchBreaks]);
+  const handleAddBlocked = () => {
+    if (isRecurring) {
+      if (!blockedDay || !blockedWeek || !blockedSlotId) return;
+      setBlockedSlots(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          day: Number(blockedDay),
+          week: Number(blockedWeek),
+          slotId: Number(blockedSlotId),
+          reason: blockedReason.trim(),
+        },
+      ]);
+    } else {
+      if (!blockedDate || !blockedSlotId) return;
+      setBlockedSlots(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          date: blockedDate,
+          slotId: Number(blockedSlotId),
+          reason: blockedReason.trim(),
+        },
+      ]);
+    }
+    setBlockedReason('');
+    showSnackbar('Slot blocked', 'success');
+  };
 
-  useEffect(() => {
-    fetchBlocked();
-  }, [fetchBlocked]);
+  const handleRemoveBlocked = (id: number) => {
+    setBlockedSlots(prev => prev.filter(b => b.id !== id));
+    showSnackbar('Blocked slot removed', 'error');
+  };
 
-  async function addHoliday() {
-    if (!newHoliday) {
-      setSnackbarSeverity('error');
-      return setMessage('Select a date to add');
-    }
-    try {
-      await apiAddHoliday(newHoliday, newHolidayReason);
-      setSnackbarSeverity('success');
-      setMessage('Holiday added');
-      setNewHoliday('');
-      setNewHolidayReason('');
-      fetchHolidays();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
+  const handleAddBreak = () => {
+    if (!breakDay || !breakSlotId) return;
+    setBreaks(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        day: Number(breakDay),
+        slotId: Number(breakSlotId),
+        reason: breakReason.trim(),
+      },
+    ]);
+    setBreakReason('');
+    showSnackbar('Break added', 'success');
+  };
 
-  async function removeHoliday(date: string) {
-    try {
-      await apiRemoveHoliday(date);
-      setSnackbarSeverity('success');
-      setMessage('Holiday removed');
-      fetchHolidays();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
+  const handleRemoveBreak = (id: number) => {
+    setBreaks(prev => prev.filter(b => b.id !== id));
+    showSnackbar('Break removed', 'error');
+  };
 
-  async function addBlocked() {
-    if (!blockedDate || !blockedSlot) {
-      setSnackbarSeverity('error');
-      return setMessage('Select date and slot');
-    }
-    try {
-      await apiAddBlockedSlot(blockedDate, Number(blockedSlot), blockedReason);
-      setSnackbarSeverity('success');
-      setMessage('Slot blocked');
-      setBlockedSlot('');
-      setBlockedReason('');
-      fetchBlocked();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
+  const slotLabel = (id: number) => slotOptions.find(s => s.id === id)?.label || id;
 
-  async function removeBlocked(slotId: number) {
-    try {
-      await apiRemoveBlockedSlot(blockedDate, slotId);
-      setSnackbarSeverity('success');
-      setMessage('Blocked slot removed');
-      fetchBlocked();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  async function addBreak() {
-    if (breakDay === '' || breakSlot === '') {
-      setSnackbarSeverity('error');
-      return setMessage('Select day and slot');
-    }
-    try {
-      await apiAddBreak(Number(breakDay), Number(breakSlot), breakReason);
-      setSnackbarSeverity('success');
-      setMessage('Break added');
-      setBreakDay('');
-      setBreakSlot('');
-      setBreakReason('');
-      fetchBreaks();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  async function removeBreak(day: number, slotId: number) {
-    try {
-      await apiRemoveBreak(day, slotId);
-      setSnackbarSeverity('success');
-      setMessage('Break removed');
-      fetchBreaks();
-    } catch (err: unknown) {
-      setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  function slotLabel(id: number) {
-    const slot = allSlots.find(s => s.id === id.toString());
-    return slot ? `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}` : `Slot ${id}`;
-  }
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-      <Box maxWidth={600} width="100%" mt={4}>
-        <h2>Manage Availability</h2>
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
-
-      <div style={{ marginBottom: 16 }}>
-        <label>
-          Feature:
-          <select value={view} onChange={e => setView(e.target.value as 'holiday' | 'blocked' | 'break')} style={{ marginLeft: 8 }}>
-            <option value="holiday">Holidays</option>
-            <option value="blocked">Blocked Slots</option>
-            <option value="break">Staff Breaks</option>
-          </select>
-        </label>
-      </div>
-
-      {view === 'holiday' && (
-        <section style={{ marginBottom: 24 }}>
-          <h3>Holidays</h3>
-          <input
-            type="date"
-            value={newHoliday}
-            onChange={(e) => setNewHoliday(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Reason"
-            value={newHolidayReason}
-            onChange={(e) => setNewHolidayReason(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-          <Button onClick={addHoliday} style={{ marginLeft: 8 }} variant="outlined" color="primary">Add Holiday</Button>
-          <ul>
-            {holidays.map(h => (
-              <li key={h.date}>
-                {h.date}{h.reason ? ` - ${h.reason}` : ''}{' '}
-                <Button onClick={() => removeHoliday(h.date)} variant="outlined" color="primary">
-                  Remove
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {view === 'blocked' && (
-        <section style={{ marginBottom: 24 }}>
-          <h3>Blocked Slots</h3>
-          <input
-            type="date"
-            value={blockedDate}
-            onChange={(e) => setBlockedDate(e.target.value)}
-          />
-          <select
-            value={blockedSlot}
-            onChange={(e) => setBlockedSlot(e.target.value)}
-            style={{ marginLeft: 8 }}
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 6 }}>
+        <Typography variant="h4" fontWeight={800} gutterBottom>
+          Manage Availability
+        </Typography>
+        <Paper sx={{ p: 2 }}>
+          <Tabs
+            value={tab}
+            onChange={(_, v) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            aria-label="availability tabs"
           >
-            <option value="">Select slot</option>
-            {allSlots.map(s => (
-              <option key={s.id} value={s.id}>
-                {formatTime(s.startTime)} - {formatTime(s.endTime)}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="Reason"
-            value={blockedReason}
-            onChange={(e) => setBlockedReason(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-          <Button onClick={addBlocked} style={{ marginLeft: 8 }} variant="outlined" color="primary">Block Slot</Button>
+            <Tab icon={<EventBusy />} iconPosition="start" label="Holidays" id="availability-tab-0" />
+            <Tab icon={<Block />} iconPosition="start" label="Blocked Slots" id="availability-tab-1" />
+            <Tab icon={<Restaurant />} iconPosition="start" label="Staff Breaks" id="availability-tab-2" />
+          </Tabs>
 
-          {blockedDate && (
-            <ul>
-              {blockedList.map(b => (
-                <li key={b.slotId}>
-                  {slotLabel(b.slotId)}{b.reason ? ` - ${b.reason}` : ''}{' '}
-                  <Button onClick={() => removeBlocked(b.slotId)} variant="outlined" color="primary">
-                    Remove
+          <TabPanel value={tab} index={0}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Add Holiday" />
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <DatePicker
+                      label="Date"
+                      value={holidayDate}
+                      onChange={setHolidayDate}
+                      slotProps={{ textField: { fullWidth: true } }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      label="Reason"
+                      value={holidayReason}
+                      onChange={(e) => setHolidayReason(e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={2}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="small"
+                      startIcon={<Add />}
+                      onClick={handleAddHoliday}
+                    >
+                      Add
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+              <Divider />
+              <List>
+                {holidays.map(h => (
+                  <ListItem
+                    key={h.id}
+                    secondaryAction={
+                      <Tooltip title="Remove">
+                        <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.id)}>
+                          <DeleteOutline />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemText primary={h.date.toLocaleDateString()} />
+                    {h.reason && <Chip label={h.reason} sx={{ ml: 1 }} />}
+                  </ListItem>
+                ))}
+                {holidays.length === 0 && (
+                  <ListItem>
+                    <ListItemText primary="No holidays" />
+                  </ListItem>
+                )}
+              </List>
+            </Card>
+          </TabPanel>
+
+          <TabPanel value={tab} index={1}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Block Slot" />
+              <CardContent>
+                <Stack spacing={2}>
+                  <FormControlLabel
+                    control={<Checkbox checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} />}
+                    label="Recurring"
+                  />
+                  {isRecurring ? (
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
+                          <InputLabel id="blocked-day-label">Day</InputLabel>
+                          <Select
+                            labelId="blocked-day-label"
+                            value={blockedDay}
+                            label="Day"
+                            onChange={(e) => setBlockedDay(e.target.value)}
+                            MenuProps={selectMenuProps}
+                          >
+                            {days.map((d, i) => (
+                              <MenuItem key={d} value={i}>
+                                {d}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth sx={{ minWidth: 200 }}>
+                          <InputLabel id="blocked-week-label">Week</InputLabel>
+                          <Select
+                            labelId="blocked-week-label"
+                            value={blockedWeek}
+                            label="Week"
+                            onChange={(e) => setBlockedWeek(e.target.value)}
+                            MenuProps={selectMenuProps}
+                          >
+                            {weekOrdinals.map((w, i) => (
+                              <MenuItem key={w} value={i + 1}>
+                                {w}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  ) : (
+                    <DatePicker
+                      label="Date"
+                      value={blockedDate}
+                      onChange={setBlockedDate}
+                      slotProps={{ textField: { fullWidth: true } }}
+                    />
+                  )}
+                  <FormControl fullWidth>
+                    <InputLabel id="slot-label">Slot</InputLabel>
+                    <Select
+                      labelId="slot-label"
+                      value={blockedSlotId}
+                      label="Slot"
+                      onChange={(e) => setBlockedSlotId(e.target.value)}
+                      MenuProps={selectMenuProps}
+                    >
+                      {slotOptions.map((s) => (
+                        <MenuItem key={s.id} value={s.id}>
+                          {s.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Reason"
+                    value={blockedReason}
+                    onChange={(e) => setBlockedReason(e.target.value)}
+                    fullWidth
+                  />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<Add />}
+                    onClick={handleAddBlocked}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    Add
                   </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
+                </Stack>
+              </CardContent>
+              <Divider />
+              <List>
+                {blockedSlots.map(b => (
+                  <ListItem
+                    key={b.id}
+                    secondaryAction={
+                      <Tooltip title="Remove">
+                        <IconButton aria-label="remove" onClick={() => handleRemoveBlocked(b.id)}>
+                          <DeleteOutline />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemText
+                      primary={
+                        b.date
+                          ? b.date.toLocaleDateString()
+                          : `${weekOrdinals[(b.week || 1) - 1]} ${days[b.day || 0]}`
+                      }
+                      secondary={slotLabel(b.slotId)}
+                    />
+                    {b.reason && <Chip label={b.reason} sx={{ ml: 1 }} />}
+                  </ListItem>
+                ))}
+                {blockedSlots.length === 0 && (
+                  <ListItem>
+                    <ListItemText primary="No blocked slots" />
+                  </ListItem>
+                )}
+              </List>
+            </Card>
+          </TabPanel>
 
-      {view === 'break' && (
-        <section>
-          <h3>Staff Breaks</h3>
-          <select
-            value={breakDay}
-            onChange={(e) => setBreakDay(e.target.value)}
-          >
-            <option value="">Select day</option>
-            {dayNames.map((d, i) => (
-              <option key={i} value={i}>{d}</option>
-            ))}
-          </select>
-          <select
-            value={breakSlot}
-            onChange={(e) => setBreakSlot(e.target.value)}
-            style={{ marginLeft: 8 }}
-          >
-            <option value="">Select slot</option>
-            {allSlots.map(s => (
-              <option key={s.id} value={s.id}>
-                {formatTime(s.startTime)} - {formatTime(s.endTime)}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="Reason"
-            value={breakReason}
-            onChange={(e) => setBreakReason(e.target.value)}
-            style={{ marginLeft: 8 }}
-          />
-          <Button onClick={addBreak} style={{ marginLeft: 8 }} variant="outlined" color="primary">Add Break</Button>
-
-          <ul>
-            {breaks.map(b => (
-              <li key={`${b.dayOfWeek}-${b.slotId}`}>
-                {dayNames[b.dayOfWeek]} {slotLabel(b.slotId)}{b.reason ? ` - ${b.reason}` : ''}{' '}
-                <Button onClick={() => removeBreak(b.dayOfWeek, b.slotId)} variant="outlined" color="primary">
-                  Remove
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+          <TabPanel value={tab} index={2}>
+            <Card sx={{ borderRadius: 3 }}>
+              <CardHeader title="Staff Breaks" />
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth sx={{ minWidth: 200 }}>
+                      <InputLabel id="break-day-label">Day</InputLabel>
+                      <Select
+                        labelId="break-day-label"
+                        value={breakDay}
+                        label="Day"
+                        onChange={(e) => setBreakDay(e.target.value)}
+                        MenuProps={selectMenuProps}
+                      >
+                        {days.map((d, i) => (
+                          <MenuItem key={d} value={i}>
+                            {d}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth sx={{ minWidth: 200 }}>
+                      <InputLabel id="break-slot-label">Slot</InputLabel>
+                      <Select
+                        labelId="break-slot-label"
+                        value={breakSlotId}
+                        label="Slot"
+                        onChange={(e) => setBreakSlotId(e.target.value)}
+                        MenuProps={selectMenuProps}
+                      >
+                        {slotOptions.map(s => (
+                          <MenuItem key={s.id} value={s.id}>
+                            {s.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      label="Reason"
+                      value={breakReason}
+                      onChange={(e) => setBreakReason(e.target.value)}
+                      fullWidth
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<Add />}
+                      onClick={handleAddBreak}
+                    >
+                      Add
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+              <Divider />
+              <List>
+                {breaks.map(b => (
+                  <ListItem
+                    key={b.id}
+                    secondaryAction={
+                      <Tooltip title="Remove">
+                        <IconButton aria-label="remove" onClick={() => handleRemoveBreak(b.id)}>
+                          <DeleteOutline />
+                        </IconButton>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemText primary={`${days[b.day]} - ${slotLabel(b.slotId)}`} />
+                    {b.reason && <Chip label={b.reason} sx={{ ml: 1 }} />}
+                  </ListItem>
+                ))}
+                {breaks.length === 0 && (
+                  <ListItem>
+                    <ListItemText primary="No breaks" />
+                  </ListItem>
+                )}
+              </List>
+            </Card>
+          </TabPanel>
+        </Paper>
+        <FeedbackSnackbar
+          open={snackbar.open}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        />
       </Box>
-    </Box>
+    </LocalizationProvider>
   );
 }
 

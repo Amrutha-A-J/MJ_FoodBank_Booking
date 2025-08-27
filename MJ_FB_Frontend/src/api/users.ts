@@ -31,6 +31,18 @@ export async function loginStaff(
   return handleResponse(res);
 }
 
+export async function loginAgency(
+  email: string,
+  password: string,
+): Promise<LoginResponse> {
+  const res = await apiFetch(`${API_BASE}/users/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  return handleResponse(res);
+}
+
 export async function logout(): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/logout`, {
     method: 'POST',
@@ -66,6 +78,17 @@ export async function changePassword(
 
 export async function getUserProfile(_token: string): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`);
+  return handleResponse(res);
+}
+
+export async function updateMyProfile(
+  data: { email?: string; phone?: string },
+): Promise<UserProfile> {
+  const res = await apiFetch(`${API_BASE}/users/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
   return handleResponse(res);
 }
 
@@ -111,7 +134,7 @@ export async function addUser(
   email?: string,
   phone?: string,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/users`, {
+  const res = await apiFetch(`${API_BASE}/users/add-client`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -137,5 +160,33 @@ export async function searchUsers(_token: string, search: string) {
 
 export async function getUserByClientId(_token: string, clientId: string) {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`);
+  return handleResponse(res);
+}
+
+export interface IncompleteUser {
+  id: number;
+  clientId: number;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  profileLink: string;
+}
+
+export async function getIncompleteUsers(_token: string): Promise<IncompleteUser[]> {
+  const res = await apiFetch(`${API_BASE}/users/missing-info`);
+  return handleResponse(res);
+}
+
+export async function updateUserInfo(
+  _token: string,
+  clientId: number,
+  data: { firstName: string; lastName: string; email?: string; phone?: string },
+): Promise<IncompleteUser> {
+  const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
   return handleResponse(res);
 }

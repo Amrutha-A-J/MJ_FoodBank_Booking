@@ -1,37 +1,236 @@
-import { useEffect, useState } from 'react';
-import { Typography, List, ListItem } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import {
+  Container,
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Avatar,
+  Divider,
+  TextField,
+  Button,
+  CircularProgress,
+} from '@mui/material';
+import { AccountCircle, Lock } from '@mui/icons-material';
 import type { Role, UserProfile } from '../../types';
-import { getUserProfile } from '../../api/users';
-import Page from '../../components/Page';
-import ChangePasswordForm from '../auth/ChangePasswordForm';
+import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-export default function Profile({ token, role }: { token: string; role: Role }) {
+export default function Profile({ token, role: _role }: { token: string; role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
-    if (role === 'shopper') {
-      getUserProfile(token)
-        .then(setProfile)
-        .catch(e => setError(e instanceof Error ? e.message : String(e)));
+    document.title = 'MJ Foodbank - User Profile';
+  }, []);
+
+  useEffect(() => {
+    getUserProfile(token)
+      .then(p => {
+        setProfile(p);
+        setEmail(p.email ?? '');
+        setPhone(p.phone ?? '');
+      })
+      .catch(e => setError(e instanceof Error ? e.message : String(e)));
+  }, [token]);
+
+  const initials = profile
+    ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
+    : '';
+
+  async function handleReset() {
+    setSubmitting(true);
+    setPasswordError('');
+    try {
+      await changePassword(token, currentPassword, newPassword);
+      setToast({ open: true, message: 'Password updated.', severity: 'success' });
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPasswordError(msg);
+      setToast({ open: true, message: msg, severity: 'error' });
+    } finally {
+      setSubmitting(false);
     }
-  }, [role, token]);
+  }
+
+  async function handleEdit() {
+    if (!profile) return;
+    if (editing) {
+      setSaving(true);
+      try {
+        const updated = await updateMyProfile({ email, phone });
+        setProfile(updated);
+        setEmail(updated.email ?? '');
+        setPhone(updated.phone ?? '');
+        setToast({ open: true, message: 'Profile updated.', severity: 'success' });
+        setEditing(false);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setToast({ open: true, message: msg, severity: 'error' });
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      setEditing(true);
+    }
+  }
 
   return (
-    <Page title="User Profile">
-      {error && <Typography color="error">{error}</Typography>}
-      {role === 'shopper' && !profile && !error && <Typography>Loading...</Typography>}
-      {role === 'shopper' && profile && (
-        <List>
-          <ListItem>Name: {profile.firstName} {profile.lastName}</ListItem>
-          <ListItem>Client ID: {profile.clientId}</ListItem>
-          <ListItem>Email: {profile.email || 'N/A'}</ListItem>
-          <ListItem>Phone: {profile.phone || 'N/A'}</ListItem>
-          <ListItem>Visits this month: {profile.bookingsThisMonth}</ListItem>
-        </List>
-      )}
-      {role !== 'shopper' && <Typography>No profile information available.</Typography>}
-      <ChangePasswordForm token={token} />
-    </Page>
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      <Card elevation={0} sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
+        <CardContent sx={{ p: 0 }}>
+          <Stack spacing={3}>
+            {/* Header */}
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
+                {initials || ' '}
+              </Avatar>
+              <Stack>
+                <Typography variant="h4" fontWeight={700}>
+                  User Profile
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Home / Profile
+                </Typography>
+              </Stack>
+            </Stack>
+
+            {/* Profile info */}
+            {error && <Typography color="error">{error}</Typography>}
+            {!profile && !error && <Typography>Loading...</Typography>}
+            {profile && (
+              <Stack spacing={1}>
+                <Typography>
+                  <strong>Name:</strong> {profile.firstName} {profile.lastName}
+                </Typography>
+                {profile.clientId !== undefined && (
+                  <Typography>
+                    <strong>Client ID:</strong> {profile.clientId}
+                  </Typography>
+                )}
+                {profile.roles && profile.roles.length > 0 && (
+                  <Typography>
+                    <strong>Roles:</strong> {profile.roles.join(', ')}
+                  </Typography>
+                )}
+                {profile.username && (
+                  <Typography>
+                    <strong>Username:</strong> {profile.username}
+                  </Typography>
+                )}
+                {profile.trainedAreas && profile.trainedAreas.length > 0 && (
+                  <Typography>
+                    <strong>Trained Areas:</strong> {profile.trainedAreas.join(', ')}
+                  </Typography>
+                )}
+                <Divider sx={{ my: 1 }} />
+                <TextField
+                  label="Email"
+                  size="small"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  disabled={!editing}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label="Phone"
+                  size="small"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  disabled={!editing}
+                  InputLabelProps={{ shrink: true }}
+                />
+                {profile.bookingsThisMonth !== undefined && (
+                  <Typography>
+                    <strong>Visits this month:</strong> {profile.bookingsThisMonth}
+                  </Typography>
+                )}
+              </Stack>
+            )}
+
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={saving ? <CircularProgress size={20} /> : <AccountCircle />}
+              disabled={saving || !profile}
+              onClick={handleEdit}
+            >
+              {editing ? 'Save' : 'Edit Profile'}
+            </Button>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* Password reset */}
+            <Stack spacing={2}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Lock fontSize="small" />
+                <Typography variant="h6">Reset Password</Typography>
+              </Stack>
+
+              <TextField
+                id="current-password"
+                label="Current Password"
+                type="password"
+                autoComplete="current-password"
+                fullWidth
+                value={currentPassword}
+                onChange={e => setCurrentPassword(e.target.value)}
+                disabled={submitting}
+              />
+              <TextField
+                id="new-password"
+                label="New Password"
+                type="password"
+                autoComplete="new-password"
+                fullWidth
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                disabled={submitting}
+                error={!!passwordError}
+                helperText={passwordError}
+              />
+              <Typography variant="caption" color="text.secondary">
+                Use at least 8 characters, including a number and a symbol.
+              </Typography>
+
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                fullWidth
+                disabled={submitting}
+                startIcon={submitting ? <CircularProgress size={20} /> : null}
+                onClick={handleReset}
+              >
+                {submitting ? 'Updating…' : 'Reset Password'}
+              </Button>
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <FeedbackSnackbar
+        open={toast.open}
+        onClose={() => setToast(s => ({ ...s, open: false }))}
+        message={toast.message}
+        severity={toast.severity}
+      />
+    </Container>
   );
 }
+

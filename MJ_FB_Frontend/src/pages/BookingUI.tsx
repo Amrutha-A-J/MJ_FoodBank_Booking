@@ -1,5 +1,5 @@
 
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -17,7 +17,9 @@ import {
   Toolbar,
   Skeleton,
   Link,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { AccessTime } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
@@ -39,18 +41,20 @@ function useSlots(date: Dayjs, enabled: boolean) {
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-function bookSlot(payload: { date: string; slotId: string }): Promise<void> {
-  return createBooking(payload.slotId, payload.date);
+function bookSlot(payload: { date: string; slotId: string; userId?: number }): Promise<void> {
+  return createBooking(payload.slotId, payload.date, payload.userId);
 }
 
 export type BookingUIProps = {
   shopperName?: string;
   initialDate?: Dayjs;
+  userId?: number;
 };
 
 export default function BookingUI({
   shopperName = 'John Shopper',
   initialDate = dayjs(),
+  userId,
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
@@ -80,6 +84,9 @@ export default function BookingUI({
     message: null,
   });
   const [booking, setBooking] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const slotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isDisabled(date)) return;
@@ -105,6 +112,7 @@ export default function BookingUI({
       await bookSlot({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
+        userId,
       });
       setSnackbar({
         open: true,
@@ -225,6 +233,14 @@ export default function BookingUI({
                 if (newDate && !isDisabled(newDate)) {
                   setDate(newDate);
                   setSelectedSlotId(null);
+                  if (isMobile) {
+                    setTimeout(() => {
+                      if (slotsRef.current) {
+                        slotsRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                        slotsRef.current.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }, 0);
+                  }
                 }
               }}
               sx={{
@@ -238,6 +254,7 @@ export default function BookingUI({
         </Grid>
         <Grid item xs={12} md sx={{ flexGrow: 1 }}>
           <Paper
+            ref={slotsRef}
             sx={{
               p: 2,
               borderRadius: 2,

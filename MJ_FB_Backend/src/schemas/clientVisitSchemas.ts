@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const clientVisitSchema = z.object({
   date: z.string().min(1),
   clientId: z.number().int().optional(),
+  anonymous: z.boolean().optional(),
   weightWithCart: z.number().int(),
   weightWithoutCart: z.number().int(),
   petItem: z.number().int().optional(),

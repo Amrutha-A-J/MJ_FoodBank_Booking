@@ -5,6 +5,7 @@ export interface ClientVisit {
   date: string;
   clientId: number | null;
   clientName: string | null;
+  anonymous: boolean;
   weightWithCart: number;
   weightWithoutCart: number;
   petItem: number;

@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { UserRole } from '../models/user';
 import bcrypt from 'bcrypt';
-import { updateBookingsThisMonth } from '../utils/bookingUtils';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
+import { getAgencyByEmail } from '../models/agency';
 import { validatePassword } from '../utils/passwordUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
@@ -21,7 +21,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         `SELECT id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId]
       );
-      if (userQuery.rowCount === 0) {
+      if ((userQuery.rowCount ?? 0) === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const user = userQuery.rows[0];
@@ -32,13 +32,18 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const bookingsThisMonth = await updateBookingsThisMonth(user.id);
+      const bookingsRes = await pool.query(
+        'SELECT bookings_this_month FROM clients WHERE id = $1',
+        [user.id],
+      );
+      const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
       const payload: AuthPayload = { id: user.id, role: user.role, type: 'user' };
-      await issueAuthTokens(res, payload, `user:${user.id}`);
+      const tokens = await issueAuthTokens(res, payload, `user:${user.id}`);
       return res.json({
         role: user.role,
         name: `${user.first_name} ${user.last_name}`,
         bookingsThisMonth,
+        ...tokens,
       });
     }
 
@@ -50,26 +55,49 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
       [email]
     );
-    if (staffQuery.rowCount === 0) {
+    if ((staffQuery.rowCount ?? 0) > 0) {
+      const staff = staffQuery.rows[0];
+      const match = await bcrypt.compare(password, staff.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      const role = 'staff';
+      const payload: AuthPayload = {
+        id: staff.id,
+        role,
+        type: 'staff',
+        access: staff.access || [],
+      };
+      const tokens = await issueAuthTokens(res, payload, `staff:${staff.id}`);
+      return res.json({
+        role,
+        name: `${staff.first_name} ${staff.last_name}`,
+        access: staff.access || [],
+        id: staff.id,
+        ...tokens,
+      });
+    }
+
+    const agency = await getAgencyByEmail(email);
+    if (!agency) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const staff = staffQuery.rows[0];
-    const match = await bcrypt.compare(password, staff.password);
+    const match = await bcrypt.compare(password, agency.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const role = 'staff';
     const payload: AuthPayload = {
-      id: staff.id,
-      role,
-      type: 'staff',
-      access: staff.access || [],
+      id: agency.id,
+      role: 'agency',
+      type: 'agency',
     };
-    await issueAuthTokens(res, payload, `staff:${staff.id}`);
+    const tokens = await issueAuthTokens(res, payload, `agency:${agency.id}`);
     res.json({
-      role,
-      name: `${staff.first_name} ${staff.last_name}`,
-      access: staff.access || [],
+      role: 'agency',
+      name: agency.name,
+      id: agency.id,
+      access: [],
+      ...tokens,
     });
   } catch (error) {
     logger.error('Error logging in:', error);
@@ -121,13 +149,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
   try {
     const check = await pool.query('SELECT id FROM clients WHERE client_id = $1', [clientId]);
-    if (check.rowCount && check.rowCount > 0) {
+    if ((check.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
     if (email) {
       const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [email]);
-      if (emailCheck.rowCount && emailCheck.rowCount > 0) {
+      if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
     }
@@ -202,7 +230,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
@@ -224,17 +252,64 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
-    const bookingsThisMonth = await updateBookingsThisMonth(Number(user.id));
+    if (user.type === 'staff') {
+      const result = await pool.query(
+        `SELECT id, first_name, last_name, email, access FROM staff WHERE id = $1`,
+        [user.id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: null,
+        role: 'staff',
+        roles: row.access || [],
+      });
+    }
+
+    if (user.type === 'volunteer') {
+      const profileRes = await pool.query(
+        `SELECT id, first_name, last_name, email, phone, username FROM volunteers WHERE id = $1`,
+        [user.id],
+      );
+      if ((profileRes.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const trainedRes = await pool.query(
+        `SELECT vr.name
+         FROM volunteer_trained_roles vtr
+         JOIN volunteer_roles vr ON vtr.role_id = vr.id
+         WHERE vtr.volunteer_id = $1`,
+        [user.id],
+      );
+      const row = profileRes.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        role: 'volunteer',
+        username: row.username,
+        trainedAreas: trainedRes.rows.map(r => r.name),
+      });
+    }
+
     const result = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
        FROM clients WHERE id = $1`,
-      [user.id]
+      [user.id],
     );
-    if (result.rowCount === 0) {
+    if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
-    res.json({
+    return res.json({
       id: row.id,
       firstName: row.first_name,
       lastName: row.last_name,
@@ -242,10 +317,167 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       phone: row.phone,
       clientId: row.client_id,
       role: row.role,
-      bookingsThisMonth,
+      bookingsThisMonth: row.bookings_this_month ?? 0,
     });
   } catch (error) {
     logger.error('Error fetching user profile:', error);
+    next(error);
+  }
+}
+
+export async function updateMyProfile(req: Request, res: Response, next: NextFunction) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  const { email, phone } = req.body as { email?: string; phone?: string };
+  try {
+    if (user.type === 'staff') {
+      const result = await pool.query(
+        `UPDATE staff SET email = COALESCE($1, email)
+         WHERE id = $2
+         RETURNING id, first_name, last_name, email, access`,
+        [email, user.id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: null,
+        role: 'staff',
+        roles: row.access || [],
+      });
+    }
+
+    if (user.type === 'volunteer') {
+      const result = await pool.query(
+        `UPDATE volunteers
+         SET email = COALESCE($1, email),
+             phone = COALESCE($2, phone)
+         WHERE id = $3
+         RETURNING id, first_name, last_name, email, phone, username`,
+        [email, phone, user.id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const trainedRes = await pool.query(
+        `SELECT vr.name
+         FROM volunteer_trained_roles vtr
+         JOIN volunteer_roles vr ON vtr.role_id = vr.id
+         WHERE vtr.volunteer_id = $1`,
+        [user.id],
+      );
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        role: 'volunteer',
+        username: row.username,
+        trainedAreas: trainedRes.rows.map(r => r.name),
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE clients
+       SET email = COALESCE($1, email),
+           phone = COALESCE($2, phone)
+       WHERE id = $3
+       RETURNING id, first_name, last_name, email, phone, client_id, role, bookings_this_month`,
+      [email, phone, user.id],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const row = result.rows[0];
+    return res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      clientId: row.client_id,
+      role: row.role,
+      bookingsThisMonth: row.bookings_this_month ?? 0,
+    });
+  } catch (error) {
+    logger.error('Error updating profile:', error);
+    next(error);
+  }
+}
+
+export async function listUsersMissingInfo(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await pool.query(
+      `SELECT id, client_id, first_name, last_name, email, phone, profile_link
+       FROM clients
+       WHERE first_name IS NULL AND last_name IS NULL
+       ORDER BY client_id ASC`,
+    );
+    const users = result.rows.map(row => ({
+      id: row.id,
+      clientId: row.client_id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      profileLink: row.profile_link,
+    }));
+    res.json(users);
+  } catch (error) {
+    logger.error('Error listing users missing info:', error);
+    next(error);
+  }
+}
+
+export async function updateUserByClientId(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user || req.user.role !== 'staff') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { clientId } = req.params;
+  const { firstName, lastName, email, phone } = req.body as {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  try {
+    const result = await pool.query(
+      `UPDATE clients
+       SET first_name = $1, last_name = $2, email = $3, phone = $4
+       WHERE client_id = $5
+       RETURNING id, client_id, first_name, last_name, email, phone, profile_link`,
+      [firstName, lastName, email || null, phone || null, clientId],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const row = result.rows[0];
+    res.json({
+      id: row.id,
+      clientId: row.client_id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      profileLink: row.profile_link,
+    });
+  } catch (error) {
+    logger.error('Error updating user info:', error);
     next(error);
   }
 }

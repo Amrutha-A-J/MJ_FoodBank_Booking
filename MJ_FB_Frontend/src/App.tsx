@@ -6,6 +6,9 @@ import UserHistory from './pages/staff/UserHistory';
 import BookingUI from './pages/BookingUI';
 import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
+import AgencySchedule from './pages/agency/AgencySchedule';
+import ClientList from './pages/agency/ClientList';
+import ClientHistory from './pages/agency/ClientHistory';
 import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
@@ -15,7 +18,7 @@ import VolunteerManagement from './pages/volunteer-management/VolunteerManagemen
 import Dashboard from './components/dashboard/Dashboard';
 import ClientDashboard from './pages/client/ClientDashboard';
 import VolunteerBookingHistory from './pages/volunteer-management/VolunteerBookingHistory';
-import VolunteerSchedule from './pages/volunteer-management/VolunteerSchedule';
+import VolunteerBooking from './pages/volunteer-management/VolunteerBooking';
 import WarehouseDashboard from './pages/warehouse-management/WarehouseDashboard';
 import DonationLog from './pages/warehouse-management/DonationLog';
 import TrackPigpound from './pages/warehouse-management/TrackPigpound';
@@ -23,14 +26,18 @@ import TrackOutgoingDonations from './pages/warehouse-management/TrackOutgoingDo
 import TrackSurplus from './pages/warehouse-management/TrackSurplus';
 import Aggregations from './pages/warehouse-management/Aggregations';
 import DonorProfile from './pages/warehouse-management/DonorProfile';
+import Exports from './pages/warehouse-management/Exports';
 import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
+import UpdateClientData from './pages/staff/UpdateClientData';
+import AgencyLogin from './pages/agency/Login';
+import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import Breadcrumbs from './components/Breadcrumbs';
-import { useAuth } from './hooks/useAuth';
+import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 
 export default function App() {
@@ -65,6 +72,7 @@ export default function App() {
       { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
       { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
       { label: 'Staff Login', links: [{ label: 'Staff Login', to: '/login/staff' }] },
+      { label: 'Agency Login', links: [{ label: 'Agency Login', to: '/login/agency' }] },
     );
   } else if (isStaff) {
     const staffLinks = [
@@ -73,6 +81,7 @@ export default function App() {
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Add Client', to: '/pantry/add-client' },
+      { label: 'Update Client Data', to: '/pantry/update-client-data' },
       { label: 'Client History', to: '/pantry/user-history' },
       { label: 'Pending', to: '/pantry/pending' },
     ];
@@ -99,6 +108,7 @@ export default function App() {
       },
       { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
       { label: 'Aggregations', to: '/warehouse-management/aggregations' },
+      { label: 'Exports', to: '/warehouse-management/exports' },
     ];
     if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
     if (showAdmin)
@@ -110,6 +120,15 @@ export default function App() {
         ],
       });
 
+  } else if (role === 'agency') {
+    navGroups.push({
+      label: 'Agency',
+      links: [
+        { label: 'Schedule', to: '/agency/schedule' },
+        { label: 'Clients', to: '/agency/clients' },
+        { label: 'Client History', to: '/agency/history' },
+      ],
+    });
   } else if (role === 'shopper') {
     navGroups.push({
       label: 'Booking',
@@ -166,6 +185,10 @@ export default function App() {
                 element={
                   role === 'volunteer' ? (
                     <VolunteerDashboard token={token} />
+                  ) : role === 'agency' ? (
+                    <AgencyGuard>
+                      <AgencySchedule />
+                    </AgencyGuard>
                   ) : isStaff ? (
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
@@ -223,6 +246,18 @@ export default function App() {
                   element={<Aggregations />}
                 />
               )}
+              {showWarehouse && (
+                <Route
+                  path="/warehouse-management/exports"
+                  element={<Exports />}
+                />
+              )}
+              {role === 'agency' && (
+                <Route
+                  path="/agency/clients"
+                  element={<AgencyClientBookings />}
+                />
+              )}
               {role === 'shopper' && (
                 <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
               )}
@@ -252,6 +287,9 @@ export default function App() {
                 />
               )}
               {showStaff && <Route path="/pantry/add-client" element={<AddClient token={token} />} />}
+              {showStaff && (
+                <Route path="/pantry/update-client-data" element={<UpdateClientData token={token} />} />
+              )}
               {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
@@ -274,11 +312,39 @@ export default function App() {
                 <>
                   <Route
                     path="/volunteer/schedule"
-                    element={<VolunteerSchedule token={token} />}
+                    element={<VolunteerBooking token={token} />}
                   />
                   <Route
                     path="/volunteer/history"
                     element={<VolunteerBookingHistory token={token} />}
+                  />
+                </>
+              )}
+              {role === 'agency' && (
+                <>
+                  <Route
+                    path="/agency/schedule"
+                    element={
+                      <AgencyGuard>
+                        <AgencySchedule />
+                      </AgencyGuard>
+                    }
+                  />
+                  <Route
+                    path="/agency/clients"
+                    element={
+                      <AgencyGuard>
+                        <ClientList />
+                      </AgencyGuard>
+                    }
+                  />
+                  <Route
+                    path="/agency/history"
+                    element={
+                      <AgencyGuard>
+                        <ClientHistory />
+                      </AgencyGuard>
+                    }
                   />
                 </>
               )}
@@ -291,6 +357,7 @@ export default function App() {
                 <Route path="/login/user" element={<Login onLogin={login} />} />
                 <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
                 <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
+                <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
               <Route path="/login" element={<Navigate to="/login/user" replace />} />
               <Route path="*" element={<Navigate to="/login/user" replace />} />
             </Routes>

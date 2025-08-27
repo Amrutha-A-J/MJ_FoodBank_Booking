@@ -1,4 +1,4 @@
-export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer';
+export type Role = 'staff' | 'shopper' | 'delivery' | 'volunteer' | 'agency';
 export type UserRole = 'shopper' | 'delivery';
 export type StaffRole = 'staff';
 export type StaffAccess =
@@ -21,6 +21,7 @@ export interface LoginResponse {
   bookingsThisMonth?: number;
   userRole?: UserRole;
   access: StaffAccess[];
+  id?: number;
 }
 
 export interface Slot {
@@ -49,6 +50,15 @@ export interface Holiday {
 }
 
 export interface BlockedSlot {
+  slotId: number;
+  reason: string;
+  status?: 'blocked' | 'break';
+}
+
+export interface RecurringBlockedSlot {
+  id: number;
+  dayOfWeek: number;
+  weekOfMonth: number;
   slotId: number;
   reason: string;
 }
@@ -130,9 +140,12 @@ export interface UserProfile {
   lastName: string;
   email: string | null;
   phone: string | null;
-  clientId: number;
   role: Role;
-  bookingsThisMonth: number;
+  clientId?: number;
+  bookingsThisMonth?: number;
+  roles?: StaffAccess[];
+  username?: string;
+  trainedAreas?: string[];
 }
 
 export interface RoleOption {

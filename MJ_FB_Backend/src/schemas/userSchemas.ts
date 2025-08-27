@@ -41,3 +41,25 @@ export const createUserSchema = z
     },
   );
 
+// Schema for updating a user's basic information. First and last names are
+// required while email and phone are optional.
+export const updateUserSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+});
+
+// Schema for users updating their own contact information. Either
+// email or phone must be provided, but both are optional.
+export const updateMyProfileSchema = z
+  .object({
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+  })
+  .refine(data => data.email !== undefined || data.phone !== undefined, {
+    message: 'email or phone required',
+    path: ['email'],
+  });
+
+

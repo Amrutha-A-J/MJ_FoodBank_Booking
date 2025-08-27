@@ -11,7 +11,6 @@ import {
   Select,
   MenuItem,
   Stack,
-  Button,
   CircularProgress,
   Tabs,
   Tab,
@@ -19,8 +18,7 @@ import {
 import Page from '../../components/Page';
 import {
   getWarehouseOverall,
-  rebuildWarehouseOverall,
-  exportWarehouseOverall,
+  getWarehouseOverallYears,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
@@ -29,16 +27,37 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
   const [overallLoading, setOverallLoading] = useState(false);
-  const [rebuilding, setRebuilding] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const currentYear = new Date().getFullYear();
-  const [overallYear, setOverallYear] = useState(currentYear);
-  const [donorYear, setDonorYear] = useState(currentYear);
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
+  const [years, setYears] = useState<number[]>(fallbackYears);
+  const [overallYear, setOverallYear] = useState(fallbackYears[0]);
+  const [donorYear, setDonorYear] = useState(fallbackYears[0]);
   const [tab, setTab] = useState(0);
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadYears() {
+      try {
+        const ys = await getWarehouseOverallYears();
+        if (ys.length) {
+          setYears(ys);
+          setOverallYear(ys[0]);
+          setDonorYear(ys[0]);
+        } else {
+          setYears(fallbackYears);
+          setOverallYear(fallbackYears[0]);
+          setDonorYear(fallbackYears[0]);
+        }
+      } catch {
+        setYears(fallbackYears);
+        setOverallYear(fallbackYears[0]);
+        setDonorYear(fallbackYears[0]);
+      }
+    }
+    loadYears();
+  }, []);
 
   useEffect(() => {
     setOverallLoading(true);
@@ -98,40 +117,6 @@ export default function Aggregations() {
     }),
     { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 },
   );
-
-  const handleRebuildOverall = () => {
-    setRebuilding(true);
-    rebuildWarehouseOverall(overallYear)
-      .then(() => {
-        setSnackbar({ open: true, message: 'Totals recalculated', severity: 'success' });
-        return getWarehouseOverall(overallYear);
-      })
-      .then(setOverallRows)
-      .catch(() => {
-        setSnackbar({ open: true, message: 'Failed to recalculate totals', severity: 'error' });
-      })
-      .finally(() => setRebuilding(false));
-  };
-
-  const handleExportOverall = () => {
-    setExporting(true);
-    exportWarehouseOverall(overallYear)
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `warehouse-overall-${overallYear}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        setSnackbar({ open: true, message: 'Export ready', severity: 'success' });
-      })
-      .catch(() => {
-        setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
-      })
-      .finally(() => setExporting(false));
-  };
 
   return (
     <Page title="Aggregations">
@@ -324,22 +309,6 @@ export default function Aggregations() {
                 ))}
               </Select>
             </FormControl>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={handleRebuildOverall}
-              disabled={rebuilding}
-            >
-              {rebuilding ? <CircularProgress size={20} /> : 'Calculate Overall'}
-            </Button>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={handleExportOverall}
-              disabled={exporting}
-            >
-              {exporting ? <CircularProgress size={20} /> : 'Export'}
-            </Button>
           </Stack>
           <TableContainer sx={{ overflowX: 'auto' }}>
             <Table size="small">

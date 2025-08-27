@@ -4,6 +4,7 @@ import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBook
 import {
   getVolunteerRolesForVolunteer,
   getMyVolunteerBookings,
+  requestVolunteerBooking,
   createRecurringVolunteerBooking,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
@@ -13,6 +14,7 @@ import { getHolidays } from '../api/bookings';
 jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   getMyVolunteerBookings: jest.fn(),
+  requestVolunteerBooking: jest.fn(),
   createRecurringVolunteerBooking: jest.fn(),
   cancelVolunteerBooking: jest.fn(),
   cancelRecurringVolunteerBooking: jest.fn(),
@@ -44,6 +46,7 @@ beforeEach(() => {
   ]);
   (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
   (getHolidays as jest.Mock).mockResolvedValue([]);
+  (requestVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (createRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
@@ -58,7 +61,7 @@ test('submits weekly recurring booking', async () => {
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Available'));
+  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
   fireEvent.mouseDown(screen.getByLabelText(/frequency/i));
   const freqList = await screen.findAllByRole('listbox');
   fireEvent.click(within(freqList[freqList.length - 1]).getByText('Weekly'));
@@ -76,6 +79,17 @@ test('submits weekly recurring booking', async () => {
   expect(args[1]).toBe(1);
   expect(args[3]).toBe('weekly');
   expect(args[4]).toEqual(expect.arrayContaining([1, 3]));
+});
+
+test('submits one-time booking', async () => {
+  render(<VolunteerSchedule token="t" />);
+  fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+  const listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Test Role'));
+  fireEvent.click(await screen.findByText('Available'));
+  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
+  expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
 });
 
 test('cancels single and recurring bookings', async () => {

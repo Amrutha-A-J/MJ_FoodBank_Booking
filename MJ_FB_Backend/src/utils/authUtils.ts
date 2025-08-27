@@ -7,8 +7,15 @@ import config from '../config';
 export type AuthPayload = {
   id: number;
   role: string;
-  type: 'user' | 'staff';
+  /**
+   * The category of user these tokens are for. Volunteers use the same
+   * refresh-token flow as users, staff and agencies so include them here.
+   */
+  type: 'user' | 'staff' | 'agency' | 'volunteer';
   access?: string[];
+  /** Optional fields used for volunteer/user hybrids */
+  userId?: number;
+  userRole?: string;
 };
 
 /**
@@ -33,6 +40,7 @@ export async function issueAuthTokens(
   );
 
   const secure = process.env.NODE_ENV !== 'development';
+  const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
   res.cookie('token', token, {
     httpOnly: true,
     sameSite: 'strict',
@@ -42,9 +50,12 @@ export async function issueAuthTokens(
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: refreshExpiry,
+    expires: new Date(Date.now() + refreshExpiry),
     secure,
   });
+
+  return { token, refreshToken };
 }
 
 export default issueAuthTokens;

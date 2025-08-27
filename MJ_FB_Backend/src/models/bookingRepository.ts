@@ -22,7 +22,7 @@ export async function checkSlotCapacity(
     'SELECT max_capacity FROM slots WHERE id = $1 FOR UPDATE',
     [slotId],
   );
-  if (slotRes.rowCount === 0) {
+  if ((slotRes.rowCount ?? 0) === 0) {
     throw new SlotCapacityError('Invalid slot');
   }
   const approvedCountRes = await client.query(
@@ -93,10 +93,9 @@ export async function fetchBookings(
         u.email as user_email, u.phone as user_phone,
         u.client_id,
         (
-          SELECT COUNT(*) FROM bookings b2
-          WHERE b2.user_id = b.user_id
-            AND b2.status = 'approved'
-            AND DATE_TRUNC('month', b2.date) = DATE_TRUNC('month', b.date)
+          SELECT COUNT(*) FROM client_visits v
+          WHERE v.client_id = u.client_id
+            AND DATE_TRUNC('month', v.date) = DATE_TRUNC('month', b.date)
         ) AS bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b

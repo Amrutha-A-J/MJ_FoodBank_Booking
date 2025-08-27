@@ -9,7 +9,6 @@ jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/bookingUtils', () => ({
-  updateBookingsThisMonth: jest.fn().mockResolvedValue(0),
 }));
 
 const app = express();
