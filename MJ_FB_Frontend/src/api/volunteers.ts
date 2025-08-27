@@ -151,7 +151,8 @@ export async function updateVolunteerRoleStatus(
 
 export async function getVolunteerBookingsByRole(roleId: number) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`);
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
 export async function updateVolunteerBookingStatus(
