@@ -8,7 +8,11 @@ import FeedbackModal from '../../components/FeedbackModal';
 import FormContainer from '../../components/FormContainer';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 
-export default function StaffLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
+export default function StaffLogin({
+  onLogin,
+}: {
+  onLogin: (u: LoginResponse) => Promise<void>;
+}) {
   const [checking, setChecking] = useState(true);
   const [hasStaff, setHasStaff] = useState(false);
   const [error, setError] = useState('');
@@ -34,7 +38,13 @@ export default function StaffLogin({ onLogin }: { onLogin: (u: LoginResponse) =>
   );
 }
 
-function StaffLoginForm({ onLogin, error: initError }: { onLogin: (u: LoginResponse) => void; error: string }) {
+function StaffLoginForm({
+  onLogin,
+  error: initError,
+}: {
+  onLogin: (u: LoginResponse) => Promise<void>;
+  error: string;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
@@ -48,7 +58,7 @@ function StaffLoginForm({ onLogin, error: initError }: { onLogin: (u: LoginRespo
         setError('Not a staff account');
         return;
       }
-      onLogin(user);
+      await onLogin(user);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }
