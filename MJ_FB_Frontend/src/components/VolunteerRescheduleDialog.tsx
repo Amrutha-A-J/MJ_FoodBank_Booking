@@ -6,8 +6,11 @@ import {
   DialogActions,
   Button,
   TextField,
+  MenuItem,
 } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import { getRoles } from '../api/volunteers';
+import type { RoleOption } from '../types';
 
 interface RescheduleDialogProps {
   open: boolean;
@@ -22,6 +25,7 @@ export default function RescheduleDialog({
 }: RescheduleDialogProps) {
   const [date, setDate] = useState('');
   const [roleId, setRoleId] = useState('');
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -29,20 +33,20 @@ export default function RescheduleDialog({
       setDate('');
       setRoleId('');
       setMessage('');
+      return;
     }
+    getRoles()
+      .then(setRoles)
+      .catch(() => setRoles([]));
   }, [open]);
 
   function handleSubmit() {
     if (!date || !roleId) {
-      setMessage('Please enter date and role ID');
+      setMessage('Please select date and role');
       return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       setMessage('Date must be YYYY-MM-DD');
-      return;
-    }
-    if (!/^\d+$/.test(roleId)) {
-      setMessage('Role ID must be a number');
       return;
     }
     onSubmit(date, Number(roleId));
@@ -62,13 +66,19 @@ export default function RescheduleDialog({
           InputLabelProps={{ shrink: true }}
         />
         <TextField
-          label="Role ID"
-          type="number"
+          select
+          label="Role"
           value={roleId}
           onChange={e => setRoleId(e.target.value)}
           fullWidth
           margin="normal"
-        />
+        >
+          {roles.map(r => (
+            <MenuItem key={r.roleId} value={r.roleId.toString()}>
+              {r.roleName} ({r.categoryName})
+            </MenuItem>
+          ))}
+        </TextField>
         <FeedbackSnackbar
           open={!!message}
           message={message}
