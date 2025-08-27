@@ -95,6 +95,45 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function getVolunteerProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const profileRes = await pool.query(
+      `SELECT id, first_name, last_name, email, phone, username FROM volunteers WHERE id = $1`,
+      [user.id],
+    );
+    if ((profileRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const trainedRes = await pool.query(
+      `SELECT vr.name
+         FROM volunteer_trained_roles vtr
+         JOIN volunteer_roles vr ON vtr.role_id = vr.id
+         WHERE vtr.volunteer_id = $1`,
+      [user.id],
+    );
+    const row = profileRes.rows[0];
+    return res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+      role: 'volunteer',
+      username: row.username,
+      trainedAreas: trainedRes.rows.map(r => r.name),
+    });
+  } catch (error) {
+    logger.error('Error fetching volunteer profile:', error);
+    next(error);
+  }
+}
+
 export async function createVolunteer(
   req: Request,
   res: Response,
