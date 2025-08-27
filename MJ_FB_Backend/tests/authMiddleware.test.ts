@@ -5,7 +5,12 @@ import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 
 jest.mock('../src/db');
-jest.mock('jsonwebtoken');
+jest.mock('jsonwebtoken', () => ({
+  ...jest.requireActual('jsonwebtoken'),
+  verify: jest.fn(),
+}));
+
+const { TokenExpiredError } = jest.requireActual('jsonwebtoken');
 
 const app = express();
 app.get('/protected', authMiddleware, (_req, res) => res.json({ ok: true }));
@@ -56,6 +61,20 @@ describe('authMiddleware', () => {
       .set('Authorization', 'Bearer bad');
     expect(res.status).toBe(401);
     expect(res.body.message).toBe('Invalid token');
+  });
+
+  it('clears token cookie on expired token', async () => {
+    (jwt.verify as jest.Mock).mockImplementation(() => {
+      throw new TokenExpiredError('jwt expired', new Date());
+    });
+
+    const res = await request(app)
+      .get('/protected')
+      .set('Cookie', 'token=abc');
+    expect(res.status).toBe(401);
+    const cookies = res.headers['set-cookie'] as unknown as string[];
+    expect(cookies).toBeDefined();
+    expect(cookies.some(c => c.startsWith('token=;'))).toBe(true);
   });
 });
 
