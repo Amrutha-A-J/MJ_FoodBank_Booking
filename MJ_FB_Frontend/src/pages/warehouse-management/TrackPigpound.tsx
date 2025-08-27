@@ -15,12 +15,11 @@ import {
   Stack,
   TextField,
   IconButton,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import StyledTabs from '../../components/StyledTabs';
 import {
   getPigPounds,
   createPigPound,
@@ -108,38 +107,17 @@ export default function TrackPigpound() {
       );
   }
 
-  return (
-    <Page
-      title="Track Pigpound"
-      header={
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => {
-            setForm({ date: format(selectedDate), weight: '' });
-            setEditing(null);
-            setRecordOpen(true);
-          }}
-        >
-          Record Pig Pound Donation
-        </Button>
-      }
-    >
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
-        {weekDates.map((d, i) => (
-          <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
-        ))}
-      </Tabs>
-      <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
+  const table = (
+    <TableContainer sx={{ overflowX: 'auto' }}>
+      <Table size="small">
+        <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Weight (lbs)</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-          </TableHead>
-          <TableBody>
+        </TableHead>
+        <TableBody>
           {entries.length === 0 ? (
             <TableRow>
               <TableCell colSpan={3} align="center">
@@ -158,7 +136,7 @@ export default function TrackPigpound() {
                     size="small"
                     onClick={() => {
                       setEditing(e);
-                      setForm({ date: e.date, weight: String(e.weight) });
+                      setForm({ date: format(new Date(e.date)), weight: String(e.weight) });
                       setRecordOpen(true);
                     }}
                     aria-label="Edit entry"
@@ -179,9 +157,34 @@ export default function TrackPigpound() {
               </TableRow>
             ))
           )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const tabs = weekDates.map(d => ({
+    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    content: table,
+  }));
+
+  return (
+    <Page
+      title="Track Pigpound"
+      header={
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({ date: format(selectedDate), weight: '' });
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+        >
+          Record Pig Pound Donation
+        </Button>
+      }
+    >
+      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog
         open={recordOpen}
