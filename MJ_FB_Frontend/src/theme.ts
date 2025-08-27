@@ -57,7 +57,15 @@ let theme = createTheme({
     MuiButton: {
       defaultProps: { size: 'small' },
       styleOverrides: {
-        root: { borderRadius: 10, textTransform: 'none', fontWeight: 600 },
+        root: {
+          borderRadius: 10,
+          textTransform: 'none',
+          fontWeight: 600,
+          padding: '0.6em 1.2em',
+          fontSize: '1rem',
+          border: '1px solid transparent',
+          transition: 'border-color 0.25s',
+        },
         containedPrimary: {
           color: '#fff',
           '&:hover': { backgroundColor: BRAND_PRIMARY },
@@ -88,6 +96,36 @@ let theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: { borderColor: DIVIDER },
+      },
+    },
+    MuiTextField: {
+      defaultProps: { fullWidth: true, size: 'small' },
+      styleOverrides: {
+        root: {
+          '& .MuiInputBase-root': { borderRadius: 10 },
+          '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
+        },
+      },
+    },
+    MuiSelect: {
+      defaultProps: { fullWidth: true, size: 'small' },
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-notchedOutline': { borderRadius: 10 },
+        },
+        select: { padding: '0.5rem', fontSize: '1rem' },
+      },
+    },
+    MuiFormControl: {
+      defaultProps: { fullWidth: true },
+      styleOverrides: {
+        root: {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          '& .MuiInputBase-root': { borderRadius: 10 },
+          '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
+        },
       },
     },
     MuiTabs: {
