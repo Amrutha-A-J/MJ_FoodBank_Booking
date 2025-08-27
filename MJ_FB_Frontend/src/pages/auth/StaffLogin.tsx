@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
-import { Typography, TextField, Link } from '@mui/material';
+import { Typography, TextField, Link, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FeedbackModal from '../../components/FeedbackModal';
-import FormContainer from '../../components/FormContainer';
+import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function StaffLogin({
@@ -66,11 +66,15 @@ function StaffLoginForm({
 
   return (
     <>
-      <FormContainer
+      <FormCard
         onSubmit={submit}
-        submitLabel="Login"
         title="Staff Login"
         header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+        }
       >
         <TextField
           type="email"
@@ -81,7 +85,7 @@ function StaffLoginForm({
         />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
-      </FormContainer>
+      </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="staff" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>
@@ -109,12 +113,20 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
 
   return (
     <>
-      <FormContainer onSubmit={submit} submitLabel="Create Staff" title="Create Staff Account">
+      <FormCard
+        onSubmit={submit}
+        title="Create Staff Account"
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Create Staff
+          </Button>
+        }
+      >
         <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" fullWidth />
         <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" fullWidth />
         <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
-      </FormContainer>
+      </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
     </>

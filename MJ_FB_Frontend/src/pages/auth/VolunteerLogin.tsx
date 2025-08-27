@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { loginVolunteer } from '../../api/volunteers';
 import type { LoginResponse } from '../../api/users';
-import { TextField, Link } from '@mui/material';
+import { TextField, Link, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import FormContainer from '../../components/FormContainer';
+import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 
 export default function VolunteerLogin({
@@ -29,16 +29,20 @@ export default function VolunteerLogin({
 
   return (
     <>
-      <FormContainer
+      <FormCard
         onSubmit={submit}
-        submitLabel="Login"
         title="Volunteer Login"
         header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
+        actions={
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Login
+          </Button>
+        }
       >
         <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
         <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
-      </FormContainer>
+      </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="volunteer" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
     </>
