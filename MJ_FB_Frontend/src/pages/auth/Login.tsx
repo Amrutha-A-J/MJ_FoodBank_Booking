@@ -7,7 +7,11 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormContainer from '../../components/FormContainer';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 
-export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => void }) {
+export default function Login({
+  onLogin,
+}: {
+  onLogin: (user: LoginResponse) => Promise<void>;
+}) {
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +21,7 @@ export default function Login({ onLogin }: { onLogin: (user: LoginResponse) => v
     e.preventDefault();
     try {
       const user = await loginUser(clientId, password);
-      onLogin(user);
+      await onLogin(user);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }

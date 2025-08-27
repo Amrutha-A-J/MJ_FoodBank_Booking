@@ -4,7 +4,11 @@ import { TextField } from '@mui/material';
 import FormContainer from '../../components/FormContainer';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
-export default function AgencyLogin({ onLogin }: { onLogin: (u: LoginResponse) => void }) {
+export default function AgencyLogin({
+  onLogin,
+}: {
+  onLogin: (u: LoginResponse) => Promise<void>;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,7 +17,7 @@ export default function AgencyLogin({ onLogin }: { onLogin: (u: LoginResponse) =
     e.preventDefault();
     try {
       const user = await loginAgency(email, password);
-      onLogin(user);
+      await onLogin(user);
     } catch (err: any) {
       setError(err.message ?? String(err));
     }
