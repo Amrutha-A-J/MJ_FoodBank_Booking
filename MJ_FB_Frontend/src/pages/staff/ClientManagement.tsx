@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Grid, Tabs, Tab } from '@mui/material';
+import StyledTabs from '../../components/StyledTabs';
 import { useSearchParams } from 'react-router-dom';
 import AddClient from './client-management/AddClient';
 import UpdateClientData from './client-management/UpdateClientData';
@@ -8,43 +8,29 @@ import UserHistory from './client-management/UserHistory';
 export default function ClientManagement() {
   const [searchParams] = useSearchParams();
   const initial = searchParams.get('tab');
-  const [value, setValue] = useState<'add' | 'update' | 'history'>(
-    initial === 'update' || initial === 'history' ? (initial as 'update' | 'history') : 'add'
-  );
+  const [tab, setTab] = useState(() => {
+    switch (initial) {
+      case 'update':
+        return 1;
+      case 'history':
+        return 2;
+      default:
+        return 0;
+    }
+  });
 
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'add' || tab === 'update' || tab === 'history') {
-      setValue(tab);
-    }
+    const t = searchParams.get('tab');
+    if (t === 'update') setTab(1);
+    else if (t === 'history') setTab(2);
+    else setTab(0);
   }, [searchParams]);
+  const tabs = [
+    { label: 'Add', content: <AddClient /> },
+    { label: 'Update', content: <UpdateClientData /> },
+    { label: 'History', content: <UserHistory /> },
+  ];
 
-  const renderContent = () => {
-    switch (value) {
-      case 'update':
-        return <UpdateClientData />;
-      case 'history':
-        return <UserHistory />;
-      default:
-        return <AddClient />;
-    }
-  };
-
-  return (
-    <Grid container spacing={2} direction="column">
-      <Grid item xs={12}>
-        <Tabs
-          value={value}
-          onChange={(_, newValue: 'add' | 'update' | 'history') => setValue(newValue)}
-          aria-label="client management tabs"
-        >
-          <Tab label="Add" value="add" />
-          <Tab label="Update" value="update" />
-          <Tab label="History" value="history" />
-        </Tabs>
-      </Grid>
-      <Grid item xs={12}>{renderContent()}</Grid>
-    </Grid>
-  );
+  return <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />;
 }
 

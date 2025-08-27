@@ -6,8 +6,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Tabs,
-  Tab,
   Table,
   TableHead,
   TableRow,
@@ -23,6 +21,7 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import StyledTabs from '../../components/StyledTabs';
 import {
   getClientVisits,
   createClientVisit,
@@ -174,6 +173,86 @@ export default function PantryVisits() {
     }
   }
 
+  const table = (
+    <TableContainer sx={{ overflowX: 'auto' }}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Date</TableCell>
+            <TableCell>Client ID</TableCell>
+            <TableCell>Client Name</TableCell>
+            <TableCell>Profile</TableCell>
+            <TableCell>Weight With Cart</TableCell>
+            <TableCell>Weight Without Cart</TableCell>
+            <TableCell>Pet Item</TableCell>
+            <TableCell align="right"></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {visits.map(v => (
+            <TableRow key={v.id}>
+              <TableCell>{formatDisplay(v.date)}</TableCell>
+              <TableCell>{v.clientId ?? 'N/A'}</TableCell>
+              <TableCell>{v.clientName ?? ''}</TableCell>
+              <TableCell>
+                {v.clientId ? (
+                  <a
+                    href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Link
+                  </a>
+                ) : (
+                  'N/A'
+                )}
+              </TableCell>
+              <TableCell>{v.weightWithCart}</TableCell>
+              <TableCell>{v.weightWithoutCart}</TableCell>
+              <TableCell>{v.petItem}</TableCell>
+              <TableCell align="right">
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setEditing(v);
+                    setForm({
+                      date: format(new Date(v.date)),
+                      anonymous: v.anonymous,
+                      clientId: v.clientId ? String(v.clientId) : '',
+                      weightWithCart: String(v.weightWithCart),
+                      weightWithoutCart: String(v.weightWithoutCart),
+                      petItem: String(v.petItem),
+                    });
+                    setAutoWeight(true);
+                    setRecordOpen(true);
+                  }}
+                  aria-label="Edit visit"
+                >
+                  <Edit fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setToDelete(v);
+                    setDeleteOpen(true);
+                  }}
+                  aria-label="Delete visit"
+                >
+                  <Delete fontSize="small" />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const tabs = weekDates.map(d => ({
+    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    content: table,
+  }));
+
   return (
     <Page
       title="Pantry Visits"
@@ -209,83 +288,7 @@ export default function PantryVisits() {
         </Stack>
       }
     >
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
-        {weekDates.map((d, i) => (
-          <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
-        ))}
-      </Tabs>
-      <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Client ID</TableCell>
-              <TableCell>Client Name</TableCell>
-              <TableCell>Profile</TableCell>
-              <TableCell>Weight With Cart</TableCell>
-              <TableCell>Weight Without Cart</TableCell>
-              <TableCell>Pet Item</TableCell>
-              <TableCell align="right"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visits.map(v => (
-              <TableRow key={v.id}>
-                <TableCell>{formatDisplay(v.date)}</TableCell>
-                <TableCell>{v.clientId ?? 'N/A'}</TableCell>
-                <TableCell>{v.clientName ?? ''}</TableCell>
-                <TableCell>
-                  {v.clientId ? (
-                    <a
-                      href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Link
-                    </a>
-                  ) : (
-                    'N/A'
-                  )}
-                </TableCell>
-                <TableCell>{v.weightWithCart}</TableCell>
-                <TableCell>{v.weightWithoutCart}</TableCell>
-                <TableCell>{v.petItem}</TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setEditing(v);
-                      setForm({
-                        date: format(new Date(v.date)),
-                        anonymous: v.anonymous,
-                        clientId: v.clientId ? String(v.clientId) : '',
-                        weightWithCart: String(v.weightWithCart),
-                        weightWithoutCart: String(v.weightWithoutCart),
-                        petItem: String(v.petItem),
-                      });
-                      setAutoWeight(true);
-                      setRecordOpen(true);
-                    }}
-                    aria-label="Edit visit"
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setToDelete(v);
-                      setDeleteOpen(true);
-                    }}
-                    aria-label="Delete visit"
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Visit' : 'Record Visit'}</DialogTitle>

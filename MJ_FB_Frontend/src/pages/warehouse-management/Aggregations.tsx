@@ -12,8 +12,6 @@ import {
   MenuItem,
   Stack,
   CircularProgress,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import Page from '../../components/Page';
 import {
@@ -23,6 +21,7 @@ import {
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import StyledTabs from '../../components/StyledTabs';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -118,155 +117,95 @@ export default function Aggregations() {
     { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 },
   );
 
-  return (
-    <Page title="Aggregations">
-      <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)} sx={{ mb: 2 }}>
-        <Tab label="Donor Aggregations" />
-        <Tab label="Yearly Overall Aggregations" />
-      </Tabs>
-      {tab === 0 ? (
-        <>
-          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="donor-year-label">Year</InputLabel>
-              <Select
-                labelId="donor-year-label"
-                label="Year"
-                value={donorYear}
-                onChange={e => setDonorYear(Number(e.target.value))}
+  const donorContent = (
+    <>
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel id="donor-year-label">Year</InputLabel>
+          <Select
+            labelId="donor-year-label"
+            label="Year"
+            value={donorYear}
+            onChange={e => setDonorYear(Number(e.target.value))}
+          >
+            {years.map(y => (
+              <MenuItem key={y} value={y}>
+                {y}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+      <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell
+                sx={{
+                  position: 'sticky',
+                  left: 0,
+                  zIndex: 3,
+                  backgroundColor: 'background.paper',
+                }}
               >
-                {years.map(y => (
-                  <MenuItem key={y} value={y}>
-                    {y}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-          <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
-            <Table size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 3,
-                      backgroundColor: 'background.paper',
-                    }}
-                  >
-                    Donor
-                  </TableCell>
-                  {monthNames.map((name, idx) => (
-                    <TableCell
-                      key={idx}
-                      align="right"
-                      sx={{
-                        top: 0,
-                        zIndex: 2,
-                        backgroundColor: 'background.paper',
-                      }}
-                    >
-                      {name}
-                    </TableCell>
-                  ))}
-                  <TableCell
-                    align="right"
-                    sx={{
-                      position: 'sticky',
-                      right: 0,
-                      top: 0,
-                      zIndex: 3,
-                      backgroundColor: 'background.paper',
-                    }}
-                  >
-                    Total
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {donorLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={monthNames.length + 2} align="center">
-                      <CircularProgress size={24} />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  (() => {
-                    const monthTotals = Array(12).fill(0);
-                    donorRows.forEach(d =>
-                      d.monthlyTotals.forEach((v, i) => {
-                        monthTotals[i] += v;
-                      }),
-                    );
-                    return (
-                      <>
-                        {donorRows.map(d => {
-                          const hasDonation = d.total > 0;
-                          return (
-                            <TableRow key={d.donor}>
-                              <TableCell
-                                sx={{
-                                  position: 'sticky',
-                                  left: 0,
-                                  zIndex: 2,
-                                  backgroundColor: 'background.paper',
-                                  fontWeight: hasDonation ? 'bold' : undefined,
-                                }}
-                              >
-                                {d.donor}
-                              </TableCell>
-                              {d.monthlyTotals.map((value, idx) => (
-                                <TableCell
-                                  key={idx}
-                                  align="right"
-                                  sx={{
-                                    fontWeight: value > 0 ? 'bold' : undefined,
-                                  }}
-                                >
-                                  {value}
-                                </TableCell>
-                              ))}
-                              <TableCell
-                                align="right"
-                                sx={{
-                                  position: 'sticky',
-                                  right: 0,
-                                  zIndex: 2,
-                                  backgroundColor: 'background.paper',
-                                  fontWeight: hasDonation ? 'bold' : undefined,
-                                }}
-                              >
-                                {d.total}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                        <TableRow>
+                Donor
+              </TableCell>
+              {monthNames.map((name, idx) => (
+                <TableCell
+                  key={idx}
+                  align="right"
+                  sx={{ top: 0, zIndex: 2, backgroundColor: 'background.paper' }}
+                >
+                  {name}
+                </TableCell>
+              ))}
+              <TableCell
+                align="right"
+                sx={{ position: 'sticky', right: 0, top: 0, zIndex: 3, backgroundColor: 'background.paper' }}
+              >
+                Total
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {donorLoading ? (
+              <TableRow>
+                <TableCell colSpan={monthNames.length + 2} align="center">
+                  <CircularProgress size={24} />
+                </TableCell>
+              </TableRow>
+            ) : (
+              (() => {
+                const monthTotals = Array(12).fill(0);
+                donorRows.forEach(d =>
+                  d.monthlyTotals.forEach((v, i) => {
+                    monthTotals[i] += v;
+                  }),
+                );
+                return (
+                  <>
+                    {donorRows.map(d => {
+                      const hasDonation = d.total > 0;
+                      return (
+                        <TableRow key={d.donor}>
                           <TableCell
                             sx={{
                               position: 'sticky',
                               left: 0,
-                              bottom: 0,
-                              zIndex: 3,
+                              zIndex: 2,
                               backgroundColor: 'background.paper',
-                              fontWeight: 'bold',
+                              fontWeight: hasDonation ? 'bold' : undefined,
                             }}
                           >
-                            Total
+                            {d.donor}
                           </TableCell>
-                          {monthTotals.map((total, idx) => (
+                          {d.monthlyTotals.map((value, idx) => (
                             <TableCell
                               key={idx}
                               align="right"
-                              sx={{
-                                bottom: 0,
-                                position: 'sticky',
-                                backgroundColor: 'background.paper',
-                                fontWeight: 'bold',
-                              }}
+                              sx={{ fontWeight: value > 0 ? 'bold' : undefined }}
                             >
-                              {total}
+                              {value}
                             </TableCell>
                           ))}
                           <TableCell
@@ -274,85 +213,138 @@ export default function Aggregations() {
                             sx={{
                               position: 'sticky',
                               right: 0,
-                              bottom: 0,
-                              zIndex: 3,
+                              zIndex: 2,
                               backgroundColor: 'background.paper',
-                              fontWeight: 'bold',
+                              fontWeight: hasDonation ? 'bold' : undefined,
                             }}
                           >
-                            {monthTotals.reduce((a, b) => a + b, 0)}
+                            {d.total}
                           </TableCell>
                         </TableRow>
-                      </>
-                    );
-                  })()
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      ) : (
-        <>
-          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="overall-year-label">Year</InputLabel>
-              <Select
-                labelId="overall-year-label"
-                label="Year"
-                value={overallYear}
-                onChange={e => setOverallYear(Number(e.target.value))}
-              >
-                {years.map(y => (
-                  <MenuItem key={y} value={y}>
-                    {y}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-          <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Month</TableCell>
-                  <TableCell align="right">Donations</TableCell>
-                  <TableCell align="right">Surplus</TableCell>
-                  <TableCell align="right">Pig Pound</TableCell>
-                  <TableCell align="right">Outgoing Donations</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {overallLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      <CircularProgress size={24} />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  <>
-                    {overallData.map((r, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>{monthNames[r.month - 1]}</TableCell>
-                        <TableCell align="right">{r.donations}</TableCell>
-                        <TableCell align="right">{r.surplus}</TableCell>
-                        <TableCell align="right">{r.pigPound}</TableCell>
-                        <TableCell align="right">{r.outgoingDonations}</TableCell>
-                      </TableRow>
-                    ))}
+                      );
+                    })}
                     <TableRow>
-                      <TableCell>Total</TableCell>
-                      <TableCell align="right">{totals.donations}</TableCell>
-                      <TableCell align="right">{totals.surplus}</TableCell>
-                      <TableCell align="right">{totals.pigPound}</TableCell>
-                      <TableCell align="right">{totals.outgoingDonations}</TableCell>
+                      <TableCell
+                        sx={{
+                          position: 'sticky',
+                          left: 0,
+                          bottom: 0,
+                          zIndex: 3,
+                          backgroundColor: 'background.paper',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        Total
+                      </TableCell>
+                      {monthTotals.map((total, idx) => (
+                        <TableCell
+                          key={idx}
+                          align="right"
+                          sx={{
+                            bottom: 0,
+                            position: 'sticky',
+                            backgroundColor: 'background.paper',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {total}
+                        </TableCell>
+                      ))}
+                      <TableCell
+                        align="right"
+                        sx={{
+                          position: 'sticky',
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 3,
+                          backgroundColor: 'background.paper',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {monthTotals.reduce((a, b) => a + b, 0)}
+                      </TableCell>
                     </TableRow>
                   </>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </>
-      )}
+                );
+              })()
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+
+  const overallContent = (
+    <>
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel id="overall-year-label">Year</InputLabel>
+          <Select
+            labelId="overall-year-label"
+            label="Year"
+            value={overallYear}
+            onChange={e => setOverallYear(Number(e.target.value))}
+          >
+            {years.map(y => (
+              <MenuItem key={y} value={y}>
+                {y}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Month</TableCell>
+              <TableCell align="right">Donations</TableCell>
+              <TableCell align="right">Surplus</TableCell>
+              <TableCell align="right">Pig Pound</TableCell>
+              <TableCell align="right">Outgoing Donations</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {overallLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <CircularProgress size={24} />
+                </TableCell>
+              </TableRow>
+            ) : (
+              <>
+                {overallData.map((r, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{monthNames[r.month - 1]}</TableCell>
+                    <TableCell align="right">{r.donations}</TableCell>
+                    <TableCell align="right">{r.surplus}</TableCell>
+                    <TableCell align="right">{r.pigPound}</TableCell>
+                    <TableCell align="right">{r.outgoingDonations}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow>
+                  <TableCell>Total</TableCell>
+                  <TableCell align="right">{totals.donations}</TableCell>
+                  <TableCell align="right">{totals.surplus}</TableCell>
+                  <TableCell align="right">{totals.pigPound}</TableCell>
+                  <TableCell align="right">{totals.outgoingDonations}</TableCell>
+                </TableRow>
+              </>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+
+  const tabs = [
+    { label: 'Donor Aggregations', content: donorContent },
+    { label: 'Yearly Overall Aggregations', content: overallContent },
+  ];
+
+  return (
+    <Page title="Aggregations">
+      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

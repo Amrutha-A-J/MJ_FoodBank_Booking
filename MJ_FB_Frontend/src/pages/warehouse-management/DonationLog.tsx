@@ -7,8 +7,6 @@ import {
   DialogActions,
   DialogContentText,
   TextField,
-  Tabs,
-  Tab,
   Table,
   TableHead,
   TableRow,
@@ -22,6 +20,7 @@ import {
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import StyledTabs from '../../components/StyledTabs';
 import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
@@ -121,51 +120,17 @@ export default function DonationLog() {
     setNewDonorOpen(false);
   }
 
-  return (
-    <Page
-      title="Donation Log"
-      header={
-        <Stack direction="row" spacing={1} mb={2}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: format(selectedDate), donorId: null, weight: '' });
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Donation
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setNewDonorOpen(true);
-            }}
-          >
-            Add Donor
-          </Button>
-        </Stack>
-      }
-    >
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
-        {weekDates.map((d, i) => (
-          <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
-        ))}
-      </Tabs>
-      <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
+  const table = (
+    <TableContainer sx={{ overflowX: 'auto' }}>
+      <Table size="small">
+        <TableHead>
           <TableRow>
             <TableCell>Donor</TableCell>
             <TableCell>Weight (lbs)</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-          </TableHead>
-          <TableBody>
+        </TableHead>
+        <TableBody>
           {donations.map(d => (
             <TableRow key={d.id}>
               <TableCell>{d.donor}</TableCell>
@@ -197,9 +162,47 @@ export default function DonationLog() {
               </TableCell>
             </TableRow>
           ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const tabs = weekDates.map(d => ({
+    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    content: table,
+  }));
+
+  return (
+    <Page
+      title="Donation Log"
+      header={
+        <Stack direction="row" spacing={1} mb={2}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setForm({ date: format(selectedDate), donorId: null, weight: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
+            Record Donation
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setNewDonorOpen(true);
+            }}
+          >
+            Add Donor
+          </Button>
+        </Stack>
+      }
+    >
+      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>

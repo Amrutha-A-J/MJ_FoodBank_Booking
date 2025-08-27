@@ -15,12 +15,11 @@ import {
   TextField,
   MenuItem,
   IconButton,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import StyledTabs from '../../components/StyledTabs';
 import {
   getSurplus,
   createSurplus,
@@ -113,31 +112,10 @@ export default function TrackSurplus() {
       .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save surplus' }));
   }
 
-  return (
-    <Page
-      title="Track Surplus"
-      header={
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => {
-            setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
-            setEditing(null);
-            setRecordOpen(true);
-          }}
-        >
-          Record Surplus
-        </Button>
-      }
-    >
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
-        {weekDates.map((d, i) => (
-          <Tab key={i} label={d.toLocaleDateString(undefined, { weekday: 'short' })} />
-        ))}
-      </Tabs>
-      <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
+  const table = (
+    <TableContainer sx={{ overflowX: 'auto' }}>
+      <Table size="small">
+        <TableHead>
           <TableRow>
             <TableCell>Date</TableCell>
             <TableCell>Type</TableCell>
@@ -145,8 +123,8 @@ export default function TrackSurplus() {
             <TableCell>Weight (lbs)</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
-          </TableHead>
-          <TableBody>
+        </TableHead>
+        <TableBody>
           {filteredRecords.map(r => (
             <TableRow key={r.id}>
               <TableCell>
@@ -185,9 +163,34 @@ export default function TrackSurplus() {
               </TableCell>
             </TableRow>
           ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const tabs = weekDates.map(d => ({
+    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    content: table,
+  }));
+
+  return (
+    <Page
+      title="Track Surplus"
+      header={
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+        >
+          Record Surplus
+        </Button>
+      }
+    >
+      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogTitle>{editing ? 'Edit Surplus' : 'Record Surplus'}</DialogTitle>
