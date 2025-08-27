@@ -99,34 +99,30 @@ let theme = createTheme({
       },
     },
     MuiTextField: {
-      defaultProps: { fullWidth: true, size: 'small' },
+      defaultProps: { fullWidth: true, size: 'small', variant: 'outlined' },
       styleOverrides: {
-        root: {
-          '& .MuiInputBase-root': { borderRadius: 10 },
+        root: ({ theme }) => ({
+          marginBottom: theme.spacing(1),
+          '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius },
+          '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
+          '& .MuiFormHelperText-root': { marginLeft: 0 },
           '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
-        },
+        }),
       },
     },
     MuiSelect: {
-      defaultProps: { fullWidth: true, size: 'small' },
+      defaultProps: { fullWidth: true, size: 'small', variant: 'outlined' },
       styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-notchedOutline': { borderRadius: 10 },
-        },
+        root: ({ theme }) => ({
+          marginBottom: theme.spacing(1),
+          '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
+          '& .MuiFormHelperText-root': { marginLeft: 0 },
+        }),
         select: { padding: '0.5rem', fontSize: '1rem' },
       },
     },
     MuiFormControl: {
       defaultProps: { fullWidth: true },
-      styleOverrides: {
-        root: {
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem',
-          '& .MuiInputBase-root': { borderRadius: 10 },
-          '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
-        },
-      },
     },
     MuiTabs: {
       styleOverrides: {

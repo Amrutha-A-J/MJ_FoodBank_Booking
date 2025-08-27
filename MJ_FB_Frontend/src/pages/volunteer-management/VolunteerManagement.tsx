@@ -968,16 +968,15 @@ export default function VolunteerManagement() {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
             <h4>Assign Volunteer</h4>
-            <TextField
-              type="text"
-              placeholder="Search volunteers"
-              value={assignSearch}
-              onChange={e => setAssignSearch(e.target.value)}
-              label="Search"
-              size="small"
-              fullWidth
-              sx={{ mb: 1 }}
-            />
+              <TextField
+                type="text"
+                placeholder="Search volunteers"
+                value={assignSearch}
+                onChange={e => setAssignSearch(e.target.value)}
+                label="Search"
+                size="small"
+                fullWidth
+              />
             <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
               {assignResults.map(v => (
                 <li key={v.id} style={{ marginBottom: 4 }}>

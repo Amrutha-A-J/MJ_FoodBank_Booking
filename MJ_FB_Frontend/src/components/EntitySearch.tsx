@@ -47,15 +47,14 @@ export default function EntitySearch({
 
   return (
     <div>
-      <TextField
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        placeholder={placeholder}
-        label="Search"
-        size="small"
-        fullWidth
-        sx={{ mb: 1 }}
-      />
+        <TextField
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder={placeholder}
+          label="Search"
+          size="small"
+          fullWidth
+        />
       {results.length > 0 ? (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {results.map(r => (

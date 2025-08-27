@@ -414,15 +414,14 @@ export default function VolunteerSchedule() {
             </Box>
           )}
           {(frequency === 'daily' || frequency === 'weekly') && (
-            <TextField
-              label="End date"
-              type="date"
-              size="small"
-              value={endDate}
-              onChange={e => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ mt: 2 }}
-            />
+              <TextField
+                label="End date"
+                type="date"
+                size="small"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
           )}
         </DialogContent>
         <DialogActions>
@@ -449,14 +448,13 @@ export default function VolunteerSchedule() {
         <DialogTitle>Manage Booking</DialogTitle>
         <DialogContent dividers>
           <Typography>Modify booking for {decisionBooking?.role_name}?</Typography>
-          <TextField
-            placeholder="Reason for cancellation"
-            value={decisionReason}
-            onChange={e => setDecisionReason(e.target.value)}
-            fullWidth
-            multiline
-            sx={{ mt: 1 }}
-          />
+            <TextField
+              placeholder="Reason for cancellation"
+              value={decisionReason}
+              onChange={e => setDecisionReason(e.target.value)}
+              fullWidth
+              multiline
+            />
         </DialogContent>
         <DialogActions>
           <Button
