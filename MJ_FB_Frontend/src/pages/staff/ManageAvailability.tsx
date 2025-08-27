@@ -32,6 +32,7 @@ import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { getAllSlots } from '../../api/bookings';
 import { formatTime } from '../../utils/time';
 import type { Slot } from '../../types';
+import { formatLocaleDate, toDate } from '../../utils/date';
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const weekOrdinals = ['1st', '2nd', '3rd', '4th', '5th'];
@@ -61,11 +62,11 @@ interface BreakItem {
 
 export default function ManageAvailability() {
   const [holidays, setHolidays] = useState<HolidayItem[]>([]);
-  const [holidayDate, setHolidayDate] = useState<Date | null>(new Date());
+  const [holidayDate, setHolidayDate] = useState<Date | null>(toDate());
   const [holidayReason, setHolidayReason] = useState('');
 
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlotItem[]>([]);
-  const [blockedDate, setBlockedDate] = useState<Date | null>(new Date());
+  const [blockedDate, setBlockedDate] = useState<Date | null>(toDate());
   const [blockedSlotId, setBlockedSlotId] = useState('');
   const [blockedReason, setBlockedReason] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -225,7 +226,7 @@ export default function ManageAvailability() {
                   </Tooltip>
                 }
               >
-                <ListItemText primary={h.date.toLocaleDateString()} />
+                <ListItemText primary={formatLocaleDate(h.date)} />
                 {h.reason && <Chip label={h.reason} sx={{ ml: 1 }} />}
               </ListItem>
             ))}
@@ -346,7 +347,7 @@ export default function ManageAvailability() {
                 <ListItemText
                   primary={
                     b.date
-                      ? b.date.toLocaleDateString()
+                      ? formatLocaleDate(b.date)
                       : `${weekOrdinals[(b.week || 1) - 1]} ${days[b.day || 0]}`
                   }
                   secondary={slotLabel(b.slotId)}

@@ -16,9 +16,10 @@ import {
   exportWarehouseOverall,
 } from '../../api/warehouseOverall';
 import { exportDonorAggregations } from '../../api/donations';
+import { toDate } from '../../utils/date';
 
 export default function Exports() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = toDate().getFullYear();
   const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
   const [years, setYears] = useState<number[]>(fallbackYears);
   const [year, setYear] = useState(fallbackYears[0]);

@@ -38,6 +38,7 @@ import {
   Bar,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { formatLocaleDate, toDate } from '../../utils/date';
 import { useAuth } from '../../hooks/useAuth';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
@@ -68,7 +69,7 @@ interface MonthlyTotal {
 
 
 function monthName(m: number) {
-  return new Date(2000, m - 1).toLocaleString(undefined, { month: 'short' });
+  return formatLocaleDate(`${2000}-${String(m).padStart(2, '0')}-01`, { month: 'short' });
 }
 
 function fmtLbs(n?: number) {
@@ -120,7 +121,7 @@ export default function WarehouseDashboard() {
         setYears(ys);
         setYear(ys[0]);
       } catch {
-        const currentYear = new Date().getFullYear();
+        const currentYear = toDate().getFullYear();
         const fallback = Array.from({ length: 5 }, (_, i) => currentYear - i);
         setYears(fallback);
         setYear(fallback[0]);
@@ -187,7 +188,7 @@ export default function WarehouseDashboard() {
   }, [year]);
 
   const currentMonth = useMemo(() => {
-    const thisMonth = new Date().getMonth() + 1;
+    const thisMonth = toDate().getMonth() + 1;
     const monthsWithData = totals
       .filter(t => t.donationsLbs || t.surplusLbs || t.pigPoundLbs || t.outgoingLbs)
       .map(t => t.month);
@@ -472,7 +473,7 @@ export default function WarehouseDashboard() {
                     <Box>
                       <Typography variant="body2">{d.name}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Last: {new Date(d.lastDonationISO).toLocaleDateString()}
+                        Last: {formatLocaleDate(d.lastDonationISO)}
                       </Typography>
                     </Box>
                     <Typography variant="body2">{fmtLbs(d.totalLbs)}</Typography>
@@ -500,7 +501,7 @@ export default function WarehouseDashboard() {
                     <Box>
                       <Typography variant="body2">{r.name}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Last: {new Date(r.lastPickupISO).toLocaleDateString()}
+                        Last: {formatLocaleDate(r.lastPickupISO)}
                       </Typography>
                     </Box>
                     <Typography variant="body2">{fmtLbs(r.totalLbs)}</Typography>

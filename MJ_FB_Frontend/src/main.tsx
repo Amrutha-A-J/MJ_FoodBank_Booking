@@ -9,6 +9,7 @@ import { registerServiceWorker } from './registerServiceWorker';
 import { AuthProvider } from './hooks/useAuth';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from './utils/date';
 
 function Main() {
   const queryClient = new QueryClient();
@@ -16,7 +17,7 @@ function Main() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <App />
