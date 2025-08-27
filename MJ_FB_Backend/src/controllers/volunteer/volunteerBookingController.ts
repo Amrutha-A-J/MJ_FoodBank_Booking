@@ -17,6 +17,15 @@ function statusColor(status: string) {
   return STATUS_COLORS[status] || null;
 }
 
+function mapBookingRow(b: any) {
+  return {
+    ...b,
+    date:
+      b.date instanceof Date ? b.date.toISOString().split('T')[0] : b.date,
+    status_color: statusColor(b.status),
+  };
+}
+
 export async function createVolunteerBooking(
   req: Request,
   res: Response,
@@ -97,6 +106,10 @@ export async function createVolunteerBooking(
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.status(201).json(booking);
   } catch (error) {
     logger.error('Error creating volunteer booking:', error);
@@ -182,6 +195,10 @@ export async function createVolunteerBookingForVolunteer(
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.status(201).json(booking);
   } catch (error: any) {
     if (error.code === '23505') {
@@ -210,10 +227,7 @@ export async function listVolunteerBookings(
        JOIN volunteers v ON vb.volunteer_id = v.id
        ORDER BY vb.date, vs.start_time`
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings:', error);
@@ -242,10 +256,7 @@ export async function listVolunteerBookingsByRole(
        ORDER BY vb.date, vs.start_time`,
       [role_id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings:', error);
@@ -273,10 +284,7 @@ export async function listMyVolunteerBookings(
        ORDER BY vb.date DESC, vs.start_time DESC`,
       [user.id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings for volunteer:', error);
@@ -303,10 +311,7 @@ export async function listVolunteerBookingsByVolunteer(
        ORDER BY vb.date DESC, vs.start_time DESC`,
       [volunteer_id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings for volunteer:', error);
@@ -380,6 +385,10 @@ export async function updateVolunteerBookingStatus(
     updated.role_id = updated.slot_id;
     delete updated.slot_id;
     updated.status_color = statusColor(updated.status);
+    updated.date =
+      updated.date instanceof Date
+        ? updated.date.toISOString().split('T')[0]
+        : updated.date;
     await sendEmail(
       'test@example.com',
       `Volunteer booking ${status}`,
@@ -616,6 +625,10 @@ export async function cancelVolunteerBookingOccurrence(
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);
