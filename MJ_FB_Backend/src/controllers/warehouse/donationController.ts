@@ -4,6 +4,7 @@ import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 import type { Row } from 'write-excel-file';
 import { refreshWarehouseOverall } from './warehouseOverallController';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function listDonations(req: Request, res: Response, next: NextFunction) {
   try {
@@ -30,7 +31,7 @@ export async function addDonation(req: Request, res: Response, next: NextFunctio
       [date, donorId, weight],
     );
     const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
-    const dt = new Date(date);
+    const dt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json({ ...result.rows[0], donor: donorRes.rows[0].name });
   } catch (error) {
@@ -50,10 +51,10 @@ export async function updateDonation(req: Request, res: Response, next: NextFunc
       [date, donorId, weight, id],
     );
     const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
-    const newDt = new Date(date);
+    const newDt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
     if (oldDate) {
-      const oldDt = new Date(oldDate);
+      const oldDt = new Date(reginaStartOfDayISO(oldDate));
       if (
         oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
         oldDt.getUTCMonth() !== newDt.getUTCMonth()
@@ -74,7 +75,7 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
     const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
     await pool.query('DELETE FROM donations WHERE id = $1', [id]);
     if (existing.rows[0]) {
-      const dt = new Date(existing.rows[0].date);
+      const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
       await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     }
     res.json({ message: 'Deleted' });
@@ -86,7 +87,9 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
 
 export async function donorAggregations(req: Request, res: Response, next: NextFunction) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
       `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
@@ -121,7 +124,9 @@ export async function donorAggregations(req: Request, res: Response, next: NextF
 
 export async function exportDonorAggregations(req: Request, res: Response, next: NextFunction) {
   try {
-    const year = parseInt((req.query.year as string) ?? '', 10) || new Date().getFullYear();
+    const year =
+      parseInt((req.query.year as string) ?? '', 10) ||
+      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
       `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
