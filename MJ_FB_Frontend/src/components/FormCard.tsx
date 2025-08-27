@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Typography, type PaperProps } from '@mui/material';
+import { Box, Paper, Stack, Typography, type PaperProps, type BoxProps } from '@mui/material';
 import type { FormEvent, ReactNode } from 'react';
 
 interface FormCardProps extends Omit<PaperProps<'form'>, 'onSubmit'> {
@@ -8,6 +8,7 @@ interface FormCardProps extends Omit<PaperProps<'form'>, 'onSubmit'> {
   actions?: ReactNode;
   header?: ReactNode;
   centered?: boolean;
+  boxProps?: BoxProps;
 }
 
 export default function FormCard({
@@ -17,6 +18,7 @@ export default function FormCard({
   actions,
   header,
   centered = true,
+  boxProps,
   ...paperProps
 }: FormCardProps) {
   return (
@@ -27,6 +29,7 @@ export default function FormCard({
       minHeight="100vh"
       px={2}
       py={centered ? 0 : 4}
+      {...boxProps}
     >
       <Paper component="form" onSubmit={onSubmit} sx={{ p: 3, width: '100%', maxWidth: 400 }} {...paperProps}>
         <Stack spacing={2}>
