@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './pages/booking/Profile';
 import ManageAvailability from './pages/staff/ManageAvailability';
-import UserHistory from './pages/staff/UserHistory';
+import UserHistory from './pages/staff/client-management/UserHistory';
+import ClientManagement from './pages/staff/ClientManagement';
 import BookingUI from './pages/BookingUI';
-import AddClient from './pages/staff/AddClient';
 import PantrySchedule from './pages/staff/PantrySchedule';
 import AgencySchedule from './pages/agency/AgencySchedule';
 import ClientList from './pages/agency/ClientList';
@@ -31,7 +31,6 @@ import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
-import UpdateClientData from './pages/staff/UpdateClientData';
 import AgencyLogin from './pages/agency/Login';
 import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
@@ -80,9 +79,7 @@ export default function App() {
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
-      { label: 'Add Client', to: '/pantry/add-client' },
-      { label: 'Update Client Data', to: '/pantry/update-client-data' },
-      { label: 'Client History', to: '/pantry/user-history' },
+      { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Pending', to: '/pantry/pending' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
@@ -286,11 +283,12 @@ export default function App() {
                   }
                 />
               )}
-              {showStaff && <Route path="/pantry/add-client" element={<AddClient token={token} />} />}
               {showStaff && (
-                <Route path="/pantry/update-client-data" element={<UpdateClientData token={token} />} />
+                <Route
+                  path="/pantry/client-management/*"
+                  element={<ClientManagement token={token} />}
+                />
               )}
-              {showStaff && <Route path="/pantry/user-history" element={<UserHistory token={token} />} />}
               {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}

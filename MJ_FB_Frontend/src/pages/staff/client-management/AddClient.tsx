@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { addUser } from '../../api/users';
-import type { UserRole } from '../../types';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import FeedbackModal from '../../components/FeedbackModal';
+import { addUser } from '../../../api/users';
+import type { UserRole } from '../../../types';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import FeedbackModal from '../../../components/FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
 
 export default function AddClient({ token }: { token: string }) {

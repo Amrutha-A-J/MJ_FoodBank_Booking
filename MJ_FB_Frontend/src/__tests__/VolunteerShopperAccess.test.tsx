@@ -6,11 +6,11 @@ jest.mock('../api/volunteers', () => ({
   loginVolunteer: jest.fn(),
 }));
 
-jest.mock('../pages/volunteer/VolunteerDashboard', () => () => <div>VolunteerDashboard</div>);
-jest.mock('../pages/volunteer/VolunteerSchedule', () => () => <div>VolunteerSchedule</div>);
-jest.mock('../pages/volunteer/VolunteerBookingHistory', () => () => <div>VolunteerHistory</div>);
+jest.mock('../pages/volunteer-management/VolunteerDashboard', () => () => <div>VolunteerDashboard</div>);
+jest.mock('../pages/volunteer-management/VolunteerSchedule', () => () => <div>VolunteerSchedule</div>);
+jest.mock('../pages/volunteer-management/VolunteerBookingHistory', () => () => <div>VolunteerHistory</div>);
 jest.mock('../pages/BookingUI', () => () => <div>BookingUI Component</div>);
-jest.mock('../pages/staff/UserHistory', () => () => <div>BookingHistory Component</div>);
+jest.mock('../pages/staff/client-management/UserHistory', () => () => <div>BookingHistory Component</div>);
 
 
 describe('Volunteer with shopper profile', () => {
