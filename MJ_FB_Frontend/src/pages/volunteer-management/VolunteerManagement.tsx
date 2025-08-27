@@ -1127,7 +1127,7 @@ export default function VolunteerManagement() {
                 style={{ width: '100%', marginTop: 8 }}
               />
             )}
-            {decisionBooking.status.toLowerCase() !== 'pending' && (
+            {(!showRejectReason || decisionBooking.status.toLowerCase() !== 'pending') && (
               <textarea
                 placeholder="Reason for cancellation"
                 value={decisionReason}
@@ -1181,6 +1181,7 @@ export default function VolunteerManagement() {
                   </Button>
                   <Button
                     onClick={() => {
+                      decide(decisionBooking.id, 'cancelled', decisionReason);
                       setDecisionBooking(null);
                       setDecisionReason('');
                       setShowRejectReason(false);
@@ -1188,7 +1189,18 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Cancel
+                    Cancel Booking
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setDecisionBooking(null);
+                      setDecisionReason('');
+                      setShowRejectReason(false);
+                    }}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Close
                   </Button>
                 </>
               ) : (
@@ -1213,7 +1225,7 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Confirm
+                    Cancel Booking
                   </Button>
                   <Button
                     onClick={() => {
@@ -1223,7 +1235,7 @@ export default function VolunteerManagement() {
                     variant="outlined"
                     color="primary"
                   >
-                    Cancel
+                    Close
                   </Button>
                 </>
               )}
