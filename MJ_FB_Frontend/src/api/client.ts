@@ -80,5 +80,7 @@ function clearAuthAndRedirect() {
   localStorage.removeItem('userRole');
   localStorage.removeItem('access');
   localStorage.removeItem('id');
-  window.location.assign('/login');
+  if (!window.location.pathname.startsWith('/login')) {
+    window.location.assign('/login');
+  }
 }
