@@ -14,7 +14,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
-- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page.
+- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. "Add Sub-role" now collects the sub-role name and first shift, while "Add Shift" assumes the sub-role already exists.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
 - Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).

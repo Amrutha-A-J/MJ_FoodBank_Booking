@@ -46,7 +46,7 @@ export default function VolunteerSettings() {
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const [masterDialog, setMasterDialog] = useState<{ open: boolean; id?: number; name: string }>({ open: false, name: '' });
-  const [roleDialog, setRoleDialog] = useState<{
+  const [shiftDialog, setShiftDialog] = useState<{
     open: boolean;
     slotId?: number;
     roleName: string;
@@ -56,6 +56,15 @@ export default function VolunteerSettings() {
     categoryId?: number;
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+  const [subRoleDialog, setSubRoleDialog] = useState<{
+    open: boolean;
+    name: string;
+    startTime: string;
+    endTime: string;
+    maxVolunteers: string;
+    categoryId?: number;
+    isWednesdaySlot: boolean;
+  }>({ open: false, name: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
   useEffect(() => {
     loadData();
@@ -108,8 +117,8 @@ export default function VolunteerSettings() {
     }
   }
 
-  function openRoleDialog(init: Partial<typeof roleDialog>) {
-    setRoleDialog({
+  function openShiftDialog(init: Partial<typeof shiftDialog>) {
+    setShiftDialog({
       open: true,
       slotId: init.slotId,
       roleName: init.roleName || '',
@@ -121,39 +130,75 @@ export default function VolunteerSettings() {
     });
   }
 
-  async function saveRole() {
+  function openSubRoleDialog(init: Partial<typeof subRoleDialog>) {
+    setSubRoleDialog({
+      open: true,
+      name: init.name || '',
+      startTime: init.startTime || '',
+      endTime: init.endTime || '',
+      maxVolunteers: init.maxVolunteers?.toString() || '1',
+      categoryId: init.categoryId,
+      isWednesdaySlot: init.isWednesdaySlot || false,
+    });
+  }
+
+  async function saveShift() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime || !roleDialog.categoryId) {
+      if (!shiftDialog.roleName || !shiftDialog.startTime || !shiftDialog.endTime || !shiftDialog.categoryId) {
         handleSnack('All fields are required', 'error');
         return;
       }
-      const maxVolunteers = Number(roleDialog.maxVolunteers);
-      if (roleDialog.slotId) {
-        await updateVolunteerRole(roleDialog.slotId, {
-          name: roleDialog.roleName,
-          startTime: roleDialog.startTime,
-          endTime: roleDialog.endTime,
+      const maxVolunteers = Number(shiftDialog.maxVolunteers);
+      if (shiftDialog.slotId) {
+        await updateVolunteerRole(shiftDialog.slotId, {
+          name: shiftDialog.roleName,
+          startTime: shiftDialog.startTime,
+          endTime: shiftDialog.endTime,
           maxVolunteers,
-          categoryId: roleDialog.categoryId,
-          isWednesdaySlot: roleDialog.isWednesdaySlot,
+          categoryId: shiftDialog.categoryId,
+          isWednesdaySlot: shiftDialog.isWednesdaySlot,
         });
-        handleSnack('Role updated');
+        handleSnack('Shift updated');
       } else {
         await createVolunteerRole(
-          roleDialog.roleName,
-          roleDialog.startTime,
-          roleDialog.endTime,
+          shiftDialog.roleName,
+          shiftDialog.startTime,
+          shiftDialog.endTime,
           maxVolunteers,
-          roleDialog.categoryId,
-          roleDialog.isWednesdaySlot,
+          shiftDialog.categoryId,
+          shiftDialog.isWednesdaySlot,
           true,
         );
-        handleSnack('Role created');
+        handleSnack('Shift created');
       }
-      setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+      setShiftDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
       loadData();
     } catch (e) {
-      handleSnack('Failed to save role', 'error');
+      handleSnack('Failed to save shift', 'error');
+    }
+  }
+
+  async function saveSubRole() {
+    try {
+      if (!subRoleDialog.name || !subRoleDialog.startTime || !subRoleDialog.endTime || !subRoleDialog.categoryId) {
+        handleSnack('All fields are required', 'error');
+        return;
+      }
+      const maxVolunteers = Number(subRoleDialog.maxVolunteers);
+      await createVolunteerRole(
+        subRoleDialog.name,
+        subRoleDialog.startTime,
+        subRoleDialog.endTime,
+        maxVolunteers,
+        subRoleDialog.categoryId,
+        subRoleDialog.isWednesdaySlot,
+        true,
+      );
+      handleSnack('Sub-role created');
+      setSubRoleDialog({ open: false, name: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+      loadData();
+    } catch (e) {
+      handleSnack('Failed to save sub-role', 'error');
     }
   }
 
@@ -222,7 +267,7 @@ export default function VolunteerSettings() {
                             size="small"
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            onClick={() => openRoleDialog({ roleName: role.name, categoryId: master.id })}
+                            onClick={() => openShiftDialog({ roleName: role.name, categoryId: master.id })}
                           >
                             Add Shift
                           </Button>
@@ -245,7 +290,7 @@ export default function VolunteerSettings() {
                               <IconButton
                                 aria-label="edit"
                                 onClick={() =>
-                                  openRoleDialog({
+                                  openShiftDialog({
                                     slotId: shift.id,
                                     roleName: role.name,
                                     startTime: shift.start_time,
@@ -276,7 +321,7 @@ export default function VolunteerSettings() {
                     size="small"
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => openRoleDialog({ categoryId: master.id })}
+                    onClick={() => openSubRoleDialog({ categoryId: master.id })}
                   >
                     Add Sub-role
                   </Button>
@@ -319,30 +364,30 @@ export default function VolunteerSettings() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={roleDialog.open} onClose={() => setRoleDialog({ ...roleDialog, open: false })} fullWidth>
-        <DialogTitle>{roleDialog.slotId ? 'Edit Role' : 'Add Role'}</DialogTitle>
+      <Dialog open={subRoleDialog.open} onClose={() => setSubRoleDialog({ ...subRoleDialog, open: false })} fullWidth>
+        <DialogTitle>Add Sub-role</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
             label="Name"
             fullWidth
-            value={roleDialog.roleName}
-            onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            value={subRoleDialog.name}
+            onChange={e => setSubRoleDialog({ ...subRoleDialog, name: e.target.value })}
           />
           <TextField
             margin="dense"
             label="Start Time"
             fullWidth
-            value={roleDialog.startTime}
-            onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
+            value={subRoleDialog.startTime}
+            onChange={e => setSubRoleDialog({ ...subRoleDialog, startTime: e.target.value })}
             placeholder="09:00:00"
           />
           <TextField
             margin="dense"
             label="End Time"
             fullWidth
-            value={roleDialog.endTime}
-            onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
+            value={subRoleDialog.endTime}
+            onChange={e => setSubRoleDialog({ ...subRoleDialog, endTime: e.target.value })}
             placeholder="12:00:00"
           />
           <TextField
@@ -350,23 +395,60 @@ export default function VolunteerSettings() {
             label="Max Volunteers"
             fullWidth
             type="number"
-            value={roleDialog.maxVolunteers}
-            onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Category ID"
-            fullWidth
-            type="number"
-            value={roleDialog.categoryId ?? ''}
-            onChange={e => setRoleDialog({ ...roleDialog, categoryId: Number(e.target.value) })}
+            value={subRoleDialog.maxVolunteers}
+            onChange={e => setSubRoleDialog({ ...subRoleDialog, maxVolunteers: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setRoleDialog({ ...roleDialog, open: false })}>
+          <Button size="small" onClick={() => setSubRoleDialog({ ...subRoleDialog, open: false })}>
             Cancel
           </Button>
-          <Button size="small" variant="contained" onClick={saveRole}>
+          <Button size="small" variant="contained" onClick={saveSubRole}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={shiftDialog.open} onClose={() => setShiftDialog({ ...shiftDialog, open: false })} fullWidth>
+        <DialogTitle>{shiftDialog.slotId ? 'Edit Shift' : 'Add Shift'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Sub-role"
+            fullWidth
+            value={shiftDialog.roleName}
+            InputProps={{ readOnly: true }}
+          />
+          <TextField
+            margin="dense"
+            label="Start Time"
+            fullWidth
+            value={shiftDialog.startTime}
+            onChange={e => setShiftDialog({ ...shiftDialog, startTime: e.target.value })}
+            placeholder="09:00:00"
+          />
+          <TextField
+            margin="dense"
+            label="End Time"
+            fullWidth
+            value={shiftDialog.endTime}
+            onChange={e => setShiftDialog({ ...shiftDialog, endTime: e.target.value })}
+            placeholder="12:00:00"
+          />
+          <TextField
+            margin="dense"
+            label="Max Volunteers"
+            fullWidth
+            type="number"
+            value={shiftDialog.maxVolunteers}
+            onChange={e => setShiftDialog({ ...shiftDialog, maxVolunteers: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button size="small" onClick={() => setShiftDialog({ ...shiftDialog, open: false })}>
+            Cancel
+          </Button>
+          <Button size="small" variant="contained" onClick={saveShift}>
             Save
           </Button>
         </DialogActions>

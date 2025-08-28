@@ -35,6 +35,7 @@
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
+- Volunteer Settings provides dedicated dialogs: "Add Sub-role" collects the sub-role name and first shift details, while "Add Shift" assumes the sub-role exists and shows its name read-only.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
 
 ## Development Guidelines
