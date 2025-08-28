@@ -135,6 +135,7 @@ describe('VolunteerSettings page', () => {
 
     fireEvent.click(await screen.findByText('Add Shift'));
     const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByLabelText('Name')).toBeDisabled();
     fireEvent.change(within(dialog).getByLabelText('Start Time'), {
       target: { value: '13:00:00' },
     });
