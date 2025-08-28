@@ -336,124 +336,129 @@ export default function VolunteerSettings() {
             Add Master Role
           </Button>
         </Box>
-        <Grid container spacing={2}>
+        <Box>
           {masterRoles.map(master => (
-            <Grid item xs={12} key={master.id}>
-              <Accordion
-                id={`master-role-${master.id}`}
-                sx={{ width: '100%' }}
-                expanded={expanded === master.id}
-                onChange={(_, isExpanded) => setExpanded(isExpanded ? master.id : false)}
-              >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
-                  <Stack direction="row" spacing={1}>
-                    <IconButton
-                      aria-label="edit"
-                      onClick={e => {
-                        e.stopPropagation();
-                        openMasterDialog(master);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      aria-label="delete"
-                      onClick={e => {
-                        e.stopPropagation();
-                        removeMasterRole(master.id);
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Stack>
-                </AccordionSummary>
-                <AccordionDetails>
-                  {roles.filter(r => r.category_id === master.id).map(role => (
-                    <Box key={role.id} mb={2}>
-                      <Grid container alignItems="center" spacing={1}>
-                        <Grid item xs>
-                          <Typography variant="subtitle1" fontWeight="bold">
-                            {role.name}
-                          </Typography>
-                        </Grid>
-                        <Grid item>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<AddIcon />}
-                            onClick={() =>
-                              openShiftDialog(master.id, {
-                                roleId: role.id,
-                                roleName: role.name,
-                                maxVolunteers: role.max_volunteers.toString(),
-                              })
-                            }
-                          >
-                            Add Shift
-                          </Button>
-                        </Grid>
-                        <Grid item>
-                          <IconButton aria-label="delete" onClick={() => removeRole(role)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                      <List dense>
-                        {role.shifts.map(shift => (
-                          <ListItem
-                            key={shift.id}
-                            secondaryAction={
-                              <Stack direction="row" spacing={1}>
-                                <Switch
-                                  checked={shift.is_active}
-                                  onChange={e => toggleShift(shift.id, e.target.checked)}
-                                  inputProps={{ 'aria-label': 'toggle active' }}
-                                />
-                                <IconButton
-                                  aria-label="edit"
-                                  onClick={() =>
-                                    openShiftDialog(master.id, {
-                                      roleId: role.id,
-                                      slotId: shift.id,
-                                      roleName: role.name,
-                                      startTime: shift.start_time,
-                                      endTime: shift.end_time,
-                                      maxVolunteers: role.max_volunteers.toString(),
-                                      isWednesdaySlot: shift.is_wednesday_slot,
-                                    })
-                                  }
-                                >
-                                  <EditIcon />
-                                </IconButton>
-                                <IconButton aria-label="delete" onClick={() => removeShift(shift.id)}>
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Stack>
-                            }
-                          >
-                            <ListItemText
-                              primary={`${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}`}
-                              secondary={`Max volunteers: ${role.max_volunteers}`}
-                            />
-                          </ListItem>
-                        ))}
-                      </List>
-                    </Box>
-                  ))}
-                  <Button
-                    size="small"
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => openSubRoleDialog(master.id)}
+            <Accordion
+              key={master.id}
+              id={`master-role-${master.id}`}
+              disableGutters
+              square
+              sx={{
+                width: '100%',
+                boxShadow: 'none',
+                '&:before': { display: 'none' },
+              }}
+              expanded={expanded === master.id}
+              onChange={(_, isExpanded) => setExpanded(isExpanded ? master.id : false)}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
+                <Stack direction="row" spacing={1}>
+                  <IconButton
+                    aria-label="edit"
+                    onClick={e => {
+                      e.stopPropagation();
+                      openMasterDialog(master);
+                    }}
                   >
-                    Add Sub-role
-                  </Button>
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label="delete"
+                    onClick={e => {
+                      e.stopPropagation();
+                      removeMasterRole(master.id);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                {roles.filter(r => r.category_id === master.id).map(role => (
+                  <Box key={role.id} mb={2}>
+                    <Grid container alignItems="center" spacing={1}>
+                      <Grid item xs>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {role.name}
+                        </Typography>
+                      </Grid>
+                      <Grid item>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<AddIcon />}
+                          onClick={() =>
+                            openShiftDialog(master.id, {
+                              roleId: role.id,
+                              roleName: role.name,
+                              maxVolunteers: role.max_volunteers.toString(),
+                            })
+                          }
+                        >
+                          Add Shift
+                        </Button>
+                      </Grid>
+                      <Grid item>
+                        <IconButton aria-label="delete" onClick={() => removeRole(role)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                    <List dense>
+                      {role.shifts.map(shift => (
+                        <ListItem
+                          key={shift.id}
+                          secondaryAction={
+                            <Stack direction="row" spacing={1}>
+                              <Switch
+                                checked={shift.is_active}
+                                onChange={e => toggleShift(shift.id, e.target.checked)}
+                                inputProps={{ 'aria-label': 'toggle active' }}
+                              />
+                              <IconButton
+                                aria-label="edit"
+                                onClick={() =>
+                                  openShiftDialog(master.id, {
+                                    roleId: role.id,
+                                    slotId: shift.id,
+                                    roleName: role.name,
+                                    startTime: shift.start_time,
+                                    endTime: shift.end_time,
+                                    maxVolunteers: role.max_volunteers.toString(),
+                                    isWednesdaySlot: shift.is_wednesday_slot,
+                                  })
+                                }
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton aria-label="delete" onClick={() => removeShift(shift.id)}>
+                                <DeleteIcon />
+                              </IconButton>
+                            </Stack>
+                          }
+                        >
+                          <ListItemText
+                            primary={`${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}`}
+                            secondary={`Max volunteers: ${role.max_volunteers}`}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                ))}
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => openSubRoleDialog(master.id)}
+                >
+                  Add Sub-role
+                </Button>
+              </AccordionDetails>
+            </Accordion>
           ))}
-        </Grid>
+        </Box>
       </Box>
 
       <Dialog open={masterDialog.open} onClose={() => setMasterDialog({ open: false, name: '' })} fullWidth>
