@@ -185,7 +185,7 @@ export async function updateUserInfo(
     lastName: string;
     email?: string;
     phone?: string;
-    onlineAccess?: boolean;
+    onlineAccess: boolean;
     password?: string;
   },
 ): Promise<IncompleteUser> {
