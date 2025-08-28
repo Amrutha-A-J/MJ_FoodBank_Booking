@@ -29,10 +29,20 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
-import { getAllSlots } from '../../api/bookings';
+import {
+  getAllSlots,
+  addBlockedSlot,
+  addRecurringBlockedSlot,
+  removeBlockedSlot,
+  removeRecurringBlockedSlot,
+  addBreak,
+  removeBreak,
+  getBreaks,
+  getRecurringBlockedSlots,
+} from '../../api/bookings';
 import { formatTime } from '../../utils/time';
 import type { Slot } from '../../types';
-import { formatLocaleDate, toDate } from '../../utils/date';
+import { formatLocaleDate, toDate, formatReginaDate } from '../../utils/date';
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const weekOrdinals = ['1st', '2nd', '3rd', '4th', '5th'];
@@ -91,15 +101,35 @@ export default function ManageAvailability() {
   };
 
   useEffect(() => {
-    async function loadSlots() {
+    async function loadData() {
       try {
-        const slots = await getAllSlots();
+        const [slots, breaksData, recurringBlocked] = await Promise.all([
+          getAllSlots(),
+          getBreaks(),
+          getRecurringBlockedSlots(),
+        ]);
         setSlotOptions(slots);
+        setBreaks(
+          breaksData.map(b => ({
+            id: Number(`${b.dayOfWeek}${b.slotId}`),
+            day: b.dayOfWeek,
+            slotId: b.slotId,
+            reason: b.reason ?? '',
+          })),
+        );
+        setBlockedSlots(
+          recurringBlocked.map(b => ({
+            id: b.id,
+            day: b.dayOfWeek,
+            slotId: b.slotId,
+            reason: b.reason ?? '',
+          })),
+        );
       } catch {
-        showSnackbar('Failed to load slots', 'error');
+        showSnackbar('Failed to load availability data', 'error');
       }
     }
-    loadSlots();
+    loadData();
   }, []);
 
   const slotLabel = (id: number) => {
@@ -122,58 +152,103 @@ export default function ManageAvailability() {
     showSnackbar('Holiday removed', 'error');
   };
 
-  const handleAddBlocked = () => {
-    if (isRecurring) {
-      if (!blockedDay || !blockedWeek || !blockedSlotId) return;
-      setBlockedSlots(prev => [
-        ...prev,
-        {
-          id: Date.now(),
-          day: Number(blockedDay),
-          week: Number(blockedWeek),
-          slotId: Number(blockedSlotId),
-          reason: blockedReason.trim(),
-        },
-      ]);
-    } else {
-      if (!blockedDate || !blockedSlotId) return;
-      setBlockedSlots(prev => [
-        ...prev,
-        {
-          id: Date.now(),
-          date: blockedDate,
-          slotId: Number(blockedSlotId),
-          reason: blockedReason.trim(),
-        },
-      ]);
+  const handleAddBlocked = async () => {
+    try {
+      if (isRecurring) {
+        if (!blockedDay || !blockedWeek || !blockedSlotId) return;
+        await addRecurringBlockedSlot(
+          Number(blockedDay),
+          Number(blockedWeek),
+          Number(blockedSlotId),
+          blockedReason.trim(),
+        );
+        setBlockedSlots(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            day: Number(blockedDay),
+            week: Number(blockedWeek),
+            slotId: Number(blockedSlotId),
+            reason: blockedReason.trim(),
+          },
+        ]);
+      } else {
+        if (!blockedDate || !blockedSlotId) return;
+        await addBlockedSlot(
+          formatReginaDate(blockedDate),
+          Number(blockedSlotId),
+          blockedReason.trim(),
+        );
+        setBlockedSlots(prev => [
+          ...prev,
+          {
+            id: Date.now(),
+            date: blockedDate,
+            slotId: Number(blockedSlotId),
+            reason: blockedReason.trim(),
+          },
+        ]);
+      }
+      setBlockedReason('');
+      showSnackbar('Slot blocked', 'success');
+    } catch {
+      showSnackbar('Failed to block slot', 'error');
     }
-    setBlockedReason('');
-    showSnackbar('Slot blocked', 'success');
   };
 
-  const handleRemoveBlocked = (id: number) => {
-    setBlockedSlots(prev => prev.filter(b => b.id !== id));
-    showSnackbar('Blocked slot removed', 'error');
+  const handleRemoveBlocked = async (id: number) => {
+    const slot = blockedSlots.find(b => b.id === id);
+    if (!slot) return;
+    try {
+      if (slot.date) {
+        await removeBlockedSlot(
+          formatReginaDate(slot.date),
+          slot.slotId,
+        );
+      } else {
+        await removeRecurringBlockedSlot(slot.id);
+      }
+      setBlockedSlots(prev => prev.filter(b => b.id !== id));
+      showSnackbar('Blocked slot removed', 'success');
+    } catch {
+      showSnackbar('Failed to remove blocked slot', 'error');
+    }
   };
 
-  const handleAddBreak = () => {
+  const handleAddBreak = async () => {
     if (!breakDay || !breakSlotId) return;
-    setBreaks(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        day: Number(breakDay),
-        slotId: Number(breakSlotId),
-        reason: breakReason.trim(),
-      },
-    ]);
-    setBreakReason('');
-    showSnackbar('Break added', 'success');
+    try {
+      await addBreak(
+        Number(breakDay),
+        Number(breakSlotId),
+        breakReason.trim(),
+      );
+      setBreaks(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          day: Number(breakDay),
+          slotId: Number(breakSlotId),
+          reason: breakReason.trim(),
+        },
+      ]);
+      setBreakReason('');
+      showSnackbar('Break added', 'success');
+    } catch {
+      showSnackbar('Failed to add break', 'error');
+    }
   };
 
-  const handleRemoveBreak = (id: number) => {
-    setBreaks(prev => prev.filter(b => b.id !== id));
-    showSnackbar('Break removed', 'error');
+  const handleRemoveBreak = async (id: number) => {
+    const brk = breaks.find(b => b.id === id);
+    if (!brk) return;
+    try {
+      await removeBreak(brk.day, brk.slotId);
+      setBreaks(prev => prev.filter(b => b.id !== id));
+      showSnackbar('Break removed', 'success');
+    } catch {
+      showSnackbar('Failed to remove break', 'error');
+    }
   };
   const tabs: TabItem[] = [
     {
