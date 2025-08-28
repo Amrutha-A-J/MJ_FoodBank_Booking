@@ -274,7 +274,7 @@ export default function ManageAvailability() {
                   label="Date"
                   value={holidayDate}
                   onChange={setHolidayDate}
-                  slotProps={{ textField: { fullWidth: true } }}
+                  slotProps={{ textField: { fullWidth: true, size: 'medium' } }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -283,6 +283,7 @@ export default function ManageAvailability() {
                   value={holidayReason}
                   onChange={(e) => setHolidayReason(e.target.value)}
                   fullWidth
+                  size="medium"
                 />
               </Grid>
               <Grid item xs={12} sm={2}>
