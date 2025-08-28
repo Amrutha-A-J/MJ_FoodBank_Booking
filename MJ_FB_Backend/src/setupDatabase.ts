@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import config from './config';
+import logger from './utils/logger';
 
 export async function setupDatabase() {
   const dbName = config.pgDatabase;
@@ -15,8 +16,12 @@ export async function setupDatabase() {
   await adminClient.connect();
   const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
   if ((dbExists.rowCount ?? 0) === 0) {
-    await adminClient.query(`CREATE DATABASE ${dbName}`);
-    console.log(`Created database ${dbName}`);
+    const createDbQuery = await adminClient.query(
+      "SELECT format('CREATE DATABASE %I', $1) AS query",
+      [dbName],
+    );
+    await adminClient.query(createDbQuery.rows[0].query);
+    logger.info(`Created database ${dbName}`);
   }
   await adminClient.end();
 
@@ -198,7 +203,7 @@ export async function setupDatabase() {
         UNIQUE (agency_id, client_id)
       );
     `);
-    console.log('Database already initialized');
+    logger.info('Database already initialized');
     await client.end();
     return;
   }
