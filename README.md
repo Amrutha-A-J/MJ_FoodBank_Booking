@@ -149,6 +149,7 @@ control weight calculations:
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
 - Pantry schedule cells use color coding: yellow for submitted, rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
+- Filled pantry schedule slots display the client's ID in parentheses next to their name.
 
 ## Deploying to Azure
 
