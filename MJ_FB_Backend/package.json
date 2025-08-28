@@ -37,7 +37,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
-    "migrate": "node-pg-migrate -m migrations -d \"postgres://$PG_USER:$PG_PASSWORD@$PG_HOST:$PG_PORT/$PG_DATABASE\""
+    "migrate": "node-pg-migrate -r ts-node/register -m migrations -d \"postgres://$PG_USER:$PG_PASSWORD@$PG_HOST:$PG_PORT/$PG_DATABASE\""
   },
   "keywords": [],
   "author": "",
