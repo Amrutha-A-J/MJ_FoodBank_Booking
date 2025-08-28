@@ -17,20 +17,30 @@ export async function addVolunteerRole(
     isWednesdaySlot,
     isActive,
   } = req.body as {
-    roleId?: number;
+    roleId?: string | number;
     name?: string;
     startTime?: string;
     endTime?: string;
-    maxVolunteers?: number;
-    categoryId?: number;
+    maxVolunteers?: string | number;
+    categoryId?: string | number;
     isWednesdaySlot?: boolean;
     isActive?: boolean;
   };
+
+  const parsedRoleId =
+    typeof roleId !== 'undefined' ? Number(roleId) : undefined;
+  const parsedMaxVolunteers = Number(maxVolunteers);
+  const parsedCategoryId =
+    typeof categoryId !== 'undefined' ? Number(categoryId) : undefined;
+
+  const hasRoleId =
+    typeof parsedRoleId === 'number' && !Number.isNaN(parsedRoleId);
+
   if (
     !startTime ||
     !endTime ||
-    typeof maxVolunteers !== 'number' ||
-    (typeof roleId !== 'number' && (!name || typeof categoryId !== 'number'))
+    Number.isNaN(parsedMaxVolunteers) ||
+    (!hasRoleId && (!name || Number.isNaN(parsedCategoryId)))
   ) {
     return res.status(400).json({
       message:
@@ -38,11 +48,11 @@ export async function addVolunteerRole(
     });
   }
   try {
-    let resolvedRoleId: number = roleId as number;
-    if (typeof resolvedRoleId !== 'number') {
+    let resolvedRoleId: number = parsedRoleId as number;
+    if (!hasRoleId) {
       const existing = await pool.query(
         `SELECT id FROM volunteer_roles WHERE name=$1 AND category_id=$2`,
-        [name, categoryId],
+        [name, parsedCategoryId],
       );
       if ((existing.rowCount ?? 0) > 0) {
         resolvedRoleId = existing.rows[0].id;
@@ -51,7 +61,7 @@ export async function addVolunteerRole(
           `INSERT INTO volunteer_roles (name, category_id)
            VALUES ($1,$2)
            RETURNING id`,
-          [name, categoryId],
+          [name, parsedCategoryId],
         );
         resolvedRoleId = roleRes.rows[0].id;
       }
@@ -76,7 +86,7 @@ export async function addVolunteerRole(
         resolvedRoleId,
         startTime,
         endTime,
-        maxVolunteers,
+        parsedMaxVolunteers,
         isWednesdaySlot || false,
         typeof isActive === 'boolean' ? isActive : true,
       ]
@@ -164,16 +174,21 @@ export async function updateVolunteerRole(
       name?: string;
       startTime?: string;
       endTime?: string;
-      maxVolunteers?: number;
-      categoryId?: number;
+      maxVolunteers?: string | number;
+      categoryId?: string | number;
       isWednesdaySlot?: boolean;
     };
+
+  const parsedMaxVolunteers = Number(maxVolunteers);
+  const parsedCategoryId =
+    typeof categoryId !== 'undefined' ? Number(categoryId) : undefined;
+
   if (
     !name ||
     !startTime ||
     !endTime ||
-    typeof maxVolunteers !== 'number' ||
-    typeof categoryId !== 'number'
+    Number.isNaN(parsedMaxVolunteers) ||
+    Number.isNaN(parsedCategoryId as number)
   ) {
     return res
       .status(400)
@@ -188,7 +203,7 @@ export async function updateVolunteerRole(
        SET start_time = $1, end_time = $2, max_volunteers = $3, is_wednesday_slot = $4
        WHERE slot_id = $5
        RETURNING role_id, slot_id, is_active`,
-      [startTime, endTime, maxVolunteers, isWednesdaySlot || false, id]
+      [startTime, endTime, parsedMaxVolunteers, isWednesdaySlot || false, id]
     );
     if ((slotRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Role not found' });
@@ -196,11 +211,11 @@ export async function updateVolunteerRole(
     const roleId = slotRes.rows[0].role_id;
     await pool.query(
       `UPDATE volunteer_roles SET name=$1, category_id=$2 WHERE id=$3`,
-      [name, categoryId, roleId]
+      [name, parsedCategoryId, roleId]
     );
     await pool.query(
       `UPDATE volunteer_trained_roles SET category_id=$1 WHERE role_id=$2`,
-      [categoryId, roleId]
+      [parsedCategoryId, roleId]
     );
     const rowRes = await pool.query(
         `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
