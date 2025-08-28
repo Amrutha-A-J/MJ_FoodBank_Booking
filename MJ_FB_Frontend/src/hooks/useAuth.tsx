@@ -4,6 +4,7 @@ import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
 import { API_BASE, apiFetch } from '../api/client';
+import FeedbackSnackbar from '../components/FeedbackSnackbar';
 
 interface AuthContextValue {
   token: string;
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return stored ? Number(stored) : null;
   });
   const [token, setToken] = useState(role ? 'cookie' : '');
+  const [sessionMessage, setSessionMessage] = useState('');
 
   function clearAuth() {
     setToken('');
@@ -49,6 +51,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('access');
     localStorage.removeItem('id');
   }
+
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (!['role', 'name', 'userRole', 'access', 'id'].includes(e.key || ''))
+        return;
+      const newRole = localStorage.getItem('role');
+      const newName = localStorage.getItem('name');
+      const newUserRole = localStorage.getItem('userRole');
+      const newAccess = localStorage.getItem('access');
+      const newId = localStorage.getItem('id');
+
+      if (!newRole || !newName) {
+        clearAuth();
+        setSessionMessage('Session ended in another tab');
+      } else {
+        setRole(newRole as Role);
+        setName(newName);
+        setUserRole((newUserRole as UserRole) || '');
+        setAccess(newAccess ? JSON.parse(newAccess) : []);
+        setId(newId ? Number(newId) : null);
+        setToken('cookie');
+        setSessionMessage('Session updated in another tab');
+      }
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -108,7 +138,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <FeedbackSnackbar
+        open={!!sessionMessage}
+        onClose={() => setSessionMessage('')}
+        message={sessionMessage}
+        severity="info"
+      />
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
