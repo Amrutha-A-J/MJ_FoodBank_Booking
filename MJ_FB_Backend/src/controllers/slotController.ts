@@ -3,6 +3,7 @@ import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
+import { slotSchema, slotIdParamSchema } from '../schemas/slotSchemas';
 
 const REGINA_TZ = 'America/Regina';
 
@@ -208,6 +209,82 @@ export async function listAllSlots(
     res.json(slots);
   } catch (error) {
     logger.error('Error listing all slots:', error);
+    next(error);
+  }
+}
+
+export async function createSlot(req: Request, res: Response, next: NextFunction) {
+  const parsed = slotSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.issues });
+  }
+  const { startTime, endTime, maxCapacity } = parsed.data;
+  try {
+    const result = await pool.query(
+      'INSERT INTO slots (start_time, end_time, max_capacity) VALUES ($1,$2,$3) RETURNING id, start_time, end_time, max_capacity',
+      [startTime, endTime, maxCapacity],
+    );
+    const row = result.rows[0];
+    res
+      .status(201)
+      .json({
+        id: row.id.toString(),
+        startTime: row.start_time,
+        endTime: row.end_time,
+        maxCapacity: row.max_capacity,
+      });
+  } catch (error) {
+    logger.error('Error creating slot:', error);
+    next(error);
+  }
+}
+
+export async function updateSlot(req: Request, res: Response, next: NextFunction) {
+  const params = slotIdParamSchema.safeParse(req.params);
+  if (!params.success) {
+    return res.status(400).json({ errors: params.error.issues });
+  }
+  const parsed = slotSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.issues });
+  }
+  const { startTime, endTime, maxCapacity } = parsed.data;
+  const id = params.data.id;
+  try {
+    const result = await pool.query(
+      'UPDATE slots SET start_time = $1, end_time = $2, max_capacity = $3 WHERE id = $4 RETURNING id, start_time, end_time, max_capacity',
+      [startTime, endTime, maxCapacity, id],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Slot not found' });
+    }
+    const row = result.rows[0];
+    res.json({
+      id: row.id.toString(),
+      startTime: row.start_time,
+      endTime: row.end_time,
+      maxCapacity: row.max_capacity,
+    });
+  } catch (error) {
+    logger.error('Error updating slot:', error);
+    next(error);
+  }
+}
+
+export async function deleteSlot(req: Request, res: Response, next: NextFunction) {
+  const params = slotIdParamSchema.safeParse(req.params);
+  if (!params.success) {
+    return res.status(400).json({ errors: params.error.issues });
+  }
+  const id = params.data.id;
+  try {
+    const result = await pool.query('DELETE FROM slots WHERE id = $1', [id]);
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Slot not found' });
+    }
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    logger.error('Error deleting slot:', error);
     next(error);
   }
 }
