@@ -50,13 +50,30 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
     let clientName: string | null = null;
     if (clientId) {
       const clientRes = await pool.query(
-        'SELECT first_name, last_name FROM clients WHERE client_id = $1',
+        'SELECT id, first_name, last_name FROM clients WHERE client_id = $1',
         [clientId]
       );
+      let userId: number | null = null;
       if ((clientRes.rowCount ?? 0) > 0) {
-        clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
+        const row = clientRes.rows[0];
+        clientName = `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim();
+        userId = row.id ?? null;
       }
       await refreshClientVisitCount(clientId);
+      if (userId) {
+        const bookingRes = await pool.query(
+          `SELECT b.id, b.status, b.request_data FROM bookings b
+           WHERE b.user_id = $1 AND b.date = $2 LIMIT 1`,
+          [userId, date]
+        );
+        if ((bookingRes.rowCount ?? 0) > 0 && bookingRes.rows[0].status === 'approved') {
+          const booking = bookingRes.rows[0];
+          await pool.query(
+            `UPDATE bookings SET status='visited', request_data=$2 WHERE id=$1`,
+            [booking.id, booking.request_data]
+          );
+        }
+      }
     }
     res.status(201).json({ ...result.rows[0], clientName });
   } catch (error) {

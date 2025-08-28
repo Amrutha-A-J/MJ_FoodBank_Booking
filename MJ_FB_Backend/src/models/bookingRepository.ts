@@ -159,6 +159,10 @@ export async function fetchBookingHistory(
          FROM client_visits v
          INNER JOIN clients c ON c.client_id = v.client_id
          WHERE ${visitWhere.join(' AND ')}
+           AND NOT EXISTS (
+             SELECT 1 FROM bookings b
+             WHERE b.user_id = c.id AND b.date = v.date
+           )
          ORDER BY v.date DESC`,
       [userId],
     );
