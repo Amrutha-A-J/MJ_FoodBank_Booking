@@ -103,7 +103,10 @@ let theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           marginBottom: theme.spacing(1),
-          '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius },
+          '& .MuiOutlinedInput-root': {
+            borderRadius: theme.shape.borderRadius,
+            '&.MuiInputBase-sizeSmall': { height: theme.spacing(5) },
+          },
           '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
           '& .MuiFormHelperText-root': { marginLeft: 0 },
           '& .MuiInputBase-input': { padding: '0.5rem', fontSize: '1rem' },
@@ -115,6 +118,10 @@ let theme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           marginBottom: theme.spacing(1),
+          '&.MuiInputBase-root.MuiOutlinedInput-root': {
+            borderRadius: theme.shape.borderRadius,
+            '&.MuiInputBase-sizeSmall': { height: theme.spacing(5) },
+          },
           '& .MuiOutlinedInput-notchedOutline': { borderRadius: theme.shape.borderRadius },
           '& .MuiFormHelperText-root': { marginLeft: 0 },
         }),
