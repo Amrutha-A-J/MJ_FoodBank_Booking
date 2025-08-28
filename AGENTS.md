@@ -1,5 +1,10 @@
 # Development Guide
 
+## Pull Request Guidelines
+
+- Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
+- Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
+
 ## Testing
 
 - For changes in `MJ_FB_Backend`, run `npm test` from the `MJ_FB_Backend` directory.
