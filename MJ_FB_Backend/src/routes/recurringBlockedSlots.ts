@@ -15,12 +15,13 @@ router.get(
   authorizeRoles('staff'),
   async (_req, res) => {
     const result = await pool.query(
-      'SELECT id, day_of_week, slot_id, reason FROM recurring_blocked_slots'
+      'SELECT id, day_of_week, week_of_month, slot_id, reason FROM recurring_blocked_slots'
     );
     res.json(
       result.rows.map((r) => ({
         id: Number(r.id),
         dayOfWeek: Number(r.day_of_week),
+        weekOfMonth: Number(r.week_of_month),
         slotId: Number(r.slot_id),
         reason: r.reason ?? '',
       }))
@@ -34,10 +35,10 @@ router.post(
   authorizeRoles('staff'),
   validate(addRecurringBlockedSlotSchema),
   async (req, res) => {
-    const { dayOfWeek, slotId, reason } = req.body;
+    const { dayOfWeek, weekOfMonth, slotId, reason } = req.body;
     await pool.query(
-      'INSERT INTO recurring_blocked_slots (day_of_week, slot_id, reason) VALUES ($1, $2, $3) ON CONFLICT (day_of_week, slot_id) DO UPDATE SET reason = EXCLUDED.reason',
-      [dayOfWeek, slotId, reason ?? null],
+      'INSERT INTO recurring_blocked_slots (day_of_week, week_of_month, slot_id, reason) VALUES ($1, $2, $3, $4) ON CONFLICT (day_of_week, week_of_month, slot_id) DO UPDATE SET reason = EXCLUDED.reason',
+      [dayOfWeek, weekOfMonth, slotId, reason ?? null],
     );
     res.json({ message: 'Added' });
   },
