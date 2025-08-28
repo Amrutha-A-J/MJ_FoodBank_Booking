@@ -3,9 +3,17 @@ import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import {
   addClientToAgency,
   removeClientFromAgency,
+  getAgencyClients,
 } from '../controllers/agencyController';
 
 const router = Router();
+
+router.get(
+  '/:id/clients',
+  authMiddleware,
+  authorizeRoles('staff', 'agency'),
+  getAgencyClients,
+);
 
 router.post(
   '/:id/clients',

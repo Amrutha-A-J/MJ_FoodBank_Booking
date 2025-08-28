@@ -13,12 +13,24 @@ export async function getAgencyByEmail(email: string): Promise<Agency | undefine
   return res.rows[0] as Agency | undefined;
 }
 
-export async function getAgencyClients(agencyId: number): Promise<number[]> {
+export interface AgencyClientSummary {
+  client_id: number;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+}
+
+export async function getAgencyClients(
+  agencyId: number,
+): Promise<AgencyClientSummary[]> {
   const res = await pool.query(
-    'SELECT client_id FROM agency_clients WHERE agency_id = $1',
+    `SELECT c.client_id, c.first_name, c.last_name, c.email
+     FROM agency_clients ac
+     INNER JOIN clients c ON c.client_id = ac.client_id
+     WHERE ac.agency_id = $1`,
     [agencyId],
   );
-  return res.rows.map(r => r.client_id as number);
+  return res.rows as AgencyClientSummary[];
 }
 
 export async function isAgencyClient(

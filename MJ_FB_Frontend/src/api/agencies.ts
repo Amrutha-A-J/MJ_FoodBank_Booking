@@ -1,7 +1,9 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
 export async function getMyAgencyClients() {
-  const res = await apiFetch(`${API_BASE}/agencies/me/clients`);
+  const res = await apiFetch(`${API_BASE}/agencies/me/clients`, {
+    method: 'GET',
+  });
   return handleResponse(res);
 }
 
