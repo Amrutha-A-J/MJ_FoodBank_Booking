@@ -33,6 +33,7 @@
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
+- Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
 
 ## Development Guidelines
 
