@@ -57,6 +57,8 @@ export default function VolunteerSettings() {
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
+  const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -98,13 +100,20 @@ export default function VolunteerSettings() {
     }
   }
 
-  async function removeMasterRole(id: number) {
+  function removeMasterRole(id: number) {
+    setDeleteMasterId(id);
+  }
+
+  async function confirmRemoveMasterRole() {
+    if (deleteMasterId == null) return;
     try {
-      await deleteVolunteerMasterRole(id);
+      await deleteVolunteerMasterRole(deleteMasterId);
       handleSnack('Master role deleted');
       loadData();
     } catch (e) {
       handleSnack('Failed to delete master role', 'error');
+    } finally {
+      setDeleteMasterId(null);
     }
   }
 
@@ -368,6 +377,21 @@ export default function VolunteerSettings() {
           </Button>
           <Button size="small" variant="contained" onClick={saveRole}>
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteMasterId !== null} onClose={() => setDeleteMasterId(null)}>
+        <DialogTitle>Delete master role</DialogTitle>
+        <DialogContent>
+          <Typography>Deleting this master role will remove all sub roles and shifts. Are you sure?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button size="small" onClick={() => setDeleteMasterId(null)}>
+            Cancel
+          </Button>
+          <Button size="small" color="error" variant="contained" onClick={confirmRemoveMasterRole}>
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
