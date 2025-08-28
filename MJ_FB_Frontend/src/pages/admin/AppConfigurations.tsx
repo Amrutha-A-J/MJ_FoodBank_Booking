@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Stack, TextField, Button } from '@mui/material';
-import Page from '../../components/Page';
+import { useEffect, useState, type FormEvent } from 'react';
+import { TextField, Button } from '@mui/material';
+import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getAppConfig, updateAppConfig } from '../../api/appConfig';
 
@@ -30,7 +30,8 @@ export default function AppConfigurations() {
       });
   }, []);
 
-  function handleSave() {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     updateAppConfig({
       cartTare: Number(form.cartTare) || 0,
       breadWeightMultiplier: Number(form.breadWeightMultiplier) || 0,
@@ -49,8 +50,16 @@ export default function AppConfigurations() {
   }
 
   return (
-    <Page title="App Configurations">
-      <Stack spacing={2} maxWidth={400}>
+    <>
+      <FormCard
+        title="App Configurations"
+        onSubmit={handleSubmit}
+        actions={
+          <Button variant="contained" size="small" type="submit">
+            Save
+          </Button>
+        }
+      >
         <TextField
           label="Cart Tare (lbs)"
           type="number"
@@ -76,16 +85,13 @@ export default function AppConfigurations() {
           }
           InputLabelProps={{ shrink: true }}
         />
-        <Button variant="contained" size="small" onClick={handleSave}>
-          Save
-        </Button>
-      </Stack>
+      </FormCard>
       <FeedbackSnackbar
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       />
-    </Page>
+    </>
   );
 }
