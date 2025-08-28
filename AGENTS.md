@@ -138,9 +138,12 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **slots** – PK `id`; unique `(start_time, end_time)`; referenced by `bookings.slot_id`, `breaks.slot_id`, and `blocked_slots.slot_id`.
 - **staff** – PK `id`; unique `email`; `role` constrained to `staff` or `admin`.
 - **users** – PK `id`; unique `email` and `client_id` (1–9,999,999); `role` is `shopper` or `delivery`; referenced by `bookings.user_id`.
+- **client_email_verifications** – PK `id`; unique `client_id`; FK `client_id` → `clients.id`; stores `email`, `otp_hash`, and `expires_at` for verifying client emails.
 - **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `submitted|approved|rejected|preapproved|cancelled`; includes `reschedule_token`.
+- **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, and `pet_item` counts.
 - **breaks** – PK `id`; unique `(day_of_week, slot_id)`; FK `slot_id` → `slots.id`.
 - **blocked_slots** – PK `id`; unique `(date, slot_id)`; FK `slot_id` → `slots.id`.
+- **recurring_blocked_slots** – PK `id`; unique `(day_of_week, week_of_month, slot_id)`; FK `slot_id` → `slots.id`; defines weekly/monthly slot blocks with a `reason`.
 - **holidays** – PK `id`; unique `date`.
 - **volunteer_master_roles** – PK `id`.
 - **volunteer_roles** – PK `id`; FK `category_id` → `volunteer_master_roles.id`.
@@ -148,6 +151,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **volunteers** – PK `id`; unique `username`.
 - **volunteer_trained_roles** – composite PK `(volunteer_id, role_id)`; FK `volunteer_id` → `volunteers.id` (cascade); FK `role_id` → `volunteer_roles.id` (cascade); FK `category_id` → `volunteer_master_roles.id`.
 - **volunteer_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); `status` in `pending|approved|rejected|cancelled`; includes `reschedule_token`.
+- **volunteer_recurring_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); includes `start_date`, optional `end_date`, `pattern` (`daily|weekly`), `days_of_week` array, and an `active` flag.
 
 ## Volunteer Management
 
