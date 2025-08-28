@@ -35,6 +35,7 @@
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
+- Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
 
 ## Development Guidelines
@@ -272,7 +273,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-master-roles` → `[ { id, name } ]`
 - `POST /volunteer-master-roles` → `{ id, name }`
 - `PUT /volunteer-master-roles/:id` → `{ id, name }`
-- `DELETE /volunteer-master-roles/:id` → `{ message: 'Master role deleted' }`
+- `DELETE /volunteer-master-roles/:id` → `{ message: 'Master role deleted' }` (removes associated `volunteer_roles` and `volunteer_slots`)
 
 ### Volunteer Bookings
 - `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`

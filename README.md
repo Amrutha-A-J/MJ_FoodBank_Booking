@@ -14,7 +14,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
-- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page.
+- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
 - Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).
@@ -32,6 +32,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Staff can manage booking slots and adjust a global "Max slots per time" value through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
+- Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 
 ## Clone and initialize submodules
