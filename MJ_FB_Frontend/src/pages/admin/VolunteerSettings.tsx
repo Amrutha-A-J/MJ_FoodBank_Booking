@@ -58,6 +58,13 @@ export default function VolunteerSettings() {
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
+  const [roleErrors, setRoleErrors] = useState<{
+    roleName: string;
+    startTime: string;
+    endTime: string;
+    maxVolunteers: string;
+  }>({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
+
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -140,14 +147,20 @@ export default function VolunteerSettings() {
       categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
     });
+    setRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
   }
 
   async function saveRole() {
+    const errors = {
+      roleName: roleDialog.roleName ? '' : 'Name is required',
+      startTime: roleDialog.startTime ? '' : 'Start time is required',
+      endTime: roleDialog.endTime ? '' : 'End time is required',
+      maxVolunteers: roleDialog.maxVolunteers ? '' : 'Max volunteers is required',
+    };
+    setRoleErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
+
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
-        handleSnack('All fields are required', 'error');
-        return;
-      }
       const startTime = toTimeValue(roleDialog.startTime);
       const endTime = toTimeValue(roleDialog.endTime);
       const maxVolunteers = Number(roleDialog.maxVolunteers);
@@ -174,6 +187,7 @@ export default function VolunteerSettings() {
         handleSnack('Role created');
       }
       setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+      setRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
       loadData();
     } catch (e) {
       handleSnack('Failed to save role', 'error');
@@ -362,7 +376,12 @@ export default function VolunteerSettings() {
             label="Name"
             fullWidth
             value={roleDialog.roleName}
-            onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            error={!!roleErrors.roleName}
+            helperText={roleErrors.roleName}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, roleName: e.target.value });
+              if (roleErrors.roleName) setRoleErrors({ ...roleErrors, roleName: '' });
+            }}
           />
           <TextField
             margin="dense"
@@ -371,7 +390,12 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.startTime}
-            onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
+            error={!!roleErrors.startTime}
+            helperText={roleErrors.startTime}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, startTime: e.target.value });
+              if (roleErrors.startTime) setRoleErrors({ ...roleErrors, startTime: '' });
+            }}
           />
           <TextField
             margin="dense"
@@ -380,7 +404,12 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.endTime}
-            onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
+            error={!!roleErrors.endTime}
+            helperText={roleErrors.endTime}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, endTime: e.target.value });
+              if (roleErrors.endTime) setRoleErrors({ ...roleErrors, endTime: '' });
+            }}
           />
           <TextField
             margin="dense"
@@ -388,7 +417,12 @@ export default function VolunteerSettings() {
             fullWidth
             type="number"
             value={roleDialog.maxVolunteers}
-            onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
+            error={!!roleErrors.maxVolunteers}
+            helperText={roleErrors.maxVolunteers}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value });
+              if (roleErrors.maxVolunteers) setRoleErrors({ ...roleErrors, maxVolunteers: '' });
+            }}
           />
         </DialogContent>
         <DialogActions>
