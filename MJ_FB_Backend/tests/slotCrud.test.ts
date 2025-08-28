@@ -81,3 +81,25 @@ describe('PUT /slots/:id', () => {
     expect(pool.query).not.toHaveBeenCalled();
   });
 });
+
+describe('PUT /slots/capacity', () => {
+  it('updates capacity for all slots', async () => {
+    const res = await request(app)
+      .put('/slots/capacity')
+      .send({ maxCapacity: 3 });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Capacity updated' });
+    expect(pool.query).toHaveBeenCalledWith(
+      'UPDATE slots SET max_capacity = $1',
+      [3],
+    );
+  });
+
+  it('validates request body', async () => {
+    const res = await request(app)
+      .put('/slots/capacity')
+      .send({ maxCapacity: 0 });
+    expect(res.status).toBe(400);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+});
