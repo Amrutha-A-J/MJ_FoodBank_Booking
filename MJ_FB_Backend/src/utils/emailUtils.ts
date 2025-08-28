@@ -3,7 +3,7 @@ import logger from './logger';
 
 export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
   if (!config.smtpHost || !config.smtpUser || !config.smtpPass || !config.smtpFromEmail) {
-    logger.warn('SMTP email configuration is missing');
+    logger.warn('SMTP email configuration is missing. Email not sent.', { to, subject, body });
     return;
   }
 
@@ -29,6 +29,6 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
       html: body,
     });
   } catch (error) {
-    logger.error('Failed to send email:', error);
+    logger.warn('Email not sent. Check SMTP configuration or running in local environment.', { to, subject, body });
   }
 }
