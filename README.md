@@ -33,6 +33,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
+- Role name lookups during slot creation are scoped by `categoryId`, allowing the same sub-role name under different master roles.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 

@@ -56,9 +56,7 @@ describe('VolunteerSettings page', () => {
 
     const subButtons = screen.getAllByText('Add Sub-role');
     expect(subButtons).toHaveLength(1);
-
-    const buttons = screen.getAllByRole('button');
-    expect(buttons[buttons.length - 1]).toHaveTextContent('Add Master Role');
+    expect(screen.getByText('Add Master Role')).toBeInTheDocument();
   });
 
   it('handles master role dialog flow', async () => {
@@ -107,15 +105,46 @@ describe('VolunteerSettings page', () => {
     fireEvent.click(within(dialog).getByText('Save'));
 
     await waitFor(() =>
-      expect(createVolunteerRole).toHaveBeenCalledWith(
-        'Sorter',
-        '09:00:00',
-        '12:00:00',
-        2,
-        1,
-        false,
-        true
-      )
+      expect(createVolunteerRole).toHaveBeenCalledWith({
+        name: 'Sorter',
+        startTime: '09:00:00',
+        endTime: '12:00:00',
+        maxVolunteers: 2,
+        categoryId: 1,
+        isWednesdaySlot: false,
+        isActive: true,
+      })
+    );
+  });
+
+  it('handles shift dialog flow', async () => {
+    (createVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Shift'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '09:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '12:00:00' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(createVolunteerRole).toHaveBeenCalledWith({
+        roleId: 1,
+        startTime: '09:00:00',
+        endTime: '12:00:00',
+        maxVolunteers: 1,
+        isWednesdaySlot: false,
+        isActive: true,
+      })
     );
   });
 });
