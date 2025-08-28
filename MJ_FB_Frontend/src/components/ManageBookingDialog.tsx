@@ -8,7 +8,10 @@ import {
   TextField,
   MenuItem,
   Stack,
+  Typography,
+  Link as MuiLink,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
@@ -23,7 +26,9 @@ interface Booking {
   id: number;
   reschedule_token: string;
   client_id: number;
+  user_id: number;
   user_name: string;
+  bookings_this_month: number;
   date: string;
 }
 
@@ -123,7 +128,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
           }
           await createClientVisit({
             date: booking.date,
-            clientId: booking.client_id,
+            clientId: Number(booking.client_id),
             anonymous: false,
             weightWithCart: Number(weightWithCart),
             weightWithoutCart: Number(weightWithoutCart),
@@ -150,6 +155,19 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       <DialogTitle>Manage Booking</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2}>
+          <Stack spacing={0.5}>
+            <Typography>Client: {booking.user_name}</Typography>
+            <Typography>
+              Client ID:{' '}
+              <MuiLink
+                component={RouterLink}
+                to={`/pantry/client-management?tab=history&id=${booking.user_id}&name=${encodeURIComponent(booking.user_name)}&clientId=${booking.client_id}`}
+              >
+                {booking.client_id}
+              </MuiLink>
+            </Typography>
+            <Typography>Visits this month: {booking.bookings_this_month}</Typography>
+          </Stack>
           <TextField
             select
             label="Status"

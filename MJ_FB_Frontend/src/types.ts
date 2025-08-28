@@ -165,3 +165,21 @@ export interface Shift {
   endTime: string;   // 'HH:MM:SS'
   maxVolunteers: number;
 }
+
+export interface VolunteerMasterRole {
+  id: number;
+  name: string;
+}
+
+export interface EditableSlot {
+  id: number;
+  role_id: number;
+  name: string;
+  start_time: string;
+  end_time: string;
+  max_volunteers: number;
+  category_id: number;
+  category_name: string;
+  is_wednesday_slot: boolean;
+  is_active: boolean;
+}

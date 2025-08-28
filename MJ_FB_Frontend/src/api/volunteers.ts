@@ -136,6 +136,105 @@ export async function getVolunteerMasterRoles() {
   return handleResponse(res);
 }
 
+export async function createVolunteerMasterRole(name: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerMasterRole(id: number, name: string) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteVolunteerMasterRole(id: number) {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+    method: 'DELETE',
+  });
+  return handleResponse(res);
+}
+
+export async function createVolunteerRole(
+  name: string,
+  startTime: string,
+  endTime: string,
+  maxVolunteers: number,
+  categoryId: number,
+  isWednesdaySlot?: boolean,
+  isActive?: boolean,
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      startTime,
+      endTime,
+      maxVolunteers,
+      categoryId,
+      isWednesdaySlot,
+      isActive,
+    }),
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerRole(
+  id: number,
+  {
+    name,
+    startTime,
+    endTime,
+    maxVolunteers,
+    categoryId,
+    isWednesdaySlot,
+  }: {
+    name: string;
+    startTime: string;
+    endTime: string;
+    maxVolunteers: number;
+    categoryId: number;
+    isWednesdaySlot?: boolean;
+  },
+) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      startTime,
+      endTime,
+      maxVolunteers,
+      categoryId,
+      isWednesdaySlot,
+    }),
+  });
+  return handleResponse(res);
+}
+
+export async function toggleVolunteerRole(id: number, isActive: boolean) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isActive }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteVolunteerRole(id: number) {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'DELETE',
+  });
+  return handleResponse(res);
+}
+
 export async function updateVolunteerRoleStatus(
   id: number,
   isActive: boolean,
