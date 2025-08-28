@@ -1,5 +1,44 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-import type { Slot, SlotsByDate, RecurringBlockedSlot, BlockedSlot } from '../types';
+import type {
+  Slot,
+  SlotsByDate,
+  RecurringBlockedSlot,
+  BlockedSlot,
+  Break,
+  Holiday,
+} from '../types';
+
+interface SlotResponse {
+  id: number | string;
+  start_time?: string;
+  startTime?: string;
+  end_time?: string;
+  endTime?: string;
+  available: number;
+  reason?: string;
+  status?: string;
+}
+
+interface SlotsByDateResponse {
+  date: string;
+  slots: SlotResponse[];
+}
+
+interface CreateBookingBody {
+  slotId: number;
+  date: string;
+  requestData: string;
+  userId?: number;
+}
+
+const mapSlot = (s: SlotResponse): Slot => ({
+  id: String(s.id),
+  startTime: s.startTime ?? s.start_time ?? '',
+  endTime: s.endTime ?? s.end_time ?? '',
+  available: s.available,
+  reason: s.reason,
+  status: s.status,
+});
 
 export async function getSlots(date?: string, includePast = false) {
   const params = new URLSearchParams();
@@ -7,15 +46,8 @@ export async function getSlots(date?: string, includePast = false) {
   if (includePast) params.append('includePast', 'true');
   const query = params.toString();
   const res = await apiFetch(`${API_BASE}/slots${query ? `?${query}` : ''}`);
-  const data = await handleResponse(res);
-  return data.map((s: any) => ({
-    id: String(s.id),
-    startTime: s.startTime ?? s.start_time,
-    endTime: s.endTime ?? s.end_time,
-    available: s.available,
-    reason: s.reason,
-    status: s.status,
-  })) as Slot[];
+  const data = await handleResponse<SlotResponse[]>(res);
+  return data.map(mapSlot);
 }
 
 export async function getSlotsRange(
@@ -31,17 +63,10 @@ export async function getSlotsRange(
   const res = await apiFetch(
     `${API_BASE}/slots/range${query ? `?${query}` : ''}`,
   );
-  const data = await handleResponse(res);
-  return data.map((d: any) => ({
+  const data = await handleResponse<SlotsByDateResponse[]>(res);
+  return data.map(d => ({
     date: d.date,
-    slots: (d.slots as any[]).map(s => ({
-      id: String(s.id),
-      startTime: s.startTime ?? s.start_time,
-      endTime: s.endTime ?? s.end_time,
-      available: s.available,
-      reason: s.reason,
-      status: s.status,
-    })) as Slot[],
+    slots: d.slots.map(mapSlot),
   }));
 }
 
@@ -50,7 +75,7 @@ export async function createBooking(
   date: string,
   userId?: number,
 ) {
-  const body: any = { slotId: Number(slotId), date, requestData: '' };
+  const body: CreateBookingBody = { slotId: Number(slotId), date, requestData: '' };
   if (userId) body.userId = userId;
   const res = await apiFetch(`${API_BASE}/bookings`, {
     method: 'POST',
@@ -90,8 +115,8 @@ export async function getBookings(
     params.append('clientIds', opts.clientIds.join(','));
   const query = params.toString();
   const res = await apiFetch(`${API_BASE}/bookings${query ? `?${query}` : ''}`);
-  const data = await handleResponse(res);
-  return Array.isArray(data) ? data.map(normalizeBooking) : data;
+  const data = await handleResponse<BookingResponse[] | BookingResponse>(res);
+  return Array.isArray(data) ? data.map(normalizeBooking) : normalizeBooking(data);
 }
 
 export async function getBookingHistory(
@@ -110,13 +135,13 @@ export async function getBookingHistory(
   const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
   );
-  const data = await handleResponse(res);
-  return Array.isArray(data) ? data.map(normalizeBooking) : data;
+  const data = await handleResponse<BookingResponse[] | BookingResponse>(res);
+  return Array.isArray(data) ? data.map(normalizeBooking) : normalizeBooking(data);
 }
 
 export async function getHolidays() {
   const res = await apiFetch(`${API_BASE}/holidays`);
-  return handleResponse(res);
+  return handleResponse<Holiday[]>(res);
 }
 
 export async function addHoliday(date: string, reason: string): Promise<void> {
@@ -139,13 +164,8 @@ export async function removeHoliday(date: string): Promise<void> {
 
 export async function getAllSlots() {
   const res = await apiFetch(`${API_BASE}/slots/all`);
-  const data = await handleResponse(res);
-  return data.map((s: any) => ({
-    id: String(s.id),
-    startTime: s.startTime ?? s.start_time,
-    endTime: s.endTime ?? s.end_time,
-    available: s.available,
-  })) as Slot[];
+  const data = await handleResponse<SlotResponse[]>(res);
+  return data.map(mapSlot);
 }
 
 export async function getBlockedSlots(date?: string): Promise<BlockedSlot[]> {
@@ -153,7 +173,7 @@ export async function getBlockedSlots(date?: string): Promise<BlockedSlot[]> {
     ? `${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`
     : `${API_BASE}/blocked-slots`;
   const res = await apiFetch(url);
-  return handleResponse(res);
+  return handleResponse<BlockedSlot[]>(res);
 }
 
 export async function addBlockedSlot(
@@ -168,19 +188,19 @@ export async function addBlockedSlot(
     },
     body: JSON.stringify({ date, slotId, reason }),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function removeBlockedSlot(date: string, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/blocked-slots/${encodeURIComponent(date)}/${slotId}`, {
     method: 'DELETE',
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function getRecurringBlockedSlots(): Promise<RecurringBlockedSlot[]> {
   const res = await apiFetch(`${API_BASE}/recurring-blocked-slots`);
-  return handleResponse(res);
+  return handleResponse<RecurringBlockedSlot[]>(res);
 }
 
 export async function addRecurringBlockedSlot(
@@ -196,19 +216,19 @@ export async function addRecurringBlockedSlot(
     },
     body: JSON.stringify({ dayOfWeek, weekOfMonth, slotId, reason }),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function removeRecurringBlockedSlot(id: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/recurring-blocked-slots/${id}`, {
     method: 'DELETE',
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function getBreaks() {
   const res = await apiFetch(`${API_BASE}/breaks`);
-  return handleResponse(res);
+  return handleResponse<Break[]>(res);
 }
 
 export async function addBreak(
@@ -223,14 +243,14 @@ export async function addBreak(
     },
     body: JSON.stringify({ dayOfWeek, slotId, reason }),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function removeBreak(dayOfWeek: number, slotId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/breaks/${dayOfWeek}/${slotId}`, {
     method: 'DELETE',
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function cancelBooking(
@@ -244,7 +264,7 @@ export async function cancelBooking(
     },
     body: JSON.stringify(reason ? { reason } : {}),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function markBookingNoShow(
@@ -256,7 +276,7 @@ export async function markBookingNoShow(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(reason ? { reason } : {}),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function markBookingVisited(
@@ -268,7 +288,7 @@ export async function markBookingVisited(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestData ? { requestData } : {}),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function createBookingForUser(
@@ -284,7 +304,7 @@ export async function createBookingForUser(
     },
     body: JSON.stringify({ userId, slotId, date, isStaffBooking }),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 
 export async function rescheduleBookingByToken(
@@ -298,6 +318,6 @@ export async function rescheduleBookingByToken(
     headers,
     body: JSON.stringify({ slotId, date }),
   });
-  await handleResponse(res);
+  await handleResponse<void>(res);
 }
 

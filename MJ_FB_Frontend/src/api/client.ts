@@ -84,25 +84,33 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   return res;
 }
 
-export async function handleResponse(res: Response) {
+export interface ApiError extends Error {
+  details?: unknown;
+}
+
+export async function handleResponse<T = any>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = res.statusText;
-    let data: any = null;
+    let data: unknown = null;
     try {
       data = await res.json();
-      message = data.message || data.error || JSON.stringify(data);
+      const errData = data as Record<string, unknown>;
+      message =
+        (typeof errData.message === 'string' && errData.message) ||
+        (typeof errData.error === 'string' && errData.error) ||
+        JSON.stringify(errData);
     } catch {
       message = await res.text();
     }
-    const err: any = new Error(message);
+    const err: ApiError = new Error(message);
     if (data) err.details = data;
     throw err;
   }
   if (res.status === 204 || res.headers.get('Content-Length') === '0') {
-    return undefined;
+    return undefined as T;
   }
   const text = await res.text();
-  return text ? JSON.parse(text) : undefined;
+  return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
 export { API_BASE };
