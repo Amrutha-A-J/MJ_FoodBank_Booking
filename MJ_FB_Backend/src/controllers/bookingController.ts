@@ -30,18 +30,18 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
   const { slotId, date, isStaffBooking } = req.body;
   if (!slotId || !date) {
-    return res.status(400).json({ message: 'Missing required fields' });
+    return res.status(400).json({ message: 'Please select a time slot and date' });
   }
 
   const slotIdNum = Number(slotId);
   if (Number.isNaN(slotIdNum)) {
-    return res.status(400).json({ message: 'Invalid slot' });
+    return res.status(400).json({ message: 'Please select a valid time slot' });
   }
 
   try {
     const userId = Number((req.user as any).userId ?? req.user?.id);
     if (!isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Invalid booking date' });
+      return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
     const approvedCount = await countApprovedBookingsForMonth(userId, date);
@@ -51,7 +51,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
-      return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
+      return res
+        .status(409)
+        .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
     }
 
     const client = await pool.connect();
@@ -134,7 +136,9 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
 
     if (decision === 'approve') {
       if (!isDateWithinCurrentOrNextMonth(booking.date)) {
-        return res.status(400).json({ message: 'Invalid booking date' });
+        return res
+          .status(400)
+          .json({ message: 'Booking date must be within this month or next' });
       }
       const approvedCount = await countApprovedBookingsForMonth(booking.user_id, booking.date);
       if (approvedCount >= 2) {
@@ -202,7 +206,7 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
 
     const todayStr = formatReginaDate(new Date());
     if (booking.date < todayStr) {
-      return res.status(400).json({ message: 'Cannot cancel past bookings' });
+      return res.status(400).json({ message: "You can't cancel past bookings" });
     }
 
     await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
@@ -225,7 +229,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
   const { token } = req.params;
   const { slotId, date } = req.body as { slotId?: number; date?: string };
   if (!slotId || !date) {
-    return res.status(400).json({ message: 'slotId and date are required' });
+    return res.status(400).json({ message: 'Please select a time slot and date' });
   }
   try {
     const booking = await fetchBookingByToken(token);
@@ -233,10 +237,10 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       return res.status(404).json({ message: 'Booking not found' });
     }
     if (!['submitted', 'approved', 'preapproved'].includes(booking.status)) {
-      return res.status(400).json({ message: 'Booking cannot be rescheduled' });
+      return res.status(400).json({ message: "This booking can't be rescheduled" });
     }
     if (!isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Invalid booking date' });
+      return res.status(400).json({ message: 'Please choose a valid date' });
     }
     await checkSlotCapacity(slotId, date);
     const newToken = randomUUID();
@@ -273,11 +277,13 @@ export async function createPreapprovedBooking(
 
   const { name, slotId, requestData, date } = req.body;
   if (!name || !slotId || !date) {
-    return res.status(400).json({ message: 'Missing fields' });
+    return res
+      .status(400)
+      .json({ message: 'Please provide a name, time slot, and date' });
   }
 
   if (!isDateWithinCurrentOrNextMonth(date)) {
-    return res.status(400).json({ message: 'Invalid booking date' });
+    return res.status(400).json({ message: 'Please choose a valid date' });
   }
 
   const client = await pool.connect();
@@ -340,23 +346,27 @@ export async function createBookingForUser(
   const { userId, slotId, date } = req.body;
   const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
-    return res.status(400).json({ message: 'Missing fields' });
+    return res
+      .status(400)
+      .json({ message: 'Please provide a user, time slot, and date' });
   }
 
   const slotIdNum = Number(slotId);
   if (Number.isNaN(slotIdNum)) {
-    return res.status(400).json({ message: 'Invalid slot' });
+    return res.status(400).json({ message: 'Please select a valid time slot' });
   }
 
   try {
     if (req.user.role === 'agency') {
       const allowed = await isAgencyClient(Number(req.user.id), userId);
       if (!allowed) {
-        return res.status(403).json({ message: 'Client not associated with agency' });
+        return res
+          .status(403)
+          .json({ message: 'Client not linked to your agency' });
       }
     }
     if (!isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Invalid booking date' });
+      return res.status(400).json({ message: 'Please choose a valid date' });
     }
     const approvedCount = await countApprovedBookingsForMonth(userId, date);
     if (approvedCount >= 2) {
@@ -365,7 +375,9 @@ export async function createBookingForUser(
 
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
-      return res.status(409).json({ message: 'Existing booking', existingBooking: upcoming });
+      return res
+        .status(409)
+        .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
     }
 
     await checkSlotCapacity(slotIdNum, date);
