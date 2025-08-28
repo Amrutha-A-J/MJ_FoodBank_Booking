@@ -98,17 +98,31 @@ export default function BookingUI({
     setSelectedSlotId(null);
   }, [date, holidays]);
 
+  const visibleSlots = useMemo(() => {
+    if (!date.isSame(dayjs(), 'day')) return slots;
+    const now = dayjs();
+    return slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
+  }, [slots, date]);
+
+  useEffect(() => {
+    if (selectedSlotId && !visibleSlots.some(s => s.id === selectedSlotId)) {
+      setSelectedSlotId(null);
+    }
+  }, [selectedSlotId, visibleSlots]);
+
   const morningSlots = useMemo(
-    () => slots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
-    [slots],
+    () =>
+      visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
+    [visibleSlots],
   );
   const afternoonSlots = useMemo(
-    () => slots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
-    [slots],
+    () =>
+      visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
+    [visibleSlots],
   );
 
   async function handleBook() {
-    if (!selectedSlotId) return;
+    if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
     setBooking(true);
     try {
       await bookSlot({
@@ -204,7 +218,7 @@ export default function BookingUI({
     );
   }
 
-  const selectedSlot = slots.find(s => s.id === selectedSlotId);
+  const selectedSlot = visibleSlots.find(s => s.id === selectedSlotId);
   const selectedLabel = selectedSlot
     ? `${dayjs(selectedSlot.startTime, 'HH:mm:ss').format('h:mm a')} – ${dayjs(
         selectedSlot.endTime,
@@ -286,7 +300,7 @@ export default function BookingUI({
               >
                 <Typography>{error instanceof Error ? error.message : 'Error loading slots'}</Typography>
               </Box>
-            ) : slots.length === 0 ? (
+            ) : visibleSlots.length === 0 ? (
               <Box
                 sx={{
                   minHeight: 200,
