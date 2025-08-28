@@ -91,7 +91,7 @@ export default function VolunteerSettings() {
     try {
       const [master, roleData] = await Promise.all([
         getVolunteerMasterRoles(),
-        getVolunteerRoles(),
+        getVolunteerRoles(true),
       ]);
       setMasterRoles(master);
       setRoles(roleData);
