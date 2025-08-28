@@ -8,7 +8,7 @@ import {
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
-import { sendEmail } from '../utils/emailUtils';
+import { enqueueEmail } from '../utils/emailQueue';
 import logger from '../utils/logger';
 import {
   SlotCapacityError,
@@ -85,7 +85,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     client.release();
 
-    await sendEmail(
+    enqueueEmail(
       user.email || 'test@example.com',
       'Appointment request received',
       `Booking request submitted for ${date}`,
@@ -170,7 +170,7 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
       });
     }
 
-    await sendEmail(
+    enqueueEmail(
       'test@example.com',
       `Booking ${decision}d`,
       `Booking ${bookingId} has been ${decision}d`,
@@ -211,7 +211,7 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
 
     await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
 
-    await sendEmail(
+    enqueueEmail(
       'test@example.com',
       'Booking cancelled',
       `Booking ${bookingId} was cancelled`,
@@ -253,7 +253,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       status: newStatus,
     });
 
-    await sendEmail(
+    enqueueEmail(
       'test@example.com',
       'Booking rescheduled',
       `Booking ${booking.id} was rescheduled`,
