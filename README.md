@@ -8,6 +8,10 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
+- Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
+- Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
+- Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
+- Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 
 ## Clone and initialize submodules
@@ -31,9 +35,10 @@ npm run migrate up   # Run pending database migrations
 npm start   # or npm run dev
 ```
 
-The latest migrations add support for agency logins by creating the
-`agencies` table and the `agency_clients` join table. Run the migrate
-command after pulling updates so these tables exist in your database.
+The latest migrations add support for agency logins (`agencies`, `agency_clients`),
+recurring volunteer bookings (`volunteer_recurring_bookings`) and email OTP verification
+(`client_email_verifications`). Run the migrate command after pulling updates so these
+tables exist in your database.
 
 ### Environment variables
 
