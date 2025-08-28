@@ -87,6 +87,38 @@ describe('addVolunteerRole validation', () => {
     expect(res.body.name).toBe('New');
   });
 
+  it('accepts numeric strings for maxVolunteers and categoryId', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 11 }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            slot_id: 3,
+            start_time: '17:00:00',
+            end_time: '18:00:00',
+            max_volunteers: 2,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ name: 'Fun', category_id: 6 }] })
+      .mockResolvedValueOnce({ rows: [{ name: 'Master' }] });
+
+    const res = await request(app).post('/volunteer-roles').send({
+      name: 'Fun',
+      categoryId: '6',
+      startTime: '17:00:00',
+      endTime: '18:00:00',
+      maxVolunteers: '2',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.role_id).toBe(11);
+    expect(res.body.max_volunteers).toBe(2);
+  });
+
   it('rejects overlapping slot times', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
     const res = await request(app).post('/volunteer-roles').send({
