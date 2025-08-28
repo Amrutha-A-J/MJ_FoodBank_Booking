@@ -303,7 +303,7 @@ export default function VolunteerManagement() {
 
   async function decide(
     id: number,
-    status: 'approved' | 'rejected' | 'cancelled',
+    status: 'approved' | 'rejected' | 'cancelled' | 'no_show' | 'expired',
     reason?: string,
   ) {
     try {

@@ -11,6 +11,8 @@ const STATUS_COLORS: Record<string, string> = {
   approved: 'green',
   rejected: 'red',
   cancelled: 'gray',
+  no_show: 'red',
+  expired: 'gray',
 };
 
 function statusColor(status: string) {

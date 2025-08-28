@@ -158,7 +158,7 @@ export async function getVolunteerBookingsByRole(roleId: number) {
 
 export async function updateVolunteerBookingStatus(
   bookingId: number,
-  status: 'approved' | 'rejected' | 'cancelled',
+  status: 'approved' | 'rejected' | 'cancelled' | 'no_show' | 'expired',
   reason?: string,
 ): Promise<void> {
   const body = reason ? { status, reason } : { status };

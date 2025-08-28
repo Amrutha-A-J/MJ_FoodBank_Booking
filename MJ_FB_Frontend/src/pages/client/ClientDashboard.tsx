@@ -58,6 +58,8 @@ function statusColor(status: string):
       return 'warning';
     case 'cancelled':
     case 'rejected':
+    case 'no_show':
+    case 'expired':
       return 'error';
     default:
       return 'info';
