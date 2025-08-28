@@ -7,7 +7,8 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, type AlertColor, useTheme } from '@mui/material';
+import { Button, type AlertColor, useTheme, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
 
@@ -358,7 +359,19 @@ export default function PantrySchedule({
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '320px' }}>
+          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '320px', position: 'relative' }}>
+            <IconButton
+              aria-label="close"
+              size="small"
+              onClick={() => {
+                setDecisionBooking(null);
+                setDecisionReason('');
+                setShowRejectReason(false);
+              }}
+              sx={{ position: 'absolute', top: 4, right: 4 }}
+            >
+              <CloseIcon />
+            </IconButton>
             <h4>Manage Booking</h4>
             <p>
               {decisionBooking.status === 'submitted'
@@ -403,33 +416,11 @@ export default function PantrySchedule({
                   >
                     {showRejectReason ? 'Confirm Reject' : 'Reject'}
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Cancel
-                  </Button>
                 </>
               ) : (
                 <>
                   <Button onClick={openReschedule} variant="outlined" color="primary">Reschedule</Button>
                   <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
-                  <Button
-                    onClick={() => {
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Cancel
-                  </Button>
                 </>
               )}
             </div>
