@@ -6,13 +6,16 @@ export type Queryable = Pool | PoolClient;
 
 export function getMonthRange(date: Date | string): { start: string; end: string } | false {
   try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    const start = new Date(d.getFullYear(), d.getMonth(), 1);
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-    return {
-      start: formatReginaDate(start),
-      end: formatReginaDate(end),
-    };
+    const reginaStr = formatReginaDate(date);
+    const [yearStr, monthStr] = reginaStr.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr); // 1-based month
+
+    const start = `${yearStr}-${monthStr}-01`;
+    const endDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const end = `${yearStr}-${monthStr}-${String(endDay).padStart(2, '0')}`;
+
+    return { start, end };
   } catch {
     return false;
   }
