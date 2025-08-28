@@ -6,6 +6,9 @@ function getCsrfToken() {
     .find(row => row.startsWith('csrfToken='))?.split('=')[1];
 }
 
+// shared refresh promise to avoid multiple concurrent refresh calls
+let refreshPromise: Promise<Response> | null = null;
+
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
   let csrf = getCsrfToken();
@@ -58,19 +61,23 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       return res;
     }
     try {
-      const refreshRes = await fetchWithRetry(
-        `${API_BASE}/auth/refresh`,
-        { method: 'POST', credentials: 'include' },
-        2,
-      );
+      if (!refreshPromise) {
+        refreshPromise = fetchWithRetry(
+          `${API_BASE}/auth/refresh`,
+          { method: 'POST', credentials: 'include' },
+          2,
+        );
+      }
+      const refreshRes = await refreshPromise;
+      refreshPromise = null;
       if (refreshRes.ok) {
         res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
-        if (res.status === 401) clearAuthAndRedirect();
       } else if (refreshRes.status === 401) {
         clearAuthAndRedirect();
       }
     } catch {
       // network error during refresh; propagate original 401 without clearing auth
+      refreshPromise = null;
     }
   }
   return res;
