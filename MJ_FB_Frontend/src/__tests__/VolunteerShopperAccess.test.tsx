@@ -30,10 +30,12 @@ describe('Volunteer with shopper profile', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
-    await waitFor(() => expect(screen.getByRole('link', { name: /Booking Slots/i })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /Book Appointment/i })).toBeInTheDocument(),
+    );
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('link', { name: /Booking Slots/i }));
+    fireEvent.click(screen.getByRole('link', { name: /Book Appointment/i }));
     expect(screen.getByText(/BookingUI Component/i)).toBeInTheDocument();
   });
 });

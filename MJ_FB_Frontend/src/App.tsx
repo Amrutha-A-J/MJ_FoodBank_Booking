@@ -132,7 +132,7 @@ export default function App() {
     navGroups.push({
       label: 'Booking',
       links: [
-        { label: 'Booking Slots', to: '/slots' },
+        { label: 'Book Appointment', to: '/book-appointment' },
         { label: 'Booking History', to: '/booking-history' },
       ],
     });
@@ -149,7 +149,7 @@ export default function App() {
       navGroups.push({
         label: 'Booking',
         links: [
-          { label: 'Booking Slots', to: '/slots' },
+          { label: 'Book Appointment', to: '/book-appointment' },
           { label: 'Booking History', to: '/booking-history' },
         ],
       });
@@ -258,7 +258,7 @@ export default function App() {
                 />
               )}
               {role === 'shopper' && (
-                <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
+                <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
               )}
               {role === 'shopper' && (
                 <Route
@@ -271,7 +271,7 @@ export default function App() {
                 />
               )}
               {role === 'volunteer' && userRole === 'shopper' && (
-                <Route path="/slots" element={<BookingUI shopperName={name || undefined} />} />
+                <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
               )}
               {role === 'volunteer' && userRole === 'shopper' && (
                 <Route
