@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getAllSlots } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
 import type { Slot, Holiday, BlockedSlot } from '../../types';
-import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
+import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Button, type AlertColor, useTheme } from '@mui/material';
@@ -39,7 +40,7 @@ export default function PantrySchedule({
   searchUsersFn?: (search: string) => Promise<User[]>;
 }) {
   const [currentDate, setCurrentDate] = useState(() => {
-    const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
+    const todayStr = formatDate();
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -60,8 +61,6 @@ export default function PantrySchedule({
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
 
-  const formatDate = (date: Date) => formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
-
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
@@ -81,7 +80,7 @@ export default function PantrySchedule({
       setSlots(slotsData);
       setBlockedSlots(blockedData);
       const filtered = bookingsData.filter((b: Booking) => {
-        const bookingDate = formatInTimeZone(new Date(b.date), reginaTimeZone, 'yyyy-MM-dd');
+        const bookingDate = formatDate(b.date);
         const inClient = !clientIds || clientIds.includes(b.client_id);
         return (
           bookingDate === dateStr &&
@@ -118,7 +117,7 @@ export default function PantrySchedule({
   }, [searchTerm, assignSlot]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
+    setCurrentDate(d => addDays(d, delta));
   }
 
   async function decideSelected(decision: 'approve' | 'reject') {
@@ -185,7 +184,7 @@ export default function PantrySchedule({
 
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
-  const dayName = formatInTimeZone(currentDate, reginaTimeZone, 'EEEE');
+  const dayName = formatDate(currentDate, 'dddd');
   const holidayObj = holidays.find(h => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;

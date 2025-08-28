@@ -4,6 +4,7 @@ import { getBookings, decideBooking } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
+import { formatLocaleDate } from '../../utils/date';
 
 interface Booking {
   id: number;
@@ -68,7 +69,7 @@ export default function Pending() {
                 <Typography variant="body2">Client ID: {b.client_id ?? 'N/A'}</Typography>
                 <Typography variant="body2">Uses this month: {b.bookings_this_month ?? 0}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {new Date(b.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
+                  {formatLocaleDate(b.date, { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
                   {formatTime(b.start_time || b.startTime || '')} - {formatTime(b.end_time || b.endTime || '')}
                 </Typography>
                 <TextField

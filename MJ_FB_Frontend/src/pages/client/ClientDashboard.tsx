@@ -21,6 +21,7 @@ import type { Slot, Holiday } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
+import { toDate } from '../../utils/date';
 
 interface Booking {
   id: number;
@@ -37,7 +38,7 @@ interface NextSlot {
 }
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
+  const d = toDate(dateStr);
   return formatReginaDate(d, { month: 'short', day: 'numeric' });
 }
 
@@ -79,10 +80,10 @@ export default function ClientDashboard() {
   }, []);
 
   useEffect(() => {
-    const today = new Date();
+    const today = toDate();
     Promise.all(
       [...Array(7)].map(async (_, i) => {
-        const d = new Date(today);
+        const d = toDate(today);
         d.setDate(today.getDate() + i);
         const dateStr = formatRegina(d, 'yyyy-MM-dd');
         const slots = (await getSlots(dateStr)) as Slot[];
@@ -98,15 +99,15 @@ export default function ClientDashboard() {
     getHolidays().then(setHolidays).catch(() => {});
   }, []);
 
-  const today = new Date();
+  const today = toDate();
   const approved = bookings
-    .filter(b => b.status === 'approved' && new Date(b.date) >= today)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .filter(b => b.status === 'approved' && toDate(b.date) >= today)
+    .sort((a, b) => toDate(a.date).getTime() - toDate(b.date).getTime());
   const next = approved[0];
   const pending = bookings.filter(b => b.status === 'submitted' || b.status === 'pending');
   const history = bookings
     .filter(b => b.status !== 'submitted')
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime());
 
   async function confirmCancel() {
     if (cancelId === null) return;

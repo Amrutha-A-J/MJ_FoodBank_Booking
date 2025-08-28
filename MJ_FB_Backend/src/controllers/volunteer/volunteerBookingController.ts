@@ -4,6 +4,7 @@ import pool from '../../db';
 import { sendEmail } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
 import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
+import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'light orange',
@@ -14,6 +15,15 @@ const STATUS_COLORS: Record<string, string> = {
 
 function statusColor(status: string) {
   return STATUS_COLORS[status] || null;
+}
+
+function mapBookingRow(b: any) {
+  return {
+    ...b,
+    date:
+      b.date instanceof Date ? b.date.toISOString().split('T')[0] : b.date,
+    status_color: statusColor(b.status),
+  };
 }
 
 export async function createVolunteerBooking(
@@ -50,12 +60,23 @@ export async function createVolunteerBooking(
       return res.status(400).json({ message: 'Not trained for this role' });
     }
 
-    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const isWeekend = [0, 6].includes(
+      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+    );
     const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
       return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
+    }
+
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+      [roleId, date, user.id]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
     const countRes = await pool.query(
@@ -85,6 +106,10 @@ export async function createVolunteerBooking(
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.status(201).json(booking);
   } catch (error) {
     logger.error('Error creating volunteer booking:', error);
@@ -130,12 +155,23 @@ export async function createVolunteerBookingForVolunteer(
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
     }
 
-    const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+    const isWeekend = [0, 6].includes(
+      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+    );
     const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
       return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
+    }
+
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+      [roleId, date, volunteerId]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
     const countRes = await pool.query(
@@ -159,8 +195,15 @@ export async function createVolunteerBookingForVolunteer(
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.status(201).json(booking);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
     logger.error('Error creating volunteer booking for volunteer:', error);
     next(error);
   }
@@ -184,10 +227,7 @@ export async function listVolunteerBookings(
        JOIN volunteers v ON vb.volunteer_id = v.id
        ORDER BY vb.date, vs.start_time`
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings:', error);
@@ -216,10 +256,7 @@ export async function listVolunteerBookingsByRole(
        ORDER BY vb.date, vs.start_time`,
       [role_id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings:', error);
@@ -247,10 +284,7 @@ export async function listMyVolunteerBookings(
        ORDER BY vb.date DESC, vs.start_time DESC`,
       [user.id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings for volunteer:', error);
@@ -277,10 +311,7 @@ export async function listVolunteerBookingsByVolunteer(
        ORDER BY vb.date DESC, vs.start_time DESC`,
       [volunteer_id]
     );
-    const bookings = result.rows.map((b: any) => ({
-      ...b,
-      status_color: statusColor(b.status),
-    }));
+    const bookings = result.rows.map(mapBookingRow);
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings for volunteer:', error);
@@ -340,8 +371,13 @@ export async function updateVolunteerBookingStatus(
         return res.status(400).json({ message: 'Booking already processed' });
       }
     } else if (status === 'cancelled') {
-      if (!['pending', 'approved'].includes(booking.status)) {
-        return res.status(400).json({ message: 'Booking already processed' });
+      const bookingDate = new Date(reginaStartOfDayISO(booking.date));
+      const today = new Date(reginaStartOfDayISO(new Date()));
+      if (booking.status === 'cancelled') {
+        return res.status(400).json({ message: 'Booking already cancelled' });
+      }
+      if (bookingDate < today) {
+        return res.status(400).json({ message: 'Booking already occurred' });
       }
     }
 
@@ -354,6 +390,10 @@ export async function updateVolunteerBookingStatus(
     updated.role_id = updated.slot_id;
     delete updated.slot_id;
     updated.status_color = statusColor(updated.status);
+    updated.date =
+      updated.date instanceof Date
+        ? updated.date.toISOString().split('T')[0]
+        : updated.date;
     await sendEmail(
       'test@example.com',
       `Volunteer booking ${status}`,
@@ -403,6 +443,15 @@ export async function rescheduleVolunteerBooking(
     );
     if ((trainedRes.rowCount ?? 0) === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const existingRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved') AND id <> $4`,
+      [roleId, date, booking.volunteer_id, booking.id]
+    );
+    if ((existingRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
     const countRes = await pool.query(
@@ -476,20 +525,22 @@ export async function createRecurringVolunteerBooking(
     );
     const recurringId = recurringRes.rows[0].id;
     const dates: string[] = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(reginaStartOfDayISO(startDate));
+    const end = new Date(reginaStartOfDayISO(endDate));
     for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
       if (
         pattern === 'daily' ||
         (pattern === 'weekly' && daysOfWeek.includes(d.getUTCDay()))
       ) {
-        dates.push(d.toISOString().split('T')[0]);
+        dates.push(formatReginaDate(d));
       }
     }
     const successes: string[] = [];
     const skipped: { date: string; reason: string }[] = [];
     for (const date of dates) {
-      const isWeekend = [0, 6].includes(new Date(date).getUTCDay());
+      const isWeekend = [0, 6].includes(
+        new Date(reginaStartOfDayISO(date)).getUTCDay(),
+      );
       const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
         date,
       ]);
@@ -567,18 +618,35 @@ export async function cancelVolunteerBookingOccurrence(
 ) {
   const { id } = req.params;
   try {
-    const result = await pool.query(
-      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1
-       RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
+    const bookingRes = await pool.query(
+      `SELECT id, slot_id, volunteer_id, date, status, recurring_id
+       FROM volunteer_bookings WHERE id=$1`,
       [id],
     );
-    if ((result.rowCount ?? 0) === 0) {
+    if ((bookingRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    const booking = result.rows[0];
+    const booking = bookingRes.rows[0];
+    const bookingDate = new Date(reginaStartOfDayISO(booking.date));
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ message: 'Booking already cancelled' });
+    }
+    if (bookingDate < today) {
+      return res.status(400).json({ message: 'Booking already occurred' });
+    }
+    await pool.query(
+      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1`,
+      [id],
+    );
+    booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);
@@ -594,7 +662,7 @@ export async function cancelRecurringVolunteerBooking(
   const { id } = req.params;
   const from =
     (req.query.from as string) ||
-    new Date().toISOString().split('T')[0];
+    formatReginaDate(new Date());
   try {
     await pool.query(
       `UPDATE volunteer_bookings SET status='cancelled'

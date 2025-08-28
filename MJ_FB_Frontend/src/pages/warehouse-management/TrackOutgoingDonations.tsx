@@ -25,9 +25,10 @@ import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoing
 import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../api/outgoingDonations';
 import type { OutgoingReceiver } from '../../api/outgoingReceivers';
 import type { OutgoingDonation } from '../../api/outgoingDonations';
+import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = new Date(date);
+  const d = toDate(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
@@ -36,7 +37,7 @@ function startOfWeek(date: Date) {
 }
 
 function format(date: Date) {
-  return date.toISOString().split('T')[0];
+  return formatDate(date);
 }
 
 function normalize(date: string) {
@@ -47,8 +48,8 @@ export default function TrackOutgoingDonations() {
   const [donations, setDonations] = useState<OutgoingDonation[]>([]);
   const [receivers, setReceivers] = useState<OutgoingReceiver[]>([]);
   const [tab, setTab] = useState(() => {
-    const week = startOfWeek(new Date());
-    const today = new Date();
+    const week = startOfWeek(toDate());
+    const today = toDate();
     return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
   });
   const [recordOpen, setRecordOpen] = useState(false);
@@ -59,16 +60,12 @@ export default function TrackOutgoingDonations() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
 
   const weekDates = useMemo(() => {
-    const start = startOfWeek(new Date());
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      return d;
-    });
+    const start = startOfWeek(toDate());
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, []);
 
   const [form, setForm] = useState<{ date: string; receiverId: number | null; weight: string; note: string }>({
-    date: format(new Date()),
+    date: formatDate(),
     receiverId: null,
     weight: '',
     note: '',
@@ -146,7 +143,7 @@ export default function TrackOutgoingDonations() {
           {donations.map(d => (
             <TableRow key={d.id}>
               <TableCell>
-                {new Date(d.date).toLocaleDateString(undefined, {
+                {formatLocaleDate(d.date, {
                   weekday: 'short',
                   year: 'numeric',
                   month: 'short',
@@ -187,7 +184,7 @@ export default function TrackOutgoingDonations() {
   );
 
   const tabs = weekDates.map(d => ({
-    label: d.toLocaleDateString(undefined, { weekday: 'short' }),
+    label: formatLocaleDate(d, { weekday: 'short' }),
     content: table,
   }));
 

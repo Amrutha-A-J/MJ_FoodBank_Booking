@@ -113,8 +113,13 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
       'SELECT token_id FROM refresh_tokens WHERE subject=$1',
       [subject],
     );
-    if ((stored.rowCount ?? 0) === 0 || stored.rows[0].token_id !== payload.jti) {
+    if ((stored.rowCount ?? 0) === 0) {
       throw new Error('Invalid refresh token');
+    }
+    if (stored.rows[0].token_id !== payload.jti) {
+      // Token subject exists but jti mismatch – likely another request refreshed already.
+      logger.warn('Refresh token jti mismatch for %s', subject);
+      return res.status(409).send();
     }
     const newJti = randomUUID();
     await pool.query(
@@ -183,7 +188,7 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
 
 export function csrfToken(_req: Request, res: Response) {
   const token = randomUUID();
-  const secure = process.env.NODE_ENV !== 'development';
+  const secure = process.env.NODE_ENV === 'production';
   res.cookie('csrfToken', token, {
     sameSite: 'strict',
     secure,

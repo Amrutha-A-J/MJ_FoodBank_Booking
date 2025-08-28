@@ -446,13 +446,64 @@ export async function updateUserByClientId(
     return res.status(403).json({ message: 'Forbidden' });
   }
   const { clientId } = req.params;
-  const { firstName, lastName, email, phone } = req.body as {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-  };
+  const { firstName, lastName, email, phone, onlineAccess, password } =
+    req.body as {
+      firstName: string;
+      lastName: string;
+      email?: string;
+      phone?: string;
+      onlineAccess?: boolean;
+      password?: string;
+    };
   try {
+    if (onlineAccess) {
+      if (!password || !firstName || !lastName) {
+        return res
+          .status(400)
+          .json({ message: 'Missing fields for online access' });
+      }
+
+      if (email) {
+        const emailCheck = await pool.query(
+          'SELECT id FROM clients WHERE email = $1 AND client_id <> $2',
+          [email, clientId],
+        );
+        if ((emailCheck.rowCount ?? 0) > 0) {
+          return res.status(400).json({ message: 'Email already exists' });
+        }
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const result = await pool.query(
+        `UPDATE clients
+         SET first_name = $1, last_name = $2, email = $3, phone = $4,
+             online_access = true, password = $5
+         WHERE client_id = $6
+         RETURNING id, client_id, first_name, last_name, email, phone, profile_link`,
+        [
+          firstName,
+          lastName,
+          email || null,
+          phone || null,
+          hashedPassword,
+          clientId,
+        ],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        clientId: row.client_id,
+        firstName: row.first_name,
+        lastName: row.last_name,
+        email: row.email,
+        phone: row.phone,
+        profileLink: row.profile_link,
+      });
+    }
+
     const result = await pool.query(
       `UPDATE clients
        SET first_name = $1, last_name = $2, email = $3, phone = $4

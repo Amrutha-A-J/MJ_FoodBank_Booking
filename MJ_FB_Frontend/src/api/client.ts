@@ -6,6 +6,9 @@ function getCsrfToken() {
     .find(row => row.startsWith('csrfToken='))?.split('=')[1];
 }
 
+// shared refresh promise to avoid multiple concurrent refresh calls
+let refreshPromise: Promise<Response> | null = null;
+
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
   let csrf = getCsrfToken();
@@ -27,27 +30,56 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       ? input.toString()
       : (input as Request).url;
   const isRefreshCall = urlString.includes('/auth/refresh');
+  const fetchWithRetry = async (
+    resource: RequestInfo | URL,
+    options: RequestInit,
+    retries = 1,
+    backoff = 300,
+  ): Promise<Response> => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fetch(resource, options);
+      } catch (e) {
+        if (i === retries) throw e;
+        await new Promise(res => setTimeout(res, backoff * 2 ** i));
+      }
+    }
+    throw new Error('Unreachable');
+  };
 
-  let res = await fetch(input, { credentials: 'include', ...init });
+  let res: Response;
+  try {
+    res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+  } catch (e) {
+    // network failure; propagate without clearing auth
+    throw e;
+  }
+
   if (res.status === 401) {
     if (isRefreshCall) {
       clearAuthAndRedirect();
       return res;
     }
     try {
-      const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-        if (refreshRes.ok) {
-          res = await fetch(input, { credentials: 'include', ...init });
-          if (res.status === 401) clearAuthAndRedirect();
-        } else {
-          clearAuthAndRedirect();
-        }
-      } catch {
+      if (!refreshPromise) {
+        refreshPromise = fetchWithRetry(
+          `${API_BASE}/auth/refresh`,
+          { method: 'POST', credentials: 'include' },
+          2,
+        );
+      }
+      const refreshRes = await refreshPromise;
+      refreshPromise = null;
+      if (refreshRes.ok || refreshRes.status === 409) {
+        // 409 indicates another request already refreshed the tokens
+        res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+      } else if (refreshRes.status === 401) {
         clearAuthAndRedirect();
       }
+    } catch {
+      // network error during refresh; propagate original 401 without clearing auth
+      refreshPromise = null;
+    }
   }
   return res;
 }

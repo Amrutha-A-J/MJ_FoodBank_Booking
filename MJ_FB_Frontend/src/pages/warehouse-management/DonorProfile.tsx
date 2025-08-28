@@ -18,6 +18,7 @@ import {
   type DonorDetail,
   type DonorDonation,
 } from '../../api/donors';
+import { formatLocaleDate } from '../../utils/date';
 
 export default function DonorProfile() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +50,7 @@ export default function DonorProfile() {
               Total: {donor.totalLbs.toLocaleString()} lbs
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Last Donation: {donor.lastDonationISO ? new Date(donor.lastDonationISO).toLocaleDateString() : 'N/A'}
+              Last Donation: {donor.lastDonationISO ? formatLocaleDate(donor.lastDonationISO) : 'N/A'}
             </Typography>
           </CardContent>
         </Card>
@@ -69,7 +70,7 @@ export default function DonorProfile() {
             <TableBody>
               {donations.map(d => (
                 <TableRow key={d.id}>
-                  <TableCell>{new Date(d.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{formatLocaleDate(d.date)}</TableCell>
                   <TableCell>{d.weight}</TableCell>
                 </TableRow>
               ))}

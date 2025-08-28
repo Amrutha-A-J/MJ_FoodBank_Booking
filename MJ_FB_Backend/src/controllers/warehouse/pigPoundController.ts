@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
 import { refreshWarehouseOverall } from './warehouseOverallController';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function listPigPounds(req: Request, res: Response, next: NextFunction) {
   try {
@@ -25,7 +26,7 @@ export async function addPigPound(req: Request, res: Response, next: NextFunctio
       'INSERT INTO pig_pound_log (date, weight) VALUES ($1, $2) RETURNING id, date, weight',
       [date, weight],
     );
-    const dt = new Date(date);
+    const dt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -44,10 +45,10 @@ export async function updatePigPound(req: Request, res: Response, next: NextFunc
       'UPDATE pig_pound_log SET date = $1, weight = $2 WHERE id = $3 RETURNING id, date, weight',
       [date, weight, id],
     );
-    const newDt = new Date(date);
+    const newDt = new Date(reginaStartOfDayISO(date));
     await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
     if (oldDate) {
-      const oldDt = new Date(oldDate);
+      const oldDt = new Date(reginaStartOfDayISO(oldDate));
       if (
         oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
         oldDt.getUTCMonth() !== newDt.getUTCMonth()
@@ -68,7 +69,7 @@ export async function deletePigPound(req: Request, res: Response, next: NextFunc
     const existing = await pool.query('SELECT date FROM pig_pound_log WHERE id = $1', [id]);
     await pool.query('DELETE FROM pig_pound_log WHERE id = $1', [id]);
     if (existing.rows[0]) {
-      const dt = new Date(existing.rows[0].date);
+      const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
       await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     }
     res.json({ message: 'Deleted' });

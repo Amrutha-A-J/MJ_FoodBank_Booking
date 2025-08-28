@@ -15,8 +15,9 @@ import type {
   VolunteerBooking,
   VolunteerRoleGroup,
 } from '../../types';
-import { fromZonedTime, toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
+import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
@@ -45,7 +46,7 @@ const reginaTimeZone = 'America/Regina';
 
 export default function VolunteerSchedule() {
   const [currentDate, setCurrentDate] = useState(() => {
-    const todayStr = formatInTimeZone(new Date(), reginaTimeZone, 'yyyy-MM-dd');
+    const todayStr = formatDate();
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
@@ -66,9 +67,6 @@ export default function VolunteerSchedule() {
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
-
-  const formatDate = (date: Date) =>
-    formatInTimeZone(date, reginaTimeZone, 'yyyy-MM-dd');
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
@@ -131,7 +129,7 @@ export default function VolunteerSchedule() {
   }, [loadData]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => new Date(d.getTime() + delta * 86400000));
+    setCurrentDate(d => addDays(d, delta));
   }
 
   async function submitRequest() {
@@ -151,11 +149,7 @@ export default function VolunteerSchedule() {
           endDate || undefined,
         );
       }
-      const dateLabel = formatInTimeZone(
-        currentDate,
-        reginaTimeZone,
-        'EEE, MMM d',
-      );
+      const dateLabel = formatDate(currentDate, 'ddd, MMM D');
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
@@ -223,7 +217,7 @@ export default function VolunteerSchedule() {
 
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
-  const dayName = formatInTimeZone(currentDate, reginaTimeZone, 'EEEE');
+  const dayName = formatDate(currentDate, 'dddd');
   const holidayObj = holidays.find(h => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;

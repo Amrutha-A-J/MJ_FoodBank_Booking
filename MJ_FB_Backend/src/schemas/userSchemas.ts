@@ -48,7 +48,15 @@ export const updateUserSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-});
+  onlineAccess: z.boolean().optional(),
+  password: passwordSchema.optional(),
+}).refine(
+  data => !data.onlineAccess || (!!data.firstName && !!data.lastName && !!data.password),
+  {
+    message: 'firstName, lastName and password required for online access',
+    path: ['onlineAccess'],
+  },
+);
 
 // Schema for users updating their own contact information. Either
 // email or phone must be provided, but both are optional.
