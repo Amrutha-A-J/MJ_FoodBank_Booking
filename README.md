@@ -21,6 +21,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Staff can record visits directly from a booking in the pantry schedule. Selecting **Visited** in the booking dialog captures cart weights and creates the visit record before marking the booking visited.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
+- Booking requests are automatically approved or rejected; the pending approval workflow has been removed.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
@@ -150,7 +151,7 @@ control weight calculations:
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
-- Pantry schedule cells use color coding: yellow for submitted, rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
+- Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
 
 ## Deploying to Azure

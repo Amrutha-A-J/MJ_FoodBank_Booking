@@ -84,7 +84,7 @@ export async function fetchBookings(
   const params: any[] = [];
   const where: string[] = [];
   if (status) {
-    params.push(status === 'pending' ? 'submitted' : status);
+    params.push(status);
     where.push(`b.status = $${params.length}`);
   }
   if (date) {
@@ -133,8 +133,7 @@ export async function fetchBookingHistory(
     where += ' AND b.date < CURRENT_DATE';
   }
   if (status) {
-    const mapped = status === 'pending' ? 'submitted' : status;
-    params.push(mapped);
+    params.push(status);
     where += ` AND b.status = $${params.length}`;
   }
   const res = await client.query(

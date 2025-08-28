@@ -74,7 +74,6 @@
 - Links & Emphasis: Use the theme’s primary color for emphasis and links; do not introduce new accent colors.
 
 - Pantry schedule cells use the following colors:
-  - submitted → theme warning light,
   - approved → rgb(228,241,228),
   - no_show → rgb(255, 200, 200),
   - visited → rgb(111,146,113).
@@ -128,22 +127,20 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
 - `BookingUI` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
 - Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API.
-- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to four shoppers across Slot 1–Slot 4, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and approve pending requests (highlighted in yellow).
+- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to four shoppers across Slot 1–Slot 4, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and manage existing bookings.
 - Volunteers view role-specific schedules and request, cancel, or reschedule bookings through `VolunteerSchedule`. Gardening and special events shifts remain bookable on holidays and weekends, while pantry, warehouse, and administrative roles are disabled when a holiday is set.
 
 ## Booking Workflow
 
 ### Clients and Staff
-- **Clients** book pantry appointments through a calendar, creating a `submitted` (pending) booking.
-- **Staff** manage pending bookings, approving, rejecting, canceling, or rescheduling them. Assigning a client directly to a slot approves the booking immediately. Rejections and cancellations require a reason.
-- Clients can view a booking history table listing all pending and approved appointments, each with Cancel and Reschedule options.
+- **Clients** book pantry appointments through a calendar; bookings are automatically approved or rejected.
+- **Staff** can cancel or reschedule bookings and mark visits. Assigning a client directly to a slot creates an approved booking. Rejections and cancellations require a reason.
+- Clients can view a booking history table listing all appointments, each with Cancel and Reschedule options.
 
-### Key Components
 - **BookingUI** – renders the calendar shoppers use to view and reserve open time slots.
-- **BookingHistory** – lists a shopper's pending and approved appointments with actions to cancel or reschedule.
-- **PendingBookings** and the schedule view in the staff dashboard show each slot's status and provide Approve/Reject/Reschedule controls.
+- **BookingHistory** – lists a shopper's appointments with actions to cancel or reschedule.
 - **ManageAvailability** – lets staff maintain holidays, blocked slots, and recurring breaks.
-- **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and approve client requests, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
+- **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and manage client bookings, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
 - **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. The number of slot columns matches each role's `max_volunteers` (e.g., pantry shelf stocker shows one slot, while pantry greeter shows multiple). Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored.
 - Backend controllers such as `bookingController`, `slotController`, `holidayController`, `blockedSlotController`, `breakController`, `volunteerBookingController`, and `volunteerRoleController` enforce business rules and interact with the database.
 
@@ -155,7 +152,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **staff** – PK `id`; unique `email`; `role` constrained to `staff` or `admin`.
 - **users** – PK `id`; unique `email` and `client_id` (1–9,999,999); `role` is `shopper` or `delivery`; referenced by `bookings.user_id`.
 - **client_email_verifications** – PK `id`; unique `client_id`; FK `client_id` → `clients.id`; stores `email`, `otp_hash`, and `expires_at` for verifying client emails.
-- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `submitted|approved|rejected|cancelled|no_show|expired|visited`; includes `reschedule_token`.
+- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `approved|rejected|cancelled|no_show|expired|visited`; includes `reschedule_token`.
 - **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, and `pet_item` counts.
 - **breaks** – PK `id`; unique `(day_of_week, slot_id)`; FK `slot_id` → `slots.id`.
 - **blocked_slots** – PK `id`; unique `(date, slot_id)`; FK `slot_id` → `slots.id`.

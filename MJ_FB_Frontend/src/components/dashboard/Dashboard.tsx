@@ -114,7 +114,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   }, []);
 
   const todayStr = formatLocalDate(new Date());
-  const pending = bookings.filter(b => b.status === 'submitted');
+  const pending = bookings.filter(b => b.status === 'pending');
   const cancellations = bookings.filter(b => b.status === 'cancelled');
   const stats = {
     appointments: bookings.filter(
@@ -309,7 +309,7 @@ function UserDashboard() {
   }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
-  const pending = bookings.filter(b => b.status === 'submitted');
+  const pending = bookings.filter(b => b.status === 'pending');
 
   return (
     <Grid container spacing={2}>

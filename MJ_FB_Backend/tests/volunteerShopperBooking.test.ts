@@ -117,7 +117,7 @@ describe('volunteer acting as shopper', () => {
     (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
       id: 1,
       user_id: 10,
-      status: 'submitted',
+      status: 'approved',
       date: futureDate,
     });
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);

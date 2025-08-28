@@ -64,7 +64,6 @@ export default function PantrySchedule({
 
   const theme = useTheme();
   const statusColors: Record<string, string> = {
-    submitted: theme.palette.warning.light,
     approved: 'rgb(228,241,228)',
     no_show: 'rgb(255, 200, 200)',
     visited: 'rgb(111,146,113)',
@@ -87,7 +86,7 @@ export default function PantrySchedule({
       ]);
       setSlots(slotsData);
       const filtered = bookingsData.filter((b: Booking) =>
-        ['approved', 'submitted', 'no_show', 'visited'].includes(b.status),
+        ['approved', 'no_show', 'visited'].includes(b.status),
       );
       setBookings(filtered);
     } catch (err) {
@@ -205,7 +204,7 @@ export default function PantrySchedule({
             : undefined,
           onClick: () => {
             if (booking) {
-              if (['submitted', 'approved'].includes(booking.status)) {
+              if (booking.status === 'approved') {
                 setManageBooking(booking);
               }
             } else if (!isClosed) {
@@ -246,7 +245,6 @@ export default function PantrySchedule({
         <>
           <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
             {[
-              { label: 'Submitted', color: statusColors.submitted },
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
               { label: 'Visited', color: statusColors.visited },

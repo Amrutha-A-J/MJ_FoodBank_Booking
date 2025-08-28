@@ -227,21 +227,6 @@ export async function removeBreak(dayOfWeek: number, slotId: number): Promise<vo
   await handleResponse(res);
 }
 
-export async function decideBooking(
-  bookingId: string,
-  decision: 'approve' | 'reject',
-  reason: string
-): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/decision`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ decision, reason }),
-  });
-  await handleResponse(res);
-}
-
 export async function cancelBooking(
   bookingId: string,
   reason?: string

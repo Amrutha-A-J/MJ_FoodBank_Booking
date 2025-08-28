@@ -7,7 +7,6 @@ import {
 import {
   createBooking,
   listBookings,
-  decideBooking,
   createPreapprovedBooking,
   createBookingForUser,   // ✅ make sure to import this controller
   getBookingHistory,
@@ -49,14 +48,6 @@ router.get(
 
 // Booking history for user or staff lookup
 router.get('/history', authMiddleware, getBookingHistory);
-
-// Staff approve/reject booking
-router.post(
-  '/:id/decision',
-  authMiddleware,
-  authorizeRoles('staff'),
-  decideBooking
-);
 
 // Cancel booking (staff or user)
 router.post('/:id/cancel', authMiddleware, cancelBooking);

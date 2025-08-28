@@ -115,7 +115,6 @@ export default function ClientHistory() {
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="approved">Approved</MenuItem>
                 <MenuItem value="rejected">Rejected</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
                 <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
@@ -156,7 +155,7 @@ export default function ClientHistory() {
                         <TableCell sx={cellSx}>{b.status}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
-                          {['approved', 'submitted'].includes(
+                          {['approved'].includes(
                             b.status.toLowerCase(),
                           ) && (
                             <Button
