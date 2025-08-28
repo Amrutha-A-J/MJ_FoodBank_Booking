@@ -59,6 +59,19 @@ describe('App authentication persistence', () => {
     expect(window.location.pathname).toBe('/pantry');
   });
 
+  it('does not show Add Agency link for staff', () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['pantry']));
+    render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
+    expect(screen.queryByRole('link', { name: /add agency/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /agency management/i })).toBeInTheDocument();
+  });
+
   it('redirects staff with only volunteer management access', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');

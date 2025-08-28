@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Grid, TextField, Button, Box } from '@mui/material';
-import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { createAgency } from '../../api/agencies';
 
@@ -32,7 +31,7 @@ export default function AddAgency() {
   };
 
   return (
-    <Page title="Add Agency">
+    <>
       <Grid container justifyContent="center" alignItems="center" spacing={2}>
         <Grid item xs={12} md={6} lg={4}>
           <Box component="form" onSubmit={handleSubmit}>
@@ -82,7 +81,7 @@ export default function AddAgency() {
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
-    </Page>
+    </>
   );
 }
 
