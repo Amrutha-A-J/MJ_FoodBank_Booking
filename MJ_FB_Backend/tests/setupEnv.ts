@@ -1,4 +1,12 @@
+// Setup environment variables for tests. Add additional variables here as
+// future tests require them.
 process.env.JWT_SECRET = 'testsecret';
 process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
+process.env.PG_USER = 'testuser';
+process.env.PG_PASSWORD = 'testpassword';
+process.env.PG_HOST = 'localhost';
+process.env.PG_PORT = '5432';
+process.env.PG_DATABASE = 'testdb';
+process.env.FRONTEND_ORIGIN = 'http://localhost:3000';
 
 export {};
