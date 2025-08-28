@@ -20,6 +20,7 @@
 - `middleware/` – shared Express middleware (authentication, validation, etc.).
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
+- The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.

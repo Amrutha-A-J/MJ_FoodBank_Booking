@@ -17,6 +17,8 @@ import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
 import type { Slot } from '../types';
 
+const CART_TARE = 27;
+
 interface Booking {
   id: number;
   reschedule_token: string;
@@ -40,7 +42,6 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   const [reason, setReason] = useState('');
   const [weightWithCart, setWeightWithCart] = useState('');
   const [weightWithoutCart, setWeightWithoutCart] = useState('');
-  const [cartTare, setCartTare] = useState(27);
   const [petItem, setPetItem] = useState('0');
   const [autoWeight, setAutoWeight] = useState(true);
   const [message, setMessage] = useState('');
@@ -58,7 +59,6 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       setWeightWithoutCart('');
       setPetItem('0');
       setAutoWeight(true);
-      setCartTare(27);
     }
   }, [open]);
 
@@ -82,10 +82,10 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   useEffect(() => {
     if (status === 'visited' && autoWeight) {
       setWeightWithoutCart(
-        weightWithCart ? String(Number(weightWithCart) - cartTare) : ''
+        weightWithCart ? String(Number(weightWithCart) - CART_TARE) : ''
       );
     }
-  }, [status, weightWithCart, cartTare, autoWeight]);
+  }, [status, weightWithCart, autoWeight]);
 
   async function handleSubmit() {
     try {
@@ -202,13 +202,10 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                 label="Weight With Cart"
                 type="number"
                 value={weightWithCart}
-                onChange={e => setWeightWithCart(e.target.value)}
-              />
-              <TextField
-                label="Cart Tare"
-                type="number"
-                value={cartTare}
-                onChange={e => setCartTare(Number(e.target.value) || 0)}
+                onChange={e => {
+                  setWeightWithCart(e.target.value);
+                  setAutoWeight(true);
+                }}
               />
               <TextField
                 label="Weight Without Cart"
