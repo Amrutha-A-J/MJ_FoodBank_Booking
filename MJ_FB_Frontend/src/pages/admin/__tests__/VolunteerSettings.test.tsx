@@ -18,6 +18,7 @@ const {
 
 describe('VolunteerSettings page', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     (getVolunteerMasterRoles as jest.Mock).mockResolvedValue([
       { id: 1, name: 'Food Prep' },
     ]);
@@ -62,12 +63,6 @@ describe('VolunteerSettings page', () => {
 
   it('handles master role dialog flow', async () => {
     (createVolunteerMasterRole as jest.Mock).mockResolvedValue({ id: 2, name: 'Drivers' });
-    (getVolunteerMasterRoles as jest.Mock)
-      .mockResolvedValueOnce([{ id: 1, name: 'Food Prep' }])
-      .mockResolvedValueOnce([
-        { id: 1, name: 'Food Prep' },
-        { id: 2, name: 'Drivers' },
-      ]);
 
     render(
       <MemoryRouter>
@@ -84,6 +79,7 @@ describe('VolunteerSettings page', () => {
 
     await waitFor(() => expect(createVolunteerMasterRole).toHaveBeenCalledWith('Drivers'));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(getVolunteerMasterRoles).toHaveBeenCalledTimes(1);
 
     const summary = await screen.findByRole('button', { name: 'Drivers' });
     expect(summary).toHaveAttribute('aria-expanded', 'true');
