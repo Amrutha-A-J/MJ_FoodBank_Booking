@@ -7,46 +7,56 @@ export async function addVolunteerRole(
   res: Response,
   next: NextFunction,
 ) {
-  const { name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot, isActive } =
-    req.body as {
-      name?: string;
-      startTime?: string;
-      endTime?: string;
-      maxVolunteers?: number;
-      categoryId?: number;
-      isWednesdaySlot?: boolean;
-      isActive?: boolean;
-    };
+  const {
+    name,
+    startTime,
+    endTime,
+    maxVolunteers,
+    categoryId,
+    isWednesdaySlot,
+    isActive,
+    roleId: providedRoleId,
+  } = req.body as {
+    name?: string;
+    startTime?: string;
+    endTime?: string;
+    maxVolunteers?: number;
+    categoryId?: number;
+    isWednesdaySlot?: boolean;
+    isActive?: boolean;
+    roleId?: number;
+  };
   if (
-    !name ||
     !startTime ||
     !endTime ||
     typeof maxVolunteers !== 'number' ||
-    typeof categoryId !== 'number'
+    (typeof providedRoleId !== 'number' && (!name || typeof categoryId !== 'number'))
   ) {
     return res
       .status(400)
       .json({
         message:
-          'name, startTime, endTime, maxVolunteers and categoryId are required',
+          'startTime, endTime, maxVolunteers and either roleId or (name and categoryId) are required',
       });
   }
   try {
-    let roleId: number;
-    const existing = await pool.query(
-      'SELECT id, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
-      [name]
-    );
-    if ((existing.rowCount ?? 0) > 0) {
-      roleId = existing.rows[0].id;
-    } else {
-      const roleRes = await pool.query(
-        `INSERT INTO volunteer_roles (name, category_id)
-         VALUES ($1,$2)
-         RETURNING id, category_id`,
+    let roleId: number = providedRoleId as number;
+    if (typeof roleId !== 'number') {
+      const existing = await pool.query(
+        'SELECT id FROM volunteer_roles WHERE name=$1 AND category_id=$2 LIMIT 1',
         [name, categoryId]
       );
-      roleId = roleRes.rows[0].id;
+      if ((existing.rowCount ?? 0) > 0) {
+        roleId = existing.rows[0].id;
+      } else {
+        const roleRes = await pool.query(
+          `INSERT INTO volunteer_roles (name, category_id)
+           VALUES ($1,$2)
+           RETURNING id`,
+          [name, categoryId]
+        );
+        roleId = roleRes.rows[0].id;
+      }
     }
     const slotRes = await pool.query(
       `INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active)

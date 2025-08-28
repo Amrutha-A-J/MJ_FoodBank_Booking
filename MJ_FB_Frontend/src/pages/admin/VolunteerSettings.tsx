@@ -49,6 +49,7 @@ export default function VolunteerSettings() {
   const [roleDialog, setRoleDialog] = useState<{
     open: boolean;
     slotId?: number;
+    roleId?: number;
     roleName: string;
     startTime: string;
     endTime: string;
@@ -112,6 +113,7 @@ export default function VolunteerSettings() {
     setRoleDialog({
       open: true,
       slotId: init.slotId,
+      roleId: init.roleId,
       roleName: init.roleName || '',
       startTime: init.startTime || '',
       endTime: init.endTime || '',
@@ -123,12 +125,16 @@ export default function VolunteerSettings() {
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime || !roleDialog.categoryId) {
+      if (!roleDialog.startTime || !roleDialog.endTime || !roleDialog.maxVolunteers) {
         handleSnack('All fields are required', 'error');
         return;
       }
       const maxVolunteers = Number(roleDialog.maxVolunteers);
       if (roleDialog.slotId) {
+        if (!roleDialog.roleName || !roleDialog.categoryId) {
+          handleSnack('All fields are required', 'error');
+          return;
+        }
         await updateVolunteerRole(roleDialog.slotId, {
           name: roleDialog.roleName,
           startTime: roleDialog.startTime,
@@ -138,16 +144,30 @@ export default function VolunteerSettings() {
           isWednesdaySlot: roleDialog.isWednesdaySlot,
         });
         handleSnack('Role updated');
-      } else {
-        await createVolunteerRole(
-          roleDialog.roleName,
-          roleDialog.startTime,
-          roleDialog.endTime,
+      } else if (roleDialog.roleId) {
+        await createVolunteerRole({
+          roleId: roleDialog.roleId,
+          startTime: roleDialog.startTime,
+          endTime: roleDialog.endTime,
           maxVolunteers,
-          roleDialog.categoryId,
-          roleDialog.isWednesdaySlot,
-          true,
-        );
+          isWednesdaySlot: roleDialog.isWednesdaySlot,
+          isActive: true,
+        });
+        handleSnack('Shift created');
+      } else {
+        if (!roleDialog.roleName || !roleDialog.categoryId) {
+          handleSnack('All fields are required', 'error');
+          return;
+        }
+        await createVolunteerRole({
+          name: roleDialog.roleName,
+          startTime: roleDialog.startTime,
+          endTime: roleDialog.endTime,
+          maxVolunteers,
+          categoryId: roleDialog.categoryId,
+          isWednesdaySlot: roleDialog.isWednesdaySlot,
+          isActive: true,
+        });
         handleSnack('Role created');
       }
       setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
@@ -222,7 +242,7 @@ export default function VolunteerSettings() {
                             size="small"
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            onClick={() => openRoleDialog({ roleName: role.name, categoryId: master.id })}
+                            onClick={() => openRoleDialog({ roleId: role.id, roleName: role.name, categoryId: master.id })}
                           >
                             Add Shift
                           </Button>
@@ -320,7 +340,9 @@ export default function VolunteerSettings() {
       </Dialog>
 
       <Dialog open={roleDialog.open} onClose={() => setRoleDialog({ ...roleDialog, open: false })} fullWidth>
-        <DialogTitle>{roleDialog.slotId ? 'Edit Role' : 'Add Role'}</DialogTitle>
+        <DialogTitle>
+          {roleDialog.slotId ? 'Edit Role' : roleDialog.roleId ? 'Add Shift' : 'Add Role'}
+        </DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -328,6 +350,7 @@ export default function VolunteerSettings() {
             fullWidth
             value={roleDialog.roleName}
             onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            disabled={!!roleDialog.roleId}
           />
           <TextField
             margin="dense"
@@ -360,6 +383,7 @@ export default function VolunteerSettings() {
             type="number"
             value={roleDialog.categoryId ?? ''}
             onChange={e => setRoleDialog({ ...roleDialog, categoryId: Number(e.target.value) })}
+            disabled={!!roleDialog.roleId}
           />
         </DialogContent>
         <DialogActions>

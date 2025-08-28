@@ -84,3 +84,69 @@ describe('Volunteer roles activation', () => {
     ]);
   });
 });
+
+describe('add volunteer role', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('creates slot for existing role via roleId', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            slot_id: 10,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            max_volunteers: 1,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ name: 'Role', category_id: 2 }] })
+      .mockResolvedValueOnce({ rows: [{ name: 'Pantry' }] });
+
+    const res = await request(app)
+      .post('/volunteer-roles')
+      .send({ roleId: 1, startTime: '09:00:00', endTime: '12:00:00', maxVolunteers: 1 });
+
+    expect(res.status).toBe(201);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(3);
+    expect(res.body.role_id).toBe(1);
+  });
+
+  it('creates new role with name and category', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 2 }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            slot_id: 11,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            max_volunteers: 1,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ name: 'New Role', category_id: 3 }] })
+      .mockResolvedValueOnce({ rows: [{ name: 'Pantry' }] });
+
+    const res = await request(app)
+      .post('/volunteer-roles')
+      .send({
+        name: 'New Role',
+        categoryId: 3,
+        startTime: '09:00:00',
+        endTime: '12:00:00',
+        maxVolunteers: 1,
+      });
+
+    expect(res.status).toBe(201);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(
+      /WHERE name=\$1 AND category_id=\$2/
+    );
+    expect(res.body.role_id).toBe(2);
+  });
+});
