@@ -120,7 +120,6 @@ export default function App() {
         label: 'Admin',
         links: [
           { label: 'Staff', to: '/admin/staff' },
-          { label: 'Add Staff', to: '/admin/staff/create' },
         ],
       });
 

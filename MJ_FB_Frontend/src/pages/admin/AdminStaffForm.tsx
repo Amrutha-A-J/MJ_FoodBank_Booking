@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link as RouterLink } from 'react-router-dom';
+import { Box, Button } from '@mui/material';
 import StaffForm from '../../components/StaffForm';
 import { getStaff, createStaff, updateStaff } from '../../api/adminStaff';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -19,8 +20,11 @@ export default function AdminStaffForm() {
   }, [id]);
 
   return (
-    <>
+    <Box p={2}>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+      <Button variant="outlined" component={RouterLink} to="/admin/staff" sx={{ mb: 2 }}>
+        Back to Staff List
+      </Button>
       <StaffForm
         initial={initial}
         submitLabel={id ? 'Save' : 'Add Staff'}
@@ -45,6 +49,6 @@ export default function AdminStaffForm() {
           }
         }}
       />
-    </>
+    </Box>
   );
 }
