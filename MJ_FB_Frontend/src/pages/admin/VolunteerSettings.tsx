@@ -35,6 +35,7 @@ import {
   toggleVolunteerRole,
   deleteVolunteerRole,
 } from '../../api/volunteers';
+import { formatTime } from '../../utils/time';
 import type { VolunteerRoleWithShifts } from '../../types';
 
 type MasterRole = { id: number; name: string };
@@ -263,7 +264,7 @@ export default function VolunteerSettings() {
                             </Stack>
                           }>
                             <ListItemText
-                              primary={`${shift.start_time} - ${shift.end_time}`}
+                              primary={`${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}`}
                               secondary={`Max volunteers: ${role.max_volunteers}`}
                             />
                           </ListItem>
