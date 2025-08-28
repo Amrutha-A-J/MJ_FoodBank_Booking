@@ -7,7 +7,7 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, type AlertColor, useTheme } from '@mui/material';
+import { Button, type AlertColor, useTheme, Link } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
 
@@ -134,7 +134,7 @@ export default function PantrySchedule({
   }
 
   async function cancelSelected() {
-    if (!decisionBooking) return;
+    if (!decisionBooking || !decisionReason.trim()) return;
     try {
       await cancelBooking(decisionBooking.id.toString(), decisionReason);
       await loadData();
@@ -366,7 +366,14 @@ export default function PantrySchedule({
                 : `Cancel booking for ${decisionBooking.user_name}?`}
             </p>
             <p>
-              Client ID: {decisionBooking.client_id}<br />
+              Client ID: <Link
+                href={`https://portal.link2feed.ca/org/1605/intake/${decisionBooking.client_id}`}
+                target="_blank"
+                rel="noopener"
+              >
+                {decisionBooking.client_id}
+              </Link>
+              <br />
               Uses This Month: {decisionBooking.bookings_this_month}
             </p>
             {decisionBooking.status === 'submitted' && showRejectReason && (
@@ -418,7 +425,14 @@ export default function PantrySchedule({
               ) : (
                 <>
                   <Button onClick={openReschedule} variant="outlined" color="primary">Reschedule</Button>
-                  <Button onClick={cancelSelected} variant="outlined" color="primary">Confirm</Button>
+                  <Button
+                    onClick={cancelSelected}
+                    variant="outlined"
+                    color="primary"
+                    disabled={!decisionReason.trim()}
+                  >
+                    Confirm Cancellation
+                  </Button>
                   <Button
                     onClick={() => {
                       setDecisionBooking(null);
