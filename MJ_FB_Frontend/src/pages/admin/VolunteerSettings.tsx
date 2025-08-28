@@ -58,6 +58,13 @@ export default function VolunteerSettings() {
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
+  const [roleErrors, setRoleErrors] = useState<{
+    roleName?: string;
+    startTime?: string;
+    endTime?: string;
+    maxVolunteers?: string;
+  }>({});
+
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -149,14 +156,30 @@ export default function VolunteerSettings() {
       categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
     });
+    setRoleErrors({});
+  }
+
+  function validateRole() {
+    const errors: typeof roleErrors = {};
+    if (!roleDialog.roleName.trim()) {
+      errors.roleName = 'Name is required';
+    }
+    if (!roleDialog.startTime) {
+      errors.startTime = 'Start time is required';
+    }
+    if (!roleDialog.endTime) {
+      errors.endTime = 'End time is required';
+    }
+    if (!roleDialog.maxVolunteers || Number(roleDialog.maxVolunteers) <= 0) {
+      errors.maxVolunteers = 'Max volunteers is required';
+    }
+    setRoleErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
-        handleSnack('All fields are required', 'error');
-        return;
-      }
+      if (!validateRole()) return;
       const startTime = toTimeValue(roleDialog.startTime);
       const endTime = toTimeValue(roleDialog.endTime);
       const maxVolunteers = Number(roleDialog.maxVolunteers);
@@ -376,7 +399,18 @@ export default function VolunteerSettings() {
             label="Name"
             fullWidth
             value={roleDialog.roleName}
-            onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, roleName: e.target.value });
+              if (roleErrors.roleName) setRoleErrors({ ...roleErrors, roleName: undefined });
+            }}
+            onBlur={() =>
+              setRoleErrors(prev => ({
+                ...prev,
+                roleName: roleDialog.roleName.trim() ? undefined : 'Name is required',
+              }))
+            }
+            error={!!roleErrors.roleName}
+            helperText={roleErrors.roleName}
           />
           <TextField
             margin="dense"
@@ -385,7 +419,18 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.startTime}
-            onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, startTime: e.target.value });
+              if (roleErrors.startTime) setRoleErrors({ ...roleErrors, startTime: undefined });
+            }}
+            onBlur={() =>
+              setRoleErrors(prev => ({
+                ...prev,
+                startTime: roleDialog.startTime ? undefined : 'Start time is required',
+              }))
+            }
+            error={!!roleErrors.startTime}
+            helperText={roleErrors.startTime}
           />
           <TextField
             margin="dense"
@@ -394,7 +439,18 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.endTime}
-            onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, endTime: e.target.value });
+              if (roleErrors.endTime) setRoleErrors({ ...roleErrors, endTime: undefined });
+            }}
+            onBlur={() =>
+              setRoleErrors(prev => ({
+                ...prev,
+                endTime: roleDialog.endTime ? undefined : 'End time is required',
+              }))
+            }
+            error={!!roleErrors.endTime}
+            helperText={roleErrors.endTime}
           />
           <TextField
             margin="dense"
@@ -402,7 +458,21 @@ export default function VolunteerSettings() {
             fullWidth
             type="number"
             value={roleDialog.maxVolunteers}
-            onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value });
+              if (roleErrors.maxVolunteers) setRoleErrors({ ...roleErrors, maxVolunteers: undefined });
+            }}
+            onBlur={() =>
+              setRoleErrors(prev => ({
+                ...prev,
+                maxVolunteers:
+                  roleDialog.maxVolunteers && Number(roleDialog.maxVolunteers) > 0
+                    ? undefined
+                    : 'Max volunteers is required',
+              }))
+            }
+            error={!!roleErrors.maxVolunteers}
+            helperText={roleErrors.maxVolunteers}
           />
         </DialogContent>
         <DialogActions>

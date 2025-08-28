@@ -18,6 +18,7 @@ const {
 
 describe('VolunteerSettings page', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     (getVolunteerMasterRoles as jest.Mock).mockResolvedValue([
       { id: 1, name: 'Food Prep' },
     ]);
@@ -125,5 +126,24 @@ describe('VolunteerSettings page', () => {
         true
       )
     );
+  });
+
+  it('shows inline errors when required fields are missing', async () => {
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Sub-role'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Max Volunteers'), { target: { value: '' } });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    expect(await within(dialog).findByText('Name is required')).toBeInTheDocument();
+    expect(within(dialog).getByText('Start time is required')).toBeInTheDocument();
+    expect(within(dialog).getByText('End time is required')).toBeInTheDocument();
+    expect(within(dialog).getByText('Max volunteers is required')).toBeInTheDocument();
+    expect(createVolunteerRole).not.toHaveBeenCalled();
   });
 });

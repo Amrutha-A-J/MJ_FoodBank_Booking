@@ -34,6 +34,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
+- Volunteer Settings role dialog validates required fields inline instead of using a snackbar.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 
 ## Clone and initialize submodules
