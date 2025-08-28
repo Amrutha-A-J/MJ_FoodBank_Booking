@@ -1,10 +1,12 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 import type { Slot, SlotsByDate, RecurringBlockedSlot, BlockedSlot } from '../types';
 
-export async function getSlots(date?: string) {
-  let url = `${API_BASE}/slots`;
-  if (date) url += `?date=${encodeURIComponent(date)}`;
-  const res = await apiFetch(url);
+export async function getSlots(date?: string, includePast = false) {
+  const params = new URLSearchParams();
+  if (date) params.append('date', date);
+  if (includePast) params.append('includePast', 'true');
+  const query = params.toString();
+  const res = await apiFetch(`${API_BASE}/slots${query ? `?${query}` : ''}`);
   const data = await handleResponse(res);
   return data.map((s: any) => ({
     id: String(s.id),
@@ -19,11 +21,16 @@ export async function getSlots(date?: string) {
 export async function getSlotsRange(
   start: string,
   days: number,
+  includePast = false,
 ): Promise<SlotsByDate[]> {
   const params = new URLSearchParams();
   if (start) params.append('start', start);
   if (days) params.append('days', String(days));
-  const res = await apiFetch(`${API_BASE}/slots/range?${params.toString()}`);
+  if (includePast) params.append('includePast', 'true');
+  const query = params.toString();
+  const res = await apiFetch(
+    `${API_BASE}/slots/range${query ? `?${query}` : ''}`,
+  );
   const data = await handleResponse(res);
   return data.map((d: any) => ({
     date: d.date,
