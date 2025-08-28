@@ -114,7 +114,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   }, []);
 
   const todayStr = formatLocalDate(new Date());
-  const pending = bookings.filter(b => b.status === 'pending');
   const cancellations = bookings.filter(b => b.status === 'cancelled');
   const stats = {
     appointments: bookings.filter(
@@ -123,7 +122,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         formatLocalDate(parseLocalDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
-    approvals: pending.length,
     cancellations: cancellations.filter(
       b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
     ).length,
@@ -136,28 +134,21 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           <Grid size={12}>
             <SectionCard title="Today at a Glance">
               <Grid container spacing={2}>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Stat
                     icon={<CalendarToday color="primary" />}
                     label="Appointments Today"
                     value={stats.appointments}
                   />
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Stat
                     icon={<People color="primary" />}
                     label="Volunteers Scheduled"
                     value={stats.volunteers}
                   />
                 </Grid>
-                <Grid size={6}>
-                  <Stat
-                    icon={<WarningAmber color="warning" />}
-                    label="Pending Approvals"
-                    value={stats.approvals}
-                  />
-                </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Stat
                     icon={<CancelIcon color="error" />}
                     label="Cancellations"
@@ -187,17 +178,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={2}>
-          <Grid size={12}>
-            <SectionCard title="Pending Approvals">
-              <List>
-                {pending.map(b => (
-                  <ListItem key={b.id} secondaryAction={<Chip label="User" />}>
-                    <ListItemText primary={b.user_name || 'Unknown'} />
-                  </ListItem>
-                ))}
-              </List>
-            </SectionCard>
-          </Grid>
           <Grid size={12}>
             <SectionCard title="Pantry Schedule (This Week)">
               <Grid container columns={7} spacing={2}>
@@ -309,7 +289,6 @@ function UserDashboard() {
   }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
-  const pending = bookings.filter(b => b.status === 'pending');
 
   return (
     <Grid container spacing={2}>
@@ -332,22 +311,6 @@ function UserDashboard() {
               >
                 <ListItemText
                   primary={`${formatDate(a.date)} ${formatTime(a.start_time || '')}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Pending Requests">
-          <List>
-            {pending.map(p => (
-              <ListItem
-                key={p.id}
-                secondaryAction={<Chip label="Waiting for approval" color="warning" />}
-              >
-                <ListItemText
-                  primary={`${formatDate(p.date)} ${formatTime(p.start_time || '')}`}
                 />
               </ListItem>
             ))}
