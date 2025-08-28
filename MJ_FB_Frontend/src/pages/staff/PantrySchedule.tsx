@@ -12,8 +12,10 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, type AlertColor, useTheme } from '@mui/material';
+import { Button, Link, type AlertColor, useTheme, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { lighten } from '@mui/material/styles';
+import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 
 interface Booking {
@@ -59,7 +61,12 @@ export default function PantrySchedule({
   const [assignMessage, setAssignMessage] = useState('');
 
   const theme = useTheme();
-  const approvedColor = lighten(theme.palette.success.light, 0.4);
+  const statusColors: Record<string, string> = {
+    submitted: theme.palette.warning.light,
+    approved: 'rgb(228,241,228)',
+    no_show: 'rgb(255, 200, 200)',
+    visited: 'rgb(111,146,113)',
+  };
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
@@ -78,7 +85,7 @@ export default function PantrySchedule({
       ]);
       setSlots(slotsData);
       const filtered = bookingsData.filter((b: Booking) =>
-        ['approved', 'submitted'].includes(b.status),
+        ['approved', 'submitted', 'no_show', 'visited'].includes(b.status),
       );
       setBookings(filtered);
     } catch (err) {
@@ -190,9 +197,7 @@ export default function PantrySchedule({
         return {
           content: booking ? booking.user_name : '',
           backgroundColor: booking
-            ? booking.status === 'submitted'
-              ? theme.palette.warning.light
-              : approvedColor
+            ? statusColors[booking.status]
             : undefined,
           onClick: () => {
             if (booking) {
@@ -234,7 +239,33 @@ export default function PantrySchedule({
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
-        <VolunteerScheduleTable maxSlots={4} rows={rows} />
+        <>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+            {[
+              { label: 'Submitted', color: statusColors.submitted },
+              { label: 'Approved', color: statusColors.approved },
+              { label: 'No Show', color: statusColors.no_show },
+              { label: 'Visited', color: statusColors.visited },
+            ].map(item => (
+              <span
+                key={item.label}
+                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <span
+                  style={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: item.color,
+                    border: '1px solid #ccc',
+                    borderRadius: 4,
+                  }}
+                />
+                {item.label}
+              </span>
+            ))}
+          </div>
+          <VolunteerScheduleTable maxSlots={4} rows={rows} />
+        </>
       )}
 
       {assignSlot && (
