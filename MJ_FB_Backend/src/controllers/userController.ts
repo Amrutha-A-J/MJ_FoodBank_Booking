@@ -6,6 +6,7 @@ import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
 import { validatePassword } from '../utils/passwordUtils';
+import { sendEmail } from '../utils/emailUtils';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -102,6 +103,53 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
   }
 }
 
+// Sends a short-lived OTP to the provided email for registration.
+export async function sendRegistrationOtp(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { clientId, email } = req.body as {
+    clientId: number;
+    email: string;
+  };
+
+  try {
+    const clientRes = await pool.query(
+      'SELECT id, online_access FROM clients WHERE client_id = $1',
+      [clientId],
+    );
+    if ((clientRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    if (clientRes.rows[0].online_access) {
+      return res.status(400).json({ message: 'Online access already enabled' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpHash = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await pool.query(
+      `INSERT INTO client_email_verifications (client_id, email, otp_hash, expires_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (client_id) DO UPDATE SET email = EXCLUDED.email, otp_hash = EXCLUDED.otp_hash, expires_at = EXCLUDED.expires_at`,
+      [clientRes.rows[0].id, email, otpHash, expiresAt],
+    );
+
+    await sendEmail(
+      email,
+      'Your registration code',
+      `<p>Your verification code is <strong>${otp}</strong>.</p>`,
+    );
+
+    return res.json({ message: 'OTP sent' });
+  } catch (error) {
+    logger.error('Error sending registration OTP:', error);
+    next(error);
+  }
+}
+
 // Self-service registration for existing clients. Validates the provided
 // details and enables online access for the client.
 export async function registerUser(req: Request, res: Response, next: NextFunction) {
@@ -130,13 +178,18 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
       return res.status(400).json({ message: 'Online access already enabled' });
     }
 
-    // Verify OTP from a temporary store
+    // Verify OTP from the email verifications table
     const otpRes = await pool.query(
-      'SELECT otp FROM client_otps WHERE client_id = $1',
-      [clientId],
+      'SELECT email, otp_hash, expires_at FROM client_email_verifications WHERE client_id = $1',
+      [existing.id],
     );
-    const validOtp = otpRes.rows[0]?.otp;
-    if (!validOtp || validOtp !== otp) {
+    const record = otpRes.rows[0];
+    if (
+      !record ||
+      record.email !== email ||
+      new Date(record.expires_at) < new Date() ||
+      !(await bcrypt.compare(otp, record.otp_hash))
+    ) {
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
@@ -163,7 +216,9 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
       [firstName, lastName, email, phone || null, hashed, clientId],
     );
 
-    await pool.query('DELETE FROM client_otps WHERE client_id = $1', [clientId]);
+    await pool.query('DELETE FROM client_email_verifications WHERE client_id = $1', [
+      existing.id,
+    ]);
 
     const updated = updateRes.rows[0];
     const payload: AuthPayload = {

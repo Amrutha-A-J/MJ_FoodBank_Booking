@@ -2,6 +2,7 @@ import express from 'express';
 import {
   loginUser,
   registerUser,
+  sendRegistrationOtp,
   createUser,
   searchUsers,
   getUserProfile,
@@ -15,6 +16,7 @@ import { validate } from '../middleware/validate';
 import {
   loginSchema,
   registerSchema,
+  sendRegistrationOtpSchema,
   createUserSchema,
   updateUserSchema,
   updateMyProfileSchema,
@@ -24,6 +26,11 @@ const router = express.Router();
 
 router.post('/register', validate(registerSchema), registerUser);
 router.post('/login', validate(loginSchema), loginUser);
+router.post(
+  '/register/otp',
+  validate(sendRegistrationOtpSchema),
+  sendRegistrationOtp,
+);
 router.post(
   '/add-client',
   authMiddleware,
