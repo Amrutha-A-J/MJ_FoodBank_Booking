@@ -141,6 +141,7 @@ control weight calculations:
 - A shared dashboard component lives in `src/components/dashboard`.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
+- Pantry schedule cells use color coding: yellow for submitted, rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
 
 ## Deploying to Azure
 

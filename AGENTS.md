@@ -69,6 +69,12 @@
 - Never hard-code hex values; use theme palette (`success`, `warning`, `error`, `info`).
 - Links & Emphasis: Use the theme’s primary color for emphasis and links; do not introduce new accent colors.
 
+- Pantry schedule cells use the following colors:
+  - submitted → theme warning light,
+  - approved → rgb(228,241,228),
+  - no_show → rgb(255, 200, 200),
+  - visited → rgb(111,146,113).
+
 ### Interactions
 - Affordance: Primary action visible and enabled when valid; disabled state must include a reason (helper text or tooltip).
 - Confirmation: Only confirm destructive actions (e.g., Cancel, Reject). Use dialogs with clear verb-first buttons (“Cancel booking”, “Keep booking”).
