@@ -264,6 +264,30 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function markBookingNoShow(req: Request, res: Response, next: NextFunction) {
+  const bookingId = Number(req.params.id);
+  const reason = (req.body?.reason as string) || '';
+  try {
+    await updateBooking(bookingId, { status: 'no_show', request_data: reason });
+    res.json({ message: 'Booking marked as no-show' });
+  } catch (error) {
+    logger.error('Error marking booking no-show:', error);
+    next(error);
+  }
+}
+
+export async function markBookingVisited(req: Request, res: Response, next: NextFunction) {
+  const bookingId = Number(req.params.id);
+  const requestData = (req.body?.requestData as string) || '';
+  try {
+    await updateBooking(bookingId, { status: 'visited', request_data: requestData });
+    res.json({ message: 'Booking marked as visited' });
+  } catch (error) {
+    logger.error('Error marking booking visited:', error);
+    next(error);
+  }
+}
+
 // --- Reschedule booking using token ---
 export async function rescheduleBooking(req: Request, res: Response, next: NextFunction) {
   const { token } = req.params;

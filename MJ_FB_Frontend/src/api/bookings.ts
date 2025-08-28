@@ -256,6 +256,30 @@ export async function cancelBooking(
   await handleResponse(res);
 }
 
+export async function markBookingNoShow(
+  bookingId: number,
+  reason?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/no-show`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+  await handleResponse(res);
+}
+
+export async function markBookingVisited(
+  bookingId: number,
+  requestData?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/visited`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestData ? { requestData } : {}),
+  });
+  await handleResponse(res);
+}
+
 export async function createBookingForUser(
   userId: number,
   slotId: number,

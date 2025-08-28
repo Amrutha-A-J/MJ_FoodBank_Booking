@@ -19,6 +19,7 @@
 - `models/` and `db.ts` – PostgreSQL access.
 - `middleware/` – shared Express middleware (authentication, validation, etc.).
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
+- Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
