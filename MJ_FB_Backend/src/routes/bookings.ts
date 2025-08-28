@@ -79,7 +79,7 @@ router.post(
 // Reschedule booking by token
 router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
 
-// Staff create preapproved booking for walk-in users
+// Staff create walk-in booking (auto-approved)
 router.post(
   '/preapproved',
   authMiddleware,

@@ -4,7 +4,6 @@ export type BookingStatus =
   | 'submitted'
   | 'approved'
   | 'rejected'
-  | 'preapproved'
   | 'cancelled'
   | 'no_show'
   | 'expired'
