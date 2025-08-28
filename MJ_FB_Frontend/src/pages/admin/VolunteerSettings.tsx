@@ -59,6 +59,13 @@ export default function VolunteerSettings() {
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
+  const [roleErrors, setRoleErrors] = useState({
+    roleName: '',
+    startTime: '',
+    endTime: '',
+    maxVolunteers: '',
+  });
+
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -157,14 +164,19 @@ export default function VolunteerSettings() {
       categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
     });
+    setRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
   }
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
-        handleSnack('All fields are required', 'error');
-        return;
-      }
+      const errors = {
+        roleName: roleDialog.roleName ? '' : 'Required',
+        startTime: roleDialog.startTime ? '' : 'Required',
+        endTime: roleDialog.endTime ? '' : 'Required',
+        maxVolunteers: roleDialog.maxVolunteers ? '' : 'Required',
+      };
+      setRoleErrors(errors);
+      if (Object.values(errors).some(Boolean)) return;
       const startTime = toTimeValue(roleDialog.startTime);
       const endTime = toTimeValue(roleDialog.endTime);
       const maxVolunteers = Number(roleDialog.maxVolunteers);
@@ -213,6 +225,7 @@ export default function VolunteerSettings() {
         roleId: undefined,
         categoryId: undefined,
       });
+      setRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
       loadData();
     } catch (e) {
       handleSnack(
@@ -416,7 +429,12 @@ export default function VolunteerSettings() {
             label="Name"
             fullWidth
             value={roleDialog.roleName}
-            onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, roleName: e.target.value });
+              if (roleErrors.roleName) setRoleErrors({ ...roleErrors, roleName: '' });
+            }}
+            error={Boolean(roleErrors.roleName)}
+            helperText={roleErrors.roleName}
           />
           <TextField
             margin="dense"
@@ -425,7 +443,12 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.startTime}
-            onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, startTime: e.target.value });
+              if (roleErrors.startTime) setRoleErrors({ ...roleErrors, startTime: '' });
+            }}
+            error={Boolean(roleErrors.startTime)}
+            helperText={roleErrors.startTime}
           />
           <TextField
             margin="dense"
@@ -434,7 +457,12 @@ export default function VolunteerSettings() {
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={roleDialog.endTime}
-            onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, endTime: e.target.value });
+              if (roleErrors.endTime) setRoleErrors({ ...roleErrors, endTime: '' });
+            }}
+            error={Boolean(roleErrors.endTime)}
+            helperText={roleErrors.endTime}
           />
           <TextField
             margin="dense"
@@ -442,7 +470,12 @@ export default function VolunteerSettings() {
             fullWidth
             type="number"
             value={roleDialog.maxVolunteers}
-            onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value });
+              if (roleErrors.maxVolunteers) setRoleErrors({ ...roleErrors, maxVolunteers: '' });
+            }}
+            error={Boolean(roleErrors.maxVolunteers)}
+            helperText={roleErrors.maxVolunteers}
           />
         </DialogContent>
         <DialogActions>
