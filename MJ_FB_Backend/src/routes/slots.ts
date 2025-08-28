@@ -1,26 +1,40 @@
 import express from 'express';
-import { listSlots, listAllSlots, listSlotsRange } from '../controllers/slotController';
+import {
+  listSlots,
+  listAllSlots,
+  listSlotsRange,
+  createSlot,
+  updateSlot,
+  deleteSlot,
+} from '../controllers/slotController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
+import { validate, validateParams } from '../middleware/validate';
+import {
+  createSlotSchema,
+  updateSlotSchema,
+  slotIdParamSchema,
+} from '../schemas/slotSchemas';
 
 const router = express.Router();
 
-router.get(
-  '/all',
+router.get('/all', authMiddleware, authorizeRoles('staff'), listAllSlots);
+router.get('/', authMiddleware, authorizeRoles('shopper', 'delivery', 'staff'), listSlots);
+router.get('/range', authMiddleware, authorizeRoles('shopper', 'delivery', 'staff'), listSlotsRange);
+router.post('/', authMiddleware, authorizeRoles('staff'), validate(createSlotSchema), createSlot);
+router.put(
+  '/:id',
   authMiddleware,
   authorizeRoles('staff'),
-  listAllSlots,
+  validateParams(slotIdParamSchema),
+  validate(updateSlotSchema),
+  updateSlot,
 );
-router.get(
-  '/',
+router.delete(
+  '/:id',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff'),
-  listSlots,
-);
-router.get(
-  '/range',
-  authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff'),
-  listSlotsRange,
+  authorizeRoles('staff'),
+  validateParams(slotIdParamSchema),
+  deleteSlot,
 );
 
 export default router;

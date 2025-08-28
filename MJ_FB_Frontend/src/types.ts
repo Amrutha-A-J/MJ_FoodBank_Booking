@@ -28,6 +28,7 @@ export interface Slot {
   id: string;
   startTime: string;
   endTime: string;
+  maxCapacity: number;
   available?: number;
   reason?: string;
   status?: 'blocked' | 'break';

@@ -12,6 +12,7 @@ export async function getSlots(date?: string, includePast = false) {
     id: String(s.id),
     startTime: s.startTime ?? s.start_time,
     endTime: s.endTime ?? s.end_time,
+    maxCapacity: s.maxCapacity ?? s.max_capacity,
     available: s.available,
     reason: s.reason,
     status: s.status,
@@ -38,6 +39,7 @@ export async function getSlotsRange(
       id: String(s.id),
       startTime: s.startTime ?? s.start_time,
       endTime: s.endTime ?? s.end_time,
+      maxCapacity: s.maxCapacity ?? s.max_capacity,
       available: s.available,
       reason: s.reason,
       status: s.status,
@@ -129,17 +131,6 @@ export async function removeHoliday(date: string): Promise<void> {
     method: 'DELETE',
   });
   await handleResponse(res);
-}
-
-export async function getAllSlots() {
-  const res = await apiFetch(`${API_BASE}/slots/all`);
-  const data = await handleResponse(res);
-  return data.map((s: any) => ({
-    id: String(s.id),
-    startTime: s.startTime ?? s.start_time,
-    endTime: s.endTime ?? s.end_time,
-    available: s.available,
-  })) as Slot[];
 }
 
 export async function getBlockedSlots(date?: string): Promise<BlockedSlot[]> {

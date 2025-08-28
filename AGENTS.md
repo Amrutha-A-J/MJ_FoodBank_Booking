@@ -38,6 +38,7 @@
 - Document new environment variables in the repository README and `.env.example` files.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table and are editable via the Admin → App Configurations page. Fetch these values from the backend rather than hard-coding or using environment variables.
+- Staff can create, update, and delete slots via `POST /slots`, `PUT /slots/:id`, and `DELETE /slots/:id`. The frontend exposes these through the Admin → Pantry Settings page.
 
 ## UI Rules & Design System (Global)
 

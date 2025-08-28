@@ -211,3 +211,61 @@ export async function listAllSlots(
     next(error);
   }
 }
+
+export async function createSlot(req: Request, res: Response, next: NextFunction) {
+  const { startTime, endTime, maxCapacity } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO slots (start_time, end_time, max_capacity) VALUES ($1, $2, $3) RETURNING id, start_time, end_time, max_capacity',
+      [startTime, endTime, maxCapacity],
+    );
+    const slot = result.rows[0];
+    res.status(201).json({
+      id: slot.id.toString(),
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      maxCapacity: slot.max_capacity,
+    });
+  } catch (error) {
+    logger.error('Error creating slot:', error);
+    next(error);
+  }
+}
+
+export async function updateSlot(req: Request, res: Response, next: NextFunction) {
+  const { startTime, endTime, maxCapacity } = req.body;
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      'UPDATE slots SET start_time = $1, end_time = $2, max_capacity = $3 WHERE id = $4 RETURNING id, start_time, end_time, max_capacity',
+      [startTime, endTime, maxCapacity, id],
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Slot not found' });
+    }
+    const slot = result.rows[0];
+    res.json({
+      id: slot.id.toString(),
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      maxCapacity: slot.max_capacity,
+    });
+  } catch (error) {
+    logger.error('Error updating slot:', error);
+    next(error);
+  }
+}
+
+export async function deleteSlot(req: Request, res: Response, next: NextFunction) {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM slots WHERE id = $1', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Slot not found' });
+    }
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    logger.error('Error deleting slot:', error);
+    next(error);
+  }
+}
