@@ -214,7 +214,7 @@ export default function VolunteerManagement() {
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
   }, [roles]);
 
-  const nameToRoleIds = useMemo(() => {
+  const nameToSlotIds = useMemo(() => {
     const map = new Map<string, number[]>();
     roles.forEach(r => {
       const arr = map.get(r.name) || [];
@@ -224,10 +224,20 @@ export default function VolunteerManagement() {
     return map;
   }, [roles]);
 
+  const nameToRoleIds = useMemo(() => {
+    const map = new Map<string, number[]>();
+    roles.forEach(r => {
+      const arr = map.get(r.name) || [];
+      arr.push(r.role_id);
+      map.set(r.name, arr);
+    });
+    return map;
+  }, [roles]);
+
   const idToName = useMemo(() => {
     const map = new Map<number, string>();
     roles.forEach(r => {
-      map.set(r.id, r.name);
+      map.set(r.role_id, r.name);
     });
     return map;
   }, [roles]);
@@ -249,7 +259,7 @@ export default function VolunteerManagement() {
 
   useEffect(() => {
     if (selectedRole && tab === 'schedule') {
-      const ids = nameToRoleIds.get(selectedRole) || [];
+      const ids = nameToSlotIds.get(selectedRole) || [];
     Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
         .then(data => {
           setBookings(data.flat());
@@ -258,7 +268,7 @@ export default function VolunteerManagement() {
     } else if (!selectedRole) {
       setBookings([]);
     }
-  }, [selectedRole, tab, nameToRoleIds]);
+  }, [selectedRole, tab, nameToSlotIds]);
 
   // volunteer search handled via EntitySearch component
 
@@ -311,7 +321,7 @@ export default function VolunteerManagement() {
     try {
       await updateVolunteerBookingStatus(id, status, reason);
       if (selectedRole) {
-        const ids = nameToRoleIds.get(selectedRole) || [];
+        const ids = nameToSlotIds.get(selectedRole) || [];
         const data = await Promise.all(
           ids.map(rid => getVolunteerBookingsByRole(rid))
         );
@@ -334,7 +344,7 @@ export default function VolunteerManagement() {
       );
       setMessage('Booking rescheduled');
       if (selectedRole) {
-        const ids = nameToRoleIds.get(selectedRole) || [];
+        const ids = nameToSlotIds.get(selectedRole) || [];
         const data = await Promise.all(
           ids.map(rid => getVolunteerBookingsByRole(rid))
         );
@@ -439,7 +449,7 @@ export default function VolunteerManagement() {
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
-      const ids = nameToRoleIds.get(selectedRole) || [];
+      const ids = nameToSlotIds.get(selectedRole) || [];
       const data = await Promise.all(
         ids.map(id => getVolunteerBookingsByRole(id)),
       );
