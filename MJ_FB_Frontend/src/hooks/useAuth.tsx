@@ -80,19 +80,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearAuth]);
 
   useEffect(() => {
-    (async () => {
+    let active = true;
+    const attemptRefresh = async (tries = 0): Promise<void> => {
       try {
-        const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
+        const res = await apiFetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+        });
         if (res.ok || res.status === 409) {
           // 409 indicates another tab or request refreshed already
-          setToken('cookie');
+          if (active) setToken('cookie');
         } else if (res.status === 401) {
+          if (active) {
+            clearAuth();
+            setSessionMessage('Session expired');
+          }
+        } else if (tries < 1) {
+          await attemptRefresh(tries + 1);
+        } else if (active) {
           clearAuth();
+          setSessionMessage('Session expired');
         }
       } catch {
-        /* network errors are ignored to allow retry */
+        if (tries < 1) {
+          await attemptRefresh(tries + 1);
+        } else if (active) {
+          clearAuth();
+          setSessionMessage('Session expired');
+        }
       }
-    })();
+    };
+    attemptRefresh();
+    return () => {
+      active = false;
+    };
   }, [clearAuth]);
 
   async function login(u: LoginResponse) {
