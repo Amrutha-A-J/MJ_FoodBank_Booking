@@ -16,13 +16,15 @@ export default function Login({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const clientIdError = clientId === '';
-  const passwordError = password === '';
-  const formInvalid = clientIdError || passwordError;
+  const clientIdError = submitted && clientId === '';
+  const passwordError = submitted && password === '';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitted(true);
+    if (clientId === '' || password === '') return;
     try {
       const user = await loginUser(clientId, password);
       await onLogin(user);
@@ -42,7 +44,6 @@ export default function Login({
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formInvalid}
           >
             Login
           </Button>

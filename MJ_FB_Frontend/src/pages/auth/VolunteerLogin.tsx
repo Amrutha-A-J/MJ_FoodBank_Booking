@@ -16,13 +16,15 @@ export default function VolunteerLogin({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const usernameError = username === '';
-  const passwordError = password === '';
-  const formInvalid = usernameError || passwordError;
+  const usernameError = submitted && username === '';
+  const passwordError = submitted && password === '';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitted(true);
+    if (username === '' || password === '') return;
     try {
       const user = await loginVolunteer(username, password);
       await onLogin(user);
@@ -42,7 +44,6 @@ export default function VolunteerLogin({
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formInvalid}
           >
             Login
           </Button>

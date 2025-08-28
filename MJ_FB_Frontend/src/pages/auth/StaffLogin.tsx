@@ -49,13 +49,15 @@ function StaffLoginForm({
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
   const [resetOpen, setResetOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-  const emailError = email === '';
-  const passwordError = password === '';
-  const formInvalid = emailError || passwordError;
+  const emailError = submitted && email === '';
+  const passwordError = submitted && password === '';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitted(true);
+    if (email === '' || password === '') return;
     try {
       const user = await loginStaff(email, password);
       if (user.role === 'shopper' || user.role === 'delivery') {
@@ -79,7 +81,6 @@ function StaffLoginForm({
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formInvalid}
           >
             Login
           </Button>
@@ -120,16 +121,17 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const firstNameError = firstName === '';
-  const lastNameError = lastName === '';
-  const emailError = email === '';
-  const passwordError = password === '';
-  const formInvalid =
-    firstNameError || lastNameError || emailError || passwordError;
+  const firstNameError = submitted && firstName === '';
+  const lastNameError = submitted && lastName === '';
+  const emailError = submitted && email === '';
+  const passwordError = submitted && password === '';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitted(true);
+    if (firstName === '' || lastName === '' || email === '' || password === '') return;
     try {
       await createStaff(firstName, lastName, ['admin'], email, password);
       setMessage('Staff account created. You can login now.');
@@ -150,7 +152,6 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formInvalid}
           >
             Create Staff
           </Button>

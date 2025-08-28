@@ -17,26 +17,28 @@ export default function ClientSignup() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [otpSubmitted, setOtpSubmitted] = useState(false);
 
-  const firstNameError = firstName === '';
-  const lastNameError = lastName === '';
-  const clientIdError = clientId === '';
-  const emailError = email === '';
-  const passwordError = password === '';
-  const otpError = otp === '';
-
-  const formInvalid =
-    step === 'form'
-      ? firstNameError ||
-        lastNameError ||
-        clientIdError ||
-        emailError ||
-        passwordError
-      : otpError;
+  const firstNameError = formSubmitted && firstName === '';
+  const lastNameError = formSubmitted && lastName === '';
+  const clientIdError = formSubmitted && clientId === '';
+  const emailError = formSubmitted && email === '';
+  const passwordError = formSubmitted && password === '';
+  const otpError = otpSubmitted && otp === '';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (step === 'form') {
+      setFormSubmitted(true);
+      if (
+        firstName === '' ||
+        lastName === '' ||
+        clientId === '' ||
+        email === '' ||
+        password === ''
+      )
+        return;
       try {
         await sendRegistrationOtp(clientId, email);
         setStep('otp');
@@ -44,6 +46,8 @@ export default function ClientSignup() {
         setError(err instanceof Error ? err.message : String(err));
       }
     } else {
+      setOtpSubmitted(true);
+      if (otp === '') return;
       try {
         await registerUser({
           clientId,
@@ -73,7 +77,6 @@ export default function ClientSignup() {
             variant="contained"
             color="primary"
             fullWidth
-            disabled={formInvalid}
           >
             {step === 'form' ? 'Send Code' : 'Register'}
           </Button>
