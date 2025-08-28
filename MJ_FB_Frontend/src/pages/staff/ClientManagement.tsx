@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import StyledTabs from '../../components/StyledTabs';
+import Page from '../../components/Page';
 import { useSearchParams } from 'react-router-dom';
 import AddClient from './client-management/AddClient';
 import UpdateClientData from './client-management/UpdateClientData';
@@ -31,6 +32,10 @@ export default function ClientManagement() {
     { label: 'History', content: <UserHistory /> },
   ];
 
-  return <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />;
+  return (
+    <Page title="Client Management">
+      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+    </Page>
+  );
 }
 

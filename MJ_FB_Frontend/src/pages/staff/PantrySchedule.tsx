@@ -17,6 +17,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
+import Page from '../../components/Page';
 
 interface Booking {
   id: number;
@@ -217,7 +218,7 @@ export default function PantrySchedule({
   });
 
   return (
-    <div>
+    <Page title="Pantry Schedule">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
         <h3>
@@ -326,7 +327,7 @@ export default function PantrySchedule({
           }}
         />
       )}
-    </div>
+    </Page>
   );
 }
 

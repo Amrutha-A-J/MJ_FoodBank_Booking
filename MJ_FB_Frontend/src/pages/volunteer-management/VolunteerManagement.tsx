@@ -50,6 +50,7 @@ import Dashboard from '../../components/dashboard/Dashboard';
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
+import Page from '../../components/Page';
 
 
 
@@ -631,8 +632,7 @@ export default function VolunteerManagement() {
   const maxSlots = Math.max(0, ...roleInfos.map(r => r.max_volunteers));
 
   return (
-    <div>
-      <h2>{title}</h2>
+    <Page title={title}>
       {tab === 'dashboard' && (
         <Dashboard role="staff" masterRoleFilter={undefined} />
       )}
@@ -1251,6 +1251,6 @@ export default function VolunteerManagement() {
           onSubmit={handleReschedule}
         />
       )}
-    </div>
+    </Page>
   );
 }

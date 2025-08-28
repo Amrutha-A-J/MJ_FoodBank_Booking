@@ -21,6 +21,7 @@ import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
 import { toDate } from '../../utils/date';
 import { formatDate } from '../../utils/date';
+import Page from '../../components/Page';
 
 const TIMEZONE = 'America/Regina';
 
@@ -92,9 +93,9 @@ export default function ClientHistory() {
   } as const;
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-      <Box width="100%" maxWidth={800} mt={4}>
-        <h2>Client History</h2>
+    <Page title="Client History">
+      <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+        <Box width="100%" maxWidth={800} mt={4}>
         <EntitySearch
           type="user"
           placeholder="Search by name or client ID"
@@ -218,6 +219,7 @@ export default function ClientHistory() {
         )}
       </Box>
     </Box>
+    </Page>
   );
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import { Typography, TextField, Link, Button } from '@mui/material';
+import Page from '../../components/Page';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FeedbackModal from '../../components/FeedbackModal';
@@ -29,12 +30,21 @@ export default function StaffLogin({
       });
   }, []);
 
-  if (checking) return <Typography>Loading...</Typography>;
+  if (checking)
+    return (
+      <Page title="Staff Login">
+        <Typography>Loading...</Typography>
+      </Page>
+    );
 
-  return hasStaff ? (
-    <StaffLoginForm onLogin={onLogin} error={error} />
-  ) : (
-    <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
+  return (
+    <Page title={hasStaff ? 'Staff Login' : 'Create Staff Account'}>
+      {hasStaff ? (
+        <StaffLoginForm onLogin={onLogin} error={error} />
+      ) : (
+        <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
+      )}
+    </Page>
   );
 }
 

@@ -22,6 +22,7 @@ import { getVolunteerRolesForVolunteer, requestVolunteerBooking } from '../../ap
 import { getHolidays } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
+import Page from '../../components/Page';
 
 function useVolunteerSlots(date: Dayjs, enabled: boolean) {
   const dateStr = date.format('YYYY-MM-DD');
@@ -109,8 +110,9 @@ export default function VolunteerBooking() {
   }
 
   return (
-    <Container sx={{ pb: 8 }}>
-      <Grid container spacing={2} alignItems="stretch">
+    <Page title="Volunteer Booking">
+      <Container sx={{ pb: 8 }}>
+        <Grid container spacing={2} alignItems="stretch">
         <Grid item xs={12} md={4}>
           <Paper
             sx={{ p: 2, borderRadius: 2, height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -186,14 +188,15 @@ export default function VolunteerBooking() {
           </Button>
         </Stack>
       </Paper>
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        duration={4000}
-      />
-    </Container>
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+          message={snackbar.message}
+          severity={snackbar.severity}
+          duration={4000}
+        />
+      </Container>
+    </Page>
   );
 }
 

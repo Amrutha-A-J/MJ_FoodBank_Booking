@@ -18,6 +18,7 @@ import type {
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
+import Page from '../../components/Page';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
@@ -307,7 +308,8 @@ export default function VolunteerSchedule() {
   });
 
   return (
-    <Box>
+    <Page title="Volunteer Schedule">
+      <Box>
       <FormControl size="small" sx={{ minWidth: 200 }}>
         <InputLabel id="role-select-label">Role</InputLabel>
         <Select
@@ -491,6 +493,7 @@ export default function VolunteerSchedule() {
         onSubmit={handleReschedule}
       />
     </Box>
+    </Page>
   );
 }
 

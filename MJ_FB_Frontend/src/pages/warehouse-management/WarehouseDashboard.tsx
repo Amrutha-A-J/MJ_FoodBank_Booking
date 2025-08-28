@@ -57,6 +57,7 @@ import {
 import { getTopReceivers, type TopReceiver } from '../../api/outgoingReceivers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { AlertColor } from '@mui/material';
+import Page from '../../components/Page';
 
 interface MonthlyTotal {
   year: number;
@@ -271,7 +272,8 @@ export default function WarehouseDashboard() {
   ];
 
   return (
-    <Box>
+    <Page title="Warehouse Manager Dashboard">
+      <Box>
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
@@ -280,7 +282,6 @@ export default function WarehouseDashboard() {
         mb={2}
       >
         <Box>
-          <Typography variant="h5">Warehouse Manager Dashboard</Typography>
           <Typography variant="body2" color="text.secondary">
             Annual warehouse overview
           </Typography>
@@ -554,7 +555,8 @@ export default function WarehouseDashboard() {
         message={snackbar.message}
         severity={snackbar.severity}
       />
-    </Box>
+      </Box>
+    </Page>
   );
 }
 

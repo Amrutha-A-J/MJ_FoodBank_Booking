@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import PantrySchedule from '../staff/PantrySchedule';
+import Page from '../../components/Page';
 import { getMyAgencyClients } from '../../api/agencies';
 import type { Role } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
@@ -49,10 +50,12 @@ export default function AgencySchedule() {
   );
 
   return (
-    <PantrySchedule
-      token={token}
-      clientIds={clientIds}
-      searchUsersFn={searchAgencyUsers}
-    />
+    <Page title="Agency Schedule">
+      <PantrySchedule
+        token={token}
+        clientIds={clientIds}
+        searchUsersFn={searchAgencyUsers}
+      />
+    </Page>
   );
 }

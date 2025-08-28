@@ -29,6 +29,7 @@ import { getSlots, createBooking, getHolidays } from '../api/bookings';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import { Link as RouterLink } from 'react-router-dom';
+import Page from '../components/Page';
 
 // Wrappers to match required signatures
 function useSlots(date: Dayjs, enabled: boolean) {
@@ -232,7 +233,8 @@ export default function BookingUI({
     : '';
 
   return (
-    <Container maxWidth="lg" sx={{ pb: 9 }}>
+    <Page title="Book Appointment">
+      <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
         Booking for: {shopperName}
@@ -380,6 +382,7 @@ export default function BookingUI({
         severity="warning"
       />
     </Container>
+    </Page>
   );
 }
 

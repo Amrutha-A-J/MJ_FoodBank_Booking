@@ -19,6 +19,7 @@ import {
   type DonorDonation,
 } from '../../api/donors';
 import { formatLocaleDate } from '../../utils/date';
+import Page from '../../components/Page';
 
 export default function DonorProfile() {
   const { id } = useParams<{ id: string }>();
@@ -38,10 +39,8 @@ export default function DonorProfile() {
   }, [id]);
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Donor Profile
-      </Typography>
+    <Page title="Donor Profile">
+      <Box>
       {donor && (
         <Card variant="outlined" sx={{ mb: 2 }}>
           <CardContent>
@@ -93,6 +92,7 @@ export default function DonorProfile() {
         message={error}
         severity="error"
       />
-    </Box>
+      </Box>
+    </Page>
   );
 }
