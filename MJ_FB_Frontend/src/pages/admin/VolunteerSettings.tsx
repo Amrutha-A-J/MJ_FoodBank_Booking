@@ -386,6 +386,9 @@ export default function VolunteerSettings() {
                 width: '100%',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
+                border: 1,
+                borderColor: expanded === master.id ? 'primary.main' : 'divider',
+                borderRadius: 1,
               }}
               expanded={expanded === master.id}
               onChange={(_, isExpanded) => setExpanded(isExpanded ? master.id : false)}
@@ -413,7 +416,7 @@ export default function VolunteerSettings() {
                   </IconButton>
                 </Stack>
               </AccordionSummary>
-              <AccordionDetails>
+              <AccordionDetails sx={{ borderTop: 1, borderColor: 'divider' }}>
                 {roles.filter(r => r.category_id === master.id).map(role => (
                   <Box key={role.id} mb={2}>
                     <Grid container alignItems="center" spacing={1}>
