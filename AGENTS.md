@@ -217,6 +217,11 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /blocked-slots` → `{ message: 'Added' }`
 - `DELETE /blocked-slots/:date/:slotId` → `{ message: 'Removed' }`
 
+### Recurring Blocked Slots (`src/routes/recurringBlockedSlots.ts`)
+- `GET /recurring-blocked-slots` → `[ { id, dayOfWeek, weekOfMonth, slotId, reason } ]`
+- `POST /recurring-blocked-slots` `{ dayOfWeek, weekOfMonth, slotId, reason }` → `{ message: 'Added' }`
+- `DELETE /recurring-blocked-slots/:id` → `{ message: 'Removed' }`
+
 ### Breaks
 - `GET /breaks` → `[ { dayOfWeek, slotId, reason } ]`
 - `POST /breaks` → `{ message: 'Added' }`
@@ -252,6 +257,24 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-bookings/:role_id` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
+
+### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
+- `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`
+- `GET /volunteer-bookings/recurring` → `[ { id, role_id, start_date, end_date, pattern, days_of_week } ]`
+- `DELETE /volunteer-bookings/recurring/:id?from=YYYY-MM-DD` → `{ message: 'Recurring bookings cancelled' }`
+- `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
+
+### Donors (`src/routes/donors.ts`)
+- `GET /donors?search=name` → `[ { id, name } ]`
+- `POST /donors` `{ name }` → `{ id, name }`
+- `GET /donors/:id` → `{ id, name, totalLbs, lastDonationISO }`
+- `GET /donors/:id/donations` → `[ { id, date, weight } ]`
+- `GET /donors/top?year=YYYY&limit=N` → `[ { name, totalLbs, lastDonationISO } ]`
+
+### Events (`src/routes/events.ts`)
+- `GET /events` → `{ today: [event], upcoming: [event], past: [event] }`
+- `POST /events` `{ title, details, category, date, staffIds?, visibleToVolunteers?, visibleToClients? }` → `{ id }`
+- `DELETE /events/:id` → `{ message: 'Deleted' }`
 
 ### Warehouse Management
 - `/warehouse-overall` routes provide yearly summaries of donations, surplus, pig pound, and outgoing donations.
