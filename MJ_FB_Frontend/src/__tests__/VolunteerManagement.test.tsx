@@ -9,6 +9,8 @@ import {
   getVolunteerBookingHistory,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  updateVolunteerTrainedAreas,
+  createVolunteerBookingForVolunteer,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
@@ -17,6 +19,8 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerBookingHistory: jest.fn(),
   createVolunteerShopperProfile: jest.fn(),
   removeVolunteerShopperProfile: jest.fn(),
+  updateVolunteerTrainedAreas: jest.fn(),
+  createVolunteerBookingForVolunteer: jest.fn(),
 }));
 
 let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
@@ -31,6 +35,8 @@ beforeEach(() => {
   (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
   (createVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
   (removeVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
+  (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
+  (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
 });
 
 describe('VolunteerManagement shopper profile', () => {
@@ -125,6 +131,44 @@ describe('VolunteerManagement search reset', () => {
     act(() => navigateFn('/volunteers/search'));
 
     expect(screen.queryByText(/Edit Roles for Test Vol/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('VolunteerManagement role updates', () => {
+  it('saves trained roles for volunteer', async () => {
+    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+    (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 5,
+        role_id: 5,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 2,
+        category_name: 'Front',
+        shifts: [],
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/search']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    const checkbox = await screen.findByLabelText('Greeter');
+    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByRole('button', { name: /save roles/i }));
+
+    await waitFor(() =>
+      expect(updateVolunteerTrainedAreas).toHaveBeenCalledWith(1, [5]),
+    );
+    await waitFor(() =>
+      expect(screen.getByText('Roles updated')).toBeInTheDocument(),
+    );
   });
 });
 
