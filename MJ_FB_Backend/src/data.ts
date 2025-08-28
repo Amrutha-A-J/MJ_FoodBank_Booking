@@ -7,7 +7,8 @@ export type BookingStatus =
   | 'preapproved'
   | 'cancelled'
   | 'no_show'
-  | 'expired';
+  | 'expired'
+  | 'visited';
 
 export interface Booking {
   id: string;

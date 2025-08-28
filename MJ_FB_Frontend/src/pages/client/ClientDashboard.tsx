@@ -55,6 +55,7 @@ function statusColor(status: string):
   | 'warning' {
   switch (status) {
     case 'approved':
+    case 'visited':
       return 'success';
     case 'submitted':
     case 'pending':

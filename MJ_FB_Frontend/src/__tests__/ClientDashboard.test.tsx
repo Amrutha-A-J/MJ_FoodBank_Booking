@@ -41,4 +41,26 @@ describe('ClientDashboard', () => {
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(screen.getByText(/Client Event/)).toBeInTheDocument();
   });
+
+  it('displays visited bookings with success chip', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: new Date().toISOString(),
+      },
+    ]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    const chipLabel = await screen.findByText('visited');
+    expect(chipLabel.closest('.MuiChip-colorSuccess')).toBeTruthy();
+  });
 });

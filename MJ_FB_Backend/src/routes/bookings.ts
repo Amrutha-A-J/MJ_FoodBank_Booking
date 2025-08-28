@@ -12,7 +12,9 @@ import {
   createBookingForUser,   // ✅ make sure to import this controller
   getBookingHistory,
   cancelBooking,
-  rescheduleBooking
+  rescheduleBooking,
+  markBookingNoShow,
+  markBookingVisited
 } from '../controllers/bookingController';
 
 const router = express.Router();
@@ -58,6 +60,21 @@ router.post(
 
 // Cancel booking (staff or user)
 router.post('/:id/cancel', authMiddleware, cancelBooking);
+
+// Mark booking as no-show or visited
+router.post(
+  '/:id/no-show',
+  authMiddleware,
+  authorizeRoles('staff'),
+  markBookingNoShow,
+);
+
+router.post(
+  '/:id/visited',
+  authMiddleware,
+  authorizeRoles('staff'),
+  markBookingVisited,
+);
 
 // Reschedule booking by token
 router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
