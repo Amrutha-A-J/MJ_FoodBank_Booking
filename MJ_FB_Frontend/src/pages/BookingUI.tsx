@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -98,11 +98,13 @@ export default function BookingUI({
     setSelectedSlotId(null);
   }, [date, holidays]);
 
-  const morningSlots = slots.filter(s =>
-    dayjs(s.startTime, 'HH:mm:ss').hour() < 12,
+  const morningSlots = useMemo(
+    () => slots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
+    [slots],
   );
-  const afternoonSlots = slots.filter(s =>
-    dayjs(s.startTime, 'HH:mm:ss').hour() >= 12,
+  const afternoonSlots = useMemo(
+    () => slots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
+    [slots],
   );
 
   async function handleBook() {
