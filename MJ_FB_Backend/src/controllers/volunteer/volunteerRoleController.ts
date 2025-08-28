@@ -103,7 +103,7 @@ export async function listVolunteerRoles(
 ) {
   try {
     const result = await pool.query(
-        `SELECT vr.id AS role_id, vr.category_id, vr.name,
+        `SELECT vr.id, vr.category_id, vr.name,
                 MAX(vs.max_volunteers) AS max_volunteers,
                 vmr.name AS category_name,
                 json_agg(
@@ -125,8 +125,7 @@ export async function listVolunteerRoles(
     );
     res.json(
       result.rows.map(row => ({
-        id: row.role_id,
-        role_id: row.role_id,
+        id: row.id,
         category_id: row.category_id,
         name: row.name,
         max_volunteers: row.max_volunteers,

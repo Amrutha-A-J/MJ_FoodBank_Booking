@@ -31,6 +31,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
+- `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
