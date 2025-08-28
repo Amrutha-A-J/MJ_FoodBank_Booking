@@ -4,19 +4,24 @@ import { formatReginaDate, reginaStartOfDayISO } from './dateUtils';
 
 export type Queryable = Pool | PoolClient;
 
-export function getMonthRange(date: Date | string) {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const start = new Date(d.getFullYear(), d.getMonth(), 1);
-  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  return {
-    start: formatReginaDate(start),
-    end: formatReginaDate(end),
-  };
+export function getMonthRange(date: Date | string): { start: string; end: string } | false {
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const start = new Date(d.getFullYear(), d.getMonth(), 1);
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    return {
+      start: formatReginaDate(start),
+      end: formatReginaDate(end),
+    };
+  } catch {
+    return false;
+  }
 }
 
 export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
-  const today = new Date(reginaStartOfDayISO(new Date()));
-  const bookingDate = new Date(reginaStartOfDayISO(dateStr));
+  try {
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    const bookingDate = new Date(reginaStartOfDayISO(dateStr));
 
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
@@ -43,7 +48,10 @@ export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
     return true;
   }
 
-  return false;
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 export async function countVisitsAndBookingsForMonth(
@@ -51,24 +59,28 @@ export async function countVisitsAndBookingsForMonth(
   targetDate: string,
   client: Queryable = pool,
   lock = false,
-): Promise<number> {
-  const { start, end } = getMonthRange(formatReginaDate(targetDate));
+): Promise<number | false> {
+  try {
+    const formatted = formatReginaDate(targetDate);
+    const range = getMonthRange(formatted);
+    if (!range) return false;
+    const { start, end } = range;
 
-  if (lock) {
-    await client.query(
-      `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
-      [userId, start, end],
-    );
-    await client.query(
-      `SELECT cv.id FROM client_visits cv
+    if (lock) {
+      await client.query(
+        `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
+        [userId, start, end],
+      );
+      await client.query(
+        `SELECT cv.id FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
-      [userId, start, end],
-    );
-  }
+        [userId, start, end],
+      );
+    }
 
-  const res = await client.query(
-    `SELECT (
+    const res = await client.query(
+      `SELECT (
         SELECT COUNT(*) FROM bookings
         WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3
       ) + (
@@ -76,9 +88,12 @@ export async function countVisitsAndBookingsForMonth(
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.id=$1 AND cv.date BETWEEN $2 AND $3
       ) AS total`,
-    [userId, start, end],
-  );
-  return Number(res.rows[0].total);
+      [userId, start, end],
+    );
+    return Number(res.rows[0].total);
+  } catch {
+    return false;
+  }
 }
 
 export async function findUpcomingBooking(
