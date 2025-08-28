@@ -60,7 +60,10 @@ let theme = createTheme({
     // Global CSS touches
     MuiCssBaseline: {
       styleOverrides: {
-        body: { backgroundImage: 'none' },
+        body: ({ theme }) => ({
+          backgroundImage: 'none',
+          backgroundColor: theme.palette.background.default,
+        }),
         // Crisp, accessible focus ring everywhere
         '*:focus-visible': {
           outline: `2px solid ${alpha(BRAND_PRIMARY, 0.6)}`,

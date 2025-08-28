@@ -3,7 +3,6 @@
   --e-global-color-secondary: #000000;
   --e-global-color-text: #000000;
   --e-global-color-accent: #941818;
-  --e-global-color-background: #FFFFFF;
   --e-global-typography-text-font-family: 'Golos Text', sans-serif;
 
   font-family: var(--e-global-typography-text-font-family);
@@ -11,7 +10,6 @@
   font-weight: 400;
 
   color: var(--e-global-color-text);
-  background-color: var(--e-global-color-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
