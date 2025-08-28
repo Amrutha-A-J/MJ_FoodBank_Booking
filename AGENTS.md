@@ -36,6 +36,7 @@
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
 - Volunteer Settings provides separate dialogs for creating sub-roles (with an initial shift) and for adding or editing shifts.
+- Deleting sub-roles and shifts prompts confirmation dialogs to prevent accidental removal.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
 

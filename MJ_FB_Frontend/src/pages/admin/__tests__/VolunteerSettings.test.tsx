@@ -7,6 +7,7 @@ jest.mock('../../../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   createVolunteerMasterRole: jest.fn(),
   createVolunteerRole: jest.fn(),
+  deleteVolunteerRole: jest.fn(),
 }));
 
 const {
@@ -14,6 +15,7 @@ const {
   getVolunteerRoles,
   createVolunteerMasterRole,
   createVolunteerRole,
+  deleteVolunteerRole,
 } = jest.requireMock('../../../api/volunteers');
 
 describe('VolunteerSettings page', () => {
@@ -207,5 +209,25 @@ describe('VolunteerSettings page', () => {
 
     expect(await screen.findByText('Slot times overlap existing slots'))
       .toBeInTheDocument();
+  });
+
+  it('confirms before deleting shift', async () => {
+    (deleteVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    const deleteButtons = await screen.findAllByLabelText('delete');
+    fireEvent.click(deleteButtons[deleteButtons.length - 1]);
+
+    const dialog = await screen.findByText('Delete shift');
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => expect(deleteVolunteerRole).toHaveBeenCalledWith(10));
   });
 });

@@ -81,6 +81,8 @@ export default function VolunteerSettings() {
   });
 
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<VolunteerRoleWithShifts | null>(null);
+  const [shiftToDelete, setShiftToDelete] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | false>(false);
 
   useEffect(() => {
@@ -292,25 +294,39 @@ export default function VolunteerSettings() {
     }
   }
 
-  async function removeRole(role: VolunteerRoleWithShifts) {
+  function removeRole(role: VolunteerRoleWithShifts) {
+    setRoleToDelete(role);
+  }
+
+  async function confirmRemoveRole() {
+    if (!roleToDelete) return;
     try {
-      for (const shift of role.shifts) {
+      for (const shift of roleToDelete.shifts) {
         await deleteVolunteerRole(shift.id);
       }
       handleSnack('Role deleted');
       loadData();
     } catch (e) {
       handleSnack('Failed to delete role', 'error');
+    } finally {
+      setRoleToDelete(null);
     }
   }
 
-  async function removeShift(id: number) {
+  function removeShift(id: number) {
+    setShiftToDelete(id);
+  }
+
+  async function confirmRemoveShift() {
+    if (shiftToDelete == null) return;
     try {
-      await deleteVolunteerRole(id);
+      await deleteVolunteerRole(shiftToDelete);
       handleSnack('Shift deleted');
       loadData();
     } catch (e) {
       handleSnack('Failed to delete shift', 'error');
+    } finally {
+      setShiftToDelete(null);
     }
   }
 
@@ -611,6 +627,36 @@ export default function VolunteerSettings() {
           </Button>
           <Button size="small" variant="contained" onClick={saveShift}>
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={roleToDelete !== null} onClose={() => setRoleToDelete(null)}>
+        <DialogTitle>Delete role</DialogTitle>
+        <DialogContent>
+          <Typography>Deleting this role will remove all shifts. Are you sure?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button size="small" onClick={() => setRoleToDelete(null)}>
+            Cancel
+          </Button>
+          <Button size="small" color="error" variant="contained" onClick={confirmRemoveRole}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={shiftToDelete !== null} onClose={() => setShiftToDelete(null)}>
+        <DialogTitle>Delete shift</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this shift?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button size="small" onClick={() => setShiftToDelete(null)}>
+            Cancel
+          </Button>
+          <Button size="small" color="error" variant="contained" onClick={confirmRemoveShift}>
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
