@@ -126,7 +126,10 @@ export default function VolunteerSettings() {
     return t.length === 5 ? `${t}:00` : t;
   }
 
-  function openRoleDialog(init: Partial<typeof roleDialog>) {
+  function openRoleDialog(
+    categoryId: number,
+    init: Partial<Omit<typeof roleDialog, 'categoryId' | 'open'>> = {},
+  ) {
     setRoleDialog({
       open: true,
       slotId: init.slotId,
@@ -134,14 +137,14 @@ export default function VolunteerSettings() {
       startTime: init.startTime ? toTimeInput(init.startTime) : '',
       endTime: init.endTime ? toTimeInput(init.endTime) : '',
       maxVolunteers: init.maxVolunteers?.toString() || '1',
-      categoryId: init.categoryId,
+      categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
     });
   }
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime || !roleDialog.categoryId) {
+      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
         handleSnack('All fields are required', 'error');
         return;
       }
@@ -154,7 +157,7 @@ export default function VolunteerSettings() {
           startTime,
           endTime,
           maxVolunteers,
-          categoryId: roleDialog.categoryId,
+          categoryId: roleDialog.categoryId!,
           isWednesdaySlot: roleDialog.isWednesdaySlot,
         });
         handleSnack('Role updated');
@@ -164,7 +167,7 @@ export default function VolunteerSettings() {
           startTime,
           endTime,
           maxVolunteers,
-          roleDialog.categoryId,
+          roleDialog.categoryId!,
           roleDialog.isWednesdaySlot,
           true,
         );
@@ -262,7 +265,7 @@ export default function VolunteerSettings() {
                             size="small"
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            onClick={() => openRoleDialog({ roleName: role.name, categoryId: master.id })}
+                            onClick={() => openRoleDialog(master.id, { roleName: role.name })}
                           >
                             Add Shift
                           </Button>
@@ -287,13 +290,12 @@ export default function VolunteerSettings() {
                                 <IconButton
                                   aria-label="edit"
                                   onClick={() =>
-                                    openRoleDialog({
+                                    openRoleDialog(master.id, {
                                       slotId: shift.id,
                                       roleName: role.name,
                                       startTime: shift.start_time,
                                       endTime: shift.end_time,
                                       maxVolunteers: role.max_volunteers.toString(),
-                                      categoryId: master.id,
                                       isWednesdaySlot: shift.is_wednesday_slot,
                                     })
                                   }
@@ -319,7 +321,7 @@ export default function VolunteerSettings() {
                     size="small"
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => openRoleDialog({ categoryId: master.id })}
+                    onClick={() => openRoleDialog(master.id)}
                   >
                     Add Sub-role
                   </Button>
@@ -387,14 +389,6 @@ export default function VolunteerSettings() {
             type="number"
             value={roleDialog.maxVolunteers}
             onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Category ID"
-            fullWidth
-            type="number"
-            value={roleDialog.categoryId ?? ''}
-            onChange={e => setRoleDialog({ ...roleDialog, categoryId: Number(e.target.value) })}
           />
         </DialogContent>
         <DialogActions>
