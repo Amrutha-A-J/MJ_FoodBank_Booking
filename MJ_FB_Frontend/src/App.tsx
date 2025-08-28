@@ -29,6 +29,7 @@ import Aggregations from './pages/warehouse-management/Aggregations';
 import DonorProfile from './pages/warehouse-management/DonorProfile';
 import Exports from './pages/warehouse-management/Exports';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
+import AdminStaffList from './pages/admin/AdminStaffList';
 import AppConfigurations from './pages/admin/AppConfigurations';
 
 import PantrySettings from './pages/admin/PantrySettings';
