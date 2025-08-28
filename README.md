@@ -30,6 +30,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can manage booking slots and adjust slot capacities through the Admin → Pantry Settings page.
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
+- Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 
 ## Clone and initialize submodules
 
