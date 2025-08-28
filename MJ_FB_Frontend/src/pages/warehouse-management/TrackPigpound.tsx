@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -71,12 +71,7 @@ export default function TrackPigpound() {
 
   const fetchId = useRef(0);
 
-  useEffect(() => {
-    load(selectedDate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
-
-  function load(date: Date) {
+  const load = useCallback((date: Date) => {
     const id = ++fetchId.current;
     const dateStr = format(date);
     getPigPounds(dateStr)
@@ -86,7 +81,11 @@ export default function TrackPigpound() {
       .catch(() => {
         if (fetchId.current === id) setEntries([]);
       });
-  }
+  }, []);
+
+  useEffect(() => {
+    load(selectedDate);
+  }, [selectedDate, load]);
 
   function handleSave() {
     if (!form.date || !form.weight) return;

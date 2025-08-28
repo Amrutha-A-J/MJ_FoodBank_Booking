@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -92,16 +92,15 @@ export default function PantryVisits() {
   const [autoWeight, setAutoWeight] = useState(true);
   const [clientFound, setClientFound] = useState<boolean | null>(null);
 
-  function loadVisits() {
+  const loadVisits = useCallback(() => {
     getClientVisits(format(selectedDate))
       .then(setVisits)
       .catch(() => setVisits([]));
-  }
+  }, [selectedDate]);
 
   useEffect(() => {
     loadVisits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [loadVisits]);
 
   useEffect(() => {
     if (recordOpen && autoWeight) {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState(role ? 'cookie' : '');
   const [sessionMessage, setSessionMessage] = useState('');
 
-  function clearAuth() {
+  const clearAuth = useCallback(() => {
     setToken('');
     setRole('' as Role);
     setName('');
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('userRole');
     localStorage.removeItem('access');
     localStorage.removeItem('id');
-  }
+  }, []);
 
   useEffect(() => {
     function handleStorage(e: StorageEvent) {
@@ -77,8 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearAuth]);
 
   useEffect(() => {
     (async () => {
@@ -94,8 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         /* network errors are ignored to allow retry */
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearAuth]);
 
   async function login(u: LoginResponse) {
     try {
