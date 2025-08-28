@@ -102,9 +102,15 @@ export async function createRecurringVolunteerBooking(
 export async function cancelVolunteerBooking(
   bookingId: number,
 ): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/volunteer-bookings/${bookingId}`, {
-    method: 'DELETE',
-  });
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/${bookingId}/cancel`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
   await handleResponse(res);
 }
 
