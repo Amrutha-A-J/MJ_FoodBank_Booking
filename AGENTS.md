@@ -378,5 +378,6 @@ Volunteer management coordinates role-based staffing for the food bank.
 - Volunteer and pantry schedules follow the same grid logic. The y‑axis lists shift times and the x‑axis lists sequential slot numbers up to each shift's `max_volunteers`. When a volunteer requests a shift, their booking occupies the first open slot. Pending requests highlight (e.g., yellow) and staff approve by clicking the cell, mirroring the shopping appointment schedule.
 - **BookingHistory** shows a volunteer's pending and upcoming bookings with Cancel and Reschedule options.
 - **CoordinatorDashboard** is the staff view using `VolunteerScheduleTable`. Staff see volunteer names for booked cells, approve/reject/reschedule pending requests, and cancel or reschedule approved bookings. Staff can also search volunteers, assign them to roles, and update trained areas.
+- The volunteer search page shows the selected volunteer's profile and role editor alongside their booking history in a two-column card layout.
 - These workflows rely on `volunteer_slots`, `volunteer_roles`, `volunteer_master_roles`, `volunteer_bookings`, `volunteers`, and `volunteer_trained_roles`. Training records in `volunteer_trained_roles` restrict which roles a volunteer can book.
 
