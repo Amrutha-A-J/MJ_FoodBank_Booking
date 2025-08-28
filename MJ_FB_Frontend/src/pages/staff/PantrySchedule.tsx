@@ -74,25 +74,19 @@ export default function PantrySchedule({
     try {
       const [slotsData, bookingsData, blockedData] = await Promise.all([
         getSlots(dateStr),
-        getBookings(),
+        getBookings({ date: dateStr, clientIds }),
         getBlockedSlots(dateStr),
       ]);
       setSlots(slotsData);
       setBlockedSlots(blockedData);
-      const filtered = bookingsData.filter((b: Booking) => {
-        const bookingDate = formatDate(b.date);
-        const inClient = !clientIds || clientIds.includes(b.client_id);
-        return (
-          bookingDate === dateStr &&
-          ['approved', 'submitted'].includes(b.status) &&
-          inClient
-        );
-      });
+      const filtered = bookingsData.filter((b: Booking) =>
+        ['approved', 'submitted'].includes(b.status),
+      );
       setBookings(filtered);
     } catch (err) {
       console.error(err);
     }
-  }, [currentDate, holidays]);
+  }, [currentDate, holidays, clientIds]);
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});

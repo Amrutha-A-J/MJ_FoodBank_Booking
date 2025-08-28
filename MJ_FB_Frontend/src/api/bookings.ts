@@ -73,9 +73,14 @@ function normalizeBooking(b: BookingResponse) {
   };
 }
 
-export async function getBookings(opts: { status?: string } = {}) {
+export async function getBookings(
+  opts: { status?: string; date?: string; clientIds?: number[] } = {},
+) {
   const params = new URLSearchParams();
   if (opts.status) params.append('status', opts.status);
+  if (opts.date) params.append('date', opts.date);
+  if (opts.clientIds && opts.clientIds.length)
+    params.append('clientIds', opts.clientIds.join(','));
   const query = params.toString();
   const res = await apiFetch(`${API_BASE}/bookings${query ? `?${query}` : ''}`);
   const data = await handleResponse(res);

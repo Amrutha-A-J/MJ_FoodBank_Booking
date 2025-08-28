@@ -4,6 +4,7 @@ import {
   insertBooking,
   updateBooking,
   SlotCapacityError,
+  fetchBookings,
 } from '../src/models/bookingRepository';
 
 jest.mock('../src/db');
@@ -60,5 +61,13 @@ describe('bookingRepository', () => {
       'UPDATE bookings SET status=$2, request_data=$3 WHERE id=$1',
       [1, 'cancelled', 'reason'],
     );
+  });
+
+  it('fetchBookings applies optional filters', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    await fetchBookings('approved', '2024-01-01', [1, 2]);
+    const call = (pool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/b.status = \$1 AND b.date = \$2 AND u.client_id = ANY\(\$3\)/);
+    expect(call[1]).toEqual(['approved', '2024-01-01', [1, 2]]);
   });
 });
