@@ -57,12 +57,17 @@ describe('VolunteerSettings page', () => {
     const subButtons = screen.getAllByText('Add Sub-role');
     expect(subButtons).toHaveLength(1);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons[buttons.length - 1]).toHaveTextContent('Add Master Role');
+    expect(screen.getByRole('button', { name: 'Add Master Role' })).toBeInTheDocument();
   });
 
   it('handles master role dialog flow', async () => {
     (createVolunteerMasterRole as jest.Mock).mockResolvedValue({ id: 2, name: 'Drivers' });
+    (getVolunteerMasterRoles as jest.Mock)
+      .mockResolvedValueOnce([{ id: 1, name: 'Food Prep' }])
+      .mockResolvedValueOnce([
+        { id: 1, name: 'Food Prep' },
+        { id: 2, name: 'Drivers' },
+      ]);
 
     render(
       <MemoryRouter>
@@ -79,6 +84,9 @@ describe('VolunteerSettings page', () => {
 
     await waitFor(() => expect(createVolunteerMasterRole).toHaveBeenCalledWith('Drivers'));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    const summary = await screen.findByRole('button', { name: 'Drivers' });
+    expect(summary).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('handles sub-role dialog flow', async () => {

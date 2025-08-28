@@ -59,12 +59,13 @@ export default function VolunteerSettings() {
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<number | false>(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  async function loadData() {
+  async function loadData(newId?: number) {
     try {
       const [master, roleData] = await Promise.all([
         getVolunteerMasterRoles(),
@@ -72,6 +73,12 @@ export default function VolunteerSettings() {
       ]);
       setMasterRoles(master);
       setRoles(roleData);
+      if (newId) {
+        setExpanded(newId);
+        setTimeout(() => {
+          document.getElementById(`master-role-${newId}`)?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     } catch (e) {
       setSnack({ open: true, message: 'Failed to load roles', severity: 'error' });
     }
@@ -90,12 +97,14 @@ export default function VolunteerSettings() {
       if (masterDialog.id) {
         await updateVolunteerMasterRole(masterDialog.id, masterDialog.name);
         handleSnack('Master role updated');
+        setMasterDialog({ open: false, name: '' });
+        loadData();
       } else {
-        await createVolunteerMasterRole(masterDialog.name);
+        const created = await createVolunteerMasterRole(masterDialog.name);
         handleSnack('Master role created');
+        setMasterDialog({ open: false, name: '' });
+        await loadData(created.id);
       }
-      setMasterDialog({ open: false, name: '' });
-      loadData();
     } catch (e) {
       handleSnack('Failed to save master role', 'error');
     }
@@ -224,7 +233,12 @@ export default function VolunteerSettings() {
         <Grid container spacing={2}>
           {masterRoles.map(master => (
             <Grid item xs={12} key={master.id}>
-              <Accordion sx={{ width: '100%' }}>
+              <Accordion
+                id={`master-role-${master.id}`}
+                sx={{ width: '100%' }}
+                expanded={expanded === master.id}
+                onChange={(_, isExpanded) => setExpanded(isExpanded ? master.id : false)}
+              >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
                   <Stack direction="row" spacing={1}>
