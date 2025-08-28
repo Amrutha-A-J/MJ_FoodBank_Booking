@@ -7,53 +7,81 @@ export async function addVolunteerRole(
   res: Response,
   next: NextFunction,
 ) {
-  const { name, startTime, endTime, maxVolunteers, categoryId, isWednesdaySlot, isActive } =
-    req.body as {
-      name?: string;
-      startTime?: string;
-      endTime?: string;
-      maxVolunteers?: number;
-      categoryId?: number;
-      isWednesdaySlot?: boolean;
-      isActive?: boolean;
-    };
+  const {
+    roleId,
+    name,
+    startTime,
+    endTime,
+    maxVolunteers,
+    categoryId,
+    isWednesdaySlot,
+    isActive,
+  } = req.body as {
+    roleId?: number;
+    name?: string;
+    startTime?: string;
+    endTime?: string;
+    maxVolunteers?: number;
+    categoryId?: number;
+    isWednesdaySlot?: boolean;
+    isActive?: boolean;
+  };
+
   if (
-    !name ||
     !startTime ||
     !endTime ||
     typeof maxVolunteers !== 'number' ||
-    typeof categoryId !== 'number'
+    (!roleId && (!name || typeof categoryId !== 'number'))
   ) {
-    return res
-      .status(400)
-      .json({
-        message:
-          'name, startTime, endTime, maxVolunteers and categoryId are required',
-      });
+    return res.status(400).json({
+      message:
+        'startTime, endTime, maxVolunteers and roleId or (name and categoryId) are required',
+    });
   }
+
   try {
-    let roleId: number;
-    const existing = await pool.query(
-      'SELECT id, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
-      [name]
-    );
-    if ((existing.rowCount ?? 0) > 0) {
-      roleId = existing.rows[0].id;
-    } else {
+    let resolvedRoleId = roleId;
+    let resolvedName = name;
+    let resolvedCategoryId = categoryId;
+
+    if (resolvedRoleId) {
       const roleRes = await pool.query(
-        `INSERT INTO volunteer_roles (name, category_id)
-         VALUES ($1,$2)
-         RETURNING id, category_id`,
-        [name, categoryId]
+        'SELECT id, name, category_id FROM volunteer_roles WHERE id=$1',
+        [resolvedRoleId]
       );
-      roleId = roleRes.rows[0].id;
+      if ((roleRes.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
+      resolvedName = roleRes.rows[0].name;
+      resolvedCategoryId = roleRes.rows[0].category_id;
+    } else {
+      const existing = await pool.query(
+        'SELECT id, name, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
+        [resolvedName]
+      );
+      if ((existing.rowCount ?? 0) > 0) {
+        resolvedRoleId = existing.rows[0].id;
+        resolvedCategoryId = existing.rows[0].category_id;
+        resolvedName = existing.rows[0].name;
+      } else {
+        const roleRes = await pool.query(
+          `INSERT INTO volunteer_roles (name, category_id)
+           VALUES ($1,$2)
+           RETURNING id, name, category_id`,
+          [resolvedName, resolvedCategoryId]
+        );
+        resolvedRoleId = roleRes.rows[0].id;
+        resolvedName = roleRes.rows[0].name;
+        resolvedCategoryId = roleRes.rows[0].category_id;
+      }
     }
+
     const slotRes = await pool.query(
       `INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active)
        VALUES ($1,$2,$3,$4,$5,$6)
        RETURNING slot_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active`,
       [
-        roleId,
+        resolvedRoleId,
         startTime,
         endTime,
         maxVolunteers,
@@ -62,22 +90,20 @@ export async function addVolunteerRole(
       ]
     );
     const slot = slotRes.rows[0];
-    const roleInfo = await pool.query(
-      'SELECT name, category_id FROM volunteer_roles WHERE id=$1',
-      [roleId]
-    );
+
     const master = await pool.query(
       'SELECT name FROM volunteer_master_roles WHERE id=$1',
-      [roleInfo.rows[0].category_id]
+      [resolvedCategoryId]
     );
+
     res.status(201).json({
       id: slot.slot_id,
-      role_id: roleId,
-      name: roleInfo.rows[0].name,
+      role_id: resolvedRoleId,
+      name: resolvedName,
       start_time: slot.start_time,
       end_time: slot.end_time,
       max_volunteers: slot.max_volunteers,
-      category_id: roleInfo.rows[0].category_id,
+      category_id: resolvedCategoryId,
       is_wednesday_slot: slot.is_wednesday_slot,
       is_active: slot.is_active,
       category_name: master.rows[0].name,
