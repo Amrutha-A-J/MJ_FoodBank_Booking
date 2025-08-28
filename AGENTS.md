@@ -319,6 +319,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 
 ## Slot API
 
+`/slots` returns each slot with an `overbooked` flag when approved bookings exceed `max_capacity`, and `available` values are never negative.
+
 `GET /volunteer-roles` returns all volunteer roles with their active shifts by default. Append `?includeInactive=true` to include inactive shifts:
 
 ```

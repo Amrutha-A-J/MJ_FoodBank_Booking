@@ -120,13 +120,14 @@ async function getSlotsForDate(
       : undefined;
     const available = reason
       ? 0
-      : slot.max_capacity - (approvedMap[slot.id] || 0);
+      : Math.max(0, slot.max_capacity - (approvedMap[slot.id] || 0));
     const result: Slot = {
       id: slot.id.toString(),
       startTime: slot.start_time,
       endTime: slot.end_time,
       maxCapacity: slot.max_capacity,
       available,
+      overbooked: approvedMap[slot.id] > slot.max_capacity,
     };
     if (reason) result.reason = reason;
     if (status) result.status = status as 'blocked' | 'break';
