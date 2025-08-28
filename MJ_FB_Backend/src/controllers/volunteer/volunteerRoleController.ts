@@ -40,6 +40,15 @@ export async function addVolunteerRole(
   try {
     let resolvedRoleId: number = roleId as number;
     if (typeof resolvedRoleId !== 'number') {
+      // Ensure the provided category exists to avoid foreign key errors
+      const categoryRes = await pool.query(
+        'SELECT 1 FROM volunteer_master_roles WHERE id=$1',
+        [categoryId],
+      );
+      if ((categoryRes.rowCount ?? 0) === 0) {
+        return res.status(400).json({ message: 'Invalid categoryId' });
+      }
+
       const existing = await pool.query(
         `SELECT id FROM volunteer_roles WHERE name=$1 AND category_id=$2`,
         [name, categoryId],
@@ -86,10 +95,16 @@ export async function addVolunteerRole(
       'SELECT name, category_id FROM volunteer_roles WHERE id=$1',
       [resolvedRoleId]
     );
+    if ((roleInfo.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
     const master = await pool.query(
       'SELECT name FROM volunteer_master_roles WHERE id=$1',
       [roleInfo.rows[0].category_id]
     );
+    if ((master.rowCount ?? 0) === 0) {
+      return res.status(400).json({ message: 'Invalid categoryId' });
+    }
     res.status(201).json({
       id: slot.slot_id,
       role_id: resolvedRoleId,

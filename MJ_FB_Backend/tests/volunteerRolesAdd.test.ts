@@ -29,8 +29,9 @@ describe('addVolunteerRole validation', () => {
 
   it('creates slot for existing roleId', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0 })
       .mockResolvedValueOnce({
+        rowCount: 1,
         rows: [
           {
             slot_id: 1,
@@ -42,8 +43,8 @@ describe('addVolunteerRole validation', () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ rows: [{ name: 'Role', category_id: 2 }] })
-      .mockResolvedValueOnce({ rows: [{ name: 'Master' }] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Role', category_id: 2 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Master' }] });
 
     const res = await request(app).post('/volunteer-roles').send({
       roleId: 5,
@@ -57,10 +58,12 @@ describe('addVolunteerRole validation', () => {
 
   it('creates slot with new role name and categoryId', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rows: [{ id: 10 }] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 10 }] })
+      .mockResolvedValueOnce({ rowCount: 0 })
       .mockResolvedValueOnce({
+        rowCount: 1,
         rows: [
           {
             slot_id: 2,
@@ -72,8 +75,8 @@ describe('addVolunteerRole validation', () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ rows: [{ name: 'New', category_id: 3 }] })
-      .mockResolvedValueOnce({ rows: [{ name: 'Master' }] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'New', category_id: 3 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Master' }] });
 
     const res = await request(app).post('/volunteer-roles').send({
       name: 'New',
@@ -97,6 +100,20 @@ describe('addVolunteerRole validation', () => {
     });
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/overlap/);
+    expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
+  });
+
+  it('returns 400 for invalid categoryId when creating new role', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
+    const res = await request(app).post('/volunteer-roles').send({
+      name: 'Invalid',
+      categoryId: 999,
+      startTime: '09:00:00',
+      endTime: '12:00:00',
+      maxVolunteers: 1,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/Invalid categoryId/);
     expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
   });
 });

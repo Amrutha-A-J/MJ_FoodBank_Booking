@@ -22,10 +22,12 @@ afterEach(() => {
 describe('Volunteer roles routes', () => {
   it('creates a volunteer role', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] })
+      .mockResolvedValueOnce({ rowCount: 0 })
       .mockResolvedValueOnce({
+        rowCount: 1,
         rows: [
           {
             slot_id: 5,
@@ -37,8 +39,8 @@ describe('Volunteer roles routes', () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ rows: [{ name: 'Packing', category_id: 2 }] })
-      .mockResolvedValueOnce({ rows: [{ name: 'Distribution' }] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Packing', category_id: 2 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Distribution' }] });
 
     const res = await request(app).post('/volunteer-roles').send({
       name: 'Packing',
@@ -65,8 +67,11 @@ describe('Volunteer roles routes', () => {
 
   it('updates a volunteer role', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1 }] })
-      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ role_id: 1, slot_id: 2, is_active: true }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [
@@ -83,7 +88,7 @@ describe('Volunteer roles routes', () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ rows: [{ name: 'Distribution' }] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ name: 'Distribution' }] });
 
     const res = await request(app).put('/volunteer-roles/2').send({
       name: 'Packing',
@@ -123,13 +128,14 @@ describe('Volunteer roles routes', () => {
   it('removes roles when master role is deleted', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 2 }] })
+      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
     const delMaster = await request(app).delete('/volunteer-master-roles/2');
     expect(delMaster.status).toBe(200);
 
     const delRole = await request(app).delete('/volunteer-roles/5');
-    expect(delRole.status).toBe(404);
-    expect(delRole.body).toEqual({ message: 'Role not found' });
+    expect(delRole.status).toBe(200);
+    expect(delRole.body).toEqual({ message: 'Role deleted' });
   });
 });
