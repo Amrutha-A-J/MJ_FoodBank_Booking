@@ -6,6 +6,7 @@ import type {
   Shift,
   VolunteerBooking,
   UserProfile,
+  VolunteerMasterRole,
 } from '../types';
 import type { LoginResponse } from './users';
 
@@ -131,23 +132,94 @@ export async function getVolunteerRoles(): Promise<VolunteerRoleWithShifts[]> {
   return handleResponse(res);
 }
 
-export async function getVolunteerMasterRoles() {
+export async function createVolunteerRole(role: {
+  name: string;
+  startTime: string;
+  endTime: string;
+  maxVolunteers: number;
+  categoryId: number;
+  isWednesdaySlot?: boolean;
+  isActive?: boolean;
+}): Promise<VolunteerRole> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(role),
+  });
+  return handleResponse(res);
+}
+
+export async function updateVolunteerRole(
+  id: number,
+  role: {
+    name: string;
+    startTime: string;
+    endTime: string;
+    maxVolunteers: number;
+    categoryId: number;
+    isWednesdaySlot?: boolean;
+  },
+): Promise<VolunteerRole> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(role),
+  });
+  return handleResponse(res);
+}
+
+export async function toggleVolunteerRole(
+  id: number,
+  isActive: boolean,
+): Promise<VolunteerRole> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isActive }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteVolunteerRole(id: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
+    method: 'DELETE',
+  });
+  await handleResponse(res);
+}
+
+export async function getVolunteerMasterRoles(): Promise<VolunteerMasterRole[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-master-roles`);
   return handleResponse(res);
 }
 
-export async function updateVolunteerRoleStatus(
-  id: number,
-  isActive: boolean,
-) {
-  const res = await apiFetch(`${API_BASE}/volunteer-roles/${id}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ isActive }),
+export async function createVolunteerMasterRole(
+  name: string,
+): Promise<VolunteerMasterRole> {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
   });
   return handleResponse(res);
+}
+
+export async function updateVolunteerMasterRole(
+  id: number,
+  name: string,
+): Promise<VolunteerMasterRole> {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteVolunteerMasterRole(id: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteer-master-roles/${id}`, {
+    method: 'DELETE',
+  });
+  await handleResponse(res);
 }
 
 export async function getVolunteerBookingsByRole(roleId: number) {

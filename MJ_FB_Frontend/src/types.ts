@@ -98,6 +98,11 @@ export interface VolunteerRoleWithShifts {
   shifts: VolunteerRoleShift[];
 }
 
+export interface VolunteerMasterRole {
+  id: number;
+  name: string;
+}
+
 export interface VolunteerRoleGroup {
   category_id: number;
   category: string;
