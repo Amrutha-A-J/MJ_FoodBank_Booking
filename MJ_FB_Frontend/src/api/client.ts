@@ -70,7 +70,8 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       }
       const refreshRes = await refreshPromise;
       refreshPromise = null;
-      if (refreshRes.ok) {
+      if (refreshRes.ok || refreshRes.status === 409) {
+        // 409 indicates another request already refreshed the tokens
         res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
       } else if (refreshRes.status === 401) {
         clearAuthAndRedirect();

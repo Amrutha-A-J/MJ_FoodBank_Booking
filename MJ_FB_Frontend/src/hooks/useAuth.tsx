@@ -54,7 +54,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
-        if (res.ok) {
+        if (res.ok || res.status === 409) {
+          // 409 indicates another tab or request refreshed already
           setToken('cookie');
         } else if (res.status === 401) {
           clearAuth();
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function login(u: LoginResponse) {
     try {
       const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
-      if (!res.ok) throw new Error('Invalid refresh');
+      if (!res.ok && res.status !== 409) throw new Error('Invalid refresh');
       setToken('cookie');
       setRole(u.role);
       setName(u.name);
