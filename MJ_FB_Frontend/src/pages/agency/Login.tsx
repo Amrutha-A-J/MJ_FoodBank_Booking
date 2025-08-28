@@ -13,6 +13,10 @@ export default function AgencyLogin({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  const emailError = email === '';
+  const passwordError = password === '';
+  const formInvalid = emailError || passwordError;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -29,7 +33,13 @@ export default function AgencyLogin({
         onSubmit={submit}
         title="Agency Login"
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formInvalid}
+          >
             Login
           </Button>
         }
@@ -40,6 +50,9 @@ export default function AgencyLogin({
           onChange={e => setEmail(e.target.value)}
           label="Email"
           fullWidth
+          required
+          error={emailError}
+          helperText={emailError ? 'Email is required' : ''}
         />
         <TextField
           type="password"
@@ -47,6 +60,9 @@ export default function AgencyLogin({
           onChange={e => setPassword(e.target.value)}
           label="Password"
           fullWidth
+          required
+          error={passwordError}
+          helperText={passwordError ? 'Password is required' : ''}
         />
       </FormCard>
       <FeedbackSnackbar

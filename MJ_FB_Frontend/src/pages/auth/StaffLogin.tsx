@@ -50,6 +50,10 @@ function StaffLoginForm({
   const [error, setError] = useState(initError);
   const [resetOpen, setResetOpen] = useState(false);
 
+  const emailError = email === '';
+  const passwordError = password === '';
+  const formInvalid = emailError || passwordError;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -71,7 +75,13 @@ function StaffLoginForm({
         title="Staff Login"
         header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formInvalid}
+          >
             Login
           </Button>
         }
@@ -82,8 +92,20 @@ function StaffLoginForm({
           onChange={e => setEmail(e.target.value)}
           label="Email"
           fullWidth
+          required
+          error={emailError}
+          helperText={emailError ? 'Email is required' : ''}
         />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+        <TextField
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          label="Password"
+          fullWidth
+          required
+          error={passwordError}
+          helperText={passwordError ? 'Password is required' : ''}
+        />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="staff" />
@@ -99,6 +121,13 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
+
+  const firstNameError = firstName === '';
+  const lastNameError = lastName === '';
+  const emailError = email === '';
+  const passwordError = password === '';
+  const formInvalid =
+    firstNameError || lastNameError || emailError || passwordError;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,15 +146,55 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
         onSubmit={submit}
         title="Create Staff Account"
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formInvalid}
+          >
             Create Staff
           </Button>
         }
       >
-        <TextField value={firstName} onChange={e => setFirstName(e.target.value)} label="First name" fullWidth />
-        <TextField value={lastName} onChange={e => setLastName(e.target.value)} label="Last name" fullWidth />
-        <TextField type="email" value={email} onChange={e => setEmail(e.target.value)} label="Email" fullWidth />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+        <TextField
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
+          label="First name"
+          fullWidth
+          required
+          error={firstNameError}
+          helperText={firstNameError ? 'First name is required' : ''}
+        />
+        <TextField
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+          label="Last name"
+          fullWidth
+          required
+          error={lastNameError}
+          helperText={lastNameError ? 'Last name is required' : ''}
+        />
+        <TextField
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          label="Email"
+          fullWidth
+          required
+          error={emailError}
+          helperText={emailError ? 'Email is required' : ''}
+        />
+        <TextField
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          label="Password"
+          fullWidth
+          required
+          error={passwordError}
+          helperText={passwordError ? 'Password is required' : ''}
+        />
       </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />
