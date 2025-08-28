@@ -103,7 +103,13 @@ export default function VolunteerSettings() {
         const created = await createVolunteerMasterRole(masterDialog.name);
         handleSnack('Master role created');
         setMasterDialog({ open: false, name: '' });
-        await loadData(created.id);
+        setMasterRoles(prev => [...prev, created]);
+        setExpanded(created.id);
+        setTimeout(() => {
+          document.getElementById(`master-role-${created.id}`)?.scrollIntoView({
+            behavior: 'smooth',
+          });
+        }, 100);
       }
     } catch (e) {
       handleSnack('Failed to save master role', 'error');
