@@ -217,6 +217,9 @@ export default function VolunteerSchedule() {
 
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
+  const today = toZonedTime(new Date(), reginaTimeZone);
+  const isToday =
+    reginaDate.toDateString() === today.toDateString();
   const dayName = formatDate(currentDate, 'dddd');
   const holidayObj = holidays.find(h => h.date === dateStr);
   const isHoliday = !!holidayObj;
@@ -231,11 +234,17 @@ export default function VolunteerSchedule() {
     (!selectedCategory || !allowedOnClosed.includes(selectedCategory));
 
   const roleSlots = selectedRoleKey
-    ? (
-        roleGroups
-          .find(g => g.category_id === Number(selectedCategoryId))
-          ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || []
-      ).sort((a, b) => a.start_time.localeCompare(b.start_time))
+    ? (() => {
+        let slots =
+          roleGroups
+            .find(g => g.category_id === Number(selectedCategoryId))
+            ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || [];
+        if (isToday) {
+          const nowTime = today.toTimeString().slice(0, 8);
+          slots = slots.filter(s => s.start_time > nowTime);
+        }
+        return slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      })()
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
   const showClosedMessage = (isHoliday || isWeekend) && roleGroups.length === 0;
