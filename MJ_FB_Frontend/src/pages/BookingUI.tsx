@@ -58,6 +58,10 @@ export default function BookingUI({
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
+    const today = dayjs();
+    if (d.isBefore(today, 'day')) {
+      d = today;
+    }
     while (d.day() === 0 || d.day() === 6) {
       d = d.add(1, 'day');
     }
@@ -72,6 +76,7 @@ export default function BookingUI({
   const isDisabled = (d: Dayjs) =>
     d.day() === 0 ||
     d.day() === 6 ||
+    d.isBefore(dayjs(), 'day') ||
     holidaySet.has(d.format('YYYY-MM-DD'));
   const { slots, isLoading, refetch, error } = useSlots(date, !isDisabled(date));
   const [snackbar, setSnackbar] = useState<{
