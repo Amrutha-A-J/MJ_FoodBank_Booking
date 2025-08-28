@@ -4,6 +4,12 @@ This repository uses Git submodules for the backend and frontend components. Aft
 
 Individuals who use the food bank are referred to as clients throughout the application.
 
+## Contribution Guidelines
+
+- Run the relevant backend and frontend test suites (`npm test`) after making changes.
+- Update `AGENTS.md` with new repository instructions.
+- Reflect user-facing or setup changes in this `README.md`.
+
 ## Features
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
