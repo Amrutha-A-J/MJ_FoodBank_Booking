@@ -19,7 +19,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Configurable cart tare and surplus weight multipliers managed through Admin → App Configurations.
+- Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 
 ## Clone and initialize submodules
 

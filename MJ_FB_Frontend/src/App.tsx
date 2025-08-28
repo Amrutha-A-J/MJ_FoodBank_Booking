@@ -120,7 +120,8 @@ export default function App() {
       navGroups.push({
         label: 'Admin',
         links: [
-          { label: 'Staff', to: '/admin/staff' }
+          { label: 'Staff', to: '/admin/staff' },
+          { label: 'App Config', to: '/admin/app-config' },
         ],
       });
 

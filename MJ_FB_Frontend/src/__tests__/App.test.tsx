@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
 
@@ -91,5 +91,19 @@ describe('App authentication persistence', () => {
       </AuthProvider>,
     );
     expect(screen.getByText(/client sign up/i)).toBeInTheDocument();
+  });
+
+  it('shows App Config link for admin staff', () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Admin User');
+    localStorage.setItem('access', JSON.stringify(['admin']));
+    render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
+    const adminButton = screen.getByRole('button', { name: /admin/i });
+    fireEvent.click(adminButton);
+    expect(screen.getByRole('menuitem', { name: 'App Config' })).toBeInTheDocument();
   });
 });
