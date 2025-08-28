@@ -158,6 +158,7 @@ control weight calculations:
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
+- Staff can assign clients to agencies through the Harvest Pantry → Agency Management page.
 
 ## Deploying to Azure
 
