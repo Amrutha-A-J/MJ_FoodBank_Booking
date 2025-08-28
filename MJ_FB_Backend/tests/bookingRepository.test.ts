@@ -41,12 +41,12 @@ describe('bookingRepository', () => {
 
   it('insertBooking calls query with correct params', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({});
-    await insertBooking(1, 2, 'submitted', '', '2024-01-01', false, 'token');
+    await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token');
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/INSERT INTO bookings/);
     expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([
       1,
       2,
-      'submitted',
+      'approved',
       '',
       '2024-01-01',
       false,

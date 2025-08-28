@@ -155,74 +155,6 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
 }
 
 // --- Approve or reject booking ---
-export async function decideBooking(req: Request, res: Response, next: NextFunction) {
-  const bookingId = req.params.id;
-
-  try {
-    const booking = await fetchBookingById(Number(bookingId));
-    if (!booking) return res.status(404).json({ message: 'Booking not found' });
-
-    if (booking.status !== 'submitted') {
-      return res.status(400).json({ message: 'Booking already processed' });
-    }
-
-    if (!isDateWithinCurrentOrNextMonth(booking.date)) {
-      return res
-        .status(400)
-        .json({ message: 'Booking date must be within this month or next' });
-    }
-
-    const usage = await countVisitsAndBookingsForMonth(booking.user_id, booking.date);
-    if (usage === false) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
-    const decision = usage < 2 ? 'approved' : 'rejected';
-    const reason = decision === 'rejected' ? LIMIT_MESSAGE : '';
-
-    if (decision === 'approved') {
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-        await checkSlotCapacity(booking.slot_id, booking.date, client);
-        await updateBooking(
-          Number(bookingId),
-          {
-            status: 'approved',
-            request_data: '',
-          },
-          client,
-        );
-        await client.query('COMMIT');
-      } catch (err) {
-        await client.query('ROLLBACK');
-        if (err instanceof SlotCapacityError) {
-          client.release();
-          return res.status(err.status).json({ message: err.message });
-        }
-        client.release();
-        throw err;
-      }
-      client.release();
-    } else {
-      await updateBooking(Number(bookingId), {
-        status: 'rejected',
-        request_data: reason,
-      });
-    }
-
-    enqueueEmail(
-      'test@example.com',
-      `Booking ${decision}`,
-      `Booking ${bookingId} has been automatically ${decision}`,
-    );
-
-    res.json({ message: `Booking ${decision}` });
-  } catch (error: any) {
-    logger.error('Error deciding booking:', error);
-    next(error);
-  }
-}
-
 // --- Cancel booking (staff or user) ---
 export async function cancelBooking(req: Request, res: Response, next: NextFunction) {
   const bookingId = req.params.id;
@@ -240,8 +172,8 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    if (!['submitted', 'approved'].includes(booking.status)) {
-      return res.status(400).json({ message: 'Only pending or approved bookings can be cancelled' });
+    if (!['approved', 'preapproved'].includes(booking.status)) {
+      return res.status(400).json({ message: 'Only approved bookings can be cancelled' });
     }
 
     const todayStr = formatReginaDate(new Date());
@@ -303,7 +235,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    if (!['submitted', 'approved', 'preapproved'].includes(booking.status)) {
+    if (!['approved', 'preapproved'].includes(booking.status)) {
       return res.status(400).json({ message: "This booking can't be rescheduled" });
     }
     if (!isDateWithinCurrentOrNextMonth(date)) {
@@ -330,7 +262,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       ? booking.status
       : adjustedUsage < 2
         ? 'approved'
-        : 'submitted';
+        : 'rejected';
     await updateBooking(booking.id, {
       slot_id: slotId,
       date,
@@ -344,7 +276,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       `Booking ${booking.id} was rescheduled`,
     );
 
-    res.json({ message: 'Booking rescheduled', rescheduleToken: newToken });
+    res.json({ message: 'Booking rescheduled', rescheduleToken: newToken, status: newStatus });
   } catch (error: any) {
     logger.error('Error rescheduling booking:', error);
     next(error);
@@ -481,7 +413,7 @@ export async function createBookingForUser(
     }
 
     await checkSlotCapacity(slotIdNum, date);
-    const status = staffBookingFlag ? 'approved' : 'submitted';
+    const status = 'approved';
     const token = randomUUID();
 
     await insertBooking(
@@ -495,7 +427,7 @@ export async function createBookingForUser(
     );
     res
       .status(201)
-      .json({ message: 'Booking created for user', rescheduleToken: token });
+      .json({ message: 'Booking created for user', rescheduleToken: token, status });
   } catch (error: any) {
     logger.error('Error creating booking for user:', error);
     return next(error);

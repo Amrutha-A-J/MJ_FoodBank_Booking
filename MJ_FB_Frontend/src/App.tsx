@@ -29,7 +29,6 @@ const ClientList = React.lazy(() => import('./pages/agency/ClientList'));
 const ClientHistory = React.lazy(() =>
   import('./pages/agency/ClientHistory')
 );
-const Pending = React.lazy(() => import('./pages/staff/Pending'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const StaffLogin = React.lazy(() => import('./pages/auth/StaffLogin'));
 const VolunteerLogin = React.lazy(() => import('./pages/auth/VolunteerLogin'));
@@ -136,7 +135,6 @@ export default function App() {
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
-      { label: 'Pending', to: '/pantry/pending' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -345,7 +343,6 @@ export default function App() {
                   element={<ClientManagement />}
                 />
               )}
-              {showStaff && <Route path="/pantry/pending" element={<Pending />} />}
               {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
