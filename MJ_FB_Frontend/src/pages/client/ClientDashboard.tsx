@@ -180,7 +180,7 @@ export default function ClientDashboard() {
                   size="small"
                   variant="contained"
                   sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/slots')}
+                  onClick={() => navigate('/book-appointment')}
                 >
                   Book now
                 </Button>
@@ -232,7 +232,7 @@ export default function ClientDashboard() {
                         size="small"
                         variant="contained"
                         sx={{ textTransform: 'none' }}
-                        onClick={() => navigate('/slots')}
+                        onClick={() => navigate('/book-appointment')}
                       >
                         Book
                       </Button>
@@ -276,7 +276,7 @@ export default function ClientDashboard() {
                 size="small"
                 variant="contained"
                 sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/slots')}
+                onClick={() => navigate('/book-appointment')}
               >
                 Book Appointment
               </Button>
