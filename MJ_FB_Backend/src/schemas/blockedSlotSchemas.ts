@@ -16,6 +16,7 @@ export type DeleteBlockedSlotParams = z.infer<typeof deleteBlockedSlotParamsSche
 
 export const addRecurringBlockedSlotSchema = z.object({
   dayOfWeek: z.coerce.number().int().min(0).max(6),
+  weekOfMonth: z.coerce.number().int().min(1).max(5),
   slotId: z.coerce.number().int().positive(),
   reason: z.string().optional(),
 });
