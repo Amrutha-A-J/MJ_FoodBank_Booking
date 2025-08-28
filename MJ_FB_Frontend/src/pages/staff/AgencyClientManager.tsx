@@ -9,7 +9,6 @@ import {
   TextField,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Page from '../../components/Page';
 import EntitySearch from '../../components/EntitySearch';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
@@ -90,7 +89,7 @@ export default function AgencyClientManager() {
   };
 
   return (
-    <Page title="Agency Management">
+    <>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Typography variant="h5" gutterBottom>
@@ -133,7 +132,7 @@ export default function AgencyClientManager() {
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
-    </Page>
+    </>
   );
 }
 
