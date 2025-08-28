@@ -35,7 +35,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Listing volunteer roles (`GET /volunteer-roles`) accepts `includeInactive=true` to return inactive shifts.
-- Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
+- Slot listing endpoint `/slots` returns an empty array and 200 status on holidays. Each slot includes an `overbooked` flag when approved bookings exceed `max_capacity`, and the `available` count never goes below zero.
 
 ## Clone and initialize submodules
 

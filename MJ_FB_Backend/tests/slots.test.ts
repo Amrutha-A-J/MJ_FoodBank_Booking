@@ -108,8 +108,36 @@ describe('GET /slots applies slot rules', () => {
         endTime: '10:00:00',
         maxCapacity: 5,
         available: 0,
+        overbooked: false,
         reason: 'maintenance',
         status: 'blocked',
+      },
+    ]);
+  });
+
+  it('marks slot as overbooked when approved bookings exceed capacity', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ slot_id: 1, approved_count: 7 }] });
+
+    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: '1',
+        startTime: '09:30:00',
+        endTime: '10:00:00',
+        maxCapacity: 5,
+        available: 0,
+        overbooked: true,
       },
     ]);
   });
