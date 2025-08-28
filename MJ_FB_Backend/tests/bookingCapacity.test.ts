@@ -15,7 +15,7 @@ jest.mock('../src/models/bookingRepository', () => ({
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
-  countApprovedBookingsForMonth: jest.fn().mockResolvedValue(0),
+  countVisitsAndBookingsForMonth: jest.fn().mockResolvedValue(0),
   findUpcomingBooking: jest.fn().mockResolvedValue(null),
   LIMIT_MESSAGE: 'limit',
 }));

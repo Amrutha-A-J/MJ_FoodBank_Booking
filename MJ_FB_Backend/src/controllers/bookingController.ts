@@ -4,7 +4,7 @@ import pool from '../db';
 import { formatReginaDate } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
-  countApprovedBookingsForMonth,
+  countVisitsAndBookingsForMonth,
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
@@ -44,10 +44,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    const approvedCount = await countApprovedBookingsForMonth(userId, date);
-    if (approvedCount >= 2) {
-      return res.status(400).json({ message: LIMIT_MESSAGE });
-    }
+    const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date);
+    const status = monthlyUsage < 2 ? 'approved' : 'rejected';
 
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
@@ -58,16 +56,17 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     const client = await pool.connect();
     let token: string | undefined;
-    const status = isStaffBooking ? 'approved' : 'submitted';
     try {
       await client.query('BEGIN');
-      await checkSlotCapacity(slotIdNum, date, client);
+      if (status === 'approved') {
+        await checkSlotCapacity(slotIdNum, date, client);
+      }
       token = randomUUID();
       await insertBooking(
         userId,
         slotIdNum,
         status,
-        '',
+        status === 'rejected' ? LIMIT_MESSAGE : '',
         date,
         isStaffBooking || false,
         token,
@@ -85,16 +84,29 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     client.release();
 
-    enqueueEmail(
-      user.email || 'test@example.com',
-      'Appointment request received',
-      `Booking request submitted for ${date}`,
-    );
+    if (status === 'approved') {
+      enqueueEmail(
+        user.email || 'test@example.com',
+        'Booking approved',
+        `Your booking for ${date} has been automatically approved`,
+      );
+    } else {
+      enqueueEmail(
+        user.email || 'test@example.com',
+        'Booking rejected',
+        `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`,
+      );
+    }
     const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE id=$1', [userId]);
     const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
     res
       .status(201)
-      .json({ message: 'Booking created', bookingsThisMonth, rescheduleToken: token });
+      .json({
+        message: status === 'approved' ? 'Booking automatically approved' : LIMIT_MESSAGE,
+        bookingsThisMonth,
+        status,
+        rescheduleToken: token,
+      });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
     return next(error);
@@ -124,15 +136,6 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
 // --- Approve or reject booking ---
 export async function decideBooking(req: Request, res: Response, next: NextFunction) {
   const bookingId = req.params.id;
-  const decision = (req.body.decision as string)?.toLowerCase();
-  const reason = ((req.body.reason as string) || '').trim();
-
-  if (!['approve', 'reject'].includes(decision)) {
-    return res.status(400).json({ message: 'Decision must be approve or reject' });
-  }
-  if (decision === 'reject' && !reason) {
-    return res.status(400).json({ message: 'Reason required for rejection' });
-  }
 
   try {
     const booking = await fetchBookingById(Number(bookingId));
@@ -142,24 +145,29 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Booking already processed' });
     }
 
-    if (decision === 'approve') {
-      if (!isDateWithinCurrentOrNextMonth(booking.date)) {
-        return res
-          .status(400)
-          .json({ message: 'Booking date must be within this month or next' });
-      }
-      const approvedCount = await countApprovedBookingsForMonth(booking.user_id, booking.date);
-      if (approvedCount >= 2) {
-        return res.status(400).json({ message: LIMIT_MESSAGE });
-      }
+    if (!isDateWithinCurrentOrNextMonth(booking.date)) {
+      return res
+        .status(400)
+        .json({ message: 'Booking date must be within this month or next' });
+    }
+
+    const usage = await countVisitsAndBookingsForMonth(booking.user_id, booking.date);
+    const decision = usage < 2 ? 'approved' : 'rejected';
+    const reason = decision === 'rejected' ? LIMIT_MESSAGE : '';
+
+    if (decision === 'approved') {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
         await checkSlotCapacity(booking.slot_id, booking.date, client);
-        await updateBooking(Number(bookingId), {
-          status: 'approved',
-          request_data: reason,
-        }, client);
+        await updateBooking(
+          Number(bookingId),
+          {
+            status: 'approved',
+            request_data: '',
+          },
+          client,
+        );
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK');
@@ -180,11 +188,11 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
 
     enqueueEmail(
       'test@example.com',
-      `Booking ${decision}d`,
-      `Booking ${bookingId} has been ${decision}d`,
+      `Booking ${decision}`,
+      `Booking ${bookingId} has been automatically ${decision}`,
     );
 
-    res.json({ message: `Booking ${decision}d` });
+    res.json({ message: `Booking ${decision}` });
   } catch (error: any) {
     logger.error('Error deciding booking:', error);
     next(error);
@@ -311,8 +319,8 @@ export async function createPreapprovedBooking(
       client,
     );
 
-    const approvedCount = await countApprovedBookingsForMonth(newUserId, date);
-    if (approvedCount >= 2) {
+    const usage = await countVisitsAndBookingsForMonth(newUserId, date);
+    if (usage >= 2) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
@@ -376,8 +384,8 @@ export async function createBookingForUser(
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
-    const approvedCount = await countApprovedBookingsForMonth(userId, date);
-    if (approvedCount >= 2) {
+    const usage = await countVisitsAndBookingsForMonth(userId, date);
+    if (usage >= 2) {
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
 

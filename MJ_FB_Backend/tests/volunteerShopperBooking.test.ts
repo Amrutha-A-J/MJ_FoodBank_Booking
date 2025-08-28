@@ -81,7 +81,7 @@ beforeEach(() => {
   });
   (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
   jest.spyOn(bookingUtils, 'isDateWithinCurrentOrNextMonth').mockReturnValue(true);
-  jest.spyOn(bookingUtils, 'countApprovedBookingsForMonth').mockResolvedValue(0);
+  jest.spyOn(bookingUtils, 'countVisitsAndBookingsForMonth').mockResolvedValue(0);
   jest.spyOn(bookingUtils, 'findUpcomingBooking').mockResolvedValue(null);
 });
 
@@ -101,7 +101,7 @@ describe('volunteer acting as shopper', () => {
       .send({ slotId: 1, date: today });
 
     expect(res.status).toBe(201);
-    expect(bookingUtils.countApprovedBookingsForMonth).toHaveBeenCalledWith(10, today);
+    expect(bookingUtils.countVisitsAndBookingsForMonth).toHaveBeenCalledWith(10, today);
     expect((bookingRepository.insertBooking as jest.Mock).mock.calls[0][0]).toBe(10);
   });
 
