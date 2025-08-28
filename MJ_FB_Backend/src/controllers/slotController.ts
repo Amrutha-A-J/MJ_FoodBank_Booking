@@ -18,7 +18,10 @@ function currentReginaTime(): string {
   return `${get('hour')}:${get('minute')}:${get('second')}`;
 }
 
-async function getSlotsForDate(date: string): Promise<Slot[]> {
+async function getSlotsForDate(
+  date: string,
+  includePast = false,
+): Promise<Slot[]> {
   const reginaDate = formatReginaDate(date);
   const dateObj = new Date(reginaStartOfDayISO(reginaDate));
   if (isNaN(dateObj.getTime())) {
@@ -46,7 +49,7 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
   const { rows } = await pool.query(slotsQuery);
   let slots = rows;
 
-  if (reginaDate === formatReginaDate(new Date())) {
+  if (!includePast && reginaDate === formatReginaDate(new Date())) {
     const nowTime = currentReginaTime();
     slots = slots.filter((s: any) => s.start_time >= nowTime);
   }
@@ -121,6 +124,7 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
     if (isNaN(dateObj.getTime())) {
       return res.status(400).json({ message: 'Invalid date' });
     }
+    const includePast = req.query.includePast === 'true';
     const holidayResult = await pool.query(
       'SELECT reason FROM holidays WHERE date = $1',
       [reginaDate],
@@ -131,10 +135,10 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
         .status(400)
         .json({ message: `Moose Jaw Food Bank is closed: ${reason}` });
     }
-    const slotsWithAvailability = await getSlotsForDate(reginaDate);
+    const slotsWithAvailability = await getSlotsForDate(reginaDate, includePast);
     res.json(slotsWithAvailability);
   } catch (error: any) {
-    if (error.message === 'Invalid date') {
+    if (error.message === 'Invalid date' || error instanceof RangeError) {
       return res.status(400).json({ message: 'Invalid date' });
     }
     logger.error('Error listing slots:', error);
@@ -149,6 +153,7 @@ export async function listSlotsRange(
 ) {
   const days = Number(req.query.days) || 7;
   const start = (req.query.start as string) || formatReginaDate(new Date());
+  const includePast = req.query.includePast === 'true';
 
   try {
     const reginaStart = formatReginaDate(start);
@@ -164,13 +169,13 @@ export async function listSlotsRange(
     });
 
     const slotsForDates = await Promise.all(
-      dates.map(date => getSlotsForDate(date)),
+      dates.map(date => getSlotsForDate(date, includePast)),
     );
 
     const today = formatReginaDate(new Date());
     const results = dates.map((date, idx) => {
       let slots = slotsForDates[idx];
-      if (date === today) {
+      if (!includePast && date === today) {
         const nowTime = currentReginaTime();
         slots = slots.filter(s => s.startTime >= nowTime);
       }
@@ -179,7 +184,7 @@ export async function listSlotsRange(
 
     res.json(results);
   } catch (error: any) {
-    if (error.message === 'Invalid date') {
+    if (error.message === 'Invalid date' || error instanceof RangeError) {
       return res.status(400).json({ message: 'Invalid date' });
     }
     logger.error('Error listing slot range:', error);

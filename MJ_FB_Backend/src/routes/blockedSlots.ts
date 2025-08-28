@@ -18,7 +18,12 @@ router.get(
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Date required' });
 
-    const reginaDate = formatReginaDate(date);
+    let reginaDate: string;
+    try {
+      reginaDate = formatReginaDate(date);
+    } catch {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
     const dateObj = new Date(reginaStartOfDayISO(reginaDate));
     if (isNaN(dateObj.getTime())) {
       return res.status(400).json({ message: 'Invalid date' });
@@ -42,7 +47,11 @@ router.get(
       map.set(Number(r.slot_id), r.reason ?? '');
     }
 
-    res.json(Array.from(map.entries()).map(([slotId, reason]) => ({ slotId, reason })));
+    const result = Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([slotId, reason]) => ({ slotId, reason }));
+
+    res.json(result);
   },
 );
 

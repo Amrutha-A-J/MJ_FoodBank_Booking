@@ -74,7 +74,7 @@ export default function PantrySchedule({
     }
     try {
       const [slotsData, bookingsData, blockedData] = await Promise.all([
-        getSlots(dateStr),
+        getSlots(dateStr, true),
         getBookings({ date: dateStr, clientIds }),
         getBlockedSlots(dateStr),
       ]);
