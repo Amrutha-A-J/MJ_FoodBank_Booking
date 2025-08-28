@@ -3,7 +3,7 @@ import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
-import { slotSchema, slotIdParamSchema } from '../schemas/slotSchemas';
+import { slotSchema, slotIdParamSchema, slotCapacitySchema } from '../schemas/slotSchemas';
 
 const REGINA_TZ = 'America/Regina';
 
@@ -284,6 +284,25 @@ export async function updateSlot(req: Request, res: Response, next: NextFunction
     });
   } catch (error) {
     logger.error('Error updating slot:', error);
+    next(error);
+  }
+}
+
+export async function updateAllSlotCapacity(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const parsed = slotCapacitySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.issues });
+  }
+  const { maxCapacity } = parsed.data;
+  try {
+    await pool.query('UPDATE slots SET max_capacity = $1', [maxCapacity]);
+    res.json({ message: 'Capacity updated' });
+  } catch (error) {
+    logger.error('Error updating slot capacity:', error);
     next(error);
   }
 }

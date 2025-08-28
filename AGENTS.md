@@ -26,6 +26,7 @@
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
+- `PUT /slots/capacity` updates the `max_capacity` for all slots.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
