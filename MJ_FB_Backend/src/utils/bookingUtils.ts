@@ -88,7 +88,15 @@ export async function findUpcomingBooking(
     `SELECT b.date, s.start_time, b.status
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id
-       WHERE b.user_id=$1 AND b.status IN ('submitted','approved') AND b.date >= CURRENT_DATE
+       WHERE b.user_id=$1
+         AND b.status IN ('submitted','approved')
+         AND b.date >= CURRENT_DATE
+         AND NOT EXISTS (
+           SELECT 1
+           FROM client_visits cv
+           INNER JOIN clients c ON cv.client_id = c.client_id
+           WHERE c.id = b.user_id AND cv.date = b.date
+         )
        ORDER BY b.date ASC
        LIMIT 1`,
     [userId],
