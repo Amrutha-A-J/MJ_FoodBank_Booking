@@ -295,7 +295,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (
       booking.status === 'approved' &&
       booking.date &&
-      booking.date.slice(0, 7) === date.slice(0, 7)
+      formatReginaDate(booking.date).slice(0, 7) === date.slice(0, 7)
     ) {
       adjustedUsage -= 1;
     }
