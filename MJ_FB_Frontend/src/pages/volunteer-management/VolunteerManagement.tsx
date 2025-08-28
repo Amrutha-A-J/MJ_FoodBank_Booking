@@ -21,6 +21,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import PageCard from '../../components/layout/PageCard';
 import {
   Box,
   Button,
@@ -44,6 +45,10 @@ import {
   TableContainer,
   Typography,
   useTheme,
+  Grid,
+  Stack,
+  Chip,
+  Autocomplete,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import Dashboard from '../../components/dashboard/Dashboard';
@@ -137,9 +142,7 @@ export default function VolunteerManagement() {
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
-  const [editRoleDropdownOpen, setEditRoleDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const editDropdownRef = useRef<HTMLDivElement>(null);
 
   function toggleCreateRole(name: string, checked: boolean) {
     setSelectedCreateRoles(prev =>
@@ -173,9 +176,6 @@ export default function VolunteerManagement() {
     function handleClickOutside(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setRoleDropdownOpen(false);
-      }
-      if (editDropdownRef.current && !editDropdownRef.current.contains(e.target as Node)) {
-        setEditRoleDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -213,6 +213,14 @@ export default function VolunteerManagement() {
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
   }, [roles]);
+
+  const roleOptions = useMemo(
+    () =>
+      groupedRoles.flatMap(g =>
+        g.roles.map(r => ({ label: r.name, group: g.category })),
+      ),
+    [groupedRoles],
+  );
 
   const nameToSlotIds = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -461,6 +469,11 @@ export default function VolunteerManagement() {
 
   async function saveTrainedAreas() {
     if (!selectedVolunteer) return;
+    if (trainedEdit.length === 0) {
+      setEditSeverity('error');
+      setEditMsg('Select at least one role');
+      return;
+    }
     try {
       const ids = Array.from(
         new Set(trainedEdit.flatMap(name => nameToRoleIds.get(name) || []))
@@ -676,159 +689,142 @@ export default function VolunteerManagement() {
       )}
 
       {tab === 'search' && (
-        <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-          <Box width="100%" maxWidth={600} mt={4}>
-            <EntitySearch
-              type="volunteer"
-              placeholder="Search volunteers"
-              onSelect={selectVolunteer}
-              renderResult={(r, select) => (
-                <span
-                  style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
-                >
-                  <span>{r.name}</span>
-                  <Button
-                    onClick={select}
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{ ml: 1 }}
-                  >
-                    Edit
-                  </Button>
-                </span>
-              )}
-            />
-            {selectedVolunteer && (
-              <div>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={selectedVolunteer.hasShopper}
-                      onChange={handleShopperToggle}
-                      color="primary"
+        <>
+          <EntitySearch
+            type="volunteer"
+            placeholder="Search volunteers"
+            onSelect={selectVolunteer}
+          />
+          {selectedVolunteer && (
+            <Grid container spacing={2} mt={2}>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={2}>
+                  <PageCard>
+                    <Typography variant="h6" gutterBottom>
+                      Profile
+                    </Typography>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={selectedVolunteer.hasShopper}
+                          onChange={handleShopperToggle}
+                          color="primary"
+                        />
+                      }
+                      label="Shopper Profile"
                     />
-                  }
-                  label="Shopper Profile"
-                />
-                <h3>Edit Roles for {selectedVolunteer.name}</h3>
-                <div style={{ marginBottom: 8, position: 'relative' }} ref={editDropdownRef}>
-                  <label>Role: </label>
-                  <Button
-                    type="button"
-                    onClick={() => setEditRoleDropdownOpen(o => !o)}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    {trainedEdit.length ? trainedEdit.join(', ') : 'Select roles'}
-                  </Button>
-                  {editRoleDropdownOpen && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        background: 'white',
-                        border: '1px solid #ccc',
-                        padding: 8,
-                        zIndex: 1,
-                        maxHeight: 200,
-                        overflowY: 'auto',
-                        marginTop: 4,
-                      }}
-                    >
-                      {groupedRoles.map(g => (
-                        <div key={g.category} style={{ marginBottom: 8 }}>
-                          <div style={{ fontWeight: 'bold' }}>{g.category}</div>
-                          {g.roles.map(r => (
-                            <FormControlLabel
-                              key={r.name}
-                              control={
-                                <Checkbox
-                                  value={r.name}
-                                  checked={trainedEdit.includes(r.name)}
-                                  onChange={e => toggleTrained(r.name, e.target.checked)}
-                                />
-                              }
-                              label={r.name}
-                              sx={{ width: '100%', m: 0 }}
-                            />
-                          ))}
-                        </div>
+                  </PageCard>
+                  <PageCard>
+                    <Typography variant="h6" gutterBottom>
+                      Roles
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
+                      {trainedEdit.map(r => (
+                        <Chip key={r} label={r} onDelete={() => toggleTrained(r, false)} />
                       ))}
-                    </div>
-                  )}
-                </div>
-                <Button onClick={saveTrainedAreas} variant="outlined" color="primary">
-                  Save Roles
-                </Button>
-                <Typography variant="h6" sx={{ mt: 2 }}>
-                  History for {selectedVolunteer.name}
-                </Typography>
-                <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <TableHead>
-                    <TableRow>
-                      <TableCell sx={cellSx}>Role</TableCell>
-                      <TableCell sx={cellSx}>Date</TableCell>
-                      <TableCell sx={cellSx}>Time</TableCell>
-                      <TableCell sx={cellSx}>Status</TableCell>
-                      <TableCell sx={cellSx} />
-                    </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {history.map(h => (
-                        <TableRow key={h.id}>
-                          <TableCell sx={cellSx}>{h.role_name}</TableCell>
-                          <TableCell sx={cellSx}>{h.date}</TableCell>
-                          <TableCell sx={cellSx}>
-                            {formatTime(h.start_time || '')} -
-                            {formatTime(h.end_time || '')}
-                          </TableCell>
-                          <TableCell sx={cellSx}>{h.status}</TableCell>
-                          <TableCell sx={cellSx}>
-                            {h.status === 'pending' && (
-                              <>
-                                <Button
-                                  onClick={() => decide(h.id, 'approved')}
-                                  variant="outlined"
-                                  color="primary"
-                                >
-                                  Approve
-                                </Button>{' '}
-                                <Button
-                                  onClick={() => decide(h.id, 'rejected')}
-                                  variant="outlined"
-                                  color="primary"
-                                >
-                                  Reject
-                                </Button>
-                              </>
-                            )}
-                            {h.status === 'approved' && (
-                              <Button
-                                onClick={() => decide(h.id, 'cancelled')}
-                                variant="outlined"
-                                color="primary"
-                              >
-                                Cancel
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {history.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
-                            No bookings.
-                          </TableCell>
-                        </TableRow>
+                    </Stack>
+                    <Autocomplete
+                      options={roleOptions}
+                      groupBy={option => option.group}
+                      getOptionLabel={option => option.label}
+                      onChange={(_e, v) => v && toggleTrained(v.label, true)}
+                      renderInput={params => (
+                        <TextField {...params} label="Add role" size="small" />
                       )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </div>
-            )}
-          </Box>
-        </Box>
+                      value={null}
+                      sx={{ mb: 2 }}
+                      size="small"
+                    />
+                    <Button variant="contained" size="small" onClick={saveTrainedAreas}>
+                      Save
+                    </Button>
+                    {editMsg && (
+                      <Typography
+                        variant="body2"
+                        mt={1}
+                        color={editSeverity === 'error' ? 'error' : 'success.main'}
+                      >
+                        {editMsg}
+                      </Typography>
+                    )}
+                  </PageCard>
+                </Stack>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <PageCard>
+                  <Typography variant="h6" gutterBottom>
+                    Booking History
+                  </Typography>
+                  <TableContainer sx={{ overflowX: 'auto' }}>
+                    <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={cellSx}>Role</TableCell>
+                          <TableCell sx={cellSx}>Date</TableCell>
+                          <TableCell sx={cellSx}>Time</TableCell>
+                          <TableCell sx={cellSx}>Status</TableCell>
+                          <TableCell sx={cellSx} />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {history.map(h => (
+                          <TableRow key={h.id}>
+                            <TableCell sx={cellSx}>{h.role_name}</TableCell>
+                            <TableCell sx={cellSx}>{h.date}</TableCell>
+                            <TableCell sx={cellSx}>
+                              {formatTime(h.start_time || '')} -
+                              {formatTime(h.end_time || '')}
+                            </TableCell>
+                            <TableCell sx={cellSx}>{h.status}</TableCell>
+                            <TableCell sx={cellSx}>
+                              {h.status === 'pending' && (
+                                <>
+                                  <Button
+                                    onClick={() => decide(h.id, 'approved')}
+                                    variant="outlined"
+                                    color="primary"
+                                    size="small"
+                                  >
+                                    Approve
+                                  </Button>{' '}
+                                  <Button
+                                    onClick={() => decide(h.id, 'rejected')}
+                                    variant="outlined"
+                                    color="primary"
+                                    size="small"
+                                  >
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {h.status === 'approved' && (
+                                <Button
+                                  onClick={() => decide(h.id, 'cancelled')}
+                                  variant="outlined"
+                                  color="primary"
+                                  size="small"
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {history.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
+                              No bookings.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </PageCard>
+              </Grid>
+            </Grid>
+          )}
+        </>
       )}
 
       {tab === 'create' && (
@@ -1031,12 +1027,6 @@ export default function VolunteerManagement() {
       )}
 
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
-      <FeedbackSnackbar
-        open={!!editMsg}
-        onClose={() => setEditMsg('')}
-        message={editMsg}
-        severity={editSeverity}
-      />
       <FeedbackSnackbar
         open={!!assignMsg}
         onClose={() => setAssignMsg('')}

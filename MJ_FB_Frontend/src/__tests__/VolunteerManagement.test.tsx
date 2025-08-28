@@ -125,12 +125,12 @@ describe('VolunteerManagement search reset', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    expect(await screen.findByText(/Edit Roles for Test Vol/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/shopper profile/i)).toBeInTheDocument();
 
     act(() => navigateFn('/volunteers/schedule'));
     act(() => navigateFn('/volunteers/search'));
 
-    expect(screen.queryByText(/Edit Roles for Test Vol/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/shopper profile/i)).not.toBeInTheDocument();
   });
 });
 
@@ -158,9 +158,10 @@ describe('VolunteerManagement role updates', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const checkbox = await screen.findByLabelText('Greeter');
-    fireEvent.click(checkbox);
-    fireEvent.click(screen.getByRole('button', { name: /save roles/i }));
+    const input = await screen.findByLabelText(/add role/i);
+    fireEvent.change(input, { target: { value: 'Greeter' } });
+    fireEvent.click(await screen.findByText('Greeter'));
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
       expect(updateVolunteerTrainedAreas).toHaveBeenCalledWith(1, [5]),
