@@ -108,13 +108,21 @@ export default function VolunteerSettings() {
     }
   }
 
+  function toTimeInput(t: string) {
+    return t ? t.substring(0, 5) : '';
+  }
+
+  function toTimeValue(t: string) {
+    return t.length === 5 ? `${t}:00` : t;
+  }
+
   function openRoleDialog(init: Partial<typeof roleDialog>) {
     setRoleDialog({
       open: true,
       slotId: init.slotId,
       roleName: init.roleName || '',
-      startTime: init.startTime || '',
-      endTime: init.endTime || '',
+      startTime: init.startTime ? toTimeInput(init.startTime) : '',
+      endTime: init.endTime ? toTimeInput(init.endTime) : '',
       maxVolunteers: init.maxVolunteers?.toString() || '1',
       categoryId: init.categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
@@ -127,12 +135,14 @@ export default function VolunteerSettings() {
         handleSnack('All fields are required', 'error');
         return;
       }
+      const startTime = toTimeValue(roleDialog.startTime);
+      const endTime = toTimeValue(roleDialog.endTime);
       const maxVolunteers = Number(roleDialog.maxVolunteers);
       if (roleDialog.slotId) {
         await updateVolunteerRole(roleDialog.slotId, {
           name: roleDialog.roleName,
-          startTime: roleDialog.startTime,
-          endTime: roleDialog.endTime,
+          startTime,
+          endTime,
           maxVolunteers,
           categoryId: roleDialog.categoryId,
           isWednesdaySlot: roleDialog.isWednesdaySlot,
@@ -141,8 +151,8 @@ export default function VolunteerSettings() {
       } else {
         await createVolunteerRole(
           roleDialog.roleName,
-          roleDialog.startTime,
-          roleDialog.endTime,
+          startTime,
+          endTime,
           maxVolunteers,
           roleDialog.categoryId,
           roleDialog.isWednesdaySlot,
@@ -332,18 +342,20 @@ export default function VolunteerSettings() {
           <TextField
             margin="dense"
             label="Start Time"
+            type="time"
             fullWidth
+            InputLabelProps={{ shrink: true }}
             value={roleDialog.startTime}
             onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
-            placeholder="09:00:00"
           />
           <TextField
             margin="dense"
             label="End Time"
+            type="time"
             fullWidth
+            InputLabelProps={{ shrink: true }}
             value={roleDialog.endTime}
             onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
-            placeholder="12:00:00"
           />
           <TextField
             margin="dense"
