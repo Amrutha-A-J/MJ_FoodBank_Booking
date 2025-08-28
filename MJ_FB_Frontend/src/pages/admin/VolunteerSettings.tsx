@@ -56,6 +56,12 @@ export default function VolunteerSettings() {
     categoryId?: number;
     isWednesdaySlot: boolean;
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+  const [roleErrors, setRoleErrors] = useState<{
+    roleName?: string;
+    startTime?: string;
+    endTime?: string;
+    maxVolunteers?: string;
+  }>({});
 
   useEffect(() => {
     loadData();
@@ -119,12 +125,18 @@ export default function VolunteerSettings() {
       categoryId: init.categoryId,
       isWednesdaySlot: init.isWednesdaySlot || false,
     });
+    setRoleErrors({});
   }
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime || !roleDialog.categoryId) {
-        handleSnack('All fields are required', 'error');
+      const errors: typeof roleErrors = {};
+      if (!roleDialog.roleName.trim()) errors.roleName = 'Name is required';
+      if (!roleDialog.startTime.trim()) errors.startTime = 'Start time is required';
+      if (!roleDialog.endTime.trim()) errors.endTime = 'End time is required';
+      if (!roleDialog.maxVolunteers.trim()) errors.maxVolunteers = 'Max volunteers is required';
+      if (Object.keys(errors).length > 0) {
+        setRoleErrors(errors);
         return;
       }
       const maxVolunteers = Number(roleDialog.maxVolunteers);
@@ -151,6 +163,7 @@ export default function VolunteerSettings() {
         handleSnack('Role created');
       }
       setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+      setRoleErrors({});
       loadData();
     } catch (e) {
       handleSnack('Failed to save role', 'error');
@@ -327,23 +340,38 @@ export default function VolunteerSettings() {
             label="Name"
             fullWidth
             value={roleDialog.roleName}
-            onChange={e => setRoleDialog({ ...roleDialog, roleName: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, roleName: e.target.value });
+              if (roleErrors.roleName) setRoleErrors({ ...roleErrors, roleName: undefined });
+            }}
+            error={!!roleErrors.roleName}
+            helperText={roleErrors.roleName}
           />
           <TextField
             margin="dense"
             label="Start Time"
             fullWidth
             value={roleDialog.startTime}
-            onChange={e => setRoleDialog({ ...roleDialog, startTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, startTime: e.target.value });
+              if (roleErrors.startTime) setRoleErrors({ ...roleErrors, startTime: undefined });
+            }}
             placeholder="09:00:00"
+            error={!!roleErrors.startTime}
+            helperText={roleErrors.startTime}
           />
           <TextField
             margin="dense"
             label="End Time"
             fullWidth
             value={roleDialog.endTime}
-            onChange={e => setRoleDialog({ ...roleDialog, endTime: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, endTime: e.target.value });
+              if (roleErrors.endTime) setRoleErrors({ ...roleErrors, endTime: undefined });
+            }}
             placeholder="12:00:00"
+            error={!!roleErrors.endTime}
+            helperText={roleErrors.endTime}
           />
           <TextField
             margin="dense"
@@ -351,7 +379,12 @@ export default function VolunteerSettings() {
             fullWidth
             type="number"
             value={roleDialog.maxVolunteers}
-            onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
+            onChange={e => {
+              setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value });
+              if (roleErrors.maxVolunteers) setRoleErrors({ ...roleErrors, maxVolunteers: undefined });
+            }}
+            error={!!roleErrors.maxVolunteers}
+            helperText={roleErrors.maxVolunteers}
           />
           <TextField
             margin="dense"
