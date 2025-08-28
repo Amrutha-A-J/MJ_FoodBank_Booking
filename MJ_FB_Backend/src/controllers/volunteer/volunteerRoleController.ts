@@ -56,6 +56,18 @@ export async function addVolunteerRole(
         resolvedRoleId = roleRes.rows[0].id;
       }
     }
+    const overlap = await pool.query(
+      `SELECT 1 FROM volunteer_slots
+       WHERE role_id = $1 AND is_active = TRUE
+         AND NOT (end_time <= $2 OR start_time >= $3)
+       LIMIT 1`,
+      [resolvedRoleId, startTime, endTime]
+    );
+    if ((overlap.rowCount ?? 0) > 0) {
+      return res
+        .status(400)
+        .json({ message: 'Slot times overlap existing slots' });
+    }
     const slotRes = await pool.query(
       `INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot, is_active)
        VALUES ($1,$2,$3,$4,$5,$6)

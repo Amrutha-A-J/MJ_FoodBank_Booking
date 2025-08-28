@@ -126,4 +126,35 @@ describe('VolunteerSettings page', () => {
       )
     );
   });
+
+  it('shows API error when creating role fails', async () => {
+    (createVolunteerRole as jest.Mock).mockRejectedValue(
+      new Error('Slot times overlap existing slots')
+    );
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Sub-role'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Name'), {
+      target: { value: 'Sorter' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '09:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '12:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Max Volunteers'), {
+      target: { value: '2' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    expect(await screen.findByText('Slot times overlap existing slots'))
+      .toBeInTheDocument();
+  });
 });

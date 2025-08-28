@@ -29,6 +29,7 @@ describe('addVolunteerRole validation', () => {
 
   it('creates slot for existing roleId', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -58,6 +59,7 @@ describe('addVolunteerRole validation', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 10, category_id: 3 }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -83,5 +85,18 @@ describe('addVolunteerRole validation', () => {
     expect(res.status).toBe(201);
     expect(res.body.role_id).toBe(10);
     expect(res.body.name).toBe('New');
+  });
+
+  it('rejects overlapping slot times', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
+    const res = await request(app).post('/volunteer-roles').send({
+      roleId: 5,
+      startTime: '09:00:00',
+      endTime: '12:00:00',
+      maxVolunteers: 1,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/overlap/);
+    expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
   });
 });

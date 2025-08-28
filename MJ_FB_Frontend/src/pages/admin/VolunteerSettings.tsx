@@ -185,7 +185,10 @@ export default function VolunteerSettings() {
       setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
       loadData();
     } catch (e) {
-      handleSnack('Failed to save role', 'error');
+      handleSnack(
+        e instanceof Error ? e.message : 'Failed to save role',
+        'error'
+      );
     }
   }
 
