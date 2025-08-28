@@ -21,6 +21,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Staff can record visits directly from a booking in the pantry schedule. Selecting **Visited** in the booking dialog captures cart weights and creates the visit record before marking the booking visited.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
+- Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).

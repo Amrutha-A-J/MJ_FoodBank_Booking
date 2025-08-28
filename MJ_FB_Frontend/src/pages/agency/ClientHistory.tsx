@@ -57,8 +57,14 @@ export default function ClientHistory() {
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
-    const opts: { status?: string; past?: boolean; userId?: number } = {
+    const opts: {
+      status?: string;
+      past?: boolean;
+      userId?: number;
+      includeVisits?: boolean;
+    } = {
       userId: selected.id,
+      includeVisits: true,
     };
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
