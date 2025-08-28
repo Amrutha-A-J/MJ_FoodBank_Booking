@@ -417,6 +417,16 @@ export default function VolunteerSettings() {
                 </Stack>
               </AccordionSummary>
               <AccordionDetails sx={{ borderTop: 1, borderColor: 'divider' }}>
+                <Box mb={2}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => openSubRoleDialog(master.id)}
+                  >
+                    Add Sub-role
+                  </Button>
+                </Box>
                 {roles.filter(r => r.category_id === master.id).map(role => (
                   <Box key={role.id} mb={2}>
                     <Grid container alignItems="center" spacing={1}>
@@ -439,16 +449,6 @@ export default function VolunteerSettings() {
                           }
                         >
                           Add Shift
-                        </Button>
-                      </Grid>
-                      <Grid item>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          startIcon={<AddIcon />}
-                          onClick={() => openSubRoleDialog(master.id)}
-                        >
-                          Add Sub-role
                         </Button>
                       </Grid>
                       <Grid item>
