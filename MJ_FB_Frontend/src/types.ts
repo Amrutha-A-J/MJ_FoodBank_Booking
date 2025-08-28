@@ -91,7 +91,6 @@ export interface VolunteerRoleShift {
 
 export interface VolunteerRoleWithShifts {
   id: number;
-  role_id: number;
   category_id: number;
   name: string;
   max_volunteers: number;

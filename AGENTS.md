@@ -321,7 +321,6 @@ Volunteer management coordinates role-based staffing for the food bank.
 [
   {
     "id": <role_id>,
-    "role_id": <role_id>,
     "category_id": <category_id>,
     "name": "<role name>",
     "max_volunteers": 3,
@@ -340,6 +339,8 @@ Volunteer management coordinates role-based staffing for the food bank.
   ...
 ]
 ```
+
+`id` represents the role ID; each shift object uses its own `id` for the slot identifier.
 
 `GET /volunteer-roles/mine?date=YYYY-MM-DD` returns each slot the logged-in volunteer is trained for:
 

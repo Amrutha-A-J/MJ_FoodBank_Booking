@@ -141,7 +141,6 @@ describe('VolunteerManagement role updates', () => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 5,
-        role_id: 5,
         category_id: 1,
         name: 'Greeter',
         max_volunteers: 2,

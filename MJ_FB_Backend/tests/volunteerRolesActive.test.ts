@@ -44,7 +44,7 @@ describe('Volunteer roles activation', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rows: [
         {
-          role_id: 1,
+          id: 1,
           category_id: 1,
           name: 'Role',
           max_volunteers: 1,
@@ -66,7 +66,6 @@ describe('Volunteer roles activation', () => {
     expect(res.body).toEqual([
       {
         id: 1,
-        role_id: 1,
         category_id: 1,
         name: 'Role',
         max_volunteers: 1,
