@@ -27,6 +27,7 @@ export default function RescheduleDialog({
   const [roleId, setRoleId] = useState('');
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [message, setMessage] = useState('');
+  const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (!open) {
@@ -64,6 +65,7 @@ export default function RescheduleDialog({
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          inputProps={{ min: todayStr }}
         />
         <TextField
           select

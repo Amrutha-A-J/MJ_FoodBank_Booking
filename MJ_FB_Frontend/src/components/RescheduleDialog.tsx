@@ -31,18 +31,28 @@ export default function RescheduleDialog({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotId, setSlotId] = useState('');
   const [message, setMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [snackbarSeverity, setSnackbarSeverity] =
+    useState<AlertColor>('success');
+  const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (open && date) {
       getSlots(date)
-        .then(setSlots)
+        .then(s => {
+          if (date === todayStr) {
+            const now = new Date();
+            s = s.filter(
+              slot => new Date(`${date}T${slot.startTime}`) > now,
+            );
+          }
+          setSlots(s);
+        })
         .catch(() => setSlots([]));
     } else {
       setSlots([]);
       setSlotId('');
     }
-  }, [open, date]);
+  }, [open, date, todayStr]);
 
   async function submit() {
     if (!date || !slotId) {
@@ -74,6 +84,7 @@ export default function RescheduleDialog({
           fullWidth
           margin="normal"
           InputLabelProps={{ shrink: true }}
+          inputProps={{ min: todayStr }}
         />
         <TextField
           select
