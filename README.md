@@ -14,7 +14,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
-- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts.
+- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Separate "Add Sub-role" and "Add Shift" dialogs streamline creating new sub-roles and shifts. Deleting a master role also removes its sub-roles and shifts.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
 - Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).
@@ -30,7 +30,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
-- Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
+- Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots through dedicated dialogs.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
