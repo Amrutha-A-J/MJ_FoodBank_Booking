@@ -13,6 +13,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getAllSlots, updateSlot } from '../../api/slots';
 import type { Slot } from '../../types';
+import { formatTime } from '../../utils/time';
 
 export default function PantrySettings() {
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -62,7 +63,7 @@ export default function PantrySettings() {
         {slots.map(slot => (
           <Grid item xs={12} md={6} key={slot.id}>
             <Card>
-              <CardHeader title={`${slot.startTime} - ${slot.endTime}`} />
+              <CardHeader title={`${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`} />
               <CardContent>
                 <TextField
                   label="Max Capacity"
