@@ -161,7 +161,11 @@ export default function VolunteerSettings() {
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
+      if (
+        !roleDialog.startTime ||
+        !roleDialog.endTime ||
+        (!roleDialog.roleId && !roleDialog.roleName)
+      ) {
         handleSnack('All fields are required', 'error');
         return;
       }

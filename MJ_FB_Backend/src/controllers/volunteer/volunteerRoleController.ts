@@ -40,13 +40,21 @@ export async function addVolunteerRole(
   try {
     let resolvedRoleId: number = roleId as number;
     if (typeof resolvedRoleId !== 'number') {
-      const roleRes = await pool.query(
-        `INSERT INTO volunteer_roles (name, category_id)
-         VALUES ($1,$2)
-         RETURNING id, category_id`,
-        [name, categoryId]
+      const existing = await pool.query(
+        'SELECT id FROM volunteer_roles WHERE name=$1 AND category_id=$2',
+        [name, categoryId],
       );
-      resolvedRoleId = roleRes.rows[0].id;
+      if ((existing.rowCount ?? 0) > 0) {
+        resolvedRoleId = existing.rows[0].id;
+      } else {
+        const roleRes = await pool.query(
+          `INSERT INTO volunteer_roles (name, category_id)
+           VALUES ($1,$2)
+           RETURNING id, category_id`,
+          [name, categoryId],
+        );
+        resolvedRoleId = roleRes.rows[0].id;
+      }
     }
     const overlap = await pool.query(
       `SELECT 1 FROM volunteer_slots

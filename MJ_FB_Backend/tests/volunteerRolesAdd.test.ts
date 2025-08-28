@@ -57,6 +57,7 @@ describe('addVolunteerRole validation', () => {
 
   it('creates slot with new role name and categoryId', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 10, category_id: 3 }] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
@@ -84,6 +85,36 @@ describe('addVolunteerRole validation', () => {
     expect(res.status).toBe(201);
     expect(res.body.role_id).toBe(10);
     expect(res.body.name).toBe('New');
+  });
+
+  it('uses existing role when name and categoryId match', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 10 }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            slot_id: 3,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            max_volunteers: 1,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ name: 'Existing', category_id: 3 }] })
+      .mockResolvedValueOnce({ rows: [{ name: 'Master' }] });
+
+    const res = await request(app).post('/volunteer-roles').send({
+      name: 'Existing',
+      categoryId: 3,
+      startTime: '09:00:00',
+      endTime: '12:00:00',
+      maxVolunteers: 1,
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.role_id).toBe(10);
   });
 
   it('rejects overlapping slot times', async () => {

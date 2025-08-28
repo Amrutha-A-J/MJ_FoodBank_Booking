@@ -161,6 +161,11 @@ export async function deleteVolunteerMasterRole(id: number) {
   return handleResponse(res);
 }
 
+/**
+ * Create a volunteer role slot.
+ * Provide `roleId` to attach a shift to an existing sub-role; otherwise send
+ * `name` and `categoryId` to create or reuse a sub-role.
+ */
 export async function createVolunteerRole(
   roleId: number | undefined,
   name: string | undefined,
