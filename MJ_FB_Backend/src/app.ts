@@ -89,7 +89,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Global error handler
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', err);
   const status = err.status || err.statusCode || 500;
