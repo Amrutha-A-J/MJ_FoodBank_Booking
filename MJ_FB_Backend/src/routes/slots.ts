@@ -5,6 +5,7 @@ import {
   listSlotsRange,
   createSlot,
   updateSlot,
+  updateAllSlotCapacity,
   deleteSlot,
 } from '../controllers/slotController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
@@ -32,6 +33,12 @@ router.get(
 
 router.post('/', authMiddleware, authorizeRoles('staff'), createSlot);
 router.put('/:id', authMiddleware, authorizeRoles('staff'), updateSlot);
+router.put(
+  '/capacity',
+  authMiddleware,
+  authorizeRoles('staff'),
+  updateAllSlotCapacity,
+);
 router.delete('/:id', authMiddleware, authorizeRoles('staff'), deleteSlot);
 
 export default router;
