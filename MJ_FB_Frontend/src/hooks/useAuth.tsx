@@ -81,19 +81,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+    const MAX_RETRIES = 2;
+
+    async function refresh(attempt = 0) {
       try {
         const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
         if (res.ok || res.status === 409) {
           // 409 indicates another tab or request refreshed already
-          setToken('cookie');
-        } else if (res.status === 401) {
-          clearAuth();
+          if (!cancelled) setToken('cookie');
+          return;
         }
+        if (res.status === 401) throw new Error('Unauthorized');
+        throw new Error('Refresh failed');
       } catch {
-        /* network errors are ignored to allow retry */
+        if (attempt < MAX_RETRIES) {
+          setTimeout(() => refresh(attempt + 1), 500);
+        } else if (!cancelled) {
+          clearAuth();
+          setSessionMessage('Session expired. Please log in again.');
+        }
       }
-    })();
+    }
+
+    refresh();
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
