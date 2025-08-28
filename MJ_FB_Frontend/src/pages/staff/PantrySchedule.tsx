@@ -12,7 +12,14 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, Link, type AlertColor, useTheme, IconButton } from '@mui/material';
+import {
+  Button,
+  Link,
+  type AlertColor,
+  useTheme,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
@@ -206,10 +213,23 @@ export default function PantrySchedule({
       cells: Array.from({ length: maxSlots }).map((_, i) => {
         const booking = slotBookings[i];
         const withinCapacity = i < (slot.maxCapacity ?? 0);
+        const overCapacity = !!booking && !withinCapacity;
         let content;
         let onClick;
+        let backgroundColor: string | undefined;
         if (booking) {
-          content = `${booking.user_name} (${booking.client_id})`;
+          const text = `${booking.user_name} (${booking.client_id})`;
+          if (overCapacity) {
+            content = (
+              <Tooltip title="Capacity exceeded">
+                <span>{text}</span>
+              </Tooltip>
+            );
+            backgroundColor = theme.palette.warning.light;
+          } else {
+            content = text;
+            backgroundColor = statusColors[booking.status];
+          }
           if (booking.status === 'approved') {
             onClick = () => setManageBooking(booking);
           }
@@ -230,7 +250,7 @@ export default function PantrySchedule({
         }
         return {
           content,
-          backgroundColor: booking ? statusColors[booking.status] : undefined,
+          backgroundColor,
           onClick,
         };
       }),
@@ -266,6 +286,7 @@ export default function PantrySchedule({
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
               { label: 'Visited', color: statusColors.visited },
+              { label: 'Capacity Exceeded', color: theme.palette.warning.light },
             ].map(item => (
               <span
                 key={item.label}
