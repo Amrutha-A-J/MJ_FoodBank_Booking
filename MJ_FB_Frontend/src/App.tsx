@@ -1,48 +1,93 @@
-import { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Profile from './pages/booking/Profile';
-import ManageAvailability from './pages/staff/ManageAvailability';
-import UserHistory from './pages/staff/client-management/UserHistory';
-import ClientManagement from './pages/staff/ClientManagement';
-import BookingUI from './pages/BookingUI';
-import PantrySchedule from './pages/staff/PantrySchedule';
-import AgencySchedule from './pages/agency/AgencySchedule';
-import ClientList from './pages/agency/ClientList';
-import ClientHistory from './pages/agency/ClientHistory';
-import Pending from './pages/staff/Pending';
-import Login from './pages/auth/Login';
-import StaffLogin from './pages/auth/StaffLogin';
-import VolunteerLogin from './pages/auth/VolunteerLogin';
-import ClientSignup from './pages/auth/ClientSignup';
-import VolunteerDashboard from './pages/volunteer-management/VolunteerDashboard';
-import VolunteerManagement from './pages/volunteer-management/VolunteerManagement';
+import CircularProgress from '@mui/material/CircularProgress';
 import Dashboard from './components/dashboard/Dashboard';
-import ClientDashboard from './pages/client/ClientDashboard';
-import VolunteerBookingHistory from './pages/volunteer-management/VolunteerBookingHistory';
-import VolunteerBooking from './pages/volunteer-management/VolunteerBooking';
-import WarehouseDashboard from './pages/warehouse-management/WarehouseDashboard';
-import DonationLog from './pages/warehouse-management/DonationLog';
-import TrackPigpound from './pages/warehouse-management/TrackPigpound';
-import TrackOutgoingDonations from './pages/warehouse-management/TrackOutgoingDonations';
-import TrackSurplus from './pages/warehouse-management/TrackSurplus';
-import Aggregations from './pages/warehouse-management/Aggregations';
-import DonorProfile from './pages/warehouse-management/DonorProfile';
-import Exports from './pages/warehouse-management/Exports';
-import AdminStaffForm from './pages/admin/AdminStaffForm';
-import AdminStaffList from './pages/admin/AdminStaffList';
-import AppConfigurations from './pages/admin/AppConfigurations';
-
-import PantrySettings from './pages/admin/PantrySettings';
-import VolunteerSettings from './pages/admin/VolunteerSettings';
-import Events from './pages/events/Events';
-import PantryVisits from './pages/staff/PantryVisits';
-import AgencyLogin from './pages/agency/Login';
-import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
+
+const Profile = React.lazy(() => import('./pages/booking/Profile'));
+const ManageAvailability = React.lazy(() =>
+  import('./pages/staff/ManageAvailability')
+);
+const UserHistory = React.lazy(() =>
+  import('./pages/staff/client-management/UserHistory')
+);
+const ClientManagement = React.lazy(() =>
+  import('./pages/staff/ClientManagement')
+);
+const BookingUI = React.lazy(() => import('./pages/BookingUI'));
+const PantrySchedule = React.lazy(() =>
+  import('./pages/staff/PantrySchedule')
+);
+const AgencySchedule = React.lazy(() =>
+  import('./pages/agency/AgencySchedule')
+);
+const ClientList = React.lazy(() => import('./pages/agency/ClientList'));
+const ClientHistory = React.lazy(() =>
+  import('./pages/agency/ClientHistory')
+);
+const Pending = React.lazy(() => import('./pages/staff/Pending'));
+const Login = React.lazy(() => import('./pages/auth/Login'));
+const StaffLogin = React.lazy(() => import('./pages/auth/StaffLogin'));
+const VolunteerLogin = React.lazy(() => import('./pages/auth/VolunteerLogin'));
+const ClientSignup = React.lazy(() => import('./pages/auth/ClientSignup'));
+const VolunteerDashboard = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerDashboard')
+);
+const VolunteerManagement = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerManagement')
+);
+const ClientDashboard = React.lazy(() =>
+  import('./pages/client/ClientDashboard')
+);
+const VolunteerBookingHistory = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerBookingHistory')
+);
+const VolunteerBooking = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerBooking')
+);
+const WarehouseDashboard = React.lazy(() =>
+  import('./pages/warehouse-management/WarehouseDashboard')
+);
+const DonationLog = React.lazy(() =>
+  import('./pages/warehouse-management/DonationLog')
+);
+const TrackPigpound = React.lazy(() =>
+  import('./pages/warehouse-management/TrackPigpound')
+);
+const TrackOutgoingDonations = React.lazy(() =>
+  import('./pages/warehouse-management/TrackOutgoingDonations')
+);
+const TrackSurplus = React.lazy(() =>
+  import('./pages/warehouse-management/TrackSurplus')
+);
+const Aggregations = React.lazy(() =>
+  import('./pages/warehouse-management/Aggregations')
+);
+const DonorProfile = React.lazy(() =>
+  import('./pages/warehouse-management/DonorProfile')
+);
+const Exports = React.lazy(() => import('./pages/warehouse-management/Exports'));
+const AdminStaffForm = React.lazy(() => import('./pages/admin/AdminStaffForm'));
+const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
+const AppConfigurations = React.lazy(() =>
+  import('./pages/admin/AppConfigurations')
+);
+const PantrySettings = React.lazy(() => import('./pages/admin/PantrySettings'));
+const VolunteerSettings = React.lazy(() =>
+  import('./pages/admin/VolunteerSettings')
+);
+const Events = React.lazy(() => import('./pages/events/Events'));
+const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
+const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
+const AgencyClientBookings = React.lazy(() =>
+  import('./pages/agency/ClientBookings')
+);
+
+const Spinner = () => <CircularProgress />;
 
 export default function App() {
   const { role, name, userRole, access, login, logout } = useAuth();
@@ -188,7 +233,8 @@ export default function App() {
 
         {role ? (
           <MainLayout {...navbarProps}>
-            <Routes>
+            <Suspense fallback={<Spinner />}>
+              <Routes>
               <Route
                 path="/"
                 element={
@@ -361,20 +407,23 @@ export default function App() {
               )}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
           </MainLayout>
         ) : (
           <>
             <Navbar {...navbarProps} />
             <main>
-              <Routes>
-                <Route path="/signup" element={<ClientSignup />} />
+              <Suspense fallback={<Spinner />}>
+                <Routes>
+                  <Route path="/signup" element={<ClientSignup />} />
                   <Route path="/login/user" element={<Login onLogin={login} />} />
                   <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
                   <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
                   <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
-                <Route path="/login" element={<Navigate to="/login/user" replace />} />
-                <Route path="*" element={<Navigate to="/login/user" replace />} />
-              </Routes>
+                  <Route path="/login" element={<Navigate to="/login/user" replace />} />
+                  <Route path="*" element={<Navigate to="/login/user" replace />} />
+                </Routes>
+              </Suspense>
             </main>
           </>
         )}
