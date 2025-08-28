@@ -198,6 +198,10 @@ export async function updateVolunteerRole(
       `UPDATE volunteer_roles SET name=$1, category_id=$2 WHERE id=$3`,
       [name, categoryId, roleId]
     );
+    await pool.query(
+      `UPDATE volunteer_trained_roles SET category_id=$1 WHERE role_id=$2`,
+      [categoryId, roleId]
+    );
     const rowRes = await pool.query(
         `SELECT vs.slot_id AS id, vr.id AS role_id, vr.name, vs.start_time, vs.end_time,
                 vs.max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active

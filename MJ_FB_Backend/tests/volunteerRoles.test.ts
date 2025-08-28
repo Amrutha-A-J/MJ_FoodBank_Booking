@@ -67,6 +67,7 @@ describe('Volunteer roles routes', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1 }] })
       .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [
@@ -107,6 +108,44 @@ describe('Volunteer roles routes', () => {
       is_active: true,
       category_name: 'Distribution',
     });
+  });
+
+  it('propagates category updates to volunteer_trained_roles', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1 }] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 2,
+            role_id: 1,
+            name: 'Packing',
+            start_time: '10:00:00',
+            end_time: '13:00:00',
+            max_volunteers: 4,
+            category_id: 2,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ name: 'Distribution' }] });
+
+    await request(app).put('/volunteer-roles/2').send({
+      name: 'Packing',
+      startTime: '10:00:00',
+      endTime: '13:00:00',
+      maxVolunteers: 4,
+      categoryId: 2,
+      isWednesdaySlot: false,
+    });
+
+    expect(pool.query).toHaveBeenCalledWith(
+      'UPDATE volunteer_trained_roles SET category_id=$1 WHERE role_id=$2',
+      [2, 1],
+    );
   });
 
   it('deletes a volunteer role', async () => {
