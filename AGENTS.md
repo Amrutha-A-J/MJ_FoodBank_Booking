@@ -287,6 +287,11 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `DELETE /volunteer-bookings/recurring/:id?from=YYYY-MM-DD` → `{ message: 'Recurring bookings cancelled' }`
 - `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
 
+### Agencies (`src/routes/agencies.ts`)
+- `GET /agencies/:id/clients` → `[ clientId ]`
+- `POST /agencies/:id/clients` `{ clientId }` → `204`
+- `DELETE /agencies/:id/clients/:clientId` → `204`
+
 ### Donors (`src/routes/donors.ts`)
 - `GET /donors?search=name` → `[ { id, name } ]`
 - `POST /donors` `{ name }` → `{ id, name }`
