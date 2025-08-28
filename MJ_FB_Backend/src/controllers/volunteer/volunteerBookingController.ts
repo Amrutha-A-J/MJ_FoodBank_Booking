@@ -467,7 +467,8 @@ export async function rescheduleVolunteerBooking(
 
     const newToken = randomUUID();
     const isStaffReschedule = req.user && (req.user as any).role === 'staff';
-    const newStatus = isStaffReschedule ? 'approved' : 'pending';
+    const newStatus =
+      booking.status === 'approved' && !isStaffReschedule ? 'approved' : 'pending';
     await pool.query(
       'UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4, reason=NULL WHERE id=$5',
       [roleId, date, newToken, newStatus, booking.id],

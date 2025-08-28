@@ -132,11 +132,13 @@ describe('volunteer acting as shopper', () => {
     const futureDate = new Date(Date.now() + 86400000)
       .toISOString()
       .split('T')[0];
+    (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValueOnce(1);
     (bookingRepository.fetchBookingByToken as jest.Mock).mockResolvedValue({
       id: 1,
       user_id: 10,
       status: 'approved',
       slot_id: 1,
+      date: futureDate,
     });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
@@ -147,6 +149,13 @@ describe('volunteer acting as shopper', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking rescheduled');
+    expect(
+      (bookingRepository.updateBooking as jest.Mock).mock.calls[0][1].status,
+    ).toBe('approved');
+    expect(bookingUtils.countVisitsAndBookingsForMonth).toHaveBeenCalledWith(
+      10,
+      futureDate,
+    );
   });
 });
 

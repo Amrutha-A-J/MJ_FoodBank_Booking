@@ -26,7 +26,7 @@ describe('rescheduleVolunteerBooking', () => {
     jest.clearAllMocks();
   });
 
-  it('sets status to pending when volunteer reschedules', async () => {
+  it('keeps status approved when volunteer reschedules an approved booking', async () => {
     const booking = { id: 1, volunteer_id: 2, status: 'approved' };
       (pool.query as jest.Mock)
         .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
@@ -41,11 +41,11 @@ describe('rescheduleVolunteerBooking', () => {
       .send({ roleId: 4, date: '2025-09-01' });
 
     expect(res.status).toBe(200);
-      const updateCall = (pool.query as jest.Mock).mock.calls[5];
-    expect(updateCall[1][3]).toBe('pending');
+    const updateCall = (pool.query as jest.Mock).mock.calls[4];
+    expect(updateCall[1][3]).toBe('approved');
   });
 
-  it('keeps status when staff reschedules', async () => {
+  it('sets status to pending when staff reschedules', async () => {
     const booking = { id: 1, volunteer_id: 2, status: 'approved' };
       (pool.query as jest.Mock)
         .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })

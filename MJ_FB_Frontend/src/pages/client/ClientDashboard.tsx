@@ -265,9 +265,6 @@ export default function ClientDashboard() {
                     />
                   </ListItem>
                 ))}
-                <ListItem>
-                  <ListItemText primary="Walk-ins welcome — appointments get priority." />
-                </ListItem>
               </List>
             </Stack>
           </SectionCard>
