@@ -54,7 +54,20 @@ export default function Profile({ role }: { role: Role }) {
     : '';
   const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
+  function validatePassword(pwd: string) {
+    if (pwd.length < 8) return 'Password must be at least 8 characters.';
+    if (!/\d/.test(pwd)) return 'Password must include a number.';
+    if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must include a symbol.';
+    return '';
+  }
+
   async function handleReset() {
+    const validationError = validatePassword(newPassword);
+    if (validationError) {
+      setPasswordError(validationError);
+      return;
+    }
+
     setSubmitting(true);
     setPasswordError('');
     try {
@@ -211,7 +224,10 @@ export default function Profile({ role }: { role: Role }) {
               autoComplete="current-password"
               fullWidth
               value={currentPassword}
-              onChange={e => setCurrentPassword(e.target.value)}
+              onChange={e => {
+                setCurrentPassword(e.target.value);
+                setPasswordError('');
+              }}
               disabled={submitting}
             />
             <TextField
@@ -221,7 +237,11 @@ export default function Profile({ role }: { role: Role }) {
               autoComplete="new-password"
               fullWidth
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={e => {
+                const val = e.target.value;
+                setNewPassword(val);
+                setPasswordError(validatePassword(val));
+              }}
               disabled={submitting}
               error={!!passwordError}
               helperText={passwordError}
@@ -235,7 +255,13 @@ export default function Profile({ role }: { role: Role }) {
               color="success"
               size="small"
               fullWidth
-              disabled={submitting}
+              disabled={
+                submitting ||
+                !currentPassword ||
+                !newPassword ||
+                !!validatePassword(newPassword) ||
+                !!passwordError
+              }
               startIcon={submitting ? <CircularProgress size={20} /> : null}
               onClick={handleReset}
             >
