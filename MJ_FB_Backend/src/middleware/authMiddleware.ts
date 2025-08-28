@@ -5,6 +5,7 @@ import config from '../config';
 import logger from '../utils/logger';
 import cookie from 'cookie';
 import { cookieOptions } from '../utils/authUtils';
+import type { AuthUser } from '../types/AuthUser';
 
 function getTokenFromCookies(req: Request) {
   const header = req.headers.cookie;
@@ -17,7 +18,7 @@ type AuthResult =
   | { status: 'missing' }
   | { status: 'invalid' }
   | { status: 'expired' }
-  | { status: 'ok'; user: any };
+  | { status: 'ok'; user: AuthUser };
 
 async function authenticate(req: Request): Promise<AuthResult> {
   const authHeader = req.headers['authorization'];
@@ -51,16 +52,17 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((staffRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
+      const user: AuthUser = {
+        id: staffRes.rows[0].id.toString(),
+        type: 'staff',
+        role,
+        name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
+        email: staffRes.rows[0].email,
+        access: access || [],
+      };
       return {
         status: 'ok',
-        user: {
-          id: staffRes.rows[0].id.toString(),
-          type: 'staff',
-          role,
-          name: `${staffRes.rows[0].first_name} ${staffRes.rows[0].last_name}`,
-          email: staffRes.rows[0].email,
-          access: access || [],
-        },
+        user,
       };
     }
 
@@ -70,16 +72,17 @@ async function authenticate(req: Request): Promise<AuthResult> {
           [id],
         );
       if ((userRes.rowCount ?? 0) > 0) {
+        const user: AuthUser = {
+          id: userRes.rows[0].id.toString(),
+          type: 'user',
+          role,
+          email: userRes.rows[0].email,
+          phone: userRes.rows[0].phone,
+          name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
+        };
         return {
           status: 'ok',
-          user: {
-            id: userRes.rows[0].id.toString(),
-            type: 'user',
-            role,
-            email: userRes.rows[0].email,
-            phone: userRes.rows[0].phone,
-            name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
-          },
+          user,
         };
       }
       return { status: 'invalid' };
@@ -93,17 +96,18 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((volRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
+      const user: AuthUser = {
+        id: volRes.rows[0].id.toString(),
+        type: 'volunteer',
+        role: 'volunteer',
+        email: volRes.rows[0].email,
+        name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
+        ...(userId && { userId: String(userId) }),
+        ...(userRole && { userRole: userRole as 'shopper' | 'delivery' }),
+      };
       return {
         status: 'ok',
-        user: {
-          id: volRes.rows[0].id.toString(),
-          type: 'volunteer',
-          role: 'volunteer',
-          email: volRes.rows[0].email,
-          name: `${volRes.rows[0].first_name} ${volRes.rows[0].last_name}`,
-          ...(userId && { userId: String(userId) }),
-          ...(userRole && { userRole }),
-        },
+        user,
       };
     }
 
@@ -115,15 +119,16 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((agRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
+      const user: AuthUser = {
+        id: agRes.rows[0].id.toString(),
+        type: 'agency',
+        role: 'agency',
+        email: agRes.rows[0].email,
+        name: agRes.rows[0].name,
+      };
       return {
         status: 'ok',
-        user: {
-          id: agRes.rows[0].id.toString(),
-          type: 'agency',
-          role: 'agency',
-          email: agRes.rows[0].email,
-          name: agRes.rows[0].name,
-        },
+        user,
       };
     }
 
@@ -141,7 +146,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const result = await authenticate(req);
   if (result.status === 'ok') {
-    req.user = result.user as any;
+    req.user = result.user;
     return next();
   }
   if (result.status === 'expired') {
@@ -159,7 +164,7 @@ export async function optionalAuthMiddleware(
 ) {
   const result = await authenticate(req);
   if (result.status === 'ok') {
-    req.user = result.user as any;
+    req.user = result.user;
     return next();
   }
   if (result.status === 'expired') {
@@ -179,7 +184,7 @@ const roleHierarchy: Record<string, string[]> = {
 export function authorizeRoles(...allowedRoles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { role, type, userRole, access = [] } = req.user as any;
+    const { role, type, userRole, access = [] } = req.user!;
 
     // Admins (by role or access token) are permitted to access any route
     if (role === 'admin' || (access as string[]).includes('admin')) {
@@ -201,7 +206,7 @@ export function authorizeRoles(...allowedRoles: string[]) {
 export function authorizeAccess(...allowed: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const { role, access = [] } = req.user as any;
+    const { role, access = [] } = req.user!;
 
     // Admins have implicit access to all areas
     if (role === 'admin' || (access as string[]).includes('admin')) {
