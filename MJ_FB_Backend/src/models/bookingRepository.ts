@@ -102,7 +102,7 @@ export async function fetchBookings(
         b.reschedule_token,
         u.first_name || ' ' || u.last_name as user_name,
         u.email as user_email, u.phone as user_phone,
-        u.client_id,
+        u.client_id, u.profile_link,
         COALESCE(v.visits, 0) AS bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b

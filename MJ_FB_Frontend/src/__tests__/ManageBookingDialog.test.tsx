@@ -45,7 +45,7 @@ describe('ManageBookingDialog', () => {
       <MemoryRouter>
         <ManageBookingDialog
           open
-          booking={{ id: 1, client_id: 5, user_id: 1, bookings_this_month: 2, date: '2024-02-01', reschedule_token: '', user_name: 'Client' }}
+          booking={{ id: 1, client_id: 5, user_id: 1, bookings_this_month: 2, date: '2024-02-01', reschedule_token: '', user_name: 'Client', profile_link: 'https://portal.link2feed.ca/org/1605/intake/5' }}
           onClose={onClose}
           onUpdated={onUpdated}
         />
@@ -81,7 +81,7 @@ describe('ManageBookingDialog', () => {
       <MemoryRouter>
         <ManageBookingDialog
           open
-          booking={{ id: 1, client_id: 5, user_id: 1, bookings_this_month: 3, date: '2024-02-01', reschedule_token: '', user_name: 'Client' }}
+          booking={{ id: 1, client_id: 5, user_id: 1, bookings_this_month: 3, date: '2024-02-01', reschedule_token: '', user_name: 'Client', profile_link: 'https://portal.link2feed.ca/org/1605/intake/5' }}
           onClose={() => {}}
           onUpdated={() => {}}
         />
@@ -90,7 +90,7 @@ describe('ManageBookingDialog', () => {
 
     expect(screen.getByText('Client: Client')).toBeInTheDocument();
     const link = screen.getByRole('link', { name: '5' });
-    expect(link).toHaveAttribute('href', '/pantry/client-management?tab=history&id=1&name=Client&clientId=5');
+    expect(link).toHaveAttribute('href', 'https://portal.link2feed.ca/org/1605/intake/5');
     expect(screen.getByText('Visits this month: 3')).toBeInTheDocument();
   });
 });

@@ -11,7 +11,6 @@ import {
   Typography,
   Link as MuiLink,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
@@ -30,6 +29,7 @@ interface Booking {
   user_name: string;
   bookings_this_month: number;
   date: string;
+  profile_link: string;
 }
 
 interface ManageBookingDialogProps {
@@ -159,10 +159,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             <Typography>Client: {booking.user_name}</Typography>
             <Typography>
               Client ID:{' '}
-              <MuiLink
-                component={RouterLink}
-                to={`/pantry/client-management?tab=history&id=${booking.user_id}&name=${encodeURIComponent(booking.user_name)}&clientId=${booking.client_id}`}
-              >
+              <MuiLink href={booking.profile_link} target="_blank" rel="noopener">
                 {booking.client_id}
               </MuiLink>
             </Typography>
