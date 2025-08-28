@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
@@ -191,24 +192,44 @@ export default function VolunteerSettings() {
   return (
     <Page title="Volunteer Settings">
       <Box p={2}>
+        <Box mb={2}>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => openMasterDialog()}
+          >
+            Add Master Role
+          </Button>
+        </Box>
         <Grid container spacing={2}>
           {masterRoles.map(master => (
             <Grid item xs={12} key={master.id}>
-              <Card>
-                <CardHeader
-                  title={master.name}
-                  action={
-                    <Stack direction="row" spacing={1}>
-                      <IconButton aria-label="edit" onClick={() => openMasterDialog(master)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton aria-label="delete" onClick={() => removeMasterRole(master.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
-                />
-                <CardContent>
+              <Accordion sx={{ width: '100%' }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
+                  <Stack direction="row" spacing={1}>
+                    <IconButton
+                      aria-label="edit"
+                      onClick={e => {
+                        e.stopPropagation();
+                        openMasterDialog(master);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="delete"
+                      onClick={e => {
+                        e.stopPropagation();
+                        removeMasterRole(master.id);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
                   {roles.filter(r => r.category_id === master.id).map(role => (
                     <Box key={role.id} mb={2}>
                       <Grid container alignItems="center" spacing={1}>
@@ -235,34 +256,37 @@ export default function VolunteerSettings() {
                       </Grid>
                       <List dense>
                         {role.shifts.map(shift => (
-                          <ListItem key={shift.id} secondaryAction={
-                            <Stack direction="row" spacing={1}>
-                              <Switch
-                                checked={shift.is_active}
-                                onChange={e => toggleShift(shift.id, e.target.checked)}
-                                inputProps={{ 'aria-label': 'toggle active' }}
-                              />
-                              <IconButton
-                                aria-label="edit"
-                                onClick={() =>
-                                  openRoleDialog({
-                                    slotId: shift.id,
-                                    roleName: role.name,
-                                    startTime: shift.start_time,
-                                    endTime: shift.end_time,
-                                    maxVolunteers: role.max_volunteers.toString(),
-                                    categoryId: master.id,
-                                    isWednesdaySlot: shift.is_wednesday_slot,
-                                  })
-                                }
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton aria-label="delete" onClick={() => removeShift(shift.id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Stack>
-                          }>
+                          <ListItem
+                            key={shift.id}
+                            secondaryAction={
+                              <Stack direction="row" spacing={1}>
+                                <Switch
+                                  checked={shift.is_active}
+                                  onChange={e => toggleShift(shift.id, e.target.checked)}
+                                  inputProps={{ 'aria-label': 'toggle active' }}
+                                />
+                                <IconButton
+                                  aria-label="edit"
+                                  onClick={() =>
+                                    openRoleDialog({
+                                      slotId: shift.id,
+                                      roleName: role.name,
+                                      startTime: shift.start_time,
+                                      endTime: shift.end_time,
+                                      maxVolunteers: role.max_volunteers.toString(),
+                                      categoryId: master.id,
+                                      isWednesdaySlot: shift.is_wednesday_slot,
+                                    })
+                                  }
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                                <IconButton aria-label="delete" onClick={() => removeShift(shift.id)}>
+                                  <DeleteIcon />
+                                </IconButton>
+                              </Stack>
+                            }
+                          >
                             <ListItemText
                               primary={`${formatTime(shift.start_time)} - ${formatTime(shift.end_time)}`}
                               secondary={`Max volunteers: ${role.max_volunteers}`}
@@ -280,20 +304,10 @@ export default function VolunteerSettings() {
                   >
                     Add Sub-role
                   </Button>
-                </CardContent>
-              </Card>
+                </AccordionDetails>
+              </Accordion>
             </Grid>
           ))}
-          <Grid item xs={12}>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => openMasterDialog()}
-            >
-              Add Master Role
-            </Button>
-          </Grid>
         </Grid>
       </Box>
 
