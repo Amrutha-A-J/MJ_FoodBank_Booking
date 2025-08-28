@@ -34,3 +34,10 @@ describe('getMonthRange across time zones', () => {
     expect(getMonthRange(date)).toEqual({ start: '2024-02-01', end: '2024-02-29' });
   });
 });
+
+describe('isDateWithinCurrentOrNextMonth', () => {
+  it('returns false for invalid date', () => {
+    const { isDateWithinCurrentOrNextMonth } = require('../src/utils/bookingUtils');
+    expect(isDateWithinCurrentOrNextMonth('not-a-date')).toBe(false);
+  });
+});

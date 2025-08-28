@@ -23,6 +23,13 @@ import {
 } from '../models/bookingRepository';
 import { isAgencyClient } from '../models/agency';
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+function isValidDateString(date: string): boolean {
+  if (!DATE_REGEX.test(date)) return false;
+  const parsed = new Date(date);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
+
 // --- Create booking for logged-in shopper ---
 export async function createBooking(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
@@ -31,6 +38,10 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   const { slotId, date, isStaffBooking } = req.body;
   if (slotId === undefined || slotId === null) {
     return res.status(400).json({ message: 'Please select a time slot' });
+  }
+
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
   }
 
   const slotIdNum = Number(slotId);
@@ -62,6 +73,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       await client.query('BEGIN');
       await client.query('SELECT id FROM clients WHERE id=$1 FOR UPDATE', [userId]);
       const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
+      if (monthlyUsage === false) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res.status(400).json({ message: 'Please choose a valid date' });
+      }
       status = monthlyUsage < 2 ? 'approved' : 'rejected';
       if (status === 'approved') {
         await checkSlotCapacity(slotIdNum, date, client);
@@ -157,6 +173,9 @@ export async function decideBooking(req: Request, res: Response, next: NextFunct
     }
 
     const usage = await countVisitsAndBookingsForMonth(booking.user_id, booking.date);
+    if (usage === false) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
     const decision = usage < 2 ? 'approved' : 'rejected';
     const reason = decision === 'rejected' ? LIMIT_MESSAGE : '';
 
@@ -252,6 +271,9 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
   if (!slotId || !date) {
     return res.status(400).json({ message: 'Please select a time slot and date' });
   }
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
+  }
   try {
     const booking = await fetchBookingByToken(token);
     if (!booking) {
@@ -266,6 +288,9 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     await checkSlotCapacity(slotId, date);
 
     const usage = await countVisitsAndBookingsForMonth(booking.user_id, date);
+    if (usage === false) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
     let adjustedUsage = usage;
     if (
       booking.status === 'approved' &&
@@ -318,6 +343,10 @@ export async function createPreapprovedBooking(
       .json({ message: 'Please provide a name, time slot, and date' });
   }
 
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
+  }
+
   if (!isDateWithinCurrentOrNextMonth(date)) {
     return res.status(400).json({ message: 'Please choose a valid date' });
   }
@@ -340,6 +369,10 @@ export async function createPreapprovedBooking(
     );
 
     const usage = await countVisitsAndBookingsForMonth(newUserId, date);
+    if (usage === false) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
     if (usage >= 2) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: LIMIT_MESSAGE });
@@ -387,6 +420,10 @@ export async function createBookingForUser(
       .json({ message: 'Please provide a user, time slot, and date' });
   }
 
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
+  }
+
   const slotIdNum = Number(slotId);
   if (Number.isNaN(slotIdNum)) {
     return res.status(400).json({ message: 'Please select a valid time slot' });
@@ -405,6 +442,9 @@ export async function createBookingForUser(
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
     const usage = await countVisitsAndBookingsForMonth(userId, date);
+    if (usage === false) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
     if (usage >= 2) {
       return res.status(400).json({ message: LIMIT_MESSAGE });
     }
