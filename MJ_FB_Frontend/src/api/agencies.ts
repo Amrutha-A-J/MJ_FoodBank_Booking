@@ -1,6 +1,6 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
-export async function getMyAgencyClients(agencyId: number | 'me') {
+export async function getAgencyClients(agencyId: number | 'me') {
   const res = await apiFetch(`${API_BASE}/agencies/${agencyId}/clients`, {
     method: 'GET',
   });
@@ -33,4 +33,18 @@ export async function removeAgencyClient(
     { method: 'DELETE' },
   );
   await handleResponse(res);
+}
+
+export async function createAgency(
+  name: string,
+  email: string,
+  password: string,
+  contactInfo?: string,
+) {
+  const res = await apiFetch(`${API_BASE}/agencies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, password, contactInfo }),
+  });
+  return handleResponse(res);
 }

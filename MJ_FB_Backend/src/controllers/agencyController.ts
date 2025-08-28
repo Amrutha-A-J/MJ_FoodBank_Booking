@@ -3,7 +3,42 @@ import {
   addAgencyClient,
   removeAgencyClient,
   getAgencyClients as fetchAgencyClients,
+  createAgency as insertAgency,
+  getAgencyByEmail,
 } from '../models/agency';
+import bcrypt from 'bcrypt';
+import { validatePassword } from '../utils/passwordUtils';
+import { createAgencySchema } from '../schemas/agencySchemas';
+
+export async function createAgency(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    if (!req.user || req.user.role !== 'staff') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    const parsed = createAgencySchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ errors: parsed.error.issues });
+    }
+    const { name, email, password, contactInfo } = parsed.data;
+    const existing = await getAgencyByEmail(email);
+    if (existing) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+    const pwError = validatePassword(password);
+    if (pwError) {
+      return res.status(400).json({ message: pwError });
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    const agency = await insertAgency(name, email, hashed, contactInfo);
+    res.status(201).json({ id: agency.id });
+  } catch (err) {
+    next(err);
+  }
+}
 
 export async function addClientToAgency(
   req: Request,

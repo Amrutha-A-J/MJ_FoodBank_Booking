@@ -13,6 +13,21 @@ export async function getAgencyByEmail(email: string): Promise<Agency | undefine
   return res.rows[0] as Agency | undefined;
 }
 
+export async function createAgency(
+  name: string,
+  email: string,
+  password: string,
+  contactInfo?: string,
+): Promise<Agency> {
+  const res = await pool.query(
+    `INSERT INTO agencies (name, email, password, contact_info)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [name, email, password, contactInfo ?? null],
+  );
+  return res.rows[0] as Agency;
+}
+
 export interface AgencyClientSummary {
   client_id: number;
   first_name: string;
