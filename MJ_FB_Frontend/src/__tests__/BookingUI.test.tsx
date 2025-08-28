@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import BookingUI from '../pages/BookingUI';
 import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -28,6 +28,10 @@ describe('BookingUI visible slots', () => {
     })) as any);
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   afterAll(() => {
     jest.useRealTimers();
   });
@@ -51,5 +55,24 @@ describe('BookingUI visible slots', () => {
     await screen.findByText(/11:00 am/i);
     expect(screen.queryByText(/9:00 am/i)).toBeNull();
     expect(screen.getByText(/11:00 am/i)).toBeInTheDocument();
+  });
+
+  it('skips past dates by advancing to today', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <BookingUI shopperName="Test" initialDate={dayjs('2023-12-29')} />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(getSlots).toHaveBeenCalledWith('2024-01-01');
+    });
+    expect(getSlots).toHaveBeenCalledTimes(1);
   });
 });
