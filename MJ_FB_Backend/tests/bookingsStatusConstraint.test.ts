@@ -1,5 +1,5 @@
 import MigrationBuilder from 'node-pg-migrate/dist/migrationBuilder';
-import { up } from '../migrations/20241201120000_add_visited_to_bookings';
+import { up } from '../migrations/20241020160000_allow_visited_and_no_show_in_bookings';
 
 describe('bookings status constraint migration', () => {
   it('includes visited in allowed statuses', async () => {
