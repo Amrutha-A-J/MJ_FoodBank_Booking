@@ -146,14 +146,20 @@ export async function listSlotsRange(
       return res.status(400).json({ message: 'Invalid start date' });
     }
 
-    const results: { date: string; slots: Slot[] }[] = [];
-    for (let i = 0; i < days; i++) {
+    const dates = Array.from({ length: days }, (_, i) => {
       const d = new Date(startDate);
       d.setDate(startDate.getDate() + i);
-      const dateStr = formatReginaDate(d);
-      const slots = await getSlotsForDate(dateStr);
-      results.push({ date: dateStr, slots });
-    }
+      return formatReginaDate(d);
+    });
+
+    const slotsForDates = await Promise.all(
+      dates.map(date => getSlotsForDate(date)),
+    );
+
+    const results = dates.map((date, idx) => ({
+      date,
+      slots: slotsForDates[idx],
+    }));
 
     res.json(results);
   } catch (error: any) {
