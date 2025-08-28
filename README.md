@@ -23,6 +23,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
+- Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
 
 ## Clone and initialize submodules
 

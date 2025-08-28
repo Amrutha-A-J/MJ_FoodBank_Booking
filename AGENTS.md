@@ -28,6 +28,7 @@
 - `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications. The dashboard UI lives in `components/dashboard`.
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
+- Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
 
 ## Development Guidelines
 
