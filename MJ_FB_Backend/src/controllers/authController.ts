@@ -188,7 +188,7 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
 
 export function csrfToken(_req: Request, res: Response) {
   const token = randomUUID();
-  const secure = process.env.NODE_ENV !== 'development';
+  const secure = process.env.NODE_ENV === 'production';
   res.cookie('csrfToken', token, {
     sameSite: 'strict',
     secure,
