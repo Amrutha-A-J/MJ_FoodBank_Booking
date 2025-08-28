@@ -17,10 +17,12 @@ import {
 import { EventAvailable, Announcement, History } from '@mui/icons-material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
+import { getEvents, type EventGroups } from '../../api/events';
 import type { Slot, Holiday } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
+import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 
 interface Booking {
@@ -71,6 +73,7 @@ export default function ClientDashboard() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [nextSlots, setNextSlots] = useState<NextSlot[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
@@ -99,6 +102,10 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getEvents().then(setEvents).catch(() => {});
   }, []);
 
   const today = toDate();
@@ -247,19 +254,22 @@ export default function ClientDashboard() {
           </SectionCard>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="Notices" icon={<Announcement color="primary" />}>
-            <List>
-              {holidays.map(h => (
-                <ListItem key={h.date}>
-                  <ListItemText
-                    primary={`${formatDate(h.date)} ${h.reason}`}
-                  />
+          <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <Stack spacing={2}>
+              <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+              <List>
+                {holidays.map(h => (
+                  <ListItem key={h.date}>
+                    <ListItemText
+                      primary={`${formatDate(h.date)} ${h.reason}`}
+                    />
+                  </ListItem>
+                ))}
+                <ListItem>
+                  <ListItemText primary="Walk-ins welcome — appointments get priority." />
                 </ListItem>
-              ))}
-              <ListItem>
-                <ListItemText primary="Walk-ins welcome — appointments get priority." />
-              </ListItem>
-            </List>
+              </List>
+            </Stack>
           </SectionCard>
         </Grid>
         <Grid size={12}>
