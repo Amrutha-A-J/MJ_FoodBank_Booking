@@ -1,7 +1,7 @@
 {
   "name": "mj_fb_backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -25,7 +25,6 @@
     "jest": "^30.0.5",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
-    "read-excel-file": "^5.8.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "node-pg-migrate": "^7.0.0"
