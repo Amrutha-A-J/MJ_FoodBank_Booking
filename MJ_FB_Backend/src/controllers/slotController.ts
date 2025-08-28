@@ -4,6 +4,20 @@ import { Slot } from '../models/slot';
 import logger from '../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
 
+const REGINA_TZ = 'America/Regina';
+
+function currentReginaTime(): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: REGINA_TZ,
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(new Date());
+  const get = (type: string) => parts.find(p => p.type === type)?.value || '00';
+  return `${get('hour')}:${get('minute')}:${get('second')}`;
+}
+
 async function getSlotsForDate(date: string): Promise<Slot[]> {
   const reginaDate = formatReginaDate(date);
   const dateObj = new Date(reginaStartOfDayISO(reginaDate));
@@ -29,7 +43,13 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
              AND start_time <= '14:30:00'
              AND start_time NOT IN ('12:00:00','12:30:00')
            ORDER BY start_time`;
-  const { rows: slots } = await pool.query(slotsQuery);
+  const { rows } = await pool.query(slotsQuery);
+  let slots = rows;
+
+  if (reginaDate === formatReginaDate(new Date())) {
+    const nowTime = currentReginaTime();
+    slots = slots.filter((s: any) => s.start_time >= nowTime);
+  }
 
   const [blockedResult, recurringBlockedResult, breakResult, bookingsResult] =
     await Promise.all([
@@ -147,10 +167,15 @@ export async function listSlotsRange(
       dates.map(date => getSlotsForDate(date)),
     );
 
-    const results = dates.map((date, idx) => ({
-      date,
-      slots: slotsForDates[idx],
-    }));
+    const today = formatReginaDate(new Date());
+    const results = dates.map((date, idx) => {
+      let slots = slotsForDates[idx];
+      if (date === today) {
+        const nowTime = currentReginaTime();
+        slots = slots.filter(s => s.startTime >= nowTime);
+      }
+      return { date, slots };
+    });
 
     res.json(results);
   } catch (error: any) {
