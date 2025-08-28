@@ -148,6 +148,8 @@ export default function PantrySchedule({
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
+  const maxSlots = Math.max(0, ...slots.map(s => s.maxCapacity ?? 0));
+
   const displaySlots: Slot[] = [...slots];
   if (
     !isClosed &&
@@ -172,7 +174,7 @@ export default function PantrySchedule({
         cells: [
           {
             content: `Break${slot.reason ? ` - ${slot.reason}` : ''}`,
-            colSpan: 4,
+            colSpan: maxSlots,
             backgroundColor: '#f5f5f5',
           },
         ],
@@ -184,7 +186,7 @@ export default function PantrySchedule({
         cells: [
           {
             content: `Blocked${slot.reason ? ` - ${slot.reason}` : ''}`,
-            colSpan: 4,
+            colSpan: maxSlots,
             backgroundColor: '#f5f5f5',
           },
         ],
@@ -193,7 +195,7 @@ export default function PantrySchedule({
     const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
     return {
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
-      cells: Array.from({ length: 4 }).map((_, i) => {
+      cells: Array.from({ length: maxSlots }).map((_, i) => {
         const booking = slotBookings[i];
         return {
           content: booking
@@ -266,7 +268,7 @@ export default function PantrySchedule({
               </span>
             ))}
           </div>
-          <VolunteerScheduleTable maxSlots={4} rows={rows} />
+          <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
         </>
       )}
 
