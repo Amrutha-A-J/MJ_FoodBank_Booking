@@ -108,7 +108,7 @@ export default function VolunteerDashboard() {
   }, [bookings]);
 
   const pending = useMemo(
-    () => bookings.filter(b => b.status === 'pending' || b.status === 'submitted'),
+    () => bookings.filter(b => b.status === 'pending'),
     [bookings],
   );
 

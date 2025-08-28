@@ -60,8 +60,6 @@ function statusColor(status: string):
     case 'approved':
     case 'visited':
       return 'success';
-    case 'pending':
-      return 'warning';
     case 'cancelled':
     case 'rejected':
     case 'no_show':
@@ -117,9 +115,8 @@ export default function ClientDashboard() {
     .filter(b => b.status === 'approved' && toDate(b.date) >= today)
     .sort((a, b) => toDate(a.date).getTime() - toDate(b.date).getTime());
   const next = approved[0];
-  const pending = bookings.filter(b => b.status === 'pending');
   const history = bookings
-    .filter(b => b.status !== 'pending')
+    .slice()
     .sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime());
 
   async function confirmCancel() {
@@ -190,35 +187,6 @@ export default function ClientDashboard() {
                 </Button>
               </Typography>
             )}
-          </SectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="Pending Requests">
-            <List>
-              {pending.length ? (
-                pending.map(p => (
-                  <ListItem
-                    key={p.id}
-                    secondaryAction={
-                      <Chip
-                        label="Pending"
-                        color="warning"
-                      />
-                    }
-                  >
-                    <ListItemText
-                      primary={`${formatDate(p.date)} ${formatTime(
-                        p.start_time || '',
-                      )}`}
-                    />
-                  </ListItem>
-                ))
-              ) : (
-                <ListItem>
-                  <ListItemText primary="No pending requests" />
-                </ListItem>
-              )}
-            </List>
           </SectionCard>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>

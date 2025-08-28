@@ -92,10 +92,10 @@
 - Errors: Actionable and specific (“Slot is full. Pick another time.”), not generic.
 
 ### Dashboards (by role)
-- Staff: “Today at a Glance” stats, Pending Approvals, Pantry Schedule snapshot, Volunteer Coverage, Quick Search, Cancellations, Notices & Events.
-- Volunteer: My Next Shifts, Available in My Roles, Announcements, Quick Actions, Profile & Training.
-- User: Upcoming Appointments, Pending Requests, Next Available Slots, Notices, Quick Actions.
-- Each section should be a card with a concise header and an action (e.g., “Review All”, “Open Schedule”).
+ - Staff: “Today at a Glance” stats, Pantry Schedule snapshot, Volunteer Coverage, Quick Search, Cancellations, Notices & Events.
+ - Volunteer: My Next Shifts, Available in My Roles, Announcements, Quick Actions, Profile & Training.
+ - User: Upcoming Appointments, Next Available Slots, Notices, Quick Actions.
+ - Each section should be a card with a concise header and an action (e.g., “Review All”, “Open Schedule”).
 
 ### Accessibility
 - Keyboard: All interactive controls must be focusable; visible focus ring (default MUI is fine).
