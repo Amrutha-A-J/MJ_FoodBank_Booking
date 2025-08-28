@@ -30,6 +30,7 @@ import DonorProfile from './pages/warehouse-management/DonorProfile';
 import Exports from './pages/warehouse-management/Exports';
 import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
+import AppConfigurations from './pages/admin/AppConfigurations';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
 import AgencyLogin from './pages/agency/Login';
@@ -119,7 +120,7 @@ export default function App() {
       navGroups.push({
         label: 'Admin',
         links: [
-          { label: 'Staff', to: '/admin/staff' },
+          { label: 'Staff', to: '/admin/staff' }
         ],
       });
 
@@ -298,6 +299,7 @@ export default function App() {
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
+              {showAdmin && <Route path="/admin/app-config" element={<AppConfigurations />} />}
               {showVolunteerManagement && (
                 <>
                   <Route

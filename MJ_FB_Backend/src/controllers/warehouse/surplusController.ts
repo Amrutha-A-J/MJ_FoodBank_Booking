@@ -1,12 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
-import config from '../../config';
 import logger from '../../utils/logger';
 import { refreshWarehouseOverall } from './warehouseOverallController';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
-function calculateWeight(type: 'BREAD' | 'CANS', count: number) {
-  const multiplier = type === 'BREAD' ? config.breadWeightMultiplier : config.cansWeightMultiplier;
+async function calculateWeight(type: 'BREAD' | 'CANS', count: number) {
+  const key =
+    type === 'BREAD' ? 'bread_weight_multiplier' : 'cans_weight_multiplier';
+  const res = await pool.query('SELECT value FROM app_config WHERE key = $1', [
+    key,
+  ]);
+  const multiplier = Number(res.rows[0]?.value ?? (type === 'BREAD' ? 10 : 20));
   return count * multiplier;
 }
 
@@ -25,7 +29,7 @@ export async function listSurplus(_req: Request, res: Response, next: NextFuncti
 export async function addSurplus(req: Request, res: Response, next: NextFunction) {
   try {
     const { date, type, count } = req.body;
-    const weight = calculateWeight(type, count);
+    const weight = await calculateWeight(type, count);
     const result = await pool.query(
       'INSERT INTO surplus_log (date, type, count, weight) VALUES ($1, $2, $3, $4) RETURNING id, date, type, count, weight',
       [date, type, count, weight],
@@ -43,7 +47,7 @@ export async function updateSurplus(req: Request, res: Response, next: NextFunct
   try {
     const { id } = req.params;
     const { date, type, count } = req.body;
-    const weight = calculateWeight(type, count);
+    const weight = await calculateWeight(type, count);
     const existing = await pool.query('SELECT date FROM surplus_log WHERE id = $1', [id]);
     const oldDate = existing.rows[0]?.date as string | undefined;
     const result = await pool.query(

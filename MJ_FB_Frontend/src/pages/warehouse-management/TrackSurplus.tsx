@@ -29,6 +29,7 @@ import {
   type Surplus,
 } from '../../api/surplus';
 import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { getAppConfig, type AppConfig } from '../../api/appConfig';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -46,9 +47,6 @@ function format(date: Date) {
 function normalize(date: string) {
   return date.split('T')[0];
 }
-
-const BREAD_MULTIPLIER = Number(import.meta.env.VITE_BREAD_WEIGHT_MULTIPLIER) || 10;
-const CANS_MULTIPLIER = Number(import.meta.env.VITE_CANS_WEIGHT_MULTIPLIER) || 20;
 
 export default function TrackSurplus() {
   const weekDates = useMemo(() => {
@@ -68,6 +66,11 @@ export default function TrackSurplus() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Surplus | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+  const [config, setConfig] = useState<AppConfig>({
+    cartTare: 0,
+    breadWeightMultiplier: 10,
+    cansWeightMultiplier: 20,
+  });
 
   const [form, setForm] = useState<{ date: string; type: 'BREAD' | 'CANS'; count: string }>({
     date: format(selectedDate),
@@ -77,8 +80,10 @@ export default function TrackSurplus() {
 
   const weight = useMemo(() => {
     const count = Number(form.count) || 0;
-    return form.type === 'BREAD' ? count * BREAD_MULTIPLIER : count * CANS_MULTIPLIER;
-  }, [form]);
+    return form.type === 'BREAD'
+      ? count * config.breadWeightMultiplier
+      : count * config.cansWeightMultiplier;
+  }, [form, config]);
 
   function load() {
     getSurplus()
@@ -88,6 +93,9 @@ export default function TrackSurplus() {
 
   useEffect(() => {
     load();
+    getAppConfig()
+      .then(cfg => setConfig(cfg))
+      .catch(() => {});
   }, []);
 
   const filteredRecords = useMemo(() => {
