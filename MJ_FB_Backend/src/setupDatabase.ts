@@ -625,6 +625,10 @@ INSERT INTO volunteer_master_roles (id, name) VALUES
 (5, 'Special Events')
 ON CONFLICT DO NOTHING;
 
+-- Ensure the sequence is aligned with the seeded IDs so that subsequent
+-- inserts without explicit IDs don't collide with existing rows.
+SELECT setval('volunteer_master_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_master_roles));
+
 INSERT INTO volunteer_roles (id, name, category_id) VALUES
 (1, 'Food Sorter', 2),
 (2, 'Production Worker', 2),
@@ -642,6 +646,10 @@ INSERT INTO volunteer_roles (id, name, category_id) VALUES
 (14, 'Assistant Volunteer Coordinator', 4),
 (15, 'Volunteer Office Administrator', 4)
 ON CONFLICT (id) DO NOTHING;
+
+-- Align sequence for volunteer_roles as well to avoid duplicate key errors
+-- when new roles are created without specifying an ID.
+SELECT setval('volunteer_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_roles));
 
 INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot) VALUES
 (1, '09:00:00', '12:00:00', 3, false),
