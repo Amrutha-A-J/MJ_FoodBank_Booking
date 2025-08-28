@@ -104,12 +104,15 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
    # As the agency itself
    curl -X POST http://localhost:4000/agencies/me/clients \
      -H "Authorization: Bearer <agency-token>" \
-     -H "Content-Type: application/json" \
-     -d '{"clientId":42}'
-   ```
+    -H "Content-Type: application/json" \
+    -d '{"clientId":42}'
+  ```
 
    Remove a client with
    `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
+
+   List clients for an agency with
+   `GET /agencies/:id/clients` (use `me` for the authenticated agency).
 
 ### Password Requirements
 
