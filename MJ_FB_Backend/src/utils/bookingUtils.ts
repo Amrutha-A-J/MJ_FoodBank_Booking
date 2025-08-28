@@ -26,30 +26,31 @@ export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
     const today = new Date(reginaStartOfDayISO(new Date()));
     const bookingDate = new Date(reginaStartOfDayISO(dateStr));
 
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
 
-  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-  const daysRemaining = lastDayOfMonth.getDate() - today.getDate();
-  const inLastWeek = daysRemaining < 7;
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    const daysRemaining = lastDayOfMonth.getDate() - today.getDate();
+    const inLastWeek = daysRemaining < 7;
 
-  const nextMonth = (currentMonth + 1) % 12;
-  const nextMonthYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    const nextMonth = (currentMonth + 1) % 12;
+    const nextMonthYear =
+      currentMonth === 11 ? currentYear + 1 : currentYear;
 
-  if (
-    bookingDate.getFullYear() === currentYear &&
-    bookingDate.getMonth() === currentMonth
-  ) {
-    return true;
-  }
+    if (
+      bookingDate.getFullYear() === currentYear &&
+      bookingDate.getMonth() === currentMonth
+    ) {
+      return true;
+    }
 
-  if (
-    inLastWeek &&
-    bookingDate.getFullYear() === nextMonthYear &&
-    bookingDate.getMonth() === nextMonth
-  ) {
-    return true;
-  }
+    if (
+      inLastWeek &&
+      bookingDate.getFullYear() === nextMonthYear &&
+      bookingDate.getMonth() === nextMonth
+    ) {
+      return true;
+    }
 
     return false;
   } catch {
