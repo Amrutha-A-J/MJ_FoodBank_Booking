@@ -46,6 +46,22 @@ function bookSlot(payload: { date: string; slotId: string; userId?: number }): P
   return createBooking(payload.slotId, payload.date, payload.userId);
 }
 
+function scheduleIdle(cb: () => void): number {
+  if (typeof window === 'undefined') {
+    cb();
+    return 0;
+  }
+  const ric = (window as any).requestIdleCallback;
+  return ric ? ric(cb) : window.setTimeout(cb, 200);
+}
+
+function cancelIdle(id: number) {
+  if (typeof window === 'undefined') return;
+  const cic = (window as any).cancelIdleCallback;
+  if (cic) cic(id);
+  else clearTimeout(id);
+}
+
 export type BookingUIProps = {
   shopperName?: string;
   initialDate?: Dayjs;
@@ -69,11 +85,22 @@ export default function BookingUI({
     return d;
   });
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const { data: holidays = [] } = useQuery<Holiday[]>({
+  const {
+    data: holidays = [],
+    refetch: refetchHolidays,
+  } = useQuery<Holiday[]>({
     queryKey: ['holidays'],
     queryFn: getHolidays,
+    enabled: false,
   });
-  const holidaySet = new Set(holidays.map(h => h.date));
+  const [holidaysReady, setHolidaysReady] = useState(false);
+  useEffect(() => {
+    const handle = scheduleIdle(() => {
+      refetchHolidays().finally(() => setHolidaysReady(true));
+    });
+    return () => cancelIdle(handle);
+  }, [refetchHolidays]);
+  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
   const isDisabled = (d: Dayjs) =>
     d.day() === 0 ||
     d.day() === 6 ||
@@ -104,10 +131,27 @@ export default function BookingUI({
     setSelectedSlotId(null);
   }, [date, holidays]);
 
-  const visibleSlots = useMemo(() => {
-    if (!date.isSame(dayjs(), 'day')) return slots;
-    const now = dayjs();
-    return slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
+  const [visibleSlots, setVisibleSlots] = useState<Slot[]>([]);
+  const [morningSlots, setMorningSlots] = useState<Slot[]>([]);
+  const [afternoonSlots, setAfternoonSlots] = useState<Slot[]>([]);
+  const [slotsReady, setSlotsReady] = useState(false);
+  useEffect(() => {
+    setSlotsReady(false);
+    const handle = scheduleIdle(() => {
+      const now = dayjs();
+      const vs = !date.isSame(now, 'day')
+        ? slots
+        : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
+      setVisibleSlots(vs);
+      setMorningSlots(
+        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
+      );
+      setAfternoonSlots(
+        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
+      );
+      setSlotsReady(true);
+    });
+    return () => cancelIdle(handle);
   }, [slots, date]);
 
   useEffect(() => {
@@ -115,17 +159,6 @@ export default function BookingUI({
       setSelectedSlotId(null);
     }
   }, [selectedSlotId, visibleSlots]);
-
-  const morningSlots = useMemo(
-    () =>
-      visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
-    [visibleSlots],
-  );
-  const afternoonSlots = useMemo(
-    () =>
-      visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
-    [visibleSlots],
-  );
 
   async function handleBook() {
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
@@ -249,30 +282,37 @@ export default function BookingUI({
       <Grid container spacing={2}>
         <Grid item xs={12} md="auto">
           <Paper sx={{ p: 2, borderRadius: 2 }}>
-            <DateCalendar
-              value={date}
-              shouldDisableDate={isDisabled}
-              onChange={newDate => {
-                if (newDate && !isDisabled(newDate)) {
-                  setDate(newDate);
-                  setSelectedSlotId(null);
-                  if (isMobile) {
-                    setTimeout(() => {
-                      if (slotsRef.current) {
-                        slotsRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-                        slotsRef.current.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }, 0);
+            {!holidaysReady ? (
+              <Skeleton variant="rectangular" height={296} />
+            ) : (
+              <DateCalendar
+                value={date}
+                shouldDisableDate={isDisabled}
+                onChange={newDate => {
+                  if (newDate && !isDisabled(newDate)) {
+                    setDate(newDate);
+                    setSelectedSlotId(null);
+                    if (isMobile) {
+                      setTimeout(() => {
+                        if (slotsRef.current) {
+                          slotsRef.current.scrollTo({
+                            top: 0,
+                            behavior: 'smooth',
+                          });
+                          slotsRef.current.scrollIntoView({ behavior: 'smooth' });
+                        }
+                      }, 0);
+                    }
                   }
-                }
-              }}
-              sx={{
-                width: '100%',
-                maxWidth: 320,
-                mx: 'auto',
-                '& .MuiPickersSlideTransition-root': { minWidth: 0 },
-              }}
-            />
+                }}
+                sx={{
+                  width: '100%',
+                  maxWidth: 320,
+                  mx: 'auto',
+                  '& .MuiPickersSlideTransition-root': { minWidth: 0 },
+                }}
+              />
+            )}
           </Paper>
         </Grid>
         <Grid item xs={12} md sx={{ flexGrow: 1 }}>
@@ -285,7 +325,7 @@ export default function BookingUI({
               overflow: 'auto',
             }}
           >
-            {isLoading ? (
+            {isLoading || !slotsReady ? (
               <Box>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton
