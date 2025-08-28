@@ -196,3 +196,40 @@ export async function updateUserInfo(
   });
   return handleResponse(res);
 }
+
+export async function sendRegistrationOtp(
+  clientId: string,
+  email: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/users/register/otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: Number(clientId), email }),
+  });
+  await handleResponse(res);
+}
+
+export async function registerUser(data: {
+  clientId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  password: string;
+  otp: string;
+}): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/users/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      clientId: Number(data.clientId),
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      password: data.password,
+      otp: data.otp,
+    }),
+  });
+  await handleResponse(res);
+}

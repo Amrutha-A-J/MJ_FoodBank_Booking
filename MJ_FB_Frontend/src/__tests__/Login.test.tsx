@@ -24,4 +24,14 @@ describe('Login component', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
+
+  it('includes link to signup', () => {
+    render(
+      <MemoryRouter>
+        <Login onLogin={async () => {}} />
+      </MemoryRouter>
+    );
+    const link = screen.getByRole('link', { name: /sign up/i });
+    expect(link).toHaveAttribute('href', '/signup');
+  });
 });
