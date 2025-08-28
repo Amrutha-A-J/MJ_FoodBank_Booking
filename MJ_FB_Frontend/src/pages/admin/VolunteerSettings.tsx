@@ -439,6 +439,16 @@ export default function VolunteerSettings() {
                         </Button>
                       </Grid>
                       <Grid item>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<AddIcon />}
+                          onClick={() => openSubRoleDialog(master.id)}
+                        >
+                          Add Sub-role
+                        </Button>
+                      </Grid>
+                      <Grid item>
                         <IconButton aria-label="delete" onClick={() => removeRole(role)}>
                           <DeleteIcon />
                         </IconButton>
@@ -486,14 +496,6 @@ export default function VolunteerSettings() {
                     </List>
                   </Box>
                 ))}
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => openSubRoleDialog(master.id)}
-                >
-                  Add Sub-role
-                </Button>
               </AccordionDetails>
             </Accordion>
           ))}
