@@ -22,8 +22,6 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM_EMAIL: z.string().optional(),
   SMTP_FROM_NAME: z.string().optional(),
-  BREAD_WEIGHT_MULTIPLIER: z.coerce.number().default(10),
-  CANS_WEIGHT_MULTIPLIER: z.coerce.number().default(20),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -53,6 +51,4 @@ export default {
   smtpPass: env.SMTP_PASS ?? '',
   smtpFromEmail: env.SMTP_FROM_EMAIL ?? '',
   smtpFromName: env.SMTP_FROM_NAME ?? '',
-  breadWeightMultiplier: env.BREAD_WEIGHT_MULTIPLIER,
-  cansWeightMultiplier: env.CANS_WEIGHT_MULTIPLIER,
 };
