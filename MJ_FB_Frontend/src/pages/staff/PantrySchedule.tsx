@@ -148,7 +148,15 @@ export default function PantrySchedule({
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const maxSlots = Math.max(0, ...slots.map(s => s.maxCapacity ?? 0));
+  const maxSlots = Math.max(
+    0,
+    ...slots.map(s => {
+      const bookingCount = bookings.filter(
+        b => b.slot_id === parseInt(s.id),
+      ).length;
+      return Math.max(s.maxCapacity ?? 0, bookingCount);
+    }),
+  );
 
   const displaySlots: Slot[] = [...slots];
   if (
@@ -197,25 +205,33 @@ export default function PantrySchedule({
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
       cells: Array.from({ length: maxSlots }).map((_, i) => {
         const booking = slotBookings[i];
+        const withinCapacity = i < (slot.maxCapacity ?? 0);
+        let content;
+        let onClick;
+        if (booking) {
+          content = `${booking.user_name} (${booking.client_id})`;
+          if (booking.status === 'approved') {
+            onClick = () => setManageBooking(booking);
+          }
+        } else if (withinCapacity && !isClosed) {
+          content = '';
+          onClick = () => {
+            setAssignSlot(slot);
+            setAssignMessage('');
+          };
+        } else if (!withinCapacity) {
+          content = (
+            <span style={{ color: theme.palette.text.secondary, fontSize: '0.75rem' }}>
+              Over capacity
+            </span>
+          );
+        } else {
+          content = '';
+        }
         return {
-          content: booking
-            ? `${booking.user_name} (${booking.client_id})`
-            : '',
-          backgroundColor: booking
-            ? statusColors[booking.status]
-            : undefined,
-          onClick: () => {
-            if (booking) {
-              if (booking.status === 'approved') {
-                setManageBooking(booking);
-              }
-            } else if (!isClosed) {
-              setAssignSlot(slot);
-              setAssignMessage('');
-            } else {
-              setSnackbar({ message: 'Booking not allowed on weekends or holidays', severity: 'error' });
-            }
-          },
+          content,
+          backgroundColor: booking ? statusColors[booking.status] : undefined,
+          onClick,
         };
       }),
     };
