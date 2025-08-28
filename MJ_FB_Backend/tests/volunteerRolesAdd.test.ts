@@ -131,4 +131,41 @@ describe('addVolunteerRole validation', () => {
     expect(res.body.message).toMatch(/overlap/);
     expect((pool.query as jest.Mock).mock.calls).toHaveLength(1);
   });
+
+  it('realigns sequence on duplicate key error', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // check existing role
+      .mockRejectedValueOnce({ code: '23505' }) // first insert fails
+      .mockResolvedValueOnce({ rows: [] }) // setval
+      .mockResolvedValueOnce({ rows: [{ id: 99 }] }) // retry insert succeeds
+      .mockResolvedValueOnce({ rowCount: 0 }) // overlap check
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            slot_id: 7,
+            start_time: '06:00:00',
+            end_time: '07:00:00',
+            max_volunteers: 1,
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      }) // insert slot
+      .mockResolvedValueOnce({ rows: [{ name: 'break dancing', category_id: 7 }] }) // role info
+      .mockResolvedValueOnce({ rows: [{ name: 'Master' }] }); // master role name
+
+    const res = await request(app).post('/volunteer-roles').send({
+      name: 'break dancing',
+      categoryId: 7,
+      startTime: '06:00:00',
+      endTime: '07:00:00',
+      maxVolunteers: 1,
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body.role_id).toBe(99);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toContain(
+      "setval('volunteer_roles_id_seq'",
+    );
+  });
 });

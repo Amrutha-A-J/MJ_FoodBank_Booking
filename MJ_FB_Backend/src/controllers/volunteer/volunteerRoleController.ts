@@ -57,13 +57,31 @@ export async function addVolunteerRole(
       if ((existing.rowCount ?? 0) > 0) {
         resolvedRoleId = existing.rows[0].id;
       } else {
-        const roleRes = await pool.query(
-          `INSERT INTO volunteer_roles (name, category_id)
-           VALUES ($1,$2)
-           RETURNING id`,
-          [name, parsedCategoryId],
-        );
-        resolvedRoleId = roleRes.rows[0].id;
+        try {
+          const roleRes = await pool.query(
+            `INSERT INTO volunteer_roles (name, category_id)
+             VALUES ($1,$2)
+             RETURNING id`,
+            [name, parsedCategoryId],
+          );
+          resolvedRoleId = roleRes.rows[0].id;
+        } catch (err) {
+          const code = (err as { code?: string }).code;
+          if (code === '23505') {
+            await pool.query(
+              "SELECT setval('volunteer_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_roles));",
+            );
+            const roleRes = await pool.query(
+              `INSERT INTO volunteer_roles (name, category_id)
+               VALUES ($1,$2)
+               RETURNING id`,
+              [name, parsedCategoryId],
+            );
+            resolvedRoleId = roleRes.rows[0].id;
+          } else {
+            throw err;
+          }
+        }
       }
     }
     const overlap = await pool.query(
