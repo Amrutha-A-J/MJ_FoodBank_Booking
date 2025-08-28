@@ -17,6 +17,10 @@ export default function Login({
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
 
+  const clientIdError = clientId === '';
+  const passwordError = password === '';
+  const formInvalid = clientIdError || passwordError;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -46,13 +50,36 @@ export default function Login({
           </Stack>
         }
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formInvalid}
+          >
             Login
           </Button>
         }
       >
-        <TextField value={clientId} onChange={e => setClientId(e.target.value)} label="Client ID" fullWidth />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+        <TextField
+          value={clientId}
+          onChange={e => setClientId(e.target.value)}
+          label="Client ID"
+          fullWidth
+          required
+          error={clientIdError}
+          helperText={clientIdError ? 'Client ID is required' : ''}
+        />
+        <TextField
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          label="Password"
+          fullWidth
+          required
+          error={passwordError}
+          helperText={passwordError ? 'Password is required' : ''}
+        />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
           Forgot password?
         </Link>

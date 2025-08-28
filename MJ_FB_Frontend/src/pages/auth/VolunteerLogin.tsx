@@ -17,6 +17,10 @@ export default function VolunteerLogin({
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
 
+  const usernameError = username === '';
+  const passwordError = password === '';
+  const formInvalid = usernameError || passwordError;
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -34,13 +38,36 @@ export default function VolunteerLogin({
         title="Volunteer Login"
         header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={formInvalid}
+          >
             Login
           </Button>
         }
       >
-        <TextField value={username} onChange={e => setUsername(e.target.value)} label="Username" fullWidth />
-        <TextField type="password" value={password} onChange={e => setPassword(e.target.value)} label="Password" fullWidth />
+        <TextField
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          label="Username"
+          fullWidth
+          required
+          error={usernameError}
+          helperText={usernameError ? 'Username is required' : ''}
+        />
+        <TextField
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          label="Password"
+          fullWidth
+          required
+          error={passwordError}
+          helperText={passwordError ? 'Password is required' : ''}
+        />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">Forgot password?</Link>
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="volunteer" />
