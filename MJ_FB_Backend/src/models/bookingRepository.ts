@@ -103,15 +103,17 @@ export async function fetchBookings(
         u.first_name || ' ' || u.last_name as user_name,
         u.email as user_email, u.phone as user_phone,
         u.client_id,
-        (
-          SELECT COUNT(*) FROM client_visits v
-          WHERE v.client_id = u.client_id
-            AND DATE_TRUNC('month', v.date) = DATE_TRUNC('month', b.date)
-        ) AS bookings_this_month,
+        COALESCE(v.visits, 0) AS bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b
         INNER JOIN clients u ON b.user_id = u.id
         INNER JOIN slots s ON b.slot_id = s.id
+        LEFT JOIN (
+          SELECT client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS visits
+          FROM client_visits
+          GROUP BY client_id, month
+        ) v ON v.client_id = u.client_id
+          AND b.date BETWEEN v.month AND (v.month + INTERVAL '1 month' - INTERVAL '1 day')
       ${whereClause}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
