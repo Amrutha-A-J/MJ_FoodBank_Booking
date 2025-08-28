@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
+import { formatReginaDate } from '../utils/dateUtils';
 
 async function refreshClientVisitCount(clientId: number) {
   await pool.query(
@@ -57,6 +58,21 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
       }
       await refreshClientVisitCount(clientId);
+
+      // If the client had an approved booking on this date, mark it visited
+      const bookingRes = await pool.query(
+        `SELECT b.id
+           FROM bookings b
+           INNER JOIN clients c ON b.user_id = c.id
+           WHERE c.client_id = $1 AND b.date = $2 AND b.status = 'approved'`,
+        [clientId, formatReginaDate(date)]
+      );
+      if ((bookingRes.rowCount ?? 0) > 0) {
+        await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', [
+          'visited',
+          bookingRes.rows[0].id,
+        ]);
+      }
     }
     res.status(201).json({ ...result.rows[0], clientName });
   } catch (error) {
