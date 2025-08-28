@@ -28,9 +28,11 @@ import TrackSurplus from './pages/warehouse-management/TrackSurplus';
 import Aggregations from './pages/warehouse-management/Aggregations';
 import DonorProfile from './pages/warehouse-management/DonorProfile';
 import Exports from './pages/warehouse-management/Exports';
-import AdminStaffList from './pages/admin/AdminStaffList';
 import AdminStaffForm from './pages/admin/AdminStaffForm';
 import AppConfigurations from './pages/admin/AppConfigurations';
+
+import PantrySettings from './pages/admin/PantrySettings';
+import VolunteerSettings from './pages/admin/VolunteerSettings';
 import Events from './pages/events/Events';
 import PantryVisits from './pages/staff/PantryVisits';
 import AgencyLogin from './pages/agency/Login';
@@ -122,6 +124,8 @@ export default function App() {
         links: [
           { label: 'Staff', to: '/admin/staff' },
           { label: 'App Config', to: '/admin/app-config' },
+          { label: 'Pantry Settings', to: '/admin/pantry-settings' },
+          { label: 'Volunteer Settings', to: '/admin/volunteer-settings' },
         ],
       });
 
@@ -300,6 +304,8 @@ export default function App() {
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/app-config" element={<AppConfigurations />} />}
+              {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
+              {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
               {showVolunteerManagement && (
                 <>
                   <Route
