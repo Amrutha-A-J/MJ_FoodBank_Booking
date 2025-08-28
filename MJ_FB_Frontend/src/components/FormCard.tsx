@@ -1,7 +1,7 @@
 import { Box, Paper, Stack, Typography, type PaperProps, type BoxProps } from '@mui/material';
 import type { FormEvent, ReactNode } from 'react';
 
-interface FormCardProps extends Omit<PaperProps<'form'>, 'onSubmit'> {
+interface FormCardProps extends Omit<PaperProps<'form'>, 'onSubmit' | 'elevation'> {
   title: string;
   children: ReactNode;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
@@ -9,6 +9,7 @@ interface FormCardProps extends Omit<PaperProps<'form'>, 'onSubmit'> {
   header?: ReactNode;
   centered?: boolean;
   boxProps?: BoxProps;
+  elevation?: number;
 }
 
 export default function FormCard({
@@ -19,6 +20,7 @@ export default function FormCard({
   header,
   centered = true,
   boxProps,
+  elevation = 1,
   ...paperProps
 }: FormCardProps) {
   return (
@@ -31,7 +33,13 @@ export default function FormCard({
       py={centered ? 0 : 4}
       {...boxProps}
     >
-      <Paper component="form" onSubmit={onSubmit} sx={{ p: 3, width: '100%', maxWidth: 400 }} {...paperProps}>
+      <Paper
+        component="form"
+        onSubmit={onSubmit}
+        variant="outlined"
+        sx={{ p: 3, width: '100%', maxWidth: 400, boxShadow: elevation }}
+        {...paperProps}
+      >
         <Stack spacing={2}>
           {header && <Box textAlign="center">{header}</Box>}
           <Typography variant="h5" textAlign="center">
