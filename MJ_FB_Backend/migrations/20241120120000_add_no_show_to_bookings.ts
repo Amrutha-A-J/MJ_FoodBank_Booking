@@ -8,8 +8,11 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
+  // Revert to constraint before this migration; previous state already
+  // allowed both 'no_show' and 'visited'
+  // Previously: status IN ('approved','rejected','cancelled','no_show','expired','visited')
   pgm.dropConstraint('bookings', 'bookings_status_check');
   pgm.addConstraint('bookings', 'bookings_status_check', {
-    check: "status IN ('approved','rejected','cancelled','expired','visited')",
+    check: "status IN ('approved','rejected','cancelled','no_show','expired','visited')",
   });
 }
