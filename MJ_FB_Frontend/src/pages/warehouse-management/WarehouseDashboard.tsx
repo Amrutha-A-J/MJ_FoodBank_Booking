@@ -18,13 +18,11 @@ import {
   Stack,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import {
-  Autorenew,
-  InfoOutlined,
-  TrendingUp,
-  WarningAmber,
-  Announcement,
-} from '@mui/icons-material';
+import Autorenew from '@mui/icons-material/Autorenew';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+import TrendingUp from '@mui/icons-material/TrendingUp';
+import WarningAmber from '@mui/icons-material/WarningAmber';
+import Announcement from '@mui/icons-material/Announcement';
 import {
   ResponsiveContainer,
   LineChart,

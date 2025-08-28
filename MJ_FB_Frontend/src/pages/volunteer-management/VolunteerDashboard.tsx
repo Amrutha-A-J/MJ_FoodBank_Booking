@@ -15,7 +15,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { Announcement } from '@mui/icons-material';
+import Announcement from '@mui/icons-material/Announcement';
 import { useNavigate } from 'react-router-dom';
 import {
   getMyVolunteerBookings,

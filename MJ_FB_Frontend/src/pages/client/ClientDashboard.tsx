@@ -14,7 +14,9 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { EventAvailable, Announcement, History } from '@mui/icons-material';
+import EventAvailable from '@mui/icons-material/EventAvailable';
+import Announcement from '@mui/icons-material/Announcement';
+import History from '@mui/icons-material/History';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';

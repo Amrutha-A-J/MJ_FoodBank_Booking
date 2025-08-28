@@ -8,7 +8,8 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material';
-import { AccountCircle, Lock } from '@mui/icons-material';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import Lock from '@mui/icons-material/Lock';
 import type { Role, UserProfile } from '../../types';
 import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
 import { getVolunteerProfile } from '../../api/volunteers';

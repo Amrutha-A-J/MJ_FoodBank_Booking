@@ -23,7 +23,11 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { DeleteOutline, Add, EventBusy, Restaurant, Block } from '@mui/icons-material';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
+import Add from '@mui/icons-material/Add';
+import EventBusy from '@mui/icons-material/EventBusy';
+import Restaurant from '@mui/icons-material/Restaurant';
+import Block from '@mui/icons-material/Block';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';

@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { AccessTime } from '@mui/icons-material';
+import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot, Holiday } from '../types';

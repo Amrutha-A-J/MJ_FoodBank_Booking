@@ -10,14 +10,12 @@ import {
   ListItemText,
   Chip,
 } from '@mui/material';
-import {
-  CalendarToday,
-  People,
-  WarningAmber,
-  Cancel as CancelIcon,
-  EventAvailable,
-  Announcement,
-} from '@mui/icons-material';
+import CalendarToday from '@mui/icons-material/CalendarToday';
+import People from '@mui/icons-material/People';
+import WarningAmber from '@mui/icons-material/WarningAmber';
+import CancelIcon from '@mui/icons-material/Cancel';
+import EventAvailable from '@mui/icons-material/EventAvailable';
+import Announcement from '@mui/icons-material/Announcement';
 import { getBookings, getSlotsRange } from '../../api/bookings';
 import type { Role } from '../../types';
 import { formatTime } from '../../utils/time';
