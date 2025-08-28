@@ -41,7 +41,7 @@ describe('PantrySchedule status colors', () => {
 
   it('renders cells with colors for each status', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '09:00:00', endTime: '10:00:00' },
+      { id: '1', startTime: '09:00:00', endTime: '10:00:00', maxCapacity: 3 },
     ]);
     (getBookings as jest.Mock).mockResolvedValue([
       { id: 1, status: 'approved', date: '2024-01-01', slot_id: 1, user_name: 'App', user_id: 1, client_id: 1, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
@@ -62,6 +62,9 @@ describe('PantrySchedule status colors', () => {
     const approved = await screen.findByText('App (1)');
     const noShow = screen.getByText('No (2)');
     const visited = screen.getByText('Vis (3)');
+
+    const slots = screen.getAllByText(/Slot \d/);
+    expect(slots).toHaveLength(3);
 
     expect(getComputedStyle(approved).backgroundColor).toBe('rgb(228, 241, 228)');
     expect(getComputedStyle(noShow).backgroundColor).toBe('rgb(255, 200, 200)');
