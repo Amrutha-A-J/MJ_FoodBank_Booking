@@ -17,7 +17,8 @@ import {
   Autocomplete,
   IconButton,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import Edit from '@mui/icons-material/Edit';
+import Delete from '@mui/icons-material/Delete';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
