@@ -155,7 +155,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **staff** – PK `id`; unique `email`; `role` constrained to `staff` or `admin`.
 - **users** – PK `id`; unique `email` and `client_id` (1–9,999,999); `role` is `shopper` or `delivery`; referenced by `bookings.user_id`.
 - **client_email_verifications** – PK `id`; unique `client_id`; FK `client_id` → `clients.id`; stores `email`, `otp_hash`, and `expires_at` for verifying client emails.
-- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `submitted|approved|rejected|preapproved|cancelled`; includes `reschedule_token`.
+- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `submitted|approved|rejected|cancelled|no_show|expired|visited`; includes `reschedule_token`.
 - **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, and `pet_item` counts.
 - **breaks** – PK `id`; unique `(day_of_week, slot_id)`; FK `slot_id` → `slots.id`.
 - **blocked_slots** – PK `id`; unique `(date, slot_id)`; FK `slot_id` → `slots.id`.
@@ -224,7 +224,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /bookings/:id/decision` → `{ message: 'Booking approved'|'Booking rejected' }`
 - `POST /bookings/:id/cancel` → `{ message: 'Booking cancelled' }`
 - `POST /bookings/reschedule/:token` → `{ message: 'Booking rescheduled', rescheduleToken }`
-- `POST /bookings/preapproved` → `{ message: 'Preapproved booking created', rescheduleToken }`
+- `POST /bookings/preapproved` → `{ message: 'Walk-in booking created', rescheduleToken }`
 - `POST /bookings/staff` → `{ message: 'Booking created for client', rescheduleToken }`
 
 ### Holidays

@@ -17,6 +17,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
+- Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).
 - Staff can record visits directly from a booking in the pantry schedule. Selecting **Visited** in the booking dialog captures cart weights and creates the visit record before marking the booking visited.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.

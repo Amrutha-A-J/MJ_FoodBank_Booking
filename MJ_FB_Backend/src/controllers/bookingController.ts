@@ -303,7 +303,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
-    if (!['submitted', 'approved', 'preapproved'].includes(booking.status)) {
+    if (!['submitted', 'approved'].includes(booking.status)) {
       return res.status(400).json({ message: "This booking can't be rescheduled" });
     }
     if (!isDateWithinCurrentOrNextMonth(date)) {
@@ -351,7 +351,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
   }
 }
 
-// --- Staff: create preapproved booking for walk-in user ---
+// --- Staff: create walk-in booking for walk-in user ---
 export async function createPreapprovedBooking(
   req: Request,
   res: Response,
@@ -417,10 +417,10 @@ export async function createPreapprovedBooking(
     );
 
     await client.query('COMMIT');
-    res.status(201).json({ message: 'Preapproved booking created', rescheduleToken: token });
+    res.status(201).json({ message: 'Walk-in booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
-    logger.error('Error creating preapproved booking:', error);
+    logger.error('Error creating walk-in booking:', error);
     next(error);
   } finally {
     client.release();
