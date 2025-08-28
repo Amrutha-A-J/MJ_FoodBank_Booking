@@ -162,26 +162,32 @@ export async function deleteVolunteerMasterRole(id: number) {
 }
 
 export async function createVolunteerRole(
-  name: string,
+  roleId: number | undefined,
+  name: string | undefined,
+  categoryId: number | undefined,
   startTime: string,
   endTime: string,
   maxVolunteers: number,
-  categoryId: number,
   isWednesdaySlot?: boolean,
   isActive?: boolean,
 ) {
+  const body: Record<string, unknown> = {
+    startTime,
+    endTime,
+    maxVolunteers,
+    isWednesdaySlot,
+    isActive,
+  };
+  if (typeof roleId === 'number') {
+    body.roleId = roleId;
+  } else {
+    body.name = name;
+    body.categoryId = categoryId;
+  }
   const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name,
-      startTime,
-      endTime,
-      maxVolunteers,
-      categoryId,
-      isWednesdaySlot,
-      isActive,
-    }),
+    body: JSON.stringify(body),
   });
   return handleResponse(res);
 }

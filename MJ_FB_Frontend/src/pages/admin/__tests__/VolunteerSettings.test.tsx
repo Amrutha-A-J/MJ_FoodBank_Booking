@@ -112,11 +112,45 @@ describe('VolunteerSettings page', () => {
 
     await waitFor(() =>
       expect(createVolunteerRole).toHaveBeenCalledWith(
+        undefined,
         'Sorter',
+        1,
         '09:00:00',
         '12:00:00',
         2,
+        false,
+        true
+      )
+    );
+  });
+
+  it('adds shift to existing sub-role', async () => {
+    (createVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Shift'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '13:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '15:00:00' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(createVolunteerRole).toHaveBeenCalledWith(
         1,
+        undefined,
+        undefined,
+        '13:00:00',
+        '15:00:00',
+        3,
         false,
         true
       )
