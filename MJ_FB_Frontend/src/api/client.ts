@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+const API_BASE =
+  process.env.VITE_API_BASE ||
+  (globalThis as any).VITE_API_BASE ||
+  'http://localhost:4000';
 
 function getCsrfToken() {
   return document.cookie
