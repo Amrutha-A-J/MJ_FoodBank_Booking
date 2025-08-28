@@ -102,6 +102,87 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
   }
 }
 
+// Self-service registration for existing clients. Validates the provided
+// details and enables online access for the client.
+export async function registerUser(req: Request, res: Response, next: NextFunction) {
+  const { clientId, firstName, lastName, email, phone, password, otp } =
+    req.body as {
+      clientId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone?: string;
+      password: string;
+      otp: string;
+    };
+
+  try {
+    // Ensure client exists and has not registered yet
+    const clientRes = await pool.query(
+      'SELECT id, online_access, role FROM clients WHERE client_id = $1',
+      [clientId],
+    );
+    if ((clientRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    const existing = clientRes.rows[0];
+    if (existing.online_access) {
+      return res.status(400).json({ message: 'Online access already enabled' });
+    }
+
+    // Verify OTP from a temporary store
+    const otpRes = await pool.query(
+      'SELECT otp FROM client_otps WHERE client_id = $1',
+      [clientId],
+    );
+    const validOtp = otpRes.rows[0]?.otp;
+    if (!validOtp || validOtp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // Ensure email uniqueness
+    const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [
+      email,
+    ]);
+    if ((emailCheck.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const pwError = validatePassword(password);
+    if (pwError) {
+      return res.status(400).json({ message: pwError });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const updateRes = await pool.query(
+      `UPDATE clients
+         SET first_name = $1, last_name = $2, email = $3, phone = $4, password = $5, online_access = true
+       WHERE client_id = $6
+       RETURNING id, role, first_name, last_name`,
+      [firstName, lastName, email, phone || null, hashed, clientId],
+    );
+
+    await pool.query('DELETE FROM client_otps WHERE client_id = $1', [clientId]);
+
+    const updated = updateRes.rows[0];
+    const payload: AuthPayload = {
+      id: updated.id,
+      role: updated.role,
+      type: 'user',
+    };
+    await issueAuthTokens(res, payload, `user:${updated.id}`);
+
+    return res.json({
+      role: updated.role,
+      name: `${updated.first_name} ${updated.last_name}`,
+    });
+  } catch (error) {
+    logger.error('Error registering user:', error);
+    next(error);
+  }
+}
+
 export async function createUser(req: Request, res: Response, next: NextFunction) {
   if (!req.user || req.user.role !== 'staff') {
     return res.status(403).json({ message: 'Forbidden' });
