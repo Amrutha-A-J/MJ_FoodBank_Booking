@@ -114,6 +114,8 @@ export async function listVolunteerRoles(
   next: NextFunction,
 ) {
   try {
+    const includeInactive = req.query.includeInactive === 'true';
+    const whereClause = includeInactive ? '' : 'WHERE vs.is_active';
     const result = await pool.query(
         `SELECT vr.id, vr.category_id, vr.name,
                 MAX(vs.max_volunteers) AS max_volunteers,
@@ -131,7 +133,7 @@ export async function listVolunteerRoles(
        FROM volunteer_roles vr
        JOIN volunteer_slots vs ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
-       WHERE vs.is_active
+       ${whereClause}
        GROUP BY vr.id, vr.category_id, vr.name, vmr.name
        ORDER BY vr.id`
     );
