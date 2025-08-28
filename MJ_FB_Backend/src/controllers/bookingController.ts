@@ -470,8 +470,14 @@ export async function getBookingHistory(req: Request, res: Response, next: NextF
 
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
+    const includeVisits = req.query.includeVisits === 'true';
 
-    const rows = await repoFetchBookingHistory(userId, past, status);
+    const rows = await repoFetchBookingHistory(
+      userId,
+      past,
+      status,
+      includeVisits,
+    );
     res.json(rows);
   } catch (error) {
     logger.error('Error fetching booking history:', error);

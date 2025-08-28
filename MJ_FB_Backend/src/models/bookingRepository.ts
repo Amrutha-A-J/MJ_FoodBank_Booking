@@ -125,6 +125,7 @@ export async function fetchBookingHistory(
   userId: number,
   past: boolean,
   status: string | undefined,
+  includeVisits = false,
   client: Queryable = pool,
 ) {
   const params: any[] = [userId];
@@ -144,7 +145,30 @@ export async function fetchBookingHistory(
        ORDER BY b.created_at DESC`,
     params,
   );
-  return res.rows;
+  let rows = res.rows;
+  if (includeVisits && (!status || status === 'visited')) {
+    const visitWhere = [
+      'c.id = $1',
+      "v.date >= CURRENT_DATE - INTERVAL '6 months'",
+    ];
+    if (past) {
+      visitWhere.push('v.date < CURRENT_DATE');
+    }
+    const visitRes = await client.query(
+      `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token
+         FROM client_visits v
+         INNER JOIN clients c ON c.client_id = v.client_id
+         WHERE ${visitWhere.join(' AND ')}
+         ORDER BY v.date DESC`,
+      [userId],
+    );
+    rows = rows.concat(visitRes.rows);
+    rows.sort(
+      (a: any, b: any) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+  }
+  return rows;
 }
 
   export async function insertWalkinUser(
