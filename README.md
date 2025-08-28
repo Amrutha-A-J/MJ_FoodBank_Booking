@@ -170,7 +170,7 @@ control weight calculations:
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
 - Pantry Settings page lets staff configure one max booking capacity used for all pantry times.
-- Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
+- Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
 - Staff can assign clients to agencies through the Harvest Pantry → Agency Management page.
 

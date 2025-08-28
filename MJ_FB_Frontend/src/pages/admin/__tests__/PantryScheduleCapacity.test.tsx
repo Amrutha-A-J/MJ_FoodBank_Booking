@@ -1,19 +1,24 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PantrySchedule from '../pages/staff/PantrySchedule';
+import PantrySchedule from '../../staff/PantrySchedule';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@mui/material/styles';
-import { theme } from '../theme';
+import { theme } from '../../../theme';
 
-jest.mock('../api/bookings', () => ({
+jest.mock('../../../api/bookings', () => ({
   getSlots: jest.fn(),
   getBookings: jest.fn(),
   getHolidays: jest.fn(),
   createBookingForUser: jest.fn(),
   cancelBooking: jest.fn(),
 }));
+jest.mock('../../../api/users', () => ({
+  searchUsers: jest.fn(),
+}));
+jest.mock('../../../components/ManageBookingDialog', () => () => null);
+jest.mock('../../../components/RescheduleDialog', () => () => null);
 
-const { getSlots, getBookings, getHolidays } = jest.requireMock('../api/bookings');
+const { getSlots, getBookings, getHolidays } = jest.requireMock('../../../api/bookings');
 
 function hexToRgb(hex: string) {
   const sanitized = hex.replace('#', '');
@@ -28,11 +33,15 @@ describe('PantrySchedule status colors', () => {
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T10:00:00'));
-    window.matchMedia = window.matchMedia || ((() => ({
-      matches: false,
-      addListener: () => {},
-      removeListener: () => {},
-    })) as any);
+    window.matchMedia =
+      window.matchMedia ||
+      ((() => ({
+        matches: false,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })) as any);
   });
 
   afterAll(() => {
@@ -69,6 +78,56 @@ describe('PantrySchedule status colors', () => {
     expect(getComputedStyle(approved).backgroundColor).toBe('rgb(228, 241, 228)');
     expect(getComputedStyle(noShow).backgroundColor).toBe('rgb(255, 200, 200)');
     expect(getComputedStyle(visited).backgroundColor).toBe('rgb(111, 146, 113)');
+  });
+
+  it('shows warning styling when capacity is exceeded', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '09:00:00', endTime: '10:00:00', maxCapacity: 1 },
+    ]);
+    (getBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'App',
+        user_id: 1,
+        client_id: 1,
+        bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+      },
+      {
+        id: 2,
+        status: 'approved',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'Over',
+        user_id: 2,
+        client_id: 2,
+        bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+      },
+    ]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <ThemeProvider theme={theme}>
+        <QueryClientProvider client={queryClient}>
+          <PantrySchedule />
+        </QueryClientProvider>
+      </ThemeProvider>,
+    );
+
+    const over = await screen.findByText('Over (2)');
+    const cell = over.closest('td') as HTMLElement;
+    expect(getComputedStyle(cell).backgroundColor).toBe(
+      theme.palette.warning.light,
+    );
+    fireEvent.mouseOver(over);
+    expect(await screen.findByText('Capacity exceeded')).toBeInTheDocument();
   });
 });
 
