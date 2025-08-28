@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { EventAvailable, Announcement, History } from '@mui/icons-material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { Slot, Holiday } from '../../types';
@@ -320,30 +321,24 @@ export default function ClientDashboard() {
           </SectionCard>
         </Grid>
       </Grid>
-      <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
-        <DialogTitle>Cancel booking</DialogTitle>
-        <DialogContent>
-          <Typography>Are you sure you want to cancel this booking?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            size="small"
-            sx={{ textTransform: 'none' }}
-            onClick={() => setCancelId(null)}
-          >
-            Keep booking
-          </Button>
-          <Button
-            size="small"
-            color="error"
-            variant="contained"
-            sx={{ textTransform: 'none' }}
-            onClick={confirmCancel}
-          >
-            Cancel booking
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+          <DialogCloseButton onClose={() => setCancelId(null)} />
+          <DialogTitle>Cancel booking</DialogTitle>
+          <DialogContent>
+            <Typography>Are you sure you want to cancel this booking?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              size="small"
+              color="error"
+              variant="contained"
+              sx={{ textTransform: 'none' }}
+              onClick={confirmCancel}
+            >
+              Cancel booking
+            </Button>
+          </DialogActions>
+        </Dialog>
       <FeedbackSnackbar
         open={!!message}
         onClose={() => setMessage('')}

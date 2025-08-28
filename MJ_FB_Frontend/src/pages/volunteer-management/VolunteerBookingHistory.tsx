@@ -8,6 +8,7 @@ import type { VolunteerBooking } from '../../types';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import {
   TableContainer,
   Paper,
@@ -135,6 +136,7 @@ export default function VolunteerBookingHistory() {
       </TableContainer>
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
+        <DialogCloseButton onClose={() => setCancelBooking(null)} />
         <DialogTitle>Cancel Booking</DialogTitle>
         <DialogContent dividers>
           Cancel booking for {cancelBooking?.role_name} on {cancelBooking?.date}?
@@ -143,17 +145,11 @@ export default function VolunteerBookingHistory() {
           <Button onClick={handleCancel} variant="outlined" color="primary">
             Confirm
           </Button>
-          <Button
-            onClick={() => setCancelBooking(null)}
-            variant="outlined"
-            color="primary"
-          >
-            Keep
-          </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={cancelSeriesId != null} onClose={() => setCancelSeriesId(null)}>
+        <DialogCloseButton onClose={() => setCancelSeriesId(null)} />
         <DialogTitle>Cancel Series</DialogTitle>
         <DialogContent dividers>
           Cancel all upcoming bookings in this series?
@@ -161,13 +157,6 @@ export default function VolunteerBookingHistory() {
         <DialogActions>
           <Button onClick={handleCancelSeries} variant="outlined" color="primary">
             Confirm
-          </Button>
-          <Button
-            onClick={() => setCancelSeriesId(null)}
-            variant="outlined"
-            color="primary"
-          >
-            Keep
           </Button>
         </DialogActions>
       </Dialog>

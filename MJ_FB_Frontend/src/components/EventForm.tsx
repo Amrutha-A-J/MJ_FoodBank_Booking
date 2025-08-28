@@ -16,6 +16,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent } from '../api/events';
 import { searchStaff, type StaffOption } from '../api/staff';
+import DialogCloseButton from './DialogCloseButton';
 
 interface EventFormProps {
   open: boolean;
@@ -110,6 +111,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   return (
     <>
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogCloseButton onClose={onClose} />
         <DialogTitle>Create Event</DialogTitle>
         <DialogContent>
           <TextField
@@ -181,9 +183,6 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} variant="outlined" color="primary">
-            Cancel
-          </Button>
           <Button onClick={submit} variant="contained" color="primary">
             Create
           </Button>

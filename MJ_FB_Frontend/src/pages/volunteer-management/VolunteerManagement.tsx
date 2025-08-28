@@ -20,6 +20,7 @@ import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import {
   Box,
   Button,
@@ -952,11 +953,12 @@ export default function VolunteerManagement() {
         </div>
       )}
 
-      {shopperOpen && (
-        <Dialog open onClose={() => setShopperOpen(false)}>
-          <DialogContent>
-            <TextField
-              label="Client ID"
+        {shopperOpen && (
+          <Dialog open onClose={() => setShopperOpen(false)}>
+            <DialogCloseButton onClose={() => setShopperOpen(false)} />
+            <DialogContent>
+              <TextField
+                label="Client ID"
               value={shopperClientId}
               onChange={e => setShopperClientId(e.target.value)}
               fullWidth
@@ -991,16 +993,13 @@ export default function VolunteerManagement() {
               margin="dense"
             />
           </DialogContent>
-          <DialogActions>
-            <Button onClick={createShopper} variant="contained" color="primary" size="small">
-              Create
-            </Button>
-            <Button onClick={() => setShopperOpen(false)} variant="outlined" color="primary" size="small">
-              Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+            <DialogActions>
+              <Button onClick={createShopper} variant="contained" color="primary" size="small">
+                Create
+              </Button>
+            </DialogActions>
+          </Dialog>
+        )}
 
       {removeShopperOpen && (
         <ConfirmDialog

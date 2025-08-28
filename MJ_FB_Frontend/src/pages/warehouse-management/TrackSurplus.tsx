@@ -20,6 +20,7 @@ import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import {
   getSurplus,
   createSurplus,
@@ -190,6 +191,7 @@ export default function TrackSurplus() {
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+        <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Surplus' : 'Record Surplus'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
@@ -219,16 +221,15 @@ export default function TrackSurplus() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setRecordOpen(false); setEditing(null); }}>Cancel</Button>
           <Button onClick={handleSave} disabled={!form.date || !form.count}>Save</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+        <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Surplus</DialogTitle>
         <DialogContent>Are you sure you want to delete this surplus record?</DialogContent>
         <DialogActions>
-          <Button onClick={() => { setDeleteOpen(false); setToDelete(null); }}>Cancel</Button>
           <Button
             onClick={() => {
               if (toDelete) {
