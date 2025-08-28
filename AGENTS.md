@@ -94,7 +94,7 @@
 
 ## Base Requirements
 
-Clients with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Even though we track usage in our own table, we do not record visits for walk-in clients in our system. When a client uses the food bank without booking through our app, there is currently no way to capture that visit in our platform. This is why it’s important for staff to check Link2Feed to see if the client has already used the food bank twice this calendar month and is eligible (clients can only use the food bank two times in a month). In the future, we plan to implement a feature that allows uploading an Excel sheet to update visit counts for visits not processed through our booking platform.
+Clients with internet access submit appointment requests online. Staff then refer to the client database called Link2Feed (an external platform that our app is not connected to). Walk-in visits can now be logged in our system through the `/client-visits` CRUD endpoints backed by the `client_visits` table. Visit counts are refreshed whenever a visit is added, updated, or deleted (see `src/controllers/clientVisitController.ts`). Staff should still check Link2Feed to ensure the client has not already used the food bank twice this calendar month (clients may only visit twice per month).
 
 Staff must also book appointments for clients who do not have internet access. In these cases, the client visits in person to request an appointment, and the staff member clicks on an empty cell in the pantry schedule to assign the client to that slot. Both clients and staff should have the ability to cancel or reschedule appointments.
 
