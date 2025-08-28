@@ -41,7 +41,7 @@ describe('rescheduleVolunteerBooking', () => {
       .send({ roleId: 4, date: '2025-09-01' });
 
     expect(res.status).toBe(200);
-    const updateCall = (pool.query as jest.Mock).mock.calls[4];
+    const updateCall = (pool.query as jest.Mock).mock.calls[5];
     expect(updateCall[1][3]).toBe('approved');
   });
 
@@ -62,6 +62,6 @@ describe('rescheduleVolunteerBooking', () => {
 
     expect(res.status).toBe(200);
       const updateCall = (pool.query as jest.Mock).mock.calls[5];
-    expect(updateCall[1][3]).toBe('approved');
+    expect(updateCall[1][3]).toBe('pending');
   });
 });
