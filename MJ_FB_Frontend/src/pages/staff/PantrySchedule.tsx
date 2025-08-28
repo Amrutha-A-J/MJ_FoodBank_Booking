@@ -4,8 +4,6 @@ import {
   getBookings,
   getHolidays,
   createBookingForUser,
-  decideBooking,
-  cancelBooking,
 } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
 import type { Slot, Holiday } from '../../types';
@@ -14,10 +12,9 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, Link, type AlertColor, useTheme, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { Button, type AlertColor, useTheme } from '@mui/material';
 import { lighten } from '@mui/material/styles';
-import RescheduleDialog from '../../components/RescheduleDialog';
+import ManageBookingDialog from '../../components/ManageBookingDialog';
 
 interface Booking {
   id: number;
@@ -58,11 +55,8 @@ export default function PantrySchedule({
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
   const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor } | null>(null);
-  const [decisionBooking, setDecisionBooking] = useState<Booking | null>(null);
-  const [decisionReason, setDecisionReason] = useState('');
-  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState('');
-  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -117,47 +111,6 @@ export default function PantrySchedule({
     setCurrentDate(d => addDays(d, delta));
   }
 
-  async function decideSelected(decision: 'approve' | 'reject') {
-    if (!decisionBooking) return;
-    if (decision === 'reject' && !decisionReason.trim()) {
-      setSnackbar({ message: 'Reason for rejection required', severity: 'error' });
-      return;
-    }
-    try {
-      await decideBooking(decisionBooking.id.toString(), decision, decisionReason);
-      await loadData();
-      setSnackbar({ message: `Booking ${decision}d`, severity: 'success' });
-    } catch {
-      setSnackbar({ message: `Failed to ${decision} booking`, severity: 'error' });
-    } finally {
-      setDecisionBooking(null);
-      setDecisionReason('');
-      setShowRejectReason(false);
-    }
-  }
-
-  async function cancelSelected() {
-    if (!decisionBooking || !decisionReason.trim()) return;
-    try {
-      await cancelBooking(decisionBooking.id.toString(), decisionReason);
-      await loadData();
-      setSnackbar({ message: 'Booking cancelled', severity: 'success' });
-    } catch {
-      setSnackbar({ message: 'Failed to cancel booking', severity: 'error' });
-    } finally {
-      setDecisionBooking(null);
-      setDecisionReason('');
-      setShowRejectReason(false);
-    }
-  }
-
-  function openReschedule() {
-    if (!decisionBooking) return;
-    setRescheduleBooking(decisionBooking);
-    setDecisionBooking(null);
-    setDecisionReason('');
-    setShowRejectReason(false);
-  }
 
   async function assignUser(user: User) {
     if (!assignSlot) return;
@@ -244,9 +197,7 @@ export default function PantrySchedule({
           onClick: () => {
             if (booking) {
               if (['submitted', 'approved'].includes(booking.status)) {
-                setDecisionBooking(booking);
-                setDecisionReason('');
-                setShowRejectReason(false);
+                setManageBooking(booking);
               }
             } else if (!isClosed) {
               setAssignSlot(slot);
@@ -333,119 +284,13 @@ export default function PantrySchedule({
         </div>
       )}
 
-      {decisionBooking && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '320px', position: 'relative' }}>
-            <IconButton
-              aria-label="close"
-              size="small"
-              onClick={() => {
-                setDecisionBooking(null);
-                setDecisionReason('');
-                setShowRejectReason(false);
-              }}
-              sx={{ position: 'absolute', top: 4, right: 4 }}
-            >
-              <CloseIcon />
-            </IconButton>
-            <h4>Manage Booking</h4>
-            <p>
-              {decisionBooking.status === 'submitted'
-                ? `Approve or reject booking for ${decisionBooking.user_name}?`
-                : `Cancel booking for ${decisionBooking.user_name}?`}
-            </p>
-            <p>
-              Client ID: <Link
-                href={`https://portal.link2feed.ca/org/1605/intake/${decisionBooking.client_id}`}
-                target="_blank"
-                rel="noopener"
-              >
-                {decisionBooking.client_id}
-              </Link>
-              <br />
-              Uses This Month: {decisionBooking.bookings_this_month}
-            </p>
-            {decisionBooking.status === 'submitted' && showRejectReason && (
-              <textarea
-                placeholder="Reason for rejection"
-                value={decisionReason}
-                onChange={e => setDecisionReason(e.target.value)}
-                style={{ width: '100%', marginTop: 8 }}
-              />
-            )}
-            {decisionBooking.status !== 'submitted' && (
-              <textarea
-                placeholder="Reason for cancellation"
-                value={decisionReason}
-                onChange={e => setDecisionReason(e.target.value)}
-                style={{ width: '100%', marginTop: 8 }}
-              />
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              {decisionBooking.status === 'submitted' ? (
-                <>
-                  <Button onClick={() => decideSelected('approve')} variant="outlined" color="primary">Approve</Button>
-                  <Button
-                    onClick={() => {
-                      if (!showRejectReason) {
-                        setShowRejectReason(true);
-                      } else {
-                        decideSelected('reject');
-                      }
-                    }}
-                    variant="outlined"
-                    color="primary"
-                    disabled={showRejectReason && !decisionReason.trim()}
-                  >
-                    {showRejectReason ? 'Confirm Reject' : 'Reject'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button onClick={openReschedule} variant="outlined" color="primary">Reschedule</Button>
-                  <Button
-                    onClick={cancelSelected}
-                    variant="outlined"
-                    color="primary"
-                    disabled={!decisionReason.trim()}
-                  >
-                    Confirm Cancellation
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Cancel
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {rescheduleBooking && (
-        <RescheduleDialog
-          open={!!rescheduleBooking}
-          rescheduleToken={rescheduleBooking.reschedule_token}
-          onClose={() => setRescheduleBooking(null)}
-          onRescheduled={() => {
+      {manageBooking && (
+        <ManageBookingDialog
+          open={!!manageBooking}
+          booking={manageBooking}
+          onClose={() => setManageBooking(null)}
+          onUpdated={(message, severity) => {
+            setSnackbar({ message, severity });
             loadData();
           }}
         />
