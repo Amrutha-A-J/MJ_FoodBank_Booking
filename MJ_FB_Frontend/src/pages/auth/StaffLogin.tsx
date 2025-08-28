@@ -73,7 +73,6 @@ function StaffLoginForm({
       <FormCard
         onSubmit={submit}
         title="Staff Login"
-        header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
         actions={
           <Button
             type="submit"
