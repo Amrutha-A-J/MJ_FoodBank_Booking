@@ -71,9 +71,13 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
-  (bookingUtils.countApprovedBookingsForMonth as jest.Mock).mockResolvedValue(0);
-  (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
+  jest
+    .spyOn(bookingUtils, 'isDateWithinCurrentOrNextMonth')
+    .mockReturnValue(true);
+  jest
+    .spyOn(bookingUtils, 'countVisitsAndBookingsForMonth')
+    .mockResolvedValue(0);
+  jest.spyOn(bookingUtils, 'findUpcomingBooking').mockResolvedValue(null);
   (pool.connect as jest.Mock).mockResolvedValue({
     query: jest.fn(),
     release: jest.fn(),
