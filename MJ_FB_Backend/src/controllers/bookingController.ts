@@ -44,9 +44,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date);
-    const status = monthlyUsage < 2 ? 'approved' : 'rejected';
-
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
       return res
@@ -56,8 +53,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     const client = await pool.connect();
     let token: string | undefined;
+    let status = 'rejected';
     try {
       await client.query('BEGIN');
+      await client.query('SELECT id FROM clients WHERE id=$1 FOR UPDATE', [userId]);
+      const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
+      status = monthlyUsage < 2 ? 'approved' : 'rejected';
       if (status === 'approved') {
         await checkSlotCapacity(slotIdNum, date, client);
       }

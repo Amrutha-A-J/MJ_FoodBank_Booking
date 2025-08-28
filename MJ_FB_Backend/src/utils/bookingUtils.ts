@@ -1,5 +1,8 @@
 import pool from '../db';
+import { Pool, PoolClient } from 'pg';
 import { formatReginaDate, reginaStartOfDayISO } from './dateUtils';
+
+export type Queryable = Pool | PoolClient;
 
 export function getMonthRange(date: Date | string) {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -45,10 +48,26 @@ export function isDateWithinCurrentOrNextMonth(dateStr: string): boolean {
 
 export async function countVisitsAndBookingsForMonth(
   userId: number,
-  dateStr: string,
+  targetDate: string,
+  client: Queryable = pool,
+  lock = false,
 ): Promise<number> {
-  const { start, end } = getMonthRange(formatReginaDate(dateStr));
-  const res = await pool.query(
+  const { start, end } = getMonthRange(formatReginaDate(targetDate));
+
+  if (lock) {
+    await client.query(
+      `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
+      [userId, start, end],
+    );
+    await client.query(
+      `SELECT cv.id FROM client_visits cv
+        INNER JOIN clients c ON cv.client_id = c.client_id
+        WHERE c.id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
+      [userId, start, end],
+    );
+  }
+
+  const res = await client.query(
     `SELECT (
         SELECT COUNT(*) FROM bookings
         WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3
