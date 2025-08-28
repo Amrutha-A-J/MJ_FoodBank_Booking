@@ -57,8 +57,7 @@ describe('VolunteerSettings page', () => {
     const subButtons = screen.getAllByText('Add Sub-role');
     expect(subButtons).toHaveLength(1);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons[buttons.length - 1]).toHaveTextContent('Add Master Role');
+    expect(screen.getByText('Add Master Role')).toBeInTheDocument();
   });
 
   it('handles master role dialog flow', async () => {
@@ -71,7 +70,7 @@ describe('VolunteerSettings page', () => {
     );
 
     fireEvent.click(await screen.findByText('Add Master Role'));
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole('dialog', { name: 'Add Master Role' });
     fireEvent.change(within(dialog).getByLabelText('Name'), {
       target: { value: 'Drivers' },
     });
@@ -91,7 +90,7 @@ describe('VolunteerSettings page', () => {
     );
 
     fireEvent.click(await screen.findByText('Add Sub-role'));
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole('dialog', { name: 'Add Sub-role' });
     fireEvent.change(within(dialog).getByLabelText('Name'), {
       target: { value: 'Sorter' },
     });
@@ -112,6 +111,39 @@ describe('VolunteerSettings page', () => {
         '09:00:00',
         '12:00:00',
         2,
+        1,
+        false,
+        true
+      )
+    );
+  });
+
+  it('handles shift dialog without editable name', async () => {
+    (createVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Shift'));
+    const dialog = await screen.findByRole('dialog', { name: 'Add Shift' });
+    expect(within(dialog).getByLabelText('Sub-role')).toBeDisabled();
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '13:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '15:00:00' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(createVolunteerRole).toHaveBeenCalledWith(
+        'Packing',
+        '13:00:00',
+        '15:00:00',
+        3,
         1,
         false,
         true
