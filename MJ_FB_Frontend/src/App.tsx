@@ -13,6 +13,7 @@ import Pending from './pages/staff/Pending';
 import Login from './pages/auth/Login';
 import StaffLogin from './pages/auth/StaffLogin';
 import VolunteerLogin from './pages/auth/VolunteerLogin';
+import ClientSignup from './pages/auth/ClientSignup';
 import VolunteerDashboard from './pages/volunteer-management/VolunteerDashboard';
 import VolunteerManagement from './pages/volunteer-management/VolunteerManagement';
 import Dashboard from './components/dashboard/Dashboard';
@@ -72,6 +73,7 @@ export default function App() {
       { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
       { label: 'Staff Login', links: [{ label: 'Staff Login', to: '/login/staff' }] },
       { label: 'Agency Login', links: [{ label: 'Agency Login', to: '/login/agency' }] },
+      { label: 'Client Sign Up', links: [{ label: 'Sign Up', to: '/signup' }] },
     );
   } else if (isStaff) {
     const staffLinks = [
@@ -350,6 +352,7 @@ export default function App() {
         ) : (
           <main>
             <Routes>
+              <Route path="/signup" element={<ClientSignup />} />
                 <Route path="/login/user" element={<Login onLogin={login} />} />
                 <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
                 <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
