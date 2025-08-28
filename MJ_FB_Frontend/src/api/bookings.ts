@@ -95,12 +95,18 @@ export async function getBookings(
 }
 
 export async function getBookingHistory(
-  opts: { status?: string; past?: boolean; userId?: number } = {},
+  opts: {
+    status?: string;
+    past?: boolean;
+    userId?: number;
+    includeVisits?: boolean;
+  } = {},
 ) {
   const params = new URLSearchParams();
   if (opts.status) params.append('status', opts.status);
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
+  if (opts.includeVisits) params.append('includeVisits', 'true');
   const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
   );

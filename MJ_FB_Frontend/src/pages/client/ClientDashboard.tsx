@@ -84,7 +84,7 @@ export default function ClientDashboard() {
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   useEffect(() => {
-    getBookingHistory()
+    getBookingHistory({ includeVisits: true })
       .then(setBookings)
       .catch(() => {});
   }, []);
@@ -307,20 +307,23 @@ export default function ClientDashboard() {
         <Grid size={12}>
           <SectionCard title="Recent Bookings" icon={<History color="primary" />}>
             <List>
-              {history.slice(0, 3).map(b => (
-                <ListItem
-                  key={b.id}
-                  secondaryAction={
-                    <Chip label={b.status} color={statusColor(b.status)} />
-                  }
-                >
-                  <ListItemText
-                    primary={`${formatDate(b.date)} ${formatTime(
-                      b.start_time || '',
-                    )}`}
-                  />
-                </ListItem>
-              ))}
+              {history.slice(0, 3).map(b => {
+                const time = b.start_time ? formatTime(b.start_time) : '';
+                return (
+                  <ListItem
+                    key={b.id}
+                    secondaryAction={
+                      <Chip label={b.status} color={statusColor(b.status)} />
+                    }
+                  >
+                    <ListItemText
+                      primary={
+                        time ? `${formatDate(b.date)} ${time}` : formatDate(b.date)
+                      }
+                    />
+                  </ListItem>
+                );
+              })}
             </List>
           </SectionCard>
         </Grid>
