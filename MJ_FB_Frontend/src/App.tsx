@@ -37,7 +37,7 @@ import AgencyLogin from './pages/agency/Login';
 import AgencyClientBookings from './pages/agency/ClientBookings';
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
-import Breadcrumbs from './components/Breadcrumbs';
+import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 
@@ -162,18 +162,18 @@ export default function App() {
     }
   }
 
+  const navbarProps = {
+    groups: navGroups,
+    onLogout: role ? logout : undefined,
+    name: role ? name || undefined : undefined,
+    loading,
+    role,
+    profileLinks,
+  };
+
   return (
     <BrowserRouter>
       <div className="app-container">
-    <Navbar
-      groups={navGroups}
-      onLogout={role ? logout : undefined}
-      name={role ? name || undefined : undefined}
-      loading={loading}
-      role={role}
-      profileLinks={profileLinks}
-    />
-
         <FeedbackSnackbar
           open={!!error}
           onClose={() => setError('')}
@@ -181,9 +181,8 @@ export default function App() {
           severity="error"
         />
 
-            {role ? (
-          <main>
-            <Breadcrumbs />
+        {role ? (
+          <MainLayout {...navbarProps}>
             <Routes>
               <Route
                 path="/"
@@ -355,19 +354,22 @@ export default function App() {
               )}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </main>
+          </MainLayout>
         ) : (
-          <main>
-            <Routes>
-              <Route path="/signup" element={<ClientSignup />} />
-                <Route path="/login/user" element={<Login onLogin={login} />} />
-                <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
-                <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
-                <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
-              <Route path="/login" element={<Navigate to="/login/user" replace />} />
-              <Route path="*" element={<Navigate to="/login/user" replace />} />
-            </Routes>
-          </main>
+          <>
+            <Navbar {...navbarProps} />
+            <main>
+              <Routes>
+                <Route path="/signup" element={<ClientSignup />} />
+                  <Route path="/login/user" element={<Login onLogin={login} />} />
+                  <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
+                  <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
+                  <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
+                <Route path="/login" element={<Navigate to="/login/user" replace />} />
+                <Route path="*" element={<Navigate to="/login/user" replace />} />
+              </Routes>
+            </main>
+          </>
         )}
       </div>
     </BrowserRouter>
