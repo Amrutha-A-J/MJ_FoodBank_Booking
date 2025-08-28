@@ -260,9 +260,24 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
     await checkSlotCapacity(slotId, date);
+
+    const usage = await countVisitsAndBookingsForMonth(booking.user_id, date);
+    let adjustedUsage = usage;
+    if (
+      booking.status === 'approved' &&
+      booking.date &&
+      booking.date.slice(0, 7) === date.slice(0, 7)
+    ) {
+      adjustedUsage -= 1;
+    }
+
     const newToken = randomUUID();
     const isStaffReschedule = req.user && req.user.role === 'staff';
-    const newStatus = isStaffReschedule ? booking.status : 'submitted';
+    const newStatus = isStaffReschedule
+      ? booking.status
+      : adjustedUsage < 2
+        ? 'approved'
+        : 'submitted';
     await updateBooking(booking.id, {
       slot_id: slotId,
       date,
