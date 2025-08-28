@@ -13,7 +13,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
 
 describe('GET /slots with invalid dates', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('returns 400 for malformed date string', async () => {
@@ -33,7 +33,7 @@ describe('GET /slots with invalid dates', () => {
 
 describe('GET /slots applies slot rules', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('uses weekday rules', async () => {
@@ -117,7 +117,7 @@ describe('GET /slots applies slot rules', () => {
 
 describe('GET /slots closed days', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('returns empty array on weekends', async () => {

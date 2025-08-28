@@ -11,12 +11,12 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
 
-describe('Past slot filtering', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-06-18T13:00:00-06:00'));
-  });
+  describe('Past slot filtering', () => {
+    beforeEach(() => {
+      jest.resetAllMocks();
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-06-18T13:00:00-06:00'));
+    });
 
   afterEach(() => {
     jest.useRealTimers();
@@ -27,7 +27,7 @@ describe('Past slot filtering', () => {
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
-          { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
+          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
           { id: 2, start_time: '13:30:00', end_time: '14:00:00', max_capacity: 10 },
         ],
       })
@@ -72,14 +72,14 @@ describe('Past slot filtering', () => {
   });
 
   it('includes past slots for current day when includePast=true', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
-          { id: 2, start_time: '13:30:00', end_time: '14:00:00', max_capacity: 10 },
-        ],
-      })
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+        .mockResolvedValueOnce({
+          rows: [
+            { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
+            { id: 2, start_time: '13:30:00', end_time: '14:00:00', max_capacity: 10 },
+          ],
+        })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
@@ -90,7 +90,7 @@ describe('Past slot filtering', () => {
       .query({ date: '2024-06-18', includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual([
-      '09:00:00',
+      '09:30:00',
       '13:30:00',
     ]);
   });
@@ -99,13 +99,13 @@ describe('Past slot filtering', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rows: [
-          { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
+          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
           { id: 2, start_time: '13:30:00', end_time: '14:00:00', max_capacity: 10 },
         ],
       })
       .mockResolvedValueOnce({
         rows: [
-          { id: 3, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
+          { id: 3, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
         ],
       })
       .mockResolvedValueOnce({ rows: [] })
@@ -123,7 +123,7 @@ describe('Past slot filtering', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-18');
     expect(res.body[0].slots.map((s: any) => s.startTime)).toEqual([
-      '09:00:00',
+      '09:30:00',
       '13:30:00',
     ]);
   });
