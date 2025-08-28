@@ -10,7 +10,6 @@ jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
   getHolidays: jest.fn(),
   createBookingForUser: jest.fn(),
-  decideBooking: jest.fn(),
   cancelBooking: jest.fn(),
 }));
 
@@ -45,7 +44,6 @@ describe('PantrySchedule status colors', () => {
       { id: '1', startTime: '09:00:00', endTime: '10:00:00' },
     ]);
     (getBookings as jest.Mock).mockResolvedValue([
-      { id: 1, status: 'submitted', date: '2024-01-01', slot_id: 1, user_name: 'Sub', user_id: 1, client_id: 1, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
       { id: 2, status: 'approved', date: '2024-01-01', slot_id: 1, user_name: 'App', user_id: 2, client_id: 2, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
       { id: 3, status: 'no_show', date: '2024-01-01', slot_id: 1, user_name: 'No', user_id: 3, client_id: 3, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
       { id: 4, status: 'visited', date: '2024-01-01', slot_id: 1, user_name: 'Vis', user_id: 4, client_id: 4, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
@@ -61,12 +59,10 @@ describe('PantrySchedule status colors', () => {
       </ThemeProvider>
     );
 
-    const submitted = await screen.findByText('Sub (1)');
-    const approved = screen.getByText('App (2)');
+    const approved = await screen.findByText('App (2)');
     const noShow = screen.getByText('No (3)');
     const visited = screen.getByText('Vis (4)');
 
-    expect(getComputedStyle(submitted).backgroundColor).toBe(hexToRgb(theme.palette.warning.light));
     expect(getComputedStyle(approved).backgroundColor).toBe('rgb(228, 241, 228)');
     expect(getComputedStyle(noShow).backgroundColor).toBe('rgb(255, 200, 200)');
     expect(getComputedStyle(visited).backgroundColor).toBe('rgb(111, 146, 113)');

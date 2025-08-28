@@ -1,7 +1,6 @@
 import { Slot } from './models/slot';
 
 export type BookingStatus =
-  | 'submitted'
   | 'approved'
   | 'rejected'
   | 'preapproved'
