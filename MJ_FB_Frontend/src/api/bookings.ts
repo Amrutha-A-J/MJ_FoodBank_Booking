@@ -142,8 +142,11 @@ export async function getAllSlots() {
   })) as Slot[];
 }
 
-export async function getBlockedSlots(date: string): Promise<BlockedSlot[]> {
-  const res = await apiFetch(`${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`);
+export async function getBlockedSlots(date?: string): Promise<BlockedSlot[]> {
+  const url = date
+    ? `${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`
+    : `${API_BASE}/blocked-slots`;
+  const res = await apiFetch(url);
   return handleResponse(res);
 }
 

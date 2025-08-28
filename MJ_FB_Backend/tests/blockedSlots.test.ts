@@ -46,4 +46,16 @@ describe('GET /blocked-slots', () => {
       { slotId: 2, reason: 'weekly' },
     ]);
   });
+
+  it('lists non-recurring blocked slots when no date provided', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ date: '2024-06-18', slot_id: 1, reason: 'special' }],
+    });
+
+    const res = await request(app).get('/blocked-slots');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      { date: '2024-06-18', slotId: 1, reason: 'special' },
+    ]);
+  });
 });

@@ -50,6 +50,7 @@ export interface Holiday {
 }
 
 export interface BlockedSlot {
+  date?: string;
   slotId: number;
   reason: string;
   status?: 'blocked' | 'break';
