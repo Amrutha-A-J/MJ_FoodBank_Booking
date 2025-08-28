@@ -77,14 +77,25 @@ export async function updateBooking(
 
 export async function fetchBookings(
   status: string | undefined,
+  date?: string,
+  clientIds?: number[],
   client: Queryable = pool,
 ) {
   const params: any[] = [];
-  let where = '';
+  const where: string[] = [];
   if (status) {
     params.push(status === 'pending' ? 'submitted' : status);
-    where = 'WHERE b.status = $1';
+    where.push(`b.status = $${params.length}`);
   }
+  if (date) {
+    params.push(formatReginaDate(date));
+    where.push(`b.date = $${params.length}`);
+  }
+  if (clientIds && clientIds.length > 0) {
+    params.push(clientIds);
+    where.push(`u.client_id = ANY($${params.length})`);
+  }
+  const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const res = await client.query(
     `SELECT
         b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
@@ -103,7 +114,7 @@ export async function fetchBookings(
           GROUP BY client_id, month
         ) v ON v.client_id = u.client_id
           AND b.date BETWEEN v.month AND (v.month + INTERVAL '1 month' - INTERVAL '1 day')
-      ${where}
+      ${whereClause}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
   );

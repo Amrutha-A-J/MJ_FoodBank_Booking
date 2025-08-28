@@ -105,7 +105,15 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 export async function listBookings(req: Request, res: Response, next: NextFunction) {
   try {
     const status = (req.query.status as string)?.toLowerCase();
-    const rows = await repoFetchBookings(status);
+    const date = req.query.date as string | undefined;
+    const clientIdsParam = req.query.clientIds as string | undefined;
+    const clientIds = clientIdsParam
+      ? clientIdsParam
+          .split(',')
+          .map((id) => Number(id.trim()))
+          .filter((n) => !Number.isNaN(n))
+      : undefined;
+    const rows = await repoFetchBookings(status, date, clientIds);
     res.json(rows);
   } catch (error) {
     logger.error('Error listing bookings:', error);
