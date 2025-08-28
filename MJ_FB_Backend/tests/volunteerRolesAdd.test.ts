@@ -83,5 +83,10 @@ describe('addVolunteerRole validation', () => {
     expect(res.status).toBe(201);
     expect(res.body.role_id).toBe(10);
     expect(res.body.name).toBe('New');
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, category_id FROM volunteer_roles WHERE name=$1 AND category_id=$2 LIMIT 1',
+      ['New', 3]
+    );
   });
 });

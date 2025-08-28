@@ -41,8 +41,8 @@ export async function addVolunteerRole(
     let resolvedRoleId: number = roleId as number;
     if (typeof resolvedRoleId !== 'number') {
       const existing = await pool.query(
-        'SELECT id, category_id FROM volunteer_roles WHERE name=$1 LIMIT 1',
-        [name]
+        'SELECT id, category_id FROM volunteer_roles WHERE name=$1 AND category_id=$2 LIMIT 1',
+        [name, categoryId]
       );
       if ((existing.rowCount ?? 0) > 0) {
         resolvedRoleId = existing.rows[0].id;

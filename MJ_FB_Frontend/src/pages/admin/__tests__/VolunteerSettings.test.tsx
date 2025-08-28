@@ -115,15 +115,50 @@ describe('VolunteerSettings page', () => {
     fireEvent.click(within(dialog).getByText('Save'));
 
     await waitFor(() =>
-      expect(createVolunteerRole).toHaveBeenCalledWith(
-        'Sorter',
-        '09:00:00',
-        '12:00:00',
-        2,
-        1,
-        false,
-        true
-      )
+      expect(createVolunteerRole).toHaveBeenCalledWith({
+        name: 'Sorter',
+        startTime: '09:00:00',
+        endTime: '12:00:00',
+        maxVolunteers: 2,
+        categoryId: 1,
+        isWednesdaySlot: false,
+        isActive: true,
+      })
+    );
+  });
+
+  it('handles adding shift for existing role', async () => {
+    (createVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Shift'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '09:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '12:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Max Volunteers'), {
+      target: { value: '2' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(createVolunteerRole).toHaveBeenCalledWith({
+        roleId: 1,
+        startTime: '09:00:00',
+        endTime: '12:00:00',
+        maxVolunteers: 2,
+        categoryId: 1,
+        isWednesdaySlot: false,
+        isActive: true,
+      })
     );
   });
 });

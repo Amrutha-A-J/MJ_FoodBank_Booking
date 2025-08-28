@@ -161,19 +161,30 @@ export async function deleteVolunteerMasterRole(id: number) {
   return handleResponse(res);
 }
 
-export async function createVolunteerRole(
-  name: string,
-  startTime: string,
-  endTime: string,
-  maxVolunteers: number,
-  categoryId: number,
-  isWednesdaySlot?: boolean,
-  isActive?: boolean,
-) {
+export async function createVolunteerRole({
+  roleId,
+  name,
+  startTime,
+  endTime,
+  maxVolunteers,
+  categoryId,
+  isWednesdaySlot,
+  isActive,
+}: {
+  roleId?: number;
+  name?: string;
+  startTime: string;
+  endTime: string;
+  maxVolunteers: number;
+  categoryId?: number;
+  isWednesdaySlot?: boolean;
+  isActive?: boolean;
+}) {
   const res = await apiFetch(`${API_BASE}/volunteer-roles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      roleId,
       name,
       startTime,
       endTime,
