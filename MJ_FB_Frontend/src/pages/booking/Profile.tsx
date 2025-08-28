@@ -26,6 +26,7 @@ export default function Profile({ role }: { role: Role }) {
   const [editing, setEditing] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{
     open: boolean;
@@ -51,6 +52,7 @@ export default function Profile({ role }: { role: Role }) {
   const initials = profile
     ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
     : '';
+  const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
   async function handleReset() {
     setSubmitting(true);
@@ -72,6 +74,10 @@ export default function Profile({ role }: { role: Role }) {
   async function handleEdit() {
     if (!profile) return;
     if (editing) {
+      if (phone && phoneError) {
+        setToast({ open: true, message: 'Please enter a valid phone number.', severity: 'error' });
+        return;
+      }
       setSaving(true);
       try {
         const updated = await updateMyProfile({ email, phone });
@@ -146,6 +152,7 @@ export default function Profile({ role }: { role: Role }) {
               <Divider sx={{ my: 1 }} />
               <TextField
                 label="Email"
+                type="email"
                 size="small"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -154,11 +161,21 @@ export default function Profile({ role }: { role: Role }) {
               />
               <TextField
                 label="Phone"
+                type="tel"
                 size="small"
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={e => {
+                  setPhone(e.target.value);
+                  if (e.target.value && !phoneRegex.test(e.target.value)) {
+                    setPhoneError('Use only numbers, spaces, or dashes.');
+                  } else {
+                    setPhoneError('');
+                  }
+                }}
                 disabled={!editing}
                 InputLabelProps={{ shrink: true }}
+                error={!!phoneError}
+                helperText={phoneError || 'Format: 123-456-7890'}
               />
               {profile.bookingsThisMonth !== undefined && (
                 <Typography>
