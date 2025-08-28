@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
-import { Link, TextField, Stack, Button } from '@mui/material';
+import { Link, TextField, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
@@ -36,19 +36,6 @@ export default function Login({
       <FormCard
         onSubmit={handleSubmit}
         title="Client Login"
-        header={
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Link component={RouterLink} to="/login/staff" underline="hover">
-              Staff Login
-            </Link>
-            <Link component={RouterLink} to="/login/volunteer" underline="hover">
-              Volunteer Login
-            </Link>
-            <Link component={RouterLink} to="/login/agency" underline="hover">
-              Agency Login
-            </Link>
-          </Stack>
-        }
         actions={
           <Button
             type="submit"

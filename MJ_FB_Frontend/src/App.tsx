@@ -70,9 +70,14 @@ export default function App() {
   if (!role) {
     navGroups.push(
       { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
-      { label: 'Volunteer Login', links: [{ label: 'Volunteer Login', to: '/login/volunteer' }] },
-      { label: 'Staff Login', links: [{ label: 'Staff Login', to: '/login/staff' }] },
-      { label: 'Agency Login', links: [{ label: 'Agency Login', to: '/login/agency' }] },
+      {
+        label: 'Internal Login',
+        links: [
+          { label: 'Staff Login', to: '/login/staff' },
+          { label: 'Volunteer Login', to: '/login/volunteer' },
+          { label: 'Agency Login', to: '/login/agency' },
+        ],
+      },
       { label: 'Client Sign Up', links: [{ label: 'Sign Up', to: '/signup' }] },
     );
   } else if (isStaff) {
