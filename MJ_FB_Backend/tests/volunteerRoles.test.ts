@@ -22,7 +22,8 @@ afterEach(() => {
 describe('Volunteer roles routes', () => {
   it('creates a volunteer role', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ id: 1, category_id: 2 }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rows: [
