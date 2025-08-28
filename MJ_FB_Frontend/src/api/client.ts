@@ -65,20 +65,20 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
         refreshPromise = fetchWithRetry(
           `${API_BASE}/auth/refresh`,
           { method: 'POST', credentials: 'include' },
-          2,
+          1,
         );
       }
       const refreshRes = await refreshPromise;
       refreshPromise = null;
-      if (refreshRes.ok || refreshRes.status === 409) {
+      if ([200, 204, 409].includes(refreshRes.status)) {
         // 409 indicates another request already refreshed the tokens
         res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
-      } else if (refreshRes.status === 401) {
+      } else {
         clearAuthAndRedirect();
       }
     } catch {
-      // network error during refresh; propagate original 401 without clearing auth
       refreshPromise = null;
+      clearAuthAndRedirect();
     }
   }
   return res;
