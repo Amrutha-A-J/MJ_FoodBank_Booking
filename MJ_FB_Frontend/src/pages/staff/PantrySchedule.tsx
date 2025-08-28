@@ -1,7 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSlots, getBookings, getHolidays, createBookingForUser, decideBooking, cancelBooking, getBlockedSlots, getAllSlots } from '../../api/bookings';
+import {
+  getSlots,
+  getBookings,
+  getHolidays,
+  createBookingForUser,
+  decideBooking,
+  cancelBooking,
+} from '../../api/bookings';
 import { searchUsers } from '../../api/users';
-import type { Slot, Holiday, BlockedSlot } from '../../types';
+import type { Slot, Holiday } from '../../types';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
@@ -47,8 +54,6 @@ export default function PantrySchedule({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
-  const [allSlots, setAllSlots] = useState<Slot[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
@@ -73,13 +78,11 @@ export default function PantrySchedule({
       return;
     }
     try {
-      const [slotsData, bookingsData, blockedData] = await Promise.all([
+      const [slotsData, bookingsData] = await Promise.all([
         getSlots(dateStr, true),
         getBookings({ date: dateStr, clientIds }),
-        getBlockedSlots(dateStr),
       ]);
       setSlots(slotsData);
-      setBlockedSlots(blockedData);
       const filtered = bookingsData.filter((b: Booking) =>
         ['approved', 'submitted'].includes(b.status),
       );
@@ -91,7 +94,6 @@ export default function PantrySchedule({
 
   useEffect(() => {
     getHolidays().then(setHolidays).catch(() => {});
-    getAllSlots().then(setAllSlots).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -185,21 +187,7 @@ export default function PantrySchedule({
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
-  const slotMap = new Map(allSlots.map(s => [s.id, s]));
-  const displaySlots: Slot[] = [];
-  for (const b of blockedSlots) {
-    const s = slotMap.get(b.slotId.toString());
-    if (s)
-      displaySlots.push({
-        ...s,
-        available: 0,
-        status: b.status ?? 'blocked',
-        reason: b.reason,
-      });
-  }
-  for (const s of slots) {
-    displaySlots.push(s);
-  }
+  const displaySlots: Slot[] = [...slots];
   if (
     !isClosed &&
     !displaySlots.some(

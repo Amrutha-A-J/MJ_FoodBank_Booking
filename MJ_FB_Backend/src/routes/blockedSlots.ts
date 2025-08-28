@@ -15,8 +15,19 @@ router.get(
   authMiddleware,
   authorizeRoles('staff'),
   async (req, res) => {
-    const date = req.query.date as string;
-    if (!date) return res.status(400).json({ message: 'Date required' });
+    const date = req.query.date as string | undefined;
+    if (!date) {
+      const result = await pool.query(
+        'SELECT date, slot_id, reason FROM blocked_slots ORDER BY date, slot_id',
+      );
+      return res.json(
+        result.rows.map(r => ({
+          date: r.date,
+          slotId: Number(r.slot_id),
+          reason: r.reason ?? '',
+        })),
+      );
+    }
 
     let reginaDate: string;
     try {

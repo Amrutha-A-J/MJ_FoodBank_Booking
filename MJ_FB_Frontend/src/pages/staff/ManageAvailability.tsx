@@ -35,6 +35,7 @@ import {
   addRecurringBlockedSlot,
   removeBlockedSlot,
   removeRecurringBlockedSlot,
+  getBlockedSlots,
   addBreak,
   removeBreak,
   getBreaks,
@@ -103,10 +104,11 @@ export default function ManageAvailability() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [slots, breaksData, recurringBlocked] = await Promise.all([
+        const [slots, breaksData, recurringBlocked, blockedOnce] = await Promise.all([
           getAllSlots(),
           getBreaks(),
           getRecurringBlockedSlots(),
+          getBlockedSlots(),
         ]);
         setSlotOptions(slots);
         setBreaks(
@@ -117,14 +119,21 @@ export default function ManageAvailability() {
             reason: b.reason ?? '',
           })),
         );
-        setBlockedSlots(
-          recurringBlocked.map(b => ({
+        setBlockedSlots([
+          ...recurringBlocked.map(b => ({
             id: b.id,
             day: b.dayOfWeek,
+            week: b.weekOfMonth,
             slotId: b.slotId,
             reason: b.reason ?? '',
           })),
-        );
+          ...blockedOnce.map(b => ({
+            id: Date.parse(b.date) + b.slotId,
+            date: toDate(b.date),
+            slotId: b.slotId,
+            reason: b.reason ?? '',
+          })),
+        ]);
       } catch {
         showSnackbar('Failed to load availability data', 'error');
       }
