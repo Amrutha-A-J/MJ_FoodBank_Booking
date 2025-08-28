@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, Button, TextField } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
 import { requestPasswordReset } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
@@ -21,6 +21,7 @@ export default function PasswordResetDialog({
 
   const label =
     type === 'staff' ? 'Email' : type === 'volunteer' ? 'Username' : 'Client ID';
+  const formTitle = 'Reset Password';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,10 +43,13 @@ export default function PasswordResetDialog({
 
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
+      <Dialog open={open} onClose={onClose} aria-labelledby="password-reset-dialog-title">
+        <DialogTitle id="password-reset-dialog-title" sx={{ display: 'none' }}>
+          {formTitle}
+        </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <FormCard
-            title="Reset Password"
+            title={formTitle}
             onSubmit={handleSubmit}
             actions={
               <>
