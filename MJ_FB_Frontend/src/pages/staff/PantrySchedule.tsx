@@ -196,7 +196,9 @@ export default function PantrySchedule({
       cells: Array.from({ length: 4 }).map((_, i) => {
         const booking = slotBookings[i];
         return {
-          content: booking ? booking.user_name : '',
+          content: booking
+            ? `${booking.user_name} (${booking.client_id})`
+            : '',
           backgroundColor: booking
             ? statusColors[booking.status]
             : undefined,

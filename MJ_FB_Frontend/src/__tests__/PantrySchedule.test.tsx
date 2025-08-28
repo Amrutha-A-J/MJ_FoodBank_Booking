@@ -61,10 +61,10 @@ describe('PantrySchedule status colors', () => {
       </ThemeProvider>
     );
 
-    const submitted = await screen.findByText('Sub');
-    const approved = screen.getByText('App');
-    const noShow = screen.getByText('No');
-    const visited = screen.getByText('Vis');
+    const submitted = await screen.findByText('Sub (1)');
+    const approved = screen.getByText('App (2)');
+    const noShow = screen.getByText('No (3)');
+    const visited = screen.getByText('Vis (4)');
 
     expect(getComputedStyle(submitted).backgroundColor).toBe(hexToRgb(theme.palette.warning.light));
     expect(getComputedStyle(approved).backgroundColor).toBe('rgb(228, 241, 228)');
