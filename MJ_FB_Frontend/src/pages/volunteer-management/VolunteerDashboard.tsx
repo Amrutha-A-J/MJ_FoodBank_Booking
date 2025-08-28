@@ -15,6 +15,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import { Announcement } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
   getMyVolunteerBookings,
@@ -22,6 +23,7 @@ import {
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
 } from '../../api/volunteers';
+import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
 import {
   formatTime,
@@ -34,6 +36,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
+import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 
 function formatDateLabel(dateStr: string) {
@@ -50,6 +53,7 @@ export default function VolunteerDashboard() {
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
+  const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
@@ -58,6 +62,10 @@ export default function VolunteerDashboard() {
     getMyVolunteerBookings()
       .then(setBookings)
       .catch(() => setBookings([]));
+  }, []);
+
+  useEffect(() => {
+    getEvents().then(setEvents).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -282,8 +290,8 @@ export default function VolunteerDashboard() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="Announcements">
-            <Typography>No announcements</Typography>
+          <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <EventList events={[...events.today, ...events.upcoming]} limit={5} />
           </SectionCard>
         </Grid>
 
