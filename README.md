@@ -59,6 +59,10 @@ npm run migrate up   # Run pending database migrations
 npm start   # or npm run dev
 ```
 
+Run migrations with `npm run migrate <direction>`. The script registers `ts-node` so TypeScript
+migration files execute without a separate build step. For example, `npm run migrate up` applies
+pending migrations.
+
 The latest migrations add support for agency logins (`agencies`, `agency_clients`),
 recurring volunteer bookings (`volunteer_recurring_bookings`) and email OTP verification
 (`client_email_verifications`). Run the migrate command after pulling updates so these
