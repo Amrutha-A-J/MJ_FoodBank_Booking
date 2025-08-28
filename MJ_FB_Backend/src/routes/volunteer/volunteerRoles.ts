@@ -6,6 +6,7 @@ import {
   deleteVolunteerRole,
   listVolunteerRolesForVolunteer,
   updateVolunteerRoleStatus,
+  restoreDefaultVolunteerRoles,
 } from '../../controllers/volunteer/volunteerRoleController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 
@@ -19,5 +20,6 @@ router.get('/', listVolunteerRoles);
 router.put('/:id', updateVolunteerRole);
 router.patch('/:id', updateVolunteerRoleStatus);
 router.delete('/:id', deleteVolunteerRole);
+router.post('/restore', restoreDefaultVolunteerRoles);
 
 export default router;

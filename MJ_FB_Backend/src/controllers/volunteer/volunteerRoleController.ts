@@ -334,3 +334,96 @@ export async function listVolunteerRolesForVolunteer(
     next(error);
   }
 }
+
+export async function restoreDefaultVolunteerRoles(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    await client.query(
+      'CREATE TEMP TABLE tmp_trained AS SELECT volunteer_id, role_id FROM volunteer_trained_roles',
+    );
+
+    await client.query(
+      'TRUNCATE volunteer_slots, volunteer_roles, volunteer_master_roles RESTART IDENTITY CASCADE',
+    );
+
+    await client.query(`
+      INSERT INTO volunteer_master_roles (id, name) VALUES
+        (1, 'Pantry'),
+        (2, 'Warehouse'),
+        (3, 'Gardening'),
+        (4, 'Administration'),
+        (5, 'Special Events')
+      ON CONFLICT DO NOTHING;
+      SELECT setval('volunteer_master_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_master_roles));
+    `);
+
+    await client.query(`
+      INSERT INTO volunteer_roles (id, name, category_id) VALUES
+        (1, 'Food Sorter', 2),
+        (2, 'Production Worker', 2),
+        (3, 'Driver Assistant', 2),
+        (4, 'Loading Dock Personnel', 2),
+        (5, 'General Cleaning & Maintenance', 2),
+        (6, 'Reception', 1),
+        (7, 'Greeter / Pantry Assistant', 1),
+        (8, 'Stock Person', 1),
+        (9, 'Gardening Assistant', 3),
+        (10, 'Event Organizer', 5),
+        (11, 'Event Resource Specialist', 5),
+        (12, 'Volunteer Marketing Associate', 4),
+        (13, 'Client Resource Associate', 4),
+        (14, 'Assistant Volunteer Coordinator', 4),
+        (15, 'Volunteer Office Administrator', 4)
+      ON CONFLICT (id) DO NOTHING;
+      SELECT setval('volunteer_roles_id_seq', (SELECT COALESCE(MAX(id), 0) FROM volunteer_roles));
+    `);
+
+    await client.query(`
+      INSERT INTO volunteer_slots (role_id, start_time, end_time, max_volunteers, is_wednesday_slot) VALUES
+        (1, '09:00:00', '12:00:00', 3, false),
+        (2, '09:00:00', '12:00:00', 3, false),
+        (3, '09:00:00', '12:00:00', 1, false),
+        (4, '09:00:00', '12:00:00', 1, false),
+        (5, '08:00:00', '11:00:00', 1, false),
+        (6, '09:00:00', '12:00:00', 1, false),
+        (6, '12:30:00', '15:30:00', 1, false),
+        (6, '15:30:00', '18:30:00', 1, true),
+        (7, '09:00:00', '12:00:00', 3, false),
+        (7, '12:30:00', '15:30:00', 3, false),
+        (7, '15:30:00', '18:30:00', 3, true),
+        (7, '16:30:00', '19:30:00', 3, true),
+        (8, '08:00:00', '11:00:00', 1, false),
+        (8, '12:00:00', '15:00:00', 1, false),
+        (9, '13:00:00', '16:00:00', 2, false),
+        (10, '09:00:00', '17:00:00', 5, false),
+        (11, '09:00:00', '17:00:00', 5, false),
+        (12, '08:00:00', '16:00:00', 1, false),
+        (13, '08:00:00', '16:00:00', 1, false),
+        (14, '08:00:00', '16:00:00', 1, false),
+        (15, '08:00:00', '16:00:00', 1, false)
+      ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
+    `);
+
+    await client.query(`
+      INSERT INTO volunteer_trained_roles (volunteer_id, role_id, category_id)
+      SELECT t.volunteer_id, t.role_id, vr.category_id
+      FROM tmp_trained t
+      JOIN volunteer_roles vr ON vr.id = t.role_id;
+    `);
+
+    await client.query('COMMIT');
+    res.json({ message: 'Volunteer roles restored' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error('Error restoring volunteer roles:', error);
+    next(error);
+  } finally {
+    client.release();
+  }
+}

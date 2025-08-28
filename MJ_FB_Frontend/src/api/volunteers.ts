@@ -146,6 +146,13 @@ export async function getVolunteerMasterRoles() {
   return handleResponse(res);
 }
 
+export async function restoreVolunteerRoles() {
+  const res = await apiFetch(`${API_BASE}/volunteer-roles/restore`, {
+    method: 'POST',
+  });
+  await handleResponse(res);
+}
+
 export async function createVolunteerMasterRole(name: string) {
   const res = await apiFetch(`${API_BASE}/volunteer-master-roles`, {
     method: 'POST',

@@ -276,6 +276,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /volunteer-master-roles` → `{ id, name }`
 - `PUT /volunteer-master-roles/:id` → `{ id, name }`
 - `DELETE /volunteer-master-roles/:id` → `{ message: 'Master role deleted' }` (removes associated `volunteer_roles` and `volunteer_slots`)
+- `POST /volunteer-roles/restore` → `{ message: 'Volunteer roles restored' }` (staff only; resets roles, shifts, and training links)
 
 ### Volunteer Bookings
 - `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`

@@ -8,6 +8,7 @@ jest.mock('../../../api/volunteers', () => ({
   createVolunteerMasterRole: jest.fn(),
   createVolunteerRole: jest.fn(),
   deleteVolunteerRole: jest.fn(),
+  restoreVolunteerRoles: jest.fn(),
 }));
 
 const {
@@ -16,6 +17,7 @@ const {
   createVolunteerMasterRole,
   createVolunteerRole,
   deleteVolunteerRole,
+  restoreVolunteerRoles,
 } = jest.requireMock('../../../api/volunteers');
 
 describe('VolunteerSettings page', () => {
@@ -209,6 +211,23 @@ describe('VolunteerSettings page', () => {
 
     expect(await screen.findByText('Slot times overlap existing slots'))
       .toBeInTheDocument();
+  });
+
+  it('restores roles and reloads data', async () => {
+    (restoreVolunteerRoles as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Restore Original Roles & Shifts'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByText('Restore'));
+
+    await waitFor(() => expect(restoreVolunteerRoles).toHaveBeenCalled());
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalledTimes(2));
   });
 
   it('confirms before deleting shift', async () => {
