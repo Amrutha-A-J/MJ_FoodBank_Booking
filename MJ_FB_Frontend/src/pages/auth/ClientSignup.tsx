@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { sendRegistrationOtp, registerUser } from '../../api/users';
+import Page from '../../components/Page';
 
 export default function ClientSignup() {
   const [firstName, setFirstName] = useState('');
@@ -67,7 +68,7 @@ export default function ClientSignup() {
   }
 
   return (
-    <>
+    <Page title={step === 'form' ? 'Client Sign Up' : 'Verify Email'}>
       <FormCard
         onSubmit={handleSubmit}
         title={step === 'form' ? 'Client Sign Up' : 'Verify Email'}
@@ -155,6 +156,6 @@ export default function ClientSignup() {
       </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} />
-    </>
+    </Page>
   );
 }

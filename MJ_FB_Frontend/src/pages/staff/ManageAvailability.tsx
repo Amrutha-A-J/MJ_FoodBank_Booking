@@ -29,6 +29,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
+import Page from '../../components/Page';
 import {
   getAllSlots,
   addBlockedSlot,
@@ -542,18 +543,17 @@ export default function ManageAvailability() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 6 }}>
-        <Typography variant="h4" fontWeight={800} gutterBottom>
-          Manage Availability
-        </Typography>
-        <StyledTabs tabs={tabs} />
-        <FeedbackSnackbar
-          open={snackbar.open}
-          message={snackbar.message}
-          severity={snackbar.severity}
-          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-        />
-      </Box>
+      <Page title="Manage Availability">
+        <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 6 }}>
+          <StyledTabs tabs={tabs} />
+          <FeedbackSnackbar
+            open={snackbar.open}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+          />
+        </Box>
+      </Page>
     </LocalizationProvider>
   );
 }

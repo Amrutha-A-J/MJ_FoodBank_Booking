@@ -17,6 +17,7 @@ import {
   removeAgencyClient,
 } from '../../api/agencies';
 import { useAuth } from '../../hooks/useAuth';
+import Page from '../../components/Page';
 
 interface AgencyClient {
   id: number;
@@ -86,6 +87,7 @@ export default function ClientList() {
   };
 
   return (
+    <Page title="Agency Clients">
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
         <Typography variant="h5" gutterBottom>
@@ -136,6 +138,7 @@ export default function ClientList() {
         severity={snackbar?.severity}
       />
     </Grid>
+    </Page>
   );
 }
 

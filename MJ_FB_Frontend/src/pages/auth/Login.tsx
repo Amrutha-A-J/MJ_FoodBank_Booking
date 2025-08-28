@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import { Link, TextField, Button } from '@mui/material';
+import Page from '../../components/Page';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
@@ -34,7 +35,7 @@ export default function Login({
   }
 
   return (
-    <>
+    <Page title="Client Login">
       <FormCard
         onSubmit={handleSubmit}
         title="Client Login"
@@ -77,6 +78,6 @@ export default function Login({
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </>
+    </Page>
   );
 }

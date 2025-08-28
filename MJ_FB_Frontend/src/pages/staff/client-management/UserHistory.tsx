@@ -34,6 +34,7 @@ import EntitySearch from '../../../components/EntitySearch';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import { toDate, formatDate } from '../../../utils/date';
+import Page from '../../../components/Page';
 
 const TIMEZONE = 'America/Regina';
 
@@ -185,9 +186,9 @@ export default function UserHistory({
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-      <Box width="100%" maxWidth={800} mt={4}>
-        <h2>{initialUser ? 'Booking History' : 'Client History'}</h2>
+    <Page title={initialUser ? 'Booking History' : 'Client History'}>
+      <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+        <Box width="100%" maxWidth={800} mt={4}>
         {!initialUser && (
           <EntitySearch
             type="user"
@@ -404,13 +405,14 @@ export default function UserHistory({
               </Button>
             </DialogActions>
           </Dialog>
-        <FeedbackSnackbar
+          <FeedbackSnackbar
           open={!!message}
           onClose={() => setMessage('')}
           message={message}
           severity={severity}
         />
+        </Box>
       </Box>
-    </Box>
+    </Page>
   );
 }

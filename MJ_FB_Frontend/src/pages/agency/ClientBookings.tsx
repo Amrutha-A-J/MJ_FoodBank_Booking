@@ -5,6 +5,7 @@ import { searchUsers } from '../../api/users';
 import { addAgencyClient } from '../../api/agencies';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { useAuth } from '../../hooks/useAuth';
+import Page from '../../components/Page';
 
 interface User { id: number; name: string; email: string; }
 
@@ -40,7 +41,7 @@ export default function ClientBookings() {
   }
 
   return (
-    <div>
+    <Page title="Client Bookings">
       <TextField
         label="Search Clients"
         value={search}
@@ -62,6 +63,6 @@ export default function ClientBookings() {
         message={snackbar}
         severity="info"
       />
-    </div>
+    </Page>
   );
 }

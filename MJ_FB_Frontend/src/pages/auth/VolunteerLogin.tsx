@@ -6,6 +6,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
+import Page from '../../components/Page';
 
 export default function VolunteerLogin({
   onLogin,
@@ -34,7 +35,7 @@ export default function VolunteerLogin({
   }
 
   return (
-    <>
+    <Page title="Volunteer Login">
       <FormCard
         onSubmit={submit}
         title="Volunteer Login"
@@ -72,6 +73,6 @@ export default function VolunteerLogin({
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="volunteer" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </>
+    </Page>
   );
 }

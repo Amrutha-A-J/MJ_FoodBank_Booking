@@ -3,6 +3,7 @@ import { loginAgency, type LoginResponse } from '../../api/users';
 import { TextField, Button } from '@mui/material';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import Page from '../../components/Page';
 
 export default function AgencyLogin({
   onLogin,
@@ -28,7 +29,7 @@ export default function AgencyLogin({
   }
 
   return (
-    <>
+    <Page title="Agency Login">
       <FormCard
         onSubmit={submit}
         title="Agency Login"
@@ -71,6 +72,6 @@ export default function AgencyLogin({
         message={error}
         severity="error"
       />
-    </>
+    </Page>
   );
 }

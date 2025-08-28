@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TextField, Button } from '@mui/material';
+import Page from '../../components/Page';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
@@ -23,7 +24,7 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <>
+    <Page title="Change Password">
       <FormCard
         onSubmit={handleSubmit}
         title="Change Password"
@@ -51,6 +52,6 @@ export default function ChangePasswordForm() {
       </FormCard>
       <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} severity="success" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-    </>
+    </Page>
   );
 }

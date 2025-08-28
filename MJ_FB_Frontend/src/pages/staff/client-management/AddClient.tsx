@@ -4,6 +4,7 @@ import type { UserRole } from '../../../types';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import FeedbackModal from '../../../components/FeedbackModal';
 import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
+import Page from '../../../components/Page';
 
 export default function AddClient() {
   const [email, setEmail] = useState('');
@@ -54,18 +55,16 @@ export default function AddClient() {
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
-      <Box maxWidth={400} width="100%" mt={4}>
-        <Typography variant="h5" gutterBottom>
-          Create Client
-        </Typography>
-        <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-        <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
-        <Stack spacing={2}>
-          <FormControlLabel
-            control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
-            label="Online Access"
-          />
+    <Page title="Create Client">
+      <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
+        <Box maxWidth={400} width="100%" mt={4}>
+          <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+          <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
+              label="Online Access"
+            />
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
@@ -87,8 +86,9 @@ export default function AddClient() {
             Add Client
           </Button>
         </Stack>
+        </Box>
       </Box>
-    </Box>
+    </Page>
   );
 }
 

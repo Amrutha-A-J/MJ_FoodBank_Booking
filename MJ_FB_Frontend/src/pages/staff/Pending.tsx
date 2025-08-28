@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Grid, Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
+import Page from '../../components/Page';
 import { getBookings, decideBooking } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
@@ -56,10 +57,7 @@ export default function Pending() {
   }
 
   return (
-    <>
-      <Typography variant="h5" gutterBottom>
-        Pending Requests
-      </Typography>
+    <Page title="Pending Requests">
       <Grid container spacing={2}>
         {bookings.map(b => (
           <Grid size={{ xs: 12, sm: 6, md: 4 }} key={b.id}>
@@ -109,7 +107,7 @@ export default function Pending() {
         )}
       </Grid>
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
-    </>
+    </Page>
   );
 }
 
