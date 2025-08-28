@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
@@ -45,6 +46,8 @@ export default function VolunteerSettings() {
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
+  const [expanded, setExpanded] = useState<number | false>(false);
+
   const [masterDialog, setMasterDialog] = useState<{ open: boolean; id?: number; name: string }>({ open: false, name: '' });
   const [roleDialog, setRoleDialog] = useState<{
     open: boolean;
@@ -61,7 +64,7 @@ export default function VolunteerSettings() {
     loadData();
   }, []);
 
-  async function loadData() {
+  async function loadData(expandId?: number) {
     try {
       const [master, roleData] = await Promise.all([
         getVolunteerMasterRoles(),
@@ -69,6 +72,12 @@ export default function VolunteerSettings() {
       ]);
       setMasterRoles(master);
       setRoles(roleData);
+      if (expandId) {
+        setExpanded(expandId);
+        setTimeout(() => {
+          document.getElementById(`master-${expandId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
+      }
     } catch (e) {
       setSnack({ open: true, message: 'Failed to load roles', severity: 'error' });
     }
@@ -84,15 +93,18 @@ export default function VolunteerSettings() {
 
   async function saveMasterRole() {
     try {
+      let newId: number | undefined;
       if (masterDialog.id) {
         await updateVolunteerMasterRole(masterDialog.id, masterDialog.name);
+        newId = masterDialog.id;
         handleSnack('Master role updated');
       } else {
-        await createVolunteerMasterRole(masterDialog.name);
+        const created = await createVolunteerMasterRole(masterDialog.name);
+        newId = created.id;
         handleSnack('Master role created');
       }
       setMasterDialog({ open: false, name: '' });
-      loadData();
+      loadData(newId);
     } catch (e) {
       handleSnack('Failed to save master role', 'error');
     }
@@ -194,21 +206,35 @@ export default function VolunteerSettings() {
         <Grid container spacing={2}>
           {masterRoles.map(master => (
             <Grid item xs={12} key={master.id}>
-              <Card>
-                <CardHeader
-                  title={master.name}
-                  action={
-                    <Stack direction="row" spacing={1}>
-                      <IconButton aria-label="edit" onClick={() => openMasterDialog(master)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton aria-label="delete" onClick={() => removeMasterRole(master.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  }
-                />
-                <CardContent>
+              <Accordion
+                id={`master-${master.id}`}
+                expanded={expanded === master.id}
+                onChange={() => setExpanded(expanded === master.id ? false : master.id)}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
+                  <Stack direction="row" spacing={1} onClick={e => e.stopPropagation()}>
+                    <IconButton
+                      aria-label="edit"
+                      onClick={e => {
+                        e.stopPropagation();
+                        openMasterDialog(master);
+                      }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      aria-label="delete"
+                      onClick={e => {
+                        e.stopPropagation();
+                        removeMasterRole(master.id);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
                   {roles.filter(r => r.category_id === master.id).map(role => (
                     <Box key={role.id} mb={2}>
                       <Grid container alignItems="center" spacing={1}>
@@ -280,8 +306,8 @@ export default function VolunteerSettings() {
                   >
                     Add Sub-role
                   </Button>
-                </CardContent>
-              </Card>
+                </AccordionDetails>
+              </Accordion>
             </Grid>
           ))}
           <Grid item xs={12}>
