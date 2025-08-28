@@ -126,4 +126,42 @@ describe('VolunteerSettings page', () => {
       )
     );
   });
+
+  it('opens shift dialog with read-only role field', async () => {
+    (createVolunteerRole as jest.Mock).mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByText('Add Shift'));
+    const dialog = await screen.findByRole('dialog');
+    const nameField = within(dialog).getByLabelText('Role');
+    expect(nameField).toHaveAttribute('readonly');
+
+    fireEvent.change(within(dialog).getByLabelText('Start Time'), {
+      target: { value: '13:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('End Time'), {
+      target: { value: '15:00:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Max Volunteers'), {
+      target: { value: '3' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(createVolunteerRole).toHaveBeenCalledWith(
+        'Packing',
+        '13:00:00',
+        '15:00:00',
+        3,
+        1,
+        false,
+        true,
+      ),
+    );
+  });
 });
