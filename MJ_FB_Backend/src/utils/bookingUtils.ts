@@ -104,7 +104,7 @@ export async function findUpcomingBooking(
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id
        WHERE b.user_id=$1
-         AND b.status IN ('submitted','approved')
+        AND b.status = 'approved'
          AND b.date >= CURRENT_DATE
          AND NOT EXISTS (
            SELECT 1

@@ -60,7 +60,6 @@ function statusColor(status: string):
     case 'approved':
     case 'visited':
       return 'success';
-    case 'submitted':
     case 'pending':
       return 'warning';
     case 'cancelled':
@@ -118,9 +117,9 @@ export default function ClientDashboard() {
     .filter(b => b.status === 'approved' && toDate(b.date) >= today)
     .sort((a, b) => toDate(a.date).getTime() - toDate(b.date).getTime());
   const next = approved[0];
-  const pending = bookings.filter(b => b.status === 'submitted' || b.status === 'pending');
+  const pending = bookings.filter(b => b.status === 'pending');
   const history = bookings
-    .filter(b => b.status !== 'submitted')
+    .filter(b => b.status !== 'pending')
     .sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime());
 
   async function confirmCancel() {
@@ -202,7 +201,7 @@ export default function ClientDashboard() {
                     key={p.id}
                     secondaryAction={
                       <Chip
-                        label={p.status === 'submitted' ? 'Submitted' : 'Pending'}
+                        label="Pending"
                         color="warning"
                       />
                     }
