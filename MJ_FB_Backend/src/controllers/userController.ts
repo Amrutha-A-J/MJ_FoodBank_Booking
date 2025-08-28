@@ -143,7 +143,14 @@ export async function sendRegistrationOtp(
       `<p>Your verification code is <strong>${otp}</strong>.</p>`,
     );
 
-    return res.json({ message: 'OTP sent' });
+    logger.info(`Registration OTP for client ${clientId}: ${otp}`);
+
+    const response: { message: string; otp?: string } = { message: 'OTP sent' };
+    if (process.env.NODE_ENV === 'development') {
+      response.otp = otp;
+    }
+
+    return res.json(response);
   } catch (error) {
     logger.error('Error sending registration OTP:', error);
     next(error);
