@@ -36,7 +36,6 @@ export default function VolunteerLogin({
       <FormCard
         onSubmit={submit}
         title="Volunteer Login"
-        header={<Link component={RouterLink} to="/login/user" underline="hover">Client Login</Link>}
         actions={
           <Button
             type="submit"
