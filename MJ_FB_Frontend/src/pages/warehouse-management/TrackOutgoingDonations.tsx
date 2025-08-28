@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -82,16 +82,15 @@ export default function TrackOutgoingDonations() {
 
   const selectedDate = weekDates[tab];
 
-  function loadDonations() {
+  const loadDonations = useCallback(() => {
     getOutgoingDonations(format(selectedDate))
       .then(setDonations)
       .catch(() => setDonations([]));
-  }
+  }, [selectedDate]);
 
   useEffect(() => {
     loadDonations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [loadDonations]);
 
   function handleSaveDonation() {
     if (!form.receiverId || !form.weight) return;
