@@ -56,7 +56,6 @@ describe('addVolunteerRole validation', () => {
 
   it('creates slot with new role name and categoryId', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 10, category_id: 3 }] })
       .mockResolvedValueOnce({
         rows: [

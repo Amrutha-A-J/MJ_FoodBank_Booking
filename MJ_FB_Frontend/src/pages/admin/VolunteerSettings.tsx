@@ -50,6 +50,7 @@ export default function VolunteerSettings() {
   const [roleDialog, setRoleDialog] = useState<{
     open: boolean;
     slotId?: number;
+    roleId?: number;
     roleName: string;
     startTime: string;
     endTime: string;
@@ -142,6 +143,7 @@ export default function VolunteerSettings() {
     setRoleDialog({
       open: true,
       slotId: init.slotId,
+      roleId: init.roleId,
       roleName: init.roleName || '',
       startTime: init.startTime ? toTimeInput(init.startTime) : '',
       endTime: init.endTime ? toTimeInput(init.endTime) : '',
@@ -170,19 +172,41 @@ export default function VolunteerSettings() {
           isWednesdaySlot: roleDialog.isWednesdaySlot,
         });
         handleSnack('Role updated');
-      } else {
+      } else if (roleDialog.roleId) {
         await createVolunteerRole(
-          roleDialog.roleName,
+          roleDialog.roleId,
+          undefined,
+          undefined,
           startTime,
           endTime,
           maxVolunteers,
+          roleDialog.isWednesdaySlot,
+          true,
+        );
+        handleSnack('Shift added');
+      } else {
+        await createVolunteerRole(
+          undefined,
+          roleDialog.roleName,
           roleDialog.categoryId!,
+          startTime,
+          endTime,
+          maxVolunteers,
           roleDialog.isWednesdaySlot,
           true,
         );
         handleSnack('Role created');
       }
-      setRoleDialog({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+      setRoleDialog({
+        open: false,
+        roleName: '',
+        startTime: '',
+        endTime: '',
+        maxVolunteers: '1',
+        isWednesdaySlot: false,
+        roleId: undefined,
+        categoryId: undefined,
+      });
       loadData();
     } catch (e) {
       handleSnack('Failed to save role', 'error');
@@ -279,7 +303,13 @@ export default function VolunteerSettings() {
                             size="small"
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            onClick={() => openRoleDialog(master.id, { roleName: role.name })}
+                            onClick={() =>
+                              openRoleDialog(master.id, {
+                                roleId: role.id,
+                                roleName: role.name,
+                                maxVolunteers: role.max_volunteers.toString(),
+                              })
+                            }
                           >
                             Add Shift
                           </Button>
@@ -305,6 +335,7 @@ export default function VolunteerSettings() {
                                   aria-label="edit"
                                   onClick={() =>
                                     openRoleDialog(master.id, {
+                                      roleId: role.id,
                                       slotId: shift.id,
                                       roleName: role.name,
                                       startTime: shift.start_time,
