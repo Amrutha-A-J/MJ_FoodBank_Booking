@@ -27,11 +27,14 @@ describe('POST /api/users/register', () => {
   it('registers a user with valid data', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, online_access: false, role: 'shopper' }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ otp: '123456' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ email: 'jane@example.com', otp_hash: 'hash', expires_at: new Date(Date.now() + 60_000).toISOString() }],
+      })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, role: 'shopper', first_name: 'Jane', last_name: 'Doe' }] })
-      .mockResolvedValueOnce({})
       .mockResolvedValueOnce({});
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
@@ -70,7 +73,11 @@ describe('POST /api/users/register', () => {
   it('returns 400 for invalid otp', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, online_access: false, role: 'shopper' }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ otp: '654321' }] });
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ email: 'jane@example.com', otp_hash: 'hash', expires_at: new Date(Date.now() + 60_000).toISOString() }],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app).post('/api/users/register').send({
       clientId: 123,
@@ -86,6 +93,15 @@ describe('POST /api/users/register', () => {
   });
 
   it('rejects weak passwords', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1, online_access: false, role: 'shopper' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ email: 'jane@example.com', otp_hash: 'hash', expires_at: new Date(Date.now() + 60_000).toISOString() }],
+      })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
     const res = await request(app).post('/api/users/register').send({
       clientId: 123,
       firstName: 'Jane',

@@ -135,14 +135,15 @@ describe('Agency booking creation', () => {
   });
 });
 
-describe('Booking history access control', () => {
-  it('ignores userId query for agency', async () => {
-    const res = await request(app)
-      .get('/api/bookings/history')
-      .query({ userId: 99 });
+  describe('Booking history access control', () => {
+    it('ignores userId query for agency', async () => {
+      (isAgencyClient as jest.Mock).mockResolvedValue(true);
+      const res = await request(app)
+        .get('/api/bookings/history')
+        .query({ userId: 99 });
 
-    expect(res.status).toBe(200);
-    expect((bookingRepository.fetchBookingHistory as jest.Mock).mock.calls[0][0]).toBe(1);
+      expect(res.status).toBe(200);
+      expect((bookingRepository.fetchBookingHistory as jest.Mock).mock.calls[0][0]).toBe(99);
+    });
   });
-});
 

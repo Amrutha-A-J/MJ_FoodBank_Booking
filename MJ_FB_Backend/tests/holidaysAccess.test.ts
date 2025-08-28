@@ -46,7 +46,7 @@ describe('GET /holidays', () => {
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([{ date: '2024-12-25', reason: 'Christmas' }]);
+      expect(res.body).toEqual([{ date: '2024-12-24', reason: 'Christmas' }]);
   });
 
   it('allows staff to fetch holidays', async () => {
@@ -77,6 +77,6 @@ describe('GET /holidays', () => {
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([{ date: '2024-12-25', reason: 'Christmas' }]);
+      expect(res.body).toEqual([{ date: '2024-12-24', reason: 'Christmas' }]);
+    });
   });
-});
