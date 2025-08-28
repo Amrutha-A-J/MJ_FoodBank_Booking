@@ -35,6 +35,7 @@
 - `api/` wraps server requests.
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
+- Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
 
 ## Development Guidelines
@@ -262,7 +263,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 
 ### Volunteer Roles
 - `GET /volunteer-roles/mine?date=YYYY-MM-DD` → `[ { id, role_id, name, start_time, end_time, max_volunteers, category_id, category_name, is_wednesday_slot, booked, available, status, date } ]`
-- `POST /volunteer-roles` → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active, category_name }`
+- `POST /volunteer-roles` (requires `roleId` or `name` + `categoryId`) → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active, category_name }`
 - `GET /volunteer-roles` → `[ { id, role_id, category_id, name, max_volunteers, category_name, shifts } ]`
 - `PUT /volunteer-roles/:id` → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active, category_name }`
 - `PATCH /volunteer-roles/:id` → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active }`
@@ -272,7 +273,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-master-roles` → `[ { id, name } ]`
 - `POST /volunteer-master-roles` → `{ id, name }`
 - `PUT /volunteer-master-roles/:id` → `{ id, name }`
-- `DELETE /volunteer-master-roles/:id` → `{ message: 'Master role deleted' }`
+- `DELETE /volunteer-master-roles/:id` → `{ message: 'Master role deleted' }` (removes associated `volunteer_roles` and `volunteer_slots`)
 
 ### Volunteer Bookings
 - `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`

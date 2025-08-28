@@ -14,7 +14,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
-- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page.
+- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
 - Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).
@@ -29,9 +29,11 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
-- Staff can manage booking slots and adjust a global "Max slots per time" value through the Admin → Pantry Settings page or `PUT /slots/capacity`.
+- Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
+- Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
+- Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 
 ## Clone and initialize submodules
@@ -166,6 +168,7 @@ control weight calculations:
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
+- Pantry Settings page lets staff configure one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, and rgb(111,146,113) for visited.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
 - Staff can assign clients to agencies through the Harvest Pantry → Agency Management page.
