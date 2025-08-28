@@ -157,6 +157,26 @@ describe('VolunteerSettings page', () => {
     );
   });
 
+  it('shows validation errors for required fields', async () => {
+    render(
+      <MemoryRouter>
+        <VolunteerSettings />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(await screen.findByText('Add Sub-role'));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Max Volunteers'), {
+      target: { value: '' },
+    });
+    fireEvent.click(within(dialog).getByText('Save'));
+
+    await waitFor(() =>
+      expect(within(dialog).getAllByText('Required')).toHaveLength(4)
+    );
+    expect(createVolunteerRole).not.toHaveBeenCalled();
+  });
+
   it('shows API error when creating role fails', async () => {
     (createVolunteerRole as jest.Mock).mockRejectedValue(
       new Error('Slot times overlap existing slots')
