@@ -9,14 +9,12 @@ jest.mock('../api/bookings', () => ({
   rescheduleBookingByToken: jest.fn(),
   cancelBooking: jest.fn(),
   markBookingNoShow: jest.fn(),
-  markBookingVisited: jest.fn(),
 }));
 
 jest.mock('../api/clientVisits', () => ({
   createClientVisit: jest.fn(),
 }));
 
-const { markBookingVisited } = jest.requireMock('../api/bookings');
 const { createClientVisit } = jest.requireMock('../api/clientVisits');
 
 describe('ManageBookingDialog', () => {
@@ -32,14 +30,12 @@ describe('ManageBookingDialog', () => {
 
   beforeEach(() => {
     (createClientVisit as jest.Mock).mockReset();
-    (markBookingVisited as jest.Mock).mockReset();
   });
 
   it('records visit when marking booking visited', async () => {
     const onClose = jest.fn();
     const onUpdated = jest.fn();
     (createClientVisit as jest.Mock).mockResolvedValue({});
-    (markBookingVisited as jest.Mock).mockResolvedValue({});
 
     render(
       <MemoryRouter>
@@ -52,11 +48,12 @@ describe('ManageBookingDialog', () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(screen.getByLabelText(/status/i), { target: { value: 'visited' } });
+    fireEvent.mouseDown(screen.getByLabelText(/status/i));
+    fireEvent.click(await screen.findByRole('option', { name: /visited/i }));
     fireEvent.change(screen.getByLabelText(/weight with cart/i), { target: { value: '30' } });
 
     await waitFor(() =>
-      expect(screen.getByLabelText(/weight without cart/i)).toHaveValue('3')
+      expect(screen.getByLabelText(/weight without cart/i)).toHaveValue(3)
     );
 
     fireEvent.change(screen.getByLabelText(/pet item/i), { target: { value: '1' } });
@@ -73,7 +70,6 @@ describe('ManageBookingDialog', () => {
         petItem: 1,
       })
     );
-    await waitFor(() => expect(markBookingVisited).toHaveBeenCalledWith(1));
     expect(onUpdated).toHaveBeenCalledWith('Visit recorded', 'success');
   });
   it('shows client info', () => {

@@ -14,7 +14,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { getSlots, rescheduleBookingByToken, cancelBooking, markBookingNoShow, markBookingVisited } from '../api/bookings';
+import { getSlots, rescheduleBookingByToken, cancelBooking, markBookingNoShow } from '../api/bookings';
 import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
 import type { Slot } from '../types';
@@ -134,7 +134,6 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             weightWithoutCart: Number(weightWithoutCart),
             petItem: Number(petItem || 0),
           });
-          await markBookingVisited(booking.id);
           onUpdated('Visit recorded', 'success');
           onClose();
           return;
