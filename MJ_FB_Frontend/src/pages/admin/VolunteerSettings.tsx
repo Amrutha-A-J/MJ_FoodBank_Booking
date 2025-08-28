@@ -35,6 +35,7 @@ import {
   updateVolunteerRole,
   toggleVolunteerRole,
   deleteVolunteerRole,
+  restoreVolunteerRoles,
 } from '../../api/volunteers';
 import { formatTime } from '../../utils/time';
 import type { VolunteerRoleWithShifts } from '../../types';
@@ -84,6 +85,7 @@ export default function VolunteerSettings() {
   const [roleToDelete, setRoleToDelete] = useState<VolunteerRoleWithShifts | null>(null);
   const [shiftToDelete, setShiftToDelete] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | false>(false);
+  const [restoreDialog, setRestoreDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -114,6 +116,18 @@ export default function VolunteerSettings() {
 
   function openMasterDialog(role?: MasterRole) {
     setMasterDialog({ open: true, id: role?.id, name: role?.name || '' });
+  }
+
+  async function handleRestoreRoles() {
+    try {
+      await restoreVolunteerRoles();
+      handleSnack('Roles restored');
+      setRestoreDialog(false);
+      loadData();
+    } catch (e) {
+      handleSnack('Failed to restore roles', 'error');
+      setRestoreDialog(false);
+    }
   }
 
   async function saveMasterRole() {
@@ -343,14 +357,23 @@ export default function VolunteerSettings() {
     <Page title="Volunteer Settings">
       <Box p={2}>
         <Box mb={2}>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => openMasterDialog()}
-          >
-            Add Master Role
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => openMasterDialog()}
+            >
+              Add Master Role
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setRestoreDialog(true)}
+            >
+              Restore Original Roles & Shifts
+            </Button>
+          </Stack>
         </Box>
         <Box>
           {masterRoles.map(master => (
@@ -677,6 +700,23 @@ export default function VolunteerSettings() {
           </Button>
           <Button size="small" color="error" variant="contained" onClick={confirmRemoveMasterRole}>
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={restoreDialog} onClose={() => setRestoreDialog(false)}>
+        <DialogTitle>Restore roles?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            All current roles and shifts will be replaced with the defaults. Continue?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button size="small" onClick={() => setRestoreDialog(false)}>
+            Cancel
+          </Button>
+          <Button size="small" variant="contained" onClick={handleRestoreRoles}>
+            Restore
           </Button>
         </DialogActions>
       </Dialog>
