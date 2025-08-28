@@ -139,6 +139,7 @@ control weight calculations:
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
 - A shared dashboard component lives in `src/components/dashboard`.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
+- Admin staff creation page provides a link back to the staff list for easier navigation.
 
 ## Deploying to Azure
 
