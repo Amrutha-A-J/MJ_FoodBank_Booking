@@ -11,6 +11,7 @@ import {
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { getRoles } from '../api/volunteers';
 import type { RoleOption } from '../types';
+import DialogCloseButton from './DialogCloseButton';
 
 interface RescheduleDialogProps {
   open: boolean;
@@ -55,6 +56,7 @@ export default function RescheduleDialog({
 
   return (
     <Dialog open={open} onClose={onClose}>
+      <DialogCloseButton onClose={onClose} />
       <DialogTitle>Reschedule Booking</DialogTitle>
       <DialogContent>
         <TextField
@@ -89,9 +91,6 @@ export default function RescheduleDialog({
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Cancel
-        </Button>
         <Button onClick={handleSubmit} variant="outlined" color="primary">
           Submit
         </Button>

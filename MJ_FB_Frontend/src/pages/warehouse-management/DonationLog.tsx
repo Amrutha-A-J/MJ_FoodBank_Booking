@@ -21,6 +21,7 @@ import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
@@ -202,6 +203,7 @@ export default function DonationLog() {
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
+        <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
         <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
@@ -229,7 +231,6 @@ export default function DonationLog() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setRecordOpen(false); setEditing(null); }}>Cancel</Button>
           <Button onClick={handleSaveDonation} disabled={!form.donorId || !form.weight}>
             Save
           </Button>
@@ -237,12 +238,12 @@ export default function DonationLog() {
       </Dialog>
 
       <Dialog open={deleteOpen} onClose={() => { setDeleteOpen(false); setToDelete(null); }}>
+        <DialogCloseButton onClose={() => { setDeleteOpen(false); setToDelete(null); }} />
         <DialogTitle>Delete Donation</DialogTitle>
         <DialogContent>
           <DialogContentText>Are you sure you want to delete this donation?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setDeleteOpen(false); setToDelete(null); }}>Cancel</Button>
           <Button
             onClick={() => {
               if (toDelete) {
@@ -266,6 +267,7 @@ export default function DonationLog() {
       </Dialog>
 
       <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
+        <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
         <DialogTitle>Add Donor</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <TextField
@@ -276,7 +278,6 @@ export default function DonationLog() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNewDonorOpen(false)}>Cancel</Button>
           <Button onClick={handleAddDonor} disabled={!donorName}>Save</Button>
         </DialogActions>
       </Dialog>

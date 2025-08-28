@@ -21,6 +21,7 @@ import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import {
   Box,
   FormControl,
@@ -372,9 +373,10 @@ export default function VolunteerSchedule() {
         </Typography>
       ) : null}
 
-      <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
-        <DialogTitle>Request Booking</DialogTitle>
-        <DialogContent dividers>
+        <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
+          <DialogCloseButton onClose={() => setRequestRole(null)} />
+          <DialogTitle>Request Booking</DialogTitle>
+          <DialogContent dividers>
           <Typography sx={{ mb: 2 }}>
             Request booking for {requestRole?.name}?
           </Typography>
@@ -427,30 +429,27 @@ export default function VolunteerSchedule() {
               />
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={submitRequest} variant="outlined" color="primary">
-            Submit
-          </Button>
-          <Button
-            onClick={() => setRequestRole(null)}
-            variant="outlined"
-            color="primary"
-          >
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <DialogActions>
+            <Button onClick={submitRequest} variant="outlined" color="primary">
+              Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Dialog
-        open={!!decisionBooking}
-        onClose={() => {
-          setDecisionBooking(null);
-          setDecisionReason('');
-        }}
-      >
-        <DialogTitle>Manage Booking</DialogTitle>
-        <DialogContent dividers>
-          <Typography>Modify booking for {decisionBooking?.role_name}?</Typography>
+        <Dialog
+          open={!!decisionBooking}
+          onClose={() => {
+            setDecisionBooking(null);
+            setDecisionReason('');
+          }}
+        >
+          <DialogCloseButton onClose={() => {
+            setDecisionBooking(null);
+            setDecisionReason('');
+          }} />
+          <DialogTitle>Manage Booking</DialogTitle>
+          <DialogContent dividers>
+            <Typography>Modify booking for {decisionBooking?.role_name}?</Typography>
             <TextField
               placeholder="Reason for cancellation"
               value={decisionReason}
@@ -459,42 +458,32 @@ export default function VolunteerSchedule() {
               multiline
             />
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setRescheduleBooking(decisionBooking);
-              setDecisionBooking(null);
-              setDecisionReason('');
-            }}
-            variant="outlined"
-            color="primary"
-          >
-            Reschedule
-          </Button>
-          {decisionBooking?.recurring_id && (
+          <DialogActions>
             <Button
-              onClick={cancelSeries}
+              onClick={() => {
+                setRescheduleBooking(decisionBooking);
+                setDecisionBooking(null);
+                setDecisionReason('');
+              }}
               variant="outlined"
               color="primary"
             >
-              Cancel All Upcoming
+              Reschedule
             </Button>
-          )}
-          <Button onClick={cancelSelected} variant="outlined" color="primary">
-            Cancel Booking
-          </Button>
-          <Button
-            onClick={() => {
-              setDecisionBooking(null);
-              setDecisionReason('');
-            }}
-            variant="outlined"
-            color="primary"
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {decisionBooking?.recurring_id && (
+              <Button
+                onClick={cancelSeries}
+                variant="outlined"
+                color="primary"
+              >
+                Cancel All Upcoming
+              </Button>
+            )}
+            <Button onClick={cancelSelected} variant="outlined" color="primary">
+              Cancel Booking
+            </Button>
+          </DialogActions>
+        </Dialog>
 
       <RescheduleDialog
         open={!!rescheduleBooking}

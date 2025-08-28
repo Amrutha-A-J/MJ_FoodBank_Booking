@@ -20,6 +20,7 @@ import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
+import DialogCloseButton from '../../components/DialogCloseButton';
 import {
   getPigPounds,
   createPigPound,
@@ -183,15 +184,19 @@ export default function TrackPigpound() {
     >
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
-      <Dialog
-        open={recordOpen}
-        onClose={() => {
-          setRecordOpen(false);
-          setEditing(null);
-        }}
-      >
-        <DialogTitle>{editing ? 'Edit Entry' : 'Record Entry'}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
+        <Dialog
+          open={recordOpen}
+          onClose={() => {
+            setRecordOpen(false);
+            setEditing(null);
+          }}
+        >
+          <DialogCloseButton onClose={() => {
+            setRecordOpen(false);
+            setEditing(null);
+          }} />
+          <DialogTitle>{editing ? 'Edit Entry' : 'Record Entry'}</DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
             <TextField
               label="Date"
@@ -208,67 +213,55 @@ export default function TrackPigpound() {
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setRecordOpen(false);
-              setEditing(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={!form.date || !form.weight}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <DialogActions>
+            <Button onClick={handleSave} disabled={!form.date || !form.weight}>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Dialog
-        open={deleteOpen}
-        onClose={() => {
-          setDeleteOpen(false);
-          setToDelete(null);
-        }}
-      >
-        <DialogTitle>Delete Entry</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this entry?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteOpen(false);
-              setToDelete(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              if (toDelete) {
-                deletePigPound(toDelete.id)
-                  .then(() => {
-                    setSnackbar({ open: true, message: 'Entry deleted' });
-                    setDeleteOpen(false);
-                    setToDelete(null);
-                    load();
-                  })
-                  .catch(err =>
-                    setSnackbar({
-                      open: true,
-                      message: err.message || 'Failed to delete entry',
-                    }),
-                  );
-              }
-            }}
-            autoFocus
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog
+          open={deleteOpen}
+          onClose={() => {
+            setDeleteOpen(false);
+            setToDelete(null);
+          }}
+        >
+          <DialogCloseButton onClose={() => {
+            setDeleteOpen(false);
+            setToDelete(null);
+          }} />
+          <DialogTitle>Delete Entry</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this entry?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => {
+                if (toDelete) {
+                  deletePigPound(toDelete.id)
+                    .then(() => {
+                      setSnackbar({ open: true, message: 'Entry deleted' });
+                      setDeleteOpen(false);
+                      setToDelete(null);
+                      load();
+                    })
+                    .catch(err =>
+                      setSnackbar({
+                        open: true,
+                        message: err.message || 'Failed to delete entry',
+                      }),
+                    );
+                }
+              }}
+              autoFocus
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
 
       <FeedbackSnackbar
         open={snackbar.open}

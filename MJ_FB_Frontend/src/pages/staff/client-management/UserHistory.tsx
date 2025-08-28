@@ -32,6 +32,7 @@ import type { AlertColor } from '@mui/material';
 import RescheduleDialog from '../../../components/RescheduleDialog';
 import EntitySearch from '../../../components/EntitySearch';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import DialogCloseButton from '../../../components/DialogCloseButton';
 import { toDate, formatDate } from '../../../utils/date';
 
 const TIMEZONE = 'America/Regina';
@@ -324,10 +325,11 @@ export default function UserHistory({
             }}
           />
         )}
-        {editOpen && (
-          <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
-            <DialogTitle>Edit Client</DialogTitle>
-            <DialogContent>
+          {editOpen && (
+            <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+              <DialogCloseButton onClose={() => setEditOpen(false)} />
+              <DialogTitle>Edit Client</DialogTitle>
+              <DialogContent>
               <Stack spacing={2} mt={1}>
                 <FormControlLabel
                   control={
@@ -374,47 +376,34 @@ export default function UserHistory({
                 )}
               </Stack>
             </DialogContent>
+              <DialogActions>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSaveClient}
+                  disabled={!form.firstName || !form.lastName}
+                >
+                  Save
+                </Button>
+              </DialogActions>
+            </Dialog>
+          )}
+          <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
+            <DialogCloseButton onClose={() => setCancelId(null)} />
+            <DialogTitle>Cancel booking</DialogTitle>
+            <DialogContent>
+              <Typography>Are you sure you want to cancel this booking?</Typography>
+            </DialogContent>
             <DialogActions>
               <Button
-                variant="outlined"
-                color="primary"
-                onClick={() => setEditOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
+                color="error"
                 variant="contained"
-                color="primary"
-                onClick={handleSaveClient}
-                disabled={!form.firstName || !form.lastName}
+                onClick={confirmCancel}
               >
-                Save
+                Cancel booking
               </Button>
             </DialogActions>
           </Dialog>
-        )}
-        <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
-          <DialogTitle>Cancel booking</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to cancel this booking?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => setCancelId(null)}
-            >
-              Keep booking
-            </Button>
-            <Button
-              color="error"
-              variant="contained"
-              onClick={confirmCancel}
-            >
-              Cancel booking
-            </Button>
-          </DialogActions>
-        </Dialog>
         <FeedbackSnackbar
           open={!!message}
           onClose={() => setMessage('')}

@@ -11,6 +11,7 @@ import {
 import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
 import FeedbackSnackbar from './FeedbackSnackbar';
+import DialogCloseButton from './DialogCloseButton';
 import type { Slot } from '../types';
 import type { AlertColor } from '@mui/material';
 
@@ -74,6 +75,7 @@ export default function RescheduleDialog({
 
   return (
     <Dialog open={open} onClose={onClose}>
+      <DialogCloseButton onClose={onClose} />
       <DialogTitle>Reschedule Booking</DialogTitle>
       <DialogContent>
         <TextField
@@ -109,9 +111,6 @@ export default function RescheduleDialog({
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Cancel
-        </Button>
         <Button onClick={submit} variant="outlined" color="primary">
           Reschedule
         </Button>

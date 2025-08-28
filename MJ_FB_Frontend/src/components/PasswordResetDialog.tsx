@@ -4,6 +4,7 @@ import { requestPasswordReset } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
+import DialogCloseButton from './DialogCloseButton';
 
 export default function PasswordResetDialog({
   open,
@@ -44,6 +45,7 @@ export default function PasswordResetDialog({
   return (
     <>
       <Dialog open={open} onClose={onClose} aria-labelledby="password-reset-dialog-title">
+        <DialogCloseButton onClose={onClose} />
         <DialogTitle id="password-reset-dialog-title" sx={{ display: 'none' }}>
           {formTitle}
         </DialogTitle>
@@ -51,12 +53,7 @@ export default function PasswordResetDialog({
           <FormCard
             title={formTitle}
             onSubmit={handleSubmit}
-            actions={
-              <>
-                <Button onClick={onClose}>Cancel</Button>
-                <Button type="submit" variant="contained">Submit</Button>
-              </>
-            }
+            actions={<Button type="submit" variant="contained">Submit</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <TextField

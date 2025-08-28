@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
+import DialogCloseButton from "../../../components/DialogCloseButton";
 import {
   getIncompleteUsers,
   updateUserInfo,
@@ -129,6 +130,7 @@ export default function UpdateClientData() {
       </Table>
 
       <Dialog open={!!selected} onClose={() => setSelected(null)}>
+        <DialogCloseButton onClose={() => setSelected(null)} />
         <DialogTitle>
           Edit Client -{" "}
           {selected && (
@@ -194,20 +196,19 @@ export default function UpdateClientData() {
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSelected(null)}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            disabled={
-              !form.firstName ||
-              !form.lastName ||
-              (form.onlineAccess && !form.password)
-            }
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <DialogActions>
+            <Button
+              onClick={handleSave}
+              disabled={
+                !form.firstName ||
+                !form.lastName ||
+                (form.onlineAccess && !form.password)
+              }
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
       <FeedbackSnackbar
         open={!!snackbar}
