@@ -85,7 +85,8 @@
 - Pantry schedule cells use the following colors:
   - approved → rgb(228,241,228),
   - no_show → rgb(255, 200, 200),
-  - visited → rgb(111,146,113).
+  - visited → rgb(111,146,113),
+  - capacity exceeded → theme.warning.light.
 
 ### Interactions
 - Affordance: Primary action visible and enabled when valid; disabled state must include a reason (helper text or tooltip).

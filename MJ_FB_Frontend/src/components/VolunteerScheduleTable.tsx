@@ -8,6 +8,7 @@ import {
   Paper,
   useMediaQuery,
   useTheme,
+  Tooltip,
 } from '@mui/material';
 import { ReactNode } from 'react';
 
@@ -16,6 +17,7 @@ interface Cell {
   backgroundColor?: string;
   onClick?: () => void;
   colSpan?: number;
+  tooltip?: string;
 }
 
 interface Row {
@@ -80,7 +82,13 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                       backgroundColor: cell.backgroundColor,
                     }}
                   >
-                    {cell.content}
+                    {cell.tooltip ? (
+                      <Tooltip title={cell.tooltip}>
+                        <span>{cell.content}</span>
+                      </Tooltip>
+                    ) : (
+                      cell.content
+                    )}
                   </TableCell>
                 ))}
                 {Array.from({ length: safeMaxSlots - used }).map((_, i) => (

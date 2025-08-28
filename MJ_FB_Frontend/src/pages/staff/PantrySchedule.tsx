@@ -14,7 +14,6 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { Button, Link, type AlertColor, useTheme, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
@@ -197,13 +196,18 @@ export default function PantrySchedule({
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
       cells: Array.from({ length: maxSlots }).map((_, i) => {
         const booking = slotBookings[i];
+        const overCapacity =
+          !!booking && slot.maxCapacity !== undefined && i >= slot.maxCapacity;
         return {
           content: booking
             ? `${booking.user_name} (${booking.client_id})`
             : '',
-          backgroundColor: booking
-            ? statusColors[booking.status]
-            : undefined,
+          backgroundColor: overCapacity
+            ? theme.palette.warning.light
+            : booking
+              ? statusColors[booking.status]
+              : undefined,
+          tooltip: overCapacity ? 'Capacity exceeded' : undefined,
           onClick: () => {
             if (booking) {
               if (booking.status === 'approved') {
@@ -250,6 +254,7 @@ export default function PantrySchedule({
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
               { label: 'Visited', color: statusColors.visited },
+              { label: 'Capacity Exceeded', color: theme.palette.warning.light },
             ].map(item => (
               <span
                 key={item.label}
