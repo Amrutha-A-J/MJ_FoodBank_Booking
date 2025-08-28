@@ -28,7 +28,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
-- Staff can manage booking slots and adjust slot capacities through the Admin → Pantry Settings page.
+- Staff can set a single pantry-wide booking capacity through the Admin → Pantry Settings page.
 - Administrative pages allow staff to manage volunteer master roles and edit volunteer role slots.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays.
 

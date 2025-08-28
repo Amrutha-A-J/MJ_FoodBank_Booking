@@ -25,6 +25,7 @@
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
+ - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes. Use `PUT /slots/max-capacity` to set the pantry-wide booking capacity for all slots.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
@@ -34,6 +35,7 @@
 - `utils/`, `types.ts`, and theming files manage helpers, typings, and Material UI themes.
 - Administrative pages enable staff to manage volunteer master roles and edit volunteer role slots.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
+- Admin → Pantry Settings allows setting a single pantry-wide booking capacity.
 
 ## Development Guidelines
 

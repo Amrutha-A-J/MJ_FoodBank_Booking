@@ -37,3 +37,12 @@ export async function deleteSlot(id: number | string) {
   });
   return handleResponse(res);
 }
+
+export async function updateAllSlotsCapacity(maxCapacity: number) {
+  const res = await apiFetch(`${API_BASE}/slots/max-capacity`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ maxCapacity }),
+  });
+  return handleResponse(res);
+}
