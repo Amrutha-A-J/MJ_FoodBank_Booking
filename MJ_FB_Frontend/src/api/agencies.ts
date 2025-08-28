@@ -5,6 +5,22 @@ export async function getMyAgencyClients() {
   return handleResponse(res);
 }
 
+export interface CreateAgencyData {
+  name: string;
+  email: string;
+  password: string;
+  contactInfo?: string;
+}
+
+export async function createAgency(data: CreateAgencyData) {
+  const res = await apiFetch(`${API_BASE}/agencies`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function addAgencyClient(
   agencyId: number | 'me',
   clientId: number,

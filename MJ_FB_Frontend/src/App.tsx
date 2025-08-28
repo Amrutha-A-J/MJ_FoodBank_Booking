@@ -81,6 +81,7 @@ const VolunteerSettings = React.lazy(() =>
 );
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
+const AddAgency = React.lazy(() => import('./pages/staff/AddAgency'));
 const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
 const AgencyClientBookings = React.lazy(() =>
   import('./pages/agency/ClientBookings')
@@ -135,6 +136,7 @@ export default function App() {
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
+      { label: 'Add Agency', to: '/pantry/add-agency' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -265,6 +267,9 @@ export default function App() {
               )}
               {showStaff && (
                 <Route path="/pantry/visits" element={<PantryVisits />} />
+              )}
+              {showStaff && (
+                <Route path="/pantry/add-agency" element={<AddAgency />} />
               )}
               {showWarehouse && (
                 <Route path="/warehouse-management" element={<WarehouseDashboard />} />

@@ -25,6 +25,7 @@
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
+- Staff can create agencies via `POST /agencies` and assign clients with `POST /agencies/:id/clients`.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.

@@ -1,8 +1,49 @@
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcrypt';
 import {
   addAgencyClient,
   removeAgencyClient,
+  createAgency as createAgencyModel,
 } from '../models/agency';
+
+export async function createAgency(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    if (!req.user || req.user.role !== 'staff') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    const { name, email, password, contactInfo } = req.body as {
+      name: string;
+      email: string;
+      password: string;
+      contactInfo?: string;
+    };
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
+    const hashed = await bcrypt.hash(password, 10);
+    const agency = await createAgencyModel(
+      name,
+      email,
+      hashed,
+      contactInfo,
+    );
+    res.status(201).json({
+      id: agency.id,
+      name: agency.name,
+      email: agency.email,
+      contactInfo: agency.contact_info,
+    });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      return res.status(409).json({ message: 'Agency already exists' });
+    }
+    next(err);
+  }
+}
 
 export async function addClientToAgency(
   req: Request,

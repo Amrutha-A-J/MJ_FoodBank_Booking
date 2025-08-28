@@ -8,6 +8,21 @@ export interface Agency {
   contact_info: string | null;
 }
 
+export async function createAgency(
+  name: string,
+  email: string,
+  password: string,
+  contactInfo?: string,
+): Promise<Agency> {
+  const res = await pool.query(
+    `INSERT INTO agencies (name, email, password, contact_info)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [name, email, password, contactInfo ?? null],
+  );
+  return res.rows[0] as Agency;
+}
+
 export async function getAgencyByEmail(email: string): Promise<Agency | undefined> {
   const res = await pool.query('SELECT * FROM agencies WHERE email = $1', [email]);
   return res.rows[0] as Agency | undefined;

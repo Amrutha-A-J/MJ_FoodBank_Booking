@@ -26,6 +26,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
+- Staff can create agencies via `POST /agencies` or the staff Add Agency page and assign clients to them.
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can manage booking slots and adjust slot capacities through the Admin → Pantry Settings page.
@@ -82,7 +83,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 
 ### Agency setup
 
-1. **Create an agency** – hash a password and insert a row into the
+1. **Create an agency** – staff can create agencies via `POST /agencies` or the Add Agency page. To seed manually, hash a password and insert a row into the
    `agencies` table. For example:
 
    ```bash
