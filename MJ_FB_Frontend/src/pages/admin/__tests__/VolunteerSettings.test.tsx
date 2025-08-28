@@ -56,9 +56,7 @@ describe('VolunteerSettings page', () => {
 
     const subButtons = screen.getAllByText('Add Sub-role');
     expect(subButtons).toHaveLength(1);
-
-    const buttons = screen.getAllByRole('button');
-    expect(buttons[buttons.length - 1]).toHaveTextContent('Add Master Role');
+    expect(screen.getByText('Add Master Role')).toBeInTheDocument();
   });
 
   it('handles master role dialog flow', async () => {
@@ -79,6 +77,9 @@ describe('VolunteerSettings page', () => {
 
     await waitFor(() => expect(createVolunteerMasterRole).toHaveBeenCalledWith('Drivers'));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await screen.findByText('Drivers')).toBeInTheDocument();
+    const driversAccordion = screen.getByText('Drivers').closest('.MuiAccordion-root');
+    expect(within(driversAccordion!).getByText('Add Sub-role')).toBeVisible();
   });
 
   it('handles sub-role dialog flow', async () => {

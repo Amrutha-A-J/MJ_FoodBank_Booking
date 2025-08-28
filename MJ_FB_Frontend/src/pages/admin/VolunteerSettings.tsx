@@ -59,6 +59,7 @@ export default function VolunteerSettings() {
   }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
 
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
+  const [expandedMasters, setExpandedMasters] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     loadData();
@@ -89,13 +90,15 @@ export default function VolunteerSettings() {
     try {
       if (masterDialog.id) {
         await updateVolunteerMasterRole(masterDialog.id, masterDialog.name);
+        setMasterRoles(prev => prev.map(m => (m.id === masterDialog.id ? { ...m, name: masterDialog.name } : m)));
         handleSnack('Master role updated');
       } else {
-        await createVolunteerMasterRole(masterDialog.name);
+        const newRole = await createVolunteerMasterRole(masterDialog.name);
+        setMasterRoles(prev => [...prev, newRole]);
+        setExpandedMasters(prev => ({ ...prev, [newRole.id]: true }));
         handleSnack('Master role created');
       }
       setMasterDialog({ open: false, name: '' });
-      loadData();
     } catch (e) {
       handleSnack('Failed to save master role', 'error');
     }
@@ -227,7 +230,13 @@ export default function VolunteerSettings() {
         <Grid container spacing={2}>
           {masterRoles.map(master => (
             <Grid item xs={12} key={master.id}>
-              <Accordion sx={{ width: '100%' }}>
+              <Accordion
+                expanded={!!expandedMasters[master.id]}
+                onChange={(_e, isExpanded) =>
+                  setExpandedMasters(prev => ({ ...prev, [master.id]: isExpanded }))
+                }
+                sx={{ width: '100%' }}
+              >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
                   <Stack direction="row" spacing={1}>
