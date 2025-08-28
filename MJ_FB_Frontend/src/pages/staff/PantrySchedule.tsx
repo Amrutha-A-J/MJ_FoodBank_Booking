@@ -7,7 +7,7 @@ import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
 import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { Button, type AlertColor, useTheme, IconButton } from '@mui/material';
+import { Button, Link, type AlertColor, useTheme, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
