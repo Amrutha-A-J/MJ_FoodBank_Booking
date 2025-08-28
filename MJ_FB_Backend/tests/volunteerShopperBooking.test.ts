@@ -101,7 +101,11 @@ describe('volunteer acting as shopper', () => {
       .send({ slotId: 1, date: today });
 
     expect(res.status).toBe(201);
-    expect(bookingUtils.countApprovedBookingsForMonth).toHaveBeenCalledWith(10, today);
+    expect(bookingUtils.countApprovedBookingsForMonth).toHaveBeenCalledWith(
+      10,
+      today,
+      expect.anything(),
+    );
     expect((bookingRepository.insertBooking as jest.Mock).mock.calls[0][0]).toBe(10);
   });
 

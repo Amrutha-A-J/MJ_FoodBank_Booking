@@ -44,11 +44,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    const approvedCount = await countApprovedBookingsForMonth(userId, date);
-    if (approvedCount >= 2) {
-      return res.status(400).json({ message: LIMIT_MESSAGE });
-    }
-
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
       return res
@@ -61,6 +56,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const status = isStaffBooking ? 'approved' : 'submitted';
     try {
       await client.query('BEGIN');
+      const approvedCount = await countApprovedBookingsForMonth(userId, date, client);
+      if (approvedCount >= 2) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res.status(400).json({ message: LIMIT_MESSAGE });
+      }
       await checkSlotCapacity(slotIdNum, date, client);
       token = randomUUID();
       await insertBooking(
@@ -376,31 +377,42 @@ export async function createBookingForUser(
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
-    const approvedCount = await countApprovedBookingsForMonth(userId, date);
-    if (approvedCount >= 2) {
-      return res.status(400).json({ message: LIMIT_MESSAGE });
-    }
-
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
       return res
         .status(409)
         .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
     }
-
-    await checkSlotCapacity(slotIdNum, date);
+    const client = await pool.connect();
     const status = staffBookingFlag ? 'approved' : 'submitted';
     const token = randomUUID();
-
-    await insertBooking(
-      userId,
-      slotIdNum,
-      status,
-      '',
-      date,
-      staffBookingFlag,
-      token,
-    );
+    try {
+      await client.query('BEGIN');
+      const approvedCount = await countApprovedBookingsForMonth(userId, date, client);
+      if (approvedCount >= 2) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res.status(400).json({ message: LIMIT_MESSAGE });
+      }
+      await checkSlotCapacity(slotIdNum, date, client);
+      await insertBooking(
+        userId,
+        slotIdNum,
+        status,
+        '',
+        date,
+        staffBookingFlag,
+        token,
+        client,
+      );
+      await client.query('COMMIT');
+    } catch (error: any) {
+      await client.query('ROLLBACK');
+      client.release();
+      logger.error('Error creating booking for user:', error);
+      return next(error);
+    }
+    client.release();
     res
       .status(201)
       .json({ message: 'Booking created for user', rescheduleToken: token });
