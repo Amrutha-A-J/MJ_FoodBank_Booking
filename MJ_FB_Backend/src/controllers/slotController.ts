@@ -15,59 +15,50 @@ async function getSlotsForDate(date: string): Promise<Slot[]> {
 
   // Closed on weekends
   if (day === 0 || day === 6) return [];
+  const slotsQuery =
+    day === 3
+      ? `SELECT id, start_time, end_time, max_capacity
+           FROM slots
+           WHERE start_time >= '09:30:00'
+             AND start_time <= '18:30:00'
+             AND start_time NOT IN ('12:00:00','12:30:00','15:30:00')
+           ORDER BY start_time`
+      : `SELECT id, start_time, end_time, max_capacity
+           FROM slots
+           WHERE start_time >= '09:30:00'
+             AND start_time <= '14:30:00'
+             AND start_time NOT IN ('12:00:00','12:30:00')
+           ORDER BY start_time`;
+  const { rows: slots } = await pool.query(slotsQuery);
 
-  const slotsResult = await pool.query('SELECT * FROM slots');
-  let slots = slotsResult.rows;
-
-  if (day !== 3) {
-    // Weekdays except Wednesday: exclude 12:00, 12:30 slots, show from 9:30 to 14:30
-    slots = slots.filter(
-      s =>
-        s.start_time >= '09:30:00' &&
-        s.start_time <= '14:30:00' &&
-        s.start_time !== '12:00:00' &&
-        s.start_time !== '12:30:00',
-    );
-  } else {
-    // Wednesday: exclude 12:00, 12:30, 15:30 slots, show from 9:30 to 18:30
-    slots = slots.filter(
-      s =>
-        s.start_time >= '09:30:00' &&
-        s.start_time <= '18:30:00' &&
-        s.start_time !== '12:00:00' &&
-        s.start_time !== '12:30:00' &&
-        s.start_time !== '15:30:00',
-    );
-  }
-
-  const blockedResult = await pool.query(
-    'SELECT slot_id, reason FROM blocked_slots WHERE date = $1',
-    [reginaDate],
-  );
-  const recurringBlockedResult = await pool.query(
-    'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
-    [day, weekOfMonth],
-  );
+  const [blockedResult, recurringBlockedResult, breakResult, bookingsResult] =
+    await Promise.all([
+      pool.query('SELECT slot_id, reason FROM blocked_slots WHERE date = $1', [
+        reginaDate,
+      ]),
+      pool.query(
+        'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
+        [day, weekOfMonth],
+      ),
+      pool.query('SELECT slot_id, reason FROM breaks WHERE day_of_week = $1', [
+        day,
+      ]),
+      pool.query(
+        `SELECT slot_id, COUNT(*) AS approved_count
+           FROM bookings
+           WHERE status = 'approved' AND date = $1
+           GROUP BY slot_id`,
+        [reginaDate],
+      ),
+    ]);
   const blockedMap = new Map<number, string>(
     [...recurringBlockedResult.rows, ...blockedResult.rows].map(r => [
       Number(r.slot_id),
       r.reason || '',
     ]),
   );
-  const breakResult = await pool.query(
-    'SELECT slot_id, reason FROM breaks WHERE day_of_week = $1',
-    [day],
-  );
   const breakMap = new Map<number, string>(
     breakResult.rows.map(r => [Number(r.slot_id), r.reason || '']),
-  );
-
-  const bookingsResult = await pool.query(
-    `SELECT slot_id, COUNT(*) AS approved_count
-       FROM bookings
-       WHERE status = 'approved' AND date = $1
-       GROUP BY slot_id`,
-    [reginaDate],
   );
 
   const approvedMap: Record<string, number> = {};
