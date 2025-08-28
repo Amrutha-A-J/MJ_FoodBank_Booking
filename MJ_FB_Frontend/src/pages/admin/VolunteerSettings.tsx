@@ -40,22 +40,31 @@ import type { VolunteerRoleWithShifts } from '../../types';
 
 type MasterRole = { id: number; name: string };
 
+interface RoleDialogState {
+  open: boolean;
+  slotId?: number;
+  roleName: string;
+  startTime: string;
+  endTime: string;
+  maxVolunteers: string;
+  categoryId?: number;
+  isWednesdaySlot: boolean;
+}
+
 export default function VolunteerSettings() {
   const [masterRoles, setMasterRoles] = useState<MasterRole[]>([]);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const [masterDialog, setMasterDialog] = useState<{ open: boolean; id?: number; name: string }>({ open: false, name: '' });
-  const [roleDialog, setRoleDialog] = useState<{
-    open: boolean;
-    slotId?: number;
-    roleName: string;
-    startTime: string;
-    endTime: string;
-    maxVolunteers: string;
-    categoryId?: number;
-    isWednesdaySlot: boolean;
-  }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
+  const [roleDialog, setRoleDialog] = useState<RoleDialogState>({
+    open: false,
+    roleName: '',
+    startTime: '',
+    endTime: '',
+    maxVolunteers: '1',
+    isWednesdaySlot: false,
+  });
 
   useEffect(() => {
     loadData();
@@ -108,22 +117,22 @@ export default function VolunteerSettings() {
     }
   }
 
-  function openRoleDialog(init: Partial<typeof roleDialog>) {
+  function openRoleDialog(categoryId: number, init?: Partial<RoleDialogState>) {
     setRoleDialog({
       open: true,
-      slotId: init.slotId,
-      roleName: init.roleName || '',
-      startTime: init.startTime || '',
-      endTime: init.endTime || '',
-      maxVolunteers: init.maxVolunteers?.toString() || '1',
-      categoryId: init.categoryId,
-      isWednesdaySlot: init.isWednesdaySlot || false,
+      slotId: init?.slotId,
+      roleName: init?.roleName || '',
+      startTime: init?.startTime || '',
+      endTime: init?.endTime || '',
+      maxVolunteers: init?.maxVolunteers || '1',
+      categoryId,
+      isWednesdaySlot: init?.isWednesdaySlot || false,
     });
   }
 
   async function saveRole() {
     try {
-      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime || !roleDialog.categoryId) {
+      if (!roleDialog.roleName || !roleDialog.startTime || !roleDialog.endTime) {
         handleSnack('All fields are required', 'error');
         return;
       }
@@ -134,7 +143,7 @@ export default function VolunteerSettings() {
           startTime: roleDialog.startTime,
           endTime: roleDialog.endTime,
           maxVolunteers,
-          categoryId: roleDialog.categoryId,
+          categoryId: roleDialog.categoryId!,
           isWednesdaySlot: roleDialog.isWednesdaySlot,
         });
         handleSnack('Role updated');
@@ -144,7 +153,7 @@ export default function VolunteerSettings() {
           roleDialog.startTime,
           roleDialog.endTime,
           maxVolunteers,
-          roleDialog.categoryId,
+          roleDialog.categoryId!,
           roleDialog.isWednesdaySlot,
           true,
         );
@@ -222,7 +231,7 @@ export default function VolunteerSettings() {
                             size="small"
                             variant="outlined"
                             startIcon={<AddIcon />}
-                            onClick={() => openRoleDialog({ roleName: role.name, categoryId: master.id })}
+                            onClick={() => openRoleDialog(master.id, { roleName: role.name })}
                           >
                             Add Shift
                           </Button>
@@ -245,13 +254,12 @@ export default function VolunteerSettings() {
                               <IconButton
                                 aria-label="edit"
                                 onClick={() =>
-                                  openRoleDialog({
+                                  openRoleDialog(master.id, {
                                     slotId: shift.id,
                                     roleName: role.name,
                                     startTime: shift.start_time,
                                     endTime: shift.end_time,
                                     maxVolunteers: role.max_volunteers.toString(),
-                                    categoryId: master.id,
                                     isWednesdaySlot: shift.is_wednesday_slot,
                                   })
                                 }
@@ -276,7 +284,7 @@ export default function VolunteerSettings() {
                     size="small"
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => openRoleDialog({ categoryId: master.id })}
+                    onClick={() => openRoleDialog(master.id)}
                   >
                     Add Sub-role
                   </Button>
@@ -352,14 +360,6 @@ export default function VolunteerSettings() {
             type="number"
             value={roleDialog.maxVolunteers}
             onChange={e => setRoleDialog({ ...roleDialog, maxVolunteers: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Category ID"
-            fullWidth
-            type="number"
-            value={roleDialog.categoryId ?? ''}
-            onChange={e => setRoleDialog({ ...roleDialog, categoryId: Number(e.target.value) })}
           />
         </DialogContent>
         <DialogActions>
