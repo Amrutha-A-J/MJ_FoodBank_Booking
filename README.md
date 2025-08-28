@@ -15,6 +15,8 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
+- Staff can record visits directly from booking management using the `ManageBookingDialog`,
+  capturing cart weights and marking bookings as visited.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).

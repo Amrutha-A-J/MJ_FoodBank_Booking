@@ -286,3 +286,11 @@ export async function rescheduleBookingByToken(
   await handleResponse(res);
 }
 
+
+export async function markBookingVisited(bookingId: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/visit`, {
+    method: 'POST',
+  });
+  await handleResponse(res);
+}
+

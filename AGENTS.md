@@ -33,6 +33,7 @@
 - Use Zod schemas for validation and keep TypeScript types in sync.
 - In the frontend, favor composition of reusable components and keep pages focused on layout and data flow.
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
+- Booking visits may be recorded directly from booking management via `ManageBookingDialog`; tests should cover this flow.
 - Document new environment variables in the repository README and `.env.example` files.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table and are editable via the Admin → App Configurations page. Fetch these values from the backend rather than hard-coding or using environment variables.
