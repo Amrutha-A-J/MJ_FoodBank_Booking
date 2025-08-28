@@ -30,6 +30,7 @@ interface Booking {
   bookings_this_month: number;
   is_staff_booking: boolean;
   reschedule_token: string;
+  profile_link: string;
 }
 
 interface User {
