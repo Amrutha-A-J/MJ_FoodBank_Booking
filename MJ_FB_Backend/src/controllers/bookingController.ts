@@ -29,13 +29,17 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   const { slotId, date, isStaffBooking } = req.body;
-  if (!slotId || !date) {
-    return res.status(400).json({ message: 'Please select a time slot and date' });
+  if (slotId === undefined || slotId === null) {
+    return res.status(400).json({ message: 'Please select a time slot' });
   }
 
   const slotIdNum = Number(slotId);
-  if (Number.isNaN(slotIdNum)) {
+  if (!Number.isInteger(slotIdNum)) {
     return res.status(400).json({ message: 'Please select a valid time slot' });
+  }
+
+  if (!date) {
+    return res.status(400).json({ message: 'Please select a date' });
   }
 
   try {
