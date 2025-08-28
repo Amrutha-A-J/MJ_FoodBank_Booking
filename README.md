@@ -82,8 +82,16 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 
 ### Agency setup
 
-1. **Create an agency** – hash a password and insert a row into the
-   `agencies` table. For example:
+1. **Create an agency** – as staff, call `POST /agencies` with the agency details:
+
+   ```bash
+   curl -X POST http://localhost:4000/agencies \
+     -H "Authorization: Bearer <staff-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Sample Agency","email":"agency@example.com","password":"Secret123!","contactInfo":"123-4567"}'
+   ```
+
+   The endpoint hashes the password and returns the new agency ID. You can also create one directly in SQL if needed:
 
    ```bash
    node -e "console.log(require('bcrypt').hashSync('secret123', 10))"

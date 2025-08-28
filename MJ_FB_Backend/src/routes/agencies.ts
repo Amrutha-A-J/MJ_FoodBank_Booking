@@ -4,9 +4,12 @@ import {
   addClientToAgency,
   removeClientFromAgency,
   getAgencyClients,
+  createAgency,
 } from '../controllers/agencyController';
 
 const router = Router();
+
+router.post('/', authMiddleware, authorizeRoles('staff'), createAgency);
 
 router.get(
   '/:id/clients',

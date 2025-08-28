@@ -21,6 +21,7 @@ const ClientManagement = React.lazy(() =>
 const AgencyClientManager = React.lazy(() =>
   import('./pages/staff/AgencyClientManager')
 );
+const AddAgency = React.lazy(() => import('./pages/staff/AddAgency'));
 const BookingUI = React.lazy(() => import('./pages/BookingUI'));
 const PantrySchedule = React.lazy(() =>
   import('./pages/staff/PantrySchedule')
@@ -139,6 +140,7 @@ export default function App() {
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
+      { label: 'Add Agency', to: '/pantry/add-agency' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -352,6 +354,9 @@ export default function App() {
                   path="/pantry/agency-management"
                   element={<AgencyClientManager />}
                 />
+              )}
+              {showStaff && (
+                <Route path="/pantry/add-agency" element={<AddAgency />} />
               )}
               {isStaff && <Route path="/events" element={<Events />} />}
               {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
