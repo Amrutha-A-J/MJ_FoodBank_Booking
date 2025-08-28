@@ -1,12 +1,9 @@
+import writeXlsxFile from 'write-excel-file';
+
 export function exportTableToExcel(table: HTMLTableElement, filename: string) {
-  const html = table.outerHTML;
-  const blob = new Blob(['\ufeff', html], { type: 'application/vnd.ms-excel' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${filename}.xls`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  const data = Array.from(table.rows).map((row) =>
+    Array.from(row.cells).map((cell) => ({ value: cell.textContent || '' }))
+  );
+
+  void writeXlsxFile(data, { fileName: `${filename}.xlsx` });
 }
