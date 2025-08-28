@@ -41,7 +41,7 @@ describe('PantrySchedule status colors', () => {
 
   it('renders cells with colors for each status', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '09:00:00', endTime: '10:00:00' },
+      { id: '1', startTime: '09:00:00', endTime: '10:00:00', maxCapacity: 4 },
     ]);
     (getBookings as jest.Mock).mockResolvedValue([
       { id: 1, status: 'approved', date: '2024-01-01', slot_id: 1, user_name: 'App', user_id: 1, client_id: 1, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },

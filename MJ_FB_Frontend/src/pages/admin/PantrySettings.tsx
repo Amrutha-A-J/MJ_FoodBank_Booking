@@ -11,11 +11,13 @@ import {
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { getAllSlots, updateSlot } from '../../api/slots';
+import { getAllSlots, updateSlotCapacity } from '../../api/slots';
 import type { Slot } from '../../types';
+import { formatTime } from '../../utils/time';
 
 export default function PantrySettings() {
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [maxCapacity, setMaxCapacity] = useState<number>(0);
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: AlertColor } | null
   >(null);
@@ -24,6 +26,7 @@ export default function PantrySettings() {
     try {
       const data = await getAllSlots();
       setSlots(data);
+      setMaxCapacity(data[0]?.maxCapacity ?? 0);
     } catch {
       setSnackbar({ message: 'Failed to load slots', severity: 'error' });
     }
@@ -33,24 +36,14 @@ export default function PantrySettings() {
     load();
   }, []);
 
-  const handleChange = (id: string, value: string) => {
-    setSlots(prev =>
-      prev.map(s => (s.id === id ? { ...s, maxCapacity: Number(value) } : s)),
-    );
-  };
-
-  const handleSave = async (slot: Slot) => {
+  const handleSave = async () => {
     try {
-      await updateSlot(slot.id, {
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        maxCapacity: Number(slot.maxCapacity) || 0,
-      });
-      setSnackbar({ message: 'Slot updated', severity: 'success' });
+      await updateSlotCapacity(Number(maxCapacity) || 0);
+      setSnackbar({ message: 'Capacity updated', severity: 'success' });
       load();
     } catch (err: any) {
       setSnackbar({
-        message: err.message || 'Failed to update slot',
+        message: err.message || 'Failed to update capacity',
         severity: 'error',
       });
     }
@@ -59,35 +52,33 @@ export default function PantrySettings() {
   return (
     <Page title="Pantry Settings">
       <Grid container spacing={2} p={2}>
-        {slots.map(slot => (
-          <Grid item xs={12} md={6} key={slot.id}>
-            <Card>
-              <CardHeader title={`${slot.startTime} - ${slot.endTime}`} />
-              <CardContent>
-                <TextField
-                  label="Max Capacity"
-                  type="number"
-                  size="small"
-                  value={slot.maxCapacity ?? ''}
-                  onChange={e => handleChange(slot.id, e.target.value)}
-                />
-                <Button
-                  size="small"
-                  sx={{ ml: 2 }}
-                  variant="contained"
-                  onClick={() => handleSave(slot)}
-                >
-                  Save
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {slots.length === 0 && (
-          <Grid item xs={12}>
-            <Typography>No slots found.</Typography>
-          </Grid>
-        )}
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader title="Pantry Slots" />
+            <CardContent>
+              <Typography gutterBottom>
+                {slots
+                  .map(s => `${formatTime(s.startTime)} - ${formatTime(s.endTime)}`)
+                  .join(', ')}
+              </Typography>
+              <TextField
+                label="Max slots per time"
+                type="number"
+                size="small"
+                value={maxCapacity}
+                onChange={e => setMaxCapacity(Number(e.target.value))}
+              />
+              <Button
+                size="small"
+                sx={{ ml: 2 }}
+                variant="contained"
+                onClick={handleSave}
+              >
+                Save
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
       <FeedbackSnackbar
         open={!!snackbar}
@@ -98,3 +89,4 @@ export default function PantrySettings() {
     </Page>
   );
 }
+

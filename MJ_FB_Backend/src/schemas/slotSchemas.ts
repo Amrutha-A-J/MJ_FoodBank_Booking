@@ -10,5 +10,9 @@ export const slotIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+export const slotCapacitySchema = z.object({
+  maxCapacity: z.coerce.number().int().positive(),
+});
+
 export type SlotInput = z.infer<typeof slotSchema>;
 export type SlotIdParams = z.infer<typeof slotIdParamSchema>;

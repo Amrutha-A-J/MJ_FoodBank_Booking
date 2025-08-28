@@ -17,6 +17,8 @@ interface SlotResponse {
   available: number;
   reason?: string;
   status?: string;
+  max_capacity?: number;
+  maxCapacity?: number;
 }
 
 interface SlotsByDateResponse {
@@ -38,6 +40,7 @@ const mapSlot = (s: SlotResponse): Slot => ({
   available: s.available,
   reason: s.reason,
   status: s.status,
+  maxCapacity: s.maxCapacity ?? s.max_capacity,
 });
 
 export async function getSlots(date?: string, includePast = false) {

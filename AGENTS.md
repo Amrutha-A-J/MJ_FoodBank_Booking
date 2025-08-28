@@ -24,7 +24,7 @@
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
-- Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
+- Staff can create, update, or delete slots and adjust a global capacity via `/slots` routes. `PUT /slots/capacity` updates all slot capacities at once.
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
@@ -131,7 +131,7 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
 - `BookingUI` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
 - Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API.
-- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to four shoppers across Slot 1–Slot 4, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and manage existing bookings.
+- `PantrySchedule` shows daily pantry availability with holidays, blocked slots, and breaks rendered as non bookable times. Each time block supports up to the slot's `maxCapacity`, displaying how many bookings exist per slot. Staff can book appointments for walk-ins and manage existing bookings.
 - Volunteers view role-specific schedules and request, cancel, or reschedule bookings through `VolunteerSchedule`. Gardening and special events shifts remain bookable on holidays and weekends, while pantry, warehouse, and administrative roles are disabled when a holiday is set.
 
 ## Booking Workflow
@@ -217,6 +217,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 ### Slots
 - `GET /slots?date=YYYY-MM-DD` → `[ { id, startTime, endTime, maxCapacity, available } ]`
 - `GET /slots/all` → `[ { id, startTime, endTime, maxCapacity } ]`
+- `PUT /slots/capacity` `{ maxCapacity }` → `{ message: 'Capacity updated' }`
 
 ### Bookings
 - `POST /bookings` → `{ message: 'Booking created', bookingsThisMonth, rescheduleToken }`

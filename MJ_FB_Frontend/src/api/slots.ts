@@ -31,6 +31,15 @@ export async function updateSlot(
   return handleResponse(res);
 }
 
+export async function updateSlotCapacity(newCapacity: number) {
+  const res = await apiFetch(`${API_BASE}/slots/capacity`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ maxCapacity: newCapacity }),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteSlot(id: number | string) {
   const res = await apiFetch(`${API_BASE}/slots/${id}`, {
     method: 'DELETE',
