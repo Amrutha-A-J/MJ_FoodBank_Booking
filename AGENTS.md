@@ -15,6 +15,8 @@
   lifetime volunteer hours, hours served in the current month, total completed shifts,
   and the current consecutive-week streak. It includes a `milestone` flag when total
   shifts reach 5, 10, or 25 so the frontend can display a celebration banner.
+  The response also includes `milestoneText`, `familiesServed`, and `poundsHandled`
+  so the dashboard can show appreciation messages.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 
@@ -22,6 +24,7 @@
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
 - Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
 - Users see a random appreciation message on login.
+- The volunteer dashboard rotates encouragement messages when no milestone is reached.
 
 ## Project Layout
 

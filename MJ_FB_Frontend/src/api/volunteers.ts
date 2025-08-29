@@ -410,6 +410,9 @@ export interface VolunteerStats {
   totalShifts: number;
   currentStreak: number;
   milestone: number | null;
+  milestoneText: string | null;
+  familiesServed: number;
+  poundsHandled: number;
 }
 
 export async function getVolunteerStats(): Promise<VolunteerStats> {

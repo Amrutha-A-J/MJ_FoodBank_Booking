@@ -136,6 +136,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('access', JSON.stringify(u.access || []));
       if (u.id) localStorage.setItem('id', String(u.id));
       else localStorage.removeItem('id');
+      localStorage.removeItem('encouragementOrder');
+      localStorage.removeItem('encouragementIndex');
       setSessionMessage(getRandomAppreciation());
       try {
         const statsRes = await apiFetch(`${API_BASE}/stats`);
