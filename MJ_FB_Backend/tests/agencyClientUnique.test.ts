@@ -34,7 +34,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(err.status || 500).json({ message: err.message, agencyName: err.agencyName });
 });
 
-describe('POST /agencies/:id/clients', () => {
+describe('POST /agencies/add-client', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -44,8 +44,8 @@ describe('POST /agencies/:id/clients', () => {
     (getAgencyForClient as jest.Mock).mockResolvedValue({ id: 2, name: 'Existing Agency' });
 
     const res = await request(app)
-      .post('/agencies/1/clients')
-      .send({ clientId: 5 });
+      .post('/agencies/add-client')
+      .send({ agencyId: 1, clientId: 5 });
 
     expect(res.status).toBe(409);
     expect(res.body).toEqual({
@@ -59,8 +59,8 @@ describe('POST /agencies/:id/clients', () => {
     (clientExists as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app)
-      .post('/agencies/1/clients')
-      .send({ clientId: 999 });
+      .post('/agencies/add-client')
+      .send({ agencyId: 1, clientId: 999 });
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ message: 'Client not found' });

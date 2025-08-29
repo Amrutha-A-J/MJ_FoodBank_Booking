@@ -72,25 +72,27 @@ export async function addClientToAgency(
     if (!req.user || (req.user.role !== 'staff' && req.user.role !== 'agency')) {
       return res.status(403).json({ message: 'Forbidden' });
     }
-    const requestedId = req.params.id;
-    const paramId =
-      requestedId === 'me' ? Number(req.user?.id) : Number(requestedId);
-    const agencyId = req.user.role === 'agency' ? Number(req.user.id) : paramId;
+    const requestedAgencyId = req.body.agencyId;
+    const bodyId =
+      requestedAgencyId === 'me'
+        ? Number(req.user?.id)
+        : Number(requestedAgencyId);
+    const agencyId = req.user.role === 'agency' ? Number(req.user.id) : bodyId;
     const clientId = Number(req.body.clientId);
-    if (!agencyId || !clientId) {
+    if (!bodyId || !clientId) {
       return res.status(400).json({ message: 'Missing fields' });
     }
-      if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
-        return res.status(403).json({ message: 'Forbidden' });
-      }
-      if (!(await clientExists(clientId))) {
-        return res.status(404).json({ message: 'Client not found' });
-      }
-      const existing = await getAgencyForClient(clientId);
-      if (existing) {
-        return res.status(409).json({
-          message: `Client already associated with ${existing.name}`,
-          agencyName: existing.name,
+    if (req.user.role === 'agency' && agencyId !== bodyId) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    if (!(await clientExists(clientId))) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+    const existing = await getAgencyForClient(clientId);
+    if (existing) {
+      return res.status(409).json({
+        message: `Client already associated with ${existing.name}`,
+        agencyName: existing.name,
       });
     }
     await addAgencyClient(agencyId, clientId);
