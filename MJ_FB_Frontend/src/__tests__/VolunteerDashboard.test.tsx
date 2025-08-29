@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerDashboard from '../pages/volunteer-management/VolunteerDashboard';
 import {
@@ -287,7 +287,7 @@ beforeEach(() => {
     expect(screen.getByText('2 weeks')).toBeInTheDocument();
   });
 
-  it('shows leaderboard percentile', async () => {
+  it('shows leaderboard percentile in My Stats card', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
@@ -300,8 +300,11 @@ beforeEach(() => {
       </MemoryRouter>,
     );
 
+    const myStatsHeader = await screen.findByText('My Stats');
+    const card = myStatsHeader.closest('.MuiCard-root');
+    expect(card).not.toBeNull();
     expect(
-      await screen.findByText("You're in the top 75%!")
+      within(card as HTMLElement).getByText("You're in the top 75%!")
     ).toBeInTheDocument();
   });
 
