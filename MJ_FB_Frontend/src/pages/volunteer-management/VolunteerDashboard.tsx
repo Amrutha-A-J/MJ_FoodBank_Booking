@@ -132,7 +132,7 @@ export default function VolunteerDashboard() {
       s =>
         !activeBookings.some(
           b =>
-            b.role_id === s.role_id &&
+            b.role_id === s.id &&
             b.date === s.date &&
             b.start_time === s.start_time &&
             b.end_time === s.end_time,
@@ -151,11 +151,19 @@ export default function VolunteerDashboard() {
 
   async function request(role: VolunteerRole) {
     try {
-      await requestVolunteerBooking(role.id, role.date);
+      const booking = await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
       setMessage('Request submitted');
-      const data = await getMyVolunteerBookings();
-      setBookings(data);
+      setBookings(prev => [
+        ...prev,
+        {
+          ...booking,
+          role_name: role.name,
+          start_time: role.start_time,
+          end_time: role.end_time,
+          category_name: role.category_name,
+        },
+      ]);
     } catch (e: unknown) {
       setSnackbarSeverity('error');
       if (typeof e === 'object' && e && 'message' in e) {

@@ -65,7 +65,7 @@ export async function getVolunteerRolesForVolunteer(
 export async function requestVolunteerBooking(
   roleId: number,
   date: string
-): Promise<void> {
+): Promise<VolunteerBooking> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
@@ -73,7 +73,8 @@ export async function requestVolunteerBooking(
     },
     body: JSON.stringify({ roleId, date }),
   });
-  await handleResponse(res);
+  const data = await handleResponse(res);
+  return normalizeVolunteerBooking(data);
 }
 
 export async function createRecurringVolunteerBooking(
