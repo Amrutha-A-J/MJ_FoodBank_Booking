@@ -32,6 +32,8 @@ describe('Volunteer group stats', () => {
           month_goal: '80',
           total_lbs: '2000',
           week_lbs: '500',
+          month_lbs: '1500',
+          month_families: '75',
         },
       ],
     });
@@ -43,6 +45,8 @@ describe('Volunteer group stats', () => {
       monthHoursGoal: 80,
       totalLbs: 2000,
       weekLbs: 500,
+      monthLbs: 1500,
+      monthFamilies: 75,
     });
     const query = (pool.query as jest.Mock).mock.calls[0][0];
     expect(query).toContain('volunteer_bookings');

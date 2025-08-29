@@ -37,6 +37,7 @@ export default function VolunteerGroupStatsCard() {
           <Typography fontWeight="bold">{HIGHLIGHT_OF_MONTH}</Typography>
         )}
         <Typography>{`Volunteers distributed ${stats.weekLbs} lbs this week`}</Typography>
+        <Typography>{`Served ${stats.monthFamilies} families this month`}</Typography>
         <Box
           display="flex"
           flexDirection="column"
