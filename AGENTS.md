@@ -26,6 +26,7 @@
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
+- Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
 - `PUT /slots/capacity` updates the `max_capacity` for all slots.
 
