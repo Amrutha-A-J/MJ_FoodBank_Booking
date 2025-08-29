@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -71,7 +71,21 @@ export default function VolunteerSettings() {
   const [expanded, setExpanded] = useState<number | false>(false);
   const [restoreDialog, setRestoreDialog] = useState(false);
 
-  const loadData = useCallback(async (newId?: number) => {
+  const rolesByCategory = useMemo(() => {
+    const map = new Map<number, VolunteerRoleWithShifts[]>();
+    roles.forEach(role => {
+      const arr = map.get(role.category_id);
+      if (arr) arr.push(role);
+      else map.set(role.category_id, [role]);
+    });
+    return map;
+  }, [roles]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData(newId?: number) {
     try {
       const [master, roleData] = await Promise.all([
         getVolunteerMasterRoles(),
@@ -417,7 +431,7 @@ export default function VolunteerSettings() {
                     Add Sub-role
                   </Button>
                 </Box>
-                {roles.filter(r => r.category_id === master.id).map(role => (
+                {(rolesByCategory.get(master.id) || []).map(role => (
                   <Box key={role.id} mb={2}>
                     <Grid container alignItems="center" spacing={1}>
                       <Grid item xs>
