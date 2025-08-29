@@ -22,7 +22,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-  getVolunteerBadges,
+  getVolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -58,6 +58,13 @@ export default function VolunteerDashboard() {
   const [badges, setBadges] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const encouragements = useMemo(
+    () =>
+      ['Thanks for helping today!', 'Your time makes a difference!', 'We appreciate your support!'].sort(
+        () => Math.random() - 0.5,
+      ),
+    [],
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,8 +78,13 @@ export default function VolunteerDashboard() {
   }, []);
 
   useEffect(() => {
-    getVolunteerBadges()
-      .then(setBadges)
+    getVolunteerStats()
+      .then(data => {
+        setBadges(data.badges);
+        const msg = data.message || encouragements[0];
+        setMessage(msg);
+        setSnackbarSeverity('info');
+      })
       .catch(() => setBadges([]));
   }, []);
 

@@ -6,7 +6,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-  getVolunteerBadges,
+  getVolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -15,7 +15,7 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
-  getVolunteerBadges: jest.fn(),
+  getVolunteerStats: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
@@ -37,7 +37,12 @@ describe('VolunteerDashboard', () => {
       upcoming: [],
       past: [],
     });
-    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      familiesServed: 0,
+      poundsHandled: 0,
+      message: null,
+    });
 
     render(
       <MemoryRouter>
@@ -80,7 +85,12 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      familiesServed: 0,
+      poundsHandled: 0,
+      message: null,
+    });
 
     render(
       <MemoryRouter>
@@ -152,7 +162,12 @@ describe('VolunteerDashboard', () => {
     (requestVolunteerBooking as jest.Mock).mockRejectedValue(
       new Error('Already booked for this shift'),
     );
-    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      familiesServed: 0,
+      poundsHandled: 0,
+      message: null,
+    });
 
     render(
       <MemoryRouter>
@@ -186,7 +201,12 @@ describe('VolunteerDashboard', () => {
     ]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      familiesServed: 0,
+      poundsHandled: 0,
+      message: null,
+    });
 
     render(
       <MemoryRouter>
@@ -205,8 +225,12 @@ describe('VolunteerDashboard', () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerBadges as jest.Mock).mockResolvedValue(['early-bird']);
-
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: ['early-bird'],
+      familiesServed: 0,
+      poundsHandled: 0,
+      message: null,
+    });
     render(
       <MemoryRouter>
         <VolunteerDashboard />
@@ -214,5 +238,25 @@ describe('VolunteerDashboard', () => {
     );
 
     expect(await screen.findByText('early-bird')).toBeInTheDocument();
+  });
+
+  it('shows appreciation message from stats', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      familiesServed: 5,
+      poundsHandled: 150,
+      message: 'Great job!',
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Great job!')).toBeInTheDocument();
   });
 });

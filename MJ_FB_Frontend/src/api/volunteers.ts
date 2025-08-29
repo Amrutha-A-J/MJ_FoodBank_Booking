@@ -403,10 +403,22 @@ export async function removeVolunteerShopperProfile(
   await handleResponse(res);
 }
 
-export async function getVolunteerBadges(): Promise<string[]> {
+export interface VolunteerStats {
+  badges: string[];
+  familiesServed: number;
+  poundsHandled: number;
+  message: string | null;
+}
+
+export async function getVolunteerStats(): Promise<VolunteerStats> {
   const res = await apiFetch(`${API_BASE}/volunteers/me/stats`);
   const data = await handleResponse(res);
-  return data.badges ?? [];
+  return {
+    badges: data.badges ?? [],
+    familiesServed: data.familiesServed ?? 0,
+    poundsHandled: data.poundsHandled ?? 0,
+    message: data.message ?? null,
+  };
 }
 
 export async function awardVolunteerBadge(badgeCode: string): Promise<void> {

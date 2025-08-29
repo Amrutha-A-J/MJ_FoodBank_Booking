@@ -373,9 +373,22 @@ export async function getVolunteerStats(
        WHERE volunteer_id = $1 AND status = 'approved'`,
       [user.id],
     );
-    if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
+    const bookingCount = Number(heavyRes.rows[0].count);
+    if (bookingCount >= 10) badges.add('heavy-lifter');
 
-    res.json({ badges: Array.from(badges) });
+    const familiesServed = bookingCount;
+    const poundsHandled = bookingCount * 30;
+    let message: string | null = null;
+    if (bookingCount > 0 && bookingCount % 10 === 0) {
+      message = `You’ve helped serve ${familiesServed} families and handled ${poundsHandled} lbs of food!`;
+    }
+
+    res.json({
+      badges: Array.from(badges),
+      familiesServed,
+      poundsHandled,
+      message,
+    });
   } catch (error) {
     logger.error('Error fetching volunteer stats:', error);
     next(error);
