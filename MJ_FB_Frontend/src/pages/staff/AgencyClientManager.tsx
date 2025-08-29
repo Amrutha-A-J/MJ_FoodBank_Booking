@@ -11,6 +11,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card,
+  CardContent,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EntitySearch from '../../components/EntitySearch';
@@ -105,64 +107,76 @@ export default function AgencyClientManager() {
   };
   return (
     <>
-      <Typography variant="h5" gutterBottom>
-        Select Agency
-      </Typography>
-      <EntitySearch
-        type="agency"
-        placeholder="Search agencies"
-        onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
-      />
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="h5" gutterBottom>
+            Select Agency
+          </Typography>
+          <EntitySearch
+            type="agency"
+            placeholder="Search agencies"
+            onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
+          />
+        </CardContent>
+      </Card>
       {agency && (
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="h5" gutterBottom>
-              Search Clients
-            </Typography>
-            <EntitySearch
-              type="user"
-              placeholder="Search clients"
-              onSelect={() => {}}
-              renderResult={(u, select) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span>{`${u.name} (${u.client_id})`}</span>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    onClick={() => {
-                      handleAdd(u);
-                      select();
-                    }}
-                  >
-                    Add
-                  </Button>
-                </div>
-              )}
-            />
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  Search Clients
+                </Typography>
+                <EntitySearch
+                  type="user"
+                  placeholder="Search clients"
+                  onSelect={() => {}}
+                  renderResult={(u, select) => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>{`${u.name} (${u.client_id})`}</span>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => {
+                          handleAdd(u);
+                          select();
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                />
+              </CardContent>
+            </Card>
           </Grid>
-          <Grid item xs={12} md={8}>
-            <Typography variant="h6" gutterBottom>
-              Clients for {agency.name}
-            </Typography>
-            <List dense>
-              {clients.map(c => (
-                <ListItem
-                  key={c.id}
-                  secondaryAction={
-                    <IconButton
-                      edge="end"
-                      aria-label="remove"
-                      onClick={() => handleRemove(c.id)}
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Clients for {agency.name}
+                </Typography>
+                <List dense>
+                  {clients.map(c => (
+                    <ListItem
+                      key={c.id}
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          aria-label="remove"
+                          onClick={() => handleRemove(c.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      }
                     >
-                      <DeleteIcon />
-                    </IconButton>
-                  }
-                >
-                  <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
-                </ListItem>
-              ))}
-              {clients.length === 0 && <Typography>No clients assigned.</Typography>}
-            </List>
+                      <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
+                    </ListItem>
+                  ))}
+                  {clients.length === 0 && <Typography>No clients assigned.</Typography>}
+                </List>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       )}
