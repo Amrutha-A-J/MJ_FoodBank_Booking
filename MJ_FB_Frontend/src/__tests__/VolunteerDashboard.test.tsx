@@ -381,4 +381,60 @@ beforeEach(() => {
     ).toBeInTheDocument();
     rand.mockRestore();
   });
+
+  it('renders personal trend and community gauge charts', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-01-10',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Greeter',
+      },
+      {
+        id: 2,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-02-10',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Greeter',
+      },
+    ]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      lifetimeHours: 0,
+      monthHours: 0,
+      totalShifts: 0,
+      currentStreak: 0,
+      milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
+    });
+    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+      totalHours: 20,
+      monthHours: 6,
+      monthHoursGoal: 12,
+      totalLbs: 200,
+      weekLbs: 50,
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole('img', { name: /personal trend/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('img', { name: /community impact/i }),
+    ).toBeInTheDocument();
+  });
 });
