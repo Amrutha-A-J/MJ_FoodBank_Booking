@@ -22,7 +22,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-  getVolunteerBadges,
+  getVolunteerStats,
   getVolunteerLeaderboard,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
@@ -57,6 +57,16 @@ export default function VolunteerDashboard() {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [badges, setBadges] = useState<string[]>([]);
+  const [stats, setStats] = useState<
+    | {
+        lifetimeHours: number;
+        monthHours: number;
+        totalShifts: number;
+        currentStreak: number;
+        milestone: number | null;
+      }
+    | undefined
+  >(undefined);
   const [leaderboard, setLeaderboard] = useState<{ rank: number; percentile: number }>();
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
@@ -73,9 +83,21 @@ export default function VolunteerDashboard() {
   }, []);
 
   useEffect(() => {
-    getVolunteerBadges()
-      .then(setBadges)
-      .catch(() => setBadges([]));
+    getVolunteerStats()
+      .then(data => {
+        setBadges(data.badges ?? []);
+        setStats({
+          lifetimeHours: data.lifetimeHours,
+          monthHours: data.monthHours,
+          totalShifts: data.totalShifts,
+          currentStreak: data.currentStreak,
+          milestone: data.milestone,
+        });
+      })
+      .catch(() => {
+        setBadges([]);
+        setStats(undefined);
+      });
   }, []);
 
   useEffect(() => {
@@ -348,7 +370,42 @@ export default function VolunteerDashboard() {
           <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
             <EventList events={[...events.today, ...events.upcoming]} limit={5} />
           </SectionCard>
-        </Grid>
+      </Grid>
+
+        {stats?.milestone && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard title="Milestone">
+              <Typography>
+                Congratulations on completing {stats.milestone} shifts!
+              </Typography>
+            </SectionCard>
+          </Grid>
+        )}
+
+        {stats && (
+          <>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Lifetime Hours">
+                <Typography>{stats.lifetimeHours}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Hours This Month">
+                <Typography>{stats.monthHours}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Total Shifts">
+                <Typography>{stats.totalShifts}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Current Streak">
+                <Typography>{stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}</Typography>
+              </SectionCard>
+            </Grid>
+          </>
+        )}
 
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="Badges">

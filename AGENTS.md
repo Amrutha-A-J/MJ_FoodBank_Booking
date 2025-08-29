@@ -11,7 +11,10 @@
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
-  `POST /volunteers/me/badges` to manually award one.
+  `POST /volunteers/me/badges` to manually award one. The stats endpoint also returns
+  lifetime volunteer hours, hours served in the current month, total completed shifts,
+  and the current consecutive-week streak. It includes a `milestone` flag when total
+  shifts reach 5, 10, or 25 so the frontend can display a celebration banner.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 
