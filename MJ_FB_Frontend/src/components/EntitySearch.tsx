@@ -9,6 +9,7 @@ interface EntitySearchProps {
   placeholder?: string;
   onSelect: (result: any) => void;
   renderResult?: (result: any, select: () => void) => ReactNode;
+  searchFn?: (query: string) => Promise<any[]>;
 }
 
 export default function EntitySearch({
@@ -16,6 +17,7 @@ export default function EntitySearch({
   placeholder,
   onSelect,
   renderResult,
+  searchFn,
 }: EntitySearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -27,11 +29,12 @@ export default function EntitySearch({
     }
     let active = true;
     const fn =
-      type === 'user'
+      searchFn ||
+      (type === 'user'
         ? searchUsers
         : type === 'volunteer'
         ? searchVolunteers
-        : searchAgencies;
+        : searchAgencies);
     fn(query)
       .then(data => {
         if (active) setResults(data);
@@ -40,7 +43,7 @@ export default function EntitySearch({
     return () => {
       active = false;
     };
-  }, [query, type]);
+  }, [query, type, searchFn]);
 
   const getLabel = (r: any) => {
     if (type === 'user') return `${r.name} (${r.client_id})`;

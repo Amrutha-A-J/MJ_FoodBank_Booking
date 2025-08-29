@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getBookingHistory } from '../../api/bookings';
+import { getMyAgencyClients } from '../../api/agencies';
 import { formatTime } from '../../utils/time';
 import {
   Box,
@@ -52,8 +53,39 @@ export default function ClientHistory() {
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(
     null,
   );
+  const [clients, setClients] = useState<User[]>([]);
 
   const pageSize = 10;
+
+  useEffect(() => {
+    getMyAgencyClients()
+      .then(data => {
+        const mapped = Array.isArray(data)
+          ? data.map((c: any) => ({
+              id: c.id ?? c.client_id,
+              client_id: c.id ?? c.client_id,
+              name:
+                c.name ??
+                c.client_name ??
+                `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(),
+            }))
+          : [];
+        setClients(mapped);
+      })
+      .catch(() => setClients([]));
+  }, []);
+
+  const searchAgencyClients = useCallback(
+    async (term: string) => {
+      const lower = term.toLowerCase();
+      return clients.filter(
+        c =>
+          c.name.toLowerCase().includes(lower) ||
+          c.client_id.toString().includes(term),
+      );
+    },
+    [clients],
+  );
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
@@ -106,6 +138,7 @@ export default function ClientHistory() {
           type="user"
           placeholder="Search by name or client ID"
           onSelect={u => setSelected(u as User)}
+          searchFn={searchAgencyClients}
         />
         {selected && (
           <div>
