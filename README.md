@@ -41,6 +41,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Listing volunteer roles (`GET /volunteer-roles`) accepts `includeInactive=true` to return inactive shifts.
 - Slot listing endpoint `/slots` returns an empty array and 200 status on holidays. Each slot includes an `overbooked` flag when approved bookings exceed `max_capacity`, and the `available` count never goes below zero.
 - Staff can add or remove holidays from the Manage Availability page, which persists changes to the backend.
+- Holiday listings via `GET /holidays` are available to agencies so booking interfaces can disable those dates.
 
 ## Clone and initialize submodules
 
