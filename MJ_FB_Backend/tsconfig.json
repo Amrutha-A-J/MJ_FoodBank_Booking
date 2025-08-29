@@ -9,8 +9,13 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "ts-node": {
     "files": true
-  }
+  },
+  "exclude": [
+    "src/migrations"
+  ]
 }

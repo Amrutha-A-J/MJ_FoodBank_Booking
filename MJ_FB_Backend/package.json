@@ -26,7 +26,8 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "node-pg-migrate": "^7.9.1"
   },
   "overrides": {
     "test-exclude": "^7.0.1"
@@ -35,7 +36,9 @@
     "dev": "ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "jest"
+    "test": "jest",
+    "migrate": "node-pg-migrate up -m src/migrations --tsconfig tsconfig.json",
+    "migration:create": "node-pg-migrate create -m src/migrations -j ts"
   },
   "keywords": [],
   "author": "",

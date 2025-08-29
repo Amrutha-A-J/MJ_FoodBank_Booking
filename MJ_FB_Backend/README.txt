@@ -1,6 +1,8 @@
 # Project Overview
+
 Frontend: https://github.com/Amrutha-A-J/MJ_FB_Frontend
 Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
+Run `npm run migrate` to apply TypeScript database migrations from `src/migrations`.
 
 
 ## Environment Variables
