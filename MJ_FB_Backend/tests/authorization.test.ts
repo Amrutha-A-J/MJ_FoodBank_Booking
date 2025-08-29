@@ -8,6 +8,16 @@ import jwt from 'jsonwebtoken';
 
 jest.mock('../src/db');
 jest.mock('jsonwebtoken');
+jest.mock('../src/controllers/slotController', () => ({
+  __esModule: true,
+  listAllSlots: (_req: express.Request, res: express.Response) => res.json([]),
+  listSlots: (_req: express.Request, res: express.Response) => res.json([]),
+  listSlotsRange: (_req: express.Request, res: express.Response) => res.json([]),
+  createSlot: jest.fn(),
+  updateSlot: jest.fn(),
+  updateAllSlotCapacity: jest.fn(),
+  deleteSlot: jest.fn(),
+}));
 
 const app = express();
 app.use(express.json());
@@ -58,6 +68,20 @@ describe('Authorization middleware', () => {
       .get('/slots/all')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(403);
+  });
+
+  it('allows agency to access slots', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 5, role: 'agency', type: 'agency' });
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [{ id: 5, name: 'Agency', email: 'a@b.com' }],
+    });
+
+    const res = await request(app)
+      .get('/slots')
+      .set('Authorization', 'Bearer token')
+      .query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
   });
 
   it('allows staff to access staff endpoint', async () => {

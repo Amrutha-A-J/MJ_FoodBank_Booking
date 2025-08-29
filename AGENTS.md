@@ -44,6 +44,7 @@
   Initially, the page shows only agency search; selecting an agency reveals a two-column layout with client search on the left and the agency's client list on the right.
 - Agencies can book appointments for their associated clients from the Agency → Book Appointment page, which loads clients once and filters client-side.
 - Agency navigation provides Dashboard, Book Appointment, and Booking History pages, all protected by `AgencyGuard`.
+- Agencies can view pantry slot availability and manage bookings—including creating, cancelling, and rescheduling—for their linked clients.
 
 ## Development Guidelines
 

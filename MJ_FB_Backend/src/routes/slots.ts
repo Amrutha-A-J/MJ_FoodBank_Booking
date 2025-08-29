@@ -21,13 +21,13 @@ router.get(
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff'),
+  authorizeRoles('shopper', 'delivery', 'staff', 'agency'),
   listSlots,
 );
 router.get(
   '/range',
   authMiddleware,
-  authorizeRoles('shopper', 'delivery', 'staff'),
+  authorizeRoles('shopper', 'delivery', 'staff', 'agency'),
   listSlotsRange,
 );
 
