@@ -24,7 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import MasterRoleDialog, { MasterRole } from './components/MasterRoleDialog';
+import MasterRoleDialog, { type MasterRole } from './components/MasterRoleDialog';
 import SubRoleDialog from './components/SubRoleDialog';
 import ShiftDialog from './components/ShiftDialog';
 import {
