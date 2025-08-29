@@ -24,6 +24,7 @@ import {
   updateVolunteerBookingStatus,
   getVolunteerStats,
   getVolunteerLeaderboard,
+  type VolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -63,21 +64,7 @@ export default function VolunteerDashboard() {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [badges, setBadges] = useState<string[]>([]);
-  const [stats, setStats] = useState<
-    | {
-        lifetimeHours: number;
-        monthHours: number;
-        totalShifts: number;
-        currentStreak: number;
-        milestone: number | null;
-        milestoneText: string | null;
-        familiesServed: number;
-        poundsHandled: number;
-        monthFamiliesServed: number;
-        monthPoundsHandled: number;
-      }
-    | undefined
-  >(undefined);
+  const [stats, setStats] = useState<VolunteerStats>();
   const [leaderboard, setLeaderboard] = useState<{ rank: number; percentile: number }>();
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
@@ -118,18 +105,7 @@ export default function VolunteerDashboard() {
     getVolunteerStats()
       .then(data => {
         setBadges(data.badges ?? []);
-        setStats({
-          lifetimeHours: data.lifetimeHours,
-          monthHours: data.monthHours,
-          totalShifts: data.totalShifts,
-          currentStreak: data.currentStreak,
-          milestone: data.milestone,
-          milestoneText: data.milestoneText,
-          familiesServed: data.familiesServed,
-          poundsHandled: data.poundsHandled,
-          monthFamiliesServed: data.monthFamiliesServed,
-          monthPoundsHandled: data.monthPoundsHandled,
-        });
+        setStats(data);
         if (data.totalShifts > 0) {
           const msg =
             data.milestoneText ??

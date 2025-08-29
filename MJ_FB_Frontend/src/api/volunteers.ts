@@ -413,7 +413,9 @@ export interface VolunteerStats {
   milestoneText: string | null;
   familiesServed: number;
   poundsHandled: number;
+  /** Families served in the current month */
   monthFamiliesServed: number;
+  /** Pounds handled in the current month */
   monthPoundsHandled: number;
 }
 
