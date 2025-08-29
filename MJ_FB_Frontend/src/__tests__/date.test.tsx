@@ -1,4 +1,4 @@
-import { formatReginaDate, formatReginaDateTime, reginaStartOfDay } from '../utils/date';
+import { formatReginaDate, formatReginaDateTime, reginaStartOfDay, toDate } from '../utils/date';
 
 describe('date utils', () => {
   const sample = '2024-01-15T12:34:56Z';
@@ -14,5 +14,10 @@ describe('date utils', () => {
   test('reginaStartOfDay', () => {
     const start = reginaStartOfDay(sample);
     expect(start.format('YYYY-MM-DD HH:mm:ss')).toBe('2024-01-15 00:00:00');
+  });
+
+  test('handles invalid input', () => {
+    const d = toDate('invalid');
+    expect(isNaN(d.getTime())).toBe(true);
   });
 });
