@@ -48,7 +48,6 @@ import {
   Grid,
   Stack,
   Chip,
-  Autocomplete,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import Dashboard from '../../components/dashboard/Dashboard';
@@ -108,6 +107,7 @@ export default function VolunteerManagement() {
 
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
+  const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
@@ -213,14 +213,6 @@ export default function VolunteerManagement() {
     });
     return Array.from(groups.entries()).map(([category, roles]) => ({ category, roles }));
   }, [roles]);
-
-  const roleOptions = useMemo(
-    () =>
-      groupedRoles.flatMap(g =>
-        g.roles.map(r => ({ label: r.name, group: g.category })),
-      ),
-    [groupedRoles],
-  );
 
   const nameToSlotIds = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -738,18 +730,30 @@ export default function VolunteerManagement() {
                         />
                       ))}
                     </Stack>
-                    <Autocomplete
-                      options={roleOptions}
-                      groupBy={option => option.group}
-                      getOptionLabel={option => option.label}
-                      onChange={(_e, v) => v && toggleTrained(v.label, true)}
-                      renderInput={params => (
-                        <TextField {...params} label="Add role" size="small" />
-                      )}
-                      value={null}
-                      sx={{ mb: 2 }}
-                      size="small"
-                    />
+                    <FormControl size="small" sx={{ mb: 2, minWidth: 200 }}>
+                      <InputLabel id="add-role-label">Add role</InputLabel>
+                      <Select
+                        labelId="add-role-label"
+                        value={newTrainedRole}
+                        label="Add role"
+                        onChange={e => {
+                          const val = e.target.value as string;
+                          toggleTrained(val, true);
+                          setNewTrainedRole('');
+                        }}
+                      >
+                        {groupedRoles.flatMap(g => [
+                          <ListSubheader key={`${g.category}-header`}>
+                            {g.category}
+                          </ListSubheader>,
+                          ...g.roles.map(r => (
+                            <MenuItem key={r.name} value={r.name}>
+                              {r.name}
+                            </MenuItem>
+                          )),
+                        ])}
+                      </Select>
+                    </FormControl>
                     <Button variant="contained" size="small" onClick={saveTrainedAreas}>
                       Save
                     </Button>
