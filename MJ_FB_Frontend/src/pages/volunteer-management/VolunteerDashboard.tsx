@@ -413,42 +413,57 @@ export default function VolunteerDashboard() {
           </Grid>
         )}
 
-        {stats && stats.totalShifts > 0 && (
-          <>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <SectionCard title="Lifetime Hours">
-                <Typography>{stats.lifetimeHours}</Typography>
-              </SectionCard>
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <SectionCard title="Hours This Month">
-                <Typography>{stats.monthHours}</Typography>
-              </SectionCard>
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <SectionCard title="Total Shifts">
-                <Typography>{stats.totalShifts}</Typography>
-              </SectionCard>
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <SectionCard title="Current Streak">
-                <Typography>{stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}</Typography>
-              </SectionCard>
-            </Grid>
-          </>
-        )}
-
         <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="Badges">
-            {badges.length > 0 ? (
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                {badges.map(b => (
-                  <Chip key={b} label={b} />
-                ))}
-              </Stack>
-            ) : (
-              <Typography>No badges earned yet</Typography>
-            )}
+          <SectionCard title="My Stats">
+            <Stack spacing={2}>
+              {badges.length > 0 ? (
+                <Stack direction="row" spacing={1} flexWrap="wrap">
+                  {badges.map(b => (
+                    <Chip key={b} label={b} />
+                  ))}
+                </Stack>
+              ) : (
+                <Typography>No badges earned yet</Typography>
+              )}
+              {stats && stats.totalShifts > 0 && (
+                <Grid container spacing={2}>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack>
+                      <Typography variant="body2" color="text.secondary">
+                        Lifetime Hours
+                      </Typography>
+                      <Typography variant="h6">{stats.lifetimeHours}</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack>
+                      <Typography variant="body2" color="text.secondary">
+                        Hours This Month
+                      </Typography>
+                      <Typography variant="h6">{stats.monthHours}</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Shifts
+                      </Typography>
+                      <Typography variant="h6">{stats.totalShifts}</Typography>
+                    </Stack>
+                  </Grid>
+                  <Grid size={{ xs: 6 }}>
+                    <Stack>
+                      <Typography variant="body2" color="text.secondary">
+                        Current Streak
+                      </Typography>
+                      <Typography variant="h6">
+                        {stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}
+                      </Typography>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              )}
+            </Stack>
           </SectionCard>
         </Grid>
 

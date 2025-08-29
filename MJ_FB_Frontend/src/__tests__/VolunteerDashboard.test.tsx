@@ -253,6 +253,40 @@ beforeEach(() => {
     expect(await screen.findByText('early-bird')).toBeInTheDocument();
   });
 
+  it('shows volunteer stats in a single card', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      lifetimeHours: 10,
+      monthHours: 5,
+      totalShifts: 3,
+      currentStreak: 2,
+      milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Lifetime Hours')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('Hours This Month')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Total Shifts')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Current Streak')).toBeInTheDocument();
+    expect(screen.getByText('2 weeks')).toBeInTheDocument();
+  });
+
   it('shows leaderboard percentile', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);

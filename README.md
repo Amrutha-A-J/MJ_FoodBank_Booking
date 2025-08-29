@@ -31,6 +31,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
   appreciation quotes.
 - Volunteer dashboard includes a contribution trend chart showing monthly shift
   counts.
+- Volunteer dashboard groups badges, lifetime hours, this month's hours, total shifts, and current streak into a single stats card.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
 - Approving a pending volunteer booking immediately removes it from the Pending list.
