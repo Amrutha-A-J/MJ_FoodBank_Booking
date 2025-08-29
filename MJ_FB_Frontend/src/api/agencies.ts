@@ -1,5 +1,12 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
+export async function searchAgencies(query: string) {
+  const res = await apiFetch(
+    `${API_BASE}/agencies?search=${encodeURIComponent(query)}`,
+  );
+  return handleResponse(res);
+}
+
 export async function getAgencyClients(agencyId: number | 'me') {
   const res = await apiFetch(`${API_BASE}/agencies/${agencyId}/clients`, {
     method: 'GET',

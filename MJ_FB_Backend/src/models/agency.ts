@@ -80,4 +80,19 @@ export async function removeAgencyClient(
   );
 }
 
+export interface AgencySummary {
+  id: number;
+  name: string;
+}
+
+export async function searchAgencies(
+  query: string,
+): Promise<AgencySummary[]> {
+  const res = await pool.query(
+    'SELECT id, name FROM agencies WHERE name ILIKE $1 ORDER BY name LIMIT 10',
+    [`%${query}%`],
+  );
+  return res.rows as AgencySummary[];
+}
+
 export default Agency;

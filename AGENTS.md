@@ -39,7 +39,7 @@
 - Volunteer Settings provides separate dialogs for creating sub-roles (with an initial shift) and for adding or editing shifts.
 - Deleting sub-roles and shifts prompts confirmation dialogs to prevent accidental removal.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
-- Staff can assign clients to agencies from the Harvest Pantry → Agency Management page.
+- Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations.
 
 ## Development Guidelines
 

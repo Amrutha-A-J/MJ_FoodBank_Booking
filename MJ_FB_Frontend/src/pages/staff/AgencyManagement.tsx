@@ -8,7 +8,7 @@ export default function AgencyManagement() {
   const [tab, setTab] = useState(0);
   const tabs = [
     { label: 'Add Agency', content: <AddAgency /> },
-    { label: 'Clients', content: <AgencyClientManager /> },
+    { label: 'Add Client to Agency', content: <AgencyClientManager /> },
   ];
 
   return (

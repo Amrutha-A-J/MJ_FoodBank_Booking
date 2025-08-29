@@ -5,6 +5,7 @@ import {
   getAgencyClients as fetchAgencyClients,
   createAgency as insertAgency,
   getAgencyByEmail,
+  searchAgencies as findAgencies,
 } from '../models/agency';
 import bcrypt from 'bcrypt';
 import { validatePassword } from '../utils/passwordUtils';
@@ -35,6 +36,26 @@ export async function createAgency(
     const hashed = await bcrypt.hash(password, 10);
     const agency = await insertAgency(name, email, hashed, contactInfo);
     res.status(201).json({ id: agency.id });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function searchAgencies(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    if (!req.user || req.user.role !== 'staff') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    const q = (req.query.search as string) || '';
+    if (q.length < 3) {
+      return res.json([]);
+    }
+    const agencies = await findAgencies(q);
+    res.json(agencies);
   } catch (err) {
     next(err);
   }

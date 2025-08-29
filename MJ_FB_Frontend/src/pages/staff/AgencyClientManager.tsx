@@ -6,7 +6,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  TextField,
+  Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EntitySearch from '../../components/EntitySearch';
@@ -24,7 +24,7 @@ interface AgencyClient {
 }
 
 export default function AgencyClientManager() {
-  const [agencyId, setAgencyId] = useState('');
+  const [agency, setAgency] = useState<{ id: number; name: string } | null>(null);
   const [clients, setClients] = useState<AgencyClient[]>([]);
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
@@ -50,21 +50,22 @@ export default function AgencyClientManager() {
   };
 
   useEffect(() => {
-    const id = Number(agencyId);
-    if (!id) {
+    if (!agency) {
       setClients([]);
       return;
     }
-    load(id);
-  }, [agencyId]);
+    load(agency.id);
+  }, [agency]);
 
   const handleAdd = async (user: any) => {
-    const id = Number(agencyId);
-    if (!id) return;
+    if (!agency) {
+      setSnackbar({ message: 'Select an agency first', severity: 'error' });
+      return;
+    }
     try {
-      await addAgencyClient(id, user.id);
+      await addAgencyClient(agency.id, user.id);
       setSnackbar({ message: 'Client added', severity: 'success' });
-      load(id);
+      load(agency.id);
     } catch (err: any) {
       setSnackbar({
         message: err.message || 'Failed to add client',
@@ -74,12 +75,12 @@ export default function AgencyClientManager() {
   };
 
   const handleRemove = async (id: number) => {
-    const agency = Number(agencyId);
     if (!agency) return;
+    if (!window.confirm('Remove this client from the agency?')) return;
     try {
-      await removeAgencyClient(agency, id);
+      await removeAgencyClient(agency.id, id);
       setSnackbar({ message: 'Client removed', severity: 'success' });
-      load(agency);
+      load(agency.id);
     } catch (err: any) {
       setSnackbar({
         message: err.message || 'Failed to remove client',
@@ -91,39 +92,70 @@ export default function AgencyClientManager() {
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={4}>
           <Typography variant="h5" gutterBottom>
-            Clients
+            Search Clients
           </Typography>
-          <List dense>
-            {clients.map(c => (
-              <ListItem
-                key={c.id}
-                secondaryAction={
-                  <IconButton edge="end" aria-label="remove" onClick={() => handleRemove(c.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                }
-              >
-                <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
-              </ListItem>
-            ))}
-            {clients.length === 0 && <Typography>No clients assigned.</Typography>}
-          </List>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Typography variant="h5" gutterBottom>
-            Add Client
-          </Typography>
-          <TextField
-            label="Agency ID"
-            value={agencyId}
-            onChange={e => setAgencyId(e.target.value)}
-            size="small"
-            fullWidth
-            sx={{ mb: 2 }}
+          <EntitySearch
+            type="user"
+            placeholder="Search clients"
+            onSelect={() => {}}
+            renderResult={(u, select) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>{`${u.name} (${u.client_id})`}</span>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => {
+                    handleAdd(u);
+                    select();
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+            )}
           />
-          <EntitySearch type="user" onSelect={handleAdd} placeholder="Search clients" />
+        </Grid>
+        <Grid item xs={12} md={8}>
+          <Typography variant="h5" gutterBottom>
+            Select Agency
+          </Typography>
+          <EntitySearch
+            type="agency"
+            placeholder="Search agencies"
+            onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
+          />
+          {agency ? (
+            <>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Clients for {agency.name}
+              </Typography>
+              <List dense>
+                {clients.map(c => (
+                  <ListItem
+                    key={c.id}
+                    secondaryAction={
+                      <IconButton
+                        edge="end"
+                        aria-label="remove"
+                        onClick={() => handleRemove(c.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    }
+                  >
+                    <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
+                  </ListItem>
+                ))}
+                {clients.length === 0 && (
+                  <Typography>No clients assigned.</Typography>
+                )}
+              </List>
+            </>
+          ) : (
+            <Typography sx={{ mt: 2 }}>Select an agency to view clients.</Typography>
+          )}
         </Grid>
       </Grid>
       <FeedbackSnackbar
