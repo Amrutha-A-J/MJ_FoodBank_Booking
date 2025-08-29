@@ -7,7 +7,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
 
-interface User { id: number; name: string; email: string; }
+interface User { id: number; client_id: number; name: string; email: string; }
 
 export default function ClientBookings() {
   const { id: agencyId } = useAuth();
@@ -32,7 +32,7 @@ export default function ClientBookings() {
   async function choose(user: User) {
     if (!agencyId) return;
     try {
-      await addAgencyClient(agencyId, user.id);
+      await addAgencyClient(agencyId, user.client_id);
       setSelected(user);
       setSnackbar('Client added');
     } catch (err: any) {
