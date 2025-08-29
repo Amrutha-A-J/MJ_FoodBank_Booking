@@ -276,11 +276,20 @@ export default function VolunteerDashboard() {
             </SectionCard>
           </Grid>
         )}
-        {contributionData.length > 0 && (
+        {contributionData.length > 0 ? (
+          <>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <SectionCard title="My Contribution Trend">
+                <PersonalContributionChart data={contributionData} />
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <VolunteerGroupStatsCard />
+            </Grid>
+          </>
+        ) : (
           <Grid size={{ xs: 12 }}>
-            <SectionCard title="My Contribution Trend">
-              <PersonalContributionChart data={contributionData} />
-            </SectionCard>
+            <VolunteerGroupStatsCard />
           </Grid>
         )}
         <Grid size={{ xs: 12, md: 6 }}>
@@ -417,10 +426,6 @@ export default function VolunteerDashboard() {
               </Button>
             </Stack>
           </SectionCard>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <VolunteerGroupStatsCard />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
