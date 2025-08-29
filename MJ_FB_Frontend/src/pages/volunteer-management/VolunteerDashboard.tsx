@@ -243,15 +243,6 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
-        {leaderboard && (
-          <Grid size={{ xs: 12 }}>
-            <SectionCard title="Volunteer Leaderboard">
-              <Typography variant="h6">
-                {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
-              </Typography>
-            </SectionCard>
-          </Grid>
-        )}
         {contributionData.length > 0 ? (
           <>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -467,6 +458,11 @@ export default function VolunteerDashboard() {
                     </Stack>
                   </Grid>
                 </Grid>
+              )}
+              {leaderboard && (
+                <Typography variant="h6">
+                  {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
+                </Typography>
               )}
             </Stack>
           </SectionCard>
