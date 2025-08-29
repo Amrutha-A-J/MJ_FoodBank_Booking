@@ -21,7 +21,7 @@ router.get(
 );
 
 router.post(
-  '/:id/clients',
+  '/add-client',
   authMiddleware,
   authorizeRoles('staff', 'agency'),
   addClientToAgency,

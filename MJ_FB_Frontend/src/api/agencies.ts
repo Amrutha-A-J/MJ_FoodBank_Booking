@@ -23,10 +23,10 @@ export async function addAgencyClient(
   clientId: number,
 ): Promise<void> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const res = await apiFetch(`${API_BASE}/agencies/${agencyId}/clients`, {
+  const res = await apiFetch(`${API_BASE}/agencies/add-client`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ clientId }),
+    body: JSON.stringify({ agencyId, clientId }),
   });
   await handleResponse(res);
 }
