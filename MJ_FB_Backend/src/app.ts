@@ -28,6 +28,8 @@ import outgoingDonationsRoutes from './routes/warehouse/outgoingDonations';
 import warehouseOverallRoutes from './routes/warehouse/warehouseOverall';
 import eventsRoutes from './routes/events';
 import agenciesRoutes from './routes/agencies';
+import badgesRoutes from './routes/badges';
+import statsRoutes from './routes/stats';
 import { initializeSlots } from './data';
 import logger from './utils/logger';
 import csrfMiddleware from './middleware/csrf';
@@ -72,6 +74,8 @@ app.use('/outgoing-receivers', outgoingReceiversRoutes);
 app.use('/outgoing-donations', outgoingDonationsRoutes);
 app.use('/warehouse-overall', warehouseOverallRoutes);
 app.use('/events', eventsRoutes);
+app.use('/badges', badgesRoutes);
+app.use('/stats', statsRoutes);
 
 // Serve the frontend in production
 if (process.env.NODE_ENV === 'production') {

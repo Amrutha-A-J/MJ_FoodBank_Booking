@@ -1,11 +1,11 @@
 import type { AlertColor } from '@mui/material';
 import { Snackbar, Alert } from '@mui/material';
-import type { SyntheticEvent } from 'react';
+import type { SyntheticEvent, ReactNode } from 'react';
 
 interface FeedbackSnackbarProps {
   open: boolean;
   onClose: () => void;
-  message: string;
+  message: ReactNode;
   severity?: AlertColor;
   duration?: number;
 }

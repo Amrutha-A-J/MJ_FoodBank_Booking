@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
+import { Link } from '@mui/material';
 import type { Role, UserRole, StaffAccess } from '../types';
 import type { LoginResponse } from '../api/users';
 import { logout as apiLogout } from '../api/users';
 import { API_BASE, apiFetch } from '../api/client';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import { getRandomAppreciation } from '../utils/appreciationMessages';
 
 interface AuthContextValue {
   token: string;
@@ -15,6 +17,7 @@ interface AuthContextValue {
   id: number | null;
   login: (u: LoginResponse) => Promise<void>;
   logout: () => Promise<void>;
+  cardUrl: string;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -37,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [token, setToken] = useState(role ? 'cookie' : '');
   const [sessionMessage, setSessionMessage] = useState('');
+  const [cardUrl, setCardUrl] = useState('');
 
   const clearAuth = useCallback(() => {
     setToken('');
@@ -132,6 +136,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('access', JSON.stringify(u.access || []));
       if (u.id) localStorage.setItem('id', String(u.id));
       else localStorage.removeItem('id');
+      setSessionMessage(getRandomAppreciation());
+      try {
+        const statsRes = await apiFetch(`${API_BASE}/stats`);
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setCardUrl(data.cardUrl || '');
+        } else {
+          setCardUrl('');
+        }
+      } catch {
+        setCardUrl('');
+      }
     } catch (e) {
       clearAuth();
       throw e;
@@ -154,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     id,
     login,
     logout,
+    cardUrl,
   };
 
   return (
@@ -162,7 +179,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <FeedbackSnackbar
         open={!!sessionMessage}
         onClose={() => setSessionMessage('')}
-        message={sessionMessage}
+        message={
+          cardUrl ? (
+            <>
+              {sessionMessage} <Link href={cardUrl} download>Download card</Link>
+            </>
+          ) : (
+            sessionMessage
+          )
+        }
         severity="info"
       />
     </AuthContext.Provider>
