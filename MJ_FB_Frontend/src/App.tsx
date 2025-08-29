@@ -28,6 +28,9 @@ const PantrySchedule = React.lazy(() =>
 const AgencySchedule = React.lazy(() =>
   import('./pages/agency/AgencySchedule')
 );
+const AgencyDashboard = React.lazy(() =>
+  import('./pages/agency/AgencyDashboard')
+);
 const ClientList = React.lazy(() => import('./pages/agency/ClientList'));
 const ClientHistory = React.lazy(() =>
   import('./pages/agency/ClientHistory')
@@ -181,6 +184,7 @@ export default function App() {
     navGroups.push({
       label: 'Agency',
       links: [
+        { label: 'Dashboard', to: '/' },
         { label: 'Schedule', to: '/agency/schedule' },
         { label: 'Clients', to: '/agency/clients' },
         { label: 'Client History', to: '/agency/history' },
@@ -244,7 +248,7 @@ export default function App() {
                       <VolunteerDashboard />
                   ) : role === 'agency' ? (
                     <AgencyGuard>
-                      <AgencySchedule />
+                      <AgencyDashboard />
                     </AgencyGuard>
                   ) : isStaff ? (
                     singleAccessOnly && staffRootPath !== '/' ? (
