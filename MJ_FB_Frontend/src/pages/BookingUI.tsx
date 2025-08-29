@@ -46,22 +46,6 @@ function bookSlot(payload: { date: string; slotId: string; userId?: number }): P
   return createBooking(payload.slotId, payload.date, payload.userId);
 }
 
-function scheduleIdle(cb: () => void): number {
-  if (typeof window === 'undefined') {
-    cb();
-    return 0;
-  }
-  const ric = (window as any).requestIdleCallback;
-  return ric ? ric(cb) : window.setTimeout(cb, 200);
-}
-
-function cancelIdle(id: number) {
-  if (typeof window === 'undefined') return;
-  const cic = (window as any).cancelIdleCallback;
-  if (cic) cic(id);
-  else clearTimeout(id);
-}
-
 export type BookingUIProps = {
   shopperName?: string;
   initialDate?: Dayjs;
@@ -132,32 +116,23 @@ export default function BookingUI({
     setSelectedSlotId(null);
   }, [date, holidays]);
 
-  const [visibleSlots, setVisibleSlots] = useState<Slot[]>([]);
-  const [morningSlots, setMorningSlots] = useState<Slot[]>([]);
-  const [afternoonSlots, setAfternoonSlots] = useState<Slot[]>([]);
-  const [slotsReady, setSlotsReady] = useState(false);
-  const loading = isLoading || !holidaysReady || !slotsReady;
-  useEffect(() => {
-    onLoadingChange?.(loading);
-  }, [loading, onLoadingChange]);
-  useEffect(() => {
-    setSlotsReady(false);
-    const handle = scheduleIdle(() => {
-      const now = dayjs();
-      const vs = !date.isSame(now, 'day')
-        ? slots
-        : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
-      setVisibleSlots(vs);
-      setMorningSlots(
-        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
-      );
-      setAfternoonSlots(
-        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
-      );
-      setSlotsReady(true);
-    });
-    return () => cancelIdle(handle);
+  const visibleSlots = useMemo(() => {
+    const now = dayjs();
+    return !date.isSame(now, 'day')
+      ? slots
+      : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
   }, [slots, date]);
+  const morningSlots = useMemo(
+    () => visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
+    [visibleSlots],
+  );
+  const afternoonSlots = useMemo(
+    () => visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
+    [visibleSlots],
+  );
+  useEffect(() => {
+    onLoadingChange?.(isLoading || !holidaysReady);
+  }, [isLoading, holidaysReady, onLoadingChange]);
 
   useEffect(() => {
     if (selectedSlotId && !visibleSlots.some(s => s.id === selectedSlotId)) {
@@ -329,7 +304,7 @@ export default function BookingUI({
               overflow: 'auto',
             }}
           >
-            {isLoading || !slotsReady ? (
+            {isLoading ? (
               <Box>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton
