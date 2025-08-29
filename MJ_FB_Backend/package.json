@@ -26,8 +26,7 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2",
-    "node-pg-migrate": "^7.0.0"
+    "typescript": "^5.9.2"
   },
   "overrides": {
     "test-exclude": "^7.0.1"
@@ -36,8 +35,7 @@
     "dev": "ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "jest",
-    "migrate": "node-pg-migrate -r ts-node/register -m migrations -d \"postgres://$PG_USER:$PG_PASSWORD@$PG_HOST:$PG_PORT/$PG_DATABASE\""
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
