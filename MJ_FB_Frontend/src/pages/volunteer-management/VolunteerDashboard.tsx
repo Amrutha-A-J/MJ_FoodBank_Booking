@@ -113,9 +113,26 @@ export default function VolunteerDashboard() {
   );
 
   const availableSlots = useMemo(() => {
-    const slots = availability.filter(a => a.status === 'available' && a.available > 0);
-    return roleFilter ? slots.filter(s => String(s.role_id) === roleFilter) : slots;
-  }, [availability, roleFilter]);
+    const slots = availability.filter(
+      a => a.status === 'available' && a.available > 0,
+    );
+    const activeBookings = bookings.filter(b =>
+      ['pending', 'approved'].includes(b.status),
+    );
+    const filtered = slots.filter(
+      s =>
+        !activeBookings.some(
+          b =>
+            b.role_id === s.role_id &&
+            b.date === s.date &&
+            b.start_time === s.start_time &&
+            b.end_time === s.end_time,
+        ),
+    );
+    return roleFilter
+      ? filtered.filter(s => String(s.role_id) === roleFilter)
+      : filtered;
+  }, [availability, roleFilter, bookings]);
 
   const roleOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -130,9 +147,13 @@ export default function VolunteerDashboard() {
       setMessage('Request submitted');
       const data = await getMyVolunteerBookings();
       setBookings(data);
-    } catch {
+    } catch (e: unknown) {
       setSnackbarSeverity('error');
-      setMessage('Failed to request shift');
+      if (typeof e === 'object' && e && 'message' in e) {
+        setMessage((e as { message?: string }).message ?? 'Failed to request shift');
+      } else {
+        setMessage('Failed to request shift');
+      }
     }
   }
 
