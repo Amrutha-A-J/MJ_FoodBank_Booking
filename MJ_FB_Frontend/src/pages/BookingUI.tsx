@@ -133,27 +133,16 @@ export default function BookingUI({
     setSelectedSlotId(null);
   }, [date, holidays]);
 
-  const [visibleSlots, setVisibleSlots] = useState<Slot[]>([]);
-  const [morningSlots, setMorningSlots] = useState<Slot[]>([]);
-  const [afternoonSlots, setAfternoonSlots] = useState<Slot[]>([]);
-  const [slotsReady, setSlotsReady] = useState(false);
-  useEffect(() => {
-    setSlotsReady(false);
-    const handle = scheduleIdle(() => {
-      const now = dayjs();
-      const vs = !date.isSame(now, 'day')
-        ? slots
-        : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
-      setVisibleSlots(vs);
-      setMorningSlots(
-        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
-      );
-      setAfternoonSlots(
-        vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
-      );
-      setSlotsReady(true);
-    });
-    return () => cancelIdle(handle);
+  const { visibleSlots, morningSlots, afternoonSlots } = useMemo(() => {
+    const now = dayjs();
+    const vs = !date.isSame(now, 'day')
+      ? slots
+      : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
+    return {
+      visibleSlots: vs,
+      morningSlots: vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
+      afternoonSlots: vs.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
+    };
   }, [slots, date]);
 
   useEffect(() => {
@@ -326,7 +315,7 @@ export default function BookingUI({
               overflow: 'auto',
             }}
           >
-            {isLoading || !slotsReady ? (
+            {isLoading ? (
               <Box>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton
