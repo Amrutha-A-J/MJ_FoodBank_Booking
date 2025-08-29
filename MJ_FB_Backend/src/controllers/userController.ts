@@ -19,7 +19,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           .json({ message: 'Client ID and password required' });
       }
       const userQuery = await pool.query(
-        `SELECT id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
+        `SELECT client_id as id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId]
       );
       if ((userQuery.rowCount ?? 0) === 0) {
@@ -34,7 +34,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const bookingsRes = await pool.query(
-        'SELECT bookings_this_month FROM clients WHERE id = $1',
+        'SELECT bookings_this_month FROM clients WHERE client_id = $1',
         [user.id],
       );
       const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
@@ -116,7 +116,7 @@ export async function sendRegistrationOtp(
 
   try {
     const clientRes = await pool.query(
-      'SELECT id, online_access FROM clients WHERE client_id = $1',
+      'SELECT client_id as id, online_access FROM clients WHERE client_id = $1',
       [clientId],
     );
     if ((clientRes.rowCount ?? 0) === 0) {
@@ -174,7 +174,7 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
   try {
     // Ensure client exists and has not registered yet
     const clientRes = await pool.query(
-      'SELECT id, online_access, role FROM clients WHERE client_id = $1',
+      'SELECT client_id as id, online_access, role FROM clients WHERE client_id = $1',
       [clientId],
     );
     if ((clientRes.rowCount ?? 0) === 0) {
@@ -201,7 +201,7 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
     }
 
     // Ensure email uniqueness
-    const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [
+    const emailCheck = await pool.query('SELECT client_id FROM clients WHERE email = $1', [
       email,
     ]);
     if ((emailCheck.rowCount ?? 0) > 0) {
@@ -219,7 +219,7 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
       `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4, password = $5, online_access = true
        WHERE client_id = $6
-       RETURNING id, role, first_name, last_name`,
+       RETURNING client_id as id, role, first_name, last_name`,
       [firstName, lastName, email, phone || null, hashed, clientId],
     );
 
@@ -288,13 +288,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
   }
 
   try {
-    const check = await pool.query('SELECT id FROM clients WHERE client_id = $1', [clientId]);
+    const check = await pool.query('SELECT client_id FROM clients WHERE client_id = $1', [clientId]);
     if ((check.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
 
     if (email) {
-      const emailCheck = await pool.query('SELECT id FROM clients WHERE email = $1', [email]);
+      const emailCheck = await pool.query('SELECT client_id FROM clients WHERE email = $1', [email]);
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
@@ -336,7 +336,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
     }
 
     const usersResult = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, client_id
+      `SELECT client_id as id, first_name, last_name, email, phone, client_id
        FROM clients
        WHERE (first_name || ' ' || last_name) ILIKE $1
           OR email ILIKE $1
@@ -366,7 +366,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params;
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, client_id
+      `SELECT client_id as id, first_name, last_name, email, phone, client_id
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -460,8 +460,8 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     }
 
     const result = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
-       FROM clients WHERE id = $1`,
+      `SELECT client_id as id, first_name, last_name, email, phone, client_id, role, bookings_this_month
+       FROM clients WHERE client_id = $1`,
       [user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -601,7 +601,7 @@ export async function listUsersMissingInfo(
 ) {
   try {
     const result = await pool.query(
-      `SELECT id, client_id, first_name, last_name, email, phone, profile_link
+      `SELECT client_id as id, client_id, first_name, last_name, email, phone, profile_link
        FROM clients
        WHERE first_name IS NULL AND last_name IS NULL
        ORDER BY client_id ASC`,
@@ -650,7 +650,7 @@ export async function updateUserByClientId(
 
       if (email) {
         const emailCheck = await pool.query(
-          'SELECT id FROM clients WHERE email = $1 AND client_id <> $2',
+          'SELECT client_id FROM clients WHERE email = $1 AND client_id <> $2',
           [email, clientId],
         );
         if ((emailCheck.rowCount ?? 0) > 0) {
@@ -664,7 +664,7 @@ export async function updateUserByClientId(
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
              online_access = true, password = $5
          WHERE client_id = $6
-         RETURNING id, client_id, first_name, last_name, email, phone, profile_link`,
+         RETURNING client_id as id, client_id, first_name, last_name, email, phone, profile_link`,
         [
           firstName,
           lastName,
@@ -693,7 +693,7 @@ export async function updateUserByClientId(
       `UPDATE clients
        SET first_name = $1, last_name = $2, email = $3, phone = $4
        WHERE client_id = $5
-       RETURNING id, client_id, first_name, last_name, email, phone, profile_link`,
+       RETURNING client_id as id, client_id, first_name, last_name, email, phone, profile_link`,
       [firstName, lastName, email || null, phone || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {

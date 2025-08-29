@@ -68,25 +68,25 @@ async function authenticate(req: Request): Promise<AuthResult> {
 
       if (type === 'user') {
         const userRes = await pool.query(
-          'SELECT id, first_name, last_name, email, role, phone FROM clients WHERE id = $1',
+          'SELECT client_id as id, first_name, last_name, email, role, phone FROM clients WHERE client_id = $1',
           [id],
         );
-      if ((userRes.rowCount ?? 0) > 0) {
-        const user: AuthUser = {
-          id: userRes.rows[0].id.toString(),
-          type: 'user',
-          role,
-          email: userRes.rows[0].email,
-          phone: userRes.rows[0].phone,
-          name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
-        };
-        return {
-          status: 'ok',
-          user,
-        };
+        if ((userRes.rowCount ?? 0) > 0) {
+          const user: AuthUser = {
+            id: userRes.rows[0].id.toString(),
+            type: 'user',
+            role,
+            email: userRes.rows[0].email,
+            phone: userRes.rows[0].phone,
+            name: `${userRes.rows[0].first_name} ${userRes.rows[0].last_name}`,
+          };
+          return {
+            status: 'ok',
+            user,
+          };
+        }
+        return { status: 'invalid' };
       }
-      return { status: 'invalid' };
-    }
 
     if (type === 'volunteer') {
       const volRes = await pool.query(

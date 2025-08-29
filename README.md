@@ -122,7 +122,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
   ```
 
    In these examples, `clientId` is the public identifier from the `clients`
-   table (`clients.client_id`).
+   table (`clients.client_id`), which also serves as the table's primary key.
 
   A client may be linked to only one agency at a time. If the client is
   already associated with another agency, the request returns a `409 Conflict`

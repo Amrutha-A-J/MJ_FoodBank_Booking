@@ -106,7 +106,7 @@ export async function fetchBookings(
         COALESCE(v.visits, 0) AS bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b
-        INNER JOIN clients u ON b.user_id = u.id
+        INNER JOIN clients u ON b.user_id = u.client_id
         INNER JOIN slots s ON b.slot_id = s.id
         LEFT JOIN (
           SELECT client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS visits
@@ -158,7 +158,7 @@ export async function fetchBookingHistory(
   );
   let rows = res.rows;
   if (includeVisits && (!status || status === 'visited')) {
-    const visitWhere = ['c.id = ANY($1)'];
+    const visitWhere = ['c.client_id = ANY($1)'];
     if (past) {
       visitWhere.push('v.date < CURRENT_DATE');
     }
@@ -166,7 +166,7 @@ export async function fetchBookingHistory(
       `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token
          FROM client_visits v
          INNER JOIN clients c ON c.client_id = v.client_id
-         LEFT JOIN bookings b ON b.user_id = c.id AND b.date = v.date
+         LEFT JOIN bookings b ON b.user_id = c.client_id AND b.date = v.date
          WHERE ${visitWhere.join(' AND ')} AND b.id IS NULL
          ORDER BY v.date DESC`,
       [userIds],
@@ -196,9 +196,9 @@ export async function fetchBookingHistory(
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const res = await client.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, profile_link)
-       VALUES ($1, $2, $3, NULL, $4, 'shopper', $5) RETURNING id`,
+       VALUES ($1, $2, $3, NULL, $4, 'shopper', $5) RETURNING client_id`,
       [firstName, lastName, email, clientId, profileLink],
     );
-    return res.rows[0].id;
+    return res.rows[0].client_id;
   }
 

@@ -54,7 +54,7 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     const result = await pool.query(
         `SELECT v.id, v.first_name, v.last_name, v.username, v.password, v.user_id, u.role AS user_role
          FROM volunteers v
-         LEFT JOIN clients u ON v.user_id = u.id
+         LEFT JOIN clients u ON v.user_id = u.client_id
          WHERE v.username = $1`,
       [username]
     );
@@ -250,7 +250,7 @@ export async function createVolunteerShopperProfile(
       return res.status(404).json({ message: 'Volunteer not found' });
     }
     const clientCheck = await pool.query(
-      `SELECT id FROM clients WHERE client_id = $1`,
+      `SELECT client_id FROM clients WHERE client_id = $1`,
       [clientId],
     );
     if ((clientCheck.rowCount ?? 0) > 0) {
@@ -298,7 +298,7 @@ export async function removeVolunteerShopperProfile(
       return res.status(404).json({ message: 'Shopper profile not found' });
     }
     const userId = volRes.rows[0].user_id;
-    await pool.query(`DELETE FROM clients WHERE id = $1`, [userId]);
+    await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
     await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
     res.json({ message: 'Shopper profile removed' });
   } catch (error) {

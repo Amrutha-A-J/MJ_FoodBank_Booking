@@ -63,7 +63,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       const bookingRes = await pool.query(
         `SELECT b.id
            FROM bookings b
-           INNER JOIN clients c ON b.user_id = c.id
+           INNER JOIN clients c ON b.user_id = c.client_id
            WHERE c.client_id = $1 AND b.date = $2 AND b.status = 'approved'`,
         [clientId, formatReginaDate(date)]
       );

@@ -71,7 +71,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     let status = 'rejected';
     try {
       await client.query('BEGIN');
-      await client.query('SELECT id FROM clients WHERE id=$1 FOR UPDATE', [userId]);
+      await client.query('SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE', [userId]);
       const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
       if (monthlyUsage === false) {
         await client.query('ROLLBACK');
@@ -118,7 +118,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`,
       );
     }
-    const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE id=$1', [userId]);
+    const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE client_id=$1', [userId]);
     const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
     res
       .status(201)

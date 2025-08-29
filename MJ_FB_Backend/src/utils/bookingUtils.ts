@@ -78,7 +78,7 @@ export async function countVisitsAndBookingsForMonth(
       await client.query(
         `SELECT cv.id FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
-        WHERE c.id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
+        WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
         [userId, start, end],
       );
     }
@@ -90,7 +90,7 @@ export async function countVisitsAndBookingsForMonth(
       ) + (
         SELECT COUNT(*) FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
-        WHERE c.id=$1 AND cv.date BETWEEN $2 AND $3
+        WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3
       ) AS total`,
       [userId, start, end],
     );
@@ -114,7 +114,7 @@ export async function findUpcomingBooking(
            SELECT 1
            FROM client_visits cv
            INNER JOIN clients c ON cv.client_id = c.client_id
-           WHERE c.id = b.user_id AND cv.date = b.date
+           WHERE c.client_id = b.user_id AND cv.date = b.date
          )
        ORDER BY b.date ASC
        LIMIT 1`,
