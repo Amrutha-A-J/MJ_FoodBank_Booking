@@ -81,11 +81,7 @@ export default function VolunteerSettings() {
     return map;
   }, [roles]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData(newId?: number) {
+  const loadData = useCallback(async (newId?: number) => {
     try {
       const [master, roleData] = await Promise.all([
         getVolunteerMasterRoles(),
