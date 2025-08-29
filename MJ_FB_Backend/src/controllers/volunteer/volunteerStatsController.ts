@@ -26,7 +26,7 @@ export async function getVolunteerLeaderboard(
          FROM volunteer_counts
        )
        SELECT rank,
-              ROUND((1.0 - (rank - 1)::float / total_volunteers) * 100, 2) AS percentile
+              ROUND((1 - (rank - 1)::numeric / total_volunteers::numeric) * 100, 2) AS percentile
        FROM ranked
        WHERE id = $1`,
       [user.id],
