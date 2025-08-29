@@ -72,9 +72,9 @@ export default function Login({
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
           Forgot password?
         </Link>
-        <Link component={RouterLink} to="/signup" underline="hover">
+        {/* <Link component={RouterLink} to="/signup" underline="hover">
           Need an account? Sign up
-        </Link>
+        </Link> */}
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
