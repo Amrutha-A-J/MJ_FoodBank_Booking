@@ -382,7 +382,7 @@ beforeEach(() => {
     rand.mockRestore();
   });
 
-  it('renders contribution chart when bookings are present', async () => {
+  it('renders contribution trend and community gauge charts', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -393,7 +393,23 @@ beforeEach(() => {
         end_time: '12:00:00',
         role_name: 'Greeter',
       },
+      {
+        id: 2,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-02-10',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Greeter',
+      },
     ]);
+    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+      totalHours: 20,
+      monthHours: 5,
+      monthHoursGoal: 10,
+      totalLbs: 100,
+      weekLbs: 25,
+    });
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue({
@@ -415,6 +431,11 @@ beforeEach(() => {
     );
 
     expect(await screen.findByText('My Contribution Trend')).toBeInTheDocument();
-    expect(screen.getByTestId('contribution-chart')).toBeInTheDocument();
+    const contribution = screen.getByTestId('contribution-chart');
+    expect(contribution.querySelector('svg')).toBeInTheDocument();
+
+    const communityTitle = await screen.findByText('Community Impact');
+    const communityCard = communityTitle.closest('div')?.parentElement?.parentElement;
+    expect(communityCard?.querySelector('svg')).toBeInTheDocument();
   });
 });
