@@ -37,7 +37,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",
-    "migrate": "node-pg-migrate up -m src/migrations --tsconfig tsconfig.json",
+    "migrate": "ts-node src/runMigrations.ts",
     "migration:create": "node-pg-migrate create -m src/migrations -j ts"
   },
   "keywords": [],

@@ -61,7 +61,7 @@ npm install
 npm start   # or npm run dev
 ```
 
-The database schema is managed via TypeScript migrations in `src/migrations`; run `npm run migrate` to apply them.
+The database schema is managed via TypeScript migrations in `src/migrations`; run `npm run migrate` to apply them. The command logs each executed migration or any failures to the console so you can track what ran.
 
 ### Environment variables
 
