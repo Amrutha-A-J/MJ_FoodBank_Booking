@@ -22,6 +22,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -48,6 +49,12 @@ function formatDateLabel(dateStr: string) {
   });
 }
 
+const ENCOURAGEMENTS = [
+  'Thanks for volunteering!',
+  'Your help makes a difference!',
+  'We appreciate your support!',
+];
+
 export default function VolunteerDashboard() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
@@ -57,6 +64,25 @@ export default function VolunteerDashboard() {
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getVolunteerStats()
+      .then(stats => {
+        if (stats.message) {
+          setSnackbarSeverity('info');
+          setMessage(stats.message);
+        } else {
+          const idx = Math.floor(Math.random() * ENCOURAGEMENTS.length);
+          setSnackbarSeverity('info');
+          setMessage(ENCOURAGEMENTS[idx]);
+        }
+      })
+      .catch(() => {
+        const idx = Math.floor(Math.random() * ENCOURAGEMENTS.length);
+        setSnackbarSeverity('info');
+        setMessage(ENCOURAGEMENTS[idx]);
+      });
+  }, []);
 
   useEffect(() => {
     getMyVolunteerBookings()

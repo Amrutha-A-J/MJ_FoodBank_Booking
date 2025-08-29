@@ -344,3 +344,46 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
     next(error);
   }
 }
+
+export async function getVolunteerStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    const result = await pool.query<{ completed: number }>(
+      `SELECT COUNT(*)::int AS completed
+         FROM volunteer_bookings
+         WHERE volunteer_id = $1
+           AND status = 'approved'
+           AND date <= CURRENT_DATE`,
+      [user.id],
+    );
+
+    const completed = result.rows[0]?.completed ?? 0;
+    const familiesServed = completed * 5;
+    const poundsHandled = completed * 50;
+
+    let milestoneText: string | null = null;
+    if (familiesServed >= 100) milestoneText = '100 families served!';
+    else if (familiesServed >= 50) milestoneText = '50 families served!';
+
+    const message = milestoneText
+      ? `Thanks for your dedication — ${milestoneText} You have handled ${poundsHandled} lbs of food.`
+      : '';
+
+    res.json({
+      completedShifts: completed,
+      familiesServed,
+      poundsHandled,
+      milestoneText,
+      message,
+    });
+  } catch (error) {
+    logger.error('Error fetching volunteer stats:', error);
+    next(error);
+  }
+}

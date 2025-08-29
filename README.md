@@ -15,6 +15,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Volunteer role management and scheduling restricted to trained areas.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
+- Volunteer dashboard displays milestone messages and appreciation stats (families served and pounds handled), rotating encouragement when no milestone is reached.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
 - Approving a pending volunteer booking immediately removes it from the Pending list.

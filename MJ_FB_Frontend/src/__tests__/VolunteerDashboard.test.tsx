@@ -6,6 +6,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -14,11 +15,21 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
+  getVolunteerStats: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('VolunteerDashboard', () => {
+  beforeEach(() => {
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      completedShifts: 0,
+      familiesServed: 0,
+      poundsHandled: 0,
+      milestoneText: null,
+      message: '',
+    });
+  });
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
@@ -158,5 +169,50 @@ describe('VolunteerDashboard', () => {
     expect(screen.queryByText(/No upcoming shifts/)).not.toBeInTheDocument();
 
     jest.useRealTimers();
+  });
+
+  it('shows milestone message from stats', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      completedShifts: 5,
+      familiesServed: 25,
+      poundsHandled: 250,
+      milestoneText: 'Milestone!',
+      message: 'Milestone!',
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Milestone!')).toBeInTheDocument();
+  });
+
+  it('shows encouragement when no milestone', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      completedShifts: 0,
+      familiesServed: 0,
+      poundsHandled: 0,
+      milestoneText: null,
+      message: '',
+    });
+    const orig = Math.random;
+    Math.random = () => 0; // ensure first message
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Thanks for volunteering!')).toBeInTheDocument();
+    Math.random = orig;
   });
 });
