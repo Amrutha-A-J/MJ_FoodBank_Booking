@@ -440,6 +440,25 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       });
     }
 
+    if (user.type === 'agency') {
+      const result = await pool.query(
+        `SELECT id, name, email, contact_info FROM agencies WHERE id = $1`,
+        [user.id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.name,
+        lastName: '',
+        email: row.email,
+        phone: row.contact_info,
+        role: 'agency',
+      });
+    }
+
     const result = await pool.query(
       `SELECT id, first_name, last_name, email, phone, client_id, role, bookings_this_month
        FROM clients WHERE id = $1`,
@@ -521,6 +540,29 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         role: 'volunteer',
         username: row.username,
         trainedAreas: trainedRes.rows.map(r => r.name),
+      });
+    }
+
+    if (user.type === 'agency') {
+      const result = await pool.query(
+        `UPDATE agencies
+         SET email = COALESCE($1, email),
+             contact_info = COALESCE($2, contact_info)
+         WHERE id = $3
+         RETURNING id, name, email, contact_info`,
+        [email, phone, user.id],
+      );
+      if ((result.rowCount ?? 0) === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const row = result.rows[0];
+      return res.json({
+        id: row.id,
+        firstName: row.name,
+        lastName: '',
+        email: row.email,
+        phone: row.contact_info,
+        role: 'agency',
       });
     }
 
