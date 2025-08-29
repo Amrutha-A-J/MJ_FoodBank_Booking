@@ -59,7 +59,7 @@ npm install
 npm start   # or npm run dev
 ```
 
-The database schema is initialized automatically on startup via `src/setupDatabase.ts`; no separate migration step is required.
+The database schema is managed via TypeScript migrations in `src/migrations`; run `npm run migrate` to apply them.
 
 ### Environment variables
 
