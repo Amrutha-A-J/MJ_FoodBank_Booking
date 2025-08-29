@@ -97,10 +97,7 @@ export default function BookingUI({
   });
   const [holidaysReady, setHolidaysReady] = useState(false);
   useEffect(() => {
-    const handle = scheduleIdle(() => {
-      refetchHolidays().finally(() => setHolidaysReady(true));
-    });
-    return () => cancelIdle(handle);
+    refetchHolidays().finally(() => setHolidaysReady(true));
   }, [refetchHolidays]);
   const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
   const isDisabled = (d: Dayjs) =>
