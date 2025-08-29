@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -16,7 +16,6 @@ import {
   ListItemText,
   Stack,
   Switch,
-  TextField,
   Typography,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -25,6 +24,9 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import MasterRoleDialog, { MasterRole } from './components/MasterRoleDialog';
+import SubRoleDialog from './components/SubRoleDialog';
+import ShiftDialog from './components/ShiftDialog';
 import {
   getVolunteerMasterRoles,
   getVolunteerRoles,
@@ -40,46 +42,28 @@ import {
 import { formatTime } from '../../utils/time';
 import type { VolunteerRoleWithShifts } from '../../types';
 
-type MasterRole = { id: number; name: string };
-
 export default function VolunteerSettings() {
   const [masterRoles, setMasterRoles] = useState<MasterRole[]>([]);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
-  const [masterDialog, setMasterDialog] = useState<{ open: boolean; id?: number; name: string }>({ open: false, name: '' });
-  const [subRoleDialog, setSubRoleDialog] = useState<{
-    open: boolean;
-    roleName: string;
-    startTime: string;
-    endTime: string;
-    maxVolunteers: string;
-    categoryId?: number;
-    isWednesdaySlot: boolean;
-  }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
-  const [shiftDialog, setShiftDialog] = useState<{
-    open: boolean;
+  const [masterDialogOpen, setMasterDialogOpen] = useState(false);
+  const [editingMasterRole, setEditingMasterRole] = useState<MasterRole | undefined>(undefined);
+
+  const [subRoleDialogOpen, setSubRoleDialogOpen] = useState(false);
+  const [subRoleCategoryId, setSubRoleCategoryId] = useState<number | undefined>(undefined);
+
+  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
+  const [shiftDialogData, setShiftDialogData] = useState<{
     slotId?: number;
     roleId?: number;
     roleName: string;
-    startTime: string;
-    endTime: string;
-    maxVolunteers: string;
+    startTime?: string;
+    endTime?: string;
+    maxVolunteers?: string;
+    isWednesdaySlot?: boolean;
     categoryId?: number;
-    isWednesdaySlot: boolean;
-  }>({ open: false, roleName: '', startTime: '', endTime: '', maxVolunteers: '1', isWednesdaySlot: false });
-
-  const [subRoleErrors, setSubRoleErrors] = useState({
-    roleName: '',
-    startTime: '',
-    endTime: '',
-    maxVolunteers: '',
-  });
-  const [shiftErrors, setShiftErrors] = useState({
-    startTime: '',
-    endTime: '',
-    maxVolunteers: '',
-  });
+  }>({ roleName: '' });
 
   const [deleteMasterId, setDeleteMasterId] = useState<number | null>(null);
   const [roleToDelete, setRoleToDelete] = useState<VolunteerRoleWithShifts | null>(null);
@@ -112,21 +96,28 @@ export default function VolunteerSettings() {
       if (newId) {
         setExpanded(newId);
         setTimeout(() => {
-          document.getElementById(`master-role-${newId}`)?.scrollIntoView({ behavior: 'smooth' });
+          document
+            .getElementById(`master-role-${newId}`)
+            ?.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       }
     } catch (e) {
       setSnack({ open: true, message: 'Failed to load roles', severity: 'error' });
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   function handleSnack(message: string, severity: 'success' | 'error' = 'success') {
     setSnack({ open: true, message, severity });
   }
 
-  function openMasterDialog(role?: MasterRole) {
-    setMasterDialog({ open: true, id: role?.id, name: role?.name || '' });
-  }
+  const openMasterDialog = useCallback((role?: MasterRole) => {
+    setEditingMasterRole(role);
+    setMasterDialogOpen(true);
+  }, []);
 
   async function handleRestoreRoles() {
     try {
@@ -140,29 +131,34 @@ export default function VolunteerSettings() {
     }
   }
 
-  async function saveMasterRole() {
-    try {
-      if (masterDialog.id) {
-        await updateVolunteerMasterRole(masterDialog.id, masterDialog.name);
-        handleSnack('Master role updated');
-        setMasterDialog({ open: false, name: '' });
-        loadData();
-      } else {
-        const created = await createVolunteerMasterRole(masterDialog.name);
-        handleSnack('Master role created');
-        setMasterDialog({ open: false, name: '' });
-        setMasterRoles(prev => [...prev, created]);
-        setExpanded(created.id);
-        setTimeout(() => {
-          document.getElementById(`master-role-${created.id}`)?.scrollIntoView({
-            behavior: 'smooth',
-          });
-        }, 100);
+  const handleMasterSave = useCallback(
+    async (id: number | undefined, name: string) => {
+      try {
+        if (id) {
+          await updateVolunteerMasterRole(id, name);
+          handleSnack('Master role updated');
+          setMasterDialogOpen(false);
+          setEditingMasterRole(undefined);
+          loadData();
+        } else {
+          const created = await createVolunteerMasterRole(name);
+          handleSnack('Master role created');
+          setMasterDialogOpen(false);
+          setEditingMasterRole(undefined);
+          setMasterRoles(prev => [...prev, created]);
+          setExpanded(created.id);
+          setTimeout(() => {
+            document
+              .getElementById(`master-role-${created.id}`)
+              ?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      } catch (e) {
+        handleSnack('Failed to save master role', 'error');
       }
-    } catch (e) {
-      handleSnack('Failed to save master role', 'error');
-    }
-  }
+    },
+    [handleSnack, loadData],
+  );
 
   function removeMasterRole(id: number) {
     setDeleteMasterId(id);
@@ -181,142 +177,140 @@ export default function VolunteerSettings() {
     }
   }
 
-  function toTimeInput(t: string) {
-    return t ? t.substring(0, 5) : '';
-  }
-
   function toTimeValue(t: string) {
     return t.length === 5 ? `${t}:00` : t;
   }
 
-  function openSubRoleDialog(categoryId: number) {
-    setSubRoleDialog({
-      open: true,
-      roleName: '',
-      startTime: '',
-      endTime: '',
-      maxVolunteers: '1',
-      categoryId,
-      isWednesdaySlot: false,
-    });
-    setSubRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
-  }
+  const openSubRoleDialog = useCallback((categoryId: number) => {
+    setSubRoleCategoryId(categoryId);
+    setSubRoleDialogOpen(true);
+  }, []);
 
-  function openShiftDialog(
-    categoryId: number,
-    init: Partial<Omit<typeof shiftDialog, 'categoryId' | 'open'>> = {},
-  ) {
-    setShiftDialog({
-      open: true,
-      slotId: init.slotId,
-      roleId: init.roleId,
-      roleName: init.roleName || '',
-      startTime: init.startTime ? toTimeInput(init.startTime) : '',
-      endTime: init.endTime ? toTimeInput(init.endTime) : '',
-      maxVolunteers: init.maxVolunteers?.toString() || '1',
-      categoryId,
-      isWednesdaySlot: init.isWednesdaySlot || false,
-    });
-    setShiftErrors({ startTime: '', endTime: '', maxVolunteers: '' });
-  }
-
-  async function saveSubRole() {
-    try {
-      const errors = {
-        roleName: subRoleDialog.roleName ? '' : 'Required',
-        startTime: subRoleDialog.startTime ? '' : 'Required',
-        endTime: subRoleDialog.endTime ? '' : 'Required',
-        maxVolunteers: subRoleDialog.maxVolunteers ? '' : 'Required',
-      };
-      setSubRoleErrors(errors);
-      if (Object.values(errors).some(Boolean)) return;
-      const startTime = toTimeValue(subRoleDialog.startTime);
-      const endTime = toTimeValue(subRoleDialog.endTime);
-      const maxVolunteers = Number(subRoleDialog.maxVolunteers);
-      await createVolunteerRole(
-        undefined,
-        subRoleDialog.roleName,
-        subRoleDialog.categoryId!,
-        startTime,
-        endTime,
-        maxVolunteers,
-        subRoleDialog.isWednesdaySlot,
-        true,
-      );
-      handleSnack('Sub-role created');
-      setSubRoleDialog({
-        open: false,
-        roleName: '',
-        startTime: '',
-        endTime: '',
-        maxVolunteers: '1',
-        isWednesdaySlot: false,
-        categoryId: undefined,
+  const openShiftDialog = useCallback(
+    (
+      categoryId: number,
+      init: {
+        slotId?: number;
+        roleId?: number;
+        roleName?: string;
+        startTime?: string;
+        endTime?: string;
+        maxVolunteers?: number | string;
+        isWednesdaySlot?: boolean;
+      } = {},
+    ) => {
+      setShiftDialogData({
+        slotId: init.slotId,
+        roleId: init.roleId,
+        roleName: init.roleName || '',
+        startTime: init.startTime,
+        endTime: init.endTime,
+        maxVolunteers:
+          typeof init.maxVolunteers === 'number'
+            ? init.maxVolunteers.toString()
+            : init.maxVolunteers || '1',
+        isWednesdaySlot: init.isWednesdaySlot || false,
+        categoryId,
       });
-      setSubRoleErrors({ roleName: '', startTime: '', endTime: '', maxVolunteers: '' });
-      loadData();
-    } catch (e) {
-      handleSnack(
-        e instanceof Error ? e.message : 'Failed to save sub-role',
-        'error',
-      );
-    }
-  }
+      setShiftDialogOpen(true);
+    },
+    [],
+  );
 
-  async function saveShift() {
-    try {
-      const errors = {
-        startTime: shiftDialog.startTime ? '' : 'Required',
-        endTime: shiftDialog.endTime ? '' : 'Required',
-        maxVolunteers: shiftDialog.maxVolunteers ? '' : 'Required',
-      };
-      setShiftErrors(errors);
-      if (Object.values(errors).some(Boolean)) return;
-      const startTime = toTimeValue(shiftDialog.startTime);
-      const endTime = toTimeValue(shiftDialog.endTime);
-      const maxVolunteers = Number(shiftDialog.maxVolunteers);
-      if (shiftDialog.slotId) {
-        await updateVolunteerRole(shiftDialog.slotId, {
-          name: shiftDialog.roleName,
-          startTime,
-          endTime,
-          maxVolunteers,
-          categoryId: shiftDialog.categoryId!,
-          isWednesdaySlot: shiftDialog.isWednesdaySlot,
-        });
-        handleSnack('Shift updated');
-      } else if (shiftDialog.roleId) {
+  const handleMasterClose = useCallback(() => {
+    setMasterDialogOpen(false);
+    setEditingMasterRole(undefined);
+  }, []);
+
+  const handleSubRoleClose = useCallback(() => {
+    setSubRoleDialogOpen(false);
+    setSubRoleCategoryId(undefined);
+  }, []);
+
+  const handleShiftClose = useCallback(() => {
+    setShiftDialogOpen(false);
+    setShiftDialogData({ roleName: '' });
+  }, []);
+
+  const handleSubRoleSave = useCallback(
+    async (
+      data: {
+        roleName: string;
+        startTime: string;
+        endTime: string;
+        maxVolunteers: string;
+        isWednesdaySlot: boolean;
+      },
+    ) => {
+      try {
+        const startTime = toTimeValue(data.startTime);
+        const endTime = toTimeValue(data.endTime);
+        const maxVolunteers = Number(data.maxVolunteers);
         await createVolunteerRole(
-          shiftDialog.roleId,
           undefined,
-          undefined,
+          data.roleName,
+          subRoleCategoryId!,
           startTime,
           endTime,
           maxVolunteers,
-          shiftDialog.isWednesdaySlot,
+          data.isWednesdaySlot,
           true,
         );
-        handleSnack('Shift added');
+        handleSnack('Sub-role created');
+        setSubRoleDialogOpen(false);
+        setSubRoleCategoryId(undefined);
+        loadData();
+      } catch (e) {
+        handleSnack(
+          e instanceof Error ? e.message : 'Failed to save sub-role',
+          'error',
+        );
       }
-      setShiftDialog({
-        open: false,
-        roleName: '',
-        startTime: '',
-        endTime: '',
-        maxVolunteers: '1',
-        isWednesdaySlot: false,
-        roleId: undefined,
-        categoryId: undefined,
-      });
-      setShiftErrors({ startTime: '', endTime: '', maxVolunteers: '' });
-      loadData();
-    } catch (e) {
-      handleSnack(
-        e instanceof Error ? e.message : 'Failed to save shift',
-        'error',
-      );
-    }
-  }
+    },
+    [subRoleCategoryId, handleSnack, loadData],
+  );
+
+  const handleShiftSave = useCallback(
+    async (data: { startTime: string; endTime: string; maxVolunteers: string }) => {
+      try {
+        const startTime = toTimeValue(data.startTime);
+        const endTime = toTimeValue(data.endTime);
+        const maxVolunteers = Number(data.maxVolunteers);
+        if (shiftDialogData.slotId) {
+          await updateVolunteerRole(shiftDialogData.slotId, {
+            name: shiftDialogData.roleName,
+            startTime,
+            endTime,
+            maxVolunteers,
+            categoryId: shiftDialogData.categoryId!,
+            isWednesdaySlot: shiftDialogData.isWednesdaySlot || false,
+          });
+          handleSnack('Shift updated');
+        } else if (shiftDialogData.roleId) {
+          await createVolunteerRole(
+            shiftDialogData.roleId,
+            undefined,
+            undefined,
+            startTime,
+            endTime,
+            maxVolunteers,
+            shiftDialogData.isWednesdaySlot || false,
+            true,
+          );
+          handleSnack('Shift added');
+        }
+        setShiftDialogOpen(false);
+        setShiftDialogData({ roleName: '' });
+        loadData();
+      } catch (e) {
+        handleSnack(
+          e instanceof Error ? e.message : 'Failed to save shift',
+          'error',
+        );
+      }
+    },
+    [shiftDialogData, handleSnack, loadData],
+  );
 
   function removeRole(role: VolunteerRoleWithShifts) {
     setRoleToDelete(role);
@@ -454,7 +448,7 @@ export default function VolunteerSettings() {
                             openShiftDialog(master.id, {
                               roleId: role.id,
                               roleName: role.name,
-                              maxVolunteers: role.max_volunteers.toString(),
+                              maxVolunteers: role.max_volunteers,
                             })
                           }
                         >
@@ -487,7 +481,7 @@ export default function VolunteerSettings() {
                                     roleName: role.name,
                                     startTime: shift.start_time,
                                     endTime: shift.end_time,
-                                    maxVolunteers: role.max_volunteers.toString(),
+                                    maxVolunteers: role.max_volunteers,
                                     isWednesdaySlot: shift.is_wednesday_slot,
                                   })
                                 }
@@ -515,164 +509,23 @@ export default function VolunteerSettings() {
         </Box>
       </Box>
 
-      <Dialog open={masterDialog.open} onClose={() => setMasterDialog({ open: false, name: '' })} fullWidth>
-        <DialogTitle>{masterDialog.id ? 'Edit Master Role' : 'Add Master Role'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Name"
-            fullWidth
-            value={masterDialog.name}
-            onChange={e => setMasterDialog({ ...masterDialog, name: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button size="small" onClick={() => setMasterDialog({ open: false, name: '' })}>
-            Cancel
-          </Button>
-          <Button size="small" variant="contained" onClick={saveMasterRole}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={subRoleDialog.open}
-        onClose={() => setSubRoleDialog({ ...subRoleDialog, open: false })}
-        fullWidth
-      >
-        <DialogTitle>Add Sub-role</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Name"
-            fullWidth
-            value={subRoleDialog.roleName}
-            onChange={e => {
-              setSubRoleDialog({ ...subRoleDialog, roleName: e.target.value });
-              if (subRoleErrors.roleName) setSubRoleErrors({ ...subRoleErrors, roleName: '' });
-            }}
-            error={Boolean(subRoleErrors.roleName)}
-            helperText={subRoleErrors.roleName}
-          />
-          <TextField
-            margin="dense"
-            label="Start Time"
-            type="time"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={subRoleDialog.startTime}
-            onChange={e => {
-              setSubRoleDialog({ ...subRoleDialog, startTime: e.target.value });
-              if (subRoleErrors.startTime) setSubRoleErrors({ ...subRoleErrors, startTime: '' });
-            }}
-            error={Boolean(subRoleErrors.startTime)}
-            helperText={subRoleErrors.startTime}
-          />
-          <TextField
-            margin="dense"
-            label="End Time"
-            type="time"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={subRoleDialog.endTime}
-            onChange={e => {
-              setSubRoleDialog({ ...subRoleDialog, endTime: e.target.value });
-              if (subRoleErrors.endTime) setSubRoleErrors({ ...subRoleErrors, endTime: '' });
-            }}
-            error={Boolean(subRoleErrors.endTime)}
-            helperText={subRoleErrors.endTime}
-          />
-          <TextField
-            margin="dense"
-            label="Max Volunteers"
-            fullWidth
-            type="number"
-            value={subRoleDialog.maxVolunteers}
-            onChange={e => {
-              setSubRoleDialog({ ...subRoleDialog, maxVolunteers: e.target.value });
-              if (subRoleErrors.maxVolunteers) setSubRoleErrors({ ...subRoleErrors, maxVolunteers: '' });
-            }}
-            error={Boolean(subRoleErrors.maxVolunteers)}
-            helperText={subRoleErrors.maxVolunteers}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button size="small" onClick={() => setSubRoleDialog({ ...subRoleDialog, open: false })}>
-            Cancel
-          </Button>
-          <Button size="small" variant="contained" onClick={saveSubRole}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={shiftDialog.open}
-        onClose={() => setShiftDialog({ ...shiftDialog, open: false })}
-        fullWidth
-      >
-        <DialogTitle>{shiftDialog.slotId ? 'Edit Shift' : 'Add Shift'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            margin="dense"
-            label="Name"
-            fullWidth
-            value={shiftDialog.roleName}
-            disabled
-          />
-          <TextField
-            margin="dense"
-            label="Start Time"
-            type="time"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={shiftDialog.startTime}
-            onChange={e => {
-              setShiftDialog({ ...shiftDialog, startTime: e.target.value });
-              if (shiftErrors.startTime) setShiftErrors({ ...shiftErrors, startTime: '' });
-            }}
-            error={Boolean(shiftErrors.startTime)}
-            helperText={shiftErrors.startTime}
-          />
-          <TextField
-            margin="dense"
-            label="End Time"
-            type="time"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={shiftDialog.endTime}
-            onChange={e => {
-              setShiftDialog({ ...shiftDialog, endTime: e.target.value });
-              if (shiftErrors.endTime) setShiftErrors({ ...shiftErrors, endTime: '' });
-            }}
-            error={Boolean(shiftErrors.endTime)}
-            helperText={shiftErrors.endTime}
-          />
-          <TextField
-            margin="dense"
-            label="Max Volunteers"
-            fullWidth
-            type="number"
-            value={shiftDialog.maxVolunteers}
-            onChange={e => {
-              setShiftDialog({ ...shiftDialog, maxVolunteers: e.target.value });
-              if (shiftErrors.maxVolunteers) setShiftErrors({ ...shiftErrors, maxVolunteers: '' });
-            }}
-            error={Boolean(shiftErrors.maxVolunteers)}
-            helperText={shiftErrors.maxVolunteers}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button size="small" onClick={() => setShiftDialog({ ...shiftDialog, open: false })}>
-            Cancel
-          </Button>
-          <Button size="small" variant="contained" onClick={saveShift}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <MasterRoleDialog
+        open={masterDialogOpen}
+        role={editingMasterRole}
+        onClose={handleMasterClose}
+        onSave={handleMasterSave}
+      />
+      <SubRoleDialog
+        open={subRoleDialogOpen}
+        onClose={handleSubRoleClose}
+        onSave={handleSubRoleSave}
+      />
+      <ShiftDialog
+        open={shiftDialogOpen}
+        initial={shiftDialogData}
+        onClose={handleShiftClose}
+        onSave={handleShiftSave}
+      />
 
       <Dialog open={roleToDelete !== null} onClose={() => setRoleToDelete(null)}>
         <DialogTitle>Delete role</DialogTitle>
