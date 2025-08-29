@@ -413,6 +413,8 @@ export interface VolunteerStats {
   milestoneText: string | null;
   familiesServed: number;
   poundsHandled: number;
+  monthFamiliesServed: number;
+  monthPoundsHandled: number;
 }
 
 export interface VolunteerGroupStats {
