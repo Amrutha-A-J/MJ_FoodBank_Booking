@@ -20,15 +20,17 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
 - Volunteer badges are calculated from activity and manually awardable. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
-- The stats endpoint now provides a milestone message and contribution totals (`familiesServed` and `poundsHandled`) so the dashboard can display appreciation.
+- The stats endpoint now provides a milestone message and contribution totals (`familiesServed`, `poundsHandled`) along with current-month figures (`monthFamiliesServed`, `monthPoundsHandled`) so the dashboard can display appreciation.
 - Volunteer leaderboard endpoint `GET /volunteer-stats/leaderboard` returns your rank and percentile.
   The volunteer dashboard shows “You're in the top X%!” based on this data.
-- Group volunteer stats endpoint `GET /volunteer-stats/group` aggregates total hours
-  and weekly pounds handled, returning current-month hours alongside a configurable
-  goal for dashboard progress.
-- Volunteer dashboard now highlights weekly pounds distributed, a progress bar
+- Group volunteer stats endpoint `GET /volunteer-stats/group` aggregates total hours,
+  weekly and monthly pounds handled, and distinct families served this month, returning
+  current-month hours alongside a configurable goal for dashboard progress.
+- Volunteer dashboard now highlights weekly pounds distributed, a progress gauge
   toward the monthly hours goal, a highlight of the month, and rotating
   appreciation quotes.
+- Volunteer dashboard includes a contribution trend chart showing monthly shift
+  counts.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
 - Approving a pending volunteer booking immediately removes it from the Pending list.

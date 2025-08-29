@@ -42,6 +42,9 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import { getNextEncouragement } from '../../utils/appreciationMessages';
 import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupStatsCard';
+import PersonalContributionChart, {
+  type ContributionDatum,
+} from '../../components/dashboard/PersonalContributionChart';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -55,6 +58,7 @@ function formatDateLabel(dateStr: string) {
 export default function VolunteerDashboard() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
+  const [contributionData, setContributionData] = useState<ContributionDatum[]>([]);
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
@@ -79,8 +83,29 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     getMyVolunteerBookings()
-      .then(setBookings)
-      .catch(() => setBookings([]));
+      .then(data => {
+        setBookings(data);
+        const counts: Record<string, number> = {};
+        data
+          .filter(b => b.status === 'approved')
+          .forEach(b => {
+            const d = toDate(b.date);
+            const key = formatRegina(d, 'yyyy-MM');
+            counts[key] = (counts[key] ?? 0) + 1;
+          });
+        const agg = Object.keys(counts)
+          .sort()
+          .map(k => {
+            const [y, m] = k.split('-');
+            const dt = new Date(Number(y), Number(m) - 1, 1);
+            return { month: formatRegina(dt, 'MMM yyyy'), count: counts[k] };
+          });
+        setContributionData(agg);
+      })
+      .catch(() => {
+        setBookings([]);
+        setContributionData([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -101,11 +126,15 @@ export default function VolunteerDashboard() {
           familiesServed: data.familiesServed,
           poundsHandled: data.poundsHandled,
         });
-        const msg =
-          data.milestoneText ??
-          `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
-        setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
-        setMessage(msg);
+        if (data.totalShifts > 0) {
+          const msg =
+            data.milestoneText ??
+            `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
+          setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
+          setMessage(msg);
+        } else {
+          setMessage('');
+        }
       })
       .catch(() => {
         setBadges([]);
@@ -234,15 +263,19 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12 }}>
-          <VolunteerGroupStatsCard />
-        </Grid>
         {leaderboard && (
           <Grid size={{ xs: 12 }}>
             <SectionCard title="Volunteer Leaderboard">
               <Typography variant="h6">
                 {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
               </Typography>
+            </SectionCard>
+          </Grid>
+        )}
+        {contributionData.length > 0 && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard title="My Contribution Trend">
+              <PersonalContributionChart data={contributionData} />
             </SectionCard>
           </Grid>
         )}
@@ -383,6 +416,10 @@ export default function VolunteerDashboard() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
+          <VolunteerGroupStatsCard />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
             <EventList events={[...events.today, ...events.upcoming]} limit={5} />
           </SectionCard>
@@ -396,7 +433,7 @@ export default function VolunteerDashboard() {
           </Grid>
         )}
 
-        {stats && (
+        {stats && stats.totalShifts > 0 && (
           <>
             <Grid size={{ xs: 6, md: 3 }}>
               <SectionCard title="Lifetime Hours">

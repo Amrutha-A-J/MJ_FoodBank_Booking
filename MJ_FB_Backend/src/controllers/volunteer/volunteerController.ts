@@ -430,13 +430,30 @@ export async function getVolunteerStats(
 
     const milestone = [25, 10, 5].find(m => m === totalShifts) ?? null;
 
-    const contribRes = await pool.query<{ families_served: string; pounds_handled: string }>(
+    const contribRes = await pool.query<{
+      families_served: string;
+      pounds_handled: string;
+      month_families_served: string;
+      month_pounds_handled: string;
+    }>(
       `SELECT COUNT(*) AS families_served,
-              COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS pounds_handled
+              COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS pounds_handled,
+              COUNT(DISTINCT client_id) FILTER (
+                WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
+              ) AS month_families_served,
+              COALESCE(SUM(weight_with_cart - weight_without_cart) FILTER (
+                WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
+              ), 0) AS month_pounds_handled
          FROM client_visits`,
     );
     const familiesServed = Number(contribRes.rows[0]?.families_served ?? 0);
     const poundsHandled = Number(contribRes.rows[0]?.pounds_handled ?? 0);
+    const monthFamiliesServed = Number(
+      contribRes.rows[0]?.month_families_served ?? 0,
+    );
+    const monthPoundsHandled = Number(
+      contribRes.rows[0]?.month_pounds_handled ?? 0,
+    );
     const milestoneText = milestone
       ? `Congratulations on completing ${milestone} shifts!`
       : null;
@@ -448,9 +465,11 @@ export async function getVolunteerStats(
       totalShifts,
       currentStreak: streak,
       milestone,
-       milestoneText,
-       familiesServed,
-       poundsHandled,
+      milestoneText,
+      familiesServed,
+      poundsHandled,
+      monthFamiliesServed,
+      monthPoundsHandled,
     });
   } catch (error) {
     logger.error('Error fetching volunteer stats:', error);

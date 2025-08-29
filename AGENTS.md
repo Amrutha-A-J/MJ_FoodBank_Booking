@@ -20,7 +20,8 @@
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total
-  volunteer hours and food pounds handled along with current-month hours and a
+  volunteer hours, weekly and monthly food pounds handled, distinct families
+  served in the current month, along with current-month hours and a
   configurable goal for dashboard progress.
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
@@ -28,6 +29,7 @@
 - Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
 - Users see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
+- The volunteer dashboard shows a monthly contribution chart of shift counts.
 
 ## Project Layout
 
