@@ -128,4 +128,35 @@ describe('VolunteerDashboard', () => {
       await screen.findByText('Already booked for this shift'),
     ).toBeInTheDocument();
   });
+
+  it('shows upcoming approved shift in My Next Shift', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-02-06T18:00:00Z'));
+
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-02-06',
+        start_time: '17:00:00',
+        end_time: '18:00:00',
+        role_name: 'Greeter',
+      },
+    ]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
+    expect(await screen.findByText(/Greeter/)).toBeInTheDocument();
+    expect(screen.queryByText(/No upcoming shifts/)).not.toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
 });
