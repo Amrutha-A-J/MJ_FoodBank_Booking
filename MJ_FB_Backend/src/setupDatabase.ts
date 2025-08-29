@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS agencies (
 CREATE TABLE IF NOT EXISTS agency_clients (
     agency_id integer NOT NULL REFERENCES public.agencies(id) ON DELETE CASCADE,
     client_id bigint NOT NULL UNIQUE REFERENCES public.clients(client_id) ON DELETE CASCADE,
-    UNIQUE (agency_id, client_id)
+    PRIMARY KEY (agency_id, client_id)
 );
 
 CREATE TABLE IF NOT EXISTS client_email_verifications (
