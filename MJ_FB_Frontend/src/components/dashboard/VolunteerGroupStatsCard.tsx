@@ -4,14 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { RadialBarChart, RadialBar, PolarAngleAxis } from 'recharts';
 import SectionCard from './SectionCard';
 import { getVolunteerGroupStats, type VolunteerGroupStats } from '../../api/volunteers';
-
-const QUOTES = [
-  'We appreciate your dedication!',
-  'Your service makes a difference!',
-  'Thanks for lending a helping hand!',
-];
-
-const HIGHLIGHT_OF_MONTH = 'Canned Food Drive exceeded goals!';
+import { getRandomAppreciation } from '../../utils/appreciationMessages';
 
 export default function VolunteerGroupStatsCard() {
   const [stats, setStats] = useState<VolunteerGroupStats>();
@@ -20,7 +13,7 @@ export default function VolunteerGroupStatsCard() {
 
   useEffect(() => {
     getVolunteerGroupStats().then(setStats).catch(() => {});
-    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+    setQuote(getRandomAppreciation());
   }, []);
 
   if (!stats) return null;
@@ -33,9 +26,6 @@ export default function VolunteerGroupStatsCard() {
   return (
     <SectionCard title="Community Impact">
       <Stack spacing={2} alignItems="center">
-        {HIGHLIGHT_OF_MONTH && (
-          <Typography fontWeight="bold">{HIGHLIGHT_OF_MONTH}</Typography>
-        )}
         <Typography>{`Volunteers distributed ${stats.weekLbs} lbs this week`}</Typography>
         <Typography>{`Served ${stats.monthFamilies} families this month`}</Typography>
         <Box

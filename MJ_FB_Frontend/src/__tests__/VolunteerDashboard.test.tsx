@@ -11,6 +11,7 @@ import {
   getVolunteerGroupStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
+import { getRandomAppreciation, getNextEncouragement } from '../utils/appreciationMessages';
 
 jest.mock('../api/volunteers', () => ({
   getMyVolunteerBookings: jest.fn(),
@@ -24,6 +25,11 @@ jest.mock('../api/volunteers', () => ({
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
+jest.mock('../utils/appreciationMessages', () => ({
+  getRandomAppreciation: jest.fn(),
+  getNextEncouragement: jest.fn(),
+}));
+
 describe('VolunteerDashboard', () => {
 beforeEach(() => {
   (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
@@ -34,6 +40,8 @@ beforeEach(() => {
     totalLbs: 0,
     weekLbs: 0,
   });
+  (getRandomAppreciation as jest.Mock).mockReturnValue('We appreciate your dedication!');
+  (getNextEncouragement as jest.Mock).mockReturnValue('Keep up the great work!');
   localStorage.clear();
 });
   it('shows events in News & Events section', async () => {
@@ -337,7 +345,7 @@ beforeEach(() => {
     ).toBeInTheDocument();
   });
 
-  it('shows group stats card with progress and quote', async () => {
+  it('shows group stats card with progress and appreciation message', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
@@ -359,7 +367,6 @@ beforeEach(() => {
       totalLbs: 100,
       weekLbs: 25,
     });
-    const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
 
     render(
       <MemoryRouter>
@@ -375,13 +382,7 @@ beforeEach(() => {
     ).toBeInTheDocument();
     const gauge = screen.getByTestId('group-progress-gauge');
     expect(gauge.querySelector('svg')).toBeInTheDocument();
-    expect(
-      screen.getByText('Canned Food Drive exceeded goals!'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('We appreciate your dedication!'),
-    ).toBeInTheDocument();
-    rand.mockRestore();
+    expect(screen.getByText('We appreciate your dedication!')).toBeInTheDocument();
   });
 
   it('renders contribution trend and community gauge charts', async () => {
