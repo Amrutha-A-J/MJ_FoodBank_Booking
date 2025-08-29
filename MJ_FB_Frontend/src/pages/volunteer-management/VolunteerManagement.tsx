@@ -697,9 +697,9 @@ export default function VolunteerManagement() {
           />
           {selectedVolunteer && (
             <Grid container spacing={2} mt={2}>
-              <Grid item xs={12} md={6}>
-                <Stack spacing={2}>
-                  <PageCard>
+              <Grid item xs={12} md={4} lg={4}>
+                <Stack spacing={2} sx={{ width: 1 }}>
+                  <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>
                       Profile
                     </Typography>
@@ -714,11 +714,11 @@ export default function VolunteerManagement() {
                       label="Shopper Profile"
                     />
                   </PageCard>
-                  <PageCard>
+                  <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>
                       Roles
                     </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" mb={1} sx={{ maxWidth: '100%' }}>
                       {trainedEdit.map(r => (
                         <Chip key={r} label={r} onDelete={() => toggleTrained(r, false)} />
                       ))}
@@ -750,8 +750,8 @@ export default function VolunteerManagement() {
                   </PageCard>
                 </Stack>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <PageCard>
+              <Grid item xs={12} md={8} lg={8}>
+                <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
                     Booking History
                   </Typography>
