@@ -7,6 +7,7 @@ import {
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
   getVolunteerBadges,
+  getGroupVolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -16,11 +17,20 @@ jest.mock('../api/volunteers', () => ({
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
   getVolunteerBadges: jest.fn(),
+  getGroupVolunteerStats: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('VolunteerDashboard', () => {
+  beforeEach(() => {
+    (getGroupVolunteerStats as jest.Mock).mockResolvedValue({
+      totalHours: 0,
+      totalLbs: 0,
+      currentMonth: { hours: 0, lbs: 0, goalHours: 100 },
+      currentWeekLbs: 0,
+    });
+  });
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
@@ -47,6 +57,29 @@ describe('VolunteerDashboard', () => {
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
+  });
+
+  it('shows weekly distribution stats', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
+    (getGroupVolunteerStats as jest.Mock).mockResolvedValue({
+      totalHours: 0,
+      totalLbs: 0,
+      currentMonth: { hours: 0, lbs: 0, goalHours: 100 },
+      currentWeekLbs: 42,
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByText(/Volunteers distributed 42 lbs this week/),
+    ).toBeInTheDocument();
   });
 
   it('hides slots already booked by volunteer', async () => {

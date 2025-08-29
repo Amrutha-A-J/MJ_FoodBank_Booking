@@ -12,6 +12,7 @@
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one.
+- `GET /volunteer-stats/group` returns aggregated volunteer hours and food weight with current month totals compared to the `volunteer_monthly_hours_goal` app config value.
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.

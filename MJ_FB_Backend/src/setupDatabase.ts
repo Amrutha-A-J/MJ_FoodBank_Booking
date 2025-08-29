@@ -496,7 +496,8 @@ ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
     `INSERT INTO app_config (key, value) VALUES
       ('cart_tare','0'),
       ('bread_weight_multiplier','10'),
-      ('cans_weight_multiplier','20')
+      ('cans_weight_multiplier','20'),
+      ('volunteer_monthly_hours_goal','100')
     ON CONFLICT (key) DO NOTHING;`
   );
 

@@ -417,3 +417,15 @@ export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
   });
   await handleResponse(res);
 }
+
+export interface GroupVolunteerStats {
+  totalHours: number;
+  totalLbs: number;
+  currentMonth: { hours: number; lbs: number; goalHours: number };
+  currentWeekLbs: number;
+}
+
+export async function getGroupVolunteerStats(): Promise<GroupVolunteerStats> {
+  const res = await apiFetch(`${API_BASE}/volunteer-stats/group`);
+  return handleResponse(res);
+}
