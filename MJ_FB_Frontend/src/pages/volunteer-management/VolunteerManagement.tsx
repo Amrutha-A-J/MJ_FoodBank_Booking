@@ -697,7 +697,13 @@ export default function VolunteerManagement() {
           />
           {selectedVolunteer && (
             <Grid container spacing={2} mt={2}>
-              <Grid item xs={12} md={4} lg={4}>
+              <Grid
+                item
+                xs={12}
+                md={4}
+                lg={4}
+                sx={{ flexBasis: { md: '33.333%' }, maxWidth: { md: '33.333%' } }}
+              >
                 <Stack spacing={2} sx={{ width: 1 }}>
                   <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>
@@ -718,9 +724,18 @@ export default function VolunteerManagement() {
                     <Typography variant="h6" gutterBottom>
                       Roles
                     </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" mb={1} sx={{ maxWidth: '100%' }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      mb={1}
+                      sx={{ width: 1, flexWrap: 'wrap', overflow: 'hidden' }}
+                    >
                       {trainedEdit.map(r => (
-                        <Chip key={r} label={r} onDelete={() => toggleTrained(r, false)} />
+                        <Chip
+                          key={r}
+                          label={r}
+                          onDelete={() => toggleTrained(r, false)}
+                        />
                       ))}
                     </Stack>
                     <Autocomplete
@@ -750,7 +765,7 @@ export default function VolunteerManagement() {
                   </PageCard>
                 </Stack>
               </Grid>
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item xs={12} md={8} lg={8} sx={{ flexGrow: 1 }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
                     Booking History
