@@ -8,6 +8,12 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
+
+## Volunteer Dashboard
+
+- The volunteer stats endpoint (`GET /volunteers/me/stats`) also returns
+  `monthFamiliesServed` and `monthPoundsHandled` for monthly appreciation
+  messages.
 - Reflect user-facing or setup changes in this `README.md`.
 
 ## Features

@@ -15,8 +15,9 @@
   lifetime volunteer hours, hours served in the current month, total completed shifts,
   and the current consecutive-week streak. It includes a `milestone` flag when total
   shifts reach 5, 10, or 25 so the frontend can display a celebration banner.
-  The response also includes `milestoneText`, `familiesServed`, and `poundsHandled`
-  so the dashboard can show appreciation messages.
+  The response also includes `milestoneText`, `familiesServed`, `poundsHandled`,
+  `monthFamiliesServed`, and `monthPoundsHandled` so the dashboard can show
+  appreciation messages.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total
