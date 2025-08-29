@@ -38,16 +38,21 @@ export default function AgencyClientManager() {
   const load = async (id: number) => {
     try {
       const data = await getAgencyClients(id);
-      const mapped = Array.isArray(data)
-        ? data.map((c: any) => ({
-            id: c.id ?? c.client_id,
-            name:
-              c.name ??
-              c.client_name ??
-              `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(),
-            email: c.email,
-          }))
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray((data as any)?.clients)
+        ? (data as any).clients
         : [];
+      const mapped = list.map((c: any) => ({
+        id: typeof c === 'object' ? c.id ?? c.client_id : Number(c),
+        name:
+          typeof c === 'object'
+            ? c.name ??
+              c.client_name ??
+              `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
+            : `ID: ${c}`,
+        email: typeof c === 'object' ? c.email : undefined,
+      }));
       setClients(mapped);
     } catch {
       setClients([]);
@@ -97,88 +102,69 @@ export default function AgencyClientManager() {
       });
     }
   };
-  if (!agency) {
-    return (
-      <>
-        <Typography variant="h5" gutterBottom>
-          Select Agency
-        </Typography>
-        <EntitySearch
-          type="agency"
-          placeholder="Search agencies"
-          onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
-        />
-        <FeedbackSnackbar
-          open={!!snackbar}
-          onClose={() => setSnackbar(null)}
-          message={snackbar?.message || ''}
-          severity={snackbar?.severity}
-        />
-      </>
-    );
-  }
-
   return (
     <>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h5" gutterBottom>
-            Search Clients
-          </Typography>
-          <EntitySearch
-            type="user"
-            placeholder="Search clients"
-            onSelect={() => {}}
-            renderResult={(u, select) => (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span>{`${u.name} (${u.client_id})`}</span>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={() => {
-                    handleAdd(u);
-                    select();
-                  }}
-                >
-                  Add
-                </Button>
-              </div>
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <Typography variant="h5" gutterBottom>
-            Select Agency
-          </Typography>
-          <EntitySearch
-            type="agency"
-            placeholder="Search agencies"
-            onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
-          />
-          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-            Clients for {agency.name}
-          </Typography>
-          <List dense>
-            {clients.map(c => (
-              <ListItem
-                key={c.id}
-                secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="remove"
-                    onClick={() => handleRemove(c.id)}
+      <Typography variant="h5" gutterBottom>
+        Select Agency
+      </Typography>
+      <EntitySearch
+        type="agency"
+        placeholder="Search agencies"
+        onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
+      />
+      {agency && (
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="h5" gutterBottom>
+              Search Clients
+            </Typography>
+            <EntitySearch
+              type="user"
+              placeholder="Search clients"
+              onSelect={() => {}}
+              renderResult={(u, select) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>{`${u.name} (${u.client_id})`}</span>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                      handleAdd(u);
+                      select();
+                    }}
                   >
-                    <DeleteIcon />
-                  </IconButton>
-                }
-              >
-                <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
-              </ListItem>
-            ))}
-            {clients.length === 0 && <Typography>No clients assigned.</Typography>}
-          </List>
+                    Add
+                  </Button>
+                </div>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <Typography variant="h6" gutterBottom>
+              Clients for {agency.name}
+            </Typography>
+            <List dense>
+              {clients.map(c => (
+                <ListItem
+                  key={c.id}
+                  secondaryAction={
+                    <IconButton
+                      edge="end"
+                      aria-label="remove"
+                      onClick={() => handleRemove(c.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  }
+                >
+                  <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
+                </ListItem>
+              ))}
+              {clients.length === 0 && <Typography>No clients assigned.</Typography>}
+            </List>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
