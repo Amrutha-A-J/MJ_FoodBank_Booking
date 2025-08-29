@@ -167,7 +167,7 @@ export default function ManageAvailability() {
 
   const handleRemoveHoliday = async (date: string) => {
     try {
-      await removeHoliday(date);
+      await removeHoliday(formatReginaDate(date));
       setHolidays(prev => prev.filter(h => h.date !== date));
       showSnackbar('Holiday removed', 'success');
     } catch {
