@@ -38,6 +38,7 @@ import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
+import { filterAvailableSlots } from '../../utils/volunteer';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -112,10 +113,10 @@ export default function VolunteerDashboard() {
     [bookings],
   );
 
-  const availableSlots = useMemo(() => {
-    const slots = availability.filter(a => a.status === 'available' && a.available > 0);
-    return roleFilter ? slots.filter(s => String(s.role_id) === roleFilter) : slots;
-  }, [availability, roleFilter]);
+  const availableSlots = useMemo(
+    () => filterAvailableSlots(availability, toDate(), roleFilter),
+    [availability, roleFilter],
+  );
 
   const roleOptions = useMemo(() => {
     const map = new Map<string, string>();

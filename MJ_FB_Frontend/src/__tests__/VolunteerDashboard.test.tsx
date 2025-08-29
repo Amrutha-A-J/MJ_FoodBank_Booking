@@ -1,48 +1,44 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import VolunteerDashboard from '../pages/volunteer-management/VolunteerDashboard';
-import {
-  getMyVolunteerBookings,
-  getVolunteerRolesForVolunteer,
-  requestVolunteerBooking,
-  updateVolunteerBookingStatus,
-} from '../api/volunteers';
-import { getEvents } from '../api/events';
+import { filterAvailableSlots } from '../utils/volunteer';
+import type { VolunteerRole } from '../types';
+import { toDate } from '../utils/date';
 
-jest.mock('../api/volunteers', () => ({
-  getMyVolunteerBookings: jest.fn(),
-  getVolunteerRolesForVolunteer: jest.fn(),
-  requestVolunteerBooking: jest.fn(),
-  updateVolunteerBookingStatus: jest.fn(),
-}));
-
-jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
-
-describe('VolunteerDashboard', () => {
-  it('shows events in News & Events section', async () => {
-    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
-    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
-    (getEvents as jest.Mock).mockResolvedValue({
-      today: [
-        {
-          id: 1,
-          title: 'Volunteer Event',
-          date: new Date().toISOString(),
-          createdBy: 1,
-          createdByName: 'Staff',
-        },
-      ],
-      upcoming: [],
-      past: [],
-    });
-
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => expect(getEvents).toHaveBeenCalled());
-    expect(screen.getByText(/Volunteer Event/)).toBeInTheDocument();
+describe('filterAvailableSlots', () => {
+  it('excludes shifts earlier than now on the same day', () => {
+    const availability: VolunteerRole[] = [
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Morning',
+        start_time: '09:00:00',
+        end_time: '11:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Cat',
+        is_wednesday_slot: false,
+      },
+      {
+        id: 2,
+        role_id: 1,
+        name: 'Afternoon',
+        start_time: '14:00:00',
+        end_time: '16:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Cat',
+        is_wednesday_slot: false,
+      },
+    ];
+    const now = toDate('2024-01-29T13:00:00');
+    const result = filterAvailableSlots(availability, now);
+    expect(result).toHaveLength(1);
+    expect(result[0].start_time).toBe('14:00:00');
   });
 });

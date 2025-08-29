@@ -131,7 +131,11 @@ export default function VolunteerSchedule() {
   }, [loadData]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => addDays(d, delta));
+    setCurrentDate(d => {
+      const next = addDays(d, delta);
+      const todayStart = fromZonedTime(`${formatDate()}T00:00:00`, reginaTimeZone);
+      return next < todayStart ? d : next;
+    });
   }
 
   async function submitRequest() {
@@ -344,7 +348,14 @@ export default function VolunteerSchedule() {
               mb: 2,
             }}
           >
-            <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
+            <Button
+              onClick={() => changeDay(-1)}
+              variant="outlined"
+              color="primary"
+              disabled={isToday}
+            >
+              Previous
+            </Button>
             <Typography variant="h6" component="h3">
               {dateStr} - {dayName}
               {isHoliday
