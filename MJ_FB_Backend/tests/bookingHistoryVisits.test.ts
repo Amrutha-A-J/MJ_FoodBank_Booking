@@ -43,7 +43,7 @@ describe('fetchBookingHistory includeVisits', () => {
         ],
       });
 
-    const rows = await fetchBookingHistory(1, false, undefined, true);
+    const rows = await fetchBookingHistory([1], false, undefined, true);
     expect(rows).toHaveLength(2);
     const statuses = rows.map(r => r.status).sort();
     expect(statuses).toEqual(['approved', 'visited']);
@@ -72,7 +72,7 @@ describe('fetchBookingHistory includeVisits', () => {
       })
       .mockResolvedValueOnce({ rows: [] });
 
-    const rows = await fetchBookingHistory(1, false, undefined, true);
+    const rows = await fetchBookingHistory([1], false, undefined, true);
     expect(rows).toHaveLength(1);
     const visitQuery = (pool.query as jest.Mock).mock.calls[1][0];
     expect(visitQuery).toMatch(/LEFT JOIN bookings b/);

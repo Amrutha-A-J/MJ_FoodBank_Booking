@@ -122,14 +122,16 @@ export async function fetchBookings(
 }
 
 export async function fetchBookingHistory(
-  userId: number,
+  userIds: number[],
   past: boolean,
   status: string | undefined,
   includeVisits = false,
+  limit?: number,
+  offset?: number,
   client: Queryable = pool,
 ) {
-  const params: any[] = [userId];
-  let where = `b.user_id = $1 AND b.date >= CURRENT_DATE - INTERVAL '6 months'`;
+  const params: any[] = [userIds];
+  let where = `b.user_id = ANY($1)`;
   if (past) {
     where += ' AND b.date < CURRENT_DATE';
   }
@@ -137,20 +139,26 @@ export async function fetchBookingHistory(
     params.push(status);
     where += ` AND b.status = $${params.length}`;
   }
+  let limitOffset = '';
+  if (typeof limit === 'number') {
+    params.push(limit);
+    limitOffset += ` LIMIT $${params.length}`;
+  }
+  if (typeof offset === 'number') {
+    params.push(offset);
+    limitOffset += ` OFFSET $${params.length}`;
+  }
   const res = await client.query(
     `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time, b.created_at, b.is_staff_booking, b.reschedule_token
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id
        WHERE ${where}
-       ORDER BY b.created_at DESC`,
+       ORDER BY b.created_at DESC${limitOffset}`,
     params,
   );
   let rows = res.rows;
   if (includeVisits && (!status || status === 'visited')) {
-    const visitWhere = [
-      'c.id = $1',
-      "v.date >= CURRENT_DATE - INTERVAL '6 months'",
-    ];
+    const visitWhere = ['c.id = ANY($1)'];
     if (past) {
       visitWhere.push('v.date < CURRENT_DATE');
     }
@@ -161,13 +169,19 @@ export async function fetchBookingHistory(
          LEFT JOIN bookings b ON b.user_id = c.id AND b.date = v.date
          WHERE ${visitWhere.join(' AND ')} AND b.id IS NULL
          ORDER BY v.date DESC`,
-      [userId],
+      [userIds],
     );
     rows = rows.concat(visitRes.rows);
     rows.sort(
       (a: any, b: any) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
+    if (typeof offset === 'number') {
+      rows = rows.slice(offset);
+    }
+    if (typeof limit === 'number') {
+      rows = rows.slice(0, limit);
+    }
   }
   return rows;
 }

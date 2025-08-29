@@ -439,44 +439,93 @@ export async function createBookingForUser(
   }
 }
 
-// --- Get booking history (last 6 months) ---
-export async function getBookingHistory(req: Request, res: Response, next: NextFunction) {
+// --- Get booking history ---
+export async function getBookingHistory(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const requester = req.user;
     if (!requester) return res.status(401).json({ message: 'Unauthorized' });
 
-    let userId: number | null = null;
-    if (requester.role === 'staff' || requester.role === 'agency') {
+    let userIds: number[] = [];
+    if (requester.role === 'staff') {
       const paramId = req.query.userId as string;
       if (!paramId) {
         return res
           .status(400)
           .json({ message: 'userId query parameter required' });
       }
-      userId = Number(paramId);
-      if (requester.role === 'agency') {
-        const allowed = await isAgencyClient(Number(requester.id), userId);
+      const parsed = Number(paramId);
+      if (Number.isNaN(parsed)) {
+        return res.status(400).json({ message: 'Invalid user' });
+      }
+      userIds = [parsed];
+    } else if (requester.role === 'agency') {
+      const clientIdsParam = req.query.clientIds as string | undefined;
+      if (clientIdsParam) {
+        userIds = clientIdsParam
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(n => !Number.isNaN(n));
+        if (userIds.length === 0) {
+          return res.status(400).json({ message: 'Invalid clientIds' });
+        }
+        const checks = await Promise.all(
+          userIds.map(id => isAgencyClient(Number(requester.id), id)),
+        );
+        if (checks.some(allowed => !allowed)) {
+          return res
+            .status(403)
+            .json({ message: 'Client not associated with agency' });
+        }
+      } else {
+        const paramId = req.query.userId as string;
+        if (!paramId) {
+          return res
+            .status(400)
+            .json({ message: 'userId query parameter required' });
+        }
+        const parsed = Number(paramId);
+        if (Number.isNaN(parsed)) {
+          return res.status(400).json({ message: 'Invalid user' });
+        }
+        const allowed = await isAgencyClient(Number(requester.id), parsed);
         if (!allowed) {
           return res
             .status(403)
             .json({ message: 'Client not associated with agency' });
         }
+        userIds = [parsed];
       }
     } else {
-      userId = Number((requester as any).userId ?? requester.id);
+      const parsed = Number((requester as any).userId ?? requester.id);
+      if (Number.isNaN(parsed)) {
+        return res.status(400).json({ message: 'Invalid user' });
+      }
+      userIds = [parsed];
     }
 
-    if (!userId) return res.status(400).json({ message: 'Invalid user' });
+    if (userIds.length === 0) {
+      return res.status(400).json({ message: 'Invalid user' });
+    }
 
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
+    const limitParam = req.query.limit as string | undefined;
+    const offsetParam = req.query.offset as string | undefined;
+    const limit = limitParam ? Number(limitParam) : undefined;
+    const offset = offsetParam ? Number(offsetParam) : undefined;
 
     const rows = await repoFetchBookingHistory(
-      userId,
+      userIds,
       past,
       status,
       includeVisits,
+      limit,
+      offset,
     );
     res.json(rows);
   } catch (error) {

@@ -5,6 +5,7 @@ import {
   updateBooking,
   SlotCapacityError,
   fetchBookings,
+  fetchBookingHistory,
 } from '../src/models/bookingRepository';
 
 jest.mock('../src/db');
@@ -69,5 +70,14 @@ describe('bookingRepository', () => {
     const call = (pool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/b.status = \$1 AND b.date = \$2 AND u.client_id = ANY\(\$3\)/);
     expect(call[1]).toEqual(['approved', '2024-01-01', [1, 2]]);
+  });
+
+  it('fetchBookingHistory supports arrays and pagination', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    await fetchBookingHistory([1, 2], false, undefined, false, 5, 10);
+    const call = (pool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
+    expect(call[0]).toMatch(/ORDER BY b.created_at DESC LIMIT \$2 OFFSET \$3/);
+    expect(call[1]).toEqual([[1, 2], 5, 10]);
   });
 });

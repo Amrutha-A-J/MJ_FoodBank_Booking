@@ -143,7 +143,25 @@ describe('Agency booking creation', () => {
         .query({ userId: 99 });
 
       expect(res.status).toBe(200);
-      expect((bookingRepository.fetchBookingHistory as jest.Mock).mock.calls[0][0]).toBe(99);
+      expect(
+        (bookingRepository.fetchBookingHistory as jest.Mock).mock.calls[0][0],
+      ).toEqual([99]);
+    });
+
+    it('passes pagination and clientIds for agencies', async () => {
+      (isAgencyClient as jest.Mock).mockResolvedValue(true);
+      const res = await request(app)
+        .get('/api/bookings/history')
+        .query({ clientIds: '5,6', limit: '10', offset: '5' });
+
+      expect(res.status).toBe(200);
+      expect(
+        (bookingRepository.fetchBookingHistory as jest.Mock).mock.calls[0][0],
+      ).toEqual([5, 6]);
+      const args = (bookingRepository.fetchBookingHistory as jest.Mock).mock
+        .calls[0];
+      expect(args[4]).toBe(10);
+      expect(args[5]).toBe(5);
     });
   });
 
