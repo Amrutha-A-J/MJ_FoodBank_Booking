@@ -17,7 +17,7 @@ export async function setupDatabase() {
   const dbExists = await adminClient.query('SELECT 1 FROM pg_database WHERE datname = $1', [dbName]);
   if ((dbExists.rowCount ?? 0) === 0) {
     const createDbQuery = await adminClient.query(
-      "SELECT format('CREATE DATABASE %I', $1) AS query",
+      "SELECT format('CREATE DATABASE %I', $1::text) AS query",
       [dbName],
     );
     await adminClient.query(createDbQuery.rows[0].query);
