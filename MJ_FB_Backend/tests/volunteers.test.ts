@@ -16,6 +16,10 @@ jest.mock('../src/middleware/authMiddleware', () => ({
 
 const app = express();
 app.use(express.json());
+app.use((req, _res, next) => {
+  (req as any).user = { id: 1, role: 'volunteer' };
+  next();
+});
 app.use('/volunteers', volunteersRouter);
 
 describe('Volunteer routes role ID validation', () => {
@@ -167,5 +171,31 @@ describe('Volunteer login with shopper profile', () => {
       userId: 9,
       userRole: 'shopper',
     });
+  });
+});
+
+describe('Volunteer badges', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns computed badges', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [] }) // manual badges
+      .mockResolvedValueOnce({ rowCount: 1 }) // early bird
+      .mockResolvedValueOnce({ rows: [{ count: '10' }] }); // heavy lifter
+
+    const res = await request(app).get('/volunteers/me/stats');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ badges: ['early-bird', 'heavy-lifter'] });
+  });
+
+  it('awards a badge', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    const res = await request(app)
+      .post('/volunteers/me/badges')
+      .send({ badgeCode: 'helper' });
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ badgeCode: 'helper' });
   });
 });

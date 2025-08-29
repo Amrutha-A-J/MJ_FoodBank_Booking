@@ -22,6 +22,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerBadges,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -54,6 +55,7 @@ export default function VolunteerDashboard() {
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
+  const [badges, setBadges] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
@@ -66,6 +68,12 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     getEvents().then(setEvents).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getVolunteerBadges()
+      .then(setBadges)
+      .catch(() => setBadges([]));
   }, []);
 
   useEffect(() => {
@@ -313,6 +321,20 @@ export default function VolunteerDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
             <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+          </SectionCard>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <SectionCard title="Badges">
+            {badges.length > 0 ? (
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {badges.map(b => (
+                  <Chip key={b} label={b} />
+                ))}
+              </Stack>
+            ) : (
+              <Typography>No badges earned yet</Typography>
+            )}
           </SectionCard>
         </Grid>
 

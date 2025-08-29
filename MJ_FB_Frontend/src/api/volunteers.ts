@@ -401,3 +401,18 @@ export async function removeVolunteerShopperProfile(
   });
   await handleResponse(res);
 }
+
+export async function getVolunteerBadges(): Promise<string[]> {
+  const res = await apiFetch(`${API_BASE}/volunteers/me/stats`);
+  const data = await handleResponse(res);
+  return data.badges ?? [];
+}
+
+export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/me/badges`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ badgeCode }),
+  });
+  await handleResponse(res);
+}

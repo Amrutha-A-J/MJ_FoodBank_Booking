@@ -220,6 +220,13 @@ CREATE TABLE IF NOT EXISTS volunteer_trained_roles (
     FOREIGN KEY (role_id) REFERENCES public.volunteer_roles(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS volunteer_badges (
+    volunteer_id integer NOT NULL REFERENCES public.volunteers(id) ON DELETE CASCADE,
+    badge_code text NOT NULL,
+    awarded_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (volunteer_id, badge_code)
+);
+
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     token_id uuid PRIMARY KEY,
     subject text NOT NULL UNIQUE

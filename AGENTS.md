@@ -10,6 +10,9 @@
 - For changes in `MJ_FB_Backend`, run `npm test` from the `MJ_FB_Backend` directory.
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
 
+- Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
+  `POST /volunteers/me/badges` to manually award one.
+
 - `GET /slots` returns an empty array with a 200 status on holidays.
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
 
