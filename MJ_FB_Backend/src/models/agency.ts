@@ -39,9 +39,9 @@ export async function getAgencyClients(
   agencyId: number,
 ): Promise<AgencyClientSummary[]> {
   const res = await pool.query(
-    `SELECT c.client_id, c.first_name, c.last_name, c.email
+    `SELECT ac.client_id, c.first_name, c.last_name, c.email
      FROM agency_clients ac
-     INNER JOIN clients c ON c.client_id = ac.client_id
+     INNER JOIN clients c USING (client_id)
      WHERE ac.agency_id = $1`,
     [agencyId],
   );

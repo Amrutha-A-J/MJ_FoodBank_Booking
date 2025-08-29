@@ -111,15 +111,18 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
    # As staff assigning client 42 to agency 1
    curl -X POST http://localhost:4000/agencies/1/clients \
      -H "Authorization: Bearer <token>" \
-     -H "Content-Type: application/json" \
-     -d '{"clientId":42}'
-
-   # As the agency itself
-   curl -X POST http://localhost:4000/agencies/me/clients \
-     -H "Authorization: Bearer <agency-token>" \
     -H "Content-Type: application/json" \
     -d '{"clientId":42}'
+
+    # As the agency itself
+    curl -X POST http://localhost:4000/agencies/me/clients \
+      -H "Authorization: Bearer <agency-token>" \
+     -H "Content-Type: application/json" \
+     -d '{"clientId":42}'
   ```
+
+   In these examples, `clientId` is the public identifier from the `clients`
+   table (`clients.client_id`).
 
    A client may be linked to only one agency at a time. If the client is
    already associated with another agency, the request returns a `409 Conflict`

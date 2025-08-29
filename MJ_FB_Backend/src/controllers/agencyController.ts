@@ -75,20 +75,21 @@ export async function addClientToAgency(
     const paramId =
       requestedId === 'me' ? Number(req.user?.id) : Number(requestedId);
     const agencyId = req.user.role === 'agency' ? Number(req.user.id) : paramId;
-    if (!agencyId || !req.body.clientId) {
+    const clientId = Number(req.body.clientId);
+    if (!agencyId || !clientId) {
       return res.status(400).json({ message: 'Missing fields' });
     }
     if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
-    const existing = await getAgencyForClient(Number(req.body.clientId));
+    const existing = await getAgencyForClient(clientId);
     if (existing) {
       return res.status(409).json({
         message: `Client already associated with ${existing.name}`,
         agencyName: existing.name,
       });
     }
-    await addAgencyClient(agencyId, Number(req.body.clientId));
+    await addAgencyClient(agencyId, clientId);
     res.status(204).send();
   } catch (err) {
     next(err);

@@ -307,6 +307,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /agencies` `{ name, email, password, contactInfo? }` → `{ id }` (staff only)
 - A client may be linked to only one agency at a time; adding a client already
   associated with another agency returns a `409` with that agency's name.
+  `clientId` refers to the public identifier (`clients.client_id`).
 
 ### Donors (`src/routes/donors.ts`)
 - `GET /donors?search=name` → `[ { id, name } ]`
