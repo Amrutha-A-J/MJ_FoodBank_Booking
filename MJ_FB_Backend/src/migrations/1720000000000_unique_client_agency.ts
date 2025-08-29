@@ -1,0 +1,11 @@
+import { MigrationBuilder } from 'node-pg-migrate';
+
+export async function up(pgm: MigrationBuilder): Promise<void> {
+  pgm.addConstraint('agency_clients', 'agency_clients_client_id_unique', {
+    unique: ['client_id'],
+  });
+}
+
+export async function down(pgm: MigrationBuilder): Promise<void> {
+  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_unique');
+}

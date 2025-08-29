@@ -119,6 +119,10 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
     -d '{"clientId":42}'
   ```
 
+   A client may be linked to only one agency at a time. If the client is
+   already associated with another agency, the request returns a `409 Conflict`
+   response containing that agency's name.
+
    Remove a client with
    `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
 

@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS agencies (
 
 CREATE TABLE IF NOT EXISTS agency_clients (
     agency_id integer NOT NULL REFERENCES public.agencies(id) ON DELETE CASCADE,
-    client_id integer NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
+    client_id integer NOT NULL UNIQUE REFERENCES public.clients(id) ON DELETE CASCADE,
     UNIQUE (agency_id, client_id)
 );
 

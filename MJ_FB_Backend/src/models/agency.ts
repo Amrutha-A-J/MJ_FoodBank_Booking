@@ -59,6 +59,19 @@ export async function isAgencyClient(
   return (res.rowCount ?? 0) > 0;
 }
 
+export async function getAgencyForClient(
+  clientId: number,
+): Promise<AgencySummary | undefined> {
+  const res = await pool.query(
+    `SELECT a.id, a.name
+     FROM agency_clients ac
+     INNER JOIN agencies a ON a.id = ac.agency_id
+     WHERE ac.client_id = $1`,
+    [clientId],
+  );
+  return res.rows[0] as AgencySummary | undefined;
+}
+
 export async function addAgencyClient(
   agencyId: number,
   clientId: number,

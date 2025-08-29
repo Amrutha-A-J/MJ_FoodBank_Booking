@@ -5,6 +5,7 @@ import {
   getAgencyClients as fetchAgencyClients,
   createAgency as insertAgency,
   getAgencyByEmail,
+  getAgencyForClient,
   searchAgencies as findAgencies,
 } from '../models/agency';
 import bcrypt from 'bcrypt';
@@ -79,6 +80,13 @@ export async function addClientToAgency(
     }
     if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
       return res.status(403).json({ message: 'Forbidden' });
+    }
+    const existing = await getAgencyForClient(Number(req.body.clientId));
+    if (existing) {
+      return res.status(409).json({
+        message: `Client already associated with ${existing.name}`,
+        agencyName: existing.name,
+      });
     }
     await addAgencyClient(agencyId, Number(req.body.clientId));
     res.status(204).send();
