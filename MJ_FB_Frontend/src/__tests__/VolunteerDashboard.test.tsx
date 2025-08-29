@@ -23,9 +23,10 @@ jest.mock('../api/volunteers', () => ({
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('VolunteerDashboard', () => {
-  beforeEach(() => {
-    (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
-  });
+beforeEach(() => {
+  (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
+  localStorage.clear();
+});
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
@@ -49,6 +50,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
 
     render(
@@ -99,6 +103,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
 
     render(
@@ -178,6 +185,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
 
     render(
@@ -219,6 +229,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
 
     render(
@@ -245,6 +258,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
 
     render(
@@ -267,6 +283,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 0,
       currentStreak: 0,
       milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
     });
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 3, percentile: 75 });
 
@@ -292,6 +311,9 @@ describe('VolunteerDashboard', () => {
       totalShifts: 5,
       currentStreak: 1,
       milestone: 5,
+      milestoneText: 'Congratulations on completing 5 shifts!',
+      familiesServed: 0,
+      poundsHandled: 0,
     });
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 

@@ -430,6 +430,17 @@ export async function getVolunteerStats(
 
     const milestone = [25, 10, 5].find(m => m === totalShifts) ?? null;
 
+    const contribRes = await pool.query<{ families_served: string; pounds_handled: string }>(
+      `SELECT COUNT(*) AS families_served,
+              COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS pounds_handled
+         FROM client_visits`,
+    );
+    const familiesServed = Number(contribRes.rows[0]?.families_served ?? 0);
+    const poundsHandled = Number(contribRes.rows[0]?.pounds_handled ?? 0);
+    const milestoneText = milestone
+      ? `Congratulations on completing ${milestone} shifts!`
+      : null;
+
     res.json({
       badges: Array.from(badges),
       lifetimeHours,
@@ -437,6 +448,9 @@ export async function getVolunteerStats(
       totalShifts,
       currentStreak: streak,
       milestone,
+       milestoneText,
+       familiesServed,
+       poundsHandled,
     });
   } catch (error) {
     logger.error('Error fetching volunteer stats:', error);

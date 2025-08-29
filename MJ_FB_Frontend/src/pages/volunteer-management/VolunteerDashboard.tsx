@@ -40,6 +40,7 @@ import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
+import { getNextEncouragement } from '../../utils/appreciationMessages';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -64,6 +65,9 @@ export default function VolunteerDashboard() {
         totalShifts: number;
         currentStreak: number;
         milestone: number | null;
+        milestoneText: string | null;
+        familiesServed: number;
+        poundsHandled: number;
       }
     | undefined
   >(undefined);
@@ -92,7 +96,15 @@ export default function VolunteerDashboard() {
           totalShifts: data.totalShifts,
           currentStreak: data.currentStreak,
           milestone: data.milestone,
+          milestoneText: data.milestoneText,
+          familiesServed: data.familiesServed,
+          poundsHandled: data.poundsHandled,
         });
+        const msg =
+          data.milestoneText ??
+          `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
+        setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
+        setMessage(msg);
       })
       .catch(() => {
         setBadges([]);
@@ -375,9 +387,7 @@ export default function VolunteerDashboard() {
         {stats?.milestone && (
           <Grid size={{ xs: 12 }}>
             <SectionCard title="Milestone">
-              <Typography>
-                Congratulations on completing {stats.milestone} shifts!
-              </Typography>
+              <Typography>{stats.milestoneText}</Typography>
             </SectionCard>
           </Grid>
         )}
