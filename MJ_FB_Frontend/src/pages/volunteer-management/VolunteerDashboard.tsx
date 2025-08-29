@@ -184,7 +184,7 @@ export default function VolunteerDashboard() {
       s =>
         !activeBookings.some(
           b =>
-            b.role_id === s.id &&
+            b.role_id === s.role_id &&
             b.date === s.date &&
             b.start_time === s.start_time &&
             b.end_time === s.end_time,
