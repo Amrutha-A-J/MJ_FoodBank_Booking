@@ -38,11 +38,11 @@ router.post(
   handleCreateBooking
 );
 
-// Staff list all bookings
+// Staff or agency list bookings
 router.get(
   '/',
   authMiddleware,
-  authorizeRoles('staff'),
+  authorizeRoles('staff', 'agency'),
   listBookings
 );
 

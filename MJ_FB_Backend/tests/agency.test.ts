@@ -19,6 +19,7 @@ jest.mock('../src/models/bookingRepository', () => ({
   checkSlotCapacity: jest.fn(),
   insertBooking: jest.fn(),
   fetchBookingHistory: jest.fn().mockResolvedValue([]),
+  fetchBookings: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../src/models/agency', () => ({
   __esModule: true,
@@ -164,4 +165,32 @@ describe('Agency booking creation', () => {
       expect(args[5]).toBe(5);
     });
   });
+
+describe('Agency booking listing', () => {
+  it('lists bookings for associated clients', async () => {
+    (isAgencyClient as jest.Mock).mockResolvedValue(true);
+    const res = await request(app)
+      .get('/api/bookings')
+      .query({ clientIds: '5,6' });
+
+    expect(res.status).toBe(200);
+    expect(bookingRepository.fetchBookings).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      [5, 6],
+    );
+  });
+
+  it('rejects unassociated clients', async () => {
+    (isAgencyClient as jest.Mock)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+    const res = await request(app)
+      .get('/api/bookings')
+      .query({ clientIds: '5,6' });
+
+    expect(res.status).toBe(403);
+    expect(bookingRepository.fetchBookings).not.toHaveBeenCalled();
+  });
+});
 

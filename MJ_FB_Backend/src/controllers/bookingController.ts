@@ -137,6 +137,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 // --- List all bookings (for staff) ---
 export async function listBookings(req: Request, res: Response, next: NextFunction) {
   try {
+    const requester = req.user;
+    if (!requester) return res.status(401).json({ message: 'Unauthorized' });
+
     const status = (req.query.status as string)?.toLowerCase();
     const date = req.query.date as string | undefined;
     const clientIdsParam = req.query.clientIds as string | undefined;
@@ -146,6 +149,23 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
           .map((id) => Number(id.trim()))
           .filter((n) => !Number.isNaN(n))
       : undefined;
+
+    if (requester.role === 'agency') {
+      if (!clientIds || clientIds.length === 0) {
+        return res
+          .status(400)
+          .json({ message: 'clientIds query parameter required' });
+      }
+      for (const id of clientIds) {
+        const allowed = await isAgencyClient(Number(requester.id), id);
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ message: 'Client not associated with agency' });
+        }
+      }
+    }
+
     const rows = await repoFetchBookings(status, date, clientIds);
     res.json(rows);
   } catch (error) {
