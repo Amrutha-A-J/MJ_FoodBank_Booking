@@ -38,6 +38,11 @@ export async function getVolunteerProfile(): Promise<UserProfile> {
   return handleResponse(res);
 }
 
+export async function getVolunteerGroupStats() {
+  const res = await apiFetch(`${API_BASE}/volunteer-stats/group`);
+  return handleResponse(res);
+}
+
 export async function searchVolunteers(search: string) {
   const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,

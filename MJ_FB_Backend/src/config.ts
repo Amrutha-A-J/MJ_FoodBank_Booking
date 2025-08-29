@@ -22,6 +22,7 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional(),
   SMTP_FROM_EMAIL: z.string().optional(),
   SMTP_FROM_NAME: z.string().optional(),
+  VOLUNTEER_MONTHLY_HOURS_GOAL: z.coerce.number().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -51,4 +52,5 @@ export default {
   smtpPass: env.SMTP_PASS ?? '',
   smtpFromEmail: env.SMTP_FROM_EMAIL ?? '',
   smtpFromName: env.SMTP_FROM_NAME ?? '',
+  volunteerMonthlyHoursGoal: env.VOLUNTEER_MONTHLY_HOURS_GOAL ?? 100,
 };

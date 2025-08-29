@@ -38,6 +38,7 @@ import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
+import VolunteerStatsCard from '../../components/dashboard/VolunteerStatsCard';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -174,6 +175,9 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <VolunteerStatsCard />
+        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="My Next Shift">
             {nextShift ? (

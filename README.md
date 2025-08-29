@@ -35,6 +35,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification ([userController](MJ_FB_Backend/src/controllers/userController.ts)).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
+- Volunteer dashboard shows weekly distributed food weight and progress toward a monthly hours goal via `/volunteer-stats/group`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
@@ -88,6 +89,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `SMTP_PASS` | Password for SMTP authentication |
 | `SMTP_FROM_EMAIL` | Email address used as the sender |
 | `SMTP_FROM_NAME` | Optional sender name displayed in emails |
+| `VOLUNTEER_MONTHLY_HOURS_GOAL` | Monthly volunteer hours goal used by `/volunteer-stats/group` (default `100`) |
 
 ### Agency setup
 
