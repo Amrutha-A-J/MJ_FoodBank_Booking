@@ -43,6 +43,7 @@
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations.
   Initially, the page shows only agency search; selecting an agency reveals a two-column layout with client search on the left and the agency's client list on the right.
 - Agencies can book appointments for their associated clients from the Agency → Book Appointment page, which loads clients once and filters client-side.
+- Agency navigation provides Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all protected by `AgencyGuard`.
 
 ## Development Guidelines
 

@@ -185,10 +185,10 @@ export default function App() {
       label: 'Agency',
       links: [
         { label: 'Dashboard', to: '/' },
-        { label: 'Schedule', to: '/agency/schedule' },
-        { label: 'Clients', to: '/agency/clients' },
-        { label: 'Client History', to: '/agency/history' },
         { label: 'Book Appointment', to: '/agency/book' },
+        { label: 'Booking History', to: '/agency/history' },
+        { label: 'Clients', to: '/agency/clients' },
+        { label: 'Schedule', to: '/agency/schedule' },
       ],
     });
   } else if (role === 'shopper') {

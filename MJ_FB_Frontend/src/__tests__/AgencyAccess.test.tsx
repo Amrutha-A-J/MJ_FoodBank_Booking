@@ -10,6 +10,7 @@ jest.mock('../api/users', () => ({
 jest.mock('../pages/agency/AgencySchedule', () => () => <div>AgencySchedule</div>);
 jest.mock('../pages/agency/ClientList', () => () => <div>AgencyClientList</div>);
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
+jest.mock('../pages/agency/ClientHistory', () => () => <div>AgencyClientHistory</div>);
 
 describe('Agency UI access', () => {
   beforeEach(() => {
@@ -49,6 +50,9 @@ describe('Agency UI access', () => {
     );
     expect(screen.getByRole('link', { name: /clients/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /book appointment/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /booking history/i })
+    ).toBeInTheDocument();
   });
 
   it('redirects unauthenticated users away from agency routes', async () => {
