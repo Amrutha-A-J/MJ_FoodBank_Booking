@@ -12,6 +12,8 @@
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
+- Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
+- Users see a random appreciation message on login.
 
 ## Project Layout
 
