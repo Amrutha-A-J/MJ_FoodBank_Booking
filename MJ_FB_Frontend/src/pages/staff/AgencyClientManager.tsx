@@ -97,6 +97,26 @@ export default function AgencyClientManager() {
       });
     }
   };
+  if (!agency) {
+    return (
+      <>
+        <Typography variant="h5" gutterBottom>
+          Select Agency
+        </Typography>
+        <EntitySearch
+          type="agency"
+          placeholder="Search agencies"
+          onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
+        />
+        <FeedbackSnackbar
+          open={!!snackbar}
+          onClose={() => setSnackbar(null)}
+          message={snackbar?.message || ''}
+          severity={snackbar?.severity}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -135,36 +155,28 @@ export default function AgencyClientManager() {
             placeholder="Search agencies"
             onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
           />
-          {agency ? (
-            <>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Clients for {agency.name}
-              </Typography>
-              <List dense>
-                {clients.map(c => (
-                  <ListItem
-                    key={c.id}
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="remove"
-                        onClick={() => handleRemove(c.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    }
+          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+            Clients for {agency.name}
+          </Typography>
+          <List dense>
+            {clients.map(c => (
+              <ListItem
+                key={c.id}
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    aria-label="remove"
+                    onClick={() => handleRemove(c.id)}
                   >
-                    <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
-                  </ListItem>
-                ))}
-                {clients.length === 0 && (
-                  <Typography>No clients assigned.</Typography>
-                )}
-              </List>
-            </>
-          ) : (
-            <Typography sx={{ mt: 2 }}>Select an agency to view clients.</Typography>
-          )}
+                    <DeleteIcon />
+                  </IconButton>
+                }
+              >
+                <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
+              </ListItem>
+            ))}
+            {clients.length === 0 && <Typography>No clients assigned.</Typography>}
+          </List>
         </Grid>
       </Grid>
       <FeedbackSnackbar
