@@ -11,7 +11,11 @@ export const REGINA_TIMEZONE = 'America/Regina';
 dayjs.tz.setDefault(REGINA_TIMEZONE);
 
 export function toDayjs(input?: ConfigType) {
-  return dayjs.tz(input);
+  if (input === undefined || input === null || input === '') {
+    return dayjs();
+  }
+  const parsed = dayjs(input);
+  return parsed.isValid() ? parsed.tz(REGINA_TIMEZONE) : dayjs(NaN);
 }
 
 export function toDate(input?: ConfigType) {
