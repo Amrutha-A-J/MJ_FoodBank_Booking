@@ -7,6 +7,10 @@ import {
   ListItemText,
   IconButton,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EntitySearch from '../../components/EntitySearch';
@@ -29,6 +33,7 @@ export default function AgencyClientManager() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
   >(null);
+  const [conflictAgency, setConflictAgency] = useState<string | null>(null);
 
   const load = async (id: number) => {
     try {
@@ -67,10 +72,14 @@ export default function AgencyClientManager() {
       setSnackbar({ message: 'Client added', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
-      setSnackbar({
-        message: err.message || 'Failed to add client',
-        severity: 'error',
-      });
+      if (err.details?.agencyName) {
+        setConflictAgency(err.details.agencyName as string);
+      } else {
+        setSnackbar({
+          message: err.message || 'Failed to add client',
+          severity: 'error',
+        });
+      }
     }
   };
 
@@ -164,6 +173,18 @@ export default function AgencyClientManager() {
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
+      <Dialog open={!!conflictAgency} onClose={() => setConflictAgency(null)}>
+        <DialogTitle>Client Already Associated</DialogTitle>
+        <DialogContent>
+          <Typography>
+            This client is already associated with {conflictAgency}. Remove them
+            from there and add again.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConflictAgency(null)}>OK</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
