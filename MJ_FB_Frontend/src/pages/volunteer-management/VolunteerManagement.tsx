@@ -320,6 +320,9 @@ export default function VolunteerManagement() {
   ) {
     try {
       await updateVolunteerBookingStatus(id, status, reason);
+      if (tab === 'pending') {
+        setPending(prev => prev.filter(b => b.id !== id));
+      }
       if (selectedRole) {
         const ids = nameToSlotIds.get(selectedRole) || [];
         const data = await Promise.all(
