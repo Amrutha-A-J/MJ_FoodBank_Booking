@@ -28,6 +28,7 @@
 - Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
 - Users see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
+- The volunteer dashboard shows a monthly contribution chart of shift counts.
 
 ## Project Layout
 

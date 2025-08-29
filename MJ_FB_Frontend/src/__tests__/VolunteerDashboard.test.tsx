@@ -381,4 +381,40 @@ beforeEach(() => {
     ).toBeInTheDocument();
     rand.mockRestore();
   });
+
+  it('renders contribution chart when bookings are present', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-01-15',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Greeter',
+      },
+    ]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      lifetimeHours: 0,
+      monthHours: 0,
+      totalShifts: 0,
+      currentStreak: 0,
+      milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('My Contribution Trend')).toBeInTheDocument();
+    expect(screen.getByTestId('contribution-chart')).toBeInTheDocument();
+  });
 });
