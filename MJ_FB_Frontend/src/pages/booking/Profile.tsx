@@ -49,9 +49,10 @@ export default function Profile({ role }: { role: Role }) {
       })
       .catch(e => setError(e instanceof Error ? e.message : String(e)));
   }, [role]);
-
   const initials = profile
-    ? `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
+    ? profile.role === 'agency'
+      ? (profile.firstName ?? '').slice(0, 2).toUpperCase()
+      : `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase()
     : '';
   const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
@@ -88,7 +89,7 @@ export default function Profile({ role }: { role: Role }) {
   async function handleEdit() {
     if (!profile) return;
     if (editing) {
-      if (phone && phoneError) {
+      if (profile.role !== 'agency' && phone && phoneError) {
         setToast({ open: true, message: 'Please enter a valid phone number.', severity: 'error' });
         return;
       }
@@ -174,22 +175,29 @@ export default function Profile({ role }: { role: Role }) {
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
-                label="Phone"
-                type="tel"
+                label={profile.role === 'agency' ? 'Contact Info' : 'Phone'}
+                type={profile.role === 'agency' ? 'text' : 'tel'}
                 size="small"
                 value={phone}
                 onChange={e => {
-                  setPhone(e.target.value);
-                  if (e.target.value && !phoneRegex.test(e.target.value)) {
-                    setPhoneError('Use only numbers, spaces, or dashes.');
-                  } else {
-                    setPhoneError('');
+                  const val = e.target.value;
+                  setPhone(val);
+                  if (profile.role !== 'agency') {
+                    if (val && !phoneRegex.test(val)) {
+                      setPhoneError('Use only numbers, spaces, or dashes.');
+                    } else {
+                      setPhoneError('');
+                    }
                   }
                 }}
                 disabled={!editing}
                 InputLabelProps={{ shrink: true }}
-                error={!!phoneError}
-                helperText={phoneError || 'Format: 123-456-7890'}
+                error={profile.role === 'agency' ? false : !!phoneError}
+                helperText={
+                  profile.role === 'agency'
+                    ? undefined
+                    : phoneError || 'Format: 123-456-7890'
+                }
               />
               {profile.bookingsThisMonth !== undefined && (
                 <Typography>

@@ -308,6 +308,9 @@ Volunteer management coordinates role-based staffing for the food bank.
 - A client may be linked to only one agency at a time; adding a client already
   associated with another agency returns a `409` with that agency's name.
   `clientId` refers to the public identifier (`clients.client_id`).
+- Agency users can view and update their own profile via `GET/PATCH /users/me`.
+  The response includes `firstName` (agency name), `email`, and `phone`
+  (contact info).
 
 ### Donors (`src/routes/donors.ts`)
 - `GET /donors?search=name` → `[ { id, name } ]`
