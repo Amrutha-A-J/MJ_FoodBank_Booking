@@ -200,7 +200,7 @@ export default function AgencyDashboard() {
                         size="small"
                         variant="contained"
                         sx={{ textTransform: 'none' }}
-                        onClick={() => navigate('/agency/schedule')}
+                        onClick={() => navigate('/agency/book')}
                       >
                         Book
                       </Button>
@@ -244,7 +244,7 @@ export default function AgencyDashboard() {
                 size="small"
                 variant="contained"
                 sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/agency/schedule')}
+                onClick={() => navigate('/agency/book')}
               >
                 Book Appointment
               </Button>
