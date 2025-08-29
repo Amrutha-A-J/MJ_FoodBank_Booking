@@ -128,6 +128,9 @@ export async function getBookingHistory(
     past?: boolean;
     userId?: number;
     includeVisits?: boolean;
+    clientIds?: number[];
+    limit?: number;
+    offset?: number;
   } = {},
 ) {
   const params = new URLSearchParams();
@@ -135,6 +138,10 @@ export async function getBookingHistory(
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
   if (opts.includeVisits) params.append('includeVisits', 'true');
+  if (opts.clientIds && opts.clientIds.length)
+    params.append('clientIds', opts.clientIds.join(','));
+  if (opts.limit) params.append('limit', String(opts.limit));
+  if (opts.offset) params.append('offset', String(opts.offset));
   const res = await apiFetch(
     `${API_BASE}/bookings/history?${params.toString()}`,
   );

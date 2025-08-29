@@ -1,6 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getBookingHistory } from '../../api/bookings';
+import { getMyAgencyClients } from '../../api/agencies';
 import { formatTime } from '../../utils/time';
+import { formatDate, toDate } from '../../utils/date';
 import {
   Box,
   Button,
@@ -18,75 +20,100 @@ import {
   useTheme,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
-import EntitySearch from '../../components/EntitySearch';
-import { toDate } from '../../utils/date';
-import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
-
-const TIMEZONE = 'America/Regina';
-
-interface User {
-  id: number;
-  name: string;
-  client_id: number;
-}
 
 interface Booking {
   id: number;
   status: string;
   date: string;
-  start_time: string;
-  end_time: string;
+  start_time: string | null;
+  end_time: string | null;
   created_at: string;
-  slot_id: number;
+  slot_id: number | null;
   is_staff_booking: boolean;
   reason?: string;
-  reschedule_token: string;
+  reschedule_token: string | null;
+  client_id?: number;
+  clientId?: number;
+  client_name?: string;
+  clientName?: string;
 }
 
 export default function ClientHistory() {
-  const [selected, setSelected] = useState<User | null>(null);
-  const [filter, setFilter] = useState('all');
+  const [clients, setClients] = useState<Record<number, string>>({});
+  const [filter, setFilter] = useState('approved');
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [page, setPage] = useState(1);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(
     null,
   );
 
-  const pageSize = 10;
-
-  const loadBookings = useCallback(() => {
-    if (!selected) return Promise.resolve();
-    const opts: {
-      status?: string;
-      past?: boolean;
-      userId?: number;
-      includeVisits?: boolean;
-    } = {
-      userId: selected.id,
-      includeVisits: true,
-    };
-    if (filter === 'past') opts.past = true;
-    else if (filter !== 'all') opts.status = filter;
-    return getBookingHistory(opts)
-      .then(data => {
-        const sorted = [...data].sort(
-          (a, b) =>
-          toDate(b.created_at).getTime() -
-            toDate(a.created_at).getTime(),
-        );
-        setBookings(sorted);
-        setPage(1);
-      })
-      .catch(() => {});
-  }, [selected, filter]);
+  const limit = 10;
 
   useEffect(() => {
-    loadBookings();
-  }, [loadBookings]);
+    getMyAgencyClients()
+      .then(data => {
+        const mapped: Record<number, string> = {};
+        (Array.isArray(data) ? data : []).forEach((c: any) => {
+          const id = c.id ?? c.client_id;
+          const name =
+            c.name ||
+            c.client_name ||
+            `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim();
+          if (id) mapped[id] = name || String(id);
+        });
+        setClients(mapped);
+      })
+      .catch(() => setClients({}));
+  }, []);
 
-  const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
-  const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
+  const clientIds = useMemo(
+    () => Object.keys(clients).map(id => Number(id)),
+    [clients],
+  );
+
+  const loadMore = useCallback(async () => {
+    if (loading || !clientIds.length || !hasMore) return;
+    setLoading(true);
+    try {
+      const data = await getBookingHistory({
+        clientIds,
+        status: filter === 'all' ? undefined : filter,
+        limit,
+        offset,
+      });
+      const arr = Array.isArray(data) ? data : [data];
+      setBookings(prev => [...prev, ...arr]);
+      setOffset(o => o + arr.length);
+      if (arr.length < limit) setHasMore(false);
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [clientIds, filter, offset, hasMore, loading]);
+
+  useEffect(() => {
+    setBookings([]);
+    setOffset(0);
+    setHasMore(true);
+  }, [filter, clientIds]);
+
+  useEffect(() => {
+    if (clientIds.length) loadMore();
+  }, [clientIds, filter]);
+
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) loadMore();
+    });
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -102,128 +129,110 @@ export default function ClientHistory() {
     <Page title="Client History">
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
-        <EntitySearch
-          type="user"
-          placeholder="Search by name or client ID"
-          onSelect={u => setSelected(u as User)}
-        />
-        {selected && (
-          <div>
-            {selected.name && <h3>History for {selected.name}</h3>}
-            <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
-              <Select
-                labelId="filter-label"
-                value={filter}
-                label="Filter"
-                onChange={e => setFilter(e.target.value)}
-              >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
-                <MenuItem value="past">Past</MenuItem>
-              </Select>
-            </FormControl>
-            <TableContainer sx={{ overflowX: 'auto' }}>
-              <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                <TableHead>
+          <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
+            <InputLabel id="filter-label">Status</InputLabel>
+            <Select
+              labelId="filter-label"
+              value={filter}
+              label="Status"
+              onChange={e => setFilter(e.target.value)}
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="approved">Approved</MenuItem>
+              <MenuItem value="visited">Visited</MenuItem>
+              <MenuItem value="no_show">No Show</MenuItem>
+              <MenuItem value="cancelled">Cancelled</MenuItem>
+              <MenuItem value="rejected">Rejected</MenuItem>
+            </Select>
+          </FormControl>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={cellSx}>Client</TableCell>
+                  <TableCell sx={cellSx}>Date</TableCell>
+                  <TableCell sx={cellSx}>Time</TableCell>
+                  <TableCell sx={cellSx}>Status</TableCell>
+                  <TableCell sx={cellSx}>Reason</TableCell>
+                  <TableCell sx={cellSx}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bookings.length === 0 && !hasMore && (
                   <TableRow>
-                    <TableCell sx={cellSx}>Date</TableCell>
-                    <TableCell sx={cellSx}>Time</TableCell>
-                    <TableCell sx={cellSx}>Status</TableCell>
-                    <TableCell sx={cellSx}>Reason</TableCell>
-                    <TableCell sx={cellSx}>Actions</TableCell>
+                    <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      No bookings.
+                    </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {paginated.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
-                        No bookings.
+                )}
+                {bookings.map(b => {
+                  const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
+                  const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
+                  const formattedDate =
+                    b.date && !isNaN(toDate(b.date).getTime())
+                      ? formatDate(b.date, 'MMM D, YYYY')
+                      : 'N/A';
+                  const name =
+                    b.client_name ||
+                    b.clientName ||
+                    clients[b.client_id ?? b.clientId ?? 0] ||
+                    '';
+                  return (
+                    <TableRow key={b.id}>
+                      <TableCell sx={cellSx}>{name}</TableCell>
+                      <TableCell sx={cellSx}>{formattedDate}</TableCell>
+                      <TableCell sx={cellSx}>
+                        {startTime !== 'N/A' && endTime !== 'N/A'
+                          ? `${startTime} - ${endTime}`
+                          : 'N/A'}
+                      </TableCell>
+                      <TableCell sx={cellSx}>{b.status}</TableCell>
+                      <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
+                      <TableCell sx={cellSx}>
+                        {['approved'].includes(b.status.toLowerCase()) && (
+                          <Button
+                            onClick={() => setRescheduleBooking(b)}
+                            variant="outlined"
+                            color="primary"
+                          >
+                            Reschedule
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
-                  )}
-                  {paginated.map(b => {
-                    const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-                    const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-                    const formattedDate =
-                      b.date && !isNaN(toDate(b.date).getTime())
-                        ? formatDate(b.date, 'MMM D, YYYY')
-                        : 'N/A';
-                    return (
-                      <TableRow key={b.id}>
-                        <TableCell sx={cellSx}>{formattedDate}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {startTime !== 'N/A' && endTime !== 'N/A'
-                            ? `${startTime} - ${endTime}`
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell sx={cellSx}>{b.status}</TableCell>
-                        <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {['approved'].includes(
-                            b.status.toLowerCase(),
-                          ) && (
-                            <Button
-                              onClick={() => setRescheduleBooking(b)}
-                              variant="outlined"
-                              color="primary"
-                            >
-                              Reschedule
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            {totalPages > 1 && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 1,
-                  mt: 1,
-                }}
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {hasMore && (
+            <Box textAlign="center" mt={2}>
+              <Button
+                onClick={() => loadMore()}
+                disabled={loading}
+                variant="outlined"
+                color="primary"
               >
-                <Button
-                  disabled={page === 1}
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  variant="outlined"
-                  color="primary"
-                >
-                  Previous
-                </Button>
-                <span>
-                  Page {page} of {totalPages}
-                </span>
-                <Button
-                  disabled={page === totalPages}
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  variant="outlined"
-                  color="primary"
-                >
-                  Next
-                </Button>
-              </Box>
-            )}
-          </div>
-        )}
-        {rescheduleBooking && (
-          <RescheduleDialog
-            open={!!rescheduleBooking}
-            rescheduleToken={rescheduleBooking.reschedule_token}
-            onClose={() => setRescheduleBooking(null)}
-            onRescheduled={() => {
-              loadBookings();
-            }}
-          />
-        )}
+                Load more
+              </Button>
+            </Box>
+          )}
+          <div ref={loadMoreRef} />
+          {rescheduleBooking && (
+            <RescheduleDialog
+              open={!!rescheduleBooking}
+              rescheduleToken={rescheduleBooking.reschedule_token || ''}
+              onClose={() => setRescheduleBooking(null)}
+              onRescheduled={() => {
+                setBookings([]);
+                setOffset(0);
+                setHasMore(true);
+                loadMore();
+              }}
+            />
+          )}
+        </Box>
       </Box>
-    </Box>
     </Page>
   );
 }
