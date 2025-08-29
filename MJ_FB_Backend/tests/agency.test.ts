@@ -20,6 +20,9 @@ jest.mock('../src/models/bookingRepository', () => ({
   insertBooking: jest.fn(),
   fetchBookingHistory: jest.fn().mockResolvedValue([]),
   fetchBookings: jest.fn().mockResolvedValue([]),
+  fetchBookingById: jest.fn(),
+  fetchBookingByToken: jest.fn(),
+  updateBooking: jest.fn(),
 }));
 jest.mock('../src/models/agency', () => ({
   __esModule: true,
@@ -191,6 +194,62 @@ describe('Agency booking listing', () => {
 
     expect(res.status).toBe(403);
     expect(bookingRepository.fetchBookings).not.toHaveBeenCalled();
+  });
+});
+
+describe('Agency booking modifications', () => {
+  const futureDate = new Date(Date.now() + 86400000)
+    .toISOString()
+    .split('T')[0];
+
+  it('cancels booking for associated client', async () => {
+    (isAgencyClient as jest.Mock).mockResolvedValue(true);
+    (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: 5,
+      status: 'approved',
+      date: futureDate,
+    });
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+
+    const res = await request(app).post('/api/bookings/1/cancel');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'Booking cancelled');
+  });
+
+  it('rejects cancellation for unassociated client', async () => {
+    (isAgencyClient as jest.Mock).mockResolvedValue(false);
+    (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: 5,
+      status: 'approved',
+      date: futureDate,
+    });
+
+    const res = await request(app).post('/api/bookings/1/cancel');
+
+    expect(res.status).toBe(403);
+  });
+
+  it('reschedules booking for associated client', async () => {
+    (isAgencyClient as jest.Mock).mockResolvedValue(true);
+    (bookingRepository.fetchBookingByToken as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: 5,
+      status: 'approved',
+      slot_id: 1,
+      date: futureDate,
+    });
+    (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+
+    const res = await request(app)
+      .post('/api/bookings/reschedule/token123')
+      .send({ slotId: 2, date: futureDate });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'Booking rescheduled');
   });
 });
 
