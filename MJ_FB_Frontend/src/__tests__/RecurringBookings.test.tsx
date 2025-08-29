@@ -46,7 +46,15 @@ beforeEach(() => {
   ]);
   (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
   (getHolidays as jest.Mock).mockResolvedValue([]);
-  (requestVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
+  (requestVolunteerBooking as jest.Mock).mockResolvedValue({
+    id: 1,
+    status: 'pending',
+    role_id: 1,
+    date: '2024-01-01',
+    start_time: '09:00:00',
+    end_time: '10:00:00',
+    role_name: 'Test Role',
+  });
   (createRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);

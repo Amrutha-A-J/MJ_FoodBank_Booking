@@ -125,11 +125,18 @@ export default function VolunteerDashboard() {
 
   async function request(role: VolunteerRole) {
     try {
-      await requestVolunteerBooking(role.id, role.date);
+      const newBooking = await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
       setMessage('Request submitted');
-      const data = await getMyVolunteerBookings();
-      setBookings(data);
+      setBookings(prev => [
+        ...prev,
+        {
+          ...newBooking,
+          role_name: role.name,
+          start_time: role.start_time,
+          end_time: role.end_time,
+        },
+      ]);
     } catch {
       setSnackbarSeverity('error');
       setMessage('Failed to request shift');

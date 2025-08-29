@@ -34,7 +34,15 @@ describe('VolunteerBooking', () => {
         is_wednesday_slot: false,
       },
     ]);
-    (requestVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
+    (requestVolunteerBooking as jest.Mock).mockResolvedValue({
+      id: 1,
+      status: 'pending',
+      role_id: 1,
+      date: '2024-01-01',
+      start_time: '09:00:00',
+      end_time: '12:00:00',
+      role_name: 'Greeter',
+    });
 
     const queryClient = new QueryClient();
     render(
