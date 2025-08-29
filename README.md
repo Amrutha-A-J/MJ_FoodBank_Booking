@@ -29,8 +29,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Volunteer dashboard now highlights weekly pounds distributed, a progress gauge
   toward the monthly hours goal, a highlight of the month, and rotating
   appreciation quotes.
-- Volunteer dashboard includes a contribution trend chart showing monthly shift
-  counts.
+- Volunteer dashboard includes a line chart showing monthly shift counts to illustrate the contribution trend.
 - Volunteer dashboard groups badges, lifetime hours, this month's hours, total shifts, and current streak into a single stats card.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.

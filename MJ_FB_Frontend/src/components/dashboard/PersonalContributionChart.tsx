@@ -1,8 +1,8 @@
 import { useTheme } from '@mui/material/styles';
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -22,13 +22,13 @@ export default function PersonalContributionChart({ data }: PersonalContribution
   const theme = useTheme();
   return (
     <ResponsiveContainer width="100%" height={300} data-testid="contribution-chart">
-      <BarChart data={data}>
+      <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
         <YAxis allowDecimals={false} />
         <Tooltip />
-        <Bar dataKey="count" name="Shifts" fill={theme.palette.primary.main} />
-      </BarChart>
+        <Line type="monotone" dataKey="count" name="Shifts" stroke={theme.palette.primary.main} />
+      </LineChart>
     </ResponsiveContainer>
   );
 }
