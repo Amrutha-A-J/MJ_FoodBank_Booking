@@ -371,8 +371,10 @@ beforeEach(() => {
       await screen.findByText(/Volunteers distributed 25 lbs this week/),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Hours This Month: 4 \/ 8/),
+      screen.getByText(/4 \/ 8 hrs/),
     ).toBeInTheDocument();
+    const gauge = screen.getByTestId('group-progress-gauge');
+    expect(gauge.querySelector('svg')).toBeInTheDocument();
     expect(
       screen.getByText('Canned Food Drive exceeded goals!'),
     ).toBeInTheDocument();
@@ -434,8 +436,7 @@ beforeEach(() => {
     const contribution = screen.getByTestId('contribution-chart');
     expect(contribution.querySelector('svg')).toBeInTheDocument();
 
-    const communityTitle = await screen.findByText('Community Impact');
-    const communityCard = communityTitle.closest('div')?.parentElement?.parentElement;
-    expect(communityCard?.querySelector('svg')).toBeInTheDocument();
+    const gauge = await screen.findByTestId('group-progress-gauge');
+    expect(gauge.querySelector('svg')).toBeInTheDocument();
   });
 });

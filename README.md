@@ -26,7 +26,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Group volunteer stats endpoint `GET /volunteer-stats/group` aggregates total hours
   and weekly pounds handled, returning current-month hours alongside a configurable
   goal for dashboard progress.
-- Volunteer dashboard now highlights weekly pounds distributed, a progress bar
+- Volunteer dashboard now highlights weekly pounds distributed, a progress gauge
   toward the monthly hours goal, a highlight of the month, and rotating
   appreciation quotes.
 - Volunteer dashboard includes a contribution trend chart showing monthly shift

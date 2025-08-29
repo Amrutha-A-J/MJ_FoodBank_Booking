@@ -259,9 +259,6 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12 }}>
-          <VolunteerGroupStatsCard />
-        </Grid>
         {leaderboard && (
           <Grid size={{ xs: 12 }}>
             <SectionCard title="Volunteer Leaderboard">
@@ -412,6 +409,10 @@ export default function VolunteerDashboard() {
               </Button>
             </Stack>
           </SectionCard>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <VolunteerGroupStatsCard />
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
