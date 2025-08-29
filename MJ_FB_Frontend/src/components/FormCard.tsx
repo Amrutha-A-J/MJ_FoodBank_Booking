@@ -28,7 +28,7 @@ export default function FormCard({
       display="flex"
       justifyContent="center"
       alignItems={centered ? 'center' : 'flex-start'}
-      minHeight="100vh"
+      minHeight="80vh"
       px={2}
       py={centered ? 0 : 4}
       {...boxProps}
