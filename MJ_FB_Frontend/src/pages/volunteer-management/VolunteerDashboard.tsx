@@ -23,6 +23,7 @@ import {
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
   getVolunteerBadges,
+  getVolunteerLeaderboard,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -56,6 +57,7 @@ export default function VolunteerDashboard() {
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [badges, setBadges] = useState<string[]>([]);
+  const [leaderboard, setLeaderboard] = useState<{ rank: number; percentile: number }>();
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
@@ -74,6 +76,12 @@ export default function VolunteerDashboard() {
     getVolunteerBadges()
       .then(setBadges)
       .catch(() => setBadges([]));
+  }, []);
+
+  useEffect(() => {
+    getVolunteerLeaderboard()
+      .then(setLeaderboard)
+      .catch(() => setLeaderboard(undefined));
   }, []);
 
   useEffect(() => {
@@ -191,6 +199,15 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
+        {leaderboard && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard title="Volunteer Leaderboard">
+              <Typography variant="h6">
+                {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
+              </Typography>
+            </SectionCard>
+          </Grid>
+        )}
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="My Next Shift">
             {nextShift ? (
