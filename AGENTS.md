@@ -11,6 +11,7 @@
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
+- Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
 
 ## Project Layout
 
