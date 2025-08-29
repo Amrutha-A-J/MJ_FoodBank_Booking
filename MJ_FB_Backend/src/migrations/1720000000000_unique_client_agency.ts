@@ -7,5 +7,5 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_unique');
+  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_unique', { ifExists: true });
 }
