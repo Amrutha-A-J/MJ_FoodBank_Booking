@@ -59,7 +59,7 @@ export default function VolunteerGroupStatsCard() {
               fill={theme.palette.primary.main}
             />
           </RadialBarChart>
-          <Typography variant="body2" mt={-2}>{`${stats.monthHours} / ${stats.monthHoursGoal} hrs`}</Typography>
+          <Typography variant="body2" mt={1}>{`${stats.monthHours} / ${stats.monthHoursGoal} hrs`}</Typography>
         </Box>
         {quote && <Typography variant="body2">{quote}</Typography>}
       </Stack>
