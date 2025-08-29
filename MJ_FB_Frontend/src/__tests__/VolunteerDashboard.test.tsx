@@ -6,6 +6,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerLeaderboard,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -14,11 +15,19 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
+  getVolunteerLeaderboard: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('VolunteerDashboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({
+      rank: 1,
+      percentile: 10,
+    });
+  });
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
@@ -44,6 +53,22 @@ describe('VolunteerDashboard', () => {
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
+  });
+
+  it("shows leaderboard percentile", async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 2, percentile: 20 });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("You're in the top 20%"))
+      .toBeInTheDocument();
   });
 
   it('hides slots already booked by volunteer', async () => {

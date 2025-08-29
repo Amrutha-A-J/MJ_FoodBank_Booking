@@ -132,6 +132,11 @@ export async function getMyVolunteerBookings() {
   return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
+export async function getVolunteerLeaderboard() {
+  const res = await apiFetch(`${API_BASE}/volunteer-stats/leaderboard`);
+  return handleResponse(res);
+}
+
 export async function getVolunteerRoles(
   includeInactive = false,
 ): Promise<VolunteerRoleWithShifts[]> {
