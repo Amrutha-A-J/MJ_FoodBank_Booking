@@ -9,6 +9,7 @@ import {
   getVolunteerStats,
   getVolunteerLeaderboard,
   getVolunteerGroupStats,
+  type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -23,6 +24,24 @@ jest.mock('../api/volunteers', () => ({
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
+
+const baseStats: VolunteerStats = {
+  badges: [],
+  lifetimeHours: 0,
+  monthHours: 0,
+  totalShifts: 0,
+  currentStreak: 0,
+  milestone: null,
+  milestoneText: null,
+  familiesServed: 0,
+  poundsHandled: 0,
+  monthFamiliesServed: 0,
+  monthPoundsHandled: 0,
+};
+
+function makeStats(overrides: Partial<VolunteerStats> = {}): VolunteerStats {
+  return { ...baseStats, ...overrides };
+}
 
 describe('VolunteerDashboard', () => {
 beforeEach(() => {
@@ -53,19 +72,7 @@ beforeEach(() => {
       upcoming: [],
       past: [],
     });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     render(
       <MemoryRouter>
@@ -108,19 +115,7 @@ beforeEach(() => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     render(
       <MemoryRouter>
@@ -192,19 +187,7 @@ beforeEach(() => {
     (requestVolunteerBooking as jest.Mock).mockRejectedValue(
       new Error('Already booked for this shift'),
     );
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     render(
       <MemoryRouter>
@@ -238,19 +221,7 @@ beforeEach(() => {
     ]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     render(
       <MemoryRouter>
@@ -269,19 +240,9 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: ['early-bird'],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(
+      makeStats({ badges: ['early-bird'] }),
+    );
 
     render(
       <MemoryRouter>
@@ -296,19 +257,7 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 3, percentile: 75 });
 
     render(
@@ -326,19 +275,16 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 10,
-      monthHours: 5,
-      totalShifts: 5,
-      currentStreak: 1,
-      milestone: 5,
-      milestoneText: 'Congratulations on completing 5 shifts!',
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(
+      makeStats({
+        lifetimeHours: 10,
+        monthHours: 5,
+        totalShifts: 5,
+        currentStreak: 1,
+        milestone: 5,
+        milestoneText: 'Congratulations on completing 5 shifts!',
+      }),
+    );
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 
     render(
@@ -356,19 +302,18 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 10,
-      monthHours: 5,
-      totalShifts: 2,
-      currentStreak: 1,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 20,
-      poundsHandled: 200,
-      monthFamiliesServed: 3,
-      monthPoundsHandled: 30,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(
+      makeStats({
+        lifetimeHours: 10,
+        monthHours: 5,
+        totalShifts: 2,
+        currentStreak: 1,
+        familiesServed: 20,
+        poundsHandled: 200,
+        monthFamiliesServed: 3,
+        monthPoundsHandled: 30,
+      }),
+    );
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 
     render(
@@ -388,19 +333,7 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
       totalHours: 10,
       monthHours: 4,
@@ -465,19 +398,7 @@ beforeEach(() => {
     });
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-      monthFamiliesServed: 0,
-      monthPoundsHandled: 0,
-    });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     render(
       <MemoryRouter>
