@@ -28,6 +28,8 @@ describe('Volunteer leaderboard', () => {
     const res = await request(app).get('/volunteer-stats/leaderboard');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ rank: 5, percentile: 80 });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('volunteer_counts');
+    const query = (pool.query as jest.Mock).mock.calls[0][0];
+    expect(query).toContain('volunteer_counts');
+    expect(query).toContain('::numeric');
   });
 });
