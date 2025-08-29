@@ -62,6 +62,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(
@@ -115,6 +117,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(
@@ -197,6 +201,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(
@@ -241,6 +247,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(
@@ -270,6 +278,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(
@@ -295,6 +305,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 3, percentile: 75 });
 
@@ -323,6 +335,8 @@ beforeEach(() => {
       milestoneText: 'Congratulations on completing 5 shifts!',
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 
@@ -334,6 +348,38 @@ beforeEach(() => {
 
     expect(
       await screen.findByText(/Congratulations on completing 5 shifts!/),
+    ).toBeInTheDocument();
+  });
+
+  it('shows appreciation message with monthly totals', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      lifetimeHours: 10,
+      monthHours: 5,
+      totalShifts: 2,
+      currentStreak: 1,
+      milestone: null,
+      milestoneText: null,
+      familiesServed: 20,
+      poundsHandled: 200,
+      monthFamiliesServed: 3,
+      monthPoundsHandled: 30,
+    });
+    (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByText(
+        /This month you've helped serve 3 families and handle 30 lbs/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -351,6 +397,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
     (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
       totalHours: 10,
@@ -424,6 +472,8 @@ beforeEach(() => {
       milestoneText: null,
       familiesServed: 0,
       poundsHandled: 0,
+      monthFamiliesServed: 0,
+      monthPoundsHandled: 0,
     });
 
     render(

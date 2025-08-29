@@ -73,6 +73,8 @@ export default function VolunteerDashboard() {
         milestoneText: string | null;
         familiesServed: number;
         poundsHandled: number;
+        monthFamiliesServed: number;
+        monthPoundsHandled: number;
       }
     | undefined
   >(undefined);
@@ -125,11 +127,13 @@ export default function VolunteerDashboard() {
           milestoneText: data.milestoneText,
           familiesServed: data.familiesServed,
           poundsHandled: data.poundsHandled,
+          monthFamiliesServed: data.monthFamiliesServed,
+          monthPoundsHandled: data.monthPoundsHandled,
         });
         if (data.totalShifts > 0) {
           const msg =
             data.milestoneText ??
-            `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
+            `${getNextEncouragement()} This month you've helped serve ${data.monthFamiliesServed} families and handle ${data.monthPoundsHandled} lbs.`;
           setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
           setMessage(msg);
         } else {
