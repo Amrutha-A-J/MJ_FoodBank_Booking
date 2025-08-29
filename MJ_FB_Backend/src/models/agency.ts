@@ -72,6 +72,11 @@ export async function getAgencyForClient(
   return res.rows[0] as AgencySummary | undefined;
 }
 
+export async function clientExists(clientId: number): Promise<boolean> {
+  const res = await pool.query('SELECT 1 FROM clients WHERE client_id = $1', [clientId]);
+  return (res.rowCount ?? 0) > 0;
+}
+
 export async function addAgencyClient(
   agencyId: number,
   clientId: number,
