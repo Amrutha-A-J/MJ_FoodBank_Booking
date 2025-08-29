@@ -368,6 +368,31 @@ export async function getVolunteerStats(
     );
     if (earlyRes.rowCount) badges.add('early-bird');
 
+    const statsRes = await pool.query<{
+      lifetime_hours: string;
+      month_hours: string;
+      total_shifts: string;
+    }>(
+      `SELECT
+         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
+         COALESCE(SUM(
+           CASE
+             WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+             THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
+             ELSE 0
+           END
+         ), 0) AS month_hours,
+         COUNT(*) AS total_shifts
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vb.date <= CURRENT_DATE`,
+      [user.id],
+    );
+    const statsRow = statsRes.rows[0];
+    const lifetimeHours = Number(statsRow?.lifetime_hours ?? 0);
+    const monthHours = Number(statsRow?.month_hours ?? 0);
+    const totalShifts = Number(statsRow?.total_shifts ?? 0);
+
     const heavyRes = await pool.query<{ count: string }>(
       `SELECT COUNT(*) FROM volunteer_bookings
        WHERE volunteer_id = $1 AND status = 'approved'`,
@@ -375,7 +400,44 @@ export async function getVolunteerStats(
     );
     if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
 
-    res.json({ badges: Array.from(badges) });
+    const weeksRes = await pool.query<{ week_start: string }>(
+      `SELECT DISTINCT date_trunc('week', date) AS week_start
+       FROM volunteer_bookings
+       WHERE volunteer_id = $1 AND status = 'approved' AND date <= CURRENT_DATE
+       ORDER BY week_start DESC`,
+      [user.id],
+    );
+
+    const weekStarts = weeksRes.rows.map(w => new Date(w.week_start).toISOString().slice(0, 10));
+    const weekSet = new Set(weekStarts);
+
+    const startOfWeek = (d: Date) => {
+      const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      const day = date.getUTCDay();
+      const diff = (day + 6) % 7;
+      date.setUTCDate(date.getUTCDate() - diff);
+      return date.toISOString().slice(0, 10);
+    };
+
+    let current = startOfWeek(new Date());
+    let streak = 0;
+    while (weekSet.has(current)) {
+      streak++;
+      const d = new Date(current);
+      d.setUTCDate(d.getUTCDate() - 7);
+      current = d.toISOString().slice(0, 10);
+    }
+
+    const milestone = [25, 10, 5].find(m => m === totalShifts) ?? null;
+
+    res.json({
+      badges: Array.from(badges),
+      lifetimeHours,
+      monthHours,
+      totalShifts,
+      currentStreak: streak,
+      milestone,
+    });
   } catch (error) {
     logger.error('Error fetching volunteer stats:', error);
     next(error);
