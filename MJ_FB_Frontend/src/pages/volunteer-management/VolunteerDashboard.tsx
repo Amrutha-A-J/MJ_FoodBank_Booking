@@ -42,6 +42,9 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import { getNextEncouragement } from '../../utils/appreciationMessages';
 import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupStatsCard';
+import PersonalContributionChart, {
+  type ContributionDatum,
+} from '../../components/dashboard/PersonalContributionChart';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -55,6 +58,7 @@ function formatDateLabel(dateStr: string) {
 export default function VolunteerDashboard() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
+  const [contributionData, setContributionData] = useState<ContributionDatum[]>([]);
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
@@ -79,8 +83,29 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     getMyVolunteerBookings()
-      .then(setBookings)
-      .catch(() => setBookings([]));
+      .then(data => {
+        setBookings(data);
+        const counts: Record<string, number> = {};
+        data
+          .filter(b => b.status === 'approved')
+          .forEach(b => {
+            const d = toDate(b.date);
+            const key = formatRegina(d, 'yyyy-MM');
+            counts[key] = (counts[key] ?? 0) + 1;
+          });
+        const agg = Object.keys(counts)
+          .sort()
+          .map(k => {
+            const [y, m] = k.split('-');
+            const dt = new Date(Number(y), Number(m) - 1, 1);
+            return { month: formatRegina(dt, 'MMM yyyy'), count: counts[k] };
+          });
+        setContributionData(agg);
+      })
+      .catch(() => {
+        setBookings([]);
+        setContributionData([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -243,6 +268,13 @@ export default function VolunteerDashboard() {
               <Typography variant="h6">
                 {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
               </Typography>
+            </SectionCard>
+          </Grid>
+        )}
+        {contributionData.length > 0 && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard title="My Contribution Trend">
+              <PersonalContributionChart data={contributionData} />
             </SectionCard>
           </Grid>
         )}
