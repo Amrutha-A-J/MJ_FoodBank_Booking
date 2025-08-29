@@ -11,8 +11,6 @@ const QUOTES = [
   'Thanks for lending a helping hand!',
 ];
 
-const HIGHLIGHT_OF_MONTH = 'Canned Food Drive exceeded goals!';
-
 export default function VolunteerGroupStatsCard() {
   const [stats, setStats] = useState<VolunteerGroupStats>();
   const [quote, setQuote] = useState('');
@@ -33,9 +31,6 @@ export default function VolunteerGroupStatsCard() {
   return (
     <SectionCard title="Community Impact">
       <Stack spacing={2} alignItems="center">
-        {HIGHLIGHT_OF_MONTH && (
-          <Typography fontWeight="bold">{HIGHLIGHT_OF_MONTH}</Typography>
-        )}
         <Typography>{`Volunteers distributed ${stats.weekLbs} lbs this week`}</Typography>
         <Typography>{`Served ${stats.monthFamilies} families this month`}</Typography>
         <Box

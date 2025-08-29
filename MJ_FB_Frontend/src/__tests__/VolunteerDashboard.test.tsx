@@ -33,6 +33,7 @@ beforeEach(() => {
     monthHoursGoal: 0,
     totalLbs: 0,
     weekLbs: 0,
+    monthFamilies: 0,
   });
   localStorage.clear();
 });
@@ -406,6 +407,7 @@ beforeEach(() => {
       monthHoursGoal: 8,
       totalLbs: 100,
       weekLbs: 25,
+      monthFamilies: 0,
     });
     const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
 
@@ -424,8 +426,8 @@ beforeEach(() => {
     const gauge = screen.getByTestId('group-progress-gauge');
     expect(gauge.querySelector('svg')).toBeInTheDocument();
     expect(
-      screen.getByText('Canned Food Drive exceeded goals!'),
-    ).toBeInTheDocument();
+      screen.queryByText('Canned Food Drive exceeded goals!'),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByText('We appreciate your dedication!'),
     ).toBeInTheDocument();
@@ -459,6 +461,7 @@ beforeEach(() => {
       monthHoursGoal: 10,
       totalLbs: 100,
       weekLbs: 25,
+      monthFamilies: 0,
     });
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
