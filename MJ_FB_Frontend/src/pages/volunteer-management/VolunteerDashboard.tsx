@@ -22,7 +22,8 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
-  getVolunteerBadges,
+  getVolunteerStats,
+  type VolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { VolunteerBooking, VolunteerRole } from '../../types';
@@ -55,7 +56,7 @@ export default function VolunteerDashboard() {
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
-  const [badges, setBadges] = useState<string[]>([]);
+  const [stats, setStats] = useState<VolunteerStats | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
@@ -71,9 +72,17 @@ export default function VolunteerDashboard() {
   }, []);
 
   useEffect(() => {
-    getVolunteerBadges()
-      .then(setBadges)
-      .catch(() => setBadges([]));
+    getVolunteerStats()
+      .then(setStats)
+      .catch(() =>
+        setStats({
+          badges: [],
+          lifetimeHours: 0,
+          monthHours: 0,
+          totalShifts: 0,
+          currentStreak: 0,
+        }),
+      );
   }, []);
 
   useEffect(() => {
@@ -191,6 +200,16 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
+        {stats?.milestone && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard>
+              <Typography>
+                Congratulations! You've completed {stats.milestone} shifts!
+              </Typography>
+            </SectionCard>
+          </Grid>
+        )}
+
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="My Next Shift">
             {nextShift ? (
@@ -327,17 +346,42 @@ export default function VolunteerDashboard() {
           </SectionCard>
         </Grid>
 
+        {stats && (
+          <>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Lifetime Hours">
+                <Typography>{stats.lifetimeHours}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="This Month">
+                <Typography>{stats.monthHours}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Total Shifts">
+                <Typography>{stats.totalShifts}</Typography>
+              </SectionCard>
+            </Grid>
+            <Grid size={{ xs: 6, md: 3 }}>
+              <SectionCard title="Current Streak">
+                <Typography>{stats.currentStreak}</Typography>
+              </SectionCard>
+            </Grid>
+          </>
+        )}
+
         <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+          <SectionCard title="News & Events" icon={<Announcement color="primary" />}> 
             <EventList events={[...events.today, ...events.upcoming]} limit={5} />
           </SectionCard>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="Badges">
-            {badges.length > 0 ? (
+            {stats && stats.badges.length > 0 ? (
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                {badges.map(b => (
+                {stats.badges.map(b => (
                   <Chip key={b} label={b} />
                 ))}
               </Stack>

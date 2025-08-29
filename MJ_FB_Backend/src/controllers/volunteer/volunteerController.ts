@@ -375,11 +375,70 @@ export async function getVolunteerStats(
     );
     if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
 
-    res.json({ badges: Array.from(badges) });
+    const bookingRes = await pool.query<{
+      date: string;
+      start_time: string;
+      end_time: string;
+    }>(
+      `SELECT vb.date, vs.start_time, vs.end_time
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vb.date <= CURRENT_DATE
+       ORDER BY vb.date`,
+      [user.id],
+    );
+
+    let lifetimeHours = 0;
+    let monthHours = 0;
+    const weekKeys = new Set<string>();
+    const startOfMonth = new Date();
+    startOfMonth.setUTCDate(1);
+    startOfMonth.setUTCHours(0, 0, 0, 0);
+    for (const row of bookingRes.rows) {
+      const [sh, sm, ss] = row.start_time.split(':').map(Number);
+      const [eh, em, es] = row.end_time.split(':').map(Number);
+      const duration = (eh * 3600 + em * 60 + es - (sh * 3600 + sm * 60 + ss)) / 3600;
+      lifetimeHours += duration;
+      const date = new Date(`${row.date}T00:00:00Z`);
+      if (date >= startOfMonth) monthHours += duration;
+      weekKeys.add(startOfWeekKey(date));
+    }
+
+    const totalShifts = bookingRes.rowCount;
+    let currentStreak = 0;
+    let cursor = startOfWeek(new Date());
+    while (weekKeys.has(startOfWeekKey(cursor))) {
+      currentStreak++;
+      cursor.setUTCDate(cursor.getUTCDate() - 7);
+    }
+
+    const milestones = [5, 10, 25];
+    const milestone = milestones.includes(totalShifts) ? totalShifts : undefined;
+
+    res.json({
+      badges: Array.from(badges),
+      lifetimeHours,
+      monthHours,
+      totalShifts,
+      currentStreak,
+      ...(milestone && { milestone }),
+    });
   } catch (error) {
     logger.error('Error fetching volunteer stats:', error);
     next(error);
   }
+}
+
+function startOfWeek(date: Date) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay();
+  const diff = (day + 6) % 7; // Monday = 0
+  d.setUTCDate(d.getUTCDate() - diff);
+  return d;
+}
+
+function startOfWeekKey(date: Date) {
+  return startOfWeek(date).toISOString().slice(0, 10);
 }
 
 export async function awardVolunteerBadge(

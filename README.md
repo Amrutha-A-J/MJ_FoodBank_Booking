@@ -18,7 +18,9 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Users see a random appreciation message on each login with a link to download their card when available.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
-- Volunteer badges are calculated from activity and manually awardable. `GET /volunteers/me/stats` returns earned badges and the dashboard displays them.
+- Volunteer badges and stats are calculated from activity. `GET /volunteers/me/stats`
+  returns earned badges, lifetime and monthly hours, total shifts, current streak,
+  and any milestone flag; the dashboard displays these metrics.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
 - Approving a pending volunteer booking immediately removes it from the Pending list.

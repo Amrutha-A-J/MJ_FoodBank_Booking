@@ -403,12 +403,6 @@ export async function removeVolunteerShopperProfile(
   await handleResponse(res);
 }
 
-export async function getVolunteerBadges(): Promise<string[]> {
-  const res = await apiFetch(`${API_BASE}/volunteers/me/stats`);
-  const data = await handleResponse(res);
-  return data.badges ?? [];
-}
-
 export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteers/me/badges`, {
     method: 'POST',
@@ -416,4 +410,18 @@ export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
     body: JSON.stringify({ badgeCode }),
   });
   await handleResponse(res);
+}
+
+export interface VolunteerStats {
+  badges: string[];
+  lifetimeHours: number;
+  monthHours: number;
+  totalShifts: number;
+  currentStreak: number;
+  milestone?: number;
+}
+
+export async function getVolunteerStats(): Promise<VolunteerStats> {
+  const res = await apiFetch(`${API_BASE}/volunteers/me/stats`);
+  return handleResponse(res);
 }
