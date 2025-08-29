@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { TextField, List, ListItemButton, ListItemText } from '@mui/material';
+import {
+  TextField,
+  List,
+  ListItemButton,
+  ListItemText,
+  Box,
+  CircularProgress,
+  Typography,
+} from '@mui/material';
 import BookingUI from '../BookingUI';
 import { getMyAgencyClients } from '../../api/agencies';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -16,6 +24,7 @@ export default function AgencyBookAppointment() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<AgencyClient | null>(null);
   const [snackbar, setSnackbar] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getMyAgencyClients()
@@ -61,6 +70,7 @@ export default function AgencyBookAppointment() {
               key={u.id}
               onClick={() => {
                 setSelected(u);
+                setLoading(true);
                 setSearch('');
               }}
             >
@@ -70,11 +80,29 @@ export default function AgencyBookAppointment() {
         </List>
       )}
       {selected && (
-        <BookingUI
-          shopperName={selected.name}
-          userId={selected.id}
-          embedded
-        />
+        <>
+          {loading && (
+            <Box
+              sx={{
+                minHeight: 200,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CircularProgress size={24} />
+              <Typography sx={{ ml: 2 }}>Loading availability...</Typography>
+            </Box>
+          )}
+          <Box sx={{ display: loading ? 'none' : 'block' }}>
+            <BookingUI
+              shopperName={selected.name}
+              userId={selected.id}
+              embedded
+              onLoadingChange={setLoading}
+            />
+          </Box>
+        </>
       )}
       <FeedbackSnackbar
         open={!!snackbar}
