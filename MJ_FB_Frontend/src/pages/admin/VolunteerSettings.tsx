@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Accordion,
   AccordionDetails,
@@ -86,6 +86,16 @@ export default function VolunteerSettings() {
   const [shiftToDelete, setShiftToDelete] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<number | false>(false);
   const [restoreDialog, setRestoreDialog] = useState(false);
+
+  const rolesByCategory = useMemo(() => {
+    const map = new Map<number, VolunteerRoleWithShifts[]>();
+    roles.forEach(role => {
+      const arr = map.get(role.category_id);
+      if (arr) arr.push(role);
+      else map.set(role.category_id, [role]);
+    });
+    return map;
+  }, [roles]);
 
   useEffect(() => {
     loadData();
@@ -427,7 +437,7 @@ export default function VolunteerSettings() {
                     Add Sub-role
                   </Button>
                 </Box>
-                {roles.filter(r => r.category_id === master.id).map(role => (
+                {(rolesByCategory.get(master.id) || []).map(role => (
                   <Box key={role.id} mb={2}>
                     <Grid container alignItems="center" spacing={1}>
                       <Grid item xs>
