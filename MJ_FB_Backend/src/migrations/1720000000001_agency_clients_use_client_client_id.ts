@@ -2,7 +2,7 @@ import { MigrationBuilder } from 'node-pg-migrate';
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
   // Ensure client_id stores the external client identifier.
-  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_fkey');
+  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_fkey', { ifExists: true });
   pgm.alterColumn('agency_clients', 'client_id', { type: 'bigint' });
   pgm.addConstraint('agency_clients', 'agency_clients_client_id_fkey', {
     foreignKeys: {
@@ -14,7 +14,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_fkey');
+  pgm.dropConstraint('agency_clients', 'agency_clients_client_id_fkey', { ifExists: true });
   pgm.alterColumn('agency_clients', 'client_id', { type: 'integer' });
   pgm.addConstraint('agency_clients', 'agency_clients_client_id_fkey', {
     foreignKeys: {
