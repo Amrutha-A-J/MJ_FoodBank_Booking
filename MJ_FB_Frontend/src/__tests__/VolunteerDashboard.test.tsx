@@ -89,6 +89,41 @@ describe('VolunteerDashboard', () => {
     ).toBeInTheDocument();
   });
 
+  it('excludes past shifts from available slots', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-29T19:00:00Z'));
+
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '9:00:00',
+        end_time: '12:00:00',
+        max_volunteers: 3,
+        booked: 0,
+        available: 3,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('No available shifts')).toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
+
   it('shows server error when shift request fails', async () => {
     const today = new Date().toISOString().split('T')[0];
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);

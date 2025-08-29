@@ -69,6 +69,8 @@ export default function VolunteerSchedule() {
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
+  const todayStr = formatDate();
+  const todayStart = fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
@@ -131,7 +133,10 @@ export default function VolunteerSchedule() {
   }, [loadData]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => addDays(d, delta));
+    setCurrentDate(d => {
+      const next = addDays(d, delta);
+      return next < todayStart ? d : next;
+    });
   }
 
   async function submitRequest() {
@@ -242,8 +247,11 @@ export default function VolunteerSchedule() {
             .find(g => g.category_id === Number(selectedCategoryId))
             ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || [];
         if (isToday) {
-          const nowTime = today.toTimeString().slice(0, 8);
-          slots = slots.filter(s => s.start_time > nowTime);
+          const nowMinutes = today.getHours() * 60 + today.getMinutes();
+          slots = slots.filter(s => {
+            const [h, m] = s.start_time.split(':').map(Number);
+            return h * 60 + m > nowMinutes;
+          });
         }
         return slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
       })()
@@ -344,7 +352,14 @@ export default function VolunteerSchedule() {
               mb: 2,
             }}
           >
-            <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
+            <Button
+              onClick={() => changeDay(-1)}
+              variant="outlined"
+              color="primary"
+              disabled={currentDate <= todayStart}
+            >
+              Previous
+            </Button>
             <Typography variant="h6" component="h3">
               {dateStr} - {dayName}
               {isHoliday

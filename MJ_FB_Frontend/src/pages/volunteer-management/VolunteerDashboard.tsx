@@ -113,9 +113,10 @@ export default function VolunteerDashboard() {
   );
 
   const availableSlots = useMemo(() => {
-    const slots = availability.filter(
-      a => a.status === 'available' && a.available > 0,
-    );
+    const now = toDate();
+    const slots = availability
+      .filter(a => a.status === 'available' && a.available > 0)
+      .filter(s => toDate(`${s.date}T${s.start_time}`) > now);
     const activeBookings = bookings.filter(b =>
       ['pending', 'approved'].includes(b.status),
     );
