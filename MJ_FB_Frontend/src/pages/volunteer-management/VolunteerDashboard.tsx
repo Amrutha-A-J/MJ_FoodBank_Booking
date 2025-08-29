@@ -126,11 +126,15 @@ export default function VolunteerDashboard() {
           familiesServed: data.familiesServed,
           poundsHandled: data.poundsHandled,
         });
-        const msg =
-          data.milestoneText ??
-          `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
-        setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
-        setMessage(msg);
+        if (data.totalShifts > 0) {
+          const msg =
+            data.milestoneText ??
+            `${getNextEncouragement()} You've helped serve ${data.familiesServed} families and handle ${data.poundsHandled} lbs.`;
+          setSnackbarSeverity(data.milestoneText ? 'info' : 'success');
+          setMessage(msg);
+        } else {
+          setMessage('');
+        }
       })
       .catch(() => {
         setBadges([]);
@@ -428,7 +432,7 @@ export default function VolunteerDashboard() {
           </Grid>
         )}
 
-        {stats && (
+        {stats && stats.totalShifts > 0 && (
           <>
             <Grid size={{ xs: 6, md: 3 }}>
               <SectionCard title="Lifetime Hours">
