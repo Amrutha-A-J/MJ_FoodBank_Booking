@@ -34,7 +34,7 @@ const ClientHistory = React.lazy(() =>
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const StaffLogin = React.lazy(() => import('./pages/auth/StaffLogin'));
 const VolunteerLogin = React.lazy(() => import('./pages/auth/VolunteerLogin'));
-const ClientSignup = React.lazy(() => import('./pages/auth/ClientSignup'));
+// const ClientSignup = React.lazy(() => import('./pages/auth/ClientSignup'));
 const VolunteerDashboard = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerDashboard')
 );
@@ -128,7 +128,7 @@ export default function App() {
           { label: 'Agency Login', to: '/login/agency' },
         ],
       },
-      { label: 'Client Sign Up', links: [{ label: 'Sign Up', to: '/signup' }] },
+      // { label: 'Client Sign Up', links: [{ label: 'Sign Up', to: '/signup' }] },
     );
   } else if (isStaff) {
     const staffLinks = [
@@ -409,7 +409,7 @@ export default function App() {
             <main>
               <Suspense fallback={<Spinner />}>
                 <Routes>
-                  <Route path="/signup" element={<ClientSignup />} />
+                  {/* <Route path="/signup" element={<ClientSignup />} /> */}
                   <Route path="/login/user" element={<Login onLogin={login} />} />
                   <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
                   <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />

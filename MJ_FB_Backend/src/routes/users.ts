@@ -1,8 +1,8 @@
 import express from 'express';
 import {
   loginUser,
-  registerUser,
-  sendRegistrationOtp,
+  // registerUser,
+  // sendRegistrationOtp,
   createUser,
   searchUsers,
   getUserProfile,
@@ -15,8 +15,8 @@ import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import {
   loginSchema,
-  registerSchema,
-  sendRegistrationOtpSchema,
+  // registerSchema,
+  // sendRegistrationOtpSchema,
   createUserSchema,
   updateUserSchema,
   updateMyProfileSchema,
@@ -24,13 +24,13 @@ import {
 
 const router = express.Router();
 
-router.post('/register', validate(registerSchema), registerUser);
 router.post('/login', validate(loginSchema), loginUser);
-router.post(
-  '/register/otp',
-  validate(sendRegistrationOtpSchema),
-  sendRegistrationOtp,
-);
+// router.post('/register', validate(registerSchema), registerUser);
+// router.post(
+//   '/register/otp',
+//   validate(sendRegistrationOtpSchema),
+//   sendRegistrationOtp,
+// );
 router.post(
   '/add-client',
   authMiddleware,

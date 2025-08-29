@@ -1,3 +1,6 @@
+// Client self-registration feature is temporarily disabled.
+// Tests for the ClientSignup component are commented out until the feature is restored.
+/*
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientSignup from '../pages/auth/ClientSignup';
@@ -60,3 +63,4 @@ describe('ClientSignup', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/login/user');
   });
 });
+*/

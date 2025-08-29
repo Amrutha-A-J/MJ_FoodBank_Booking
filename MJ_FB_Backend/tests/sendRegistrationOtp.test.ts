@@ -1,3 +1,7 @@
+// Client self-registration feature is temporarily disabled.
+// The tests below verify the OTP flow and should be re-enabled when the
+// signup feature is restored.
+/*
 import request from 'supertest';
 import express from 'express';
 import usersRouter from '../src/routes/users';
@@ -33,3 +37,4 @@ describe('POST /api/users/register/otp', () => {
     expect(sendEmail).toHaveBeenCalled();
   });
 });
+*/
