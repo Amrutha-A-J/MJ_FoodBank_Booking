@@ -7,8 +7,6 @@ jest.mock('../api/users', () => ({
   loginAgency: jest.fn(),
 }));
 
-jest.mock('../pages/agency/AgencySchedule', () => () => <div>AgencySchedule</div>);
-jest.mock('../pages/agency/ClientList', () => () => <div>AgencyClientList</div>);
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
 jest.mock('../pages/agency/ClientHistory', () => () => <div>AgencyClientHistory</div>);
 
@@ -46,17 +44,19 @@ describe('Agency UI access', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() =>
-      expect(screen.getByRole('link', { name: /schedule/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: /book appointment/i })
+      ).toBeInTheDocument()
     );
-    expect(screen.getByRole('link', { name: /clients/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /book appointment/i })).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /booking history/i })
     ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /schedule/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /clients/i })).not.toBeInTheDocument();
   });
 
   it('redirects unauthenticated users away from agency routes', async () => {
-    window.history.pushState({}, '', '/agency/schedule');
+    window.history.pushState({}, '', '/agency/book');
     render(
       <AuthProvider>
         <App />

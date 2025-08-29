@@ -43,7 +43,7 @@
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations.
   Initially, the page shows only agency search; selecting an agency reveals a two-column layout with client search on the left and the agency's client list on the right.
 - Agencies can book appointments for their associated clients from the Agency → Book Appointment page, which loads clients once and filters client-side.
-- Agency navigation provides Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all protected by `AgencyGuard`.
+- Agency navigation provides Dashboard, Book Appointment, and Booking History pages, all protected by `AgencyGuard`.
 
 ## Development Guidelines
 
@@ -311,6 +311,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 - Agency users can view and update their own profile via `GET/PATCH /users/me`.
   The response includes `firstName` (agency name), `email`, and `phone`
   (contact info).
+  Authenticated agency users may substitute `me` for `:id` in the above client
+  routes (e.g. `GET /agencies/me/clients`).
 
 ### Donors (`src/routes/donors.ts`)
 - `GET /donors?search=name` → `[ { id, name } ]`
