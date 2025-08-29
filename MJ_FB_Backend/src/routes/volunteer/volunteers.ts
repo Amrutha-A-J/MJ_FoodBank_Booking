@@ -7,6 +7,7 @@ import {
   searchVolunteers,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  getVolunteerStats,
 } from '../../controllers/volunteer/volunteerController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 
@@ -15,6 +16,8 @@ const router = express.Router();
 router.post('/login', loginVolunteer);
 
 router.get('/me', authMiddleware, getVolunteerProfile);
+
+router.get('/stats', authMiddleware, getVolunteerStats);
 
 router.post(
   '/',

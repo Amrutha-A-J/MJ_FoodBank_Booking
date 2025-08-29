@@ -170,6 +170,14 @@ export interface VolunteerMasterRole {
   name: string;
 }
 
+export interface VolunteerStats {
+  completedShifts: number;
+  familiesServed: number;
+  poundsHandled: number;
+  milestoneText?: string | null;
+  message?: string;
+}
+
 export interface EditableSlot {
   id: number;
   role_id: number;

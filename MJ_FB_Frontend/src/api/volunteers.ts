@@ -6,6 +6,7 @@ import type {
   Shift,
   VolunteerBooking,
   UserProfile,
+  VolunteerStats,
 } from '../types';
 import type { LoginResponse } from './users';
 
@@ -35,6 +36,11 @@ export async function loginVolunteer(
 
 export async function getVolunteerProfile(): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/volunteers/me`);
+  return handleResponse(res);
+}
+
+export async function getVolunteerStats(): Promise<VolunteerStats> {
+  const res = await apiFetch(`${API_BASE}/volunteers/stats`);
   return handleResponse(res);
 }
 
