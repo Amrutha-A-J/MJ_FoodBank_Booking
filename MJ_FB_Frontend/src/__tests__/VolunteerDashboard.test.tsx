@@ -8,6 +8,7 @@ import {
   updateVolunteerBookingStatus,
   getVolunteerStats,
   getVolunteerLeaderboard,
+  getVolunteerGroupStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -18,6 +19,7 @@ jest.mock('../api/volunteers', () => ({
   updateVolunteerBookingStatus: jest.fn(),
   getVolunteerStats: jest.fn(),
   getVolunteerLeaderboard: jest.fn(),
+  getVolunteerGroupStats: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
@@ -25,6 +27,13 @@ jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 describe('VolunteerDashboard', () => {
 beforeEach(() => {
   (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
+  (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+    totalHours: 0,
+    monthHours: 0,
+    monthHoursGoal: 0,
+    totalLbs: 0,
+    weekLbs: 0,
+  });
   localStorage.clear();
 });
   it('shows events in News & Events section', async () => {
@@ -326,5 +335,50 @@ beforeEach(() => {
     expect(
       await screen.findByText(/Congratulations on completing 5 shifts!/),
     ).toBeInTheDocument();
+  });
+
+  it('shows group stats card with progress and quote', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      badges: [],
+      lifetimeHours: 0,
+      monthHours: 0,
+      totalShifts: 0,
+      currentStreak: 0,
+      milestone: null,
+      milestoneText: null,
+      familiesServed: 0,
+      poundsHandled: 0,
+    });
+    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+      totalHours: 10,
+      monthHours: 4,
+      monthHoursGoal: 8,
+      totalLbs: 100,
+      weekLbs: 25,
+    });
+    const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByText(/Volunteers distributed 25 lbs this week/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Hours This Month: 4 \/ 8/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Canned Food Drive exceeded goals!'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('We appreciate your dedication!'),
+    ).toBeInTheDocument();
+    rand.mockRestore();
   });
 });

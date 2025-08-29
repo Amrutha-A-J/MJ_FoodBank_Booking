@@ -23,6 +23,12 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - The stats endpoint now provides a milestone message and contribution totals (`familiesServed` and `poundsHandled`) so the dashboard can display appreciation.
 - Volunteer leaderboard endpoint `GET /volunteer-stats/leaderboard` returns your rank and percentile.
   The volunteer dashboard shows “You're in the top X%!” based on this data.
+- Group volunteer stats endpoint `GET /volunteer-stats/group` aggregates total hours
+  and weekly pounds handled, returning current-month hours alongside a configurable
+  goal for dashboard progress.
+- Volunteer dashboard now highlights weekly pounds distributed, a progress bar
+  toward the monthly hours goal, a highlight of the month, and rotating
+  appreciation quotes.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
 - Approving a pending volunteer booking immediately removes it from the Pending list.
