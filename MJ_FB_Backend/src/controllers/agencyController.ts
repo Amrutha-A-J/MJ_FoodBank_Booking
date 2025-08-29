@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import {
   addAgencyClient,
-  removeAgencyClient,
-  getAgencyClients as fetchAgencyClients,
-  createAgency as insertAgency,
-  getAgencyByEmail,
-  getAgencyForClient,
-  searchAgencies as findAgencies,
-} from '../models/agency';
+    removeAgencyClient,
+    getAgencyClients as fetchAgencyClients,
+    createAgency as insertAgency,
+    getAgencyByEmail,
+    getAgencyForClient,
+    clientExists,
+    searchAgencies as findAgencies,
+  } from '../models/agency';
 import bcrypt from 'bcrypt';
 import { validatePassword } from '../utils/passwordUtils';
 import { createAgencySchema } from '../schemas/agencySchemas';
@@ -79,14 +80,17 @@ export async function addClientToAgency(
     if (!agencyId || !clientId) {
       return res.status(400).json({ message: 'Missing fields' });
     }
-    if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    const existing = await getAgencyForClient(clientId);
-    if (existing) {
-      return res.status(409).json({
-        message: `Client already associated with ${existing.name}`,
-        agencyName: existing.name,
+      if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      if (!(await clientExists(clientId))) {
+        return res.status(404).json({ message: 'Client not found' });
+      }
+      const existing = await getAgencyForClient(clientId);
+      if (existing) {
+        return res.status(409).json({
+          message: `Client already associated with ${existing.name}`,
+          agencyName: existing.name,
       });
     }
     await addAgencyClient(agencyId, clientId);

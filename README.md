@@ -124,9 +124,10 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
    In these examples, `clientId` is the public identifier from the `clients`
    table (`clients.client_id`).
 
-   A client may be linked to only one agency at a time. If the client is
-   already associated with another agency, the request returns a `409 Conflict`
-   response containing that agency's name.
+  A client may be linked to only one agency at a time. If the client is
+  already associated with another agency, the request returns a `409 Conflict`
+  response containing that agency's name. Supplying a `clientId` that doesn't
+  exist results in a `404 Not Found` error.
 
    Remove a client with
    `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).

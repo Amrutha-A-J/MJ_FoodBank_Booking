@@ -1,13 +1,14 @@
 import request from 'supertest';
 import express from 'express';
 import agenciesRoutes from '../src/routes/agencies';
-import { getAgencyForClient, addAgencyClient } from '../src/models/agency';
+import { getAgencyForClient, addAgencyClient, clientExists } from '../src/models/agency';
 
 jest.mock('../src/models/agency', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/agency'),
   getAgencyForClient: jest.fn(),
   addAgencyClient: jest.fn(),
+  clientExists: jest.fn(),
 }));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -39,6 +40,7 @@ describe('POST /agencies/:id/clients', () => {
   });
 
   it('rejects when client already associated with another agency', async () => {
+    (clientExists as jest.Mock).mockResolvedValue(true);
     (getAgencyForClient as jest.Mock).mockResolvedValue({ id: 2, name: 'Existing Agency' });
 
     const res = await request(app)
@@ -50,6 +52,19 @@ describe('POST /agencies/:id/clients', () => {
       message: 'Client already associated with Existing Agency',
       agencyName: 'Existing Agency',
     });
+    expect(addAgencyClient).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when client does not exist', async () => {
+    (clientExists as jest.Mock).mockResolvedValue(false);
+
+    const res = await request(app)
+      .post('/agencies/1/clients')
+      .send({ clientId: 999 });
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: 'Client not found' });
+    expect(getAgencyForClient).not.toHaveBeenCalled();
     expect(addAgencyClient).not.toHaveBeenCalled();
   });
 });
