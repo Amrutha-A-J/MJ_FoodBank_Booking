@@ -85,8 +85,8 @@ const VolunteerSettings = React.lazy(() =>
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
 const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
-const AgencyClientBookings = React.lazy(() =>
-  import('./pages/agency/ClientBookings')
+const AgencyBookAppointment = React.lazy(() =>
+  import('./pages/agency/AgencyBookAppointment')
 );
 
 const Spinner = () => <CircularProgress />;
@@ -184,6 +184,7 @@ export default function App() {
         { label: 'Schedule', to: '/agency/schedule' },
         { label: 'Clients', to: '/agency/clients' },
         { label: 'Client History', to: '/agency/history' },
+        { label: 'Book Appointment', to: '/agency/book' },
       ],
     });
   } else if (role === 'shopper') {
@@ -309,12 +310,7 @@ export default function App() {
                   element={<Exports />}
                 />
               )}
-              {role === 'agency' && (
-                <Route
-                  path="/agency/clients"
-                  element={<AgencyClientBookings />}
-                />
-              )}
+
               {role === 'shopper' && (
                 <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
               )}
@@ -384,34 +380,43 @@ export default function App() {
                   />
                 </>
               )}
-              {role === 'agency' && (
-                <>
-                  <Route
-                    path="/agency/schedule"
-                    element={
-                      <AgencyGuard>
-                        <AgencySchedule />
-                      </AgencyGuard>
-                    }
-                  />
-                  <Route
-                    path="/agency/clients"
-                    element={
-                      <AgencyGuard>
-                        <ClientList />
-                      </AgencyGuard>
-                    }
-                  />
-                  <Route
-                    path="/agency/history"
-                    element={
-                      <AgencyGuard>
-                        <ClientHistory />
-                      </AgencyGuard>
-                    }
-                  />
-                </>
-              )}
+
+                {role === 'agency' && (
+                  <>
+                    <Route
+                      path="/agency/schedule"
+                      element={
+                        <AgencyGuard>
+                          <AgencySchedule />
+                        </AgencyGuard>
+                      }
+                    />
+                    <Route
+                      path="/agency/book"
+                      element={
+                        <AgencyGuard>
+                          <AgencyBookAppointment />
+                        </AgencyGuard>
+                      }
+                    />
+                    <Route
+                      path="/agency/clients"
+                      element={
+                        <AgencyGuard>
+                          <ClientList />
+                        </AgencyGuard>
+                      }
+                    />
+                    <Route
+                      path="/agency/history"
+                      element={
+                        <AgencyGuard>
+                          <ClientHistory />
+                        </AgencyGuard>
+                      }
+                    />
+                  </>
+                )}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </Suspense>
