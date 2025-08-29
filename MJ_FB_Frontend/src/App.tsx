@@ -25,13 +25,9 @@ const BookingUI = React.lazy(() => import('./pages/BookingUI'));
 const PantrySchedule = React.lazy(() =>
   import('./pages/staff/PantrySchedule')
 );
-const AgencySchedule = React.lazy(() =>
-  import('./pages/agency/AgencySchedule')
-);
 const AgencyDashboard = React.lazy(() =>
   import('./pages/agency/AgencyDashboard')
 );
-const ClientList = React.lazy(() => import('./pages/agency/ClientList'));
 const ClientHistory = React.lazy(() =>
   import('./pages/agency/ClientHistory')
 );
@@ -187,8 +183,6 @@ export default function App() {
         { label: 'Dashboard', to: '/' },
         { label: 'Book Appointment', to: '/agency/book' },
         { label: 'Booking History', to: '/agency/history' },
-        { label: 'Clients', to: '/agency/clients' },
-        { label: 'Schedule', to: '/agency/schedule' },
       ],
     });
   } else if (role === 'shopper') {
@@ -388,26 +382,10 @@ export default function App() {
                 {role === 'agency' && (
                   <>
                     <Route
-                      path="/agency/schedule"
-                      element={
-                        <AgencyGuard>
-                          <AgencySchedule />
-                        </AgencyGuard>
-                      }
-                    />
-                    <Route
                       path="/agency/book"
                       element={
                         <AgencyGuard>
                           <AgencyBookAppointment />
-                        </AgencyGuard>
-                      }
-                    />
-                    <Route
-                      path="/agency/clients"
-                      element={
-                        <AgencyGuard>
-                          <ClientList />
                         </AgencyGuard>
                       }
                     />
