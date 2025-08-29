@@ -67,6 +67,7 @@ export type BookingUIProps = {
   initialDate?: Dayjs;
   userId?: number;
   embedded?: boolean;
+  onLoadingChange?: (loading: boolean) => void;
 };
 
 export default function BookingUI({
@@ -74,6 +75,7 @@ export default function BookingUI({
   initialDate = dayjs(),
   userId,
   embedded = false,
+  onLoadingChange,
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
@@ -137,6 +139,10 @@ export default function BookingUI({
   const [morningSlots, setMorningSlots] = useState<Slot[]>([]);
   const [afternoonSlots, setAfternoonSlots] = useState<Slot[]>([]);
   const [slotsReady, setSlotsReady] = useState(false);
+  const loading = isLoading || !holidaysReady || !slotsReady;
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
   useEffect(() => {
     setSlotsReady(false);
     const handle = scheduleIdle(() => {
