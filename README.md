@@ -175,6 +175,7 @@ control weight calculations:
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
 - Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
+- Agency users have a dedicated navigation menu with links to Dashboard, Book Appointment, Booking History, Clients, and Schedule.
 
 ## Deploying to Azure
 

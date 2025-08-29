@@ -181,9 +181,11 @@ export default function App() {
     navGroups.push({
       label: 'Agency',
       links: [
-        { label: 'Schedule', to: '/agency/schedule' },
+        { label: 'Dashboard', to: '/' },
+        { label: 'Book Appointment', to: '/agency/book' },
+        { label: 'Booking History', to: '/agency/history' },
         { label: 'Clients', to: '/agency/clients' },
-        { label: 'Client History', to: '/agency/history' },
+        { label: 'Schedule', to: '/agency/schedule' },
       ],
     });
   } else if (role === 'shopper') {
@@ -309,12 +311,6 @@ export default function App() {
                   element={<Exports />}
                 />
               )}
-              {role === 'agency' && (
-                <Route
-                  path="/agency/clients"
-                  element={<AgencyClientBookings />}
-                />
-              )}
               {role === 'shopper' && (
                 <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
               )}
@@ -391,6 +387,14 @@ export default function App() {
                     element={
                       <AgencyGuard>
                         <AgencySchedule />
+                      </AgencyGuard>
+                    }
+                  />
+                  <Route
+                    path="/agency/book"
+                    element={
+                      <AgencyGuard>
+                        <AgencyClientBookings />
                       </AgencyGuard>
                     }
                   />
