@@ -32,7 +32,7 @@ export async function requestPasswordReset(
         logger.info(`Password reset requested for volunteer ${username}`);
       }
     } else if (clientId) {
-      const userRes = await pool.query('SELECT id FROM clients WHERE client_id=$1', [clientId]);
+      const userRes = await pool.query('SELECT client_id FROM clients WHERE client_id=$1', [clientId]);
       if ((userRes.rowCount ?? 0) > 0) {
         logger.info(`Password reset requested for client ${clientId}`);
       }
@@ -67,8 +67,9 @@ export async function changePassword(
     if (user.type === 'staff') table = 'staff';
     else if (user.type === 'volunteer') table = 'volunteers';
     else if (user.type === 'agency') table = 'agencies';
+    const idColumn = table === 'clients' ? 'client_id' : 'id';
     const result = await pool.query(
-      `SELECT password FROM ${table} WHERE id=$1`,
+      `SELECT password FROM ${table} WHERE ${idColumn}=$1`,
       [user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
