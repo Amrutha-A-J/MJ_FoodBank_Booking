@@ -180,7 +180,7 @@ control weight calculations:
 - Pantry Settings page lets staff configure one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Filled pantry schedule slots display the client's ID in parentheses next to their name.
-- Agencies can book appointments for their associated clients via the Agency → Book Appointment page, which lists existing clients and filters them client-side. The page now hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
+- Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients load once and appear only after entering a search term, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
 - Agencies can view slot availability and cancel or reschedule bookings for their clients using the standard booking APIs.
 - Agency navigation offers Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all behind an `AgencyGuard`.
 - Agency profile page shows the agency's name, email, and contact info with editable fields and password reset support.

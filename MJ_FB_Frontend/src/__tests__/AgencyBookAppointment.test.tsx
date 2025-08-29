@@ -18,6 +18,9 @@ describe('AgencyBookAppointment', () => {
 
     render(<AgencyBookAppointment />);
 
+    fireEvent.change(screen.getByLabelText(/Search Clients/i), {
+      target: { value: 'Alice' },
+    });
     await screen.findByText('Alice');
     fireEvent.click(screen.getByText('Alice'));
 

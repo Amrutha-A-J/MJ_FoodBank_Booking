@@ -35,13 +35,15 @@ export default function AgencyBookAppointment() {
       .catch(() => setSnackbar('Failed to load clients'));
   }, []);
 
-  const filtered = clients.filter(c => {
-    const term = search.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(term) ||
-      (c.email ? c.email.toLowerCase().includes(term) : false)
-    );
-  });
+  const filtered = search
+    ? clients.filter(c => {
+        const term = search.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(term) ||
+          (c.email ? c.email.toLowerCase().includes(term) : false)
+        );
+      })
+    : [];
 
   return (
     <Page title="Book Appointment">
@@ -52,7 +54,7 @@ export default function AgencyBookAppointment() {
         fullWidth
         sx={{ mb: 2 }}
       />
-      {(!selected || search) && (
+      {search && (
         <List>
           {filtered.map(u => (
             <ListItemButton
