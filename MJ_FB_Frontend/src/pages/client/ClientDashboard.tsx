@@ -139,138 +139,142 @@ export default function ClientDashboard() {
     <Page title="Client Dashboard">
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard
-            title="My Upcoming Appointment"
-            icon={<EventAvailable color="primary" />}
-          >
-            {next ? (
+          <Stack spacing={2}>
+            <SectionCard
+              title="My Upcoming Appointment"
+              icon={<EventAvailable color="primary" />}
+            >
+              {next ? (
+                <List>
+                  <ListItem
+                    secondaryAction={
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          sx={{ textTransform: 'none' }}
+                          onClick={() => setCancelId(next.id)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          sx={{ textTransform: 'none' }}
+                          onClick={() => navigate('/booking-history')}
+                        >
+                          Reschedule
+                        </Button>
+                      </Stack>
+                    }
+                  >
+                    <ListItemText
+                      primary={`${formatDate(next.date)} ${formatTime(
+                        next.start_time || '',
+                      )}`}
+                    />
+                  </ListItem>
+                </List>
+              ) : (
+                <Typography>
+                  No appointment booked —{' '}
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => navigate('/book-appointment')}
+                  >
+                    Book now
+                  </Button>
+                </Typography>
+              )}
+            </SectionCard>
+
+            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+              <Stack spacing={2}>
+                <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+                <List>
+                  {holidays.map(h => (
+                    <ListItem key={h.date}>
+                      <ListItemText
+                        primary={`${formatDate(h.date)} ${h.reason}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Stack>
+            </SectionCard>
+          </Stack>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack spacing={2}>
+            <SectionCard
+              title="Next Available Slots"
+              icon={<EventAvailable color="primary" />}
+            >
               <List>
-                <ListItem
-                  secondaryAction={
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        sx={{ textTransform: 'none' }}
-                        onClick={() => setCancelId(next.id)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{ textTransform: 'none' }}
-                        onClick={() => navigate('/booking-history')}
-                      >
-                        Reschedule
-                      </Button>
-                    </Stack>
-                  }
-                >
-                  <ListItemText
-                    primary={`${formatDate(next.date)} ${formatTime(
-                      next.start_time || '',
-                    )}`}
-                  />
-                </ListItem>
+                {nextSlots.length ? (
+                  nextSlots.map(s => (
+                    <ListItem
+                      key={`${s.date}-${s.slot.id}`}
+                      secondaryAction={
+                        <Button
+                          size="small"
+                          variant="contained"
+                          sx={{ textTransform: 'none' }}
+                          onClick={() => navigate('/book-appointment')}
+                        >
+                          Book
+                        </Button>
+                      }
+                    >
+                      <ListItemText
+                        primary={`${formatDate(s.date)} ${formatTime(
+                          s.slot.startTime,
+                        )}-${formatTime(s.slot.endTime)}`}
+                      />
+                    </ListItem>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText primary="No available slots" />
+                  </ListItem>
+                )}
               </List>
-            ) : (
-              <Typography>
-                No appointment booked —{' '}
+            </SectionCard>
+
+            <SectionCard title="Quick Actions">
+              <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
                   size="small"
                   variant="contained"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/book-appointment')}
                 >
-                  Book now
+                  Book Appointment
                 </Button>
-              </Typography>
-            )}
-          </SectionCard>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/booking-history')}
+                >
+                  Reschedule
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/booking-history')}
+                >
+                  Cancel
+                </Button>
+              </Stack>
+            </SectionCard>
+          </Stack>
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard
-            title="Next Available Slots"
-            icon={<EventAvailable color="primary" />}
-          >
-            <List>
-              {nextSlots.length ? (
-                nextSlots.map(s => (
-                  <ListItem
-                    key={`${s.date}-${s.slot.id}`}
-                    secondaryAction={
-                      <Button
-                        size="small"
-                        variant="contained"
-                        sx={{ textTransform: 'none' }}
-                        onClick={() => navigate('/book-appointment')}
-                      >
-                        Book
-                      </Button>
-                    }
-                  >
-                    <ListItemText
-                      primary={`${formatDate(s.date)} ${formatTime(
-                        s.slot.startTime,
-                      )}-${formatTime(s.slot.endTime)}`}
-                    />
-                  </ListItem>
-                ))
-              ) : (
-                <ListItem>
-                  <ListItemText primary="No available slots" />
-                </ListItem>
-              )}
-            </List>
-          </SectionCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
-            <Stack spacing={2}>
-              <EventList events={[...events.today, ...events.upcoming]} limit={5} />
-              <List>
-                {holidays.map(h => (
-                  <ListItem key={h.date}>
-                    <ListItemText
-                      primary={`${formatDate(h.date)} ${h.reason}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Stack>
-          </SectionCard>
-        </Grid>
-        <Grid size={12}>
-          <SectionCard title="Quick Actions">
-            <Stack direction="row" spacing={1}>
-              <Button
-                size="small"
-                variant="contained"
-                sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/book-appointment')}
-              >
-                Book Appointment
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/booking-history')}
-              >
-                Reschedule
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/booking-history')}
-              >
-                Cancel
-              </Button>
-            </Stack>
-          </SectionCard>
-        </Grid>
+
         <Grid size={12}>
           <SectionCard title="Recent Bookings" icon={<History color="primary" />}>
             <List>
