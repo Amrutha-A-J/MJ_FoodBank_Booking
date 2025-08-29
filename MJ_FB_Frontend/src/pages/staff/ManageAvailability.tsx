@@ -7,7 +7,6 @@ import {
   CardContent,
   Divider,
   Stack,
-  Typography,
   TextField,
   Button,
   Select,
@@ -36,6 +35,9 @@ import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import {
   getAllSlots,
+  getHolidays,
+  addHoliday,
+  removeHoliday,
   addBlockedSlot,
   addRecurringBlockedSlot,
   removeBlockedSlot,
@@ -47,18 +49,12 @@ import {
   getRecurringBlockedSlots,
 } from '../../api/bookings';
 import { formatTime } from '../../utils/time';
-import type { Slot } from '../../types';
+import type { Slot, Holiday } from '../../types';
 import { formatLocaleDate, toDate, formatReginaDate } from '../../utils/date';
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const weekOrdinals = ['1st', '2nd', '3rd', '4th', '5th'];
 const selectMenuProps = { PaperProps: { sx: { width: 'auto', minWidth: 200 } } };
-
-interface HolidayItem {
-  id: number;
-  date: Date;
-  reason: string;
-}
 
 interface BlockedSlotItem {
   id: number;
@@ -77,7 +73,7 @@ interface BreakItem {
 }
 
 export default function ManageAvailability() {
-  const [holidays, setHolidays] = useState<HolidayItem[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [holidayDate, setHolidayDate] = useState<Date | null>(toDate());
   const [holidayReason, setHolidayReason] = useState('');
 
@@ -109,11 +105,12 @@ export default function ManageAvailability() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [slots, breaksData, recurringBlocked, blockedOnce] = await Promise.all([
+        const [slots, breaksData, recurringBlocked, blockedOnce, holidaysData] = await Promise.all([
           getAllSlots(),
           getBreaks(),
           getRecurringBlockedSlots(),
           getBlockedSlots(),
+          getHolidays(),
         ]);
         setSlotOptions(slots);
         setBreaks(
@@ -139,6 +136,7 @@ export default function ManageAvailability() {
             reason: b.reason ?? '',
           })),
         ]);
+        setHolidays(holidaysData);
       } catch {
         showSnackbar('Failed to load availability data', 'error');
       }
@@ -151,19 +149,30 @@ export default function ManageAvailability() {
     return slot ? `${formatTime(slot.startTime)}-${formatTime(slot.endTime)}` : id;
   };
 
-  const handleAddHoliday = () => {
+  const handleAddHoliday = async () => {
     if (!holidayDate) return;
-    setHolidays(prev => [
-      ...prev,
-      { id: Date.now(), date: holidayDate, reason: holidayReason.trim() },
-    ]);
-    setHolidayReason('');
-    showSnackbar('Holiday added', 'success');
+    try {
+      const dateStr = formatReginaDate(holidayDate);
+      await addHoliday(dateStr, holidayReason.trim());
+      setHolidays(prev => [
+        ...prev,
+        { date: dateStr, reason: holidayReason.trim() },
+      ]);
+      setHolidayReason('');
+      showSnackbar('Holiday added', 'success');
+    } catch {
+      showSnackbar('Failed to add holiday', 'error');
+    }
   };
 
-  const handleRemoveHoliday = (id: number) => {
-    setHolidays(prev => prev.filter(h => h.id !== id));
-    showSnackbar('Holiday removed', 'error');
+  const handleRemoveHoliday = async (date: string) => {
+    try {
+      await removeHoliday(date);
+      setHolidays(prev => prev.filter(h => h.date !== date));
+      showSnackbar('Holiday removed', 'success');
+    } catch {
+      showSnackbar('Failed to remove holiday', 'error');
+    }
   };
 
   const handleAddBlocked = async () => {
@@ -307,10 +316,10 @@ export default function ManageAvailability() {
           <List>
             {holidays.map(h => (
               <ListItem
-                key={h.id}
+                key={h.date}
                 secondaryAction={
                   <Tooltip title="Remove">
-                    <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.id)}>
+                    <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.date)}>
                       <DeleteOutline />
                     </IconButton>
                   </Tooltip>
