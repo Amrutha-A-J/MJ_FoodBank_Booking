@@ -2,6 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
 
+const originalFetch = (global as any).fetch;
+
 jest.mock('../pages/volunteer-management/VolunteerManagement', () => () => (
   <div>VolunteerManagement</div>
 ));
@@ -25,6 +27,14 @@ describe('App authentication persistence', () => {
     });
     localStorage.clear();
     window.history.pushState({}, '', '/');
+  });
+
+  afterEach(() => {
+    if (originalFetch) {
+      (global as any).fetch = originalFetch;
+    } else {
+      delete (global as any).fetch;
+    }
   });
 
   it('shows login when not authenticated', () => {
