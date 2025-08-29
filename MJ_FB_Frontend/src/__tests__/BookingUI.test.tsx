@@ -75,4 +75,21 @@ describe('BookingUI visible slots', () => {
     });
     expect(getSlots).toHaveBeenCalledTimes(1);
   });
+
+  it('omits title when embedded', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <BookingUI shopperName="Test" embedded />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    await screen.findByText(/Booking for: Test/);
+    expect(screen.queryByText('Book Appointment')).toBeNull();
+  });
 });

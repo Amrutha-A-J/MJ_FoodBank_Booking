@@ -52,14 +52,28 @@ export default function AgencyBookAppointment() {
         fullWidth
         sx={{ mb: 2 }}
       />
-      <List>
-        {filtered.map(u => (
-          <ListItemButton key={u.id} onClick={() => setSelected(u)}>
-            <ListItemText primary={u.name} secondary={u.email} />
-          </ListItemButton>
-        ))}
-      </List>
-      {selected && <BookingUI shopperName={selected.name} userId={selected.id} />}
+      {(!selected || search) && (
+        <List>
+          {filtered.map(u => (
+            <ListItemButton
+              key={u.id}
+              onClick={() => {
+                setSelected(u);
+                setSearch('');
+              }}
+            >
+              <ListItemText primary={u.name} secondary={u.email} />
+            </ListItemButton>
+          ))}
+        </List>
+      )}
+      {selected && (
+        <BookingUI
+          shopperName={selected.name}
+          userId={selected.id}
+          embedded
+        />
+      )}
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar('')}

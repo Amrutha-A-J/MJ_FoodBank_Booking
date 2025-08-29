@@ -22,5 +22,6 @@ describe('AgencyBookAppointment', () => {
     fireEvent.click(screen.getByText('Alice'));
 
     await screen.findByText(/BookingUI Alice 1/);
+    expect(screen.queryByRole('button', { name: 'Alice' })).toBeNull();
   });
 });

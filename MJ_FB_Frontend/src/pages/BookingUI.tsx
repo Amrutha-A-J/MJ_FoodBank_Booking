@@ -66,12 +66,14 @@ export type BookingUIProps = {
   shopperName?: string;
   initialDate?: Dayjs;
   userId?: number;
+  embedded?: boolean;
 };
 
 export default function BookingUI({
   shopperName = 'John Shopper',
   initialDate = dayjs(),
   userId,
+  embedded = false,
 }: BookingUIProps) {
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
@@ -265,8 +267,7 @@ export default function BookingUI({
       ).format('h:mm a')}`
     : '';
 
-  return (
-    <Page title="Book Appointment">
+  const content = (
       <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
@@ -422,7 +423,9 @@ export default function BookingUI({
         severity="warning"
       />
     </Container>
-    </Page>
   );
+
+  if (embedded) return content;
+  return <Page title="Book Appointment">{content}</Page>;
 }
 
