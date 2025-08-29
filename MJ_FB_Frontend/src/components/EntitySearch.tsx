@@ -10,6 +10,7 @@ interface EntitySearchProps {
   onSelect: (result: any) => void;
   renderResult?: (result: any, select: () => void) => ReactNode;
   searchFn?: (query: string) => Promise<any[]>;
+  clearOnSelect?: boolean;
 }
 
 export default function EntitySearch({
@@ -18,6 +19,7 @@ export default function EntitySearch({
   onSelect,
   renderResult,
   searchFn,
+  clearOnSelect = false,
 }: EntitySearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -52,7 +54,7 @@ export default function EntitySearch({
   };
 
   function handleSelect(res: any) {
-    setQuery(getLabel(res));
+    setQuery(clearOnSelect ? '' : getLabel(res));
     setResults([]);
     onSelect(res);
   }

@@ -131,6 +131,7 @@ export default function AgencyClientManager() {
                   type="user"
                   placeholder="Search clients"
                   onSelect={() => {}}
+                  clearOnSelect
                   renderResult={(u, select) => (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span>{`${u.name} (${u.client_id})`}</span>
