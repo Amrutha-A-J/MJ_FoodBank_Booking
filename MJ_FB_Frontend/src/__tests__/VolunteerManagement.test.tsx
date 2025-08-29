@@ -11,6 +11,8 @@ import {
   removeVolunteerShopperProfile,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
+  getVolunteerBookingsByRole,
+  updateVolunteerBookingStatus,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
@@ -21,6 +23,8 @@ jest.mock('../api/volunteers', () => ({
   removeVolunteerShopperProfile: jest.fn(),
   updateVolunteerTrainedAreas: jest.fn(),
   createVolunteerBookingForVolunteer: jest.fn(),
+  getVolunteerBookingsByRole: jest.fn(),
+  updateVolunteerBookingStatus: jest.fn(),
 }));
 
 let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
@@ -28,6 +32,7 @@ let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper
 jest.mock('../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
+jest.mock('../components/dashboard/Dashboard', () => () => <div>Dashboard</div>);
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -37,6 +42,8 @@ beforeEach(() => {
   (removeVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
   (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
+  (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+  (updateVolunteerBookingStatus as jest.Mock).mockResolvedValue(undefined);
 });
 
 describe('VolunteerManagement shopper profile', () => {
@@ -172,3 +179,61 @@ describe('VolunteerManagement role updates', () => {
   });
 });
 
+describe('VolunteerManagement pending approvals', () => {
+  it('removes booking from pending list after approval', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 5,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 2,
+        category_name: 'Front',
+        shifts: [
+          {
+            id: 10,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock)
+      .mockResolvedValueOnce([
+        {
+          id: 1,
+          role_id: 5,
+          volunteer_id: 2,
+          volunteer_name: 'Alice',
+          role_name: 'Greeter',
+          date: '2024-01-01',
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          status: 'pending',
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/pending']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await screen.findByText('Pending Volunteer Bookings');
+    await screen.findByText('Alice');
+
+    fireEvent.click(screen.getByRole('button', { name: /approve/i }));
+
+    await waitFor(() =>
+      expect(updateVolunteerBookingStatus).toHaveBeenCalledWith(1, 'approved', undefined),
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument(),
+    );
+  });
+});
