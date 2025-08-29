@@ -6,6 +6,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerBadges,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -14,6 +15,7 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
+  getVolunteerBadges: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
@@ -35,6 +37,7 @@ describe('VolunteerDashboard', () => {
       upcoming: [],
       past: [],
     });
+    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
 
     render(
       <MemoryRouter>
@@ -77,6 +80,7 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
 
     render(
       <MemoryRouter>
@@ -148,6 +152,7 @@ describe('VolunteerDashboard', () => {
     (requestVolunteerBooking as jest.Mock).mockRejectedValue(
       new Error('Already booked for this shift'),
     );
+    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
 
     render(
       <MemoryRouter>
@@ -181,6 +186,7 @@ describe('VolunteerDashboard', () => {
     ]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerBadges as jest.Mock).mockResolvedValue([]);
 
     render(
       <MemoryRouter>
@@ -193,5 +199,20 @@ describe('VolunteerDashboard', () => {
     expect(screen.queryByText(/No upcoming shifts/)).not.toBeInTheDocument();
 
     jest.useRealTimers();
+  });
+
+  it('displays earned badges', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerBadges as jest.Mock).mockResolvedValue(['early-bird']);
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('early-bird')).toBeInTheDocument();
   });
 });
