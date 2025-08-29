@@ -9,10 +9,13 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.test.json',
-      diagnostics: false,
-    },
+  transform: {
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.test.json',
+        diagnostics: false,
+      },
+    ],
   },
 };
