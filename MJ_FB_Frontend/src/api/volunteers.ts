@@ -421,6 +421,8 @@ export interface VolunteerGroupStats {
   monthHoursGoal: number;
   totalLbs: number;
   weekLbs: number;
+  monthLbs: number;
+  monthFamilies: number;
 }
 
 export async function getVolunteerStats(): Promise<VolunteerStats> {

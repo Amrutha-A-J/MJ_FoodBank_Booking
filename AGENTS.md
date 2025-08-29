@@ -20,7 +20,8 @@
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total
-  volunteer hours and food pounds handled along with current-month hours and a
+  volunteer hours, weekly and monthly food pounds handled, distinct families
+  served in the current month, along with current-month hours and a
   configurable goal for dashboard progress.
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
