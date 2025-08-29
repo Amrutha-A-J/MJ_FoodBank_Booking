@@ -161,7 +161,7 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 - **BookingHistory** – lists a shopper's appointments with actions to cancel or reschedule.
 - **ManageAvailability** – lets staff maintain holidays, blocked slots, and recurring breaks.
 - **PantrySchedule** – primary staff tool to view bookings per time block, book walk-in appointments, and manage client bookings, while marking holidays, blocked slots, and breaks as non bookable entries in the schedule.
-- **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. The number of slot columns matches each role's `max_volunteers` (e.g., pantry shelf stocker shows one slot, while pantry greeter shows multiple). Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored.
+- **VolunteerSchedule** and `VolunteerScheduleTable` – list volunteer shifts by role. The number of slot columns matches each role's `max_volunteers` (e.g., pantry shelf stocker shows one slot, while pantry greeter shows multiple). Holidays disable pantry, warehouse, and administrative roles, while gardening and special events remain bookable; breaks and blocked-slot restrictions are ignored. Past days cannot be selected and shifts earlier than the current time are hidden.
 - Backend controllers such as `bookingController`, `slotController`, `holidayController`, `blockedSlotController`, `breakController`, `volunteerBookingController`, and `volunteerRoleController` enforce business rules and interact with the database.
 
 ## Database Model
@@ -392,7 +392,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 
 ## Components & Workflow
 
-- **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display *Booked* or *Available* and clicking an available cell creates a request in `volunteer_bookings`.
+- **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display *Booked* or *Available* and clicking an available cell creates a request in `volunteer_bookings`. Past dates are disabled and same-day shifts that have already started are omitted.
 - The Volunteer Dashboard's **Available in My Roles** list excludes shifts the volunteer has already requested or booked and shows server-provided error messages when a booking attempt fails.
 - Volunteer and pantry schedules follow the same grid logic. The y‑axis lists shift times and the x‑axis lists sequential slot numbers up to each shift's `max_volunteers`. When a volunteer requests a shift, their booking occupies the first open slot. Pending requests highlight (e.g., yellow) and staff approve by clicking the cell, mirroring the shopping appointment schedule.
 - **BookingHistory** shows a volunteer's pending and upcoming bookings with Cancel and Reschedule options.

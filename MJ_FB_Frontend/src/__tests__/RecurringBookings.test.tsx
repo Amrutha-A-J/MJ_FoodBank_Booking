@@ -25,7 +25,7 @@ jest.mock('../api/bookings', () => ({
 
 beforeEach(() => {
   jest.useFakeTimers();
-  jest.setSystemTime(new Date('2024-05-01T00:00:00Z'));
+  jest.setSystemTime(new Date('2024-04-30T06:00:00Z'));
   jest.clearAllMocks();
   (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
     {
@@ -38,7 +38,7 @@ beforeEach(() => {
       booked: 0,
       available: 1,
       status: 'available',
-      date: '2024-01-01',
+      date: '2024-04-30',
       category_id: 1,
       category_name: 'Cat',
       is_wednesday_slot: false,
