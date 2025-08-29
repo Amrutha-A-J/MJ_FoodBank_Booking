@@ -6,6 +6,7 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
 
@@ -14,11 +15,20 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
+  getVolunteerStats: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('VolunteerDashboard', () => {
+  beforeEach(() => {
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      lifetimeHours: 0,
+      monthHours: 0,
+      totalShifts: 0,
+      currentStreak: 0,
+    });
+  });
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
@@ -158,5 +168,26 @@ describe('VolunteerDashboard', () => {
     expect(screen.queryByText(/No upcoming shifts/)).not.toBeInTheDocument();
 
     jest.useRealTimers();
+  });
+
+  it('shows milestone banner when milestone returned', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue({
+      lifetimeHours: 5,
+      monthHours: 5,
+      totalShifts: 5,
+      currentStreak: 1,
+      milestone: 5,
+    });
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/5 shifts/)).toBeInTheDocument();
   });
 });

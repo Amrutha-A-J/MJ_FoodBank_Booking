@@ -22,9 +22,10 @@ import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   updateVolunteerBookingStatus,
+  getVolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
-import type { VolunteerBooking, VolunteerRole } from '../../types';
+import type { VolunteerBooking, VolunteerRole, VolunteerStats } from '../../types';
 import {
   formatTime,
   formatReginaDate,
@@ -57,6 +58,7 @@ export default function VolunteerDashboard() {
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const navigate = useNavigate();
+  const [stats, setStats] = useState<VolunteerStats | null>(null);
 
   useEffect(() => {
     getMyVolunteerBookings()
@@ -66,6 +68,10 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     getEvents().then(setEvents).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getVolunteerStats().then(setStats).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -174,6 +180,35 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
+        {stats?.milestone && (
+          <Grid size={{ xs: 12 }}>
+            <SectionCard>
+              <Typography>{`🎉 You reached ${stats.milestone} shifts!`}</Typography>
+            </SectionCard>
+          </Grid>
+        )}
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <SectionCard title="My Stats">
+            <Stack spacing={1}>
+              <Typography>
+                {`Lifetime hours: ${stats ? stats.lifetimeHours : 0}`}
+              </Typography>
+              <Typography>
+                {`This month: ${stats ? stats.monthHours : 0} hours`}
+              </Typography>
+              <Typography>
+                {`Total shifts: ${stats ? stats.totalShifts : 0}`}
+              </Typography>
+              <Typography>
+                {`Current streak: ${stats ? stats.currentStreak : 0} week${
+                  stats && stats.currentStreak === 1 ? '' : 's'
+                }`}
+              </Typography>
+            </Stack>
+          </SectionCard>
+        </Grid>
+
         <Grid size={{ xs: 12, md: 6 }}>
           <SectionCard title="My Next Shift">
             {nextShift ? (

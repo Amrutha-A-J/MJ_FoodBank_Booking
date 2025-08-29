@@ -307,6 +307,61 @@ export async function removeVolunteerShopperProfile(
   }
 }
 
+export async function getVolunteerStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const statsRes = await pool.query(
+      `SELECT
+         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)))/3600,0) AS hours,
+         COALESCE(SUM(CASE WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+                    THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time))/3600 ELSE 0 END),0) AS month_hours,
+         COUNT(*) AS shifts
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vb.date <= CURRENT_DATE`,
+      [user.id],
+    );
+    const row = statsRes.rows[0] || { hours: 0, month_hours: 0, shifts: 0 };
+    const weekRes = await pool.query(
+      `SELECT to_char(date_trunc('week', date), 'YYYY-MM-DD') AS week_start
+         FROM volunteer_bookings
+         WHERE volunteer_id = $1 AND status = 'approved' AND date <= CURRENT_DATE
+         GROUP BY week_start
+         ORDER BY week_start DESC`,
+      [user.id],
+    );
+    const weeks = new Set(weekRes.rows.map(r => r.week_start));
+    let streak = 0;
+    const current = new Date();
+    current.setUTCHours(0, 0, 0, 0);
+    const day = current.getUTCDay();
+    const diff = (day + 6) % 7; // Monday as start of week
+    current.setUTCDate(current.getUTCDate() - diff);
+    while (weeks.has(current.toISOString().slice(0, 10))) {
+      streak++;
+      current.setUTCDate(current.getUTCDate() - 7);
+    }
+    const totalShifts = Number(row.shifts) || 0;
+    const milestones = [5, 10, 25];
+    const milestone = milestones.includes(totalShifts) ? totalShifts : null;
+    res.json({
+      lifetimeHours: Number(row.hours) || 0,
+      monthHours: Number(row.month_hours) || 0,
+      totalShifts,
+      currentStreak: streak,
+      milestone,
+    });
+  } catch (error) {
+    logger.error('Error getting volunteer stats:', error);
+    next(error);
+  }
+}
+
 export async function searchVolunteers(req: Request, res: Response, next: NextFunction) {
   try {
     const rawSearch = (req.query.search as string) || '';

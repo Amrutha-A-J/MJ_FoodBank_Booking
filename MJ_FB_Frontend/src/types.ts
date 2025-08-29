@@ -137,6 +137,14 @@ export interface VolunteerBookingDetail {
   recurring_id?: number;
 }
 
+export interface VolunteerStats {
+  lifetimeHours: number;
+  monthHours: number;
+  totalShifts: number;
+  currentStreak: number;
+  milestone?: number | null;
+}
+
 export interface UserProfile {
   id: number;
   firstName: string;

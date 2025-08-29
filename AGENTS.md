@@ -302,6 +302,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `DELETE /volunteer-bookings/recurring/:id?from=YYYY-MM-DD` → `{ message: 'Recurring bookings cancelled' }`
 - `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
 
+- `GET /volunteers/me/stats` aggregates completed volunteer shifts into lifetime and monthly hours, total shifts, current consecutive-week streak, and milestone flags (5, 10, 25 shifts).
+
 ### Agencies (`src/routes/agencies.ts`)
 - `GET /agencies/:id/clients` → `[ clientId ]`
 - `POST /agencies/add-client` `{ agencyId, clientId }` → `204` (404 if client not found)
