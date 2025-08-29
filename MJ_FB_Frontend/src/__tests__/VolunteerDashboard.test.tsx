@@ -446,6 +446,9 @@ beforeEach(() => {
     expect(await screen.findByText('My Contribution Trend')).toBeInTheDocument();
     const contribution = screen.getByTestId('contribution-chart');
     expect(contribution.querySelector('svg')).toBeInTheDocument();
+    expect(
+      contribution.querySelectorAll('.recharts-line-curve').length,
+    ).toBe(2);
 
     const gauge = await screen.findByTestId('group-progress-gauge');
     expect(gauge.querySelector('svg')).toBeInTheDocument();

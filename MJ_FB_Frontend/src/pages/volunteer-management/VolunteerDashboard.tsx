@@ -60,6 +60,7 @@ export default function VolunteerDashboard() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [availability, setAvailability] = useState<VolunteerRole[]>([]);
   const [contributionData, setContributionData] = useState<ContributionDatum[]>([]);
+  const [topRoles, setTopRoles] = useState<string[]>([]);
   const [dateMode, setDateMode] = useState<'today' | 'week'>('today');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
@@ -74,25 +75,43 @@ export default function VolunteerDashboard() {
     getMyVolunteerBookings()
       .then(data => {
         setBookings(data);
-        const counts: Record<string, number> = {};
+        const monthly: Record<string, { total: number; roles: Record<string, number> }> = {};
+        const roleTotals: Record<string, number> = {};
         data
           .filter(b => b.status === 'approved')
           .forEach(b => {
             const d = toDate(b.date);
             const key = formatRegina(d, 'yyyy-MM');
-            counts[key] = (counts[key] ?? 0) + 1;
+            const role = b.role_name;
+            if (!monthly[key]) monthly[key] = { total: 0, roles: {} };
+            monthly[key].total++;
+            monthly[key].roles[role] = (monthly[key].roles[role] ?? 0) + 1;
+            roleTotals[role] = (roleTotals[role] ?? 0) + 1;
           });
-        const agg = Object.keys(counts)
+        const top = Object.entries(roleTotals)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([name]) => name);
+        const agg = Object.keys(monthly)
           .sort()
           .map(k => {
             const [y, m] = k.split('-');
             const dt = new Date(Number(y), Number(m) - 1, 1);
-            return { month: formatRegina(dt, 'MMM yyyy'), count: counts[k] };
+            const base: ContributionDatum = {
+              month: formatRegina(dt, 'MMM yyyy'),
+              total: monthly[k].total,
+            };
+            top.forEach(r => {
+              base[r] = monthly[k].roles[r] ?? 0;
+            });
+            return base;
           });
+        setTopRoles(top);
         setContributionData(agg);
       })
       .catch(() => {
         setBookings([]);
+        setTopRoles([]);
         setContributionData([]);
       });
   }, []);
@@ -247,7 +266,7 @@ export default function VolunteerDashboard() {
           <>
             <Grid size={{ xs: 12, md: 6 }}>
               <SectionCard title="My Contribution Trend">
-                <PersonalContributionChart data={contributionData} />
+                <PersonalContributionChart data={contributionData} roles={topRoles} />
               </SectionCard>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
