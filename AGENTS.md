@@ -12,6 +12,8 @@
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one.
+- Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
+  `{ rank, percentile }` for the current volunteer without exposing names.
 
 - `GET /slots` returns an empty array with a 200 status on holidays.
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.

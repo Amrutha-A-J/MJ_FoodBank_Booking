@@ -1,0 +1,33 @@
+import request from 'supertest';
+import express from 'express';
+import volunteerStatsRouter from '../src/routes/volunteerStats';
+import pool from '../src/db';
+
+jest.mock('../src/db');
+jest.mock('../src/middleware/authMiddleware', () => ({
+  authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+}));
+
+const app = express();
+app.use(express.json());
+app.use((req, _res, next) => {
+  (req as any).user = { id: 1, role: 'volunteer' };
+  next();
+});
+app.use('/volunteer-stats', volunteerStatsRouter);
+
+describe('Volunteer leaderboard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns rank and percentile', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ rank: 5, percentile: 80 }] });
+    const res = await request(app).get('/volunteer-stats/leaderboard');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ rank: 5, percentile: 80 });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('volunteer_counts');
+  });
+});
