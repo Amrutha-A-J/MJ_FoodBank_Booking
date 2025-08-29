@@ -39,3 +39,60 @@ export async function getVolunteerLeaderboard(
     next(error);
   }
 }
+
+export async function getVolunteerGroupStats(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await pool.query(
+      `WITH hours AS (
+         SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS total_hours,
+                COALESCE(SUM(
+                  CASE
+                    WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
+                    THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
+                    ELSE 0
+                  END
+                ), 0) AS month_hours
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.status = 'approved'
+       ),
+       weight AS (
+         SELECT COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS total_lbs,
+                COALESCE(SUM(
+                  CASE
+                    WHEN date_trunc('week', date) = date_trunc('week', CURRENT_DATE)
+                    THEN weight_with_cart - weight_without_cart
+                    ELSE 0
+                  END
+                ), 0) AS week_lbs
+         FROM client_visits
+       ),
+       goal AS (
+         SELECT COALESCE(value::numeric, 0) AS month_goal
+         FROM app_config
+         WHERE key = 'volunteer_monthly_hours_goal'
+       )
+       SELECT total_hours,
+              month_hours,
+              month_goal,
+              total_lbs,
+              week_lbs
+         FROM hours, weight, goal`,
+    );
+    const row = result.rows[0] ?? {};
+    res.json({
+      totalHours: Number(row.total_hours ?? 0),
+      monthHours: Number(row.month_hours ?? 0),
+      monthHoursGoal: Number(row.month_goal ?? 0),
+      totalLbs: Number(row.total_lbs ?? 0),
+      weekLbs: Number(row.week_lbs ?? 0),
+    });
+  } catch (error) {
+    logger.error('Error fetching volunteer group stats:', error);
+    next(error);
+  }
+}

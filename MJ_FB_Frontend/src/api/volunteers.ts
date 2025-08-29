@@ -415,6 +415,14 @@ export interface VolunteerStats {
   poundsHandled: number;
 }
 
+export interface VolunteerGroupStats {
+  totalHours: number;
+  monthHours: number;
+  monthHoursGoal: number;
+  totalLbs: number;
+  weekLbs: number;
+}
+
 export async function getVolunteerStats(): Promise<VolunteerStats> {
   const res = await apiFetch(`${API_BASE}/volunteers/me/stats`);
   return handleResponse(res);
@@ -427,6 +435,11 @@ export async function getVolunteerBadges(): Promise<string[]> {
 
 export async function getVolunteerLeaderboard(): Promise<{ rank: number; percentile: number }> {
   const res = await apiFetch(`${API_BASE}/volunteer-stats/leaderboard`);
+  return handleResponse(res);
+}
+
+export async function getVolunteerGroupStats(): Promise<VolunteerGroupStats> {
+  const res = await apiFetch(`${API_BASE}/volunteer-stats/group`);
   return handleResponse(res);
 }
 

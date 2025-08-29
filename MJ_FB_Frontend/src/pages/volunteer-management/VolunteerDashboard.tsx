@@ -41,6 +41,7 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import { getNextEncouragement } from '../../utils/appreciationMessages';
+import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupStatsCard';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -233,6 +234,9 @@ export default function VolunteerDashboard() {
   return (
     <Page title="Volunteer Dashboard">
       <Grid container spacing={2}>
+        <Grid size={{ xs: 12 }}>
+          <VolunteerGroupStatsCard />
+        </Grid>
         {leaderboard && (
           <Grid size={{ xs: 12 }}>
             <SectionCard title="Volunteer Leaderboard">
