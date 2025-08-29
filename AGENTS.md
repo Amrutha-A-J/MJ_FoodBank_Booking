@@ -228,7 +228,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 
 ### Bookings
 - `POST /bookings` → `{ message: 'Booking created', bookingsThisMonth, rescheduleToken }`
-- `GET /bookings` → `[ { id, status, date, user_id, slot_id, is_staff_booking, reschedule_token, user_name, user_email, user_phone, client_id, bookings_this_month, start_time, end_time } ]`
+- `GET /bookings?clientIds=1,2` → `[ { id, status, date, user_id, slot_id, is_staff_booking, reschedule_token, user_name, user_email, user_phone, client_id, bookings_this_month, start_time, end_time } ]` (agencies must specify `clientIds` linked to them)
 - `GET /bookings/history` → `[ { id, status, date, slot_id, reason, start_time, end_time, created_at, is_staff_booking, reschedule_token } ]`
 - `POST /bookings/:id/decision` → `{ message: 'Booking approved'|'Booking rejected' }`
 - `POST /bookings/:id/cancel` → `{ message: 'Booking cancelled' }`
