@@ -344,3 +344,65 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
     next(error);
   }
 }
+
+export async function getVolunteerStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  try {
+    const manualRes = await pool.query<{ badge_code: string }>(
+      `SELECT badge_code FROM volunteer_badges WHERE volunteer_id = $1`,
+      [user.id],
+    );
+    const badges = new Set(manualRes.rows.map(r => r.badge_code));
+
+    const earlyRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vs.start_time < '09:00:00'
+       LIMIT 1`,
+      [user.id],
+    );
+    if (earlyRes.rowCount) badges.add('early-bird');
+
+    const heavyRes = await pool.query<{ count: string }>(
+      `SELECT COUNT(*) FROM volunteer_bookings
+       WHERE volunteer_id = $1 AND status = 'approved'`,
+      [user.id],
+    );
+    if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
+
+    res.json({ badges: Array.from(badges) });
+  } catch (error) {
+    logger.error('Error fetching volunteer stats:', error);
+    next(error);
+  }
+}
+
+export async function awardVolunteerBadge(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  const { badgeCode } = req.body as { badgeCode?: string };
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (!badgeCode) {
+    return res.status(400).json({ message: 'badgeCode is required' });
+  }
+  try {
+    await pool.query(
+      `INSERT INTO volunteer_badges (volunteer_id, badge_code)
+       VALUES ($1, $2)
+       ON CONFLICT (volunteer_id, badge_code) DO NOTHING`,
+      [user.id, badgeCode],
+    );
+    res.status(201).json({ badgeCode });
+  } catch (error) {
+    logger.error('Error awarding volunteer badge:', error);
+    next(error);
+  }
+}
