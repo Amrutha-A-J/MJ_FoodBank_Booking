@@ -103,7 +103,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
    ```
 
 2. **Assign clients to the agency** – authenticate as staff or the
-   agency and call the API:
+   agency and call the API (use the client's `client_id` for `clientId`):
 
    ```bash
    # As staff assigning client 42 to agency 1

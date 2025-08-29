@@ -39,7 +39,7 @@ export default function ClientList() {
       const data = await getMyAgencyClients();
       const mapped = Array.isArray(data)
         ? data.map((c: any) => ({
-            id: c.id ?? c.client_id,
+            id: c.client_id,
             name:
               c.name ??
               c.client_name ??

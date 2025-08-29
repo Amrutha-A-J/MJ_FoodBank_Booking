@@ -40,7 +40,7 @@ export default function AgencyClientManager() {
       const data = await getAgencyClients(id);
       const mapped = Array.isArray(data)
         ? data.map((c: any) => ({
-            id: c.id ?? c.client_id,
+            id: c.client_id,
             name:
               c.name ??
               c.client_name ??
@@ -68,7 +68,7 @@ export default function AgencyClientManager() {
       return;
     }
     try {
-      await addAgencyClient(agency.id, user.id);
+      await addAgencyClient(agency.id, user.client_id);
       setSnackbar({ message: 'Client added', severity: 'success' });
       load(agency.id);
     } catch (err: any) {

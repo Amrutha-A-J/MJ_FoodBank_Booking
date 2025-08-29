@@ -298,9 +298,9 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
 
 ### Agencies (`src/routes/agencies.ts`)
-- `GET /agencies/:id/clients` → `[ clientId ]`
-- `POST /agencies/:id/clients` `{ clientId }` → `204`
-- `DELETE /agencies/:id/clients/:clientId` → `204`
+- `GET /agencies/:id/clients` → `[ clientId ]` (each `clientId` is the client's `client_id`)
+- `POST /agencies/:id/clients` `{ clientId }` → `204` (use the client's `client_id`)
+- `DELETE /agencies/:id/clients/:clientId` → `204` (clientId is the client's `client_id`)
 - `POST /agencies` `{ name, email, password, contactInfo? }` → `{ id }` (staff only)
 - A client may be linked to only one agency at a time; adding a client already
   associated with another agency returns a `409` with that agency's name.
