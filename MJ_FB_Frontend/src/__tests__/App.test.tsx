@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
 
@@ -47,7 +47,7 @@ describe('App authentication persistence', () => {
     expect(screen.queryByText(/user login/i)).not.toBeInTheDocument();
   });
 
-  it('redirects staff with only pantry access to pantry dashboard', () => {
+  it('redirects staff with only pantry access to pantry dashboard', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['pantry']));
@@ -56,7 +56,7 @@ describe('App authentication persistence', () => {
         <App />
       </AuthProvider>,
     );
-    expect(window.location.pathname).toBe('/pantry');
+    await waitFor(() => expect(window.location.pathname).toBe('/pantry'));
   });
 
   it('does not show Add Agency link for staff', () => {
@@ -72,7 +72,7 @@ describe('App authentication persistence', () => {
     expect(screen.getByRole('link', { name: /agency management/i })).toBeInTheDocument();
   });
 
-  it('redirects staff with only volunteer management access', () => {
+  it('redirects staff with only volunteer management access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['volunteer_management']));
@@ -81,10 +81,10 @@ describe('App authentication persistence', () => {
         <App />
       </AuthProvider>,
     );
-    expect(window.location.pathname).toBe('/volunteer-management');
+    await waitFor(() => expect(window.location.pathname).toBe('/volunteer-management'));
   });
 
-  it('redirects staff with only warehouse access', () => {
+  it('redirects staff with only warehouse access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['warehouse']));
@@ -93,7 +93,7 @@ describe('App authentication persistence', () => {
         <App />
       </AuthProvider>,
     );
-    expect(window.location.pathname).toBe('/warehouse-management');
+    await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
   it('renders signup page when visiting /signup', () => {
