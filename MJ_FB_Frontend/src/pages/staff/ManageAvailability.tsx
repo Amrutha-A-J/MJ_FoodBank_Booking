@@ -36,6 +36,8 @@ import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import {
   getAllSlots,
+  getHolidays,
+  addHoliday,
   addBlockedSlot,
   addRecurringBlockedSlot,
   removeBlockedSlot,
@@ -45,6 +47,7 @@ import {
   removeBreak,
   getBreaks,
   getRecurringBlockedSlots,
+  removeHoliday,
 } from '../../api/bookings';
 import { formatTime } from '../../utils/time';
 import type { Slot } from '../../types';
@@ -109,12 +112,14 @@ export default function ManageAvailability() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [slots, breaksData, recurringBlocked, blockedOnce] = await Promise.all([
-          getAllSlots(),
-          getBreaks(),
-          getRecurringBlockedSlots(),
-          getBlockedSlots(),
-        ]);
+        const [slots, breaksData, recurringBlocked, blockedOnce, holidaysData] =
+          await Promise.all([
+            getAllSlots(),
+            getBreaks(),
+            getRecurringBlockedSlots(),
+            getBlockedSlots(),
+            getHolidays(),
+          ]);
         setSlotOptions(slots);
         setBreaks(
           breaksData.map(b => ({
@@ -139,6 +144,13 @@ export default function ManageAvailability() {
             reason: b.reason ?? '',
           })),
         ]);
+        setHolidays(
+          holidaysData.map(h => ({
+            id: Date.parse(h.date),
+            date: toDate(h.date),
+            reason: h.reason ?? '',
+          })),
+        );
       } catch {
         showSnackbar('Failed to load availability data', 'error');
       }
@@ -151,19 +163,33 @@ export default function ManageAvailability() {
     return slot ? `${formatTime(slot.startTime)}-${formatTime(slot.endTime)}` : id;
   };
 
-  const handleAddHoliday = () => {
+  const handleAddHoliday = async () => {
     if (!holidayDate) return;
-    setHolidays(prev => [
-      ...prev,
-      { id: Date.now(), date: holidayDate, reason: holidayReason.trim() },
-    ]);
-    setHolidayReason('');
-    showSnackbar('Holiday added', 'success');
+    try {
+      await addHoliday(formatReginaDate(holidayDate), holidayReason.trim());
+      setHolidays(prev => [
+        ...prev,
+        {
+          id: Date.parse(holidayDate.toISOString()),
+          date: holidayDate,
+          reason: holidayReason.trim(),
+        },
+      ]);
+      setHolidayReason('');
+      showSnackbar('Holiday added', 'success');
+    } catch {
+      showSnackbar('Failed to add holiday', 'error');
+    }
   };
 
-  const handleRemoveHoliday = (id: number) => {
-    setHolidays(prev => prev.filter(h => h.id !== id));
-    showSnackbar('Holiday removed', 'error');
+  const handleRemoveHoliday = async (holiday: HolidayItem) => {
+    try {
+      await removeHoliday(formatReginaDate(holiday.date));
+      setHolidays(prev => prev.filter(h => h.id !== holiday.id));
+      showSnackbar('Holiday removed', 'success');
+    } catch {
+      showSnackbar('Failed to remove holiday', 'error');
+    }
   };
 
   const handleAddBlocked = async () => {
@@ -310,7 +336,7 @@ export default function ManageAvailability() {
                 key={h.id}
                 secondaryAction={
                   <Tooltip title="Remove">
-                    <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.id)}>
+                    <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h)}>
                       <DeleteOutline />
                     </IconButton>
                   </Tooltip>
