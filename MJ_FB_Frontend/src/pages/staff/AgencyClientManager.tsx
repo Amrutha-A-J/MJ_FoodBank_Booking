@@ -73,7 +73,8 @@ export default function AgencyClientManager() {
       return;
     }
     try {
-      await addAgencyClient(agency.id, user.id);
+      const clientId = user.client_id ?? user.id;
+      await addAgencyClient(agency.id, clientId);
       setSnackbar({ message: 'Client added', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
