@@ -5,10 +5,12 @@ import {
   removeClientFromAgency,
   getAgencyClients,
   createAgency,
+  searchAgencies,
 } from '../controllers/agencyController';
 
 const router = Router();
 
+router.get('/', authMiddleware, authorizeRoles('staff'), searchAgencies);
 router.post('/', authMiddleware, authorizeRoles('staff'), createAgency);
 
 router.get(

@@ -23,7 +23,11 @@ describe('AgencyManagement', () => {
         <App />
       </AuthProvider>
     );
-    expect(await screen.findByRole('tab', { name: /add agency/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /clients/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('tab', { name: /add agency/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: /add client to agency/i }),
+    ).toBeInTheDocument();
   });
 });

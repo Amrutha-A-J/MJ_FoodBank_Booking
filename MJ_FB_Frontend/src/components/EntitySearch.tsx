@@ -2,9 +2,10 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { TextField, Button } from '@mui/material';
 import { searchUsers } from '../api/users';
 import { searchVolunteers } from '../api/volunteers';
+import { searchAgencies } from '../api/agencies';
 
 interface EntitySearchProps {
-  type: 'user' | 'volunteer';
+  type: 'user' | 'volunteer' | 'agency';
   placeholder?: string;
   onSelect: (result: any) => void;
   renderResult?: (result: any, select: () => void) => ReactNode;
@@ -25,7 +26,12 @@ export default function EntitySearch({
       return;
     }
     let active = true;
-    const fn = type === 'user' ? searchUsers : searchVolunteers;
+    const fn =
+      type === 'user'
+        ? searchUsers
+        : type === 'volunteer'
+        ? searchVolunteers
+        : searchAgencies;
     fn(query)
       .then(data => {
         if (active) setResults(data);
@@ -36,8 +42,11 @@ export default function EntitySearch({
     };
   }, [query, type]);
 
-  const getLabel = (r: any) =>
-    type === 'user' ? `${r.name} (${r.client_id})` : r.name;
+  const getLabel = (r: any) => {
+    if (type === 'user') return `${r.name} (${r.client_id})`;
+    if (type === 'agency') return `${r.name} (${r.id})`;
+    return r.name;
+  };
 
   function handleSelect(res: any) {
     setQuery(getLabel(res));
