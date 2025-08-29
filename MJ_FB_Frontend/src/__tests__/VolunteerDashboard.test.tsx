@@ -74,6 +74,7 @@ beforeEach(() => {
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
   });
 
+
   it('hides slots already booked by volunteer', async () => {
     const today = new Date().toISOString().split('T')[0];
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
@@ -337,48 +338,47 @@ beforeEach(() => {
     ).toBeInTheDocument();
   });
 
-  it('shows group stats card with progress and quote', async () => {
-    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
-    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
-    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue({
-      badges: [],
-      lifetimeHours: 0,
-      monthHours: 0,
-      totalShifts: 0,
-      currentStreak: 0,
-      milestone: null,
-      milestoneText: null,
-      familiesServed: 0,
-      poundsHandled: 0,
-    });
-    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
-      totalHours: 10,
-      monthHours: 4,
-      monthHoursGoal: 8,
-      totalLbs: 100,
-      weekLbs: 25,
-    });
-    const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
+    it('shows group stats card with progress and quote', async () => {
+      (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+      (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+      (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+      (getVolunteerStats as jest.Mock).mockResolvedValue({
+        badges: [],
+        lifetimeHours: 0,
+        monthHours: 0,
+        totalShifts: 0,
+        currentStreak: 0,
+        milestone: null,
+        milestoneText: null,
+        familiesServed: 0,
+        poundsHandled: 0,
+      });
+      (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+        totalHours: 10,
+        monthHours: 4,
+        monthHoursGoal: 8,
+        totalLbs: 100,
+        weekLbs: 25,
+      });
+      const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+      render(
+        <MemoryRouter>
+          <VolunteerDashboard />
+        </MemoryRouter>,
+      );
 
-    expect(
-      await screen.findByText(/Volunteers distributed 25 lbs this week/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Hours This Month: 4 \/ 8/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Canned Food Drive exceeded goals!'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('We appreciate your dedication!'),
-    ).toBeInTheDocument();
-    rand.mockRestore();
-  });
+      expect(
+        await screen.findByText(/Volunteers distributed 25 lbs this week/),
+      ).toBeInTheDocument();
+      expect(await screen.findByTestId('group-stats-gauge')).toBeInTheDocument();
+      expect(screen.getByText('4 / 8 hrs')).toBeInTheDocument();
+      expect(
+        screen.getByText('Canned Food Drive exceeded goals!'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('We appreciate your dedication!'),
+      ).toBeInTheDocument();
+      rand.mockRestore();
+    });
 });
