@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams, Link as RouterLink } from 'react-router-dom';
+import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { TextField, Button, Link } from '@mui/material';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
@@ -11,9 +11,9 @@ export default function PasswordSetup() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
   const [password, setPassword] = useState('');
-  const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [resendOpen, setResendOpen] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,9 +22,8 @@ export default function PasswordSetup() {
       return;
     }
     try {
-      await setPasswordApi(token, password);
-      setSuccess('Password set. You may now log in.');
-      setPassword('');
+      const loginPath = await setPasswordApi(token, password);
+      navigate(loginPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
@@ -62,12 +61,6 @@ export default function PasswordSetup() {
           </Link>
         )}
       </FormCard>
-      <FeedbackSnackbar
-        open={!!success}
-        onClose={() => setSuccess('')}
-        message={success}
-        severity="success"
-      />
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}

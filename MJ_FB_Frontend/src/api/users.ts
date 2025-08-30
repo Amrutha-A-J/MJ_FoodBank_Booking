@@ -94,13 +94,14 @@ export async function changePassword(
 export async function setPassword(
   token: string,
   password: string,
-): Promise<void> {
+): Promise<string> {
   const res = await apiFetch(`${API_BASE}/auth/set-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, password }),
   });
-  await handleResponse(res);
+  const data = (await handleResponse(res)) as { loginPath: string };
+  return data.loginPath;
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
