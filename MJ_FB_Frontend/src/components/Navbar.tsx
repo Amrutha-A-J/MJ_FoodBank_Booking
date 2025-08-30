@@ -47,16 +47,13 @@ export default function Navbar({
     setAnchorEl(event.currentTarget);
     setOpenGroup(label);
   }
-
   function closeGroup() {
     setAnchorEl(null);
     setOpenGroup(null);
   }
-
   function handleProfileClick(event: React.MouseEvent<HTMLElement>) {
     setProfileAnchorEl(event.currentTarget);
   }
-
   function closeProfileMenu() {
     setProfileAnchorEl(null);
   }
@@ -64,30 +61,46 @@ export default function Navbar({
   const mobileMenuOpen = Boolean(mobileAnchorEl);
   const profileMenuOpen = Boolean(profileAnchorEl);
 
-  const menuPaperProps = { sx: { bgcolor: 'common.white', borderRadius: 1 } };
-
-  const navItemStyles = {
-    fontFamily: '"Oswald", Sans-serif',
-    fontSize: { xs: 12, sm: 14, md: 16 },
-    fontWeight: 700,
+  // ====== STYLE TOKENS to match mjfoodbank.org ======
+  const NAV_TXT_SX = {
     textTransform: 'uppercase',
+    fontWeight: 800,
+    letterSpacing: '0.06em',
     color: 'common.white',
+    fontSize: { xs: 12, sm: 13, md: 14 },
+    px: 1.5,
+    py: 1,
+    borderRadius: 1,
     '&:hover': {
-      bgcolor: 'transparent',
-      color: 'error.main',
+      backgroundColor: 'rgba(255,255,255,0.06)',
     },
-  };
+  } as const;
 
-  const menuItemStyles = {
-    ...navItemStyles,
+  const DROPDOWN_ITEM_SX = {
+    textTransform: 'uppercase',
+    fontWeight: 800,
+    letterSpacing: '0.06em',
     color: 'common.black',
-    '&:hover': {
-      bgcolor: 'grey.800',
-      color: 'common.white',
+    fontSize: 13,
+    borderRadius: 1,
+    py: 1.2,
+    px: 1.75,
+    '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
+    '&.Mui-selected, &.Mui-selected:hover': {
+      backgroundColor: 'rgba(0,0,0,0.06)',
     },
-    '&.Mui-selected:hover': {
-      bgcolor: 'grey.800',
-      color: 'common.white',
+  } as const;
+
+  const menuPaperProps = {
+    elevation: 0,
+    sx: {
+      bgcolor: 'common.white',
+      borderRadius: 2,
+      border: `1px solid ${theme.palette.divider}`,
+      boxShadow: '0 10px 24px rgba(0,0,0,.12)',
+      overflow: 'hidden',
+      mt: 1,
+      minWidth: 220,
     },
   };
 
@@ -102,232 +115,247 @@ export default function Navbar({
         position: 'relative',
       }}
     >
+      {/* Logo sitting on the black ribbon */}
       <Box sx={{ position: 'relative', height: 0 }}>
         <Box
           component="img"
           src="/images/mjfoodbank_logo.png"
           alt="Food Bank logo"
-          sx={{
-            position: 'absolute',
-            top: -26,
-            left: 15,
-            width: 178,
-          }}
+          sx={{ position: 'absolute', top: -26, left: 15, width: 178 }}
         />
       </Box>
-      <AppBar
-        position="static"
-        sx={{ bgcolor: 'common.black', color: 'common.white' }}
-      >
-        <Toolbar
-          sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 }, justifyContent: 'flex-end' }}
-        >
+
+      {/* Black nav bar */}
+      <AppBar position="static" sx={{ bgcolor: 'common.black', color: 'common.white', boxShadow: 'none' }}>
+        <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 }, justifyContent: 'flex-end' }}>
           {isSmall ? (
-          <>
-            <IconButton
-              color="inherit"
-              aria-label="open navigation menu"
-              onClick={(e) => setMobileAnchorEl(e.currentTarget)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={mobileAnchorEl}
-              open={mobileMenuOpen}
-              onClose={() => setMobileAnchorEl(null)}
-              PaperProps={menuPaperProps}
-            >
-              {groups.map((group) => (
-                <Box key={group.label}>
-                  {!(group.links.length === 1 && group.links[0].label === group.label) && (
-                    <MenuItem disabled sx={menuItemStyles}>
-                      {group.label}
-                    </MenuItem>
-                  )}
-                  {group.links.map(({ label, to }) => (
-                    <MenuItem
-                      key={to}
-                      component={RouterLink}
-                      to={to}
-                      selected={location.pathname === to}
-                      onClick={() => {
-                        setMobileAnchorEl(null);
-                      }}
-                      disabled={loading}
-                      sx={menuItemStyles}
-                    >
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Box>
-              ))}
-              {onLogout &&
-                (name
-                  ? [
-                      <MenuItem key="hello" disabled sx={menuItemStyles}>
-                        Hello, {name}
-                      </MenuItem>,
-                      ...(role === 'staff'
-                        ? (profileLinks?.map(({ label, to }) => (
+            <>
+              <IconButton
+                color="inherit"
+                aria-label="open navigation menu"
+                onClick={(e) => setMobileAnchorEl(e.currentTarget)}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={mobileAnchorEl}
+                open={mobileMenuOpen}
+                onClose={() => setMobileAnchorEl(null)}
+                PaperProps={menuPaperProps}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              >
+                {groups.map((group) => (
+                  <Box key={group.label} sx={{ px: 1, py: 0.5 }}>
+                    {!(group.links.length === 1 && group.links[0].label === group.label) && (
+                      <MenuItem disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
+                        {group.label}
+                      </MenuItem>
+                    )}
+                    {group.links.map(({ label, to }) => (
+                      <MenuItem
+                        key={to}
+                        component={RouterLink}
+                        to={to}
+                        selected={location.pathname === to}
+                        onClick={() => setMobileAnchorEl(null)}
+                        disabled={loading}
+                        sx={DROPDOWN_ITEM_SX}
+                      >
+                        {label}
+                      </MenuItem>
+                    ))}
+                  </Box>
+                ))}
+
+                {onLogout &&
+                  (name
+                    ? (
+                      <>
+                        <MenuItem disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
+                          Hello, {name}
+                        </MenuItem>
+                        {role === 'staff' &&
+                          (profileLinks ?? []).map(({ label, to }) => (
                             <MenuItem
                               key={to}
                               component={RouterLink}
                               to={to}
-                              onClick={() => {
-                                setMobileAnchorEl(null);
-                              }}
+                              onClick={() => setMobileAnchorEl(null)}
                               disabled={loading}
-                              sx={menuItemStyles}
+                              sx={DROPDOWN_ITEM_SX}
                             >
                               {label}
                             </MenuItem>
-                          )) ?? [])
-                        : []),
+                          ))}
+                        <MenuItem
+                          component={RouterLink}
+                          to="/profile"
+                          onClick={() => setMobileAnchorEl(null)}
+                          disabled={loading}
+                          sx={DROPDOWN_ITEM_SX}
+                        >
+                          Profile
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            setMobileAnchorEl(null);
+                            onLogout?.();
+                          }}
+                          disabled={loading}
+                          sx={DROPDOWN_ITEM_SX}
+                        >
+                          Logout
+                        </MenuItem>
+                      </>
+                    )
+                    : (
                       <MenuItem
-                        key="profile"
-                        component={RouterLink}
-                        to="/profile"
                         onClick={() => {
                           setMobileAnchorEl(null);
+                          onLogout?.();
                         }}
                         disabled={loading}
-                        sx={menuItemStyles}
-                      >
-                        Profile
-                      </MenuItem>,
-                      <MenuItem
-                        key="logout"
-                        onClick={() => {
-                          setMobileAnchorEl(null);
-                          onLogout();
-                        }}
-                        disabled={loading}
-                        sx={menuItemStyles}
-                      >
-                        Logout
-                      </MenuItem>,
-                    ]
-                  : [
-                      <MenuItem
-                        key="logout"
-                        onClick={() => {
-                          setMobileAnchorEl(null);
-                          onLogout();
-                        }}
-                        disabled={loading}
-                        sx={menuItemStyles}
+                        sx={DROPDOWN_ITEM_SX}
                       >
                         Logout
-                      </MenuItem>,
-                    ])
-              }
-            </Menu>
-          </>
-        ) : (
-          groups.map((group) =>
-            group.links.length === 1 ? (
-              <Button
-                key={group.links[0].to}
-                color="inherit"
-                component={RouterLink}
-                to={group.links[0].to}
-                disabled={loading}
-                sx={navItemStyles}
-              >
-                {group.links[0].label}
-              </Button>
-            ) : (
-              <Box key={group.label}>
-                <Button
-                  color="inherit"
-                  onClick={(e) => handleGroupClick(group.label, e)}
-                  endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
-                  sx={navItemStyles}
-                >
-                  {group.label}
-                </Button>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={openGroup === group.label}
-                  onClose={closeGroup}
-                  PaperProps={menuPaperProps}
-                >
-                  {group.links.map(({ label, to }) => (
-                    <MenuItem
-                      key={to}
-                      component={RouterLink}
-                      to={to}
-                      selected={location.pathname === to}
-                      onClick={closeGroup}
-                      disabled={loading}
-                      sx={menuItemStyles}
-                    >
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </Box>
-            )
-          )
-        )}
-        {onLogout &&
-          (name && !isSmall ? (
-            <>
-              <Button
-                color="inherit"
-                onClick={handleProfileClick}
-                endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
-                sx={navItemStyles}
-              >
-                Hello, {name}
-              </Button>
-              <Menu
-                anchorEl={profileAnchorEl}
-                open={profileMenuOpen}
-                onClose={closeProfileMenu}
-                PaperProps={menuPaperProps}
-              >
-                {role === 'staff' &&
-                  profileLinks?.map(({ label, to }) => (
-                    <MenuItem
-                      key={to}
-                      component={RouterLink}
-                      to={to}
-                      onClick={closeProfileMenu}
-                      disabled={loading}
-                      sx={menuItemStyles}
-                    >
-                      {label}
-                    </MenuItem>
-                  ))}
-                <MenuItem
-                  component={RouterLink}
-                  to="/profile"
-                  onClick={closeProfileMenu}
-                  disabled={loading}
-                  sx={menuItemStyles}
-                >
-                  Profile
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    closeProfileMenu();
-                    onLogout();
-                  }}
-                  disabled={loading}
-                  sx={menuItemStyles}
-                >
-                  Logout
-                </MenuItem>
+                      </MenuItem>
+                    ))}
               </Menu>
             </>
-          ) : !name && !isSmall ? (
-            <Button color="inherit" onClick={onLogout} disabled={loading} sx={navItemStyles}>
-              Logout
-            </Button>
-          ) : null)}
-      </Toolbar>
-    </AppBar>
-  </Box>
+          ) : (
+            // Desktop links
+            groups.map((group) =>
+              group.links.length === 1 ? (
+                <Button
+                  key={group.links[0].to}
+                  color="inherit"
+                  component={RouterLink}
+                  to={group.links[0].to}
+                  disabled={loading}
+                  disableElevation
+                  disableRipple
+                  sx={{
+                    ...NAV_TXT_SX,
+                    ...(location.pathname === group.links[0].to
+                      ? { backgroundColor: 'rgba(255,255,255,0.12)' }
+                      : null),
+                  }}
+                >
+                  {group.links[0].label}
+                </Button>
+              ) : (
+                <Box key={group.label} sx={{ display: 'inline-flex' }}>
+                  <Button
+                    color="inherit"
+                    onClick={(e) => handleGroupClick(group.label, e)}
+                    endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
+                    disableElevation
+                    disableRipple
+                    sx={NAV_TXT_SX}
+                    aria-haspopup="menu"
+                    aria-expanded={openGroup === group.label ? 'true' : undefined}
+                    aria-controls={`${group.label}-menu`}
+                  >
+                    {group.label}
+                  </Button>
+                  <Menu
+                    id={`${group.label}-menu`}
+                    anchorEl={anchorEl}
+                    open={openGroup === group.label}
+                    onClose={closeGroup}
+                    PaperProps={menuPaperProps}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                    MenuListProps={{ dense: true, disablePadding: false, sx: { p: 1 } }}
+                  >
+                    {group.links.map(({ label, to }) => (
+                      <MenuItem
+                        key={to}
+                        component={RouterLink}
+                        to={to}
+                        selected={location.pathname === to}
+                        onClick={closeGroup}
+                        disabled={loading}
+                        sx={DROPDOWN_ITEM_SX}
+                      >
+                        {label}
+                      </MenuItem>
+                    ))}
+                  </Menu>
+                </Box>
+              )
+            )
+          )}
+
+          {/* Profile menu / Logout on desktop */}
+          {onLogout &&
+            (name && !isSmall ? (
+              <>
+                <Button
+                  color="inherit"
+                  onClick={handleProfileClick}
+                  endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
+                  disableElevation
+                  disableRipple
+                  sx={NAV_TXT_SX}
+                  aria-haspopup="menu"
+                  aria-expanded={profileMenuOpen ? 'true' : undefined}
+                  aria-controls="profile-menu"
+                >
+                  Hello, {name}
+                </Button>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={profileAnchorEl}
+                  open={profileMenuOpen}
+                  onClose={closeProfileMenu}
+                  PaperProps={menuPaperProps}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  MenuListProps={{ dense: true, disablePadding: false, sx: { p: 1 } }}
+                >
+                  {role === 'staff' &&
+                    profileLinks?.map(({ label, to }) => (
+                      <MenuItem
+                        key={to}
+                        component={RouterLink}
+                        to={to}
+                        onClick={closeProfileMenu}
+                        disabled={loading}
+                        sx={DROPDOWN_ITEM_SX}
+                      >
+                        {label}
+                      </MenuItem>
+                    ))}
+                  <MenuItem
+                    component={RouterLink}
+                    to="/profile"
+                    onClick={closeProfileMenu}
+                    disabled={loading}
+                    sx={DROPDOWN_ITEM_SX}
+                  >
+                    Profile
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      closeProfileMenu();
+                      onLogout();
+                    }}
+                    disabled={loading}
+                    sx={DROPDOWN_ITEM_SX}
+                  >
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </>
+            ) : !name && !isSmall ? (
+              <Button color="inherit" onClick={onLogout} disabled={loading} sx={NAV_TXT_SX}>
+                Logout
+              </Button>
+            ) : null)}
+        </Toolbar>
+      </AppBar>
+    </Box>
   );
 }

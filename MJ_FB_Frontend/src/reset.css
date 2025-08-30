@@ -235,7 +235,7 @@ button,select {
 
 [type=button],[type=submit],button {
     background-color: transparent;
-    border-radius: 10px;
+    border-radius: 5px;
     display: inline-block;
     font-size: 1rem;
     font-weight: 400;

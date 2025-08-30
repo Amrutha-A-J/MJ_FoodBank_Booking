@@ -28,7 +28,7 @@ let theme = createTheme({
     },
   },
 
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: 5 },
 
   typography: {
     // Match mjfoodbank.org feel: clean, roomy sans with firm headings
@@ -82,7 +82,7 @@ let theme = createTheme({
         '*::-webkit-scrollbar': { height: 10, width: 10 },
         '*::-webkit-scrollbar-thumb': {
           backgroundColor: 'rgba(0,0,0,0.2)',
-          borderRadius: 8,
+          borderRadius: 5,
           border: '2px solid transparent',
           backgroundClip: 'content-box',
         },
@@ -237,7 +237,7 @@ let theme = createTheme({
 
     // Tables/lists
     MuiListItem: {
-      styleOverrides: { root: { borderRadius: 8, '&:hover': { background: 'rgba(0,0,0,0.03)' } } },
+      styleOverrides: { root: { borderRadius: 5, '&:hover': { background: 'rgba(0,0,0,0.03)' } } },
     },
     MuiTableHead: {
       styleOverrides: { root: { '& .MuiTableCell-head': { fontWeight: 700, background: '#fafafa' } } },
@@ -247,14 +247,14 @@ let theme = createTheme({
     // Glassy overlays
     MuiPopover: { styleOverrides: { paper: { backdropFilter: 'blur(8px)' } } },
     MuiMenu:    { styleOverrides: { paper: { backdropFilter: 'blur(8px)' } } },
-    MuiDialog:  { styleOverrides: { paper: { borderRadius: 12, backdropFilter: 'blur(10px)' } } },
+    MuiDialog:  { styleOverrides: { paper: { borderRadius: 5, backdropFilter: 'blur(10px)' } } },
 
     // Micro-interactions
     MuiIconButton: {
       defaultProps: { size: 'small' },
       styleOverrides: {
         root: {
-          borderRadius: 10,
+          borderRadius: 5,
           transition: 'background-color 0.2s ease, transform 0.05s ease',
           '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
           '&:active': { transform: 'translateY(0.5px)' },
@@ -263,7 +263,7 @@ let theme = createTheme({
     },
     MuiTooltip: {
       defaultProps: { arrow: true, enterDelay: 300 },
-      styleOverrides: { tooltip: { borderRadius: 8, fontSize: '0.85rem', padding: '8px 10px' } },
+      styleOverrides: { tooltip: { borderRadius: 5, fontSize: '0.85rem', padding: '8px 10px' } },
     },
 
     // Layout rhythm
@@ -282,7 +282,7 @@ let theme = createTheme({
     MuiToolbar: { styleOverrides: { root: { minHeight: 56 } } },
 
     // Skeletons
-    MuiSkeleton: { styleOverrides: { root: { borderRadius: 8 } } },
+    MuiSkeleton: { styleOverrides: { root: { borderRadius: 5 } } },
   },
 });
 

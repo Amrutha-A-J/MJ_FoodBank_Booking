@@ -103,7 +103,7 @@ p {
   border: none;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 .navbar button:hover {
@@ -142,7 +142,7 @@ p {
   padding: 0.5rem;
   margin: 0.3rem 0;
   border: 1px solid #ccc;
-  border-radius: 10px;
+  border-radius: 5px;
   display: flex;
   justify-content: space-between;
   background-color: transparent;
