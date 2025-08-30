@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem('id');
     return stored ? Number(stored) : null;
   });
-  const [token, setToken] = useState(role ? 'cookie' : '');
+  const [token, setToken] = useState('');
   const [sessionMessage, setSessionMessage] = useState('');
   const [cardUrl, setCardUrl] = useState('');
 
@@ -75,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserRole((newUserRole as UserRole) || '');
         setAccess(newAccess ? JSON.parse(newAccess) : []);
         setId(newId ? Number(newId) : null);
-        setToken('cookie');
         setSessionMessage('Session updated in another tab');
       }
     }
@@ -90,9 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await apiFetch(`${API_BASE}/auth/refresh`, {
           method: 'POST',
         });
-        if (res.ok || res.status === 409) {
-          // 409 indicates another tab or request refreshed already
+        if (res.ok) {
           if (active) setToken('cookie');
+        } else if (res.status === 409) {
+          // 409 indicates another tab or request refreshed already
+          // do not set token until this tab successfully refreshes
         } else if (res.status === 401) {
           if (active) {
             clearAuth();

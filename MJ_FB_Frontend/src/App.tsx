@@ -96,7 +96,7 @@ const AgencyBookAppointment = React.lazy(() =>
 const Spinner = () => <CircularProgress />;
 
 export default function App() {
-  const { role, name, userRole, access, login, logout } = useAuth();
+  const { token, role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
@@ -219,8 +219,8 @@ export default function App() {
 
   const navbarProps = {
     groups: navGroups,
-    onLogout: role ? logout : undefined,
-    name: role ? name || undefined : undefined,
+    onLogout: token ? logout : undefined,
+    name: token ? name || undefined : undefined,
     loading,
     role,
     profileLinks,
@@ -236,7 +236,7 @@ export default function App() {
           severity="error"
         />
 
-        {role ? (
+        {token ? (
           <MainLayout {...navbarProps}>
             <Suspense fallback={<Spinner />}>
               <Routes>
