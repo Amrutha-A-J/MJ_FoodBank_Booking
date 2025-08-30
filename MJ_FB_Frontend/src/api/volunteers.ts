@@ -5,6 +5,7 @@ import type {
   RoleOption,
   Shift,
   VolunteerBooking,
+  VolunteerBookingStatus,
   UserProfile,
 } from '../types';
 import type { LoginResponse } from './users';
@@ -296,7 +297,7 @@ export async function getVolunteerBookingsByRole(roleId: number) {
 
 export async function updateVolunteerBookingStatus(
   bookingId: number,
-  status: 'approved' | 'rejected' | 'cancelled' | 'no_show' | 'expired',
+  status: VolunteerBookingStatus,
   reason?: string,
 ): Promise<void> {
   const body = reason ? { status, reason } : { status };

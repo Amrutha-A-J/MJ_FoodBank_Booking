@@ -12,7 +12,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 ## Features
 
-- Appointment booking workflow for clients with staff approval and rescheduling.
+ - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Unregistered clients can book directly via `/bookings/new-client`; staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas.
 - Daily job sends reminder emails for next-day bookings using the backend email queue.
@@ -38,7 +38,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Volunteer dashboard groups badges, lifetime hours, this month's hours, total shifts, and current streak into a single stats card.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
-- Volunteer bookings are auto-approved and appear immediately on schedules.
+ - Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
 - Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
 - Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Volunteer Settings page's **Restore Original Roles & Shifts** button.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
@@ -48,8 +48,8 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Adding a client visit automatically updates any approved booking for that client on the same date to `visited`.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
-- Booking requests are automatically approved or rejected; the pending approval workflow has been removed.
-- Booking confirmations display "Shift booked," and the volunteer dashboard no longer lists pending requests.
+ - Booking requests are automatically approved or rejected; the submitted state has been removed.
+ - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.

@@ -108,9 +108,16 @@ export interface VolunteerRoleGroup {
   }[];
 }
 
+export type VolunteerBookingStatus =
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+  | 'no_show'
+  | 'expired';
+
 export interface VolunteerBooking {
   id: number;
-  status: string;
+  status: VolunteerBookingStatus;
   role_id: number;
   date: string;
   start_time: string;
@@ -123,7 +130,7 @@ export interface VolunteerBooking {
 
 export interface VolunteerBookingDetail {
   id: number;
-  status: string;
+  status: VolunteerBookingStatus;
   role_id: number;
   volunteer_id: number;
   volunteer_name: string;
