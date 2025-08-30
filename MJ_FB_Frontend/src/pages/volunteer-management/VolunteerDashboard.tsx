@@ -84,7 +84,7 @@ export default function VolunteerDashboard() {
         const monthly: Record<string, { total: number; roles: Record<string, number> }> = {};
         const roleTotals: Record<string, number> = {};
         data
-          .filter(b => b.status === 'approved')
+          .filter(b => b.status === 'completed')
           .forEach(b => {
             const d = toDate(b.date);
             const key = formatRegina(d, 'yyyy-MM');

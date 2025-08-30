@@ -426,7 +426,7 @@ beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        status: 'approved',
+        status: 'completed',
         role_id: 1,
         date: '2024-01-15',
         start_time: '09:00:00',
@@ -435,7 +435,7 @@ beforeEach(() => {
       },
       {
         id: 2,
-        status: 'approved',
+        status: 'completed',
         role_id: 1,
         date: '2024-02-10',
         start_time: '09:00:00',
