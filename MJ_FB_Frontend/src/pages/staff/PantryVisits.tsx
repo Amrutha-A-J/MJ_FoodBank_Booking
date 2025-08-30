@@ -74,6 +74,7 @@ export default function PantryVisits() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor } | null>(null);
 
   const [cartTare, setCartTare] = useState(0);
+  const [search, setSearch] = useState('');
 
   const weekDates = useMemo(() => {
     const start = startOfWeek(toDate());
@@ -92,6 +93,16 @@ export default function PantryVisits() {
   });
   const [autoWeight, setAutoWeight] = useState(true);
   const [clientFound, setClientFound] = useState<boolean | null>(null);
+
+  const filteredVisits = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return visits;
+    return visits.filter(v => {
+      const name = v.clientName?.toLowerCase() || '';
+      const id = v.clientId ? String(v.clientId) : '';
+      return name.includes(q) || id.includes(q);
+    });
+  }, [visits, search]);
 
   const loadVisits = useCallback(() => {
     getClientVisits(format(selectedDate))
@@ -194,7 +205,7 @@ export default function PantryVisits() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {visits.map(v => (
+          {filteredVisits.map(v => (
             <TableRow key={v.id}>
               <TableCell>{formatDisplay(v.date)}</TableCell>
               <TableCell>{v.clientId ?? 'N/A'}</TableCell>
@@ -262,25 +273,33 @@ export default function PantryVisits() {
     <Page
       title="Pantry Visits"
       header={
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => {
-            setForm({
-              date: format(selectedDate),
-              anonymous: false,
-              clientId: '',
-              weightWithCart: '',
-              weightWithoutCart: '',
-              petItem: '0',
-            });
-            setAutoWeight(true);
-            setEditing(null);
-            setRecordOpen(true);
-          }}
-        >
-          Record Visit
-        </Button>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setForm({
+                date: format(selectedDate),
+                anonymous: false,
+                clientId: '',
+                weightWithCart: '',
+                weightWithoutCart: '',
+                petItem: '0',
+              });
+              setAutoWeight(true);
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
+            Record Visit
+          </Button>
+          <TextField
+            size="small"
+            label="Search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </Stack>
       }
     >
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />

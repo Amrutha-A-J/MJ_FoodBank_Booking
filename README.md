@@ -246,6 +246,7 @@ page and cached on the server:
 - Agency profile page shows the agency's name, email, and contact info with editable fields and password reset support.
 - Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
 - Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
+- Pantry Visits page includes a search field to filter visits by client name or ID.
 
 ## Deploying to Azure
 
