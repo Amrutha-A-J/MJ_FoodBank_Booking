@@ -4,6 +4,7 @@ import {
   getBookings,
   getHolidays,
   createBookingForUser,
+  createBookingForNewClient,
 } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
 import type { Slot, Holiday } from '../../types';
@@ -17,11 +18,11 @@ import {
   Link,
   type AlertColor,
   useTheme,
-  IconButton,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
+  TextField,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { lighten } from '@mui/material/styles';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
@@ -32,8 +33,9 @@ interface Booking {
   date: string;
   slot_id: number;
   user_name: string;
-  user_id: number;
-  client_id: number;
+  user_id: number | null;
+  client_id: number | null;
+  newClientId?: number | null;
   bookings_this_month: number;
   is_staff_booking: boolean;
   reschedule_token: string;
@@ -68,6 +70,8 @@ export default function PantrySchedule({
   const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState('');
+  const [isNewClient, setIsNewClient] = useState(false);
+  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
 
   const theme = useTheme();
   const statusColors: Record<string, string> = {
@@ -110,7 +114,7 @@ export default function PantrySchedule({
   }, [loadData]);
 
   useEffect(() => {
-    if (assignSlot && searchTerm.length >= 3) {
+    if (assignSlot && !isNewClient && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
           .then((data: User[]) => setUserResults(data.slice(0, 5)))
@@ -120,14 +124,14 @@ export default function PantrySchedule({
     } else {
       setUserResults([]);
     }
-  }, [searchTerm, assignSlot]);
+  }, [searchTerm, assignSlot, isNewClient]);
 
   function changeDay(delta: number) {
     setCurrentDate(d => addDays(d, delta));
   }
 
 
-  async function assignUser(user: User) {
+  async function assignExistingUser(user: User) {
     if (!assignSlot) return;
     try {
       setAssignMessage('');
@@ -138,6 +142,31 @@ export default function PantrySchedule({
         true
       );
       setAssignSlot(null);
+      setSearchTerm('');
+      setIsNewClient(false);
+      setNewClient({ name: '', email: '', phone: '' });
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      const msg = err instanceof Error ? err.message : 'Failed to assign user';
+      setAssignMessage(msg);
+    }
+  }
+
+  async function assignNewClient() {
+    if (!assignSlot) return;
+    try {
+      setAssignMessage('');
+      await createBookingForNewClient(
+        newClient.name,
+        parseInt(assignSlot.id),
+        formatDate(currentDate),
+        newClient.email || undefined,
+        newClient.phone || undefined,
+      );
+      setAssignSlot(null);
+      setIsNewClient(false);
+      setNewClient({ name: '', email: '', phone: '' });
       setSearchTerm('');
       await loadData();
     } catch (err) {
@@ -218,7 +247,10 @@ export default function PantrySchedule({
         let onClick;
         let backgroundColor: string | undefined;
         if (booking) {
-          const text = `${booking.user_name} (${booking.client_id})`;
+          const isNew = booking.newClientId || booking.client_id === null;
+          const text = isNew
+            ? `[NEW CLIENT] ${booking.user_name}`
+            : `${booking.user_name} (${booking.client_id})`;
           if (overCapacity) {
             content = (
               <Tooltip title="Capacity exceeded">
@@ -325,33 +357,87 @@ export default function PantrySchedule({
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '300px' }}>
             <h4>Assign User</h4>
-            <input
-              type="text"
-              placeholder="Search users by name/email/phone/client ID"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              style={{ width: '100%', marginBottom: 8 }}
+            <FormControlLabel
+              control={<Checkbox checked={isNewClient} onChange={e => setIsNewClient(e.target.checked)} />}
+              label="New client"
             />
-            <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
-              {userResults.map(u => (
-                <li key={u.id} style={{ marginBottom: 4 }}>
-                  {u.name} ({u.email})
-                  <Button
-                    style={{ marginLeft: 4 }}
-                    onClick={() => assignUser(u)}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Assign
-                  </Button>
-                </li>
-              ))}
-              {assignSlot && searchTerm.length >= 3 && userResults.length === 0 && (
-                <li>No search results.</li>
-              )}
-            </ul>
+            {isNewClient ? (
+              <>
+                <TextField
+                  label="Name"
+                  value={newClient.name}
+                  onChange={e => setNewClient({ ...newClient, name: e.target.value })}
+                  fullWidth
+                  margin="dense"
+                />
+                <TextField
+                  label="Email (optional)"
+                  value={newClient.email}
+                  onChange={e => setNewClient({ ...newClient, email: e.target.value })}
+                  fullWidth
+                  margin="dense"
+                />
+                <TextField
+                  label="Phone (optional)"
+                  value={newClient.phone}
+                  onChange={e => setNewClient({ ...newClient, phone: e.target.value })}
+                  fullWidth
+                  margin="dense"
+                />
+                <Button
+                  sx={{ mt: 1 }}
+                  onClick={assignNewClient}
+                  variant="contained"
+                  size="small"
+                  disabled={!newClient.name}
+                >
+                  Assign
+                </Button>
+              </>
+            ) : (
+              <>
+                <TextField
+                  label="Search users by name/email/phone/client ID"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  fullWidth
+                  margin="dense"
+                />
+                <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
+                  {userResults.map(u => (
+                    <li key={u.id} style={{ marginBottom: 4 }}>
+                      {u.name} ({u.email})
+                      <Button
+                        style={{ marginLeft: 4 }}
+                        onClick={() => assignExistingUser(u)}
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                      >
+                        Assign
+                      </Button>
+                    </li>
+                  ))}
+                  {assignSlot && searchTerm.length >= 3 && userResults.length === 0 && (
+                    <li>No search results.</li>
+                  )}
+                </ul>
+              </>
+            )}
             <FeedbackSnackbar open={!!assignMessage} onClose={() => setAssignMessage('')} message={assignMessage} severity="error" />
-            <Button onClick={() => { setAssignSlot(null); setSearchTerm(''); setAssignMessage(''); }} variant="outlined" color="primary">Close</Button>
+            <Button
+              onClick={() => {
+                setAssignSlot(null);
+                setSearchTerm('');
+                setAssignMessage('');
+                setIsNewClient(false);
+                setNewClient({ name: '', email: '', phone: '' });
+              }}
+              variant="outlined"
+              color="primary"
+            >
+              Close
+            </Button>
           </div>
         </div>
       )}
