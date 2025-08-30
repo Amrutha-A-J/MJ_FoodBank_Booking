@@ -5,6 +5,7 @@ import logger from './utils/logger';
 import app from './app';
 import { startBookingReminderJob } from './utils/bookingReminderJob';
 import { startVolunteerShiftReminderJob } from './utils/volunteerShiftReminderJob';
+import { initEmailQueue } from './utils/emailQueue';
 
 const PORT = config.port;
 
@@ -15,6 +16,7 @@ async function init() {
     logger.info('✅ Connected to the database successfully!');
     client.release();
 
+    initEmailQueue();
     app.listen(PORT, () => {
       logger.info(`Server running at http://localhost:${PORT}`);
     });

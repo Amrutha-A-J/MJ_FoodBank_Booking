@@ -135,7 +135,7 @@ describe('persistent email queue', () => {
   it('stops retrying after max retries', async () => {
     process.env.EMAIL_QUEUE_MAX_RETRIES = '1';
     process.env.EMAIL_QUEUE_BACKOFF_MS = '1';
-    const sendEmailMock: jest.Mock = jest.fn().mockRejectedValue(new Error('fail'));
+    const sendEmailMock = jest.fn().mockRejectedValue(new Error('fail'));
     jest.doMock('../src/utils/emailUtils', () => ({ sendEmail: sendEmailMock }));
     const logger = require('../src/utils/logger').default;
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
