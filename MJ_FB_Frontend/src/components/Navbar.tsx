@@ -144,6 +144,7 @@ export default function Navbar({
                 PaperProps={menuPaperProps}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                MenuListProps={{ disablePadding: true }}
               >
                 {groups.map((group) => (
                   <Box key={group.label} sx={{ px: 1, py: 0.5 }}>
@@ -267,7 +268,7 @@ export default function Navbar({
                     PaperProps={menuPaperProps}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    MenuListProps={{ dense: true, disablePadding: false, sx: { p: 1 } }}
+                    MenuListProps={{ dense: true, disablePadding: true }}
                   >
                     {group.links.map(({ label, to }) => (
                       <MenuItem
@@ -313,7 +314,7 @@ export default function Navbar({
                   PaperProps={menuPaperProps}
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  MenuListProps={{ dense: true, disablePadding: false, sx: { p: 1 } }}
+                  MenuListProps={{ dense: true, disablePadding: true }}
                 >
                   {role === 'staff' &&
                     profileLinks?.map(({ label, to }) => (
