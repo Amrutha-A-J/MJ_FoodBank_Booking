@@ -19,6 +19,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
  - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas.
+- Staff can review past volunteer shifts from the **Pending Reviews** tab and mark them completed or no_show.
 - Only staff can update volunteer trained roles; volunteers may view but not modify their assigned roles from the dashboard.
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
 - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.

@@ -7,6 +7,7 @@ import {
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
   getVolunteerNoShowRanking,
+  getUnmarkedVolunteerBookings,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -46,6 +47,13 @@ describe('volunteers api', () => {
   it('fetches volunteer master roles', async () => {
     await getVolunteerMasterRoles();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-master-roles');
+  });
+
+  it('fetches unmarked volunteer bookings', async () => {
+    await getUnmarkedVolunteerBookings();
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/unmarked',
+    );
   });
 
   it('fetches recurring volunteer bookings', async () => {

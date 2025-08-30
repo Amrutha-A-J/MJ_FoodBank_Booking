@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 const Dashboard = React.lazy(
@@ -9,6 +9,7 @@ import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
+import { getUnmarkedVolunteerBookings } from './api/volunteers';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -55,6 +56,9 @@ const VolunteerBooking = React.lazy(() =>
 const VolunteerRecurringBookings = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerRecurringBookings')
 );
+const PendingReviews = React.lazy(() =>
+  import('./pages/volunteer-management/PendingReviews')
+);
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
@@ -99,6 +103,7 @@ export default function App() {
   const { token, ready, role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
+  const [pendingReviews, setPendingReviews] = useState(0);
   const isStaff = role === 'staff';
   const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
   const showStaff = isStaff && hasAccess('pantry');
@@ -117,6 +122,14 @@ export default function App() {
           ? '/warehouse-management'
           : '/'
     : '/';
+
+  useEffect(() => {
+    if (showVolunteerManagement) {
+      getUnmarkedVolunteerBookings()
+        .then(b => setPendingReviews(b.length))
+        .catch(() => setPendingReviews(0));
+    }
+  }, [showVolunteerManagement]);
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
@@ -151,6 +164,11 @@ export default function App() {
           { label: 'Dashboard', to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
           { label: 'Search', to: '/volunteer-management/search' },
+          {
+            label: 'Pending Reviews',
+            to: '/volunteer-management/pending-reviews',
+            badge: pendingReviews,
+          },
           { label: 'Create', to: '/volunteer-management/create' },
         ],
       });
@@ -372,6 +390,10 @@ export default function App() {
                   <Route
                     path="/volunteer-management"
                     element={<VolunteerManagement />}
+                  />
+                  <Route
+                    path="/volunteer-management/pending-reviews"
+                    element={<PendingReviews />}
                   />
                   <Route
                     path="/volunteer-management/:tab"
