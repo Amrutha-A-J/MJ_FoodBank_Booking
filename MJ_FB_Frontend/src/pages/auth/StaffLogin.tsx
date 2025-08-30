@@ -44,10 +44,10 @@ export default function StaffLogin({
       {hasStaff ? (
         <StaffLoginForm onLogin={onLogin} error={error} />
       ) : (
-        <CreateStaffForm onCreated={() => setHasStaff(true)} error={error} />
+        <CreateStaffForm error={error} />
       )}
-    </Page>
-  );
+  </Page>
+);
 }
 
 function StaffLoginForm({
@@ -136,7 +136,7 @@ function StaffLoginForm({
   );
 }
 
-function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => void; error: string }) {
+function CreateStaffForm({ error: initError }: { error: string }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -154,8 +154,9 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
     if (firstName === '' || lastName === '' || email === '') return;
     try {
       await createStaff(firstName, lastName, ['admin'], email);
-      setMessage('Staff account created. You can login now.');
-      setTimeout(onCreated, 1000);
+      setMessage(
+        'Staff account created. Check your email to set a password before logging in.'
+      );
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     }

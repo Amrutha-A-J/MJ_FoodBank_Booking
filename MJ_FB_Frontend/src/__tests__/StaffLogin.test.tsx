@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StaffLogin from '../pages/auth/StaffLogin';
-import { loginStaff, staffExists, resendPasswordSetup } from '../api/users';
+import { loginStaff, staffExists, createStaff, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
   loginStaff: jest.fn(),
@@ -32,6 +32,35 @@ describe('StaffLogin component', () => {
     expect(
       await screen.findByText('Incorrect email or password')
     ).toBeInTheDocument();
+    expect(onLogin).not.toHaveBeenCalled();
+  });
+
+  it('shows account creation message and stays on form', async () => {
+    (staffExists as jest.Mock).mockResolvedValue(false);
+    (createStaff as jest.Mock).mockResolvedValue(undefined);
+    const onLogin = jest.fn();
+    render(
+      <MemoryRouter>
+        <StaffLogin onLogin={onLogin} />
+      </MemoryRouter>,
+    );
+    await screen.findByRole('button', { name: /create staff/i });
+    fireEvent.change(screen.getByLabelText(/first name/i), {
+      target: { value: 'Alice' },
+    });
+    fireEvent.change(screen.getByLabelText(/last name/i), {
+      target: { value: 'Smith' },
+    });
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'a@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create staff/i }));
+    expect(
+      await screen.findByText(
+        'Staff account created. Check your email to set a password before logging in.'
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /login/i })).not.toBeInTheDocument();
     expect(onLogin).not.toHaveBeenCalled();
   });
 });
