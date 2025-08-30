@@ -6,6 +6,7 @@ import app from './app';
 import { startBookingReminderJob } from './utils/bookingReminderJob';
 import { startVolunteerShiftReminderJob } from './utils/volunteerShiftReminderJob';
 import { startNoShowCleanupJob } from './utils/noShowCleanupJob';
+import { startVolunteerNoShowCleanupJob } from './utils/volunteerNoShowCleanupJob';
 import { initEmailQueue } from './utils/emailQueue';
 
 const PORT = config.port;
@@ -24,6 +25,7 @@ async function init() {
     startBookingReminderJob();
     startVolunteerShiftReminderJob();
     startNoShowCleanupJob();
+    startVolunteerNoShowCleanupJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
