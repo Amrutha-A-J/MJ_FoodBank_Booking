@@ -106,19 +106,23 @@ export default function VolunteerBookingHistory() {
                   </TableCell>
                   <TableCell>{h.status}</TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      onClick={() => setCancelBooking(h)}
-                    >
-                      Cancel
-                    </Button>
-                    {h.recurring_id && (
-                      <Button
-                        size="small"
-                        onClick={() => setCancelSeriesId(h.recurring_id!)}
-                      >
-                        Cancel all upcoming
-                      </Button>
+                    {h.status.toLowerCase() === 'approved' && (
+                      <>
+                        <Button
+                          size="small"
+                          onClick={() => setCancelBooking(h)}
+                        >
+                          Cancel
+                        </Button>
+                        {h.recurring_id && (
+                          <Button
+                            size="small"
+                            onClick={() => setCancelSeriesId(h.recurring_id!)}
+                          >
+                            Cancel all upcoming
+                          </Button>
+                        )}
+                      </>
                     )}
                   </TableCell>
                 </TableRow>
