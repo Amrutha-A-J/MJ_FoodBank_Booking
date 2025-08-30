@@ -1,4 +1,4 @@
-import { fetchBookings } from '../models/bookingRepository';
+import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
@@ -12,7 +12,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const nextDate = formatReginaDate(tomorrow);
   try {
-    const bookings = await fetchBookings('approved', nextDate);
+    const bookings = await fetchBookingsForReminder(nextDate);
     for (const b of bookings) {
       if (!b.user_email) continue;
       const time = b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';

@@ -1,11 +1,11 @@
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 import * as bookingReminder from '../src/utils/bookingReminderJob';
 const { sendNextDayBookingReminders, startBookingReminderJob, stopBookingReminderJob } = bookingReminder;
-import { fetchBookings } from '../src/models/bookingRepository';
+import { fetchBookingsForReminder } from '../src/models/bookingRepository';
 import { enqueueEmail } from '../src/utils/emailQueue';
 
 jest.mock('../src/models/bookingRepository', () => ({
-  fetchBookings: jest.fn(),
+  fetchBookingsForReminder: jest.fn(),
 }));
 
 jest.mock('../src/utils/emailQueue', () => ({
@@ -23,7 +23,7 @@ describe('sendNextDayBookingReminders', () => {
   });
 
   it('fetches next-day bookings and queues reminder emails', async () => {
-    (fetchBookings as jest.Mock).mockResolvedValue([
+    (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
         user_email: 'user@example.com',
         start_time: '09:00:00',
@@ -33,7 +33,7 @@ describe('sendNextDayBookingReminders', () => {
 
     await sendNextDayBookingReminders();
 
-    expect(fetchBookings).toHaveBeenCalledWith('approved', '2024-01-02');
+    expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
     expect(enqueueEmail).toHaveBeenCalledWith(
       'user@example.com',
       expect.stringContaining('Reminder'),

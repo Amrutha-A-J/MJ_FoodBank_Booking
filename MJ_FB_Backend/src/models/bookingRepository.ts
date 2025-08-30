@@ -140,6 +140,25 @@ export async function fetchBookings(
   return res.rows;
 }
 
+export async function fetchBookingsForReminder(
+  date: string,
+  client: Queryable = pool,
+) {
+  const res = await client.query(
+    `SELECT
+        COALESCE(u.email, nc.email) as user_email,
+        s.start_time,
+        s.end_time
+       FROM bookings b
+       LEFT JOIN clients u ON b.user_id = u.client_id
+       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+       INNER JOIN slots s ON b.slot_id = s.id
+       WHERE b.status = 'approved' AND b.date = $1`,
+    [formatReginaDate(date)],
+  );
+  return res.rows;
+}
+
 export async function fetchBookingHistory(
   userIds: number[],
   past: boolean,
