@@ -9,6 +9,7 @@ import {
   getVolunteerStats,
   getVolunteerLeaderboard,
   getVolunteerGroupStats,
+  resolveVolunteerBookingConflict,
   type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
@@ -21,6 +22,7 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerStats: jest.fn(),
   getVolunteerLeaderboard: jest.fn(),
   getVolunteerGroupStats: jest.fn(),
+  resolveVolunteerBookingConflict: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));

@@ -8,6 +8,7 @@ import {
   createRecurringVolunteerBooking,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
+  resolveVolunteerBookingConflict,
 } from '../api/volunteers';
 import { getHolidays } from '../api/bookings';
 
@@ -18,6 +19,7 @@ jest.mock('../api/volunteers', () => ({
   createRecurringVolunteerBooking: jest.fn(),
   cancelVolunteerBooking: jest.fn(),
   cancelRecurringVolunteerBooking: jest.fn(),
+  resolveVolunteerBookingConflict: jest.fn(),
 }));
 jest.mock('../api/bookings', () => ({
   getHolidays: jest.fn(),

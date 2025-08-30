@@ -13,6 +13,7 @@ import {
   createVolunteerBookingForVolunteer,
   getVolunteerBookingsByRole,
   updateVolunteerBookingStatus,
+  resolveVolunteerBookingConflict,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
@@ -25,6 +26,7 @@ jest.mock('../api/volunteers', () => ({
   createVolunteerBookingForVolunteer: jest.fn(),
   getVolunteerBookingsByRole: jest.fn(),
   updateVolunteerBookingStatus: jest.fn(),
+  resolveVolunteerBookingConflict: jest.fn(),
 }));
 
 let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };

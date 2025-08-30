@@ -4,6 +4,7 @@ import { loginVolunteer } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
   loginVolunteer: jest.fn(),
+  resolveVolunteerBookingConflict: jest.fn(),
 }));
 
 jest.mock('../pages/volunteer-management/VolunteerDashboard', () => () => <div>VolunteerDashboard</div>);
