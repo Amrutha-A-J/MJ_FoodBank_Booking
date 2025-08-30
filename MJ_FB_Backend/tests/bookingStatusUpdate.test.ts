@@ -2,11 +2,17 @@ import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import * as bookingRepo from '../src/models/bookingRepository';
+import pool from '../src/db';
 
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),
   updateBooking: jest.fn(),
+}));
+
+jest.mock('../src/db', () => ({
+  __esModule: true,
+  default: { query: jest.fn() },
 }));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -36,6 +42,9 @@ describe('booking status updates', () => {
 
   it('allows staff to mark booking as no-show', async () => {
     (bookingRepo.updateBooking as jest.Mock).mockResolvedValue(undefined);
+    (pool.query as jest.Mock).mockResolvedValue({
+      rows: [{ email: 'client@example.com', reschedule_token: 'tok', date: '2024-01-01' }],
+    });
     const res = await request(app)
       .post('/bookings/1/no-show')
       .set('x-role', 'staff')

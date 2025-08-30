@@ -8,7 +8,7 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
   }
 
   try {
-    await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -24,6 +24,17 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
         htmlContent: body,
       }),
     });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      logger.error('Failed to send email via Brevo', {
+        status: response.status,
+        responseText,
+        to,
+        subject,
+        body,
+      });
+    }
   } catch (error) {
     logger.warn('Email not sent. Check Brevo configuration or running in local environment.', { to, subject, body });
   }
@@ -50,7 +61,7 @@ export async function sendTemplatedEmail({
   }
 
   try {
-    await fetch('https://api.brevo.com/v3/smtp/email', {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,6 +77,17 @@ export async function sendTemplatedEmail({
         params: params || undefined,
       }),
     });
+
+    if (!response.ok) {
+      const responseText = await response.text();
+      logger.error('Failed to send template email via Brevo', {
+        status: response.status,
+        responseText,
+        to,
+        templateId,
+        params,
+      });
+    }
   } catch (error) {
     logger.warn('Template email not sent. Check Brevo configuration or running in local environment.', {
       to,

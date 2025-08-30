@@ -2,17 +2,32 @@ import request from 'supertest';
 import express from 'express';
 import usersRouter from '../src/routes/users';
 import bookingsRouter from '../src/routes/bookings';
+import agenciesRoutes from '../src/routes/agencies';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import * as bookingRepository from '../src/models/bookingRepository';
-import { getAgencyByEmail, isAgencyClient } from '../src/models/agency';
+import {
+  getAgencyByEmail,
+  isAgencyClient,
+  addAgencyClient,
+  removeAgencyClient,
+  clientExists,
+  getAgencyForClient,
+  getAgencyEmail,
+  getClientName,
+} from '../src/models/agency';
 import * as bookingUtils from '../src/utils/bookingUtils';
 import pool from '../src/db';
+import { enqueueEmail } from '../src/utils/emailQueue';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/utils/emailQueue', () => ({
+  __esModule: true,
+  enqueueEmail: jest.fn(),
+}));
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),
@@ -29,6 +44,12 @@ jest.mock('../src/models/agency', () => ({
   ...jest.requireActual('../src/models/agency'),
   getAgencyByEmail: jest.fn(),
   isAgencyClient: jest.fn(),
+  addAgencyClient: jest.fn(),
+  removeAgencyClient: jest.fn(),
+  clientExists: jest.fn(),
+  getAgencyForClient: jest.fn(),
+  getAgencyEmail: jest.fn(),
+  getClientName: jest.fn(),
 }));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -64,6 +85,7 @@ const app = express();
 app.use(express.json());
 app.use('/api/users', usersRouter);
 app.use('/api/bookings', bookingsRouter);
+app.use('/agencies', agenciesRoutes);
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   res.status(err.status || 500).json({ message: err.message });
 });
@@ -250,6 +272,46 @@ describe('Agency booking modifications', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking rescheduled');
+  });
+});
+
+describe('Agency client notifications', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('notifies agency when client added', async () => {
+    (clientExists as jest.Mock).mockResolvedValue(true);
+    (getAgencyForClient as jest.Mock).mockResolvedValue(null);
+    (addAgencyClient as jest.Mock).mockResolvedValue(undefined);
+    (getAgencyEmail as jest.Mock).mockResolvedValue('agency@example.com');
+    (getClientName as jest.Mock).mockResolvedValue({ first_name: 'John', last_name: 'Doe' });
+
+    const res = await request(app)
+      .post('/agencies/add-client')
+      .send({ agencyId: 1, clientId: 5 });
+
+    expect(res.status).toBe(204);
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      'agency@example.com',
+      'Client John Doe added',
+      'John Doe has been added to your agency.',
+    );
+  });
+
+  it('notifies agency when client removed', async () => {
+    (removeAgencyClient as jest.Mock).mockResolvedValue(undefined);
+    (getAgencyEmail as jest.Mock).mockResolvedValue('agency@example.com');
+    (getClientName as jest.Mock).mockResolvedValue({ first_name: 'John', last_name: 'Doe' });
+
+    const res = await request(app).delete('/agencies/1/clients/5');
+
+    expect(res.status).toBe(204);
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      'agency@example.com',
+      'Client John Doe removed',
+      'John Doe has been removed from your agency.',
+    );
   });
 });
 

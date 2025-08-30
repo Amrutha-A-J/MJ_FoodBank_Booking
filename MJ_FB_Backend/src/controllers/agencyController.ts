@@ -8,10 +8,13 @@ import {
     getAgencyForClient,
     clientExists,
     searchAgencies as findAgencies,
+    getAgencyEmail,
+    getClientName,
   } from '../models/agency';
 import { createAgencySchema } from '../schemas/agencySchemas';
 import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import { enqueueEmail } from '../utils/emailQueue';
 import config from '../config';
 
 export async function createAgency(
@@ -98,6 +101,18 @@ export async function addClientToAgency(
       });
     }
     await addAgencyClient(agencyId, clientId);
+    const [agencyEmail, client] = await Promise.all([
+      getAgencyEmail(agencyId),
+      getClientName(clientId),
+    ]);
+    if (agencyEmail && client) {
+      const fullName = `${client.first_name} ${client.last_name}`;
+      enqueueEmail(
+        agencyEmail,
+        `Client ${fullName} added`,
+        `${fullName} has been added to your agency.`,
+      );
+    }
     res.status(204).send();
   } catch (err) {
     next(err);
@@ -125,6 +140,18 @@ export async function removeClientFromAgency(
       return res.status(403).json({ message: 'Forbidden' });
     }
     await removeAgencyClient(agencyId, clientId);
+    const [agencyEmail, client] = await Promise.all([
+      getAgencyEmail(agencyId),
+      getClientName(clientId),
+    ]);
+    if (agencyEmail && client) {
+      const fullName = `${client.first_name} ${client.last_name}`;
+      enqueueEmail(
+        agencyEmail,
+        `Client ${fullName} removed`,
+        `${fullName} has been removed from your agency.`,
+      );
+    }
     res.status(204).send();
   } catch (err) {
     next(err);

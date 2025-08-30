@@ -10,11 +10,13 @@
 - Bookings for unregistered individuals can be created via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The pantry schedule's **Assign User** modal includes a **New client** option; selecting it lets staff enter a name (with optional email and phone) and books the slot via `POST /bookings/new-client`. These bookings appear on the schedule as `[NEW CLIENT] Name`.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue.
+- A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue.
 
 ## Testing
 
 - For changes in `MJ_FB_Backend`, run `npm test` from the `MJ_FB_Backend` directory.
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
+- Tests for invitation and password setup flows live in `MJ_FB_Backend/tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one. The stats endpoint also returns

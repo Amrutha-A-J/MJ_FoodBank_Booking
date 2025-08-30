@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../db';
+import config from '../config';
 import { formatReginaDate } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
@@ -230,7 +231,27 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
   const bookingId = Number(req.params.id);
   const reason = (req.body?.reason as string) || '';
   try {
+    const result = await pool.query(
+      `SELECT COALESCE(c.email, nc.email) AS email, b.reschedule_token, b.date
+       FROM bookings b
+       LEFT JOIN clients c ON b.user_id = c.client_id
+       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+       WHERE b.id = $1`,
+      [bookingId],
+    );
+
     await updateBooking(bookingId, { status: 'no_show', request_data: reason });
+
+    const booking = result.rows[0];
+    if (booking?.email && booking?.reschedule_token) {
+      const link = `${config.frontendOrigins[0]}/reschedule/${booking.reschedule_token}`;
+      enqueueEmail(
+        booking.email,
+        'Booking marked as no-show',
+        `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`,
+      );
+    }
+
     res.json({ message: 'Booking marked as no-show' });
   } catch (error) {
     logger.error('Error marking booking no-show:', error);

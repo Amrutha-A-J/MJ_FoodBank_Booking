@@ -4,6 +4,7 @@ import { setupDatabase } from './setupDatabase';
 import logger from './utils/logger';
 import app from './app';
 import { startBookingReminderJob } from './utils/bookingReminderJob';
+import { startVolunteerShiftReminderJob } from './utils/volunteerShiftReminderJob';
 
 const PORT = config.port;
 
@@ -18,6 +19,7 @@ async function init() {
       logger.info(`Server running at http://localhost:${PORT}`);
     });
     startBookingReminderJob();
+    startVolunteerShiftReminderJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
