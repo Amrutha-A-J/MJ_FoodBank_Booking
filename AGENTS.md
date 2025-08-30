@@ -3,6 +3,7 @@
 ## Pull Request Guidelines
 
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
+- Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 18+ for native `fetch`; the `node-fetch` polyfill has been removed and earlier versions are not supported.
@@ -80,6 +81,7 @@
 - Agencies can book appointments for their associated clients from the Agency → Book Appointment page. Clients load once and display only after entering a search term, with filtering performed client-side to avoid long lists.
 - Agency navigation provides Dashboard, Book Appointment, and Booking History pages, all protected by `AgencyGuard`.
 - Agencies can view pantry slot availability and manage bookings—including creating, cancelling, and rescheduling—for their linked clients.
+- Volunteer navigation includes a **Recurring Bookings** submenu for managing repeating shifts; keep related documentation up to date.
 
 ## Development Guidelines
 
