@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   requestPasswordReset,
+  setPassword,
   changePassword,
   refreshToken,
   logout,
@@ -11,6 +12,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 const router = Router();
 
 router.post('/request-password-reset', requestPasswordReset);
+router.post('/set-password', setPassword);
 router.post('/change-password', authMiddleware, changePassword);
 router.post('/refresh', refreshToken);
 router.post('/logout', logout);

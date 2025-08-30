@@ -8,6 +8,12 @@ import { randomUUID } from 'crypto';
 import { validatePassword } from '../utils/passwordUtils';
 import cookie from 'cookie';
 import { cookieOptions } from '../utils/authUtils';
+import {
+  generatePasswordSetupToken,
+  verifyPasswordSetupToken,
+  markPasswordTokenUsed,
+} from '../utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../utils/emailUtils';
 
 export async function requestPasswordReset(
   req: Request,
@@ -20,23 +26,94 @@ export async function requestPasswordReset(
     clientId?: number;
   };
   try {
+    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
+
     if (email) {
-      const staffRes = await pool.query('SELECT id FROM staff WHERE email=$1', [email]);
-      const volRes = await pool.query('SELECT id FROM volunteers WHERE email=$1', [email]);
-      if ((staffRes.rowCount ?? 0) > 0 || (volRes.rowCount ?? 0) > 0) {
-        logger.info(`Password reset requested for ${email}`);
+      const staffRes = await pool.query('SELECT id, email FROM staff WHERE email=$1', [email]);
+      if ((staffRes.rowCount ?? 0) > 0) {
+        user = { id: staffRes.rows[0].id, email, table: 'staff' };
+      } else {
+        const volRes = await pool.query('SELECT id, email FROM volunteers WHERE email=$1', [email]);
+        if ((volRes.rowCount ?? 0) > 0) {
+          user = { id: volRes.rows[0].id, email, table: 'volunteers' };
+        } else {
+          const agencyRes = await pool.query('SELECT id, email FROM agencies WHERE email=$1', [email]);
+          if ((agencyRes.rowCount ?? 0) > 0) {
+            user = { id: agencyRes.rows[0].id, email, table: 'agencies' };
+          } else {
+            const clientRes = await pool.query('SELECT client_id, email FROM clients WHERE email=$1', [email]);
+            if ((clientRes.rowCount ?? 0) > 0) {
+              user = { id: clientRes.rows[0].client_id, email, table: 'clients' };
+            }
+          }
+        }
       }
     } else if (username) {
-      const volRes = await pool.query('SELECT id FROM volunteers WHERE username=$1', [username]);
+      const volRes = await pool.query('SELECT id, email FROM volunteers WHERE username=$1', [username]);
       if ((volRes.rowCount ?? 0) > 0) {
-        logger.info(`Password reset requested for volunteer ${username}`);
+        user = {
+          id: volRes.rows[0].id,
+          email: volRes.rows[0].email,
+          table: 'volunteers',
+        };
       }
     } else if (clientId) {
-      const userRes = await pool.query('SELECT client_id FROM clients WHERE client_id=$1', [clientId]);
+      const userRes = await pool.query('SELECT client_id, email FROM clients WHERE client_id=$1', [clientId]);
       if ((userRes.rowCount ?? 0) > 0) {
-        logger.info(`Password reset requested for client ${clientId}`);
+        user = {
+          id: userRes.rows[0].client_id,
+          email: userRes.rows[0].email,
+          table: 'clients',
+        };
       }
     }
+
+    if (user) {
+      const token = await generatePasswordSetupToken(user.table, user.id);
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: 1,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        },
+      });
+      logger.info(`Password reset requested for ${user.email}`);
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function setPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { token, password } = req.body as {
+    token?: string;
+    password?: string;
+  };
+  if (!token || !password) {
+    return res.status(400).json({ message: 'Missing fields' });
+  }
+
+  const pwError = validatePassword(password);
+  if (pwError) {
+    return res.status(400).json({ message: pwError });
+  }
+  try {
+    const row = await verifyPasswordSetupToken(token);
+    if (!row) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const idColumn = row.user_type === 'clients' ? 'client_id' : 'id';
+    await pool.query(
+      `UPDATE ${row.user_type} SET password=$1 WHERE ${idColumn}=$2`,
+      [hash, row.user_id],
+    );
+    await markPasswordTokenUsed(row.id);
     res.status(204).send();
   } catch (err) {
     next(err);
