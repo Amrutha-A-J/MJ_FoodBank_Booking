@@ -1,6 +1,10 @@
+process.env.NODE_ENV = 'development';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
-import * as volunteerJob from '../src/utils/volunteerShiftReminderJob';
-const { startVolunteerShiftReminderJob, stopVolunteerShiftReminderJob } = volunteerJob;
+const volunteerJob = require('../src/utils/volunteerShiftReminderJob');
+const {
+  startVolunteerShiftReminderJob,
+  stopVolunteerShiftReminderJob,
+} = volunteerJob;
 
 describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
   let scheduleMock: jest.Mock;
