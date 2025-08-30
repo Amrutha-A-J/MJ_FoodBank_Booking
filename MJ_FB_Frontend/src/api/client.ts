@@ -89,6 +89,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
 
 export interface ApiError extends Error {
   details?: unknown;
+  status?: number;
 }
 
 export async function handleResponse<T = any>(res: Response): Promise<T> {
@@ -107,6 +108,7 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
     }
     const err: ApiError = new Error(message);
     if (data) err.details = data;
+    err.status = res.status;
     throw err;
   }
   if (res.status === 204 || res.headers.get('Content-Length') === '0') {

@@ -19,6 +19,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Users see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
+- Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict`.
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
 - Volunteer badges are calculated from activity and manually awardable. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
 - The stats endpoint now provides a milestone message and contribution totals (`familiesServed`, `poundsHandled`) along with current-month figures (`monthFamiliesServed`, `monthPoundsHandled`) so the dashboard can display appreciation.

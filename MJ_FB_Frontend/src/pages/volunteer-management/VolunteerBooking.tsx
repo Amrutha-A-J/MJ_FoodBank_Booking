@@ -18,11 +18,17 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import type { VolunteerRole, Holiday } from '../../types';
-import { getVolunteerRolesForVolunteer, requestVolunteerBooking } from '../../api/volunteers';
+import {
+  getVolunteerRolesForVolunteer,
+  requestVolunteerBooking,
+  resolveVolunteerBookingConflict,
+} from '../../api/volunteers';
+import type { ApiError } from '../../api/client';
 import { getHolidays } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
+import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 
 function useVolunteerSlots(date: Dayjs, enabled: boolean) {
   const dateStr = date.format('YYYY-MM-DD');
@@ -60,6 +66,10 @@ export default function VolunteerBooking() {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
+  const [conflict, setConflict] = useState<{
+    attempted: any;
+    existing: any;
+  } | null>(null);
   const slotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,10 +94,50 @@ export default function VolunteerBooking() {
       setSnackbar({ open: true, message: 'Request submitted', severity: 'success' });
       setSelected(null);
       refetch();
-    } catch {
-      setSnackbar({ open: true, message: 'Failed to request slot', severity: 'error' });
+    } catch (e) {
+      const err = e as ApiError;
+      const details = err.details as any;
+      if (err.status === 409 && details?.attempted && details?.existing) {
+        setConflict({ attempted: details.attempted, existing: details.existing });
+      } else {
+        setSnackbar({
+          open: true,
+          message: err.message || 'Failed to request slot',
+          severity: 'error',
+        });
+      }
     } finally {
       setBooking(false);
+    }
+  }
+
+  async function resolveConflict(choice: 'existing' | 'new') {
+    if (!conflict) return;
+    try {
+      await resolveVolunteerBookingConflict(
+        conflict.existing.id,
+        conflict.attempted.role_id,
+        conflict.attempted.date,
+        choice,
+      );
+      setSnackbar({
+        open: true,
+        message:
+          choice === 'new'
+            ? 'Booking replaced'
+            : 'Kept existing booking',
+        severity: 'success',
+      });
+      refetch();
+    } catch {
+      setSnackbar({
+        open: true,
+        message: 'Failed to resolve conflict',
+        severity: 'error',
+      });
+    } finally {
+      setConflict(null);
+      setSelected(null);
     }
   }
 
@@ -188,6 +238,15 @@ export default function VolunteerBooking() {
           </Button>
         </Stack>
       </Paper>
+        {conflict && (
+          <OverlapBookingDialog
+            open
+            attempted={conflict.attempted}
+            existing={conflict.existing}
+            onClose={() => setConflict(null)}
+            onResolve={resolveConflict}
+          />
+        )}
         <FeedbackSnackbar
           open={snackbar.open}
           onClose={() => setSnackbar(s => ({ ...s, open: false }))}

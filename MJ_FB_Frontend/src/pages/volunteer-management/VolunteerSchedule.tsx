@@ -7,6 +7,7 @@ import {
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
+  resolveVolunteerBookingConflict,
 } from '../../api/volunteers';
 import { getHolidays } from '../../api/bookings';
 import type {
@@ -23,6 +24,8 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import OverlapBookingDialog from '../../components/OverlapBookingDialog';
+import type { ApiError } from '../../api/client';
 import {
   Box,
   FormControl,
@@ -61,6 +64,9 @@ export default function VolunteerSchedule() {
   const [decisionReason, setDecisionReason] = useState('');
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBooking | null>(null);
+  const [conflict, setConflict] = useState<{ attempted: any; existing: any } | null>(
+    null,
+  );
   const [frequency, setFrequency] =
     useState<'one-time' | 'daily' | 'weekly'>('one-time');
   const [weekdays, setWeekdays] = useState<number[]>([]);
@@ -165,8 +171,37 @@ export default function VolunteerSchedule() {
       setRequestRole(null);
       await loadData();
     } catch (err) {
+      const apiErr = err as ApiError;
+      const details = apiErr.details as any;
+      if (apiErr.status === 409 && details?.attempted && details?.existing) {
+        setConflict({ attempted: details.attempted, existing: details.existing });
+      } else {
+        setSnackbarSeverity('error');
+        setMessage(apiErr.message);
+      }
+    }
+  }
+
+  async function resolveConflict(choice: 'existing' | 'new') {
+    if (!conflict) return;
+    try {
+      await resolveVolunteerBookingConflict(
+        conflict.existing.id,
+        conflict.attempted.role_id,
+        conflict.attempted.date,
+        choice,
+      );
+      setSnackbarSeverity('success');
+      setMessage(
+        choice === 'new' ? 'Booking replaced' : 'Existing booking kept',
+      );
+      await loadData();
+    } catch {
       setSnackbarSeverity('error');
-      setMessage(err instanceof Error ? err.message : String(err));
+      setMessage('Failed to resolve conflict');
+    } finally {
+      setConflict(null);
+      setRequestRole(null);
     }
   }
 
@@ -501,7 +536,15 @@ export default function VolunteerSchedule() {
             </Button>
           </DialogActions>
         </Dialog>
-
+      {conflict && (
+        <OverlapBookingDialog
+          open
+          attempted={conflict.attempted}
+          existing={conflict.existing}
+          onClose={() => setConflict(null)}
+          onResolve={resolveConflict}
+        />
+      )}
       <RescheduleDialog
         open={!!rescheduleBooking}
         onClose={() => setRescheduleBooking(null)}

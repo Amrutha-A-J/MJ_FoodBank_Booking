@@ -77,6 +77,21 @@ export async function requestVolunteerBooking(
   return normalizeVolunteerBooking(data);
 }
 
+export async function resolveVolunteerBookingConflict(
+  existingBookingId: number,
+  roleId: number,
+  date: string,
+  keep: 'existing' | 'new'
+): Promise<VolunteerBooking> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ existingBookingId, roleId, date, keep }),
+  });
+  const data = await handleResponse(res);
+  return normalizeVolunteerBooking(data.booking);
+}
+
 export async function createRecurringVolunteerBooking(
   roleId: number,
   startDate: string,

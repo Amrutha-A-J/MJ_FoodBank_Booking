@@ -24,6 +24,7 @@ import {
   updateVolunteerBookingStatus,
   getVolunteerStats,
   getVolunteerLeaderboard,
+  resolveVolunteerBookingConflict,
   type VolunteerStats,
 } from '../../api/volunteers';
 import { getEvents, type EventGroups } from '../../api/events';
@@ -46,6 +47,8 @@ import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupSt
 import PersonalContributionChart, {
   type ContributionDatum,
 } from '../../components/dashboard/PersonalContributionChart';
+import OverlapBookingDialog from '../../components/OverlapBookingDialog';
+import type { ApiError } from '../../api/client';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -69,6 +72,9 @@ export default function VolunteerDashboard() {
   const [leaderboard, setLeaderboard] = useState<{ rank: number; percentile: number }>();
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [conflict, setConflict] = useState<{ attempted: any; existing: any } | null>(
+    null,
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -236,12 +242,47 @@ export default function VolunteerDashboard() {
         },
       ]);
     } catch (e: unknown) {
-      setSnackbarSeverity('error');
-      if (typeof e === 'object' && e && 'message' in e) {
-        setMessage((e as { message?: string }).message ?? 'Failed to request shift');
+      const err = e as ApiError;
+      const details = err.details as any;
+      if (err.status === 409 && details?.attempted && details?.existing) {
+        setConflict({ attempted: details.attempted, existing: details.existing });
       } else {
-        setMessage('Failed to request shift');
+        setSnackbarSeverity('error');
+        setMessage(err.message ?? 'Failed to request shift');
       }
+    }
+  }
+
+  async function resolveConflict(choice: 'existing' | 'new') {
+    if (!conflict) return;
+    try {
+      const booking = await resolveVolunteerBookingConflict(
+        conflict.existing.id,
+        conflict.attempted.role_id,
+        conflict.attempted.date,
+        choice,
+      );
+      setSnackbarSeverity('success');
+      setMessage(
+        choice === 'new' ? 'Booking replaced' : 'Existing booking kept',
+      );
+      if (choice === 'new') {
+        setBookings(prev =>
+          prev
+            .filter(b => b.id !== conflict.existing.id)
+            .concat({
+              ...booking,
+              role_name: conflict.attempted.role_name,
+              start_time: conflict.attempted.start_time,
+              end_time: conflict.attempted.end_time,
+            }),
+        );
+      }
+    } catch {
+      setSnackbarSeverity('error');
+      setMessage('Failed to resolve conflict');
+    } finally {
+      setConflict(null);
     }
   }
 
@@ -503,6 +544,15 @@ export default function VolunteerDashboard() {
           </Grid>
         )}
       </Grid>
+      {conflict && (
+        <OverlapBookingDialog
+          open
+          attempted={conflict.attempted}
+          existing={conflict.existing}
+          onClose={() => setConflict(null)}
+          onResolve={resolveConflict}
+        />
+      )}
       <FeedbackSnackbar
         open={!!message}
         onClose={() => setMessage('')}

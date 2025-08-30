@@ -316,8 +316,9 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /volunteer-roles/restore` → `{ message: 'Volunteer roles restored' }` (staff only; resets roles, shifts, and training links)
 
 ### Volunteer Bookings
-- `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`
+- `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }` (409 returns `{ attempted, existing }` on overlap)
 - `POST /volunteer-bookings/staff` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`
+- `POST /volunteer-bookings/resolve-conflict` `{ existingBookingId, roleId, date, keep }` → `{ kept, booking }`
 - `GET /volunteer-bookings/mine` → `[ { id, role_id, volunteer_id, date, status, reschedule_token, start_time, end_time, role_name, category_name, status_color } ]`
 - `GET /volunteer-bookings/volunteer/:volunteer_id` → `[ { id, role_id, volunteer_id, date, status, reschedule_token, start_time, end_time, role_name, category_name, status_color } ]`
 - `GET /volunteer-bookings` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`

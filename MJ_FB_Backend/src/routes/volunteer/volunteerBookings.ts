@@ -12,6 +12,7 @@ import {
   createRecurringVolunteerBooking,
   cancelRecurringVolunteerBooking,
   cancelVolunteerBookingOccurrence,
+  resolveVolunteerBookingConflict,
 } from '../../controllers/volunteer/volunteerBookingController';
 import {
   authMiddleware,
@@ -55,6 +56,12 @@ router.post(
   '/reschedule/:token',
   optionalAuthMiddleware,
   rescheduleVolunteerBooking,
+);
+router.post(
+  '/resolve-conflict',
+  authMiddleware,
+  authorizeRoles('volunteer'),
+  resolveVolunteerBookingConflict,
 );
 router.patch(
   '/:id/cancel',

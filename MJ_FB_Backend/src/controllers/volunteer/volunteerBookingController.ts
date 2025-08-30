@@ -41,7 +41,8 @@ export async function createVolunteerBooking(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time,
+              vmr.name AS category_name, vr.name AS role_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -81,21 +82,36 @@ export async function createVolunteerBooking(
     }
 
     const overlapRes = await pool.query(
-      `SELECT vb.id, vs.start_time, vs.end_time
+      `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
        WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved'
          AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
       [user.id, date, slot.start_time, slot.end_time]
     );
     if ((overlapRes.rowCount ?? 0) > 0) {
+      const existing = overlapRes.rows[0];
       return res.status(409).json({
         message: 'Booking overlaps an existing shift',
-        overlap: overlapRes.rows.map((r: any) => ({
-          id: r.id,
-          start_time: r.start_time,
-          end_time: r.end_time,
-        })),
+        attempted: {
+          role_id: roleId,
+          role_name: slot.role_name,
+          date,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+        },
+        existing: {
+          id: existing.id,
+          role_id: existing.role_id,
+          role_name: existing.role_name,
+          date:
+            existing.date instanceof Date
+              ? existing.date.toISOString().split('T')[0]
+              : existing.date,
+          start_time: existing.start_time,
+          end_time: existing.end_time,
+        },
       });
     }
 
@@ -155,7 +171,8 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time,
+              vmr.name AS category_name, vr.name AS role_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -195,21 +212,36 @@ export async function createVolunteerBookingForVolunteer(
     }
 
     const overlapRes = await pool.query(
-      `SELECT vb.id, vs.start_time, vs.end_time
+      `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
        WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
          AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
       [volunteerId, date, slot.start_time, slot.end_time]
     );
     if ((overlapRes.rowCount ?? 0) > 0) {
+      const existing = overlapRes.rows[0];
       return res.status(409).json({
         message: 'Booking overlaps an existing shift',
-        overlap: overlapRes.rows.map((r: any) => ({
-          id: r.id,
-          start_time: r.start_time,
-          end_time: r.end_time,
-        })),
+        attempted: {
+          role_id: roleId,
+          role_name: slot.role_name,
+          date,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+        },
+        existing: {
+          id: existing.id,
+          role_id: existing.role_id,
+          role_name: existing.role_name,
+          date:
+            existing.date instanceof Date
+              ? existing.date.toISOString().split('T')[0]
+              : existing.date,
+          start_time: existing.start_time,
+          end_time: existing.end_time,
+        },
       });
     }
 
@@ -244,6 +276,157 @@ export async function createVolunteerBookingForVolunteer(
       return res.status(400).json({ message: 'Already booked for this shift' });
     }
     logger.error('Error creating volunteer booking for volunteer:', error);
+    next(error);
+  }
+}
+
+export async function resolveVolunteerBookingConflict(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  const { existingBookingId, roleId, date, keep } = req.body as {
+    existingBookingId?: number;
+    roleId?: number;
+    date?: string;
+    keep?: 'existing' | 'new';
+  };
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (!existingBookingId || !roleId || !date || !keep) {
+    return res
+      .status(400)
+      .json({
+        message: 'existingBookingId, roleId, date and keep are required',
+      });
+  }
+
+  try {
+    const existingRes = await pool.query(
+      `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       WHERE vb.id = $1 AND vb.volunteer_id = $2`,
+      [existingBookingId, user.id]
+    );
+    if ((existingRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Existing booking not found' });
+    }
+    const existing = existingRes.rows[0];
+    const existingBooking = {
+      id: existing.id,
+      role_id: existing.role_id,
+      role_name: existing.role_name,
+      date:
+        existing.date instanceof Date
+          ? existing.date.toISOString().split('T')[0]
+          : existing.date,
+      start_time: existing.start_time,
+      end_time: existing.end_time,
+    };
+
+    if (keep === 'existing') {
+      return res.json({ kept: 'existing', booking: existingBooking });
+    }
+
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time,
+              vmr.name AS category_name, vr.name AS role_name
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
+      [roleId]
+    );
+    if ((slotRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const slot = slotRes.rows[0];
+
+    const volRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [user.id, slot.role_id]
+    );
+    if ((volRes.rowCount ?? 0) === 0) {
+      return res.status(400).json({ message: 'Not trained for this role' });
+    }
+
+    const isWeekend = [0, 6].includes(
+      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+    );
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
+    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+      return res
+        .status(400)
+        .json({ message: 'Role not bookable on holidays or weekends' });
+    }
+
+    const existingShiftRes = await pool.query(
+      `SELECT 1 FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
+      [roleId, date, user.id]
+    );
+    if ((existingShiftRes.rowCount ?? 0) > 0) {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
+
+    const overlapRes = await pool.query(
+      `SELECT 1
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved' AND vb.id <> $5
+         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+      [user.id, date, slot.start_time, slot.end_time, existingBookingId]
+    );
+    if ((overlapRes.rowCount ?? 0) > 0) {
+      return res
+        .status(409)
+        .json({ message: 'Booking overlaps an existing shift' });
+    }
+
+    const countRes = await pool.query(
+      `SELECT COUNT(*) FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
+      [roleId, date]
+    );
+    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
+      return res.status(400).json({ message: 'Role is full' });
+    }
+
+    await pool.query('UPDATE volunteer_bookings SET status=$1 WHERE id=$2', [
+      'cancelled',
+      existingBookingId,
+    ]);
+
+    const token = randomUUID();
+    const insertRes = await pool.query(
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+       VALUES ($1, $2, $3, 'approved', $4)
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
+      [roleId, user.id, date, token]
+    );
+
+    await sendEmail(
+      user.email || 'test@example.com',
+      'Volunteer booking confirmed',
+      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+    );
+
+    const booking = insertRes.rows[0];
+    booking.role_id = booking.slot_id;
+    delete booking.slot_id;
+    booking.status_color = statusColor(booking.status);
+    booking.date =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
+
+    return res.status(201).json({ kept: 'new', booking });
+  } catch (error) {
+    logger.error('Error resolving volunteer booking conflict:', error);
     next(error);
   }
 }
