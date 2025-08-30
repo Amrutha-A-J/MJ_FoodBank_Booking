@@ -1,7 +1,13 @@
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
-  (globalThis as any).VITE_API_BASE ||
-  'http://localhost:4000';
+  (globalThis as any).VITE_API_BASE;
+
+if (!API_BASE) {
+  const message =
+    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000)';
+  console.error(message);
+  throw new Error(message);
+}
 
 function getCsrfToken() {
   return document.cookie
@@ -96,14 +102,22 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = res.statusText;
     let data: unknown = null;
-    try {
-      data = await res.json();
-      const errData = data as Record<string, unknown>;
-      message =
-        (typeof errData.message === 'string' && errData.message) ||
-        (typeof errData.error === 'string' && errData.error) ||
-        JSON.stringify(errData);
-    } catch {
+    const contentType = res.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        data = await res.json();
+        const errData = data as Record<string, unknown>;
+        message =
+          (typeof errData.message === 'string' && errData.message) ||
+          (typeof errData.error === 'string' && errData.error) ||
+          JSON.stringify(errData);
+      } catch (e) {
+        const err: ApiError = new Error('Failed to parse error response JSON');
+        err.status = res.status;
+        err.details = e;
+        throw err;
+      }
+    } else {
       message = await res.text();
     }
     const err: ApiError = new Error(message);
@@ -114,8 +128,18 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
   if (res.status === 204 || res.headers.get('Content-Length') === '0') {
     return undefined as T;
   }
-  const text = await res.text();
-  return text ? (JSON.parse(text) as T) : (undefined as T);
+  const contentType = res.headers.get('Content-Type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      return (await res.json()) as T;
+    } catch (e) {
+      const err: ApiError = new Error('Failed to parse response JSON');
+      err.status = res.status;
+      err.details = e;
+      throw err;
+    }
+  }
+  return (await res.text()) as any;
 }
 
 export { API_BASE };

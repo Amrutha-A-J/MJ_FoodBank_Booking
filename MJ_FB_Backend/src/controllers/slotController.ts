@@ -5,6 +5,23 @@ import logger from '../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
 import { slotSchema, slotIdParamSchema, slotCapacitySchema } from '../schemas/slotSchemas';
 
+interface SlotRow {
+  id: number;
+  start_time: string;
+  end_time: string;
+  max_capacity: number;
+}
+
+interface BlockRecord {
+  slot_id: number;
+  reason: string | null;
+}
+
+interface BookingCountRow {
+  slot_id: number;
+  approved_count: string;
+}
+
 const REGINA_TZ = 'America/Regina';
 
 function currentReginaTime(): string {
@@ -47,9 +64,9 @@ async function getSlotsForDate(
              AND start_time <= '14:30:00'
              AND start_time NOT IN ('12:00:00','12:30:00')
            ORDER BY start_time`;
-  const { rows } = await pool.query(slotsQuery);
+  const { rows } = await pool.query<SlotRow>(slotsQuery);
   // Filter again in code to ensure correct behaviour when the DB layer is mocked
-  let slots = rows.filter((s: any) => {
+  let slots = rows.filter(s => {
     const time = s.start_time;
     if (day === 3) {
       return (
@@ -67,41 +84,37 @@ async function getSlotsForDate(
 
   if (!includePast && reginaDate === formatReginaDate(new Date())) {
     const nowTime = currentReginaTime();
-    slots = slots.filter((s: any) => s.start_time >= nowTime);
+    slots = slots.filter(s => s.start_time >= nowTime);
   }
 
-  const [
-    blockedResult = { rows: [] as any[] },
-    recurringBlockedResult = { rows: [] as any[] },
-    breakResult = { rows: [] as any[] },
-    bookingsResult = { rows: [] as any[] },
-  ] = await Promise.all([
-    pool.query('SELECT slot_id, reason FROM blocked_slots WHERE date = $1', [
-      reginaDate,
-    ]),
-    pool.query(
-      'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
-      [day, weekOfMonth],
-    ),
-    pool.query('SELECT slot_id, reason FROM breaks WHERE day_of_week = $1', [
-      day,
-    ]),
-    pool.query(
-      `SELECT slot_id, COUNT(*) AS approved_count
+  const [blockedResult, recurringBlockedResult, breakResult, bookingsResult] =
+    await Promise.all([
+      pool.query<BlockRecord>('SELECT slot_id, reason FROM blocked_slots WHERE date = $1', [
+        reginaDate,
+      ]),
+      pool.query<BlockRecord>(
+        'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
+        [day, weekOfMonth],
+      ),
+      pool.query<BlockRecord>('SELECT slot_id, reason FROM breaks WHERE day_of_week = $1', [
+        day,
+      ]),
+      pool.query<BookingCountRow>(
+        `SELECT slot_id, COUNT(*) AS approved_count
          FROM bookings
          WHERE status = 'approved' AND date = $1
          GROUP BY slot_id`,
-      [reginaDate],
-    ),
-  ]);
+        [reginaDate],
+      ),
+    ]);
   const blockedMap = new Map<number, string>(
     [...recurringBlockedResult.rows, ...blockedResult.rows].map(r => [
-      Number(r.slot_id),
+      r.slot_id,
       r.reason || '',
     ]),
   );
   const breakMap = new Map<number, string>(
-    breakResult.rows.map(r => [Number(r.slot_id), r.reason || '']),
+    breakResult.rows.map(r => [r.slot_id, r.reason || '']),
   );
 
   const approvedMap: Record<string, number> = {};
@@ -109,7 +122,7 @@ async function getSlotsForDate(
     approvedMap[row.slot_id] = Number(row.approved_count);
   }
 
-  return slots.map((slot: any) => {
+  return slots.map(slot => {
     const blockedReason = blockedMap.get(slot.id);
     const breakReason = breakMap.get(slot.id);
     const reason = blockedReason ?? breakReason;
@@ -217,8 +230,8 @@ export async function listAllSlots(
   next: NextFunction,
 ) {
   try {
-    const result = await pool.query('SELECT * FROM slots ORDER BY start_time');
-    const slots = result.rows.map((slot: any) => ({
+    const result = await pool.query<SlotRow>('SELECT * FROM slots ORDER BY start_time');
+    const slots = result.rows.map(slot => ({
       id: slot.id.toString(),
       startTime: slot.start_time,
       endTime: slot.end_time,

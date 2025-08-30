@@ -5,13 +5,14 @@
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
+- The backend expects Node.js 18+ for native `fetch`; earlier versions rely on the bundled `node-fetch` polyfill.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
 - Coordinator notification addresses for volunteer booking updates live in `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Bookings for unregistered individuals can be created via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The pantry schedule's **Assign User** modal includes a **New client** option; selecting it lets staff enter a name (with optional email and phone) and books the slot via `POST /bookings/new-client`. These bookings appear on the schedule as `[NEW CLIENT] Name`.
-- A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue.
-- A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue.
+- A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It stores its interval ID and exposes `startBookingReminderJob`/`stopBookingReminderJob`; consider using a fixed-time scheduler like `node-cron` for predictable runs.
+- A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also stores its interval ID and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob` with the same scheduling note.
 
 ## Testing
 
@@ -69,6 +70,7 @@ The self-service registration endpoints and frontend page are commented out pend
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
+- Build requires `VITE_API_BASE` to be set in `MJ_FB_Frontend/.env`.
 - `pages/` define top-level views and are organized into feature-based directories (booking, staff, volunteer-management, warehouse-management, etc.).
 - `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications. The dashboard UI lives in `components/dashboard`.
 - `api/` wraps server requests.

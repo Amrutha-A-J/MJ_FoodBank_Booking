@@ -17,9 +17,8 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
  - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Unregistered clients can book directly via `/bookings/new-client`; staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas.
-- Daily job sends reminder emails for next-day bookings using the backend email queue.
-- Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
-- Daily job sends reminder emails for next-day bookings using the backend email queue. A separate job queues reminders for next-day volunteer shifts.
+ - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job exposes start/stop functions and could be scheduled at a fixed time via tools like `node-cron` for predictable execution.
+ - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
@@ -82,7 +81,7 @@ git submodule update --init --recursive
 ## Backend setup (`MJ_FB_Backend`)
 
 Prerequisites:
-- Node.js and npm
+- Node.js 18 or later and npm (earlier Node versions require the bundled `node-fetch` polyfill)
 
 Install and run:
 ```bash
@@ -193,6 +192,16 @@ cd MJ_FB_Frontend
 npm install
 npm start   # or npm run dev
 ```
+
+### Environment variables
+
+The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with:
+
+```
+VITE_API_BASE=http://localhost:4000
+```
+
+The build will fail if this variable is missing.
 
 Refer to the submodule repositories for detailed configuration and environment variables.
 
