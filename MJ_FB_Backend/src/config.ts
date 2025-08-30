@@ -16,12 +16,9 @@ const envSchema = z.object({
   // Domain attribute applied to authentication cookies
   COOKIE_DOMAIN: z.string().optional(),
   PORT: z.coerce.number().default(4000),
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  SMTP_FROM_EMAIL: z.string().optional(),
-  SMTP_FROM_NAME: z.string().optional(),
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_FROM_EMAIL: z.string().optional(),
+  BREVO_FROM_NAME: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -45,10 +42,7 @@ export default {
   frontendOrigins,
   cookieDomain: env.COOKIE_DOMAIN,
   port: env.PORT,
-  smtpHost: env.SMTP_HOST ?? '',
-  smtpPort: env.SMTP_PORT ?? 587,
-  smtpUser: env.SMTP_USER ?? '',
-  smtpPass: env.SMTP_PASS ?? '',
-  smtpFromEmail: env.SMTP_FROM_EMAIL ?? '',
-  smtpFromName: env.SMTP_FROM_NAME ?? '',
+  brevoApiKey: env.BREVO_API_KEY ?? '',
+  brevoFromEmail: env.BREVO_FROM_EMAIL ?? '',
+  brevoFromName: env.BREVO_FROM_NAME ?? '',
 };

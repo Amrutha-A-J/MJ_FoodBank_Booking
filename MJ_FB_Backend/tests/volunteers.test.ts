@@ -183,11 +183,14 @@ describe('Volunteer badges', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [] }) // manual badges
       .mockResolvedValueOnce({ rowCount: 1 }) // early bird
-      .mockResolvedValueOnce({ rows: [{ count: '10' }] }); // heavy lifter
+      .mockResolvedValueOnce({ rows: [{ lifetime_hours: '0', month_hours: '0', total_shifts: '10' }] }) // stats
+      .mockResolvedValueOnce({ rows: [{ count: '10' }] }) // heavy lifter
+      .mockResolvedValueOnce({ rows: [] }) // weeks
+      .mockResolvedValueOnce({ rows: [{ families_served: '0', pounds_handled: '0', month_families_served: '0', month_pounds_handled: '0' }] }); // contributions
 
     const res = await request(app).get('/volunteers/me/stats');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ badges: ['early-bird', 'heavy-lifter'] });
+    expect(res.body.badges).toEqual(['early-bird', 'heavy-lifter']);
   });
 
   it('awards a badge', async () => {

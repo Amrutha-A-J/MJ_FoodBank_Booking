@@ -98,12 +98,9 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`. |
 | `FRONTEND_ORIGIN` | Allowed origins for CORS (comma separated) |
 | `PORT` | Port for the backend server (defaults to 4000) |
-| `SMTP_HOST` | SMTP server host (e.g., `smtp.office365.com`) |
-| `SMTP_PORT` | SMTP server port (e.g., `587`) |
-| `SMTP_USER` | Username for SMTP authentication |
-| `SMTP_PASS` | Password for SMTP authentication |
-| `SMTP_FROM_EMAIL` | Email address used as the sender |
-| `SMTP_FROM_NAME` | Optional sender name displayed in emails |
+| `BREVO_API_KEY` | Brevo API key for transactional emails |
+| `BREVO_FROM_EMAIL` | Email address used as the sender |
+| `BREVO_FROM_NAME` | Optional sender name displayed in emails |
 
 ### Agency setup
 
