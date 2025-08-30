@@ -80,7 +80,7 @@ git submodule update --init --recursive
 ## Backend setup (`MJ_FB_Backend`)
 
 Prerequisites:
-- Node.js and npm
+- Node.js 18 or later and npm (earlier Node versions require the bundled `node-fetch` polyfill)
 
 Install and run:
 ```bash
