@@ -24,8 +24,9 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import type { Slot, Holiday } from '../types';
-import { getSlots, createBooking, getHolidays } from '../api/bookings';
+import type { Slot } from '../types';
+import { getSlots, createBooking } from '../api/bookings';
+import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import { Link as RouterLink } from 'react-router-dom';
@@ -33,12 +34,19 @@ import Page from '../components/Page';
 import type { ApiError } from '../api/client';
 
 // Wrappers to match required signatures
-function useSlots(date: Dayjs, enabled: boolean) {
+function useSlots(
+  date: Dayjs,
+  enabled: boolean,
+  staleTime = 5 * 60 * 1000,
+  cacheTime = 30 * 60 * 1000,
+) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<Slot[]>({
     queryKey: ['slots', dateStr],
     queryFn: () => getSlots(dateStr),
     enabled,
+    staleTime,
+    cacheTime,
   });
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
@@ -74,14 +82,7 @@ export default function BookingUI({
     return d;
   });
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
-  const {
-    data: holidays = [],
-    refetch: refetchHolidays,
-  } = useQuery<Holiday[]>({
-    queryKey: ['holidays'],
-    queryFn: getHolidays,
-    enabled: false,
-  });
+  const { holidays, refetch: refetchHolidays } = useHolidays(false);
   const [holidaysReady, setHolidaysReady] = useState(false);
   useEffect(() => {
     refetchHolidays().finally(() => setHolidaysReady(true));
