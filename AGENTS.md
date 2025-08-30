@@ -5,6 +5,7 @@
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
+- Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
 
 ## Testing
 

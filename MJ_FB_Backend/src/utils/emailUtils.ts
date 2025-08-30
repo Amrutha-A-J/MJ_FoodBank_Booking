@@ -28,3 +28,49 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
     logger.warn('Email not sent. Check Brevo configuration or running in local environment.', { to, subject, body });
   }
 }
+
+interface TemplatedEmailOptions {
+  to: string;
+  templateId: number;
+  params?: Record<string, unknown>;
+}
+
+export async function sendTemplatedEmail({
+  to,
+  templateId,
+  params,
+}: TemplatedEmailOptions): Promise<void> {
+  if (!config.brevoApiKey || !config.brevoFromEmail) {
+    logger.warn('Brevo email configuration is missing. Template email not sent.', {
+      to,
+      templateId,
+      params,
+    });
+    return;
+  }
+
+  try {
+    await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': config.brevoApiKey,
+      },
+      body: JSON.stringify({
+        sender: {
+          email: config.brevoFromEmail,
+          name: config.brevoFromName || undefined,
+        },
+        to: [{ email: to }],
+        templateId,
+        params: params || undefined,
+      }),
+    });
+  } catch (error) {
+    logger.warn('Template email not sent. Check Brevo configuration or running in local environment.', {
+      to,
+      templateId,
+      params,
+    });
+  }
+}
