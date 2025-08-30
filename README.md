@@ -17,6 +17,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Volunteer role management and scheduling restricted to trained areas.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
+- Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link is emailed for password creation.
 - Users see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.

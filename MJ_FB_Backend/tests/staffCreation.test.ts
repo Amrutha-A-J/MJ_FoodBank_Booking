@@ -2,10 +2,14 @@ import request from 'supertest';
 import express from 'express';
 import staffRoutes from '../src/routes/admin/staff';
 import pool from '../src/db';
-import bcrypt from 'bcrypt';
+import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
-jest.mock('bcrypt');
+jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/emailUtils', () => ({
+  sendTemplatedEmail: jest.fn(),
+}));
 
 const app = express();
 app.use(express.json());
@@ -20,8 +24,8 @@ describe('POST /staff (first staff member)', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ count: '0' }] }) // check staff count
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // email check
-      .mockResolvedValueOnce({}); // insert
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+      .mockResolvedValueOnce({ rows: [{ id: 7 }] }); // insert
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
 
     const res = await request(app)
       .post('/staff')
@@ -29,12 +33,13 @@ describe('POST /staff (first staff member)', () => {
         firstName: 'Admin',
         lastName: 'Admin',
         email: 'harvestpantry@mjfoodbank.org',
-        password: 'Abcd12345!',
         access: ['admin'],
       });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ message: 'Staff created' });
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 7);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
   });
 });
 

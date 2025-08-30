@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import bcrypt from 'bcrypt';
 import logger from '../../utils/logger';
-import { validatePassword } from '../../utils/passwordUtils';
 import issueAuthTokens, { AuthPayload } from '../../utils/authUtils';
+import config from '../../config';
+import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../../utils/emailUtils';
 
 export async function updateTrainedArea(
   req: Request,
@@ -143,7 +145,6 @@ export async function createVolunteer(
     firstName,
     lastName,
     username,
-    password,
     email,
     phone,
     roleIds,
@@ -151,7 +152,6 @@ export async function createVolunteer(
     firstName?: string;
     lastName?: string;
     username?: string;
-    password?: string;
     email?: string;
     phone?: string;
     roleIds?: number[];
@@ -161,19 +161,13 @@ export async function createVolunteer(
     !firstName ||
     !lastName ||
     !username ||
-    !password ||
     !Array.isArray(roleIds) ||
     roleIds.length === 0 ||
     roleIds.some(r => typeof r !== 'number')
   ) {
     return res.status(400).json({
-      message: 'First name, last name, username, password and roles required',
+      message: 'First name, last name, username and roles required',
     });
-  }
-
-  const pwError = validatePassword(password);
-  if (pwError) {
-    return res.status(400).json({ message: pwError });
   }
 
   try {
@@ -203,12 +197,11 @@ export async function createVolunteer(
       return res.status(400).json({ message: 'Invalid roleIds', invalidIds });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
       `INSERT INTO volunteers (first_name, last_name, email, phone, username, password)
-       VALUES ($1,$2,$3,$4,$5,$6)
+       VALUES ($1,$2,$3,$4,$5,NULL)
        RETURNING id`,
-      [firstName, lastName, email, phone, username, hashed]
+      [firstName, lastName, email, phone, username]
     );
     const volunteerId = result.rows[0].id;
     await pool.query(
@@ -216,6 +209,14 @@ export async function createVolunteer(
        SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
+    const token = await generatePasswordSetupToken('volunteers', volunteerId);
+    if (email) {
+      await sendTemplatedEmail({
+        to: email,
+        templateId: 1,
+        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+      });
+    }
     res.status(201).json({ id: volunteerId });
   } catch (error) {
     logger.error('Error creating volunteer:', error);
@@ -229,17 +230,11 @@ export async function createVolunteerShopperProfile(
   next: NextFunction,
 ) {
   const { id } = req.params;
-  const { clientId, password } = req.body as {
+  const { clientId } = req.body as {
     clientId?: number;
-    password?: string;
   };
-  if (!clientId || !password) {
-    return res.status(400).json({ message: 'Client ID and password required' });
-  }
-
-  const pwError2 = validatePassword(password);
-  if (pwError2) {
-    return res.status(400).json({ message: pwError2 });
+  if (!clientId) {
+    return res.status(400).json({ message: 'Client ID required' });
   }
   try {
     const volRes = await pool.query(
@@ -256,18 +251,16 @@ export async function createVolunteerShopperProfile(
     if ((clientCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
-    const hashed = await bcrypt.hash(password, 10);
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1,$2,$3,$4,$5,'shopper',$6, true, $7) RETURNING id`,
+       VALUES ($1,$2,$3,$4,$5,'shopper',NULL, true, $6) RETURNING id`,
       [
         volRes.rows[0].first_name,
         volRes.rows[0].last_name,
         volRes.rows[0].email,
         volRes.rows[0].phone,
         clientId,
-        hashed,
         profileLink,
       ],
     );
@@ -276,6 +269,14 @@ export async function createVolunteerShopperProfile(
       userId,
       id,
     ]);
+    const token = await generatePasswordSetupToken('clients', clientId);
+    if (volRes.rows[0].email) {
+      await sendTemplatedEmail({
+        to: volRes.rows[0].email,
+        templateId: 1,
+        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+      });
+    }
     res.status(201).json({ userId });
   } catch (error) {
     logger.error('Error creating volunteer shopper profile:', error);

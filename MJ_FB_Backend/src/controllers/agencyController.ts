@@ -9,9 +9,10 @@ import {
     clientExists,
     searchAgencies as findAgencies,
   } from '../models/agency';
-import bcrypt from 'bcrypt';
-import { validatePassword } from '../utils/passwordUtils';
 import { createAgencySchema } from '../schemas/agencySchemas';
+import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../utils/emailUtils';
+import config from '../config';
 
 export async function createAgency(
   req: Request,
@@ -26,17 +27,18 @@ export async function createAgency(
     if (!parsed.success) {
       return res.status(400).json({ errors: parsed.error.issues });
     }
-    const { name, email, password, contactInfo } = parsed.data;
+    const { name, email, contactInfo } = parsed.data;
     const existing = await getAgencyByEmail(email);
     if (existing) {
       return res.status(400).json({ message: 'Email already exists' });
     }
-    const pwError = validatePassword(password);
-    if (pwError) {
-      return res.status(400).json({ message: pwError });
-    }
-    const hashed = await bcrypt.hash(password, 10);
-    const agency = await insertAgency(name, email, hashed, contactInfo);
+    const agency = await insertAgency(name, email, contactInfo);
+    const token = await generatePasswordSetupToken('agencies', agency.id);
+    await sendTemplatedEmail({
+      to: email,
+      templateId: 1,
+      params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+    });
     res.status(201).json({ id: agency.id });
   } catch (err) {
     next(err);

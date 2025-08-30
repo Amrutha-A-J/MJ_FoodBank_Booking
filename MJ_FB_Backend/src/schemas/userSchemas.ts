@@ -48,15 +48,13 @@ export const createUserSchema = z
     phone: z.string().optional(),
     clientId: z.coerce.number().int().min(1).max(9_999_999),
     role: z.enum(['shopper', 'delivery']),
-    password: passwordSchema.optional(),
     onlineAccess: z.boolean(),
   })
   .refine(
     data =>
-      !data.onlineAccess ||
-      (!!data.firstName && !!data.lastName && !!data.password),
+      !data.onlineAccess || (!!data.firstName && !!data.lastName),
     {
-      message: 'firstName, lastName and password required for online access',
+      message: 'firstName and lastName required for online access',
       path: ['onlineAccess'],
     },
   );

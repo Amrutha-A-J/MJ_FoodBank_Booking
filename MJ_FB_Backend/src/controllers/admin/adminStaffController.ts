@@ -3,6 +3,9 @@ import pool from '../../db';
 import bcrypt from 'bcrypt';
 import logger from '../../utils/logger';
 import { createStaffSchema, updateStaffSchema } from '../../schemas/admin/staffSchemas';
+import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../../utils/emailUtils';
+import config from '../../config';
 
 export async function listStaff(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -53,18 +56,24 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
   if (!parsed.success) {
     return res.status(400).json({ errors: parsed.error.issues });
   }
-  const { firstName, lastName, email, password, access = ['pantry'] } = parsed.data;
+  const { firstName, lastName, email, access = ['pantry'] } = parsed.data;
   try {
     const emailCheck = await pool.query('SELECT id FROM staff WHERE email = $1', [email]);
     if ((emailCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Email already exists' });
     }
-    const hashed = await bcrypt.hash(password, 10);
     const role = 'staff';
-    await pool.query(
-      `INSERT INTO staff (first_name, last_name, role, email, password, access) VALUES ($1, $2, $3, $4, $5, $6)`,
-      [firstName, lastName, role, email, hashed, access],
+    const result = await pool.query(
+      `INSERT INTO staff (first_name, last_name, role, email, password, access) VALUES ($1, $2, $3, $4, NULL, $5) RETURNING id`,
+      [firstName, lastName, role, email, access],
     );
+    const staffId = result.rows[0].id;
+    const token = await generatePasswordSetupToken('staff', staffId);
+    await sendTemplatedEmail({
+      to: email,
+      templateId: 1,
+      params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+    });
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {
     logger.error('Error creating staff:', error);

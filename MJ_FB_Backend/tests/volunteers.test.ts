@@ -4,10 +4,16 @@ import volunteersRouter from '../src/routes/volunteer/volunteers';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
+jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/emailUtils', () => ({
+  sendTemplatedEmail: jest.fn(),
+}));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -34,13 +40,12 @@ describe('Volunteer routes role ID validation', () => {
       .mockResolvedValueOnce({ rowCount: 2, rows: [{ id: 1 }, { id: 2 }] }) // validRoles
       .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // insert volunteer
       .mockResolvedValueOnce({}); // insert trained roles
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
 
     const res = await request(app).post('/volunteers').send({
       firstName: 'John',
       lastName: 'Doe',
       username: 'johndoe',
-      password: 'Secret1!',
       email: 'john@example.com',
       phone: '123',
       roleIds: [1, 2],
@@ -49,6 +54,8 @@ describe('Volunteer routes role ID validation', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ id: 5 });
     expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/SELECT id FROM volunteer_roles/);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
   });
 
   it('updates trained areas when role IDs are valid', async () => {
@@ -74,7 +81,6 @@ describe('Volunteer routes role ID validation', () => {
       firstName: 'John',
       lastName: 'Doe',
       username: 'johndoe',
-      password: 'Secret1!',
       roleIds: [1, 2],
     });
     expect(res.status).toBe(400);
@@ -105,14 +111,16 @@ describe('Volunteer shopper profile', () => {
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 9 }] })
       .mockResolvedValueOnce({});
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
 
     const res = await request(app)
       .post('/volunteers/1/shopper')
-      .send({ clientId: 123, password: 'Passw0rd!' });
+      .send({ clientId: 123 });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ userId: 9 });
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 123);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
   });
 
   it('removes a shopper profile for a volunteer', async () => {
