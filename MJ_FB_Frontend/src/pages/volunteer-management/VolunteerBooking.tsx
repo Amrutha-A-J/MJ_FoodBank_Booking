@@ -17,25 +17,32 @@ import {
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import type { VolunteerRole, Holiday } from '../../types';
+import type { VolunteerRole } from '../../types';
 import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
   resolveVolunteerBookingConflict,
 } from '../../api/volunteers';
 import type { ApiError } from '../../api/client';
-import { getHolidays } from '../../api/bookings';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
+import useHolidays from '../../hooks/useHolidays';
 
-function useVolunteerSlots(date: Dayjs, enabled: boolean) {
+function useVolunteerSlots(
+  date: Dayjs,
+  enabled: boolean,
+  staleTime = 5 * 60 * 1000,
+  cacheTime = 30 * 60 * 1000,
+) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<VolunteerRole[]>({
     queryKey: ['volunteer-slots', dateStr],
     queryFn: () => getVolunteerRolesForVolunteer(dateStr),
     enabled,
+    staleTime,
+    cacheTime,
   });
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
@@ -47,10 +54,7 @@ export default function VolunteerBooking() {
     return d;
   });
   const [selected, setSelected] = useState<VolunteerRole | null>(null);
-  const { data: holidays = [] } = useQuery<Holiday[]>({
-    queryKey: ['holidays'],
-    queryFn: getHolidays,
-  });
+  const { holidays } = useHolidays();
   const holidaySet = new Set(holidays.map(h => h.date));
   const isDisabled = (d: Dayjs) =>
     d.day() === 0 ||
