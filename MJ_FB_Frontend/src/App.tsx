@@ -53,6 +53,9 @@ const VolunteerBookingHistory = React.lazy(() =>
 const VolunteerBooking = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerBooking')
 );
+const VolunteerRecurringBookings = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerRecurringBookings')
+);
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
@@ -201,6 +204,7 @@ export default function App() {
       links: [
         { label: 'Dashboard', to: '/' },
         { label: 'Schedule', to: '/volunteer/schedule' },
+        { label: 'Recurring Bookings', to: '/volunteer/recurring' },
         { label: 'Booking History', to: '/volunteer/history' },
       ],
     });
@@ -382,6 +386,10 @@ export default function App() {
                   <Route
                     path="/volunteer/schedule"
                     element={<VolunteerBooking />}
+                  />
+                  <Route
+                    path="/volunteer/recurring"
+                    element={<VolunteerRecurringBookings />}
                   />
                   <Route
                     path="/volunteer/history"

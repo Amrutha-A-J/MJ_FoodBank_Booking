@@ -1,6 +1,6 @@
 # MJ Food Bank Frontend
 
-This project is the React + Vite front end for the MJ Food Bank booking system.
+This project is the React + Vite front end for the MJ Food Bank booking system. Volunteers can manage recurring bookings from `/volunteer/recurring`.
 
 ## Development
 

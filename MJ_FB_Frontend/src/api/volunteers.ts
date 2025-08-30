@@ -6,6 +6,7 @@ import type {
   Shift,
   VolunteerBooking,
   VolunteerBookingStatus,
+  VolunteerRecurringBooking,
   UserProfile,
 } from '../types';
 import type { LoginResponse } from './users';
@@ -114,6 +115,13 @@ export async function createRecurringVolunteerBooking(
     }),
   });
   await handleResponse(res);
+}
+
+export async function getRecurringVolunteerBookings(): Promise<
+  VolunteerRecurringBooking[]
+> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/recurring`);
+  return handleResponse(res);
 }
 
 export async function cancelVolunteerBooking(
