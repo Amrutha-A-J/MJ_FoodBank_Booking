@@ -374,7 +374,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 
 ### Warehouse Management
 - `/warehouse-overall` routes provide yearly summaries of donations, surplus, pig pound, and outgoing donations.
-- `GET /warehouse-overall?year=YYYY` lists monthly aggregates, `POST /warehouse-overall/rebuild?year=YYYY` rebuilds data, and `GET /warehouse-overall/export?year=YYYY` exports it as a spreadsheet.
+- `GET /warehouse-overall?year=YYYY` lists monthly aggregates, and `GET /warehouse-overall/export?year=YYYY` exports it as a spreadsheet. Aggregates update in real time; manual rebuilds are no longer needed.
 - Frontend pages under `/warehouse-management/*` (Dashboard, Donation Log, Track Pigpound, Track Outgoing Donations, Track Surplus, Aggregations) surface these warehouse features.
 
 ## Slot API

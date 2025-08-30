@@ -18,7 +18,6 @@ import {
   Stack,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import Autorenew from '@mui/icons-material/Autorenew';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import TrendingUp from '@mui/icons-material/TrendingUp';
 import WarningAmber from '@mui/icons-material/WarningAmber';
@@ -41,11 +40,7 @@ import { useAuth } from '../../hooks/useAuth';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
 import EventList from '../../components/EventList';
-import {
-  getWarehouseOverall,
-  getWarehouseOverallYears,
-  rebuildWarehouseOverall,
-} from '../../api/warehouseOverall';
+import { getWarehouseOverall, getWarehouseOverallYears } from '../../api/warehouseOverall';
 import {
   getTopDonors,
   type TopDonor,
@@ -95,7 +90,6 @@ export default function WarehouseDashboard() {
   const [receivers, setReceivers] = useState<TopReceiver[]>([]);
   const [events, setEvents] = useState<EventGroups>({ today: [], upcoming: [], past: [] });
   const [, setLoadingTotals] = useState(false);
-  const [loadingRebuild, setLoadingRebuild] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -247,20 +241,6 @@ export default function WarehouseDashboard() {
     navigate(path);
   }
 
-  async function handleRebuild() {
-    setLoadingRebuild(true);
-    try {
-      await rebuildWarehouseOverall(year!);
-      setSnackbar({ open: true, message: 'Rebuilt aggregates' });
-      loadData(year!);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Rebuild failed';
-      setSnackbar({ open: true, message, severity: 'error' });
-    } finally {
-      setLoadingRebuild(false);
-    }
-  }
-
 
   const kpis = [
     { title: 'Incoming (Donations)', value: currentTotals?.donationsLbs ?? 0, prev: prevTotals?.donationsLbs ?? 0 },
@@ -318,16 +298,6 @@ export default function WarehouseDashboard() {
             )}
             sx={{ minWidth: 200 }}
           />
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<Autorenew />}
-            onClick={handleRebuild}
-            disabled={loadingRebuild}
-            aria-busy={loadingRebuild}
-          >
-            Rebuild Year
-          </Button>
         </Stack>
       </Stack>
 
