@@ -9,6 +9,7 @@ import {
   listBookings,
   createPreapprovedBooking,
   createBookingForUser,   // ✅ make sure to import this controller
+  createBookingForNewClient,
   getBookingHistory,
   cancelBooking,
   rescheduleBooking,
@@ -86,5 +87,8 @@ router.post(
   authorizeRoles('staff', 'agency'),
   createBookingForUser
 );
+
+// Booking for new client without account
+router.post('/new-client', createBookingForNewClient);
 
 export default router;
