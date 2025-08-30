@@ -4,6 +4,7 @@ import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
   cancelVolunteerBooking,
+  cancelRecurringVolunteerBooking,
   searchVolunteers,
   getVolunteerBookingHistory,
   createVolunteer,
@@ -157,6 +158,8 @@ export default function VolunteerManagement() {
     useState<VolunteerBookingDetail | null>(null);
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBookingDetail | null>(null);
+  const [cancelRecurringBooking, setCancelRecurringBooking] =
+    useState<VolunteerBookingDetail | null>(null);
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -288,6 +291,26 @@ export default function VolunteerManagement() {
         const data = await Promise.all(
           ids.map(rid => getVolunteerBookingsByRole(rid))
         );
+        setBookings(data.flat());
+      }
+    } catch (e) {
+      setSnackbarSeverity('error');
+      setMessage(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function cancelRecurring(id: number) {
+    try {
+      await cancelRecurringVolunteerBooking(id);
+      setSnackbarSeverity('success');
+      setMessage('Upcoming bookings cancelled');
+      if (selectedVolunteer) {
+        const data = await getVolunteerBookingHistory(selectedVolunteer.id);
+        setHistory(data);
+      }
+      if (selectedRole) {
+        const ids = nameToSlotIds.get(selectedRole) || [];
+        const data = await Promise.all(ids.map(rid => getVolunteerBookingsByRole(rid)));
         setBookings(data.flat());
       }
     } catch (e) {
@@ -757,6 +780,19 @@ export default function VolunteerManagement() {
                                   >
                                     Cancel
                                   </Button>
+                                  {h.recurring_id && (
+                                    <>
+                                      {' '}
+                                      <Button
+                                        onClick={() => setCancelRecurringBooking(h)}
+                                        variant="outlined"
+                                        color="primary"
+                                        size="small"
+                                      >
+                                        Cancel all upcoming
+                                      </Button>
+                                    </>
+                                  )}
                                 </>
                               )}
                             </TableCell>
@@ -941,6 +977,19 @@ export default function VolunteerManagement() {
             setConfirmAssign(null);
           }}
           onCancel={() => setConfirmAssign(null)}
+        />
+      )}
+
+      {cancelRecurringBooking && (
+        <ConfirmDialog
+          message={`Cancel all upcoming bookings for ${cancelRecurringBooking.role_name}?`}
+          onConfirm={() => {
+            if (cancelRecurringBooking.recurring_id) {
+              cancelRecurring(cancelRecurringBooking.recurring_id);
+            }
+            setCancelRecurringBooking(null);
+          }}
+          onCancel={() => setCancelRecurringBooking(null)}
         />
       )}
 
