@@ -91,7 +91,7 @@ export default function VolunteerBooking() {
     setBooking(true);
     try {
       await requestVolunteerBooking(selected.id, selected.date);
-      setSnackbar({ open: true, message: 'Request submitted', severity: 'success' });
+      setSnackbar({ open: true, message: 'Shift booked', severity: 'success' });
       setSelected(null);
       refetch();
     } catch (e) {

@@ -121,7 +121,7 @@ export default function VolunteerSchedule() {
       const filteredBookings = bookingData.filter(
         (b: VolunteerBooking) =>
           b.date === dateStr &&
-          ['approved', 'pending'].includes(b.status) &&
+          b.status === 'approved' &&
           allowedIds.has(b.role_id),
       );
       setBookings(filteredBookings);
@@ -167,7 +167,7 @@ export default function VolunteerSchedule() {
         requestRole.end_time,
       )}`;
       setSnackbarSeverity('success');
-      setMessage(`Booking request for ${dateLabel} · ${timeLabel} submitted`);
+      setMessage(`Shift booked for ${dateLabel} · ${timeLabel}`);
       setRequestRole(null);
       await loadData();
     } catch (err) {
@@ -304,10 +304,7 @@ export default function VolunteerSchedule() {
     if (myBooking) {
       cells.push({
         content: 'My Booking',
-        backgroundColor:
-          myBooking.status === 'pending'
-            ? theme.palette.warning.light
-            : approvedColor,
+        backgroundColor: approvedColor,
         onClick: () => {
           setDecisionBooking(myBooking);
           setDecisionReason('');

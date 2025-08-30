@@ -192,19 +192,12 @@ export default function VolunteerDashboard() {
     return upcoming[0];
   }, [bookings]);
 
-  const pending = useMemo(
-    () => bookings.filter(b => b.status === 'pending'),
-    [bookings],
-  );
-
   const availableSlots = useMemo(() => {
     const now = toDate();
     const slots = availability
       .filter(a => a.status === 'available' && a.available > 0)
       .filter(s => toDate(`${s.date}T${s.start_time}`) > now);
-    const activeBookings = bookings.filter(b =>
-      ['pending', 'approved'].includes(b.status),
-    );
+    const activeBookings = bookings.filter(b => b.status === 'approved');
     const filtered = slots.filter(
       s =>
         !activeBookings.some(
@@ -230,7 +223,7 @@ export default function VolunteerDashboard() {
     try {
       const booking = await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
-      setMessage('Request submitted');
+      setMessage('Shift booked');
       setBookings(prev => [
         ...prev,
         {
@@ -430,22 +423,6 @@ export default function VolunteerDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title="Pending Requests">
-              <List>
-                {pending.map(p => (
-                  <ListItem key={p.id} disableGutters>
-                    <ListItemText
-                      primary={`${p.role_name} • ${formatDateLabel(p.date)} ${formatTime(p.start_time)}-${formatTime(p.end_time)}`}
-                    />
-                    <Chip label="Pending" color="warning" size="small" />
-                  </ListItem>
-                ))}
-                {pending.length === 0 && (
-                  <Typography>No pending requests</Typography>
-                )}
-              </List>
-            </SectionCard>
-
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
