@@ -205,7 +205,7 @@ export default function VolunteerRecurringBookings() {
                 {role?.name} ({formatTime(role?.start_time || '')}–{formatTime(role?.end_time || '')})
               </Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
-                {s.start_date} - {s.end_date || 'No end'} · {s.pattern}
+                {formatDate(s.start_date)} - {s.end_date ? formatDate(s.end_date) : 'No end'} · {s.pattern}
                 {s.pattern === 'weekly' && s.days_of_week
                   ? ` (${s.days_of_week.map(d => weekdayLabels[d]).join(', ')})`
                   : ''}
@@ -221,7 +221,7 @@ export default function VolunteerRecurringBookings() {
               {occ.map(o => (
                 <Box key={o.id} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                   <Typography sx={{ flexGrow: 1 }}>
-                    {o.date} ({formatTime(o.start_time)}–{formatTime(o.end_time)})
+                    {formatDate(o.date)} ({formatTime(o.start_time)}–{formatTime(o.end_time)})
                   </Typography>
                   <Button
                     onClick={() => cancelOccurrence(o.id)}

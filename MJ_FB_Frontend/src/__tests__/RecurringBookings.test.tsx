@@ -1,9 +1,11 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import VolunteerSchedule from '../pages/volunteer-management/VolunteerSchedule';
 import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBookingHistory';
+import VolunteerRecurringBookings from '../pages/volunteer-management/VolunteerRecurringBookings';
 import {
   getVolunteerRolesForVolunteer,
   getMyVolunteerBookings,
+  getRecurringVolunteerBookings,
   requestVolunteerBooking,
   createRecurringVolunteerBooking,
   cancelVolunteerBooking,
@@ -20,6 +22,7 @@ jest.mock('../api/volunteers', () => ({
   cancelVolunteerBooking: jest.fn(),
   cancelRecurringVolunteerBooking: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
+  getRecurringVolunteerBookings: jest.fn(),
 }));
 jest.mock('../api/bookings', () => ({
   getHolidays: jest.fn(),
@@ -47,6 +50,7 @@ beforeEach(() => {
     },
   ]);
   (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+  (getRecurringVolunteerBookings as jest.Mock).mockResolvedValue([]);
   (getHolidays as jest.Mock).mockResolvedValue([]);
   (requestVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (createRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
@@ -158,5 +162,40 @@ test('cancels single and recurring bookings', async () => {
   await waitFor(() =>
     expect(cancelRecurringVolunteerBooking).toHaveBeenCalledWith(5),
   );
+});
+
+test('formats recurring booking dates', async () => {
+  (getRecurringVolunteerBookings as jest.Mock).mockResolvedValue([
+    {
+      id: 1,
+      role_id: 1,
+      start_date: '2025-08-30T06:00:00.000Z',
+      end_date: '2025-09-17T06:00:00.000Z',
+      pattern: 'weekly',
+      days_of_week: [1, 3],
+    },
+  ]);
+  (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+    {
+      id: 10,
+      role_id: 1,
+      role_name: 'Test Role',
+      date: '2025-09-01T06:00:00.000Z',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'approved',
+      recurring_id: 1,
+    },
+  ]);
+  render(<VolunteerRecurringBookings />);
+  expect(
+    await screen.findByText('Test Role (9:00 AM–10:00 AM)'),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText('2025-08-30 - 2025-09-17 · weekly (Mon, Wed)'),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText('2025-09-01 (9:00 AM–10:00 AM)'),
+  ).toBeInTheDocument();
 });
 
