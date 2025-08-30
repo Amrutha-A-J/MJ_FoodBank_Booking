@@ -141,11 +141,18 @@ export async function createVolunteerBooking(
       [roleId, user.id, date, token]
     );
 
-    await sendEmail(
-      user.email || 'test@example.com',
-      'Volunteer booking confirmed',
-      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
-    );
+    if (user.email) {
+      await sendEmail(
+        user.email,
+        'Volunteer booking confirmed',
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+      );
+    } else {
+      logger.warn(
+        'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
+        user.id,
+      );
+    }
 
     const booking = insertRes.rows[0];
     booking.role_id = booking.slot_id;
@@ -418,11 +425,18 @@ export async function resolveVolunteerBookingConflict(
       [roleId, user.id, date, token]
     );
 
-    await sendEmail(
-      user.email || 'test@example.com',
-      'Volunteer booking confirmed',
-      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
-    );
+    if (user.email) {
+      await sendEmail(
+        user.email,
+        'Volunteer booking confirmed',
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+      );
+    } else {
+      logger.warn(
+        'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
+        user.id,
+      );
+    }
 
     const booking = insertRes.rows[0];
     booking.role_id = booking.slot_id;
