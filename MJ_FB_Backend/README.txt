@@ -5,6 +5,10 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 Run `npm run migrate` to apply TypeScript database migrations from `src/migrations`.
 
 
+## Requirements
+
+- Node.js 18 or later is recommended for native `fetch` support. Earlier versions require the included `node-fetch` polyfill.
+
 ## Environment Variables
 
 `PG_HOST` – PostgreSQL host.
