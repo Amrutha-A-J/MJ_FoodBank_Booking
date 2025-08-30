@@ -366,7 +366,7 @@ export async function getVolunteerStats(
     const earlyRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vs.start_time < '09:00:00'
+       WHERE vb.volunteer_id = $1 AND vb.status = 'completed' AND vs.start_time < '09:00:00'
        LIMIT 1`,
       [user.id],
     );
@@ -385,11 +385,11 @@ export async function getVolunteerStats(
              THEN EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600
              ELSE 0
            END
-         ), 0) AS month_hours,
-         COUNT(*) AS total_shifts
+       ), 0) AS month_hours,
+        COUNT(*) AS total_shifts
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1 AND vb.status = 'approved' AND vb.date <= CURRENT_DATE`,
+       WHERE vb.volunteer_id = $1 AND vb.status = 'completed' AND vb.date <= CURRENT_DATE`,
       [user.id],
     );
     const statsRow = statsRes.rows[0];
@@ -399,7 +399,7 @@ export async function getVolunteerStats(
 
     const heavyRes = await pool.query<{ count: string }>(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE volunteer_id = $1 AND status = 'approved'`,
+       WHERE volunteer_id = $1 AND status = 'completed'`,
       [user.id],
     );
     if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
@@ -407,7 +407,7 @@ export async function getVolunteerStats(
     const weeksRes = await pool.query<{ week_start: string }>(
       `SELECT DISTINCT date_trunc('week', date) AS week_start
        FROM volunteer_bookings
-       WHERE volunteer_id = $1 AND status = 'approved' AND date <= CURRENT_DATE
+       WHERE volunteer_id = $1 AND status = 'completed' AND date <= CURRENT_DATE
        ORDER BY week_start DESC`,
       [user.id],
     );

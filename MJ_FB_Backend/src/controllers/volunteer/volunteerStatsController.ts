@@ -16,7 +16,7 @@ export async function getVolunteerLeaderboard(
                 COALESCE(COUNT(vb.*), 0) AS total
          FROM volunteers v
          LEFT JOIN volunteer_bookings vb
-           ON vb.volunteer_id = v.id AND vb.status = 'approved'
+           ON vb.volunteer_id = v.id AND vb.status = 'completed'
          GROUP BY v.id
        ),
        ranked AS (
@@ -58,7 +58,7 @@ export async function getVolunteerGroupStats(
                 ), 0) AS month_hours
          FROM volunteer_bookings vb
          JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-         WHERE vb.status = 'approved'
+         WHERE vb.status = 'completed'
        ),
        weight AS (
        SELECT COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS total_lbs,

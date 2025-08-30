@@ -199,6 +199,11 @@ describe('Volunteer badges', () => {
     const res = await request(app).get('/volunteers/me/stats');
     expect(res.status).toBe(200);
     expect(res.body.badges).toEqual(['early-bird', 'heavy-lifter']);
+    const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
+    expect(queries[1]).toContain("status = 'completed'");
+    expect(queries[2]).toContain("status = 'completed'");
+    expect(queries[3]).toContain("status = 'completed'");
+    expect(queries[4]).toContain("status = 'completed'");
   });
 
   it('awards a badge', async () => {

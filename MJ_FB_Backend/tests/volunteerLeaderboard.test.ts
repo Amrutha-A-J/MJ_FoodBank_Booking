@@ -31,5 +31,6 @@ describe('Volunteer leaderboard', () => {
     const query = (pool.query as jest.Mock).mock.calls[0][0];
     expect(query).toContain('volunteer_counts');
     expect(query).toContain('::numeric');
+    expect(query).toContain("vb.status = 'completed'");
   });
 });
