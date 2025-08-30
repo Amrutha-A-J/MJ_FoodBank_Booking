@@ -47,6 +47,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
 - Booking requests are automatically approved or rejected; the pending approval workflow has been removed.
+- Booking confirmations display "Shift booked," and the volunteer dashboard no longer lists pending requests.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.

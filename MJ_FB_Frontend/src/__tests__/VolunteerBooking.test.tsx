@@ -44,7 +44,7 @@ describe('VolunteerBooking', () => {
       role_id: 1,
       volunteer_id: 1,
       date: '2024-01-01',
-      status: 'pending',
+      status: 'approved',
     });
 
     const queryClient = new QueryClient();
@@ -64,7 +64,7 @@ describe('VolunteerBooking', () => {
       expect(requestVolunteerBooking).toHaveBeenCalledWith(1, expect.any(String)),
     );
     await waitFor(() =>
-      expect(screen.getByText('Request submitted')).toBeInTheDocument(),
+      expect(screen.getByText('Shift booked')).toBeInTheDocument(),
     );
   });
 
