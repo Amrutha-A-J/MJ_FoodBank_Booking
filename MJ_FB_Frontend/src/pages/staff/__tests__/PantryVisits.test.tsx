@@ -104,4 +104,17 @@ describe('PantryVisits', () => {
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.queryByText('Bob')).not.toBeInTheDocument();
   });
+
+  it('shows "No records" when there are no visits', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+
+    render(
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>,
+    );
+
+    expect(await screen.findByText('No records')).toBeInTheDocument();
+  });
 });
