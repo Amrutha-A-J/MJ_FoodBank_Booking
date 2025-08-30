@@ -12,7 +12,6 @@ import {
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
   getVolunteerBookingsByRole,
-  cancelVolunteerBooking,
   resolveVolunteerBookingConflict,
 } from '../api/volunteers';
 
@@ -25,7 +24,6 @@ jest.mock('../api/volunteers', () => ({
   updateVolunteerTrainedAreas: jest.fn(),
   createVolunteerBookingForVolunteer: jest.fn(),
   getVolunteerBookingsByRole: jest.fn(),
-  cancelVolunteerBooking: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
 }));
 
@@ -45,7 +43,6 @@ beforeEach(() => {
   (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
-  (cancelVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
 });
 
 describe('VolunteerManagement shopper profile', () => {
