@@ -191,7 +191,13 @@ export async function setPassword(
       [hash, row.user_id],
     );
     await markPasswordTokenUsed(row.id);
-    res.status(204).send();
+    const loginPathMap: Record<string, string> = {
+      staff: '/login/staff',
+      volunteers: '/login/volunteer',
+      agencies: '/login/agency',
+      clients: '/login/user',
+    };
+    res.json({ loginPath: loginPathMap[row.user_type] });
   } catch (err) {
     next(err);
   }

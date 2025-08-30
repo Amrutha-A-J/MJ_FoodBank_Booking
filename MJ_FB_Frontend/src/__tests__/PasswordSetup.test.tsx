@@ -3,14 +3,24 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PasswordSetup from '../pages/auth/PasswordSetup';
 import { setPassword, resendPasswordSetup } from '../api/users';
 
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
 jest.mock('../api/users', () => ({
   setPassword: jest.fn(),
   resendPasswordSetup: jest.fn(),
 }));
 
 describe('PasswordSetup', () => {
-  it('submits password with token from query', async () => {
-    (setPassword as jest.Mock).mockResolvedValue(undefined);
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+  it('submits password with token from query and redirects', async () => {
+    (setPassword as jest.Mock).mockResolvedValue('/login/user');
     render(
       <MemoryRouter initialEntries={["/set-password?token=abc123"]}>
         <Routes>
@@ -23,7 +33,7 @@ describe('PasswordSetup', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /set password/i }));
     await waitFor(() => expect(setPassword).toHaveBeenCalledWith('abc123', 'Passw0rd!'));
-    await waitFor(() => expect(screen.getByText(/password set/i)).toBeInTheDocument());
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login/user'));
   });
 
   it('shows resend link dialog when token expired', async () => {
