@@ -213,7 +213,7 @@ export default function ClientDashboard() {
               title="Next Available Slots"
               icon={<EventAvailable color="primary" />}
             >
-              <List>
+              <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
                 {nextSlots.length ? (
                   nextSlots.map(s => (
                     <ListItem
