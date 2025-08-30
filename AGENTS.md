@@ -38,6 +38,8 @@
   `approved` or `no_show` statuses are ignored.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
+- Staff can query `GET /volunteer-stats/no-show-ranking` for a list of volunteers with
+  high no-show rates to surface in management dashboards.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total
   volunteer hours, weekly and monthly food pounds handled, distinct families
   served in the current month, along with current-month hours and a
