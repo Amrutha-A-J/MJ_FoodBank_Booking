@@ -12,15 +12,20 @@ describe('passwordSetupUtils', () => {
     jest.clearAllMocks();
   });
 
-  it('generates a token and stores its hash', async () => {
+  it('generates a token and stores its hash with configured expiry', async () => {
+    process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '2';
     (pool.query as jest.Mock).mockResolvedValue({});
+    const before = Date.now();
     const token = await generatePasswordSetupToken('staff', 1);
     expect(typeof token).toBe('string');
     const expectedHash = createHash('sha256').update(token).digest('hex');
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toContain(
-      'INSERT INTO password_setup_tokens',
-    );
-    expect((pool.query as jest.Mock).mock.calls[0][1][2]).toBe(expectedHash);
+    const queryArgs = (pool.query as jest.Mock).mock.calls[0];
+    expect(queryArgs[0]).toContain('INSERT INTO password_setup_tokens');
+    expect(queryArgs[1][2]).toBe(expectedHash);
+    const expiresAt = queryArgs[1][3] as Date;
+    const diff = expiresAt.getTime() - before;
+    expect(diff).toBeGreaterThanOrEqual(2 * 60 * 60 * 1000 - 1000);
+    expect(diff).toBeLessThanOrEqual(2 * 60 * 60 * 1000 + 1000);
   });
 
   it('verifies a stored token', async () => {

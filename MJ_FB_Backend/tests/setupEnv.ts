@@ -11,5 +11,6 @@ process.env.FRONTEND_ORIGIN = 'http://localhost:3000';
 process.env.BREVO_API_KEY = 'test-api-key';
 process.env.BREVO_FROM_EMAIL = 'noreply@example.com';
 process.env.BREVO_FROM_NAME = 'MJ Food Bank';
+process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '24';
 
 export {};

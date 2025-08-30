@@ -10,7 +10,9 @@ export type PasswordTokenRow = {
   used: boolean;
 };
 
-const TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+const TOKEN_EXPIRY_MS =
+  Number(process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS ?? '24') *
+  60 * 60 * 1000; // default 24 hours
 
 export async function generatePasswordSetupToken(
   userType: PasswordTokenRow['user_type'],
