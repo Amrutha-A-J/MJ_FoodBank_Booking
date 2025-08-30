@@ -3,26 +3,33 @@ import { TextField, Button } from '@mui/material';
 import { searchUsers } from '../api/users';
 import { searchVolunteers } from '../api/volunteers';
 import { searchAgencies } from '../api/agencies';
+import FeedbackSnackbar from './FeedbackSnackbar';
+interface SearchResultBase {
+  id: number | string;
+  name: string;
+  client_id?: string;
+}
 
-interface EntitySearchProps {
+interface EntitySearchProps<T extends SearchResultBase> {
   type: 'user' | 'volunteer' | 'agency';
   placeholder?: string;
-  onSelect: (result: any) => void;
-  renderResult?: (result: any, select: () => void) => ReactNode;
-  searchFn?: (query: string) => Promise<any[]>;
+  onSelect: (result: T) => void;
+  renderResult?: (result: T, select: () => void) => ReactNode;
+  searchFn?: (query: string) => Promise<T[]>;
   clearOnSelect?: boolean;
 }
 
-export default function EntitySearch({
+export default function EntitySearch<T extends SearchResultBase>({
   type,
   placeholder,
   onSelect,
   renderResult,
   searchFn,
   clearOnSelect = false,
-}: EntitySearchProps) {
+}: EntitySearchProps<T>) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<T[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (query.length < 3) {
@@ -41,19 +48,22 @@ export default function EntitySearch({
       .then(data => {
         if (active) setResults(data);
       })
-      .catch(() => {});
+      .catch(err => {
+        console.error(err);
+        if (active) setError('Failed to fetch search results');
+      });
     return () => {
       active = false;
     };
   }, [query, type, searchFn]);
 
-  const getLabel = (r: any) => {
+  const getLabel = (r: T) => {
     if (type === 'user') return `${r.name} (${r.client_id})`;
     if (type === 'agency') return `${r.name} (${r.id})`;
     return r.name;
   };
 
-  function handleSelect(res: any) {
+  function handleSelect(res: T) {
     setQuery(clearOnSelect ? '' : getLabel(res));
     setResults([]);
     onSelect(res);
@@ -90,6 +100,12 @@ export default function EntitySearch({
       ) : (
         query.length >= 3 && <p>No search results.</p>
       )}
+      <FeedbackSnackbar
+        open={!!error}
+        onClose={() => setError('')}
+        message={error}
+        severity="error"
+      />
     </div>
   );
 }
