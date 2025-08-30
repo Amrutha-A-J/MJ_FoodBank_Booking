@@ -22,31 +22,30 @@ const app = express();
 app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
-describe('rescheduleVolunteerBooking', () => {
+describe('updateVolunteerBookingStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('keeps status approved when volunteer reschedules an approved booking', async () => {
-    const booking = { id: 1, volunteer_id: 2, status: 'approved' };
+  it('sends coordinator emails when booking is cancelled', async () => {
+    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5, start_time: '09:00', end_time: '12:00' }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'cancelled', recurring_id: null },
+        ],
+      });
 
     const res = await request(app)
-      .post('/volunteer-bookings/reschedule/token123')
-      .send({ roleId: 4, date: '2025-09-01' });
+      .patch('/volunteer-bookings/1')
+      .send({ status: 'cancelled' });
 
     expect(res.status).toBe(200);
-    const updateCall = (pool.query as jest.Mock).mock.calls[6];
-    expect(updateCall[0]).toContain("status='approved'");
     expect((sendEmail as jest.Mock).mock.calls).toHaveLength(2);
     expect((sendEmail as jest.Mock).mock.calls[0][0]).toBe('coordinator1@example.com');
     expect((sendEmail as jest.Mock).mock.calls[1][0]).toBe('coordinator2@example.com');
   });
 });
+
