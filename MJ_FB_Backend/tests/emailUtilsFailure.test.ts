@@ -4,6 +4,11 @@ import logger from '../src/utils/logger';
 describe('emailUtils error logging', () => {
   const originalFetch = global.fetch;
   let errorSpy: jest.SpyInstance;
+  const {
+    BREVO_API_KEY: originalApiKey,
+    BREVO_FROM_EMAIL: originalFromEmail,
+    BREVO_FROM_NAME: originalFromName,
+  } = process.env;
 
   beforeEach(() => {
     global.fetch = jest.fn().mockResolvedValue({
@@ -12,11 +17,17 @@ describe('emailUtils error logging', () => {
       text: async () => 'error',
     });
     errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
+    process.env.BREVO_API_KEY = 'test-key';
+    process.env.BREVO_FROM_EMAIL = 'from@example.com';
+    process.env.BREVO_FROM_NAME = 'Test Sender';
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
     errorSpy.mockRestore();
+    process.env.BREVO_API_KEY = originalApiKey;
+    process.env.BREVO_FROM_EMAIL = originalFromEmail;
+    process.env.BREVO_FROM_NAME = originalFromName;
     jest.resetAllMocks();
   });
 
