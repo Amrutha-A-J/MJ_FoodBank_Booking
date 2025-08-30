@@ -59,6 +59,7 @@
 - The database schema is managed via TypeScript migrations in `src/migrations` using `npm run migrate`. The command logs each migration's success or failure to the console.
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
+- The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
 - Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
