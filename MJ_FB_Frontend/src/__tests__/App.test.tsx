@@ -119,10 +119,13 @@ describe('App authentication persistence', () => {
     const adminButton = screen.getByRole('button', { name: /admin/i });
     fireEvent.click(adminButton);
     expect(
-      screen.getByRole('menuitem', { name: 'App Config' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('menuitem', { name: 'App Config' }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Warehouse Settings' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Pantry Settings' }),
     ).toBeInTheDocument();
   });
 });
