@@ -11,10 +11,14 @@ export async function loginUser(
   clientId: string,
   password: string,
 ): Promise<LoginResponse> {
+  const id = Number(clientId);
+  if (!Number.isInteger(id)) {
+    return Promise.reject(new Error("Invalid client ID"));
+  }
   const res = await apiFetch(`${API_BASE}/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientId: Number(clientId), password }),
+    body: JSON.stringify({ clientId: id, password }),
   });
   return handleResponse(res);
 }
@@ -141,6 +145,10 @@ export async function addUser(
   email?: string,
   phone?: string,
 ): Promise<void> {
+  const id = Number(clientId);
+  if (!Number.isInteger(id)) {
+    return Promise.reject(new Error("Invalid client ID"));
+  }
   const res = await apiFetch(`${API_BASE}/users/add-client`, {
     method: "POST",
     headers: {
@@ -149,7 +157,7 @@ export async function addUser(
     body: JSON.stringify({
       firstName,
       lastName,
-      clientId: Number(clientId),
+      clientId: id,
       role,
       onlineAccess,
       email,
@@ -207,10 +215,14 @@ export async function sendRegistrationOtp(
   clientId: string,
   email: string,
 ): Promise<void> {
+  const id = Number(clientId);
+  if (!Number.isInteger(id)) {
+    return Promise.reject(new Error("Invalid client ID"));
+  }
   const res = await apiFetch(`${API_BASE}/users/register/otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientId: Number(clientId), email }),
+    body: JSON.stringify({ clientId: id, email }),
   });
   await handleResponse(res);
 }
@@ -224,11 +236,15 @@ export async function registerUser(data: {
   password: string;
   otp: string;
 }): Promise<void> {
+  const id = Number(data.clientId);
+  if (!Number.isInteger(id)) {
+    return Promise.reject(new Error("Invalid client ID"));
+  }
   const res = await apiFetch(`${API_BASE}/users/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      clientId: Number(data.clientId),
+      clientId: id,
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
