@@ -145,7 +145,7 @@ export interface VolunteerBookingDetail {
 }
 
 export interface UserProfile {
-  id: number;
+  id?: number;
   firstName: string;
   lastName: string;
   email: string | null;

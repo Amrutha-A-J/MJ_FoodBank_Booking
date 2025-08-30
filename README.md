@@ -4,6 +4,8 @@ This repository uses Git submodules for the backend and frontend components. Aft
 
 Individuals who use the food bank are referred to as clients throughout the application.
 
+The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.
+
 ## Contribution Guidelines
 
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.

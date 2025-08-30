@@ -47,7 +47,7 @@ describe('Authorization middleware', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValue({
       rowCount: 1,
-      rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+      rows: [{ client_id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
     });
 
     const res = await request(app)
@@ -61,7 +61,7 @@ describe('Authorization middleware', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValue({
       rowCount: 1,
-      rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+      rows: [{ client_id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
     });
 
     const res = await request(app)
@@ -179,7 +179,7 @@ describe('Authorization middleware', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValue({
       rowCount: 1,
-      rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+      rows: [{ client_id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
     });
 
     const res = await request(app)

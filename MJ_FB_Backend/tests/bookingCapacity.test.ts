@@ -48,7 +48,7 @@ describe('POST /bookings capacity check', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
+      rows: [{ client_id: 1, first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'shopper', phone: '123' }],
     });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockRejectedValue(
       new bookingRepository.SlotCapacityError('Slot full on selected date', 409),

@@ -24,7 +24,7 @@ import {
 } from '../../api/agencies';
 
 interface AgencyClient {
-  id: number;
+  clientId: number;
   name: string;
   email?: string;
 }
@@ -46,7 +46,7 @@ export default function AgencyClientManager() {
         ? (data as any).clients
         : [];
       const mapped = list.map((c: any) => ({
-        id: typeof c === 'object' ? c.id ?? c.client_id : Number(c),
+        clientId: typeof c === 'object' ? c.client_id : Number(c),
         name:
           typeof c === 'object'
             ? c.name ??
@@ -75,8 +75,7 @@ export default function AgencyClientManager() {
       return;
     }
     try {
-      const clientId = user.client_id ?? user.id;
-      await addAgencyClient(agency.id, clientId);
+      await addAgencyClient(agency.id, user.client_id);
       setSnackbar({ message: 'Client added', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
@@ -91,11 +90,11 @@ export default function AgencyClientManager() {
     }
   };
 
-  const handleRemove = async (id: number) => {
+  const handleRemove = async (clientId: number) => {
     if (!agency) return;
     if (!window.confirm('Remove this client from the agency?')) return;
     try {
-      await removeAgencyClient(agency.id, id);
+      await removeAgencyClient(agency.id, clientId);
       setSnackbar({ message: 'Client removed', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
@@ -160,18 +159,18 @@ export default function AgencyClientManager() {
                 <List dense>
                   {clients.map(c => (
                     <ListItem
-                      key={c.id}
+                      key={c.clientId}
                       secondaryAction={
                         <IconButton
                           edge="end"
                           aria-label="remove"
-                          onClick={() => handleRemove(c.id)}
+                          onClick={() => handleRemove(c.clientId)}
                         >
                           <DeleteIcon />
                         </IconButton>
                       }
                     >
-                      <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
+                      <ListItemText primary={c.name} secondary={`ID: ${c.clientId}`} />
                     </ListItem>
                   ))}
                   {clients.length === 0 && <Typography>No clients assigned.</Typography>}

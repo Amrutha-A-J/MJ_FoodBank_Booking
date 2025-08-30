@@ -28,7 +28,7 @@ describe('GET /holidays', () => {
         rowCount: 1,
         rows: [
           {
-            id: 1,
+            client_id: 1,
             first_name: 'Test',
             last_name: 'User',
             email: 'test@example.com',
