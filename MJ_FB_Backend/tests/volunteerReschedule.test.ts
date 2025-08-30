@@ -35,7 +35,8 @@ describe('rescheduleVolunteerBooking', () => {
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
     const res = await request(app)
       .post('/volunteer-bookings/reschedule/token123')

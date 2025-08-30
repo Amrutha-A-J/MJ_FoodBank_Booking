@@ -108,17 +108,25 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     client.release();
 
     if (status === 'approved') {
-      enqueueEmail(
-        user.email || 'test@example.com',
-        'Booking approved',
-        `Your booking for ${date} has been automatically approved`,
-      );
+      if (user.email) {
+        enqueueEmail(
+          user.email,
+          'Booking approved',
+          `Your booking for ${date} has been automatically approved`,
+        );
+      } else {
+        logger.warn(`Booking approval email not sent: user ${user.id} has no email`);
+      }
     } else {
-      enqueueEmail(
-        user.email || 'test@example.com',
-        'Booking rejected',
-        `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`,
-      );
+      if (user.email) {
+        enqueueEmail(
+          user.email,
+          'Booking rejected',
+          `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`,
+        );
+      } else {
+        logger.warn(`Booking rejection email not sent: user ${user.id} has no email`);
+      }
     }
     const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE client_id=$1', [userId]);
     const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
@@ -213,11 +221,19 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
 
     await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
 
-    enqueueEmail(
-      'test@example.com',
-      'Booking cancelled',
-      `Booking ${bookingId} was cancelled`,
-    );
+    const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [booking.user_id]);
+    const clientEmail = emailRes.rows[0]?.email;
+    if (clientEmail) {
+      enqueueEmail(
+        clientEmail,
+        'Booking cancelled',
+        `Booking ${bookingId} was cancelled`,
+      );
+    } else {
+      logger.warn(
+        `Booking cancellation email not sent: user ${booking.user_id} has no email`,
+      );
+    }
 
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
@@ -304,11 +320,19 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     }
     await updateBooking(booking.id, updateFields);
 
-    enqueueEmail(
-      'test@example.com',
-      'Booking rescheduled',
-      `Booking ${booking.id} was rescheduled`,
-    );
+    const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [booking.user_id]);
+    const clientEmail = emailRes.rows[0]?.email;
+    if (clientEmail) {
+      enqueueEmail(
+        clientEmail,
+        'Booking rescheduled',
+        `Booking ${booking.id} was rescheduled`,
+      );
+    } else {
+      logger.warn(
+        `Booking reschedule email not sent: user ${booking.user_id} has no email`,
+      );
+    }
 
     res.json({ message: 'Booking rescheduled', status: newStatus, rescheduleToken: newToken });
   } catch (error: any) {
@@ -462,12 +486,16 @@ export async function createBookingForUser(
       null,
     );
     const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
-    const clientEmail = emailRes.rows[0]?.email || 'test@example.com';
-    enqueueEmail(
-      clientEmail,
-      'Booking approved',
-      `Your booking for ${date} has been automatically approved`,
-    );
+    const clientEmail = emailRes.rows[0]?.email;
+    if (clientEmail) {
+      enqueueEmail(
+        clientEmail,
+        'Booking approved',
+        `Your booking for ${date} has been automatically approved`,
+      );
+    } else {
+      logger.warn(`Booking approval email not sent: user ${userId} has no email`);
+    }
     res
       .status(201)
       .json({ message: 'Booking created for user', status, rescheduleToken: token });

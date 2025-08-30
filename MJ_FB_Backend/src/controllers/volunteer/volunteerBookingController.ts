@@ -132,11 +132,17 @@ export async function createVolunteerBooking(
       [roleId, user.id, date, token]
     );
 
-    await sendEmail(
-      user.email || 'test@example.com',
-      'Volunteer booking confirmed',
-      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
-    );
+    if (user.email) {
+      await sendEmail(
+        user.email,
+        'Volunteer booking confirmed',
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+      );
+    } else {
+      logger.warn(
+        `Volunteer booking confirmation email not sent: user ${user.id} has no email`,
+      );
+    }
 
     const booking = insertRes.rows[0];
     booking.role_id = booking.slot_id;
@@ -409,11 +415,17 @@ export async function resolveVolunteerBookingConflict(
       [roleId, user.id, date, token]
     );
 
-    await sendEmail(
-      user.email || 'test@example.com',
-      'Volunteer booking confirmed',
-      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
-    );
+    if (user.email) {
+      await sendEmail(
+        user.email,
+        'Volunteer booking confirmed',
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+      );
+    } else {
+      logger.warn(
+        `Volunteer booking confirmation email not sent: user ${user.id} has no email`,
+      );
+    }
 
     const booking = insertRes.rows[0];
     booking.role_id = booking.slot_id;
@@ -588,11 +600,19 @@ export async function updateVolunteerBookingStatus(
       updated.date instanceof Date
         ? updated.date.toISOString().split('T')[0]
         : updated.date;
-    await sendEmail(
-      'test@example.com',
-      `Volunteer booking ${status}`,
-      `Volunteer booking ${id} ${status}.`,
-    );
+    const emailRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [booking.volunteer_id]);
+    const volunteerEmail = emailRes.rows[0]?.email;
+    if (volunteerEmail) {
+      await sendEmail(
+        volunteerEmail,
+        `Volunteer booking ${status}`,
+        `Volunteer booking ${id} ${status}.`,
+      );
+    } else {
+      logger.warn(
+        `Volunteer booking status email not sent: volunteer ${booking.volunteer_id} has no email`,
+      );
+    }
     res.json(updated);
   } catch (error) {
     logger.error('Error updating volunteer booking:', error);
@@ -687,11 +707,19 @@ export async function rescheduleVolunteerBooking(
       "UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status='approved', reason=NULL WHERE id=$4",
       [roleId, date, newToken, booking.id],
     );
-    await sendEmail(
-      'test@example.com',
-      'Volunteer booking rescheduled',
-      `Volunteer booking ${booking.id} was rescheduled`,
-    );
+    const emailRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [booking.volunteer_id]);
+    const volunteerEmail = emailRes.rows[0]?.email;
+    if (volunteerEmail) {
+      await sendEmail(
+        volunteerEmail,
+        'Volunteer booking rescheduled',
+        `Volunteer booking ${booking.id} was rescheduled`,
+      );
+    } else {
+      logger.warn(
+        `Volunteer booking reschedule email not sent: volunteer ${booking.volunteer_id} has no email`,
+      );
+    }
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
     logger.error('Error rescheduling volunteer booking:', error);
