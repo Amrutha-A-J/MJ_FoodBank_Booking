@@ -47,7 +47,8 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Volunteer dashboard groups badges, lifetime hours, this month's hours, total shifts, and current streak into a single stats card.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
- - Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
+- Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
+- Volunteer booking statuses include `completed`, and cancelling a booking now requires a reason.
 - Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
 - Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Volunteer Settings page's **Restore Original Roles & Shifts** button.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
@@ -67,7 +68,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Surplus weight multipliers are managed through the Admin → App Configurations page, accessible via the Admin menu.
+- Configurable cart tare via the Admin → App Configurations page and bread/can surplus weight multipliers via the Admin → Warehouse Settings page, both under the Admin menu.
 - Staff can set a cart tare value and a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
@@ -217,7 +218,8 @@ The build will fail if this variable is missing.
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to
-control weight calculations:
+set default multipliers; values are editable in the Admin → Warehouse Settings
+page and cached on the server:
 
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)

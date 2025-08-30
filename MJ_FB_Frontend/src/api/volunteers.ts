@@ -127,6 +127,7 @@ export async function getRecurringVolunteerBookings(): Promise<
 
 export async function cancelVolunteerBooking(
   bookingId: number,
+  reason = 'volunteer_cancelled',
 ): Promise<void> {
   const res = await apiFetch(
     `${API_BASE}/volunteer-bookings/${bookingId}/cancel`,
@@ -135,6 +136,7 @@ export async function cancelVolunteerBooking(
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ reason }),
     },
   );
   await handleResponse(res);

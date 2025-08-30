@@ -96,7 +96,7 @@
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Document new environment variables in the repository README and `.env.example` files.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
-- App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table. Cart tare is editable via the Admin → Pantry Settings page, while weight multipliers remain under Admin → App Configurations. Fetch these values from the backend rather than hard-coding or using environment variables.
+- App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table. Cart tare is editable via the Admin → Pantry Settings page, while bread/can weight multipliers are managed under Admin → Warehouse Settings. Fetch these values from the backend rather than hard-coding or using environment variables.
 - The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 
 ## UI Rules & Design System (Global)
@@ -339,6 +339,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-bookings/:role_id` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
+
+Volunteer booking statuses include `completed`, and cancellations must include a reason.
 
 ### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
 - `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`

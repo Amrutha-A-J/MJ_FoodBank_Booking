@@ -27,25 +27,55 @@ describe('updateVolunteerBookingStatus', () => {
     jest.clearAllMocks();
   });
 
-  it('sends coordinator emails when booking is cancelled', async () => {
+  it('sends coordinator emails when booking is cancelled with reason', async () => {
     const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [
-          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'cancelled', recurring_id: null },
+          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'cancelled', recurring_id: null, reason: 'sick' },
         ],
       });
 
     const res = await request(app)
       .patch('/volunteer-bookings/1')
-      .send({ status: 'cancelled' });
+      .send({ status: 'cancelled', reason: 'sick' });
 
     expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[1][1][2]).toBe('sick');
     expect((sendEmail as jest.Mock).mock.calls).toHaveLength(2);
     expect((sendEmail as jest.Mock).mock.calls[0][0]).toBe('coordinator1@example.com');
     expect((sendEmail as jest.Mock).mock.calls[1][0]).toBe('coordinator2@example.com');
+  });
+
+  it('requires reason when cancelling', async () => {
+    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [booking] });
+
+    const res = await request(app)
+      .patch('/volunteer-bookings/1')
+      .send({ status: 'cancelled' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('allows status completed', async () => {
+    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'completed', recurring_id: null, reason: null },
+        ],
+      });
+
+    const res = await request(app)
+      .patch('/volunteer-bookings/1')
+      .send({ status: 'completed' });
+
+    expect(res.status).toBe(200);
   });
 });
 

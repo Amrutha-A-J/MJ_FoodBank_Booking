@@ -3,14 +3,13 @@ import pool from '../../db';
 import logger from '../../utils/logger';
 import { refreshWarehouseOverall } from './warehouseOverallController';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
+import { getWarehouseSettings } from '../../utils/warehouseSettings';
 
 async function calculateWeight(type: 'BREAD' | 'CANS', count: number) {
-  const key =
-    type === 'BREAD' ? 'bread_weight_multiplier' : 'cans_weight_multiplier';
-  const res = await pool.query('SELECT value FROM app_config WHERE key = $1', [
-    key,
-  ]);
-  const multiplier = Number(res.rows[0]?.value ?? (type === 'BREAD' ? 10 : 20));
+  const { breadWeightMultiplier, cansWeightMultiplier } =
+    await getWarehouseSettings();
+  const multiplier =
+    type === 'BREAD' ? breadWeightMultiplier : cansWeightMultiplier;
   return count * multiplier;
 }
 

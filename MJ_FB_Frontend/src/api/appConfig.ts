@@ -2,8 +2,6 @@ import { API_BASE, apiFetch, handleResponse } from './client';
 
 export interface AppConfig {
   cartTare: number;
-  breadWeightMultiplier: number;
-  cansWeightMultiplier: number;
 }
 
 export async function getAppConfig(): Promise<AppConfig> {

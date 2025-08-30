@@ -113,7 +113,8 @@ export type VolunteerBookingStatus =
   | 'rejected'
   | 'cancelled'
   | 'no_show'
-  | 'expired';
+  | 'expired'
+  | 'completed';
 
 export interface VolunteerBooking {
   id: number;

@@ -107,7 +107,7 @@ describe('App authentication persistence', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
-  it('shows App Config link for admin staff', () => {
+  it('shows admin links for admin staff', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Admin User');
     localStorage.setItem('access', JSON.stringify(['admin']));
@@ -118,6 +118,11 @@ describe('App authentication persistence', () => {
     );
     const adminButton = screen.getByRole('button', { name: /admin/i });
     fireEvent.click(adminButton);
-    expect(screen.getByRole('menuitem', { name: 'App Config' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'App Config' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Warehouse Settings' }),
+    ).toBeInTheDocument();
   });
 });

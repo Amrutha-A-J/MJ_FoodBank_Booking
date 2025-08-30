@@ -2,27 +2,28 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { TextField, Button } from '@mui/material';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { getAppConfig, updateAppConfig } from '../../api/appConfig';
+import {
+  getWarehouseSettings,
+  updateWarehouseSettings,
+} from '../../api/warehouseSettings';
 
-export default function AppConfigurations() {
+export default function WarehouseSettings() {
   const [form, setForm] = useState({
     breadWeightMultiplier: '',
     cansWeightMultiplier: '',
-    cartTare: '',
   });
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
-    getAppConfig()
+    getWarehouseSettings()
       .then(cfg =>
         setForm({
           breadWeightMultiplier: String(cfg.breadWeightMultiplier),
           cansWeightMultiplier: String(cfg.cansWeightMultiplier),
-          cartTare: String(cfg.cartTare),
         }),
       )
       .catch(() => {
@@ -32,14 +33,21 @@ export default function AppConfigurations() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    updateAppConfig({ cartTare: Number(form.cartTare) || 0 })
+    updateWarehouseSettings({
+      breadWeightMultiplier: Number(form.breadWeightMultiplier) || 0,
+      cansWeightMultiplier: Number(form.cansWeightMultiplier) || 0,
+    })
       .then(() =>
-        setSnackbar({ open: true, message: 'Configurations saved', severity: 'success' }),
+        setSnackbar({
+          open: true,
+          message: 'Settings saved',
+          severity: 'success',
+        }),
       )
       .catch(err =>
         setSnackbar({
           open: true,
-          message: err.message || 'Failed to save configurations',
+          message: err.message || 'Failed to save settings',
           severity: 'error',
         }),
       );
@@ -48,7 +56,7 @@ export default function AppConfigurations() {
   return (
     <>
       <FormCard
-        title="App Configurations"
+        title="Warehouse Settings"
         onSubmit={handleSubmit}
         actions={
           <Button variant="contained" size="small" type="submit">
@@ -72,13 +80,6 @@ export default function AppConfigurations() {
           onChange={e =>
             setForm({ ...form, cansWeightMultiplier: e.target.value })
           }
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="Cart Tare (lbs)"
-          type="number"
-          value={form.cartTare}
-          onChange={e => setForm({ ...form, cartTare: e.target.value })}
           InputLabelProps={{ shrink: true }}
         />
       </FormCard>
