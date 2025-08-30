@@ -108,17 +108,18 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     client.release();
 
-    if (status === 'approved') {
-      enqueueEmail(
-        user.email || 'test@example.com',
-        'Booking approved',
-        `Your booking for ${date} has been automatically approved`,
-      );
+    const emailSubject =
+      status === 'approved' ? 'Booking approved' : 'Booking rejected';
+    const emailBody =
+      status === 'approved'
+        ? `Your booking for ${date} has been automatically approved`
+        : `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`;
+    if (user.email) {
+      enqueueEmail(user.email, emailSubject, emailBody);
     } else {
-      enqueueEmail(
-        user.email || 'test@example.com',
-        'Booking rejected',
-        `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`,
+      logger.warn(
+        'User %s has no email. Skipping booking status email.',
+        userId,
       );
     }
     const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE client_id=$1', [userId]);
@@ -212,13 +213,37 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: "You can't cancel past bookings" });
     }
 
-    await updateBooking(Number(bookingId), { status: 'cancelled', request_data: reason });
+    await updateBooking(Number(bookingId), {
+      status: 'cancelled',
+      request_data: reason,
+    });
 
-    enqueueEmail(
-      'test@example.com',
-      'Booking cancelled',
-      `Booking ${bookingId} was cancelled`,
-    );
+    let email: string | undefined;
+    if (booking.user_id) {
+      const emailRes = await pool.query(
+        'SELECT email FROM clients WHERE client_id=$1',
+        [booking.user_id],
+      );
+      email = emailRes.rows[0]?.email;
+    } else if (booking.new_client_id) {
+      const emailRes = await pool.query(
+        'SELECT email FROM new_clients WHERE id=$1',
+        [booking.new_client_id],
+      );
+      email = emailRes.rows[0]?.email;
+    }
+    if (email) {
+      enqueueEmail(
+        email,
+        'Booking cancelled',
+        `Booking ${bookingId} was cancelled`,
+      );
+    } else {
+      logger.warn(
+        'Booking cancellation email not sent. Booking %s has no associated email.',
+        bookingId,
+      );
+    }
 
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
@@ -325,13 +350,38 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     }
     await updateBooking(booking.id, updateFields);
 
-    enqueueEmail(
-      'test@example.com',
-      'Booking rescheduled',
-      `Booking ${booking.id} was rescheduled`,
-    );
+    let email: string | undefined;
+    if (booking.user_id) {
+      const emailRes = await pool.query(
+        'SELECT email FROM clients WHERE client_id=$1',
+        [booking.user_id],
+      );
+      email = emailRes.rows[0]?.email;
+    } else if (booking.new_client_id) {
+      const emailRes = await pool.query(
+        'SELECT email FROM new_clients WHERE id=$1',
+        [booking.new_client_id],
+      );
+      email = emailRes.rows[0]?.email;
+    }
+    if (email) {
+      enqueueEmail(
+        email,
+        'Booking rescheduled',
+        `Booking ${booking.id} was rescheduled`,
+      );
+    } else {
+      logger.warn(
+        'Booking rescheduled email not sent. Booking %s has no associated email.',
+        booking.id,
+      );
+    }
 
-    res.json({ message: 'Booking rescheduled', status: newStatus, rescheduleToken: newToken });
+    res.json({
+      message: 'Booking rescheduled',
+      status: newStatus,
+      rescheduleToken: newToken,
+    });
   } catch (error: any) {
     logger.error('Error rescheduling booking:', error);
     next(error);
@@ -483,12 +533,19 @@ export async function createBookingForUser(
       null,
     );
     const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
-    const clientEmail = emailRes.rows[0]?.email || 'test@example.com';
-    enqueueEmail(
-      clientEmail,
-      'Booking approved',
-      `Your booking for ${date} has been automatically approved`,
-    );
+    const clientEmail = emailRes.rows[0]?.email;
+    if (clientEmail) {
+      enqueueEmail(
+        clientEmail,
+        'Booking approved',
+        `Your booking for ${date} has been automatically approved`,
+      );
+    } else {
+      logger.warn(
+        'Booking approved email not sent. User %s has no email.',
+        userId,
+      );
+    }
     res
       .status(201)
       .json({ message: 'Booking created for user', status, rescheduleToken: token });
