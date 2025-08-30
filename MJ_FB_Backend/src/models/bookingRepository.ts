@@ -78,7 +78,14 @@ export async function updateBooking(
   fields: Record<string, any>,
   client: Queryable = pool,
 ) {
-  const keys = Object.keys(fields);
+  const whitelist = [
+    'slot_id',
+    'date',
+    'status',
+    'request_data',
+    'reschedule_token',
+  ];
+  const keys = Object.keys(fields).filter((k) => whitelist.includes(k));
   if (keys.length === 0) return;
   const setClause = keys.map((key, idx) => `${key}=$${idx + 2}`).join(', ');
   const params = [id, ...keys.map((k) => fields[k])];

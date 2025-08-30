@@ -56,13 +56,22 @@ describe('bookingRepository', () => {
     ]);
   });
 
-  it('updateBooking builds dynamic query', async () => {
+  it('updateBooking ignores disallowed keys', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({});
-    await updateBooking(1, { status: 'cancelled', request_data: 'reason' });
+    await updateBooking(1, {
+      status: 'cancelled',
+      request_data: 'reason',
+      hacker: 'nope',
+    });
     expect(pool.query).toHaveBeenCalledWith(
       'UPDATE bookings SET status=$2, request_data=$3 WHERE id=$1',
       [1, 'cancelled', 'reason'],
     );
+  });
+
+  it('updateBooking returns early when only disallowed keys provided', async () => {
+    await updateBooking(1, { hacker: 'nope' });
+    expect(pool.query).not.toHaveBeenCalled();
   });
 
   it('fetchBookings applies optional filters', async () => {
