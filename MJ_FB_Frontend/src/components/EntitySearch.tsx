@@ -30,20 +30,23 @@ export default function EntitySearch({
       return;
     }
     let active = true;
-    const fn =
-      searchFn ||
-      (type === 'user'
-        ? searchUsers
-        : type === 'volunteer'
-        ? searchVolunteers
-        : searchAgencies);
-    fn(query)
-      .then(data => {
-        if (active) setResults(data);
-      })
-      .catch(() => {});
+    const handler = setTimeout(() => {
+      const fn =
+        searchFn ||
+        (type === 'user'
+          ? searchUsers
+          : type === 'volunteer'
+          ? searchVolunteers
+          : searchAgencies);
+      fn(query)
+        .then(data => {
+          if (active) setResults(data);
+        })
+        .catch(() => {});
+    }, 500);
     return () => {
       active = false;
+      clearTimeout(handler);
     };
   }, [query, type, searchFn]);
 
