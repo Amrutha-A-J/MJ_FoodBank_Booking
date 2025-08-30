@@ -332,6 +332,10 @@ CREATE TABLE IF NOT EXISTS email_queue (
 );
 `);
 
+  await client.query(
+    `CREATE UNIQUE INDEX IF NOT EXISTS password_setup_tokens_token_hash_idx ON password_setup_tokens (token_hash);`
+  );
+
   // Remove duplicate slots and enforce uniqueness
   await client.query(`
     DELETE FROM slots a
