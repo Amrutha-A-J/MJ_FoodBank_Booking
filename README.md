@@ -15,6 +15,7 @@ Individuals who use the food bank are referred to as clients throughout the appl
 - Appointment booking workflow for clients with staff approval and rescheduling.
 - Unregistered clients can book directly via `/bookings/new-client`; staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas.
+- Daily job sends reminder emails for next-day bookings using the backend email queue.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Users see a random appreciation message on each login with a link to download their card when available.

@@ -3,6 +3,7 @@ import pool from './db';
 import { setupDatabase } from './setupDatabase';
 import logger from './utils/logger';
 import app from './app';
+import { startBookingReminderJob } from './utils/bookingReminderJob';
 
 const PORT = config.port;
 
@@ -16,6 +17,7 @@ async function init() {
     app.listen(PORT, () => {
       logger.info(`Server running at http://localhost:${PORT}`);
     });
+    startBookingReminderJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
