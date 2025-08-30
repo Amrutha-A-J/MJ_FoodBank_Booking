@@ -23,7 +23,7 @@ import {
   insertWalkinUser,
 } from '../models/bookingRepository';
 import { insertNewClient } from '../models/newClient';
-import { isAgencyClient } from '../models/agency';
+import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -160,13 +160,12 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
           .status(400)
           .json({ message: 'clientIds query parameter required' });
       }
-      for (const id of clientIds) {
-        const allowed = await isAgencyClient(Number(requester.id), id);
-        if (!allowed) {
-          return res
-            .status(403)
-            .json({ message: 'Client not associated with agency' });
-        }
+      const uniqueIds = [...new Set(clientIds)];
+      const allowed = await getAgencyClientSet(Number(requester.id), uniqueIds);
+      if (allowed.size !== uniqueIds.length) {
+        return res
+          .status(403)
+          .json({ message: 'Client not associated with agency' });
       }
     }
 

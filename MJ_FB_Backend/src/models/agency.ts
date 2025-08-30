@@ -58,6 +58,18 @@ export async function isAgencyClient(
   return (res.rowCount ?? 0) > 0;
 }
 
+export async function getAgencyClientSet(
+  agencyId: number,
+  clientIds: number[],
+): Promise<Set<number>> {
+  if (clientIds.length === 0) return new Set();
+  const res = await pool.query(
+    'SELECT client_id FROM agency_clients WHERE agency_id = $1 AND client_id = ANY($2)',
+    [agencyId, clientIds],
+  );
+  return new Set(res.rows.map((r) => r.client_id as number));
+}
+
 export async function getAgencyForClient(
   clientId: number,
 ): Promise<AgencySummary | undefined> {
