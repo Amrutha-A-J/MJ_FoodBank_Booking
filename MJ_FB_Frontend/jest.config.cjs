@@ -1,6 +1,12 @@
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+    },
+  },
   testMatch: [
     '<rootDir>/src/pages/admin/__tests__/**/*.test.tsx',
     '<rootDir>/src/__tests__/**/*.test.tsx',
