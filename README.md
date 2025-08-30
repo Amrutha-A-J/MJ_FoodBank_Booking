@@ -226,6 +226,7 @@ control weight calculations:
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
 - A shared dashboard component lives in `src/components/dashboard`.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
+- Page and form titles render in uppercase with a lighter font weight for clarity.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
 - Pantry Settings page lets staff configure one max booking capacity used for all pantry times.
