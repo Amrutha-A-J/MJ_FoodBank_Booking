@@ -3,6 +3,7 @@ import {
   createVolunteerBookingForVolunteer,
   updateVolunteerTrainedAreas,
   getVolunteerMasterRoles,
+  getMyRecurringVolunteerBookings,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -42,5 +43,10 @@ describe('volunteers api', () => {
   it('fetches volunteer master roles', async () => {
     await getVolunteerMasterRoles();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-master-roles');
+  });
+
+  it('fetches recurring volunteer bookings', async () => {
+    await getMyRecurringVolunteerBookings();
+    expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
   });
 });
