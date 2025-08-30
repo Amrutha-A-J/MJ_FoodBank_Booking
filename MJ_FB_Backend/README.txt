@@ -29,17 +29,11 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `PORT` – Port for the backend server.
 
-`SMTP_HOST` – SMTP server host (e.g., `smtp.office365.com`).
+`BREVO_API_KEY` – Brevo API key for sending transactional emails.
 
-`SMTP_PORT` – SMTP server port (e.g., `587`).
+`BREVO_FROM_EMAIL` – Email address used as the sender.
 
-`SMTP_USER` – Username for SMTP authentication.
-
-`SMTP_PASS` – Password for SMTP authentication.
-
-`SMTP_FROM_EMAIL` – Email address used as the sender.
-
-`SMTP_FROM_NAME` – Optional display name for the sender.
+`BREVO_FROM_NAME` – Optional display name for the sender.
 
 ## Password Policy
 

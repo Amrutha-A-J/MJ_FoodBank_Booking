@@ -119,3 +119,5 @@ describe('POST /api/users/register', () => {
 });
 */
 
+test.skip('registration flow tests are disabled', () => {});
+

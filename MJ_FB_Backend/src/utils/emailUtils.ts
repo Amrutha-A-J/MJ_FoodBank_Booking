@@ -2,33 +2,29 @@ import config from '../config';
 import logger from './logger';
 
 export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
-  if (!config.smtpHost || !config.smtpUser || !config.smtpPass || !config.smtpFromEmail) {
-    logger.warn('SMTP email configuration is missing. Email not sent.', { to, subject, body });
+  if (!config.brevoApiKey || !config.brevoFromEmail) {
+    logger.warn('Brevo email configuration is missing. Email not sent.', { to, subject, body });
     return;
   }
 
   try {
-    const nodemailer = await import('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host: config.smtpHost,
-      port: config.smtpPort,
-      secure: config.smtpPort === 465,
-      auth: {
-        user: config.smtpUser,
-        pass: config.smtpPass,
+    await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': config.brevoApiKey,
       },
-    });
-
-    await transporter.sendMail({
-      from: {
-        address: config.smtpFromEmail,
-        name: config.smtpFromName || undefined,
-      },
-      to,
-      subject,
-      html: body,
+      body: JSON.stringify({
+        sender: {
+          email: config.brevoFromEmail,
+          name: config.brevoFromName || undefined,
+        },
+        to: [{ email: to }],
+        subject,
+        htmlContent: body,
+      }),
     });
   } catch (error) {
-    logger.warn('Email not sent. Check SMTP configuration or running in local environment.', { to, subject, body });
+    logger.warn('Email not sent. Check Brevo configuration or running in local environment.', { to, subject, body });
   }
 }
