@@ -112,6 +112,40 @@ export async function getVolunteerGroupStats(
   }
 }
 
+export async function getVolunteerRanking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { roleId } = req.query;
+  const filterRole = roleId ? Number(roleId) : null;
+  try {
+    const result = await pool.query(
+      `SELECT v.id,
+              v.first_name || ' ' || v.last_name AS name,
+              COUNT(*) AS total
+         FROM volunteer_bookings vb
+         JOIN volunteers v ON vb.volunteer_id = v.id
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+        WHERE vb.status = 'completed'
+          AND ($1::int IS NULL OR vs.role_id = $1)
+        GROUP BY v.id
+        ORDER BY total DESC
+        LIMIT 10`,
+      [filterRole],
+    );
+    const rows = result.rows.map(r => ({
+      id: Number(r.id),
+      name: r.name,
+      total: Number(r.total),
+    }));
+    res.json(rows);
+  } catch (error) {
+    logger.error('Error fetching volunteer ranking:', error);
+    next(error);
+  }
+}
+
 export async function getVolunteerNoShowRanking(
   _req: Request,
   res: Response,

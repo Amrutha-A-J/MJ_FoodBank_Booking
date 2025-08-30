@@ -40,6 +40,8 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - The stats endpoint now provides a milestone message and contribution totals (`familiesServed`, `poundsHandled`) along with current-month figures (`monthFamiliesServed`, `monthPoundsHandled`) so the dashboard can display appreciation.
 - Volunteer leaderboard endpoint `GET /volunteer-stats/leaderboard` returns your rank and percentile.
   The volunteer dashboard shows “You're in the top X%!” based on this data.
+- Staff can view top volunteers via `GET /volunteer-stats/ranking` with an optional
+  `roleId` query parameter to filter by role.
 - Staff can retrieve a no-show ranking via `GET /volunteer-stats/no-show-ranking` to highlight
   volunteers who frequently miss booked shifts. The volunteer management dashboard displays this ranking.
 - Group volunteer stats endpoint `GET /volunteer-stats/group` aggregates total hours,

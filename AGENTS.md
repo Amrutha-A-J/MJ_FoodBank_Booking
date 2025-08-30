@@ -40,6 +40,8 @@
   `approved` or `no_show` statuses are ignored.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
+- Staff can view top volunteers via `GET /volunteer-stats/ranking` with an optional
+  `roleId` query parameter to filter by role.
 - Staff can query `GET /volunteer-stats/no-show-ranking` for a list of volunteers with
   high no-show rates to surface in management dashboards.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total
