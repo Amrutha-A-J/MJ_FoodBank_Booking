@@ -164,6 +164,57 @@ test('cancels single and recurring bookings', async () => {
   );
 });
 
+test('hides cancel options for non-approved bookings', async () => {
+  (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+    {
+      id: 1,
+      role_id: 1,
+      role_name: 'Visited Role',
+      date: '2024-05-01',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'visited',
+    },
+    {
+      id: 2,
+      role_id: 1,
+      role_name: 'Cancelled Role',
+      date: '2024-05-02',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'cancelled',
+    },
+    {
+      id: 3,
+      role_id: 1,
+      role_name: 'NoShow Role',
+      date: '2024-05-03',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'no_show',
+    },
+    {
+      id: 4,
+      role_id: 1,
+      role_name: 'Approved Role',
+      date: '2024-05-04',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'approved',
+    },
+  ]);
+
+  render(<VolunteerBookingHistory />);
+  await screen.findByText('Approved Role');
+  expect(screen.getAllByText('Cancel')).toHaveLength(1);
+  const visitedRow = screen.getByText('Visited Role').closest('tr')!;
+  expect(within(visitedRow).queryByText('Cancel')).toBeNull();
+  const cancelledRow = screen.getByText('Cancelled Role').closest('tr')!;
+  expect(within(cancelledRow).queryByText('Cancel')).toBeNull();
+  const noShowRow = screen.getByText('NoShow Role').closest('tr')!;
+  expect(within(noShowRow).queryByText('Cancel')).toBeNull();
+});
+
 test('formats recurring booking dates', async () => {
   (getRecurringVolunteerBookings as jest.Mock).mockResolvedValue([
     {
