@@ -1,11 +1,21 @@
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
+import { fetch, Headers, Request, Response, FormData, File } from 'undici';
 
 // Polyfill TextEncoder/Decoder for testing environment
 (global as any).TextEncoder = TextEncoder;
 (global as any).TextDecoder = TextDecoder as any;
 (Element.prototype as any).scrollIntoView = jest.fn();
 (global as any).VITE_API_BASE = 'http://localhost:4000';
+
+beforeAll(() => {
+  (global as any).fetch = fetch;
+  (global as any).Headers = Headers as any;
+  (global as any).Request = Request as any;
+  (global as any).Response = Response as any;
+  (global as any).FormData = FormData as any;
+  (global as any).File = File as any;
+});
 
 // Mock ResizeObserver and IntersectionObserver for testing environment
 class ResizeObserver {

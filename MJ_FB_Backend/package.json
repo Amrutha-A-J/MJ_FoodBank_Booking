@@ -5,7 +5,7 @@
   "description": "",
   "license": "ISC",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "bcrypt": "^6",
@@ -33,7 +33,8 @@
     "supertest": "^7",
     "ts-jest": "^29",
     "tsx": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "undici": "^6"
   },
   "overrides": {
     "test-exclude": "^7"
