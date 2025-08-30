@@ -49,3 +49,32 @@ describe('updateVolunteerBookingStatus', () => {
   });
 });
 
+describe('cancelVolunteerBookingOccurrence', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sends volunteer and coordinator emails when occurrence is cancelled', async () => {
+    const booking = {
+      id: 1,
+      slot_id: 2,
+      volunteer_id: 3,
+      date: '2025-09-01',
+      status: 'approved',
+      recurring_id: null,
+    };
+    const slot = { start_time: '09:00:00', end_time: '12:00:00' };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ email: 'vol@example.com' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [slot] });
+
+    const res = await request(app).patch('/volunteer-bookings/1/cancel');
+
+    expect(res.status).toBe(200);
+    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
+    expect((sendEmail as jest.Mock).mock.calls[0][0]).toBe('vol@example.com');
+  });
+});
+

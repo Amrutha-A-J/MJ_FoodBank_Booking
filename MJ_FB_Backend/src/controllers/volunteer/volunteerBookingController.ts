@@ -832,6 +832,21 @@ export async function createRecurringVolunteerBooking(
         [roleId, user.id, date, token, recurringId],
       );
       successes.push(date);
+
+      const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
+      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      if (user.email) {
+        await sendEmail(user.email, subject, body);
+      } else {
+        logger.warn(
+          'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
+          user.id,
+        );
+      }
+      await notifyCoordinators(
+        subject,
+        `Volunteer ${user.id} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
+      );
     }
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
@@ -890,14 +905,38 @@ export async function cancelVolunteerBookingOccurrence(
       `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1`,
       [id],
     );
+    const volunteerRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [
+      booking.volunteer_id,
+    ]);
+    const volunteerEmail = volunteerRes.rows[0]?.email;
+    const slotRes = await pool.query(
+      'SELECT start_time, end_time FROM volunteer_slots WHERE slot_id=$1',
+      [booking.slot_id],
+    );
+    const slot = slotRes.rows[0];
+    const dateStr =
+      booking.date instanceof Date
+        ? booking.date.toISOString().split('T')[0]
+        : booking.date;
+    const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
+    const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
+    if (volunteerEmail) {
+      await sendEmail(volunteerEmail, subject, body);
+    } else {
+      logger.warn(
+        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
+        booking.volunteer_id,
+      );
+    }
+    await notifyCoordinators(
+      subject,
+      `Volunteer ${booking.volunteer_id} booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}.`,
+    );
     booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
-    booking.date =
-      booking.date instanceof Date
-        ? booking.date.toISOString().split('T')[0]
-        : booking.date;
+    booking.date = dateStr;
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);
@@ -915,6 +954,18 @@ export async function cancelRecurringVolunteerBooking(
     (req.query.from as string) ||
     formatReginaDate(new Date());
   try {
+    const infoRes = await pool.query(
+      `SELECT vrb.volunteer_id, vrb.slot_id, v.email, vs.start_time, vs.end_time
+       FROM volunteer_recurring_bookings vrb
+       JOIN volunteers v ON vrb.volunteer_id = v.id
+       JOIN volunteer_slots vs ON vrb.slot_id = vs.slot_id
+       WHERE vrb.id = $1`,
+      [id],
+    );
+    if ((infoRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Recurring booking not found' });
+    }
+    const info = infoRes.rows[0];
     await pool.query(
       `UPDATE volunteer_bookings SET status='cancelled'
        WHERE recurring_id=$1 AND date >= $2`,
@@ -925,6 +976,20 @@ export async function cancelRecurringVolunteerBooking(
        SET active=false, end_date = COALESCE(end_date, $2::date)
        WHERE id=$1`,
       [id, from],
+    );
+    const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
+    const body = `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled.`;
+    if (info.email) {
+      await sendEmail(info.email, subject, body);
+    } else {
+      logger.warn(
+        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
+        info.volunteer_id,
+      );
+    }
+    await notifyCoordinators(
+      subject,
+      `Volunteer ${info.volunteer_id} recurring bookings cancelled starting ${from} for ${info.start_time}-${info.end_time}.`,
     );
     res.json({ message: 'Recurring bookings cancelled' });
   } catch (error) {
