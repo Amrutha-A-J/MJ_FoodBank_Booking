@@ -76,6 +76,28 @@ export async function clientExists(clientId: number): Promise<boolean> {
   return (res.rowCount ?? 0) > 0;
 }
 
+export async function getAgencyEmail(
+  agencyId: number,
+): Promise<string | undefined> {
+  const res = await pool.query('SELECT email FROM agencies WHERE id = $1', [agencyId]);
+  return res.rows[0]?.email as string | undefined;
+}
+
+export interface ClientName {
+  first_name: string;
+  last_name: string;
+}
+
+export async function getClientName(
+  clientId: number,
+): Promise<ClientName | undefined> {
+  const res = await pool.query(
+    'SELECT first_name, last_name FROM clients WHERE client_id = $1',
+    [clientId],
+  );
+  return res.rows[0] as ClientName | undefined;
+}
+
 export async function addAgencyClient(
   agencyId: number,
   clientId: number,
