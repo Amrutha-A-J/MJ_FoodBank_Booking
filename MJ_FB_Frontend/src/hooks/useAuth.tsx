@@ -94,8 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           if (active) setToken('cookie');
         } else if (res.status === 409) {
-          // 409 indicates another tab or request refreshed already
-          // do not set token until this tab successfully refreshes
+          // Another tab already refreshed; token cookie is still valid
+          if (active) setToken('cookie');
         } else if (res.status === 401) {
           if (active) {
             clearAuth();
