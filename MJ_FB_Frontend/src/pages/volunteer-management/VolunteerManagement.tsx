@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
@@ -48,9 +48,12 @@ import {
   Grid,
   Stack,
   Chip,
+  CircularProgress,
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
-import Dashboard from '../../components/dashboard/Dashboard';
+const Dashboard = React.lazy(
+  () => import('../../components/dashboard/Dashboard')
+);
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
@@ -587,7 +590,9 @@ export default function VolunteerManagement() {
   return (
     <Page title={title}>
       {tab === 'dashboard' && (
-        <Dashboard role="staff" masterRoleFilter={undefined} />
+        <Suspense fallback={<CircularProgress />}>
+          <Dashboard role="staff" masterRoleFilter={undefined} />
+        </Suspense>
       )}
       {tab === 'schedule' && (
         <div>
