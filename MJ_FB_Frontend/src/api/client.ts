@@ -148,7 +148,8 @@ function clearAuthAndRedirect() {
   localStorage.removeItem('userRole');
   localStorage.removeItem('access');
   localStorage.removeItem('id');
-  if (!window.location.pathname.startsWith('/login')) {
+  const path = window.location.pathname;
+  if (!path.startsWith('/login') && !path.startsWith('/set-password')) {
     window.location.assign('/login');
   }
 }
