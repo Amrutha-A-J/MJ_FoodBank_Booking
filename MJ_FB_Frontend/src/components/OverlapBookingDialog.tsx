@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { formatTime } from '../utils/time';
+import { formatReginaDate } from '../utils/date';
 
 interface BookingInfo {
   id?: number;
@@ -45,7 +46,7 @@ export default function OverlapBookingDialog({
             <Typography variant="subtitle2">Existing Shift</Typography>
             <Typography>{existing.role_name}</Typography>
             <Typography>
-              {existing.date} · {formatTime(existing.start_time)}–
+              {formatReginaDate(existing.date)} · {formatTime(existing.start_time)}–
               {formatTime(existing.end_time)}
             </Typography>
           </Grid>
@@ -53,7 +54,7 @@ export default function OverlapBookingDialog({
             <Typography variant="subtitle2">New Shift</Typography>
             <Typography>{attempted.role_name}</Typography>
             <Typography>
-              {attempted.date} · {formatTime(attempted.start_time)}–
+              {formatReginaDate(attempted.date)} · {formatTime(attempted.start_time)}–
               {formatTime(attempted.end_time)}
             </Typography>
           </Grid>
