@@ -105,6 +105,7 @@
 - Library: Material UI v5 only (no Tailwind).
 - Theme: Use the app’s `ThemeProvider` theme (primary `#941818`, Golos font, rounded corners). Never hard-code colors, spacing, or fonts—pull from the theme.
 - Typography: Default to theme typography. Section titles use `subtitle1`/`h5` with bold as defined in theme.
+ - Typography: Default to theme typography. Page and form titles use uppercase `h4`/`h5` variants with a slightly lighter font weight.
 
 ### Layout
 - Grid: Use `Grid` with `spacing={2}` for page layout; prefer 12-column responsive layouts.
