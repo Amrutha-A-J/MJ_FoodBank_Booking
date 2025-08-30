@@ -97,6 +97,7 @@ The self-service registration endpoints and frontend page are commented out pend
 - Document new environment variables in the repository README and `.env.example` files.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table and are editable via the Admin → App Configurations page. Fetch these values from the backend rather than hard-coding or using environment variables.
+- The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 
 ## UI Rules & Design System (Global)
 
