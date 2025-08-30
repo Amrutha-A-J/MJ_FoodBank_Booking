@@ -99,13 +99,15 @@ interface BookingResponse {
 }
 
 function normalizeBooking(b: BookingResponse) {
+  const newClientId = (b as any).newClientId ?? (b as any).new_client_id ?? null;
   return {
     ...b,
     start_time: b.start_time ?? b.startTime,
     end_time: b.end_time ?? b.endTime,
     startTime: b.startTime ?? b.start_time,
     endTime: b.endTime ?? b.end_time,
-  };
+    newClientId,
+  } as BookingResponse & { newClientId: number | null };
 }
 
 export async function getBookings(
@@ -315,6 +317,21 @@ export async function createBookingForUser(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ userId, slotId, date, isStaffBooking }),
+  });
+  await handleResponse<void>(res);
+}
+
+export async function createBookingForNewClient(
+  name: string,
+  slotId: number,
+  date: string,
+  email?: string,
+  phone?: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/bookings/new-client`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, phone, slotId, date }),
   });
   await handleResponse<void>(res);
 }
