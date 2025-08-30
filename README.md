@@ -21,6 +21,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
  - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
+- Backend email queue retries failed sends with exponential backoff. The maximum retries and initial delay are configurable.
 - Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
 - Users see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
@@ -110,6 +111,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BREVO_API_KEY` | Brevo API key for transactional emails |
 | `BREVO_FROM_EMAIL` | Email address used as the sender |
 | `BREVO_FROM_NAME` | Optional sender name displayed in emails |
+| `EMAIL_QUEUE_MAX_RETRIES` | Max retry attempts for failed email jobs (default 5) |
+| `EMAIL_QUEUE_BACKOFF_MS` | Initial backoff delay in ms for email retries (default 1000) |
 | `PASSWORD_SETUP_TEMPLATE_ID` | Brevo template ID for invitation and password reset emails |
 
 ### Invitation flow
