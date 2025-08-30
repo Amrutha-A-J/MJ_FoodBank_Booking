@@ -75,6 +75,18 @@ export async function changePassword(
   await handleResponse(res);
 }
 
+export async function setPassword(
+  token: string,
+  password: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/auth/set-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+  await handleResponse(res);
+}
+
 export async function getUserProfile(): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`);
   return handleResponse(res);
