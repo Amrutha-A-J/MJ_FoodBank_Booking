@@ -8,6 +8,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 
 ## Contribution Guidelines
 
+- Use Node.js 18 or later for development; the backend relies on the native `fetch` API.
 - The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
@@ -191,7 +192,7 @@ openssl rand -hex 32
 ## Frontend setup (`MJ_FB_Frontend`)
 
 Prerequisites:
-- Node.js and npm
+- Node.js 18 or later and npm
 
 Install and run:
 ```bash
