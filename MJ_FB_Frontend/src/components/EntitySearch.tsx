@@ -28,11 +28,17 @@ export default function EntitySearch<T extends SearchResultBase>({
   clearOnSelect = false,
 }: EntitySearchProps<T>) {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<T[]>([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (query.length < 3) {
+    const handle = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(handle);
+  }, [query]);
+
+  useEffect(() => {
+    if (debouncedQuery.length < 3) {
       setResults([]);
       return;
     }
@@ -44,7 +50,7 @@ export default function EntitySearch<T extends SearchResultBase>({
         : type === 'volunteer'
         ? searchVolunteers
         : searchAgencies);
-    fn(query)
+    fn(debouncedQuery)
       .then(data => {
         if (active) setResults(data);
       })
@@ -55,7 +61,7 @@ export default function EntitySearch<T extends SearchResultBase>({
     return () => {
       active = false;
     };
-  }, [query, type, searchFn]);
+  }, [debouncedQuery, type, searchFn]);
 
   const getLabel = (r: T) => {
     if (type === 'user') return `${r.name} (${r.client_id})`;
