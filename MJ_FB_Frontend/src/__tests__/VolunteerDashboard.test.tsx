@@ -58,6 +58,22 @@ beforeEach(() => {
   });
   localStorage.clear();
 });
+
+  it('does not show update trained roles button', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText('Profile & Training');
+    expect(screen.queryByText('Update trained roles')).not.toBeInTheDocument();
+  });
   it('shows events in News & Events section', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
