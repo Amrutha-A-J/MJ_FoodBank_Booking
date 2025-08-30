@@ -233,3 +233,21 @@ export async function registerUser(data: {
   });
   await handleResponse(res);
 }
+
+export interface NewClient {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
+export async function getNewClients(): Promise<NewClient[]> {
+  const res = await apiFetch(`${API_BASE}/new-clients`);
+  return handleResponse(res);
+}
+
+export async function deleteNewClient(id: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/new-clients/${id}`, { method: "DELETE" });
+  await handleResponse(res);
+}
