@@ -17,7 +17,7 @@ let scheduled = false;
 
 export function enqueueEmail(to: string, subject: string, body: string, retries = 0): void {
   pool
-    .query('INSERT INTO email_queue (to, subject, body, retries, next_attempt) VALUES ($1,$2,$3,$4, now())', [
+    .query('INSERT INTO email_queue (recipient, subject, body, retries, next_attempt) VALUES ($1,$2,$3,$4, now())', [
       to,
       subject,
       body,
@@ -46,7 +46,7 @@ async function processQueue(): Promise<void> {
   try {
     while (true) {
       const res = await pool.query<EmailJob>(
-        'SELECT id, to, subject, body, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'
+        'SELECT id, recipient as to, subject, body, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'
       );
       if (res.rowCount === 0) break;
       const job = res.rows[0];

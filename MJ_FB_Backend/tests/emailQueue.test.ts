@@ -31,7 +31,7 @@ const db = {
       const job = [...jobs].sort((a, b) => a.next_attempt - b.next_attempt)[0];
       return { rows: [{ next_attempt: new Date(job.next_attempt) }], rowCount: 1 };
     }
-    if (sql.startsWith('SELECT id, to, subject')) {
+    if (sql.startsWith('SELECT id, recipient as to, subject')) {
       const now = Date.now();
       const job = jobs.filter((j) => j.next_attempt <= now).sort((a, b) => a.id - b.id)[0];
       if (!job) return { rows: [], rowCount: 0 };
