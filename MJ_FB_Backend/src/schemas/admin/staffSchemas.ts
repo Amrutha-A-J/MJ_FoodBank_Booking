@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from '../../utils/passwordUtils';
 
 export const staffAccessEnum = z.enum(['pantry','volunteer_management','warehouse','admin']);
 
@@ -7,12 +8,12 @@ export const createStaffSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().email(),
   access: z.array(staffAccessEnum).optional(),
+  password: passwordSchema.optional(),
 });
 
 export type CreateStaffInput = z.infer<typeof createStaffSchema>;
 
 export const updateStaffSchema = createStaffSchema.extend({
-  password: z.string().min(1).optional(),
   access: z.array(staffAccessEnum),
 });
 

@@ -34,6 +34,7 @@ describe('POST /staff (first staff member)', () => {
         lastName: 'Admin',
         email: 'harvestpantry@mjfoodbank.org',
         access: ['admin'],
+        password: 'Secret123!',
       });
 
     expect(res.status).toBe(201);

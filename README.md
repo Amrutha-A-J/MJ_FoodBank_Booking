@@ -115,11 +115,11 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
    ```bash
    curl -X POST http://localhost:4000/agencies \
      -H "Authorization: Bearer <staff-token>" \
-     -H "Content-Type: application/json" \
-     -d '{"name":"Sample Agency","email":"agency@example.com","password":"Secret123!","contactInfo":"123-4567"}'
-   ```
+    -H "Content-Type: application/json" \
+    -d '{"name":"Sample Agency","email":"agency@example.com","contactInfo":"123-4567"}'
+  ```
 
-   The endpoint hashes the password and returns the new agency ID. You can also create one directly in SQL if needed:
+   The endpoint emails a password setup link and returns the new agency ID. You can also create one directly in SQL if needed:
 
    ```bash
    node -e "console.log(require('bcrypt').hashSync('secret123', 10))"

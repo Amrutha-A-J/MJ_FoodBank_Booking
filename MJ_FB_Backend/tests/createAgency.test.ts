@@ -53,7 +53,7 @@ describe('POST /agencies', () => {
 
     const res = await request(app)
       .post('/agencies')
-      .send({ name: 'A', email: 'a@a.com' });
+      .send({ name: 'A', email: 'a@a.com', password: 'Secret123!' });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id', 5);

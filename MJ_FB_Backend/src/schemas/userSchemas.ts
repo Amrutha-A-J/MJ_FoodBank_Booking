@@ -49,6 +49,7 @@ export const createUserSchema = z
     clientId: z.coerce.number().int().min(1).max(9_999_999),
     role: z.enum(['shopper', 'delivery']),
     onlineAccess: z.boolean(),
+    password: passwordSchema.optional(),
   })
   .refine(
     data =>
@@ -69,9 +70,9 @@ export const updateUserSchema = z.object({
   onlineAccess: z.boolean().optional(),
   password: passwordSchema.optional(),
 }).refine(
-  data => !data.onlineAccess || (!!data.firstName && !!data.lastName && !!data.password),
+  data => !data.onlineAccess || (!!data.firstName && !!data.lastName),
   {
-    message: 'firstName, lastName and password required for online access',
+    message: 'firstName and lastName required for online access',
     path: ['onlineAccess'],
   },
 );
