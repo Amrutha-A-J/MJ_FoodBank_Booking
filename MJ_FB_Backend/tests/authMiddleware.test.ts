@@ -29,7 +29,7 @@ describe('authMiddleware', () => {
       rowCount: 1,
       rows: [
         {
-          id: 1,
+          client_id: 1,
           first_name: 'Test',
           last_name: 'User',
           email: 'test@example.com',
@@ -85,7 +85,7 @@ describe('optionalAuthMiddleware', () => {
       rowCount: 1,
       rows: [
         {
-          id: 2,
+          client_id: 2,
           first_name: 'Opt',
           last_name: 'User',
           email: 'opt@example.com',

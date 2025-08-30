@@ -5,9 +5,9 @@ import { searchVolunteers } from '../api/volunteers';
 import { searchAgencies } from '../api/agencies';
 import FeedbackSnackbar from './FeedbackSnackbar';
 interface SearchResultBase {
-  id: number | string;
+  id?: number | string;
   name: string;
-  client_id?: string;
+  client_id?: number | string;
 }
 
 interface EntitySearchProps<T extends SearchResultBase> {
@@ -88,7 +88,7 @@ export default function EntitySearch<T extends SearchResultBase>({
       {results.length > 0 ? (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {results.map(r => (
-            <li key={r.id}>
+            <li key={type === 'user' ? r.client_id : r.id}>
               {renderResult ? (
                 renderResult(r, () => handleSelect(r))
               ) : (

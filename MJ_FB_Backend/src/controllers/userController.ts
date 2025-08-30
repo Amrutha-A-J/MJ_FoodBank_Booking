@@ -21,30 +21,30 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           .json({ message: 'Client ID and password required' });
       }
       const userQuery = await pool.query(
-        `SELECT client_id as id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
+        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId]
       );
       if ((userQuery.rowCount ?? 0) === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const user = userQuery.rows[0];
-      if (!user.password) {
+      const userRow = userQuery.rows[0];
+      if (!userRow.password) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const match = await bcrypt.compare(password, user.password);
+      const match = await bcrypt.compare(password, userRow.password);
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       const bookingsRes = await pool.query(
         'SELECT bookings_this_month FROM clients WHERE client_id = $1',
-        [user.id],
+        [userRow.client_id],
       );
       const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
-      const payload: AuthPayload = { id: user.id, role: user.role, type: 'user' };
-      await issueAuthTokens(res, payload, `user:${user.id}`);
+      const payload: AuthPayload = { id: userRow.client_id, role: userRow.role, type: 'user' };
+      await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
       return res.json({
-        role: user.role,
-        name: `${user.first_name} ${user.last_name}`,
+        role: userRow.role,
+        name: `${userRow.first_name} ${userRow.last_name}`,
         bookingsThisMonth,
       });
     }
@@ -118,7 +118,7 @@ export async function sendRegistrationOtp(
 
   try {
     const clientRes = await pool.query(
-      'SELECT client_id as id, online_access FROM clients WHERE client_id = $1',
+      'SELECT client_id, online_access FROM clients WHERE client_id = $1',
       [clientId],
     );
     if ((clientRes.rowCount ?? 0) === 0) {
@@ -136,7 +136,7 @@ export async function sendRegistrationOtp(
       `INSERT INTO client_email_verifications (client_id, email, otp_hash, expires_at)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (client_id) DO UPDATE SET email = EXCLUDED.email, otp_hash = EXCLUDED.otp_hash, expires_at = EXCLUDED.expires_at`,
-      [clientRes.rows[0].id, email, otpHash, expiresAt],
+      [clientRes.rows[0].client_id, email, otpHash, expiresAt],
     );
 
     await sendEmail(
@@ -176,7 +176,7 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
   try {
     // Ensure client exists and has not registered yet
     const clientRes = await pool.query(
-      'SELECT client_id as id, online_access, role FROM clients WHERE client_id = $1',
+      'SELECT client_id, online_access, role FROM clients WHERE client_id = $1',
       [clientId],
     );
     if ((clientRes.rowCount ?? 0) === 0) {
@@ -190,7 +190,7 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
     // Verify OTP from the email verifications table
     const otpRes = await pool.query(
       'SELECT email, otp_hash, expires_at FROM client_email_verifications WHERE client_id = $1',
-      [existing.id],
+      [existing.client_id],
     );
     const record = otpRes.rows[0];
     if (
@@ -221,21 +221,21 @@ export async function registerUser(req: Request, res: Response, next: NextFuncti
       `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4, password = $5, online_access = true
        WHERE client_id = $6
-       RETURNING client_id as id, role, first_name, last_name`,
+       RETURNING client_id, role, first_name, last_name`,
       [firstName, lastName, email, phone || null, hashed, clientId],
     );
 
     await pool.query('DELETE FROM client_email_verifications WHERE client_id = $1', [
-      existing.id,
+      existing.client_id,
     ]);
 
     const updated = updateRes.rows[0];
     const payload: AuthPayload = {
-      id: updated.id,
+      id: updated.client_id,
       role: updated.role,
       type: 'user',
     };
-    await issueAuthTokens(res, payload, `user:${updated.id}`);
+    await issueAuthTokens(res, payload, `user:${updated.client_id}`);
 
     return res.json({
       role: updated.role,
@@ -336,7 +336,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
     }
 
     const usersResult = await pool.query(
-      `SELECT client_id as id, first_name, last_name, email, phone, client_id
+      `SELECT client_id, first_name, last_name, email, phone
        FROM clients
        WHERE (first_name || ' ' || last_name) ILIKE $1
           OR email ILIKE $1
@@ -348,7 +348,6 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
     );
 
     const formatted = usersResult.rows.map(u => ({
-      id: u.id,
       name: `${u.first_name} ${u.last_name}`.trim(),
       email: u.email,
       phone: u.phone,
@@ -366,7 +365,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params;
     const result = await pool.query(
-      `SELECT client_id as id, first_name, last_name, email, phone, client_id
+      `SELECT client_id, first_name, last_name, email, phone
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -375,7 +374,6 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
     }
     const row = result.rows[0];
     res.json({
-      id: row.id,
       firstName: row.first_name,
       lastName: row.last_name,
       email: row.email,
@@ -460,7 +458,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     }
 
     const result = await pool.query(
-      `SELECT client_id as id, first_name, last_name, email, phone, client_id, role, bookings_this_month
+      `SELECT client_id, first_name, last_name, email, phone, role, bookings_this_month
        FROM clients WHERE client_id = $1`,
       [user.id],
     );
@@ -469,7 +467,6 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     }
     const row = result.rows[0];
     return res.json({
-      id: row.id,
       firstName: row.first_name,
       lastName: row.last_name,
       email: row.email,
@@ -570,8 +567,8 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
       `UPDATE clients
        SET email = COALESCE($1, email),
            phone = COALESCE($2, phone)
-       WHERE id = $3
-       RETURNING id, first_name, last_name, email, phone, client_id, role, bookings_this_month`,
+       WHERE client_id = $3
+       RETURNING client_id, first_name, last_name, email, phone, role, bookings_this_month`,
       [email, phone, user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -579,7 +576,6 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
     }
     const row = result.rows[0];
     return res.json({
-      id: row.id,
       firstName: row.first_name,
       lastName: row.last_name,
       email: row.email,
@@ -601,13 +597,12 @@ export async function listUsersMissingInfo(
 ) {
   try {
     const result = await pool.query(
-      `SELECT client_id as id, client_id, first_name, last_name, email, phone, profile_link
+      `SELECT client_id, first_name, last_name, email, phone, profile_link
        FROM clients
        WHERE first_name IS NULL AND last_name IS NULL
        ORDER BY client_id ASC`,
     );
     const users = result.rows.map(row => ({
-      id: row.id,
       clientId: row.client_id,
       firstName: row.first_name,
       lastName: row.last_name,
@@ -664,7 +659,7 @@ export async function updateUserByClientId(
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
              online_access = true, password = $5
          WHERE client_id = $6
-         RETURNING client_id as id, client_id, first_name, last_name, email, phone, profile_link`,
+         RETURNING client_id, first_name, last_name, email, phone, profile_link`,
         [
           firstName,
           lastName,
@@ -679,7 +674,6 @@ export async function updateUserByClientId(
       }
       const row = result.rows[0];
       return res.json({
-        id: row.id,
         clientId: row.client_id,
         firstName: row.first_name,
         lastName: row.last_name,
@@ -693,7 +687,7 @@ export async function updateUserByClientId(
       `UPDATE clients
        SET first_name = $1, last_name = $2, email = $3, phone = $4
        WHERE client_id = $5
-       RETURNING client_id as id, client_id, first_name, last_name, email, phone, profile_link`,
+       RETURNING client_id, first_name, last_name, email, phone, profile_link`,
       [firstName, lastName, email || null, phone || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -701,7 +695,6 @@ export async function updateUserByClientId(
     }
     const row = result.rows[0];
     res.json({
-      id: row.id,
       clientId: row.client_id,
       firstName: row.first_name,
       lastName: row.last_name,

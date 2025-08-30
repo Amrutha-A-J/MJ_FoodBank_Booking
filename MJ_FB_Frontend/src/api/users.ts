@@ -172,7 +172,6 @@ export async function getUserByClientId(clientId: string) {
 }
 
 export interface IncompleteUser {
-  id: number;
   clientId: number;
   firstName: string | null;
   lastName: string | null;

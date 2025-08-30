@@ -39,7 +39,6 @@ import Page from '../../../components/Page';
 const TIMEZONE = 'America/Regina';
 
 interface User {
-  id: number;
   name: string;
   client_id: number;
 }
@@ -91,7 +90,7 @@ export default function UserHistory({
       userId?: number;
       includeVisits?: boolean;
     } = { includeVisits: true };
-    if (!initialUser) opts.userId = selected.id;
+    if (!initialUser) opts.userId = selected.client_id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     return getBookingHistory(opts)
@@ -111,11 +110,10 @@ export default function UserHistory({
 
   useEffect(() => {
     if (initialUser) return;
-    const id = searchParams.get('id');
     const name = searchParams.get('name');
     const clientId = searchParams.get('clientId');
-    if (id && name && clientId) {
-      setSelected({ id: Number(id), name, client_id: Number(clientId) });
+    if (name && clientId) {
+      setSelected({ name, client_id: Number(clientId) });
     }
   }, [searchParams, initialUser]);
 

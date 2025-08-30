@@ -43,7 +43,7 @@ interface Booking {
 }
 
 interface User {
-  id: number;
+  client_id: number;
   name: string;
   email: string;
 }
@@ -136,7 +136,7 @@ export default function PantrySchedule({
     try {
       setAssignMessage('');
       await createBookingForUser(
-        user.id,
+        user.client_id,
         parseInt(assignSlot.id),
         formatDate(currentDate),
         true
@@ -405,7 +405,7 @@ export default function PantrySchedule({
                 />
                 <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
                   {userResults.map(u => (
-                    <li key={u.id} style={{ marginBottom: 4 }}>
+                    <li key={u.client_id} style={{ marginBottom: 4 }}>
                       {u.name} ({u.email})
                       <Button
                         style={{ marginLeft: 4 }}

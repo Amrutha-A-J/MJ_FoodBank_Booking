@@ -68,12 +68,12 @@ async function authenticate(req: Request): Promise<AuthResult> {
 
       if (type === 'user') {
         const userRes = await pool.query(
-          'SELECT client_id as id, first_name, last_name, email, role, phone FROM clients WHERE client_id = $1',
+          'SELECT client_id, first_name, last_name, email, role, phone FROM clients WHERE client_id = $1',
           [id],
         );
         if ((userRes.rowCount ?? 0) > 0) {
           const user: AuthUser = {
-            id: userRes.rows[0].id.toString(),
+            id: userRes.rows[0].client_id.toString(),
             type: 'user',
             role,
             email: userRes.rows[0].email,

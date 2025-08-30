@@ -27,7 +27,6 @@ import Page from '../../components/Page';
 const TIMEZONE = 'America/Regina';
 
 interface User {
-  id: number;
   name: string;
   client_id: number;
 }
@@ -62,8 +61,7 @@ export default function ClientHistory() {
       .then(data => {
         const mapped = Array.isArray(data)
           ? data.map((c: any) => ({
-              id: c.id ?? c.client_id,
-              client_id: c.id ?? c.client_id,
+              client_id: c.client_id,
               name:
                 c.name ??
                 c.client_name ??
@@ -89,13 +87,13 @@ export default function ClientHistory() {
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
-    const opts: {
+      const opts: {
       status?: string;
       past?: boolean;
       userId?: number;
       includeVisits?: boolean;
     } = {
-      userId: selected.id,
+      userId: selected.client_id,
       includeVisits: true,
     };
     if (filter === 'past') opts.past = true;
