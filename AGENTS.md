@@ -46,6 +46,7 @@
 - Users see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
 - The volunteer dashboard shows a monthly contribution line chart of shift counts.
+- Self-service client registration with email OTP verification is implemented but currently disabled.
 
 ## Project Layout
 
