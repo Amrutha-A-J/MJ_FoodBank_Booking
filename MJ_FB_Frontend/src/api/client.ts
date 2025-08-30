@@ -1,7 +1,13 @@
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
-  (globalThis as any).VITE_API_BASE ||
-  'http://localhost:4000';
+  (globalThis as any).VITE_API_BASE;
+
+if (!API_BASE) {
+  const message =
+    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000)';
+  console.error(message);
+  throw new Error(message);
+}
 
 function getCsrfToken() {
   return document.cookie
