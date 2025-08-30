@@ -96,7 +96,7 @@ const AgencyBookAppointment = React.lazy(() =>
 const Spinner = () => <CircularProgress />;
 
 export default function App() {
-  const { token, role, name, userRole, access, login, logout } = useAuth();
+  const { token, ready, role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff';
@@ -421,6 +421,8 @@ export default function App() {
             </Routes>
             </Suspense>
           </MainLayout>
+        ) : !ready ? (
+          <Spinner />
         ) : (
           <>
             <Navbar {...navbarProps} />
