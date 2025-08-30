@@ -485,19 +485,6 @@ export async function getVolunteerGroupStats(): Promise<VolunteerGroupStats> {
   return handleResponse(res);
 }
 
-export interface VolunteerNoShowRanking {
-  id: number;
-  name: string;
-  totalBookings: number;
-  noShows: number;
-  noShowRate: number;
-}
-
-export async function getVolunteerNoShowRanking(): Promise<VolunteerNoShowRanking[]> {
-  const res = await apiFetch(`${API_BASE}/volunteer-stats/no-show-ranking`);
-  return handleResponse(res);
-}
-
 export async function awardVolunteerBadge(badgeCode: string): Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteers/me/badges`, {
     method: 'POST',
