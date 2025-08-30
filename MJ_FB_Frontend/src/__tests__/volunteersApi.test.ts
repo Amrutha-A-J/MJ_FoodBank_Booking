@@ -4,6 +4,8 @@ import {
   updateVolunteerTrainedAreas,
   getVolunteerMasterRoles,
   getMyRecurringVolunteerBookings,
+  updateVolunteerBookingStatus,
+  cancelVolunteerBooking,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -48,5 +50,38 @@ describe('volunteers api', () => {
   it('fetches recurring volunteer bookings', async () => {
     await getMyRecurringVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
+  });
+
+  it('updates volunteer booking status with reason', async () => {
+    await updateVolunteerBookingStatus(7, 'cancelled', 'sick');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/7',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'cancelled', reason: 'sick' }),
+      }),
+    );
+  });
+
+  it('updates volunteer booking status to completed', async () => {
+    await updateVolunteerBookingStatus(7, 'completed');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/7',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'completed' }),
+      }),
+    );
+  });
+
+  it('cancels volunteer booking with reason', async () => {
+    await cancelVolunteerBooking(10, 'sick');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/10/cancel',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ reason: 'sick' }),
+      }),
+    );
   });
 });

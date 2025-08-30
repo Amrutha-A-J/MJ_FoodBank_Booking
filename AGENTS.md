@@ -340,6 +340,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
 
+Volunteer booking statuses include `completed`, and cancellations must include a reason.
+
 ### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
 - `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`
 - `GET /volunteer-bookings/recurring` → `[ { id, role_id, start_date, end_date, pattern, days_of_week } ]`

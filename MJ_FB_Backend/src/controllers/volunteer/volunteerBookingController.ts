@@ -13,6 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'gray',
   no_show: 'red',
   expired: 'gray',
+  completed: 'green',
 };
 
 function statusColor(status: string) {
@@ -570,11 +571,11 @@ export async function updateVolunteerBookingStatus(
   next: NextFunction,
 ) {
   const { id } = req.params;
-  const { status } = req.body as { status?: string };
-  if (!status || !['cancelled', 'no_show', 'expired'].includes(status)) {
+  const { status, reason } = req.body as { status?: string; reason?: string };
+  if (!status || !['cancelled', 'no_show', 'expired', 'completed'].includes(status)) {
     return res
       .status(400)
-      .json({ message: 'Status must be cancelled, no_show or expired' });
+      .json({ message: 'Status must be cancelled, no_show, expired or completed' });
   }
 
   try {
@@ -588,6 +589,9 @@ export async function updateVolunteerBookingStatus(
     const booking = bookingRes.rows[0];
 
     if (status === 'cancelled') {
+      if (!reason) {
+        return res.status(400).json({ message: 'Reason is required when cancelling' });
+      }
       const bookingDate = new Date(reginaStartOfDayISO(booking.date));
       const today = new Date(reginaStartOfDayISO(new Date()));
       if (booking.status === 'cancelled') {
@@ -599,9 +603,9 @@ export async function updateVolunteerBookingStatus(
     }
 
     const updateRes = await pool.query(
-      `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
-       RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
-      [status, id]
+      `UPDATE volunteer_bookings SET status=$1, reason=$3 WHERE id=$2
+       RETURNING id, slot_id, volunteer_id, date, status, recurring_id, reason`,
+      [status, id, status === 'cancelled' ? reason : null]
     );
     const updated = updateRes.rows[0];
     updated.role_id = updated.slot_id;
@@ -883,6 +887,8 @@ export async function cancelVolunteerBookingOccurrence(
   next: NextFunction,
 ) {
   const { id } = req.params;
+  const { reason } = req.body as { reason?: string };
+  const cancelReason = reason || 'volunteer_cancelled';
   try {
     const bookingRes = await pool.query(
       `SELECT id, slot_id, volunteer_id, date, status, recurring_id
@@ -902,8 +908,8 @@ export async function cancelVolunteerBookingOccurrence(
       return res.status(400).json({ message: 'Booking already occurred' });
     }
     await pool.query(
-      `UPDATE volunteer_bookings SET status='cancelled' WHERE id=$1`,
-      [id],
+      `UPDATE volunteer_bookings SET status='cancelled', reason=$2 WHERE id=$1`,
+      [id, cancelReason],
     );
     const volunteerRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [
       booking.volunteer_id,
@@ -937,6 +943,7 @@ export async function cancelVolunteerBookingOccurrence(
     delete booking.slot_id;
     booking.status_color = statusColor(booking.status);
     booking.date = dateStr;
+    booking.reason = cancelReason;
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);

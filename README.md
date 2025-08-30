@@ -47,7 +47,8 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Volunteer dashboard groups badges, lifetime hours, this month's hours, total shifts, and current streak into a single stats card.
 - Volunteer search results display profile details, role editor, and booking history side by side in a card layout.
 - Volunteer role assignment uses a simple dropdown without search capability.
- - Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
+- Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
+- Volunteer booking statuses include `completed`, and cancelling a booking now requires a reason.
 - Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
 - Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Volunteer Settings page's **Restore Original Roles & Shifts** button.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
