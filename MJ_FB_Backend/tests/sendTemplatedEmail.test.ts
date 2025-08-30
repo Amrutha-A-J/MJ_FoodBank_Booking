@@ -2,13 +2,24 @@ import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 describe('sendTemplatedEmail', () => {
   const originalFetch = global.fetch;
+  const {
+    BREVO_API_KEY: originalApiKey,
+    BREVO_FROM_EMAIL: originalFromEmail,
+    BREVO_FROM_NAME: originalFromName,
+  } = process.env;
 
   beforeEach(() => {
     global.fetch = jest.fn().mockResolvedValue({});
+    process.env.BREVO_API_KEY = 'test-key';
+    process.env.BREVO_FROM_EMAIL = 'from@example.com';
+    process.env.BREVO_FROM_NAME = 'Test Sender';
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
+    process.env.BREVO_API_KEY = originalApiKey;
+    process.env.BREVO_FROM_EMAIL = originalFromEmail;
+    process.env.BREVO_FROM_NAME = originalFromName;
     jest.resetAllMocks();
   });
 
