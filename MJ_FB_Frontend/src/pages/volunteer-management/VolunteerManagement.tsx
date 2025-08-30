@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
-  cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   searchVolunteers,
   getVolunteerBookingHistory,
@@ -12,7 +11,6 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-  rescheduleVolunteerBookingByToken,
 } from '../../api/volunteers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
@@ -20,11 +18,10 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
-import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import PageCard from '../../components/layout/PageCard';
 import {
-  Box,
   Button,
   TextField,
   FormControl,
@@ -154,9 +151,7 @@ export default function VolunteerManagement() {
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
   const [confirmAssign, setConfirmAssign] = useState<VolunteerResult | null>(null);
-  const [decisionBooking, setDecisionBooking] =
-    useState<VolunteerBookingDetail | null>(null);
-  const [rescheduleBooking, setRescheduleBooking] =
+  const [manageShift, setManageShift] =
     useState<VolunteerBookingDetail | null>(null);
   const [cancelRecurringBooking, setCancelRecurringBooking] =
     useState<VolunteerBookingDetail | null>(null);
@@ -282,23 +277,6 @@ export default function VolunteerManagement() {
     }
   }, [tab, searchParams, selectedVolunteer]);
 
-  async function decide(id: number) {
-    try {
-      await cancelVolunteerBooking(id);
-      setMessage('Booking cancelled');
-      if (selectedRole) {
-        const ids = nameToSlotIds.get(selectedRole) || [];
-        const data = await Promise.all(
-          ids.map(rid => getVolunteerBookingsByRole(rid))
-        );
-        setBookings(data.flat());
-      }
-    } catch (e) {
-      setSnackbarSeverity('error');
-      setMessage(e instanceof Error ? e.message : String(e));
-    }
-  }
-
   async function cancelRecurring(id: number) {
     try {
       await cancelRecurringVolunteerBooking(id);
@@ -319,27 +297,30 @@ export default function VolunteerManagement() {
     }
   }
 
-  async function handleReschedule(date: string, roleId: number) {
-    if (!rescheduleBooking) return;
-    try {
-      await rescheduleVolunteerBookingByToken(
-        rescheduleBooking.reschedule_token || '',
-        roleId,
-        date,
-      );
-      setMessage('Booking rescheduled');
-      if (selectedRole) {
+  async function handleManageUpdated(
+    msg: string,
+    severity: 'success' | 'error' | 'info' | 'warning',
+  ) {
+    setSnackbarSeverity(severity);
+    setMessage(msg);
+    if (selectedRole) {
+      try {
         const ids = nameToSlotIds.get(selectedRole) || [];
         const data = await Promise.all(
-          ids.map(rid => getVolunteerBookingsByRole(rid))
+          ids.map(rid => getVolunteerBookingsByRole(rid)),
         );
         setBookings(data.flat());
+      } catch {
+        // ignore
       }
-    } catch (e) {
-      setSnackbarSeverity('error');
-      setMessage('Failed to reschedule booking');
-    } finally {
-      setRescheduleBooking(null);
+    }
+    if (selectedVolunteer) {
+      try {
+        const data = await getVolunteerBookingHistory(selectedVolunteer.id);
+        setHistory(data);
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -595,7 +576,7 @@ export default function VolunteerManagement() {
               backgroundColor: booking ? approvedColor : undefined,
               onClick: () => {
                 if (booking) {
-                  setDecisionBooking({ ...booking, can_book: canBook });
+                  setManageShift(booking);
                 } else {
                   setAssignSlot(role);
                   setAssignSearch('');
@@ -765,20 +746,12 @@ export default function VolunteerManagement() {
                               {h.status === 'approved' && (
                                 <>
                                   <Button
-                                    onClick={() => setRescheduleBooking(h)}
+                                    onClick={() => setManageShift(h)}
                                     variant="outlined"
                                     color="primary"
                                     size="small"
                                   >
-                                    Reschedule
-                                  </Button>{' '}
-                                  <Button
-                                    onClick={() => decide(h.id)}
-                                    variant="outlined"
-                                    color="primary"
-                                    size="small"
-                                  >
-                                    Cancel
+                                    Manage
                                   </Button>
                                   {h.recurring_id && (
                                     <>
@@ -1060,62 +1033,12 @@ export default function VolunteerManagement() {
         </div>
       )}
 
-      {decisionBooking && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 320 }}>
-            <h4>Manage Booking</h4>
-            <p>{`Reschedule or cancel booking for ${decisionBooking.volunteer_name}?`}</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              <Button
-                onClick={() => {
-                  setRescheduleBooking(decisionBooking);
-                  setDecisionBooking(null);
-                }}
-                variant="outlined"
-                color="primary"
-              >
-                Reschedule
-              </Button>
-              <Button
-                onClick={() => {
-                  decide(decisionBooking.id);
-                  setDecisionBooking(null);
-                }}
-                variant="outlined"
-                color="primary"
-              >
-                Cancel Booking
-              </Button>
-              <Button
-                onClick={() => setDecisionBooking(null)}
-                variant="outlined"
-                color="primary"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {rescheduleBooking && (
-        <RescheduleDialog
-          open={!!rescheduleBooking}
-          onClose={() => setRescheduleBooking(null)}
-          onSubmit={handleReschedule}
-        />
-      )}
+      <ManageVolunteerShiftDialog
+        open={!!manageShift}
+        booking={manageShift as VolunteerBookingDetail}
+        onClose={() => setManageShift(null)}
+        onUpdated={handleManageUpdated}
+      />
     </Page>
   );
 }
