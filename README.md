@@ -27,7 +27,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
 - After setting a password, users are redirected to the login page for their role.
 - `POST /auth/resend-password-setup` reissues this link when the original token expires. Requests are rate limited by email or client ID.
-- Users see a random appreciation message on each login with a link to download their card when available.
+- Volunteers see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
 - Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict`.

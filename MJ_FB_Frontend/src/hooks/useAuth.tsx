@@ -139,7 +139,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else localStorage.removeItem('id');
       localStorage.removeItem('encouragementOrder');
       localStorage.removeItem('encouragementIndex');
-      setSessionMessage(getRandomAppreciation());
+      setSessionMessage(
+        u.role === 'volunteer' ? getRandomAppreciation() : '',
+      );
       try {
         const statsRes = await apiFetch(`${API_BASE}/stats`);
         if (statsRes.ok) {
