@@ -3,7 +3,7 @@ import { Queryable } from './bookingRepository';
 
 export async function insertNewClient(
   name: string,
-  email: string,
+  email: string | null,
   phone: string | null,
   client: Queryable = pool,
 ) {

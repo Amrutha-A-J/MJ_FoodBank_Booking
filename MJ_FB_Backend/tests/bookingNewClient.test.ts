@@ -60,4 +60,29 @@ describe('POST /bookings/new-client', () => {
       expect.any(Object),
     );
   });
+
+  it('creates booking without email', async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await request(app)
+      .post('/bookings/new-client')
+      .send({ name: 'No Email', phone: '123', slotId: 1, date: today });
+    expect(res.status).toBe(201);
+    expect(newClientModel.insertNewClient).toHaveBeenCalledWith(
+      'No Email',
+      null,
+      '123',
+      expect.any(Object),
+    );
+    expect(bookingRepository.insertBooking).toHaveBeenCalledWith(
+      null,
+      1,
+      'approved',
+      '',
+      today,
+      false,
+      expect.any(String),
+      1,
+      expect.any(Object),
+    );
+  });
 });

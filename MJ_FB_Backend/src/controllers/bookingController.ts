@@ -563,10 +563,10 @@ export async function createBookingForNewClient(
 ) {
   try {
     const { name, email, phone, slotId, date } = req.body;
-    if (!name || !email || !slotId || !date) {
+    if (!name || !slotId || !date) {
       return res
         .status(400)
-        .json({ message: 'Please provide name, email, time slot, and date' });
+        .json({ message: 'Please provide name, time slot, and date' });
     }
 
     if (!isValidDateString(date)) {
@@ -581,7 +581,7 @@ export async function createBookingForNewClient(
     try {
       await client.query('BEGIN');
       await checkSlotCapacity(Number(slotId), date, client);
-      const newClientId = await insertNewClient(name, email, phone || null, client);
+      const newClientId = await insertNewClient(name, email || null, phone || null, client);
       const token = randomUUID();
       await insertBooking(
         null,
