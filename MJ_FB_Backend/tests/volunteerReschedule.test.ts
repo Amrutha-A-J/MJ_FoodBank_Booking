@@ -28,40 +28,21 @@ describe('rescheduleVolunteerBooking', () => {
 
   it('keeps status approved when volunteer reschedules an approved booking', async () => {
     const booking = { id: 1, volunteer_id: 2, status: 'approved' };
-      (pool.query as jest.Mock)
-        .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5 }] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
-        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
-        .mockResolvedValueOnce({});
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5, start_time: '09:00', end_time: '12:00' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
+      .mockResolvedValueOnce({});
 
     const res = await request(app)
       .post('/volunteer-bookings/reschedule/token123')
       .send({ roleId: 4, date: '2025-09-01' });
 
     expect(res.status).toBe(200);
-    const updateCall = (pool.query as jest.Mock).mock.calls[5];
-    expect(updateCall[1][3]).toBe('approved');
-  });
-
-  it('sets status to pending when staff reschedules', async () => {
-    const booking = { id: 1, volunteer_id: 2, status: 'approved' };
-      (pool.query as jest.Mock)
-        .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5 }] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
-        .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
-        .mockResolvedValueOnce({});
-
-    const res = await request(app)
-      .post('/volunteer-bookings/reschedule/token123')
-      .set('x-staff', 'true')
-      .send({ roleId: 4, date: '2025-09-01' });
-
-    expect(res.status).toBe(200);
-      const updateCall = (pool.query as jest.Mock).mock.calls[5];
-    expect(updateCall[1][3]).toBe('pending');
+    const updateCall = (pool.query as jest.Mock).mock.calls[6];
+    expect(updateCall[0]).toContain("status='approved'");
   });
 });

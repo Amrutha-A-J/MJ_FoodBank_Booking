@@ -209,7 +209,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **volunteer_slots** – PK `slot_id`; FK `role_id` → `volunteer_roles.id` (cascade); tracks `max_volunteers`, `is_wednesday_slot`, `is_active`.
 - **volunteers** – PK `id`; unique `username`.
 - **volunteer_trained_roles** – composite PK `(volunteer_id, role_id)`; FK `volunteer_id` → `volunteers.id` (cascade); FK `role_id` → `volunteer_roles.id` (cascade); FK `category_id` → `volunteer_master_roles.id`.
-- **volunteer_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); `status` in `pending|approved|rejected|cancelled`; includes `reschedule_token`.
+- **volunteer_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); `status` in `approved|rejected|cancelled|no_show|expired`; includes `reschedule_token`.
 - **volunteer_recurring_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); includes `start_date`, optional `end_date`, `pattern` (`daily|weekly`), `days_of_week` array, and an `active` flag.
 
 ## Volunteer Management
@@ -421,9 +421,8 @@ Volunteer management coordinates role-based staffing for the food bank.
 - **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display *Booked* or *Available* and clicking an available cell creates a request in `volunteer_bookings`. Past dates are disabled and same-day shifts that have already started are omitted.
 - The Volunteer Dashboard's **Available in My Roles** list excludes shifts the volunteer has already requested or booked and shows server-provided error messages when a booking attempt fails.
 - Volunteer and pantry schedules follow the same grid logic. The y‑axis lists shift times and the x‑axis lists sequential slot numbers up to each shift's `max_volunteers`. When a volunteer requests a shift, their booking occupies the first open slot. Pending requests highlight (e.g., yellow) and staff approve by clicking the cell, mirroring the shopping appointment schedule.
-- **BookingHistory** shows a volunteer's pending and upcoming bookings with Cancel and Reschedule options.
-- **CoordinatorDashboard** is the staff view using `VolunteerScheduleTable`. Staff see volunteer names for booked cells, approve/reject/reschedule pending requests, and cancel or reschedule approved bookings. Staff can also search volunteers, assign them to roles, and update trained areas.
-- Approving a pending volunteer booking removes it from the Pending page immediately.
+- **BookingHistory** shows a volunteer's upcoming bookings with Cancel and Reschedule options.
+- **CoordinatorDashboard** is the staff view using `VolunteerScheduleTable`. Staff see volunteer names for booked cells and can cancel or reschedule bookings. Staff can also search volunteers, assign them to roles, and update trained areas.
 - The volunteer search page shows the selected volunteer's profile and role editor alongside their booking history in a two-column card layout.
 - Role selection in the volunteer search role editor uses a simple dropdown without search.
 - These workflows rely on `volunteer_slots`, `volunteer_roles`, `volunteer_master_roles`, `volunteer_bookings`, `volunteers`, and `volunteer_trained_roles`. Training records in `volunteer_trained_roles` restrict which roles a volunteer can book.

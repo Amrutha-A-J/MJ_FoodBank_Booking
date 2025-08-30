@@ -7,7 +7,6 @@ import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBoo
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'light orange',
   approved: 'green',
   rejected: 'red',
   cancelled: 'gray',
@@ -42,7 +41,7 @@ export async function createVolunteerBooking(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -74,16 +73,35 @@ export async function createVolunteerBooking(
 
     const existingRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
       [roleId, date, user.id]
     );
     if ((existingRes.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
+    const overlapRes = await pool.query(
+      `SELECT vb.id, vs.start_time, vs.end_time
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved'
+         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+      [user.id, date, slot.start_time, slot.end_time]
+    );
+    if ((overlapRes.rowCount ?? 0) > 0) {
+      return res.status(409).json({
+        message: 'Booking overlaps an existing shift',
+        overlap: overlapRes.rows.map((r: any) => ({
+          id: r.id,
+          start_time: r.start_time,
+          end_time: r.end_time,
+        })),
+      });
+    }
+
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
       [roleId, date]
     );
     if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
@@ -92,16 +110,16 @@ export async function createVolunteerBooking(
 
     const token = randomUUID();
     const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+       VALUES ($1, $2, $3, 'approved', $4)
        RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
       [roleId, user.id, date, token]
     );
 
     await sendEmail(
       user.email || 'test@example.com',
-      'Volunteer booking request received',
-      `Volunteer booking request for role ${roleId} on ${date}`,
+      'Volunteer booking confirmed',
+      `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
     );
 
     const booking = insertRes.rows[0];
@@ -137,7 +155,7 @@ export async function createVolunteerBookingForVolunteer(
 
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -169,16 +187,35 @@ export async function createVolunteerBookingForVolunteer(
 
     const existingRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
       [roleId, date, volunteerId]
     );
     if ((existingRes.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
+    const overlapRes = await pool.query(
+      `SELECT vb.id, vs.start_time, vs.end_time
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
+         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+      [volunteerId, date, slot.start_time, slot.end_time]
+    );
+    if ((overlapRes.rowCount ?? 0) > 0) {
+      return res.status(409).json({
+        message: 'Booking overlaps an existing shift',
+        overlap: overlapRes.rows.map((r: any) => ({
+          id: r.id,
+          start_time: r.start_time,
+          end_time: r.end_time,
+        })),
+      });
+    }
+
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND status = 'approved'`,
+       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
       [roleId, date]
     );
     if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
@@ -327,19 +364,11 @@ export async function updateVolunteerBookingStatus(
   next: NextFunction,
 ) {
   const { id } = req.params;
-  const { status, reason } = req.body as {
-    status?: string;
-    reason?: string;
-  };
-  if (!status || !['approved', 'rejected', 'cancelled'].includes(status)) {
+  const { status } = req.body as { status?: string };
+  if (!status || !['cancelled', 'no_show', 'expired'].includes(status)) {
     return res
       .status(400)
-      .json({ message: 'Status must be approved, rejected or cancelled' });
-  }
-  if (status === 'rejected' && !reason) {
-    return res
-      .status(400)
-      .json({ message: 'Reason required for rejection' });
+      .json({ message: 'Status must be cancelled, no_show or expired' });
   }
 
   try {
@@ -352,27 +381,7 @@ export async function updateVolunteerBookingStatus(
     }
     const booking = bookingRes.rows[0];
 
-    if (status === 'approved') {
-      if (booking.status !== 'pending') {
-        return res.status(400).json({ message: 'Booking already processed' });
-      }
-      const roleRes = await pool.query(
-        `SELECT max_volunteers FROM volunteer_slots WHERE slot_id=$1`,
-        [booking.slot_id]
-      );
-      const countRes = await pool.query(
-        `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE slot_id=$1 AND date=$2 AND status='approved'`,
-        [booking.slot_id, booking.date]
-      );
-      if (Number(countRes.rows[0].count) >= roleRes.rows[0].max_volunteers) {
-        return res.status(400).json({ message: 'Role is full' });
-      }
-    } else if (status === 'rejected') {
-      if (booking.status !== 'pending') {
-        return res.status(400).json({ message: 'Booking already processed' });
-      }
-    } else if (status === 'cancelled') {
+    if (status === 'cancelled') {
       const bookingDate = new Date(reginaStartOfDayISO(booking.date));
       const today = new Date(reginaStartOfDayISO(new Date()));
       if (booking.status === 'cancelled') {
@@ -384,9 +393,9 @@ export async function updateVolunteerBookingStatus(
     }
 
     const updateRes = await pool.query(
-      `UPDATE volunteer_bookings SET status=$1, reason=$2 WHERE id=$3
+      `UPDATE volunteer_bookings SET status=$1 WHERE id=$2
        RETURNING id, slot_id, volunteer_id, date, status, recurring_id`,
-      [status, reason || null, id]
+      [status, id]
     );
     const updated = updateRes.rows[0];
     updated.role_id = updated.slot_id;
@@ -429,7 +438,7 @@ export async function rescheduleVolunteerBooking(
     const booking = bookingRes.rows[0];
 
     const slotRes = await pool.query(
-      `SELECT role_id, max_volunteers
+      `SELECT role_id, max_volunteers, start_time, end_time
        FROM volunteer_slots
        WHERE slot_id = $1 AND is_active`,
       [roleId],
@@ -449,16 +458,41 @@ export async function rescheduleVolunteerBooking(
 
     const existingRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved') AND id <> $4`,
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved' AND id <> $4`,
       [roleId, date, booking.volunteer_id, booking.id]
     );
     if ((existingRes.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
+    const overlapRes = await pool.query(
+      `SELECT vb.id, vs.start_time, vs.end_time
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved' AND vb.id <> $5
+         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+      [
+        booking.volunteer_id,
+        date,
+        slot.start_time,
+        slot.end_time,
+        booking.id,
+      ],
+    );
+    if ((overlapRes.rowCount ?? 0) > 0) {
+      return res.status(409).json({
+        message: 'Booking overlaps an existing shift',
+        overlap: overlapRes.rows.map((r: any) => ({
+          id: r.id,
+          start_time: r.start_time,
+          end_time: r.end_time,
+        })),
+      });
+    }
+
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
       [roleId, date],
     );
     if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
@@ -466,12 +500,9 @@ export async function rescheduleVolunteerBooking(
     }
 
     const newToken = randomUUID();
-    const isStaffReschedule = req.user && (req.user as any).role === 'staff';
-    const newStatus =
-      booking.status === 'approved' && !isStaffReschedule ? 'approved' : 'pending';
     await pool.query(
-      'UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status=$4, reason=NULL WHERE id=$5',
-      [roleId, date, newToken, newStatus, booking.id],
+      "UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status='approved', reason=NULL WHERE id=$4",
+      [roleId, date, newToken, booking.id],
     );
     await sendEmail(
       'test@example.com',
@@ -500,7 +531,7 @@ export async function createRecurringVolunteerBooking(
   }
   try {
     const slotRes = await pool.query(
-      `SELECT vs.role_id, vs.max_volunteers, vmr.name AS category_name
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
        FROM volunteer_slots vs
        JOIN volunteer_roles vr ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
@@ -559,7 +590,7 @@ export async function createRecurringVolunteerBooking(
 
       const countRes = await pool.query(
         `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND status IN ('pending','approved')`,
+         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
         [roleId, date],
       );
       if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
@@ -569,7 +600,7 @@ export async function createRecurringVolunteerBooking(
 
       const existingRes = await pool.query(
         `SELECT 1 FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status IN ('pending','approved')`,
+         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
         [roleId, date, user.id],
       );
       if ((existingRes.rowCount ?? 0) > 0) {
@@ -577,10 +608,23 @@ export async function createRecurringVolunteerBooking(
         continue;
       }
 
+      const overlapRes = await pool.query(
+        `SELECT vb.id, vs.start_time, vs.end_time
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
+           AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+        [user.id, date, slot.start_time, slot.end_time],
+      );
+      if ((overlapRes.rowCount ?? 0) > 0) {
+        skipped.push({ date, reason: 'Overlapping booking' });
+        continue;
+      }
+
       const token = randomUUID();
       await pool.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, reschedule_token, recurring_id)
-         VALUES ($1,$2,$3,$4,$5)`,
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+         VALUES ($1,$2,$3,'approved',$4,$5)`,
         [roleId, user.id, date, token, recurringId],
       );
       successes.push(date);
