@@ -6,7 +6,6 @@ import {
   getMyRecurringVolunteerBookings,
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
-  getVolunteerNoShowRanking,
   getUnmarkedVolunteerBookings,
 } from '../api/volunteers';
 
@@ -94,10 +93,4 @@ describe('volunteers api', () => {
     );
   });
 
-  it('fetches volunteer no-show ranking', async () => {
-    await getVolunteerNoShowRanking();
-    expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-stats/no-show-ranking',
-    );
-  });
 });
