@@ -690,6 +690,13 @@ export async function getBookingHistory(
     const limit = limitParam ? Number(limitParam) : undefined;
     const offset = offsetParam ? Number(offsetParam) : undefined;
 
+    if (limitParam !== undefined && Number.isNaN(limit)) {
+      return res.status(400).json({ message: 'Invalid limit' });
+    }
+    if (offsetParam !== undefined && Number.isNaN(offset)) {
+      return res.status(400).json({ message: 'Invalid offset' });
+    }
+
     const rows = await repoFetchBookingHistory(
       userIds,
       past,
