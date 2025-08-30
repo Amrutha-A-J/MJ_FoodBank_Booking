@@ -26,6 +26,8 @@ import {
   Checkbox,
   FormControlLabel,
   Typography,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import { formatDate } from '../../utils/date';
@@ -45,6 +47,7 @@ export default function VolunteerRecurringBookings() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
+  const [tab, setTab] = useState(0);
 
   const roleMap = new Map(roles.map(r => [r.id, r]));
 
@@ -124,119 +127,131 @@ export default function VolunteerRecurringBookings() {
 
   return (
     <Page title="Recurring Bookings">
-      <Box component="form" onSubmit={submit} sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
-        <FormControl size="small">
-          <InputLabel id="role-label">Role</InputLabel>
-          <Select labelId="role-label" value={selectedRole} label="Role" onChange={e => setSelectedRole(e.target.value as string)}>
-            <MenuItem value="">Select role</MenuItem>
-            {Array.from(groupedRoles.values()).flatMap(g => [
-              <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
-              ...g.roles.map(r => (
-                <MenuItem key={r.id} value={r.id}>
-                  {r.name} ({formatTime(r.start_time)}–{formatTime(r.end_time)})
-                </MenuItem>
-              )),
-            ])}
-          </Select>
-        </FormControl>
-        <TextField
-          label="Start date"
-          type="date"
-          size="small"
-          value={startDate}
-          onChange={e => setStartDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <FormControl size="small">
-          <InputLabel id="freq-label">Frequency</InputLabel>
-          <Select labelId="freq-label" value={frequency} label="Frequency" onChange={e => setFrequency(e.target.value as 'daily' | 'weekly')}>
-            <MenuItem value="daily">Daily</MenuItem>
-            <MenuItem value="weekly">Weekly</MenuItem>
-          </Select>
-        </FormControl>
-        {frequency === 'weekly' && (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            {weekdayLabels.map((d, i) => (
-              <FormControlLabel
-                key={d}
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={weekdays.includes(i)}
-                    onChange={() =>
-                      setWeekdays(prev =>
-                        prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i],
-                      )
-                    }
-                  />
-                }
-                label={d}
-              />
-            ))}
-          </Box>
-        )}
-        <TextField
-          label="End date"
-          type="date"
-          size="small"
-          value={endDate}
-          onChange={e => setEndDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
-        <Button type="submit" variant="outlined" color="primary">
-          Create
-        </Button>
-      </Box>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+        <Tab label="Add a recurring shift" />
+        <Tab label="Manage recurring shifts" />
+      </Tabs>
+      {tab === 0 && (
+        <Box component="form" onSubmit={submit} sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
+          <FormControl size="small">
+            <InputLabel id="role-label">Role</InputLabel>
+            <Select labelId="role-label" value={selectedRole} label="Role" onChange={e => setSelectedRole(e.target.value as string)}>
+              <MenuItem value="">Select role</MenuItem>
+              {Array.from(groupedRoles.values()).flatMap(g => [
+                <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
+                ...g.roles.map(r => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.name} ({formatTime(r.start_time)}–{formatTime(r.end_time)})
+                  </MenuItem>
+                )),
+              ])}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Start date"
+            type="date"
+            size="small"
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <FormControl size="small">
+            <InputLabel id="freq-label">Frequency</InputLabel>
+            <Select labelId="freq-label" value={frequency} label="Frequency" onChange={e => setFrequency(e.target.value as 'daily' | 'weekly')}>
+              <MenuItem value="daily">Daily</MenuItem>
+              <MenuItem value="weekly">Weekly</MenuItem>
+            </Select>
+          </FormControl>
+          {frequency === 'weekly' && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+              {weekdayLabels.map((d, i) => (
+                <FormControlLabel
+                  key={d}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={weekdays.includes(i)}
+                      onChange={() =>
+                        setWeekdays(prev =>
+                          prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i],
+                        )
+                      }
+                    />
+                  }
+                  label={d}
+                />
+              ))}
+            </Box>
+          )}
+          <TextField
+            label="End date"
+            type="date"
+            size="small"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <Button type="submit" variant="outlined" color="primary">
+            Create
+          </Button>
+        </Box>
+      )}
+      {tab === 1 && (
+        <Box>
+          {series.length === 0 ? (
+            <Typography>No recurring shift</Typography>
+          ) : (
+            series.map(s => {
+              const role = roleMap.get(s.role_id);
+              const occ = bookings.filter(
+                b => b.recurring_id === s.id && b.date >= today,
+              );
+              return (
+                <Box key={s.id} sx={{ mb: 3 }}>
+                  <Typography variant="h6">
+                    {role?.name} ({formatTime(role?.start_time || '')}–{formatTime(role?.end_time || '')})
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    {formatDate(s.start_date)} - {s.end_date ? formatDate(s.end_date) : 'No end'} · {s.pattern}
+                    {s.pattern === 'weekly' && s.days_of_week
+                      ? ` (${s.days_of_week.map(d => weekdayLabels[d]).join(', ')})`
+                      : ''}
+                  </Typography>
+                  <Button
+                    onClick={() => cancelSeries(s.id)}
+                    variant="outlined"
+                    color="primary"
+                    sx={{ mb: 1 }}
+                  >
+                    Cancel Series
+                  </Button>
+                  {occ.map(o => (
+                    <Box key={o.id} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      <Typography sx={{ flexGrow: 1 }}>
+                        {formatDate(o.date)} ({formatTime(o.start_time)}–{formatTime(o.end_time)})
+                      </Typography>
+                      <Button
+                        onClick={() => cancelOccurrence(o.id)}
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                      >
+                        Cancel
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              );
+            })
+          )}
+        </Box>
+      )}
       <FeedbackSnackbar
         open={!!message}
         onClose={() => setMessage('')}
         message={message}
         severity={severity}
       />
-      <Box>
-        {series.map(s => {
-          const role = roleMap.get(s.role_id);
-          const occ = bookings.filter(
-            b => b.recurring_id === s.id && b.date >= today,
-          );
-          return (
-            <Box key={s.id} sx={{ mb: 3 }}>
-              <Typography variant="h6">
-                {role?.name} ({formatTime(role?.start_time || '')}–{formatTime(role?.end_time || '')})
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                {formatDate(s.start_date)} - {s.end_date ? formatDate(s.end_date) : 'No end'} · {s.pattern}
-                {s.pattern === 'weekly' && s.days_of_week
-                  ? ` (${s.days_of_week.map(d => weekdayLabels[d]).join(', ')})`
-                  : ''}
-              </Typography>
-              <Button
-                onClick={() => cancelSeries(s.id)}
-                variant="outlined"
-                color="primary"
-                sx={{ mb: 1 }}
-              >
-                Cancel Series
-              </Button>
-              {occ.map(o => (
-                <Box key={o.id} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                  <Typography sx={{ flexGrow: 1 }}>
-                    {formatDate(o.date)} ({formatTime(o.start_time)}–{formatTime(o.end_time)})
-                  </Typography>
-                  <Button
-                    onClick={() => cancelOccurrence(o.id)}
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              ))}
-            </Box>
-          );
-        })}
-      </Box>
     </Page>
   );
 }

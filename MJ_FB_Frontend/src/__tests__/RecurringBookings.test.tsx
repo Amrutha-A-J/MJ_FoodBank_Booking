@@ -188,6 +188,9 @@ test('formats recurring booking dates', async () => {
     },
   ]);
   render(<VolunteerRecurringBookings />);
+  fireEvent.click(
+    screen.getByRole('tab', { name: /manage recurring shifts/i }),
+  );
   expect(
     await screen.findByText('Test Role (9:00 AM–10:00 AM)'),
   ).toBeInTheDocument();
@@ -196,6 +199,16 @@ test('formats recurring booking dates', async () => {
   ).toBeInTheDocument();
   expect(
     screen.getByText('2025-09-01 (9:00 AM–10:00 AM)'),
+  ).toBeInTheDocument();
+});
+
+test('shows message when no recurring shifts', async () => {
+  render(<VolunteerRecurringBookings />);
+  fireEvent.click(
+    screen.getByRole('tab', { name: /manage recurring shifts/i }),
+  );
+  expect(
+    await screen.findByText(/no recurring shift/i),
   ).toBeInTheDocument();
 });
 
