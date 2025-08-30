@@ -15,6 +15,7 @@ import {
   getAgencyForClient,
   getAgencyEmail,
   getClientName,
+  getAgencyClientSet,
 } from '../src/models/agency';
 import * as bookingUtils from '../src/utils/bookingUtils';
 import pool from '../src/db';
@@ -50,6 +51,7 @@ jest.mock('../src/models/agency', () => ({
   getAgencyForClient: jest.fn(),
   getAgencyEmail: jest.fn(),
   getClientName: jest.fn(),
+  getAgencyClientSet: jest.fn(),
 }));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -193,7 +195,7 @@ describe('Agency booking creation', () => {
 
 describe('Agency booking listing', () => {
   it('lists bookings for associated clients', async () => {
-    (isAgencyClient as jest.Mock).mockResolvedValue(true);
+    (getAgencyClientSet as jest.Mock).mockResolvedValue(new Set([5, 6]));
     const res = await request(app)
       .get('/api/bookings')
       .query({ clientIds: '5,6' });
@@ -207,9 +209,7 @@ describe('Agency booking listing', () => {
   });
 
   it('rejects unassociated clients', async () => {
-    (isAgencyClient as jest.Mock)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+    (getAgencyClientSet as jest.Mock).mockResolvedValue(new Set([5]));
     const res = await request(app)
       .get('/api/bookings')
       .query({ clientIds: '5,6' });

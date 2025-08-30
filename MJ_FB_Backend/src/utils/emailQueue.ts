@@ -73,6 +73,7 @@ async function processQueue(): Promise<void> {
   }
 }
 
-// kick off processing for existing jobs on startup
-processQueue().catch((err) => logger.error('Email queue processing error:', err));
+export function initEmailQueue(): void {
+  processQueue().catch((err) => logger.error('Email queue processing error:', err));
+}
 
