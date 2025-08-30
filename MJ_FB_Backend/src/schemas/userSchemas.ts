@@ -18,26 +18,6 @@ export const loginSchema = z
     path: ['email'],
   });
 
-// Schema for initiating the registration OTP flow.
-export const sendRegistrationOtpSchema = z.object({
-  clientId: z.coerce.number().int().min(1).max(9_999_999),
-  email: z.string().email(),
-});
-
-// Schema for the self‑service registration endpoint. All fields are required
-// except for phone. clientId is coerced to a number and checked against the
-// valid range used throughout the app. Password complexity is enforced via
-// the shared passwordSchema. An OTP must also be provided.
-export const registerSchema = z.object({
-  clientId: z.coerce.number().int().min(1).max(9_999_999),
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  password: passwordSchema,
-  otp: z.string().min(1),
-});
-
 // Schema for creating a user. Validates all required fields and
 // basic constraints like clientId range and role values.
 export const createUserSchema = z

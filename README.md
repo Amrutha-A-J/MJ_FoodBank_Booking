@@ -233,18 +233,6 @@ control weight calculations:
 - Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
 - Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
 
-### Client self-registration (temporarily disabled)
-
-The application previously allowed existing clients to enable online access via a self-service registration flow. Clients would request an email OTP and submit it along with their account details to activate online access.
-
-This feature is currently disabled pending further testing. The backend routes `/api/users/register` and `/api/users/register/otp`, the frontend signup page, and associated tests have been commented out. To re-enable the flow:
-
-1. Uncomment the routes in `MJ_FB_Backend/src/routes/users.ts`.
-2. Restore the signup navigation and route in `MJ_FB_Frontend/src/App.tsx` and the link in `src/pages/auth/Login.tsx`.
-3. Re-enable signup tests in `MJ_FB_Backend/tests` and `MJ_FB_Frontend/src/__tests__`.
-
-Refer to the comments in those files for additional context when reinstating the feature.
-
 ## Deploying to Azure
 
 The repository includes Dockerfiles for both the backend and frontend so the application can be containerized and run in Azure services such as Azure Web App for Containers or Azure Container Apps.
