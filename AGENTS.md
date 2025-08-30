@@ -96,7 +96,7 @@
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Document new environment variables in the repository README and `.env.example` files.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
-- App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table and are editable via the Admin → App Configurations page. Fetch these values from the backend rather than hard-coding or using environment variables.
+- App-level settings such as cart tare and surplus weight multipliers live in the `app_config` table. Cart tare is editable via the Admin → App Configurations page, while bread/can weight multipliers are managed under Admin → Warehouse Settings. Fetch these values from the backend rather than hard-coding or using environment variables.
 - The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 
 ## UI Rules & Design System (Global)

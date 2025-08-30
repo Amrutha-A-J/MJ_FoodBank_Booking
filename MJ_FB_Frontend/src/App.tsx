@@ -82,6 +82,9 @@ const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
 const AppConfigurations = React.lazy(() =>
   import('./pages/admin/AppConfigurations')
 );
+const WarehouseSettings = React.lazy(() =>
+  import('./pages/admin/WarehouseSettings')
+);
 const PantrySettings = React.lazy(() => import('./pages/admin/PantrySettings'));
 const VolunteerSettings = React.lazy(() =>
   import('./pages/admin/VolunteerSettings')
@@ -174,6 +177,7 @@ export default function App() {
         links: [
           { label: 'Staff', to: '/admin/staff' },
           { label: 'App Config', to: '/admin/app-config' },
+          { label: 'Warehouse Settings', to: '/admin/warehouse-settings' },
           { label: 'Pantry Settings', to: '/admin/pantry-settings' },
           { label: 'Volunteer Settings', to: '/admin/volunteer-settings' },
         ],
@@ -365,6 +369,7 @@ export default function App() {
               {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
               {showAdmin && <Route path="/admin/app-config" element={<AppConfigurations />} />}
+              {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
               {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
               {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
               {showVolunteerManagement && (
