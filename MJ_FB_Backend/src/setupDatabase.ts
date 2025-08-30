@@ -375,6 +375,9 @@ CREATE TABLE IF NOT EXISTS email_queue (
     `CREATE INDEX IF NOT EXISTS bookings_user_id_idx ON bookings (user_id);`
   );
   await client.query(
+    `CREATE INDEX IF NOT EXISTS bookings_new_client_id_idx ON bookings (new_client_id);`
+  );
+  await client.query(
     `CREATE INDEX IF NOT EXISTS bookings_slot_date_status_idx ON bookings (slot_id, date, status);`
   );
   await client.query(
