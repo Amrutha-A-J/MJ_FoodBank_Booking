@@ -30,6 +30,7 @@ import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
+import type { ApiError } from '../api/client';
 
 // Wrappers to match required signatures
 function useSlots(date: Dayjs, enabled: boolean) {
@@ -156,42 +157,53 @@ export default function BookingUI({
       });
       setSelectedSlotId(null);
       refetch();
-    } catch (err: any) {
-      const existing = err?.details?.existingBooking;
-      if (existing) {
-        const dateStr = dayjs(existing.date).format('MMM D');
-        const timeStr = dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A');
-        const status = existing.status;
-        setModal({
-          open: true,
-          message: (
-            <Stack spacing={2}>
-              <Typography>
-                You already have an {status} appointment on {dateStr} at {timeStr}.
-              </Typography>
-              <Typography>
-                If you need to reschedule, please do so from your bookings{' '}
-                <Link component={RouterLink} to="/booking-history" underline="hover">
-                  page
-                </Link>
-                .
-              </Typography>
-              <Typography>
-                Our services are for emergencies, so we don’t encourage auto-booking
-                weeks ahead.
-              </Typography>
-              <Typography>
-                After completing this appointment, you may book another if needed.
-              </Typography>
-            </Stack>
-          ),
-        });
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'details' in err &&
+        'message' in err
+      ) {
+        const apiErr = err as ApiError;
+        const existing = (apiErr.details as any)?.existingBooking;
+        if (existing) {
+          const dateStr = dayjs(existing.date).format('MMM D');
+          const timeStr = dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A');
+          const status = existing.status;
+          setModal({
+            open: true,
+            message: (
+              <Stack spacing={2}>
+                <Typography>
+                  You already have an {status} appointment on {dateStr} at {timeStr}.
+                </Typography>
+                <Typography>
+                  If you need to reschedule, please do so from your bookings{' '}
+                  <Link component={RouterLink} to="/booking-history" underline="hover">
+                    page
+                  </Link>
+                  .
+                </Typography>
+                <Typography>
+                  Our services are for emergencies, so we don’t encourage auto-booking
+                  weeks ahead.
+                </Typography>
+                <Typography>
+                  After completing this appointment, you may book another if needed.
+                </Typography>
+              </Stack>
+            ),
+          });
+        } else {
+          setSnackbar({
+            open: true,
+            message:
+              typeof apiErr.message === 'string' ? apiErr.message : 'Booking failed',
+            severity: 'error',
+          });
+        }
       } else {
-        setSnackbar({
-          open: true,
-          message: err instanceof Error ? err.message : 'Booking failed',
-          severity: 'error',
-        });
+        setSnackbar({ open: true, message: 'Booking failed', severity: 'error' });
       }
     } finally {
       setBooking(false);
