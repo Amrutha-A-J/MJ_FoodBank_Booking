@@ -416,6 +416,7 @@ export default function App() {
                     />
                   </>
                 )}
+              <Route path="/set-password" element={<PasswordSetup />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </Suspense>

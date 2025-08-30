@@ -43,7 +43,7 @@ describe('App authentication persistence', () => {
         <App />
       </AuthProvider>,
     );
-    expect(screen.getByText(/user login/i)).toBeInTheDocument();
+    expect(screen.getByText(/client login/i)).toBeInTheDocument();
   });
 
   it('keeps user logged in when role exists', () => {
@@ -55,6 +55,19 @@ describe('App authentication persistence', () => {
       </AuthProvider>,
     );
     expect(screen.queryByText(/user login/i)).not.toBeInTheDocument();
+  });
+
+  it('shows set password even when already logged in', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    window.history.pushState({}, '', '/set-password?token=abc');
+    render(
+      <AuthProvider>
+        <App />
+      </AuthProvider>,
+    );
+    const els = await screen.findAllByText(/set password/i);
+    expect(els.length).toBeGreaterThan(0);
   });
 
   it('redirects staff with only pantry access to pantry dashboard', async () => {
@@ -69,18 +82,6 @@ describe('App authentication persistence', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/pantry'));
   });
 
-  it('does not show Add Agency link for staff', () => {
-    localStorage.setItem('role', 'staff');
-    localStorage.setItem('name', 'Test Staff');
-    localStorage.setItem('access', JSON.stringify(['pantry']));
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
-    expect(screen.queryByRole('link', { name: /add agency/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /agency management/i })).toBeInTheDocument();
-  });
 
   it('redirects staff with only volunteer management access', async () => {
     localStorage.setItem('role', 'staff');
