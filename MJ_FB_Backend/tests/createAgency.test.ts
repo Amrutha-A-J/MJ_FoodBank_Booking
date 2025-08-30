@@ -2,10 +2,14 @@ import request from 'supertest';
 import express from 'express';
 import agenciesRoutes from '../src/routes/agencies';
 import pool from '../src/db';
-import bcrypt from 'bcrypt';
+import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
-jest.mock('bcrypt');
+jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/emailUtils', () => ({
+  sendTemplatedEmail: jest.fn(),
+}));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -42,24 +46,26 @@ describe('POST /agencies', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [], rowCount: 0 })
       .mockResolvedValueOnce({
-        rows: [{ id: 5, name: 'A', email: 'a@a.com', password: 'hashed', contact_info: null }],
+        rows: [{ id: 5, name: 'A', email: 'a@a.com', password: null, contact_info: null }],
         rowCount: 1,
       });
-    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
 
     const res = await request(app)
       .post('/agencies')
-      .send({ name: 'A', email: 'a@a.com', password: 'Abcd1234!' });
+      .send({ name: 'A', email: 'a@a.com' });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id', 5);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('agencies', 5);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
   });
 
   it('rejects non-staff user', async () => {
     const res = await request(app)
       .post('/agencies')
       .set('x-role', 'agency')
-      .send({ name: 'A', email: 'a@a.com', password: 'Abcd1234!' });
+      .send({ name: 'A', email: 'a@a.com' });
 
     expect(res.status).toBe(403);
   });

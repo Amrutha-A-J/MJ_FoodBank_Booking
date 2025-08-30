@@ -6,7 +6,9 @@ import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
 import { validatePassword } from '../utils/passwordUtils';
-import { sendEmail } from '../utils/emailUtils';
+import { sendEmail, sendTemplatedEmail } from '../utils/emailUtils';
+import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
+import config from '../config';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -78,7 +80,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     }
 
     const agency = await getAgencyByEmail(email);
-    if (!agency) {
+    if (!agency || !agency.password) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const match = await bcrypt.compare(password, agency.password);
@@ -250,7 +252,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { firstName, lastName, email, phone, clientId, role, password, onlineAccess } =
+  const { firstName, lastName, email, phone, clientId, role, onlineAccess } =
     req.body as {
       firstName?: string;
       lastName?: string;
@@ -258,7 +260,6 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       phone?: string;
       clientId: number;
       role: UserRole;
-      password?: string;
       onlineAccess: boolean;
     };
 
@@ -266,15 +267,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     return res.status(400).json({ message: 'Client ID and role required' });
   }
 
-  if (onlineAccess && (!firstName || !lastName || !password)) {
+  if (onlineAccess && (!firstName || !lastName)) {
     return res.status(400).json({ message: 'Missing fields for online account' });
-  }
-
-  if (password) {
-    const pwError = validatePassword(password);
-    if (pwError) {
-      return res.status(400).json({ message: pwError });
-    }
   }
 
   if (!['shopper', 'delivery'].includes(role)) {
@@ -300,12 +294,10 @@ export async function createUser(req: Request, res: Response, next: NextFunction
       }
     }
 
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
-
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     await pool.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES ($1, $2, $3, $4, $5, $6, NULL, $7, $8)`,
       [
         firstName || null,
         lastName || null,
@@ -313,11 +305,19 @@ export async function createUser(req: Request, res: Response, next: NextFunction
         phone || null,
         clientId,
         role,
-        hashedPassword,
         onlineAccess,
         profileLink,
-      ]
+      ],
     );
+
+    const token = await generatePasswordSetupToken('clients', clientId);
+    if (email) {
+      await sendTemplatedEmail({
+        to: email,
+        templateId: 1,
+        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+      });
+    }
 
     res.status(201).json({ message: 'User created' });
   } catch (error) {

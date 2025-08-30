@@ -4,7 +4,7 @@ export interface Agency {
   id: number;
   name: string;
   email: string;
-  password: string;
+  password: string | null;
   contact_info: string | null;
 }
 
@@ -16,14 +16,13 @@ export async function getAgencyByEmail(email: string): Promise<Agency | undefine
 export async function createAgency(
   name: string,
   email: string,
-  password: string,
   contactInfo?: string,
 ): Promise<Agency> {
   const res = await pool.query(
     `INSERT INTO agencies (name, email, password, contact_info)
-     VALUES ($1, $2, $3, $4)
+     VALUES ($1, $2, NULL, $3)
      RETURNING *`,
-    [name, email, password, contactInfo ?? null],
+    [name, email, contactInfo ?? null],
   );
   return res.rows[0] as Agency;
 }
