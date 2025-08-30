@@ -6,6 +6,7 @@ import {
   getMyRecurringVolunteerBookings,
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
+  getVolunteerNoShowRanking,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -82,6 +83,13 @@ describe('volunteers api', () => {
         method: 'PATCH',
         body: JSON.stringify({ reason: 'sick' }),
       }),
+    );
+  });
+
+  it('fetches volunteer no-show ranking', async () => {
+    await getVolunteerNoShowRanking();
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-stats/no-show-ranking',
     );
   });
 });

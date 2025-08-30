@@ -111,3 +111,43 @@ export async function getVolunteerGroupStats(
     next(error);
   }
 }
+
+export async function getVolunteerNoShowRanking(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await pool.query(
+      `WITH stats AS (
+         SELECT v.id,
+                v.first_name || ' ' || v.last_name AS name,
+                COUNT(*) FILTER (WHERE vb.status IN ('approved','completed','no_show')) AS total_bookings,
+                COUNT(*) FILTER (WHERE vb.status = 'no_show') AS no_shows
+         FROM volunteers v
+         LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id
+         GROUP BY v.id
+       )
+       SELECT id,
+              name,
+              total_bookings,
+              no_shows,
+              ROUND(no_shows::numeric / NULLIF(total_bookings,0), 2) AS no_show_rate
+       FROM stats
+       WHERE total_bookings >= 5 AND no_shows > 0
+       ORDER BY no_show_rate DESC, no_shows DESC
+       LIMIT 10`,
+    );
+    const rows = result.rows.map(r => ({
+      id: Number(r.id),
+      name: r.name,
+      totalBookings: Number(r.total_bookings),
+      noShows: Number(r.no_shows),
+      noShowRate: Number(r.no_show_rate),
+    }));
+    res.json(rows);
+  } catch (error) {
+    logger.error('Error fetching volunteer no-show ranking:', error);
+    next(error);
+  }
+}

@@ -17,6 +17,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
 import { getBookings, getSlotsRange } from '../../api/bookings';
+import { getVolunteerNoShowRanking } from '../../api/volunteers';
 import type { Role } from '../../types';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
@@ -80,12 +81,16 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     upcoming: [],
     past: [],
   });
+  const [noShowRanking, setNoShowRanking] = useState<
+    { id: number; name: string; totalBookings: number; noShows: number; noShowRate: number }[]
+  >([]);
   const [searchType, setSearchType] = useState<'user' | 'volunteer'>('user');
   const navigate = useNavigate();
 
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
     getEvents().then(setEvents).catch(() => {});
+    getVolunteerNoShowRanking().then(setNoShowRanking).catch(() => {});
 
     const today = new Date();
     const start = new Date(today);
@@ -236,6 +241,20 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                   </Button>
                 </Stack>
               </Stack>
+            </SectionCard>
+          </Grid>
+          <Grid size={12}>
+            <SectionCard title="No-Show Rankings" icon={<WarningAmber color="warning" />}>
+              <List>
+                {noShowRanking.map(v => (
+                  <ListItem key={v.id}>
+                    <ListItemText
+                      primary={v.name}
+                      secondary={`${v.noShows}/${v.totalBookings} (${Math.round(v.noShowRate * 100)}%)`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
             </SectionCard>
           </Grid>
           <Grid size={12}>
