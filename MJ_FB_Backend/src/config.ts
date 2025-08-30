@@ -19,6 +19,8 @@ const envSchema = z.object({
   BREVO_API_KEY: z.string().optional(),
   BREVO_FROM_EMAIL: z.string().optional(),
   BREVO_FROM_NAME: z.string().optional(),
+  EMAIL_QUEUE_MAX_RETRIES: z.coerce.number().default(5),
+  EMAIL_QUEUE_BACKOFF_MS: z.coerce.number().default(1000),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -45,4 +47,6 @@ export default {
   brevoApiKey: env.BREVO_API_KEY ?? '',
   brevoFromEmail: env.BREVO_FROM_EMAIL ?? '',
   brevoFromName: env.BREVO_FROM_NAME ?? '',
+  emailQueueMaxRetries: env.EMAIL_QUEUE_MAX_RETRIES,
+  emailQueueBackoffMs: env.EMAIL_QUEUE_BACKOFF_MS,
 };

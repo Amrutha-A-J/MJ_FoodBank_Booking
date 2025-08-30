@@ -7,6 +7,7 @@
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 18+ for native `fetch`; the `node-fetch` polyfill has been removed and earlier versions are not supported.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
+- Email queue retries failed sends with exponential backoff. Configure `EMAIL_QUEUE_MAX_RETRIES` and `EMAIL_QUEUE_BACKOFF_MS` to adjust retry behavior.
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
 - Coordinator notification addresses for volunteer booking updates live in `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Bookings for unregistered individuals can be created via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
