@@ -340,7 +340,6 @@ export async function createVolunteer(
   firstName: string,
   lastName: string,
   username: string,
-  password: string,
   roleIds: number[],
   email?: string,
   phone?: string
@@ -354,7 +353,6 @@ export async function createVolunteer(
       firstName,
       lastName,
       username,
-      password,
       roleIds,
       email,
       phone,
@@ -393,7 +391,6 @@ export async function rescheduleVolunteerBookingByToken(
 export async function createVolunteerShopperProfile(
   volunteerId: number,
   clientId: string,
-  password: string,
   email?: string,
   phone?: string,
 ): Promise<void> {
@@ -402,7 +399,6 @@ export async function createVolunteerShopperProfile(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       clientId: Number(clientId),
-      password,
       email,
       phone,
     }),

@@ -123,7 +123,6 @@ export default function VolunteerManagement() {
 
   const [shopperOpen, setShopperOpen] = useState(false);
   const [shopperClientId, setShopperClientId] = useState('');
-  const [shopperPassword, setShopperPassword] = useState('');
   const [shopperEmail, setShopperEmail] = useState('');
   const [shopperPhone, setShopperPhone] = useState('');
   const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
@@ -133,7 +132,6 @@ export default function VolunteerManagement() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<string[]>([]);
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
@@ -454,7 +452,6 @@ export default function VolunteerManagement() {
       await createVolunteerShopperProfile(
         selectedVolunteer.id,
         shopperClientId,
-        shopperPassword,
         shopperEmail || undefined,
         shopperPhone || undefined,
       );
@@ -462,7 +459,6 @@ export default function VolunteerManagement() {
       setEditMsg('Shopper profile created');
       setShopperOpen(false);
       setShopperClientId('');
-      setShopperPassword('');
       setShopperEmail('');
       setShopperPhone('');
       await refreshVolunteer();
@@ -491,12 +487,11 @@ export default function VolunteerManagement() {
       !firstName ||
       !lastName ||
       !username ||
-      !password ||
       selectedCreateRoles.length === 0
     ) {
       setCreateSeverity('error');
       setCreateMsg(
-        'First name, last name, username, password and at least one role required'
+        'First name, last name, username and at least one role required'
       );
       return;
     }
@@ -510,7 +505,6 @@ export default function VolunteerManagement() {
         firstName,
         lastName,
         username,
-        password,
         ids,
         email || undefined,
         phone || undefined
@@ -522,7 +516,6 @@ export default function VolunteerManagement() {
       setUsername('');
       setEmail('');
       setPhone('');
-      setPassword('');
       setSelectedCreateRoles([]);
     } catch (e) {
       setCreateSeverity('error');
@@ -833,14 +826,9 @@ export default function VolunteerManagement() {
               size="small"
               fullWidth
             />
-            <TextField
-              label="Password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              size="small"
-              fullWidth
-            />
+            <Typography variant="body2" color="text.secondary">
+              An email invitation will be sent.
+            </Typography>
             <div ref={dropdownRef} style={{ position: 'relative' }}>
               <label>Role: </label>
               <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">
@@ -894,23 +882,17 @@ export default function VolunteerManagement() {
           <Dialog open onClose={() => setShopperOpen(false)}>
             <DialogCloseButton onClose={() => setShopperOpen(false)} />
             <DialogContent>
-              <TextField
-                label="Client ID"
+            <TextField
+              label="Client ID"
               value={shopperClientId}
               onChange={e => setShopperClientId(e.target.value)}
               fullWidth
               size="small"
               margin="dense"
             />
-            <TextField
-              label="Password"
-              type="password"
-              value={shopperPassword}
-              onChange={e => setShopperPassword(e.target.value)}
-              fullWidth
-              size="small"
-              margin="dense"
-            />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              An email invitation will be sent.
+            </Typography>
             <TextField
               label="Email (optional)"
               type="email"

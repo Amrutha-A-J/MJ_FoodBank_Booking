@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Grid, TextField, Button, Box } from '@mui/material';
+import { Grid, TextField, Button, Box, Typography } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { createAgency } from '../../api/agencies';
 
 export default function AddAgency() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [contactInfo, setContactInfo] = useState('');
   const [snackbar, setSnackbar] = useState<{
     message: string;
@@ -16,11 +15,10 @@ export default function AddAgency() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createAgency(name, email, password, contactInfo || undefined);
+      await createAgency(name, email, contactInfo || undefined);
       setSnackbar({ message: 'Agency created', severity: 'success' });
       setName('');
       setEmail('');
-      setPassword('');
       setContactInfo('');
     } catch (err: any) {
       setSnackbar({
@@ -52,16 +50,9 @@ export default function AddAgency() {
               required
               margin="normal"
             />
-            <TextField
-              label="Password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              fullWidth
-              required
-              margin="normal"
-              helperText="Min 8 chars with upper, lower, number & special"
-            />
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              An email invitation will be sent.
+            </Typography>
             <TextField
               label="Contact Info"
               value={contactInfo}

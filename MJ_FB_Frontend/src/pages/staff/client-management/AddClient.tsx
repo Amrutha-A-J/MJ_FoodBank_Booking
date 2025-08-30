@@ -16,13 +16,12 @@ export default function AddClient() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
-  const [password, setPassword] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
 
   async function submitUser() {
     if (onlineAccess) {
-      if (!firstName || !lastName || !clientId || !password) {
-        setError('First name, last name, client ID and password required');
+      if (!firstName || !lastName || !clientId) {
+        setError('First name, last name and client ID required');
         return;
       }
     } else if (!clientId) {
@@ -35,7 +34,6 @@ export default function AddClient() {
         lastName,
         clientId,
         role,
-        onlineAccess ? password : undefined,
         onlineAccess,
         email || undefined,
         phone || undefined
@@ -46,7 +44,6 @@ export default function AddClient() {
       setClientId('');
       setEmail('');
       setPhone('');
-      setPassword('');
       setOnlineAccess(false);
       setRole('shopper');
     } catch (err: unknown) {
@@ -61,10 +58,15 @@ export default function AddClient() {
           <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
           <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
           <Stack spacing={2}>
-            <FormControlLabel
-              control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
-              label="Online Access"
-            />
+          <FormControlLabel
+            control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
+            label="Online Access"
+          />
+          {onlineAccess && (
+            <Typography variant="body2" color="text.secondary">
+              An email invitation will be sent.
+            </Typography>
+          )}
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
@@ -75,9 +77,6 @@ export default function AddClient() {
             value={phone}
             onChange={e => setPhone(e.target.value)}
           />
-          {onlineAccess && (
-            <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-          )}
           <TextField select label="Role" value={role} onChange={e => setRole(e.target.value as UserRole)}>
             <MenuItem value="shopper">Shopper</MenuItem>
             <MenuItem value="delivery">Delivery</MenuItem>
