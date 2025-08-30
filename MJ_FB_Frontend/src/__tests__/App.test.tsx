@@ -37,13 +37,19 @@ describe('App authentication persistence', () => {
     }
   });
 
-  it('shows login when not authenticated', () => {
+  it('shows login when not authenticated', async () => {
+    (global as any).fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
     render(
       <AuthProvider>
         <App />
       </AuthProvider>,
     );
-    expect(screen.getByText(/client login/i)).toBeInTheDocument();
+    expect(await screen.findByText(/client login/i)).toBeInTheDocument();
   });
 
   it('keeps user logged in when role exists', () => {

@@ -18,6 +18,7 @@ interface AuthContextValue {
   login: (u: LoginResponse) => Promise<void>;
   logout: () => Promise<void>;
   cardUrl: string;
+  ready: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState('');
   const [sessionMessage, setSessionMessage] = useState('');
   const [cardUrl, setCardUrl] = useState('');
+  const [ready, setReady] = useState(false);
 
   const clearAuth = useCallback(() => {
     setToken('');
@@ -114,7 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     };
-    attemptRefresh();
+    attemptRefresh().finally(() => {
+      if (active) setReady(true);
+    });
     return () => {
       active = false;
     };
@@ -176,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login,
     logout,
     cardUrl,
+    ready,
   };
 
   return (
