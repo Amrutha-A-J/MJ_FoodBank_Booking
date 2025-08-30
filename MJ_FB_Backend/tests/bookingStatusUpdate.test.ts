@@ -58,11 +58,18 @@ describe('booking status updates', () => {
 
   it('allows staff to mark booking as visited', async () => {
     (bookingRepo.updateBooking as jest.Mock).mockResolvedValue(undefined);
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ client_id: 1 }] })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
     const res = await request(app)
       .post('/bookings/2/visited')
       .set('x-role', 'staff')
       .send({ requestData: 'note' });
     expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      expect.any(Array),
+    );
     expect(bookingRepo.updateBooking).toHaveBeenCalledWith(2, {
       status: 'visited',
       request_data: 'note',

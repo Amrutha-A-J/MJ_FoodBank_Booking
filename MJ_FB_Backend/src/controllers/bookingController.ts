@@ -24,6 +24,7 @@ import {
 } from '../models/bookingRepository';
 import { insertNewClient } from '../models/newClient';
 import { isAgencyClient, getAgencyClientSet } from '../models/agency';
+import { refreshClientVisitCount } from './clientVisitController';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -283,8 +284,21 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
 export async function markBookingVisited(req: Request, res: Response, next: NextFunction) {
   const bookingId = Number(req.params.id);
   const requestData = (req.body?.requestData as string) || '';
+  const weightWithCart = req.body?.weightWithCart as number | undefined;
+  const weightWithoutCart = req.body?.weightWithoutCart as number | undefined;
+  const petItem = req.body?.petItem as number | undefined;
   try {
+    const insertRes = await pool.query(
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous)
+       SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false
+       FROM bookings b
+       WHERE b.id = $4
+       RETURNING client_id`,
+      [weightWithCart ?? null, weightWithoutCart ?? null, petItem ?? 0, bookingId],
+    );
     await updateBooking(bookingId, { status: 'visited', request_data: requestData });
+    const clientId: number | null = insertRes.rows[0]?.client_id ?? null;
+    if (clientId) await refreshClientVisitCount(clientId);
     res.json({ message: 'Booking marked as visited' });
   } catch (error) {
     logger.error('Error marking booking visited:', error);
