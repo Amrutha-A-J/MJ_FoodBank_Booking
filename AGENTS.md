@@ -34,6 +34,8 @@
   The response also includes `milestoneText`, `familiesServed`, `poundsHandled`,
   and current-month totals `monthFamiliesServed` and `monthPoundsHandled`
   so the dashboard can show appreciation messages.
+  Only shifts marked as `completed` contribute to these hours and shift counts;
+  `approved` or `no_show` statuses are ignored.
 - Volunteer leaderboard available via `GET /volunteer-stats/leaderboard` returning
   `{ rank, percentile }` for the current volunteer without exposing names.
 - Group volunteer statistics via `GET /volunteer-stats/group` return total

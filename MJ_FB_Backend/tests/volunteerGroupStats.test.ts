@@ -52,5 +52,6 @@ describe('Volunteer group stats', () => {
     expect(query).toContain('volunteer_bookings');
     expect(query).toContain('client_visits');
     expect(query).toContain('app_config');
+    expect(query).toContain("vb.status = 'completed'");
   });
 });
