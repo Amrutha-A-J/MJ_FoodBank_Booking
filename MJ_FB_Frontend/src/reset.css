@@ -253,7 +253,6 @@ button,select {
 }
 
 [type=button]:focus,[type=button]:hover,[type=submit]:focus,[type=submit]:hover,button:focus,button:hover {
-    color: #271f1f;
     text-decoration: none
 }
 

@@ -1,20 +1,20 @@
 // theme.ts
 import { createTheme, responsiveFontSizes, alpha, darken } from '@mui/material/styles';
 
-// ---- Brand tokens (tweak after sampling mjfoodbank.org) ----
-const BRAND_PRIMARY = '#1F6F3D';   // mjfoodbank-style green
-const BRAND_ACCENT  = '#F59E0B';   // warm accent (buttons/badges/emphasis)
-const BRAND_ERROR   = '#941818';   // deep red for error/destructive
-const BG_APP        = '#f7f9f7';   // very light, slightly warm/greenish background
+// ---- Brand tokens (sampled from mjfoodbank.org’s vibe) ----
+const BRAND_PRIMARY = '#1F6F3D';   // deep green accents
+const BRAND_ACCENT  = '#F59E0B';   // warm accent (badges/hover)
+const BRAND_ERROR   = '#941818';   // brand red CTA / destructive
+const BG_APP        = '#f7f9f7';   // very light, slightly warm background
 const BG_CARD       = '#ffffff';
 const DIVIDER       = '#e6e9e6';
-// ------------------------------------------------------------
+// -----------------------------------------------------------
 
 let theme = createTheme({
   palette: {
     mode: 'light',
     primary: { main: BRAND_PRIMARY, contrastText: '#ffffff' },
-    secondary: { main: BRAND_ACCENT, contrastText: '#111111' }, // orange needs dark text
+    secondary: { main: BRAND_ACCENT, contrastText: '#111111' }, // orange prefers dark text
     error: { main: BRAND_ERROR, contrastText: '#ffffff' },
     success: { main: '#2e7d32', contrastText: '#ffffff' },
     warning: { main: BRAND_ACCENT, contrastText: '#111111' },
@@ -31,13 +31,21 @@ let theme = createTheme({
   shape: { borderRadius: 10 },
 
   typography: {
-    fontFamily: ['Golos', 'system-ui', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'].join(','),
-    h5: { fontWeight: 700 },
+    // Match mjfoodbank.org feel: clean, roomy sans with firm headings
+    fontFamily: ['"Golos Text"', 'system-ui', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'].join(','),
+    // Tighter hierarchy + a touch of tracking like the site’s bold headings
+    h1: { fontWeight: 800, letterSpacing: '0.2px', lineHeight: 1.14 },
+    h2: { fontWeight: 800, letterSpacing: '0.2px', lineHeight: 1.18 },
+    h3: { fontWeight: 700, letterSpacing: '0.2px', lineHeight: 1.2 },
+    h4: { fontWeight: 700, letterSpacing: '0.2px', lineHeight: 1.25 },
+    h5: { fontWeight: 700, letterSpacing: '0.2px', lineHeight: 1.3 },
+    h6: { fontWeight: 600, letterSpacing: '0.2px', lineHeight: 1.35 },
     subtitle1: { fontWeight: 600 },
-    button: { textTransform: 'none', fontWeight: 600 },
+    body1: { fontWeight: 400, lineHeight: 1.7, letterSpacing: '0.1px' },
+    body2: { fontWeight: 400, lineHeight: 1.6, letterSpacing: '0.1px' },
+    button: { textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }, // CTA style
   },
 
-  // Subtle motion + sensible layers
   transitions: {
     duration: { shortest: 120, shorter: 160, short: 200, standard: 240 },
     easing: {
@@ -49,22 +57,22 @@ let theme = createTheme({
   },
   zIndex: { appBar: 1100, drawer: 1200, modal: 1300, snackbar: 1400, tooltip: 1500 },
 
-  // Soft custom elevation on low levels
   shadows: [
     'none',
-    '0 1px 2px rgba(0,0,0,0.06)',
+    '0 1px 2px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
     ...Array(23).fill('0 0 0 rgba(0,0,0,0.0)'),
   ] as any,
 
   components: {
-    // Global CSS touches
     MuiCssBaseline: {
       styleOverrides: {
+        // Load font via <link> in index.html; this ensures consistent rendering
         body: ({ theme }) => ({
           backgroundImage: 'none',
           backgroundColor: theme.palette.background.default,
+          color: '#111',
         }),
-        // Crisp, accessible focus ring everywhere
+        // Focus ring
         '*:focus-visible': {
           outline: `2px solid ${alpha(BRAND_PRIMARY, 0.6)}`,
           outlineOffset: 2,
@@ -79,7 +87,7 @@ let theme = createTheme({
           backgroundClip: 'content-box',
         },
         '*::-webkit-scrollbar-track': { background: 'transparent' },
-        // Respect reduced motion
+        // Reduced motion
         '@media (prefers-reduced-motion: reduce)': {
           '*': {
             animationDuration: '0.001ms !important',
@@ -103,17 +111,18 @@ let theme = createTheme({
       },
     },
 
-    // Prefer <AppBar color="primary" />; keep override as safety
+    // Navbar solid green (like site)
     MuiAppBar: { styleOverrides: { root: { backgroundColor: BRAND_PRIMARY } } },
 
     MuiButton: {
       defaultProps: { size: 'small', disableElevation: true },
       styleOverrides: {
         root: {
-          borderRadius: 10,
-          textTransform: 'none',
-          fontWeight: 600,
-          padding: '0.6em 1.2em',
+          borderRadius: 9999, // pill CTA look
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          letterSpacing: '0.5px',
+          padding: '0.7em 1.4em',
           fontSize: '1rem',
           border: '1px solid transparent',
           transition: 'border-color 0.25s, background-color 0.25s',
@@ -146,7 +155,7 @@ let theme = createTheme({
       },
     },
 
-    MuiChip: { styleOverrides: { root: { borderRadius: 10 } } },
+    MuiChip: { styleOverrides: { root: { borderRadius: 10, fontWeight: 600 } } },
     MuiListItemText: { styleOverrides: { primary: { fontWeight: 600 } } },
 
     MuiLink: {
@@ -154,6 +163,7 @@ let theme = createTheme({
         root: {
           color: BRAND_PRIMARY,
           textUnderlineOffset: '2px',
+          textDecorationThickness: '1.5px',
           '&:hover': { textDecorationColor: BRAND_PRIMARY },
           '&:focus-visible': { outline: 'none', boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.25)}` },
         },
@@ -170,7 +180,7 @@ let theme = createTheme({
 
     MuiDivider: { styleOverrides: { root: { borderColor: DIVIDER } } },
 
-    // Keep fields box-model neutral (use Stack/Grid for spacing)
+    // Form controls — crisp outline on focus like branded forms
     MuiTextField: {
       defaultProps: { fullWidth: true, size: 'small', variant: 'outlined' },
       styleOverrides: {
@@ -219,13 +229,13 @@ let theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          '&.Mui-selected': { color: BRAND_PRIMARY },
+          '&.Mui-selected': { color: BRAND_PRIMARY, fontWeight: 700 },
           '&:focus-visible': { outline: 'none', boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.25)}` },
         },
       },
     },
 
-    // Minimal tables/lists
+    // Tables/lists
     MuiListItem: {
       styleOverrides: { root: { borderRadius: 8, '&:hover': { background: 'rgba(0,0,0,0.03)' } } },
     },
@@ -271,7 +281,7 @@ let theme = createTheme({
     // Compact AppBar toolbar height
     MuiToolbar: { styleOverrides: { root: { minHeight: 56 } } },
 
-    // Nicer skeletons
+    // Skeletons
     MuiSkeleton: { styleOverrides: { root: { borderRadius: 8 } } },
   },
 });
@@ -279,4 +289,3 @@ let theme = createTheme({
 theme = responsiveFontSizes(theme);
 
 export { theme };
-
