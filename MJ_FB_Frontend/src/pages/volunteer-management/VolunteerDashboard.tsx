@@ -409,14 +409,6 @@ export default function VolunteerDashboard() {
                   <Chip key={id} label={name} />
                 ))}
               </Stack>
-              <Button
-                size="small"
-                variant="text"
-                sx={{ textTransform: 'none' }}
-                onClick={() => navigate('/profile')}
-              >
-                Update trained roles
-              </Button>
             </SectionCard>
           </Stack>
         </Grid>
