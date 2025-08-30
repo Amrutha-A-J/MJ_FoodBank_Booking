@@ -118,7 +118,7 @@ let theme = createTheme({
       defaultProps: { size: 'small', disableElevation: true },
       styleOverrides: {
         root: {
-          borderRadius: 9999, // pill CTA look
+          borderRadius: 5,
           textTransform: 'uppercase',
           fontWeight: 700,
           letterSpacing: '0.5px',
