@@ -148,7 +148,6 @@ export default function App() {
           { label: 'Schedule', to: '/volunteer-management/schedule' },
           { label: 'Search', to: '/volunteer-management/search' },
           { label: 'Create', to: '/volunteer-management/create' },
-          { label: 'Pending', to: '/volunteer-management/pending' },
         ],
       });
 
