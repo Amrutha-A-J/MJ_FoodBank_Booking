@@ -24,6 +24,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Backend email queue retries failed sends with exponential backoff and persists jobs in an `email_queue` table so retries survive restarts. The maximum retries and initial delay are configurable.
 - Accounts for clients, volunteers, staff, and agencies are created without passwords; a one-time setup link directs them to `/set-password` for initial password creation.
+- `POST /auth/resend-password-setup` reissues this link when the original token expires. Requests are rate limited by email or client ID.
 - Users see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.

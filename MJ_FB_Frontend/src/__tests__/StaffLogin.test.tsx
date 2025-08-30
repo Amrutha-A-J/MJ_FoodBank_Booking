@@ -1,12 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StaffLogin from '../pages/auth/StaffLogin';
-import { loginStaff, staffExists } from '../api/users';
+import { loginStaff, staffExists, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
   loginStaff: jest.fn(),
   staffExists: jest.fn(),
   createStaff: jest.fn(),
+  resendPasswordSetup: jest.fn(),
 }));
 
 describe('StaffLogin component', () => {

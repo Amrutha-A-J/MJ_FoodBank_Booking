@@ -15,6 +15,9 @@ import {
 } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 
+const resendLimit = new Map<string, number>();
+const RESEND_WINDOW_MS = 60_000;
+
 export async function requestPasswordReset(
   req: Request,
   res: Response,
@@ -80,6 +83,78 @@ export async function requestPasswordReset(
         },
       });
       logger.info(`Password reset requested for ${user.email}`);
+    }
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resendPasswordSetup(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { email, clientId } = req.body as {
+    email?: string;
+    clientId?: number;
+  };
+  if (!email && !clientId) {
+    return res.status(400).json({ message: 'Email or clientId required' });
+  }
+  try {
+    const key = email ?? String(clientId);
+    const now = Date.now();
+    const last = resendLimit.get(key!);
+    if (last && now - last < RESEND_WINDOW_MS) {
+      return res.status(429).json({ message: 'Too many requests' });
+    }
+    resendLimit.set(key!, now);
+
+    let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
+    if (email) {
+      const result = await pool.query(
+        `SELECT id, email, user_type FROM (
+          SELECT id, email, 'staff' AS user_type, 1 AS ord FROM staff WHERE email=$1
+          UNION ALL
+          SELECT id, email, 'volunteers' AS user_type, 2 AS ord FROM volunteers WHERE email=$1
+          UNION ALL
+          SELECT id, email, 'agencies' AS user_type, 3 AS ord FROM agencies WHERE email=$1
+          UNION ALL
+          SELECT client_id AS id, email, 'clients' AS user_type, 4 AS ord FROM clients WHERE email=$1
+        ) AS combined
+        ORDER BY ord
+        LIMIT 1`,
+        [email],
+      );
+      if ((result.rowCount ?? 0) > 0) {
+        user = {
+          id: result.rows[0].id,
+          email: result.rows[0].email,
+          table: result.rows[0].user_type,
+        };
+      }
+    } else if (clientId) {
+      const userRes = await pool.query('SELECT client_id, email FROM clients WHERE client_id=$1', [clientId]);
+      if ((userRes.rowCount ?? 0) > 0) {
+        user = {
+          id: userRes.rows[0].client_id,
+          email: userRes.rows[0].email,
+          table: 'clients',
+        };
+      }
+    }
+
+    if (user) {
+      const token = await generatePasswordSetupToken(user.table, user.id);
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: 1,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        },
+      });
+      logger.info(`Password setup link resent for ${user.email}`);
     }
     res.status(204).send();
   } catch (err) {

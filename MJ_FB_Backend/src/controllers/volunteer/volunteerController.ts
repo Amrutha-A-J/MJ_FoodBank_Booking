@@ -64,6 +64,9 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const volunteer = result.rows[0];
+    if (!volunteer.password) {
+      return res.status(403).json({ message: 'Password setup link expired' });
+    }
     const match = await bcrypt.compare(password, volunteer.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });

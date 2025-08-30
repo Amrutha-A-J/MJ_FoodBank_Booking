@@ -2,9 +2,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerLogin from '../pages/auth/VolunteerLogin';
 import { loginVolunteer } from '../api/volunteers';
+import { resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/volunteers', () => ({
   loginVolunteer: jest.fn(),
+}));
+
+jest.mock('../api/users', () => ({
+  resendPasswordSetup: jest.fn(),
 }));
 
 describe('VolunteerLogin component', () => {

@@ -29,7 +29,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
       const userRow = userQuery.rows[0];
       if (!userRow.password) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(403).json({ message: 'Password setup link expired' });
       }
       const match = await bcrypt.compare(password, userRow.password);
       if (!match) {
@@ -59,6 +59,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     );
     if ((staffQuery.rowCount ?? 0) > 0) {
       const staff = staffQuery.rows[0];
+      if (!staff.password) {
+        return res
+          .status(403)
+          .json({ message: 'Password setup link expired' });
+      }
       const match = await bcrypt.compare(password, staff.password);
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -80,8 +85,13 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
     }
 
     const agency = await getAgencyByEmail(email);
-    if (!agency || !agency.password) {
+    if (!agency) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    if (!agency.password) {
+      return res
+        .status(403)
+        .json({ message: 'Password setup link expired' });
     }
     const match = await bcrypt.compare(password, agency.password);
     if (!match) {
