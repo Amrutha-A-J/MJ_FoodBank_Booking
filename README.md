@@ -8,6 +8,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 
 ## Contribution Guidelines
 
+- The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
