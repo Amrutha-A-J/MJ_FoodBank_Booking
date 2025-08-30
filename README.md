@@ -67,8 +67,8 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
-- Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
+- Surplus weight multipliers are managed through the Admin → App Configurations page, accessible via the Admin menu.
+- Staff can set a cart tare value and a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
@@ -231,7 +231,7 @@ control weight calculations:
 - Page and form titles render in uppercase with a lighter font weight for clarity.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
 - Admin navigation includes Pantry Settings and Volunteer Settings pages.
-- Pantry Settings page lets staff configure one max booking capacity used for all pantry times.
+- Pantry Settings page lets staff configure a cart tare value and one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
 - Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).
