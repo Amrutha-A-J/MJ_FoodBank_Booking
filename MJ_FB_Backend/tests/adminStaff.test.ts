@@ -49,7 +49,7 @@ describe('POST /admin/staff', () => {
 
     const res = await request(app)
       .post('/admin/staff')
-      .send({ firstName: 'A', lastName: 'B', email: 'a@b.com', access: ['pantry'] });
+      .send({ firstName: 'A', lastName: 'B', email: 'a@b.com', access: ['pantry'], password: 'Secret123!' });
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ message: 'Staff created' });
