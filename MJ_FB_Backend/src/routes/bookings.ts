@@ -89,6 +89,11 @@ router.post(
 );
 
 // Booking for new client without account
-router.post('/new-client', createBookingForNewClient);
+router.post(
+  '/new-client',
+  authMiddleware,
+  authorizeRoles('staff', 'agency'),
+  createBookingForNewClient
+);
 
 export default router;
