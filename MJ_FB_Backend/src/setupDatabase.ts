@@ -424,6 +424,9 @@ CREATE TABLE IF NOT EXISTS email_queue (
   await client.query(
     `CREATE INDEX IF NOT EXISTS donor_aggregations_year_idx ON donor_aggregations (year);`
   );
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS email_queue_next_attempt_idx ON email_queue (next_attempt);`
+  );
 
   // Insert master data
   await client.query(`
