@@ -12,8 +12,8 @@
 - Coordinator notification addresses for volunteer booking updates live in `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Bookings for unregistered individuals can be created via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The pantry schedule's **Assign User** modal includes a **New client** option; selecting it lets staff enter a name (with optional email and phone) and books the slot via `POST /bookings/new-client`. These bookings appear on the schedule as `[NEW CLIENT] Name`.
-- A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It stores its interval ID and exposes `startBookingReminderJob`/`stopBookingReminderJob`; consider using a fixed-time scheduler like `node-cron` for predictable runs.
-- A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also stores its interval ID and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob` with the same scheduling note.
+- A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It now uses `node-cron` to run at `0 9 * * *` Regina time and exposes `startBookingReminderJob`/`stopBookingReminderJob`.
+- A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also uses `node-cron` with the same schedule and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob`.
 
 ## Testing
 

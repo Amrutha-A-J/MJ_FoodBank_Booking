@@ -2,6 +2,7 @@ import { fetchBookings } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
+import cron from 'node-cron';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -27,29 +28,31 @@ export async function sendNextDayBookingReminders(): Promise<void> {
 }
 
 /**
- * Schedule the reminder job to run once a day.
+ * Schedule the reminder job to run once a day at 9:00 AM Regina time.
  */
-let bookingReminderInterval: NodeJS.Timeout | undefined;
+let bookingReminderTask: cron.ScheduledTask | undefined;
 
 export function startBookingReminderJob(): void {
   if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then every 24 hours.
-  // Consider using a fixed-time scheduler such as node-cron for predictable execution.
+  // Run immediately and then on the scheduled interval.
   sendNextDayBookingReminders().catch((err) =>
     logger.error('Initial reminder run failed', err),
   );
-  const dayMs = 24 * 60 * 60 * 1000;
-  bookingReminderInterval = setInterval(() => {
-    sendNextDayBookingReminders().catch((err) =>
-      logger.error('Scheduled reminder run failed', err),
-    );
-  }, dayMs);
+  bookingReminderTask = cron.schedule(
+    '0 9 * * *',
+    () => {
+      sendNextDayBookingReminders().catch((err) =>
+        logger.error('Scheduled reminder run failed', err),
+      );
+    },
+    { timezone: 'America/Regina' },
+  );
 }
 
 export function stopBookingReminderJob(): void {
-  if (bookingReminderInterval) {
-    clearInterval(bookingReminderInterval);
-    bookingReminderInterval = undefined;
+  if (bookingReminderTask) {
+    bookingReminderTask.stop();
+    bookingReminderTask = undefined;
   }
 }
 
