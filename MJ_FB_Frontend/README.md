@@ -17,6 +17,16 @@ Run the test suite:
 npm test
 ```
 
+## Environment Variables
+
+The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with:
+
+```
+VITE_API_BASE=http://localhost:4000
+```
+
+The build will fail if this variable is missing.
+
 ## Progressive Web App
 
 The app registers a service worker when running in a secure context. Use HTTPS when serving the built site.

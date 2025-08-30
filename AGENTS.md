@@ -68,6 +68,7 @@ The self-service registration endpoints and frontend page are commented out pend
 
 ### Frontend (`MJ_FB_Frontend`)
 - React app built with Vite.
+- Build requires `VITE_API_BASE` to be set in `MJ_FB_Frontend/.env`.
 - `pages/` define top-level views and are organized into feature-based directories (booking, staff, volunteer-management, warehouse-management, etc.).
 - `components/` provide reusable UI elements; use `FeedbackSnackbar` for notifications. The dashboard UI lives in `components/dashboard`.
 - `api/` wraps server requests.
