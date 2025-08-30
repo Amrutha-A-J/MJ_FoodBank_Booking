@@ -21,6 +21,7 @@ import {
   fetchBookingHistory as repoFetchBookingHistory,
   insertWalkinUser,
 } from '../models/bookingRepository';
+import { insertNewClient } from '../models/newClient';
 import { isAgencyClient } from '../models/agency';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -91,6 +92,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         date,
         isStaffBooking || false,
         token,
+        null,
         client,
       );
       await client.query('COMMIT');
@@ -377,6 +379,7 @@ export async function createPreapprovedBooking(
       date,
       true,
       token,
+      null,
       client,
     );
 
@@ -456,6 +459,7 @@ export async function createBookingForUser(
       date,
       staffBookingFlag,
       token,
+      null,
     );
     res
       .status(201)
@@ -463,6 +467,61 @@ export async function createBookingForUser(
   } catch (error: any) {
     logger.error('Error creating booking for user:', error);
     return next(error);
+  }
+}
+
+// --- Create booking for new client ---
+export async function createBookingForNewClient(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { name, email, phone, slotId, date } = req.body;
+    if (!name || !email || !slotId || !date) {
+      return res
+        .status(400)
+        .json({ message: 'Please provide name, email, time slot, and date' });
+    }
+
+    if (!isValidDateString(date)) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
+
+    if (!isDateWithinCurrentOrNextMonth(date)) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await checkSlotCapacity(Number(slotId), date, client);
+      const newClientId = await insertNewClient(name, email, phone || null, client);
+      const token = randomUUID();
+      await insertBooking(
+        null,
+        Number(slotId),
+        'approved',
+        '',
+        date,
+        false,
+        token,
+        newClientId,
+        client,
+      );
+      await client.query('COMMIT');
+      res
+        .status(201)
+        .json({ message: 'Booking created for new client', rescheduleToken: token });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    logger.error('Error creating booking for new client:', error);
+    next(error);
   }
 }
 

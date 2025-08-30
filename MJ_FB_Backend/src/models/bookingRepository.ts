@@ -36,20 +36,30 @@ export async function checkSlotCapacity(
 }
 
 export async function insertBooking(
-  userId: number,
+  userId: number | null,
   slotId: number,
   status: string,
   requestData: string,
   date: string,
   isStaffBooking: boolean,
   rescheduleToken: string,
+  newClientId: number | null = null,
   client: Queryable = pool,
 ) {
   const reginaDate = formatReginaDate(date);
   await client.query(
-    `INSERT INTO bookings (user_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [userId, slotId, status, requestData, reginaDate, isStaffBooking, rescheduleToken],
+    `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [
+      userId,
+      newClientId,
+      slotId,
+      status,
+      requestData,
+      reginaDate,
+      isStaffBooking,
+      rescheduleToken,
+    ],
   );
 }
 
@@ -98,15 +108,17 @@ export async function fetchBookings(
   const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
   const res = await client.query(
     `SELECT
-        b.id, b.status, b.date, b.user_id, b.slot_id, b.is_staff_booking,
+        b.id, b.status, b.date, b.user_id, b.new_client_id, b.slot_id, b.is_staff_booking,
         b.reschedule_token,
-        u.first_name || ' ' || u.last_name as user_name,
-        u.email as user_email, u.phone as user_phone,
+        COALESCE(u.first_name || ' ' || u.last_name, nc.name) as user_name,
+        COALESCE(u.email, nc.email) as user_email,
+        COALESCE(u.phone, nc.phone) as user_phone,
         u.client_id, u.profile_link,
         COALESCE(v.visits, 0) AS bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b
-        INNER JOIN clients u ON b.user_id = u.client_id
+        LEFT JOIN clients u ON b.user_id = u.client_id
+        LEFT JOIN new_clients nc ON b.new_client_id = nc.id
         INNER JOIN slots s ON b.slot_id = s.id
         LEFT JOIN (
           SELECT client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS visits
