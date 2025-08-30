@@ -217,7 +217,6 @@ export default function UserHistory({
               >
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
                 <MenuItem value="visited">Visited</MenuItem>
                 <MenuItem value="no_show">No Show</MenuItem>
                 <MenuItem value="past">Past</MenuItem>

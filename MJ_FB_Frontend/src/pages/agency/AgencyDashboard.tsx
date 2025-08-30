@@ -68,9 +68,7 @@ function statusColor(status: string):
     case 'visited':
       return 'success';
     case 'cancelled':
-    case 'rejected':
     case 'no_show':
-    case 'expired':
       return 'error';
     default:
       return 'info';

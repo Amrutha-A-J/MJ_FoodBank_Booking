@@ -2,10 +2,8 @@ import { Slot } from './models/slot';
 
 export type BookingStatus =
   | 'approved'
-  | 'rejected'
   | 'cancelled'
   | 'no_show'
-  | 'expired'
   | 'visited';
 
 export interface Booking {
