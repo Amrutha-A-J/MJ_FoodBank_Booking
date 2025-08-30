@@ -21,6 +21,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Volunteer role management and scheduling restricted to trained areas.
 - Only staff can update volunteer trained roles; volunteers may view but not modify their assigned roles from the dashboard.
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
+- A nightly no-show job marks past approved volunteer bookings as `no_show` after the configured delay. Coordinators are emailed a summary of shifts changed automatically.
 - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
@@ -220,10 +221,13 @@ The build will fail if this variable is missing.
 
 Refer to the submodule repositories for detailed configuration and environment variables.
 
+The backend automatically marks past volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `12`).
+
 The backend surplus tracking feature uses two optional environment variables to
 set default multipliers; values are editable in the Admin → Warehouse Settings
 page and cached on the server:
 
+- `VOLUNTEER_NO_SHOW_HOURS` (default `12`)
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
 

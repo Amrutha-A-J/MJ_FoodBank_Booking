@@ -18,6 +18,7 @@
 - The `new_clients.email` field is nullable; `POST /bookings/new-client` accepts requests without an email address.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It now uses `node-cron` to run at `0 9 * * *` Regina time and exposes `startBookingReminderJob`/`stopBookingReminderJob`.
 - A volunteer shift reminder job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also uses `node-cron` with the same schedule and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob`.
+- A nightly no-show job (`MJ_FB_Backend/src/utils/volunteerShiftReminderJob.ts`) marks past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default 12). Coordinators are emailed a summary of automatic changes.
 
 ## Testing
 

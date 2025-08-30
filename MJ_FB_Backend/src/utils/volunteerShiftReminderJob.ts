@@ -3,6 +3,11 @@ import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
+import config from '../config';
+import { sendEmail } from './emailUtils';
+import coordinatorEmailsConfig from '../config/coordinatorEmails.json';
+
+const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -60,6 +65,69 @@ export function stopVolunteerShiftReminderJob(): void {
   if (volunteerShiftReminderTask) {
     volunteerShiftReminderTask.stop();
     volunteerShiftReminderTask = undefined;
+  }
+}
+
+/**
+ * Automatically mark past volunteer bookings as no-show.
+ */
+export async function markPastVolunteerNoShows(): Promise<void> {
+  try {
+    const res = await pool.query(
+      `UPDATE volunteer_bookings vb
+       SET status = 'no_show'
+       FROM volunteers v
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE vb.volunteer_id = v.id
+         AND vb.status = 'approved'
+         AND vb.date < (now() AT TIME ZONE 'America/Regina' - INTERVAL '${config.volunteerNoShowHours} hours')::date
+       RETURNING vb.id, vb.date, v.first_name, v.last_name, vs.start_time, vs.end_time`,
+    );
+    if (res.rowCount && res.rowCount > 0) {
+      const lines = res.rows
+        .map(
+          r =>
+            `${r.first_name} ${r.last_name} on ${r.date}` +
+            (r.start_time && r.end_time ? ` (${r.start_time}-${r.end_time})` : ''),
+        )
+        .join('<br>');
+      const subject = 'Volunteer bookings marked as no-show';
+      const body = `The following volunteer bookings were automatically marked as no-show:<br>${lines}`;
+      await Promise.all(
+        coordinatorEmails.map(email => sendEmail(email, subject, body)),
+      );
+      logger.info(`Marked ${res.rowCount} volunteer bookings as no_show`);
+    }
+  } catch (err) {
+    logger.error('Failed to mark volunteer no-shows', err);
+  }
+}
+
+/**
+ * Schedule the volunteer no-show job to run nightly.
+ */
+let volunteerNoShowTask: cron.ScheduledTask | undefined;
+
+export function startVolunteerNoShowJob(): void {
+  if (process.env.NODE_ENV === 'test') return;
+  markPastVolunteerNoShows().catch(err =>
+    logger.error('Initial volunteer no-show run failed', err),
+  );
+  volunteerNoShowTask = cron.schedule(
+    '0 0 * * *',
+    () => {
+      markPastVolunteerNoShows().catch(err =>
+        logger.error('Scheduled volunteer no-show run failed', err),
+      );
+    },
+    { timezone: 'America/Regina' },
+  );
+}
+
+export function stopVolunteerNoShowJob(): void {
+  if (volunteerNoShowTask) {
+    volunteerNoShowTask.stop();
+    volunteerNoShowTask = undefined;
   }
 }
 

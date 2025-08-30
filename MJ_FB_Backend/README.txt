@@ -41,6 +41,8 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `PASSWORD_SETUP_TOKEN_TTL_HOURS` – Hours until password setup tokens expire (default 24).
 
+`VOLUNTEER_NO_SHOW_HOURS` – Hours after a volunteer shift before unmarked bookings are automatically set to `no_show` (default 12).
+
 ## Password Policy
 
 Passwords must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. Requests with weak passwords are rejected before hashing.

@@ -12,5 +12,6 @@ process.env.BREVO_API_KEY = 'test-api-key';
 process.env.BREVO_FROM_EMAIL = 'noreply@example.com';
 process.env.BREVO_FROM_NAME = 'MJ Food Bank';
 process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '24';
+process.env.VOLUNTEER_NO_SHOW_HOURS = '12';
 
 export {};

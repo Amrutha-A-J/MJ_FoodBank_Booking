@@ -21,6 +21,7 @@ const envSchema = z.object({
   BREVO_FROM_NAME: z.string().optional(),
   EMAIL_QUEUE_MAX_RETRIES: z.coerce.number().default(5),
   EMAIL_QUEUE_BACKOFF_MS: z.coerce.number().default(1000),
+  VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(12),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -52,4 +53,5 @@ export default {
   brevoFromName: env.BREVO_FROM_NAME ?? '',
   emailQueueMaxRetries: env.EMAIL_QUEUE_MAX_RETRIES,
   emailQueueBackoffMs: env.EMAIL_QUEUE_BACKOFF_MS,
+  volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
 };
