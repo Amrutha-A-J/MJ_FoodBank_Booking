@@ -25,7 +25,7 @@ import { formatTime } from '../utils/time';
 
 interface ManageVolunteerShiftDialogProps {
   open: boolean;
-  booking: VolunteerBookingDetail;
+  booking: VolunteerBookingDetail | null;
   onClose: () => void;
   onUpdated: (message: string, severity: AlertColor) => void;
 }
@@ -59,7 +59,7 @@ export default function ManageVolunteerShiftDialog({
   }, [open]);
 
   useEffect(() => {
-    if (status === 'reschedule') {
+    if (status === 'reschedule' && booking) {
       (async () => {
         try {
           const s = await getRoleShifts(booking.role_id);
@@ -79,7 +79,9 @@ export default function ManageVolunteerShiftDialog({
       setDate('');
       setShiftId('');
     }
-  }, [status, booking.role_id]);
+  }, [status, booking?.role_id]);
+
+  if (!booking) return null;
 
   function timesOverlap(
     startA: string,

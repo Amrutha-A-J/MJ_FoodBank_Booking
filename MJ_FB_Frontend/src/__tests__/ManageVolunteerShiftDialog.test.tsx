@@ -92,5 +92,12 @@ describe('ManageVolunteerShiftDialog', () => {
     );
     expect(onUpdated).toHaveBeenCalledWith('Booking rescheduled', 'success');
   });
+
+  it('renders nothing when booking is null', () => {
+    const { container } = render(
+      <ManageVolunteerShiftDialog open booking={null} onClose={() => {}} onUpdated={() => {}} />,
+    );
+    expect(container.firstChild).toBeNull();
+  });
 });
 
