@@ -3,7 +3,7 @@ import pool from '../db';
 import logger from '../utils/logger';
 import { formatReginaDate } from '../utils/dateUtils';
 
-async function refreshClientVisitCount(clientId: number) {
+export async function refreshClientVisitCount(clientId: number) {
   await pool.query(
     `UPDATE clients c
      SET bookings_this_month = (
