@@ -461,6 +461,13 @@ export async function createBookingForUser(
       token,
       null,
     );
+    const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
+    const clientEmail = emailRes.rows[0]?.email || 'test@example.com';
+    enqueueEmail(
+      clientEmail,
+      'Booking approved',
+      `Your booking for ${date} has been automatically approved`,
+    );
     res
       .status(201)
       .json({ message: 'Booking created for user', status, rescheduleToken: token });
