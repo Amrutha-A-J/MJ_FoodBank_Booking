@@ -1035,7 +1035,7 @@ export default function VolunteerManagement() {
 
       <ManageVolunteerShiftDialog
         open={!!manageShift}
-        booking={manageShift as VolunteerBookingDetail}
+        booking={manageShift}
         onClose={() => setManageShift(null)}
         onUpdated={handleManageUpdated}
       />
