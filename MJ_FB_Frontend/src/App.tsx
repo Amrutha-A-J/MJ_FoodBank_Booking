@@ -1,7 +1,9 @@
 import React, { useState, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
-import Dashboard from './components/dashboard/Dashboard';
+const Dashboard = React.lazy(
+  () => import('./components/dashboard/Dashboard')
+);
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
@@ -249,7 +251,9 @@ export default function App() {
                     singleAccessOnly && staffRootPath !== '/' ? (
                       <Navigate to={staffRootPath} replace />
                     ) : (
+                      <Suspense fallback={<Spinner />}>
                         <Dashboard role="staff" masterRoleFilter={['Pantry']} />
+                      </Suspense>
                     )
                   ) : (
                     <ClientDashboard />
@@ -258,7 +262,14 @@ export default function App() {
               />
                 <Route path="/profile" element={<Profile role={role} />} />
               {showStaff && (
-                <Route path="/pantry" element={<Dashboard role="staff" masterRoleFilter={['Pantry']} />} />
+                <Route
+                  path="/pantry"
+                  element={
+                    <Suspense fallback={<Spinner />}>
+                      <Dashboard role="staff" masterRoleFilter={['Pantry']} />
+                    </Suspense>
+                  }
+                />
               )}
               {showStaff && (
                 <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
