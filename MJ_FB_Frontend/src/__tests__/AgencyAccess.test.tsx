@@ -10,6 +10,8 @@ jest.mock('../api/users', () => ({
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
 jest.mock('../pages/agency/ClientHistory', () => () => <div>AgencyClientHistory</div>);
 
+const realFetch = global.fetch;
+
 describe('Agency UI access', () => {
   beforeEach(() => {
     (global as any).fetch = jest.fn().mockResolvedValue({
@@ -20,6 +22,10 @@ describe('Agency UI access', () => {
     });
     localStorage.clear();
     window.history.pushState({}, '', '/');
+  });
+
+  afterEach(() => {
+    global.fetch = realFetch;
   });
 
   it('allows agency login and shows agency links', async () => {
