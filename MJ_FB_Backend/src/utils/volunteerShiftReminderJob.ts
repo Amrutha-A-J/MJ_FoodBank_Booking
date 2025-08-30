@@ -36,17 +36,27 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
 /**
  * Schedule the volunteer shift reminder job to run once a day.
  */
+let volunteerShiftReminderInterval: NodeJS.Timeout | undefined;
+
 export function startVolunteerShiftReminderJob(): void {
   if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then every 24 hours
+  // Run immediately and then every 24 hours.
+  // Consider using a fixed-time scheduler such as node-cron for predictable execution.
   sendNextDayVolunteerShiftReminders().catch((err) =>
     logger.error('Initial volunteer shift reminder run failed', err),
   );
   const dayMs = 24 * 60 * 60 * 1000;
-  setInterval(() => {
+  volunteerShiftReminderInterval = setInterval(() => {
     sendNextDayVolunteerShiftReminders().catch((err) =>
       logger.error('Scheduled volunteer shift reminder run failed', err),
     );
   }, dayMs);
+}
+
+export function stopVolunteerShiftReminderJob(): void {
+  if (volunteerShiftReminderInterval) {
+    clearInterval(volunteerShiftReminderInterval);
+    volunteerShiftReminderInterval = undefined;
+  }
 }
 

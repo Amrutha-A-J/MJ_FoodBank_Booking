@@ -29,17 +29,27 @@ export async function sendNextDayBookingReminders(): Promise<void> {
 /**
  * Schedule the reminder job to run once a day.
  */
+let bookingReminderInterval: NodeJS.Timeout | undefined;
+
 export function startBookingReminderJob(): void {
   if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then every 24 hours
+  // Run immediately and then every 24 hours.
+  // Consider using a fixed-time scheduler such as node-cron for predictable execution.
   sendNextDayBookingReminders().catch((err) =>
     logger.error('Initial reminder run failed', err),
   );
   const dayMs = 24 * 60 * 60 * 1000;
-  setInterval(() => {
+  bookingReminderInterval = setInterval(() => {
     sendNextDayBookingReminders().catch((err) =>
       logger.error('Scheduled reminder run failed', err),
     );
   }, dayMs);
+}
+
+export function stopBookingReminderJob(): void {
+  if (bookingReminderInterval) {
+    clearInterval(bookingReminderInterval);
+    bookingReminderInterval = undefined;
+  }
 }
 
