@@ -5,6 +5,7 @@ import { sendEmail } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
 import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
+import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
 const STATUS_COLORS: Record<string, string> = {
   approved: 'green',
@@ -25,6 +26,14 @@ function mapBookingRow(b: any) {
       b.date instanceof Date ? b.date.toISOString().split('T')[0] : b.date,
     status_color: statusColor(b.status),
   };
+}
+
+const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
+
+async function notifyCoordinators(subject: string, body: string) {
+  await Promise.all(
+    coordinatorEmails.map(email => sendEmail(email, subject, body)),
+  );
 }
 
 export async function createVolunteerBooking(
@@ -588,8 +597,7 @@ export async function updateVolunteerBookingStatus(
       updated.date instanceof Date
         ? updated.date.toISOString().split('T')[0]
         : updated.date;
-    await sendEmail(
-      'test@example.com',
+    await notifyCoordinators(
       `Volunteer booking ${status}`,
       `Volunteer booking ${id} ${status}.`,
     );
@@ -687,8 +695,7 @@ export async function rescheduleVolunteerBooking(
       "UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status='approved', reason=NULL WHERE id=$4",
       [roleId, date, newToken, booking.id],
     );
-    await sendEmail(
-      'test@example.com',
+    await notifyCoordinators(
       'Volunteer booking rescheduled',
       `Volunteer booking ${booking.id} was rescheduled`,
     );

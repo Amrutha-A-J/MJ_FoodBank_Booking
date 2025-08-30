@@ -6,6 +6,7 @@
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
+- Coordinator notification addresses for volunteer booking updates live in `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Bookings for unregistered individuals can be created via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The pantry schedule's **Assign User** modal includes a **New client** option; selecting it lets staff enter a name (with optional email and phone) and books the slot via `POST /bookings/new-client`. These bookings appear on the schedule as `[NEW CLIENT] Name`.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue.
