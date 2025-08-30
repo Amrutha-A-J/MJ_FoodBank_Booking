@@ -42,7 +42,7 @@ describe('listVolunteerBookings', () => {
       rows: [
         {
           id: 1,
-          status: 'pending',
+          status: 'approved',
           role_id: 2,
           volunteer_id: 3,
           date: '2025-01-01',

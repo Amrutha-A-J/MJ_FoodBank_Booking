@@ -333,7 +333,7 @@ export async function listVolunteerRolesForVolunteer(
        LEFT JOIN (
          SELECT slot_id, COUNT(*) AS count
          FROM volunteer_bookings
-         WHERE status IN ('pending','approved') AND date = $1
+         WHERE status='approved' AND date = $1
          GROUP BY slot_id
        ) b ON vs.slot_id = b.slot_id
        WHERE vs.role_id = ANY($2::int[])

@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     volunteer_id integer NOT NULL,
     slot_id integer NOT NULL,
     date date NOT NULL,
-    status text DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled', 'no_show', 'expired')),
+    status text DEFAULT 'approved' NOT NULL CHECK (status IN ('approved', 'rejected', 'cancelled', 'no_show', 'expired')),
     reason text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     reschedule_token text,
