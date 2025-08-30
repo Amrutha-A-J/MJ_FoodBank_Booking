@@ -2,8 +2,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ManageAvailability from '../ManageAvailability';
 import { removeHoliday } from '../../../api/bookings';
 
-jest.mock('../../../api/bookings', () => ({
+jest.mock('../../../api/slots', () => ({
   getAllSlots: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock('../../../api/bookings', () => ({
   getBreaks: jest.fn().mockResolvedValue([]),
   getRecurringBlockedSlots: jest.fn().mockResolvedValue([]),
   getBlockedSlots: jest.fn().mockResolvedValue([]),
