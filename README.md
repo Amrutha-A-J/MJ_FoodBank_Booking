@@ -106,7 +106,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `PG_DATABASE` | PostgreSQL database name |
 | `JWT_SECRET` | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
 | `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`. |
-| `FRONTEND_ORIGIN` | Allowed origins for CORS and base URL for password setup links (comma separated) |
+| `FRONTEND_ORIGIN` | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored) |
 | `PORT` | Port for the backend server (defaults to 4000) |
 | `BREVO_API_KEY` | Brevo API key for transactional emails |
 | `BREVO_FROM_EMAIL` | Email address used as the sender |

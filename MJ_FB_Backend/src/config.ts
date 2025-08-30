@@ -31,7 +31,10 @@ if (!parsedEnv.success) {
 
 const env = parsedEnv.data;
 
-const frontendOrigins = env.FRONTEND_ORIGIN.split(',').map(o => o.trim());
+const frontendOrigins = env.FRONTEND_ORIGIN
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
 
 export default {
   pgUser: env.PG_USER,

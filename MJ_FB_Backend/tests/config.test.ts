@@ -36,6 +36,18 @@ describe('config', () => {
     ]);
   });
 
+  it('ignores empty origin values', () => {
+    process.env.FRONTEND_ORIGIN = 'http://localhost:3000,,http://example.com,';
+    process.env.JWT_SECRET = 'testsecret';
+    process.env.JWT_REFRESH_SECRET = 'testrefresh';
+    jest.resetModules();
+    const config = require('../src/config').default;
+    expect(config.frontendOrigins).toEqual([
+      'http://localhost:3000',
+      'http://example.com',
+    ]);
+  });
+
   it('throws if JWT_SECRET is missing', () => {
     delete process.env.JWT_SECRET;
     process.env.JWT_REFRESH_SECRET = 'testrefresh';
