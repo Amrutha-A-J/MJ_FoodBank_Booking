@@ -205,60 +205,68 @@ export default function PantryVisits() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredVisits.map(v => (
-            <TableRow key={v.id}>
-              <TableCell>{formatDisplay(v.date)}</TableCell>
-              <TableCell>{v.clientId ?? 'N/A'}</TableCell>
-              <TableCell>{v.clientName ?? ''}</TableCell>
-              <TableCell>
-                {v.clientId ? (
-                  <a
-                    href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Link
-                  </a>
-                ) : (
-                  'N/A'
-                )}
-              </TableCell>
-              <TableCell>{v.weightWithCart}</TableCell>
-              <TableCell>{v.weightWithoutCart}</TableCell>
-              <TableCell>{v.petItem}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(v);
-                    setForm({
-                date: formatDate(v.date),
-                      anonymous: v.anonymous,
-                      clientId: v.clientId ? String(v.clientId) : '',
-                      weightWithCart: String(v.weightWithCart),
-                      weightWithoutCart: String(v.weightWithoutCart),
-                      petItem: String(v.petItem),
-                    });
-                    setAutoWeight(true);
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit visit"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(v);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete visit"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
+          {filteredVisits.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} align="center">
+                No records
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            filteredVisits.map(v => (
+              <TableRow key={v.id}>
+                <TableCell>{formatDisplay(v.date)}</TableCell>
+                <TableCell>{v.clientId ?? 'N/A'}</TableCell>
+                <TableCell>{v.clientName ?? ''}</TableCell>
+                <TableCell>
+                  {v.clientId ? (
+                    <a
+                      href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Link
+                    </a>
+                  ) : (
+                    'N/A'
+                  )}
+                </TableCell>
+                <TableCell>{v.weightWithCart}</TableCell>
+                <TableCell>{v.weightWithoutCart}</TableCell>
+                <TableCell>{v.petItem}</TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditing(v);
+                      setForm({
+                        date: formatDate(v.date),
+                        anonymous: v.anonymous,
+                        clientId: v.clientId ? String(v.clientId) : '',
+                        weightWithCart: String(v.weightWithCart),
+                        weightWithoutCart: String(v.weightWithoutCart),
+                        petItem: String(v.petItem),
+                      });
+                      setAutoWeight(true);
+                      setRecordOpen(true);
+                    }}
+                    aria-label="Edit visit"
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setToDelete(v);
+                      setDeleteOpen(true);
+                    }}
+                    aria-label="Delete visit"
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>
