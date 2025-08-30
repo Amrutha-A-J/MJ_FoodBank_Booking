@@ -1,3 +1,4 @@
+jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 import * as bookingReminder from '../src/utils/bookingReminderJob';
 const { sendNextDayBookingReminders, startBookingReminderJob, stopBookingReminderJob } = bookingReminder;
 import { fetchBookings } from '../src/models/bookingRepository';
@@ -42,13 +43,14 @@ describe('sendNextDayBookingReminders', () => {
 });
 
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
-  let setIntervalSpy: jest.SpyInstance;
-  let clearIntervalSpy: jest.SpyInstance;
+  let scheduleMock: jest.Mock;
+  let stopMock: jest.Mock;
   let sendSpy: jest.SpyInstance;
   beforeEach(() => {
     jest.useFakeTimers();
-    setIntervalSpy = jest.spyOn(global, 'setInterval');
-    clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+    scheduleMock = require('node-cron').schedule as jest.Mock;
+    stopMock = jest.fn();
+    scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
     sendSpy = jest
       .spyOn(bookingReminder, 'sendNextDayBookingReminders')
       .mockResolvedValue();
@@ -59,20 +61,21 @@ describe('startBookingReminderJob/stopBookingReminderJob', () => {
     stopBookingReminderJob();
     await Promise.resolve();
     jest.useRealTimers();
-    setIntervalSpy.mockRestore();
-    clearIntervalSpy.mockRestore();
+    scheduleMock.mockReset();
     sendSpy.mockRestore();
     process.env.NODE_ENV = 'test';
   });
 
-  it('sets and clears the interval', async () => {
+  it('schedules and stops the cron job', async () => {
     startBookingReminderJob();
     await Promise.resolve();
-    expect(setInterval).toHaveBeenCalled();
-    expect(jest.getTimerCount()).toBe(1);
+    expect(scheduleMock).toHaveBeenCalledWith(
+      '0 9 * * *',
+      expect.any(Function),
+      { timezone: 'America/Regina' },
+    );
     stopBookingReminderJob();
-    expect(clearInterval).toHaveBeenCalled();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(stopMock).toHaveBeenCalled();
   });
 });
 

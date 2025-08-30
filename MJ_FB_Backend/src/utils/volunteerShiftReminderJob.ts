@@ -2,6 +2,7 @@ import pool from '../db';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
+import cron from 'node-cron';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -34,29 +35,31 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
 }
 
 /**
- * Schedule the volunteer shift reminder job to run once a day.
+ * Schedule the volunteer shift reminder job to run once a day at 9:00 AM Regina time.
  */
-let volunteerShiftReminderInterval: NodeJS.Timeout | undefined;
+let volunteerShiftReminderTask: cron.ScheduledTask | undefined;
 
 export function startVolunteerShiftReminderJob(): void {
   if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then every 24 hours.
-  // Consider using a fixed-time scheduler such as node-cron for predictable execution.
+  // Run immediately and then on the scheduled interval.
   sendNextDayVolunteerShiftReminders().catch((err) =>
     logger.error('Initial volunteer shift reminder run failed', err),
   );
-  const dayMs = 24 * 60 * 60 * 1000;
-  volunteerShiftReminderInterval = setInterval(() => {
-    sendNextDayVolunteerShiftReminders().catch((err) =>
-      logger.error('Scheduled volunteer shift reminder run failed', err),
-    );
-  }, dayMs);
+  volunteerShiftReminderTask = cron.schedule(
+    '0 9 * * *',
+    () => {
+      sendNextDayVolunteerShiftReminders().catch((err) =>
+        logger.error('Scheduled volunteer shift reminder run failed', err),
+      );
+    },
+    { timezone: 'America/Regina' },
+  );
 }
 
 export function stopVolunteerShiftReminderJob(): void {
-  if (volunteerShiftReminderInterval) {
-    clearInterval(volunteerShiftReminderInterval);
-    volunteerShiftReminderInterval = undefined;
+  if (volunteerShiftReminderTask) {
+    volunteerShiftReminderTask.stop();
+    volunteerShiftReminderTask = undefined;
   }
 }
 
