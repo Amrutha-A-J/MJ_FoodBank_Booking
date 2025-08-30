@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
 
+const realFetch = global.fetch;
+
 describe('AgencyManagement', () => {
   beforeEach(() => {
     (global as any).fetch = jest.fn().mockResolvedValue({
@@ -11,6 +13,10 @@ describe('AgencyManagement', () => {
       headers: new Headers(),
     });
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    global.fetch = realFetch;
   });
 
   it('shows tabs for adding agencies and managing clients', async () => {
