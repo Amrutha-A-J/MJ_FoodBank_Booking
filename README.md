@@ -68,7 +68,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
+- Configurable cart tare via the Admin → App Configurations page and bread/can surplus weight multipliers via the Admin → Warehouse Settings page, both under the Admin menu.
 - Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
@@ -218,7 +218,8 @@ The build will fail if this variable is missing.
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to
-control weight calculations:
+set default multipliers; values are editable in the Admin → Warehouse Settings
+page and cached on the server:
 
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)

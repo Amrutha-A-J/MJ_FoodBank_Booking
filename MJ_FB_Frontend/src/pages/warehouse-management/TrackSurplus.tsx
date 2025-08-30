@@ -30,7 +30,10 @@ import {
   type Surplus,
 } from '../../api/surplus';
 import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
-import { getAppConfig, type AppConfig } from '../../api/appConfig';
+import {
+  getWarehouseSettings,
+  type WarehouseSettings,
+} from '../../api/warehouseSettings';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -67,8 +70,7 @@ export default function TrackSurplus() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Surplus | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
-  const [config, setConfig] = useState<AppConfig>({
-    cartTare: 0,
+  const [config, setConfig] = useState<WarehouseSettings>({
     breadWeightMultiplier: 10,
     cansWeightMultiplier: 20,
   });
@@ -94,7 +96,7 @@ export default function TrackSurplus() {
 
   useEffect(() => {
     load();
-    getAppConfig()
+    getWarehouseSettings()
       .then(cfg => setConfig(cfg))
       .catch(() => {});
   }, []);
