@@ -44,7 +44,7 @@
 - `GET /slots` returns an empty array with a 200 status on holidays.
 - Agencies can retrieve holiday dates via `GET /holidays` to disable bookings on those days.
 - Milestone badge awards queue a thank-you card email and expose a downloadable card link via `/stats`.
-- Users see a random appreciation message on login.
+- Volunteers see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
 - The volunteer dashboard shows a monthly contribution line chart of shift counts.
 - Self-service client registration with email OTP verification is implemented but currently disabled.
