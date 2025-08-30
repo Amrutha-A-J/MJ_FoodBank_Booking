@@ -192,6 +192,16 @@ npm install
 npm start   # or npm run dev
 ```
 
+### Environment variables
+
+The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with:
+
+```
+VITE_API_BASE=http://localhost:4000
+```
+
+The build will fail if this variable is missing.
+
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to
