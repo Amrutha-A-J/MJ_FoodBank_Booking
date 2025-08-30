@@ -342,8 +342,10 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `GET /volunteer-bookings/volunteer/:volunteer_id` → `[ { id, role_id, volunteer_id, date, status, reschedule_token, start_time, end_time, role_name, category_name, status_color } ]`
 - `GET /volunteer-bookings` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
 - `GET /volunteer-bookings/:role_id` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
+- `GET /volunteer-bookings/unmarked` → `[ { id, status, role_id, volunteer_id, date, reschedule_token, start_time, end_time, role_name, category_name, volunteer_name, status_color } ]`
 - `PATCH /volunteer-bookings/:id` → `{ id, role_id, volunteer_id, date, status, status_color }`
 - `POST /volunteer-bookings/reschedule/:token` → `{ message: 'Volunteer booking rescheduled', rescheduleToken }`
+- Volunteer management navigation includes a **Pending Reviews** tab for staff to mark past shifts as `completed` or `no_show`.
 
 Volunteer booking statuses include `completed`, and cancellations must include a reason.
 

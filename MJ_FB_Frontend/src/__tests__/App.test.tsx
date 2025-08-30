@@ -10,6 +10,9 @@ jest.mock('../pages/volunteer-management/VolunteerManagement', () => () => (
 jest.mock('../pages/warehouse-management/WarehouseDashboard', () => () => (
   <div>WarehouseDashboard</div>
 ));
+jest.mock('../pages/volunteer-management/PendingReviews', () => () => (
+  <div>PendingReviews</div>
+));
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),

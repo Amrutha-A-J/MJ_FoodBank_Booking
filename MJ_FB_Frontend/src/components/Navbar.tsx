@@ -6,6 +6,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Badge,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ExpandMore from '@mui/icons-material/ExpandMore';
@@ -15,7 +16,7 @@ import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-export type NavLink = { label: string; to: string };
+export type NavLink = { label: string; to: string; badge?: number };
 export type NavGroup = { label: string; links: NavLink[] };
 
 interface NavbarProps {
@@ -153,7 +154,7 @@ export default function Navbar({
                         {group.label}
                       </MenuItem>
                     )}
-                    {group.links.map(({ label, to }) => (
+                    {group.links.map(({ label, to, badge }) => (
                       <MenuItem
                         key={to}
                         component={RouterLink}
@@ -163,7 +164,13 @@ export default function Navbar({
                         disabled={loading}
                         sx={DROPDOWN_ITEM_SX}
                       >
-                        {label}
+                        {badge ? (
+                          <Badge color="error" badgeContent={badge}>
+                            {label}
+                          </Badge>
+                        ) : (
+                          label
+                        )}
                       </MenuItem>
                     ))}
                   </Box>
@@ -243,7 +250,13 @@ export default function Navbar({
                       : null),
                   }}
                 >
-                  {group.links[0].label}
+                  {group.links[0].badge ? (
+                    <Badge color="error" badgeContent={group.links[0].badge}>
+                      {group.links[0].label}
+                    </Badge>
+                  ) : (
+                    group.links[0].label
+                  )}
                 </Button>
               ) : (
                 <Box key={group.label} sx={{ display: 'inline-flex' }}>
@@ -270,7 +283,7 @@ export default function Navbar({
                     transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                     MenuListProps={{ dense: true, disablePadding: true }}
                   >
-                    {group.links.map(({ label, to }) => (
+                    {group.links.map(({ label, to, badge }) => (
                       <MenuItem
                         key={to}
                         component={RouterLink}
@@ -280,7 +293,13 @@ export default function Navbar({
                         disabled={loading}
                         sx={DROPDOWN_ITEM_SX}
                       >
-                        {label}
+                        {badge ? (
+                          <Badge color="error" badgeContent={badge}>
+                            {label}
+                          </Badge>
+                        ) : (
+                          label
+                        )}
                       </MenuItem>
                     ))}
                   </Menu>
