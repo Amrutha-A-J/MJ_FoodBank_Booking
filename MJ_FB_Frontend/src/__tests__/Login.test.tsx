@@ -25,6 +25,28 @@ describe('Login component', () => {
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
 
+  it('shows friendly message on unauthorized error', async () => {
+    const apiErr = Object.assign(new Error('backend'), { status: 401 });
+    (loginUser as jest.Mock).mockRejectedValue(apiErr);
+    const onLogin = jest.fn();
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>
+    );
+    fireEvent.change(screen.getByLabelText(/client id/i), {
+      target: { value: '123' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'pass' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+    expect(
+      await screen.findByText('Incorrect ID or password')
+    ).toBeInTheDocument();
+    expect(onLogin).not.toHaveBeenCalled();
+  });
+
   // it('includes link to signup', () => {
   //   render(
   //     <MemoryRouter>

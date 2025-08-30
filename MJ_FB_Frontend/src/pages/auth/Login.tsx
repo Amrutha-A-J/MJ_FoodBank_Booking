@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
+import type { ApiError } from '../../api/client';
 import { Link, TextField, Button } from '@mui/material';
 import Page from '../../components/Page';
 import { Link as RouterLink } from 'react-router-dom';
@@ -30,7 +31,12 @@ export default function Login({
       const user = await loginUser(clientId, password);
       await onLogin(user);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      const apiErr = err as ApiError;
+      if (apiErr?.status === 401) {
+        setError('Incorrect ID or password');
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     }
   }
 
