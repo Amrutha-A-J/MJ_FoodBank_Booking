@@ -4,6 +4,7 @@ import { TextField, Button } from '@mui/material';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
+import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 import type { ApiError } from '../../api/client';
 
 export default function AgencyLogin({
@@ -14,6 +15,7 @@ export default function AgencyLogin({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [resendOpen, setResendOpen] = useState(false);
 
   const emailError = email === '';
   const passwordError = password === '';
@@ -28,6 +30,9 @@ export default function AgencyLogin({
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
         setError('Incorrect email or password');
+      } else if (apiErr?.status === 403) {
+        setError('Password setup link expired');
+        setResendOpen(true);
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -78,6 +83,7 @@ export default function AgencyLogin({
         message={error}
         severity="error"
       />
+      <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
 }

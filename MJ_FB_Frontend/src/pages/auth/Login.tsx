@@ -8,6 +8,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
+import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 
 export default function Login({
   onLogin,
@@ -18,6 +19,7 @@ export default function Login({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const clientIdError = submitted && clientId === '';
@@ -34,6 +36,9 @@ export default function Login({
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
         setError('Incorrect ID or password');
+      } else if (apiErr?.status === 403) {
+        setError('Password setup link expired');
+        setResendOpen(true);
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -81,6 +86,7 @@ export default function Login({
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+      <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
 }

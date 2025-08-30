@@ -95,4 +95,39 @@ describe('setPassword', () => {
     );
     expect(markPasswordTokenUsed).toHaveBeenCalledWith(1);
   });
+
+  it('rejects expired token', async () => {
+    (verifyPasswordSetupToken as jest.Mock).mockResolvedValue(null);
+    const res = await request(app)
+      .post('/auth/set-password')
+      .send({ token: 'bad', password: 'Abcd1234!' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('resendPasswordSetup', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('generates a new token when looked up by email', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 9, email: 'resend@example.com', user_type: 'staff' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok2');
+    const res = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ email: 'resend@example.com' });
+    expect(res.status).toBe(204);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 9);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
+  });
+
+  it('requires an identifier', async () => {
+    const res = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({});
+    expect(res.status).toBe(400);
+  });
 });

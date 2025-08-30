@@ -67,6 +67,18 @@ export async function requestPasswordReset(data: {
   await handleResponse(res);
 }
 
+export async function resendPasswordSetup(data: {
+  email?: string;
+  clientId?: string;
+}): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/auth/resend-password-setup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
+}
+
 export async function changePassword(
   currentPassword: string,
   newPassword: string,

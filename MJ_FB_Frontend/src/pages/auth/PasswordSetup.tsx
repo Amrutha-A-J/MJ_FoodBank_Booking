@@ -5,6 +5,7 @@ import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { setPassword as setPasswordApi } from '../../api/users';
+import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 
 export default function PasswordSetup() {
   const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ export default function PasswordSetup() {
   const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [resendOpen, setResendOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,7 +26,11 @@ export default function PasswordSetup() {
       setSuccess('Password set. You may now log in.');
       setPassword('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
+      if (msg.toLowerCase().includes('expired token')) {
+        setResendOpen(true);
+      }
     }
   }
 
@@ -50,6 +56,11 @@ export default function PasswordSetup() {
         <Link component={RouterLink} to="/login" underline="hover">
           Back to login
         </Link>
+        {error.toLowerCase().includes('expired token') && (
+          <Link component="button" onClick={() => setResendOpen(true)} underline="hover">
+            Resend link
+          </Link>
+        )}
       </FormCard>
       <FeedbackSnackbar
         open={!!success}
@@ -63,6 +74,7 @@ export default function PasswordSetup() {
         message={error}
         severity="error"
       />
+      <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
 }

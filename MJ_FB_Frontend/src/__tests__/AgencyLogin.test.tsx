@@ -1,10 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AgencyLogin from '../pages/agency/Login';
-import { loginAgency } from '../api/users';
+import { loginAgency, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
   loginAgency: jest.fn(),
+  resendPasswordSetup: jest.fn(),
 }));
 
 describe('AgencyLogin component', () => {
