@@ -11,16 +11,11 @@ import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { getAllSlots, updateSlotCapacity } from '../../api/slots';
-import {
-  getAppConfig,
-  updateAppConfig,
-  type AppConfig,
-} from '../../api/appConfig';
+import { getAppConfig, updateAppConfig } from '../../api/appConfig';
 
 export default function PantrySettings() {
   const [capacity, setCapacity] = useState<number>(0);
   const [cartTare, setCartTare] = useState<number>(0);
-  const [config, setConfig] = useState<AppConfig | null>(null);
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: AlertColor } | null
   >(null);
@@ -35,7 +30,6 @@ export default function PantrySettings() {
     try {
       const cfg = await getAppConfig();
       setCartTare(cfg.cartTare);
-      setConfig(cfg);
     } catch {
       setSnackbar({ message: 'Failed to load cart tare', severity: 'error' });
     }
@@ -61,8 +55,6 @@ export default function PantrySettings() {
     try {
       await updateAppConfig({
         cartTare: Number(cartTare) || 0,
-        breadWeightMultiplier: config?.breadWeightMultiplier || 0,
-        cansWeightMultiplier: config?.cansWeightMultiplier || 0,
       });
       setSnackbar({ message: 'Cart tare updated', severity: 'success' });
     } catch (err: any) {

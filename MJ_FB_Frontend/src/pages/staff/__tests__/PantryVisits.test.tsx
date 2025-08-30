@@ -38,7 +38,7 @@ describe('PantryVisits', () => {
 
   it('uses cart tare from config when calculating weight', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
-    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10, breadWeightMultiplier: 0, cansWeightMultiplier: 0 });
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
 
     render(
       <ThemeProvider theme={theme}>

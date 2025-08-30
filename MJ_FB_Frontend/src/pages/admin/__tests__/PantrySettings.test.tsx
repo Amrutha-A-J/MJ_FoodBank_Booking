@@ -22,11 +22,7 @@ const { getAppConfig, updateAppConfig } = jest.requireMock('../../../api/appConf
 describe('PantrySettings', () => {
   it('updates capacity and cart tare', async () => {
     (getAllSlots as jest.Mock).mockResolvedValue<Slot[]>([{ maxCapacity: 5 }]);
-    (getAppConfig as jest.Mock).mockResolvedValue({
-      cartTare: 10,
-      breadWeightMultiplier: 10,
-      cansWeightMultiplier: 20,
-    });
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
 
     render(
       <ThemeProvider theme={theme}>
@@ -42,11 +38,7 @@ describe('PantrySettings', () => {
     fireEvent.change(tareField, { target: { value: '15' } });
     const [saveCapacity, saveTare] = screen.getAllByText('Save');
     fireEvent.click(saveTare);
-    expect(updateAppConfig).toHaveBeenCalledWith({
-      cartTare: 15,
-      breadWeightMultiplier: 10,
-      cansWeightMultiplier: 20,
-    });
+    expect(updateAppConfig).toHaveBeenCalledWith({ cartTare: 15 });
 
     fireEvent.change(capacityField, { target: { value: '7' } });
     fireEvent.click(saveCapacity);

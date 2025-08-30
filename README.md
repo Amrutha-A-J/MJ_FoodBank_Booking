@@ -68,8 +68,9 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Configurable cart tare via the Admin → App Configurations page and bread/can surplus weight multipliers via the Admin → Warehouse Settings page, both under the Admin menu.
 - Staff can set a cart tare value and a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
+- Bread and can surplus weight multipliers are configurable via the Admin → Warehouse Settings page.
+- Volunteer roles and shifts are managed through the Admin → Volunteer Settings page.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
