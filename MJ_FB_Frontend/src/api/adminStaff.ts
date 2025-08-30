@@ -22,13 +22,12 @@ export async function createStaff(
   firstName: string,
   lastName: string,
   email: string,
-  password: string,
   access: StaffAccess[],
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/admin-staff`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, email, password, access }),
+    body: JSON.stringify({ firstName, lastName, email, access }),
   });
   await handleResponse(res);
 }
@@ -39,12 +38,11 @@ export async function updateStaff(
   lastName: string,
   email: string,
   access: StaffAccess[],
-  password?: string,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/admin-staff/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ firstName, lastName, email, access, ...(password ? { password } : {}) }),
+    body: JSON.stringify({ firstName, lastName, email, access }),
   });
   await handleResponse(res);
 }

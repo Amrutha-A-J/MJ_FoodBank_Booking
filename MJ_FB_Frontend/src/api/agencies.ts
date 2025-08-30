@@ -45,13 +45,12 @@ export async function removeAgencyClient(
 export async function createAgency(
   name: string,
   email: string,
-  password: string,
   contactInfo?: string,
 ) {
   const res = await apiFetch(`${API_BASE}/agencies`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password, contactInfo }),
+    body: JSON.stringify({ name, email, contactInfo }),
   });
   return handleResponse(res);
 }

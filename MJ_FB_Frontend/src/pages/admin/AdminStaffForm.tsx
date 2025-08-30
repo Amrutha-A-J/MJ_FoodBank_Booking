@@ -38,14 +38,12 @@ export default function AdminStaffForm() {
                 data.lastName,
                 data.email,
                 data.access,
-                data.password,
               );
             } else {
               await createStaff(
                 data.firstName,
                 data.lastName,
                 data.email,
-                data.password || '',
                 data.access,
               );
             }

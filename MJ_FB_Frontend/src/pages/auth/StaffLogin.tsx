@@ -128,7 +128,6 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState(initError);
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -136,14 +135,13 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
   const firstNameError = submitted && firstName === '';
   const lastNameError = submitted && lastName === '';
   const emailError = submitted && email === '';
-  const passwordError = submitted && password === '';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
-    if (firstName === '' || lastName === '' || email === '' || password === '') return;
+    if (firstName === '' || lastName === '' || email === '') return;
     try {
-      await createStaff(firstName, lastName, ['admin'], email, password);
+      await createStaff(firstName, lastName, ['admin'], email);
       setMessage('Staff account created. You can login now.');
       setTimeout(onCreated, 1000);
     } catch (err: unknown) {
@@ -195,16 +193,9 @@ function CreateStaffForm({ onCreated, error: initError }: { onCreated: () => voi
           error={emailError}
           helperText={emailError ? 'Email is required' : ''}
         />
-        <TextField
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          label="Password"
-          fullWidth
-          required
-          error={passwordError}
-          helperText={passwordError ? 'Password is required' : ''}
-        />
+        <Typography variant="body2" color="text.secondary">
+          An email invitation will be sent.
+        </Typography>
       </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <FeedbackModal open={!!message} onClose={() => setMessage('')} message={message} />

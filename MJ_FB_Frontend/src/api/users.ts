@@ -103,7 +103,6 @@ export async function createStaff(
   lastName: string,
   access: StaffAccess[],
   email: string,
-  password: string,
 ): Promise<void> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -115,7 +114,6 @@ export async function createStaff(
       firstName,
       lastName,
       email,
-      password,
       access,
     }),
   });
@@ -127,7 +125,6 @@ export async function addUser(
   lastName: string,
   clientId: string,
   role: UserRole,
-  password: string | undefined,
   onlineAccess: boolean,
   email?: string,
   phone?: string,
@@ -142,7 +139,6 @@ export async function addUser(
       lastName,
       clientId: Number(clientId),
       role,
-      password,
       onlineAccess,
       email,
       phone,
@@ -186,7 +182,6 @@ export async function updateUserInfo(
     email?: string;
     phone?: string;
     onlineAccess: boolean;
-    password?: string;
   },
 ): Promise<IncompleteUser> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {

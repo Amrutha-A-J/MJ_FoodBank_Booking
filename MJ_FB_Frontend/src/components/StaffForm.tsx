@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { TextField, Checkbox, FormControlLabel, Button } from '@mui/material';
+import { TextField, Checkbox, FormControlLabel, Button, Typography } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { StaffAccess } from '../types';
@@ -16,7 +16,6 @@ interface StaffFormProps {
     firstName: string;
     lastName: string;
     email: string;
-    password?: string;
     access: StaffAccess[];
   }) => Promise<void>;
 }
@@ -25,25 +24,23 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
   const [firstName, setFirstName] = useState(initial?.firstName || '');
   const [lastName, setLastName] = useState(initial?.lastName || '');
   const [email, setEmail] = useState(initial?.email || '');
-  const [password, setPassword] = useState('');
   const [access, setAccess] = useState<StaffAccess[]>(initial?.access || []);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!firstName || !lastName || !email || (!initial && !password)) {
+    if (!firstName || !lastName || !email) {
       setError('All fields required');
       return;
     }
     try {
-      await onSubmit({ firstName, lastName, email, password: password || undefined, access });
+      await onSubmit({ firstName, lastName, email, access });
       setSuccess('Saved');
       if (!initial) {
         setFirstName('');
         setLastName('');
         setEmail('');
-        setPassword('');
         setAccess([]);
       }
     } catch (err: any) {
@@ -71,7 +68,9 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
         <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
         <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
         <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-        <TextField label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        <Typography variant="body2" color="text.secondary">
+          An email invitation will be sent.
+        </Typography>
         <FormControlLabel
           control={<Checkbox checked={access.includes('pantry')} onChange={() => toggleAccess('pantry')} />}
           label="Pantry"

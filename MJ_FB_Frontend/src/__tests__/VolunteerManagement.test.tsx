@@ -69,14 +69,13 @@ describe('VolunteerManagement shopper profile', () => {
     fireEvent.click(toggle);
 
     fireEvent.change(await screen.findByLabelText(/client id/i), { target: { value: '123' } });
-    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'pass' } });
+    expect(screen.getByText(/email invitation/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
 
     await waitFor(() =>
       expect(createVolunteerShopperProfile).toHaveBeenCalledWith(
         1,
         '123',
-        'pass',
         undefined,
         undefined,
       )
