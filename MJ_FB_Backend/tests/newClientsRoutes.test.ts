@@ -25,10 +25,12 @@ beforeEach(() => {
 
 describe('new clients routes', () => {
   it('lists new clients', async () => {
-    (model.fetchNewClients as jest.Mock).mockResolvedValue([{ id: 1, name: 'A' }]);
+    (model.fetchNewClients as jest.Mock).mockResolvedValue([
+      { client_id: 1, name: 'A' },
+    ]);
     const res = await request(app).get('/new-clients');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([{ id: 1, name: 'A' }]);
+    expect(res.body).toEqual([{ client_id: 1, name: 'A' }]);
   });
 
   it('validates id on delete', async () => {
