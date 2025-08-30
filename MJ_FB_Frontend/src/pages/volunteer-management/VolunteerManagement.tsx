@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
-  updateVolunteerBookingStatus,
+  cancelVolunteerBooking,
   searchVolunteers,
   getVolunteerBookingHistory,
   createVolunteer,
@@ -83,19 +83,17 @@ interface VolunteerResult {
 export default function VolunteerManagement() {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab: 'dashboard' | 'schedule' | 'search' | 'create' | 'pending' =
+  const tab: 'dashboard' | 'schedule' | 'search' | 'create' =
     tabParam === 'schedule' ||
     tabParam === 'search' ||
-    tabParam === 'create' ||
-    tabParam === 'pending'
-      ? (tabParam as 'schedule' | 'search' | 'create' | 'pending')
+    tabParam === 'create'
+      ? (tabParam as 'schedule' | 'search' | 'create')
       : 'dashboard';
   const tabTitles: Record<typeof tab, string> = {
     dashboard: 'Dashboard',
     schedule: 'Schedule',
     search: 'Search Volunteer',
     create: 'Create Volunteer',
-    pending: 'Pending',
   };
   const title = tabTitles[tab];
   const [roles, setRoles] = useState<RoleOption[]>([]);
@@ -103,7 +101,6 @@ export default function VolunteerManagement() {
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
-  const [pending, setPending] = useState<VolunteerBookingDetail[]>([]);
 
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
@@ -157,8 +154,6 @@ export default function VolunteerManagement() {
   const [confirmAssign, setConfirmAssign] = useState<VolunteerResult | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBookingDetail | null>(null);
-  const [decisionReason, setDecisionReason] = useState('');
-  const [showRejectReason, setShowRejectReason] = useState(false);
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBookingDetail | null>(null);
 
@@ -272,36 +267,6 @@ export default function VolunteerManagement() {
 
   // volunteer search handled via EntitySearch component
 
-  const loadPending = useCallback(async () => {
-    const all: VolunteerBookingDetail[] = [];
-    for (const r of roles) {
-      try {
-        const data = await getVolunteerBookingsByRole(r.id);
-        const approvedByDate: Record<string, number> = {};
-        data.forEach((b: VolunteerBookingDetail) => {
-          if (b.status.toLowerCase() === 'approved') {
-            approvedByDate[b.date] = (approvedByDate[b.date] || 0) + 1;
-          }
-        });
-        data.forEach((b: VolunteerBookingDetail) => {
-          if (b.status.toLowerCase() === 'pending') {
-            const approvedCount = approvedByDate[b.date] || 0;
-            const canBook = approvedCount < r.max_volunteers;
-            all.push({ ...b, role_name: b.role_name || r.name, can_book: canBook });
-          }
-        });
-      } catch {
-        // ignore
-      }
-    }
-    setPending(all);
-  }, [roles]);
-
-  useEffect(() => {
-    if (tab === 'pending') {
-      loadPending();
-    }
-  }, [tab, loadPending]);
 
   useEffect(() => {
     if (tab !== 'search') return;
@@ -313,16 +278,10 @@ export default function VolunteerManagement() {
     }
   }, [tab, searchParams, selectedVolunteer]);
 
-  async function decide(
-    id: number,
-    status: 'approved' | 'rejected' | 'cancelled' | 'no_show' | 'expired',
-    reason?: string,
-  ) {
+  async function decide(id: number) {
     try {
-      await updateVolunteerBookingStatus(id, status, reason);
-      if (tab === 'pending') {
-        setPending(prev => prev.filter(b => b.id !== id));
-      }
+      await cancelVolunteerBooking(id);
+      setMessage('Booking cancelled');
       if (selectedRole) {
         const ids = nameToSlotIds.get(selectedRole) || [];
         const data = await Promise.all(
@@ -330,7 +289,6 @@ export default function VolunteerManagement() {
         );
         setBookings(data.flat());
       }
-      if (tab === 'pending') loadPending();
     } catch (e) {
       setSnackbarSeverity('error');
       setMessage(e instanceof Error ? e.message : String(e));
@@ -353,7 +311,6 @@ export default function VolunteerManagement() {
         );
         setBookings(data.flat());
       }
-      if (tab === 'pending') loadPending();
     } catch (e) {
       setSnackbarSeverity('error');
       setMessage('Failed to reschedule booking');
@@ -599,10 +556,7 @@ export default function VolunteerManagement() {
 
   const bookingsForDate = bookings.filter(b => {
     const bookingDate = formatDate(b.date);
-    return (
-      bookingDate === formatDate(currentDate) &&
-      ['approved', 'pending'].includes(b.status.toLowerCase())
-    );
+    return bookingDate === formatDate(currentDate) && b.status.toLowerCase() === 'approved';
   });
   const rows = selectedRole
     ? roleInfos.map(role => {
@@ -618,23 +572,11 @@ export default function VolunteerManagement() {
           cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
             const booking = slotBookings[i];
             return {
-              content: booking
-                ?
-                    booking.volunteer_name +
-                    (booking.status.toLowerCase() === 'pending' && !canBook
-                      ? ' (Full)'
-                      : '')
-                : 'Available',
-              backgroundColor: booking
-                ? booking.status.toLowerCase() === 'approved'
-                  ? approvedColor
-                  : theme.palette.warning.light
-                : undefined,
+              content: booking ? booking.volunteer_name : 'Available',
+              backgroundColor: booking ? approvedColor : undefined,
               onClick: () => {
                 if (booking) {
                   setDecisionBooking({ ...booking, can_book: canBook });
-                  setDecisionReason('');
-                  setShowRejectReason(false);
                 } else {
                   setAssignSlot(role);
                   setAssignSearch('');
@@ -799,35 +741,25 @@ export default function VolunteerManagement() {
                             </TableCell>
                             <TableCell sx={cellSx}>{h.status}</TableCell>
                             <TableCell sx={cellSx}>
-                              {h.status === 'pending' && (
+                              {h.status === 'approved' && (
                                 <>
                                   <Button
-                                    onClick={() => decide(h.id, 'approved')}
+                                    onClick={() => setRescheduleBooking(h)}
                                     variant="outlined"
                                     color="primary"
                                     size="small"
                                   >
-                                    Approve
+                                    Reschedule
                                   </Button>{' '}
                                   <Button
-                                    onClick={() => decide(h.id, 'rejected')}
+                                    onClick={() => decide(h.id)}
                                     variant="outlined"
                                     color="primary"
                                     size="small"
                                   >
-                                    Reject
+                                    Cancel
                                   </Button>
                                 </>
-                              )}
-                              {h.status === 'approved' && (
-                                <Button
-                                  onClick={() => decide(h.id, 'cancelled')}
-                                  variant="outlined"
-                                  color="primary"
-                                  size="small"
-                                >
-                                  Cancel
-                                </Button>
                               )}
                             </TableCell>
                           </TableRow>
@@ -958,29 +890,6 @@ export default function VolunteerManagement() {
           />
         </>
       )}
-
-      {tab === 'pending' && (
-        <div>
-          <h3>Pending Volunteer Bookings</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {pending.map(p => (
-              <li key={p.id} style={{ marginBottom: 12, border: '1px solid #ccc', padding: 8 }}>
-                <div><strong>Volunteer:</strong> {p.volunteer_name}</div>
-                <div><strong>Role:</strong> {p.role_name}</div>
-                <div><strong>Date:</strong> {p.date}</div>
-                <div><strong>Time:</strong> {formatTime(p.start_time || '')} - {formatTime(p.end_time || '')}</div>
-                <div><strong>Slot Availability:</strong> {p.can_book ? 'Available' : 'Full'}</div>
-                <div style={{ marginTop: 4 }}>
-                  <Button onClick={() => decide(p.id, 'approved')} variant="outlined" color="primary">Approve</Button>{' '}
-                  <Button onClick={() => decide(p.id, 'rejected')} variant="outlined" color="primary">Reject</Button>
-                </div>
-              </li>
-            ))}
-            {pending.length === 0 && <li>No pending bookings.</li>}
-          </ul>
-        </div>
-      )}
-
         {shopperOpen && (
           <Dialog open onClose={() => setShopperOpen(false)}>
             <DialogCloseButton onClose={() => setShopperOpen(false)} />
@@ -1131,137 +1040,35 @@ export default function VolunteerManagement() {
         >
           <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 320 }}>
             <h4>Manage Booking</h4>
-            <p>
-              {decisionBooking.status.toLowerCase() === 'pending'
-                ? `Approve, reject, or reschedule booking for ${decisionBooking.volunteer_name}?`
-                : `Reschedule or cancel booking for ${decisionBooking.volunteer_name}?`}
-              {decisionBooking.status.toLowerCase() === 'pending' && (
-                <>
-                  <br />
-                  Slot Availability: {decisionBooking.can_book ? 'Available' : 'Full'}
-                </>
-              )}
-            </p>
-            {decisionBooking.status.toLowerCase() === 'pending' && showRejectReason && (
-              <textarea
-                placeholder="Reason for rejection"
-                value={decisionReason}
-                onChange={e => setDecisionReason(e.target.value)}
-                style={{ width: '100%', marginTop: 8 }}
-              />
-            )}
-            {(!showRejectReason || decisionBooking.status.toLowerCase() !== 'pending') && (
-              <textarea
-                placeholder="Reason for cancellation"
-                value={decisionReason}
-                onChange={e => setDecisionReason(e.target.value)}
-                style={{ width: '100%', marginTop: 8 }}
-              />
-            )}
+            <p>{`Reschedule or cancel booking for ${decisionBooking.volunteer_name}?`}</p>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              {decisionBooking.status.toLowerCase() === 'pending' ? (
-                <>
-                  <Button
-                    onClick={() => {
-                      decide(decisionBooking.id, 'approved');
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      if (!showRejectReason) {
-                        setShowRejectReason(true);
-                      } else {
-                        decide(decisionBooking.id, 'rejected', decisionReason);
-                        setDecisionBooking(null);
-                        setDecisionReason('');
-                        setShowRejectReason(false);
-                      }
-                    }}
-                    variant="outlined"
-                    color="primary"
-                    disabled={showRejectReason && !decisionReason.trim()}
-                  >
-                    {showRejectReason ? 'Confirm Reject' : 'Reject'}
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setRescheduleBooking(decisionBooking);
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Reschedule
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      decide(decisionBooking.id, 'cancelled', decisionReason);
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Cancel Booking
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                      setShowRejectReason(false);
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Close
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    onClick={() => {
-                      setRescheduleBooking(decisionBooking);
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Reschedule
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      decide(decisionBooking.id, 'cancelled', decisionReason);
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Cancel Booking
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setDecisionBooking(null);
-                      setDecisionReason('');
-                    }}
-                    variant="outlined"
-                    color="primary"
-                  >
-                    Close
-                  </Button>
-                </>
-              )}
+              <Button
+                onClick={() => {
+                  setRescheduleBooking(decisionBooking);
+                  setDecisionBooking(null);
+                }}
+                variant="outlined"
+                color="primary"
+              >
+                Reschedule
+              </Button>
+              <Button
+                onClick={() => {
+                  decide(decisionBooking.id);
+                  setDecisionBooking(null);
+                }}
+                variant="outlined"
+                color="primary"
+              >
+                Cancel Booking
+              </Button>
+              <Button
+                onClick={() => setDecisionBooking(null)}
+                variant="outlined"
+                color="primary"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>
