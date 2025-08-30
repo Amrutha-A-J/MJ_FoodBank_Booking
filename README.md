@@ -58,7 +58,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
-- Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
+- Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts). Volunteers can manage their recurring bookings from the **Recurring Bookings** page.
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.

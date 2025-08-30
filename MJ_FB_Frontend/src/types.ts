@@ -128,6 +128,15 @@ export interface VolunteerBooking {
   recurring_id?: number;
 }
 
+export interface VolunteerRecurringBooking {
+  id: number;
+  role_id: number;
+  start_date: string;
+  end_date: string | null;
+  pattern: 'daily' | 'weekly';
+  days_of_week: number[] | null;
+}
+
 export interface VolunteerBookingDetail {
   id: number;
   status: VolunteerBookingStatus;
