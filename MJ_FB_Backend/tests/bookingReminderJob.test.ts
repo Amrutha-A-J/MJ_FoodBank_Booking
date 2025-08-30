@@ -1,6 +1,11 @@
+process.env.NODE_ENV = 'development';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
-import * as bookingReminder from '../src/utils/bookingReminderJob';
-const { sendNextDayBookingReminders, startBookingReminderJob, stopBookingReminderJob } = bookingReminder;
+const bookingReminder = require('../src/utils/bookingReminderJob');
+const {
+  sendNextDayBookingReminders,
+  startBookingReminderJob,
+  stopBookingReminderJob,
+} = bookingReminder;
 import { fetchBookingsForReminder } from '../src/models/bookingRepository';
 import { enqueueEmail } from '../src/utils/emailQueue';
 
@@ -16,10 +21,12 @@ describe('sendNextDayBookingReminders', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+    process.env.NODE_ENV = 'development';
   });
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    process.env.NODE_ENV = 'test';
   });
 
   it('fetches next-day bookings and queues reminder emails', async () => {
