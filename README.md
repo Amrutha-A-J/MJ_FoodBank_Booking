@@ -30,7 +30,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
 - Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict`.
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
-- Volunteer badges are calculated from activity and manually awardable. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
+- Volunteer badges are calculated from activity and manually awardable. Manual awards are issued via `POST /volunteers/me/badges`. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
 - The stats endpoint now provides a milestone message and contribution totals (`familiesServed`, `poundsHandled`) along with current-month figures (`monthFamiliesServed`, `monthPoundsHandled`) so the dashboard can display appreciation.
 - Volunteer leaderboard endpoint `GET /volunteer-stats/leaderboard` returns your rank and percentile.
   The volunteer dashboard shows “You're in the top X%!” based on this data.
