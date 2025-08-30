@@ -34,7 +34,6 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import {
-  getAllSlots,
   getHolidays,
   addHoliday,
   removeHoliday,
@@ -48,6 +47,7 @@ import {
   getBreaks,
   getRecurringBlockedSlots,
 } from '../../api/bookings';
+import { getAllSlots } from '../../api/slots';
 import { formatTime } from '../../utils/time';
 import type { Slot, Holiday } from '../../types';
 import { formatLocaleDate, toDate, formatReginaDate } from '../../utils/date';

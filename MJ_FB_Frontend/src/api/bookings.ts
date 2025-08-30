@@ -176,12 +176,6 @@ export async function removeHoliday(date: string): Promise<void> {
   await handleResponse(res);
 }
 
-export async function getAllSlots() {
-  const res = await apiFetch(`${API_BASE}/slots/all`);
-  const data = await handleResponse<SlotResponse[]>(res);
-  return data.map(mapSlot);
-}
-
 export async function getBlockedSlots(date?: string): Promise<BlockedSlot[]> {
   const url = date
     ? `${API_BASE}/blocked-slots?date=${encodeURIComponent(date)}`
