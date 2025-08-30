@@ -1,5 +1,5 @@
 import { apiFetch, handleResponse } from '../api/client';
-import { loginUser, addUser, sendRegistrationOtp, registerUser } from '../api/users';
+import { loginUser, addUser } from '../api/users';
 
 jest.mock('../api/client', () => ({
   API_BASE: '/api',
@@ -25,22 +25,5 @@ describe('users api', () => {
     expect(apiFetch).not.toHaveBeenCalled();
   });
 
-  it('rejects sendRegistrationOtp with invalid clientId', async () => {
-    await expect(sendRegistrationOtp('abc', 'a@b.com')).rejects.toThrow('Invalid client ID');
-    expect(apiFetch).not.toHaveBeenCalled();
-  });
-
-  it('rejects registerUser with invalid clientId', async () => {
-    await expect(
-      registerUser({
-        clientId: 'abc',
-        firstName: 'A',
-        lastName: 'B',
-        email: 'a@b.com',
-        password: 'pw',
-        otp: '123456',
-      }),
-    ).rejects.toThrow('Invalid client ID');
-    expect(apiFetch).not.toHaveBeenCalled();
-  });
+  // removed self-registration tests
 });

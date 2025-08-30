@@ -25,13 +25,4 @@ describe('Login component', () => {
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
 
-  // it('includes link to signup', () => {
-  //   render(
-  //     <MemoryRouter>
-  //       <Login onLogin={async () => {}} />
-  //     </MemoryRouter>
-  //   );
-  //   const link = screen.getByRole('link', { name: /sign up/i });
-  //   expect(link).toHaveAttribute('href', '/signup');
-  // });
 });

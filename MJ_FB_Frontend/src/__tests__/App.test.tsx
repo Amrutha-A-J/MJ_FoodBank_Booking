@@ -106,15 +106,6 @@ describe('App authentication persistence', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
-  // it('renders signup page when visiting /signup', () => {
-  //   window.history.pushState({}, '', '/signup');
-  //   render(
-  //     <AuthProvider>
-  //       <App />
-  //     </AuthProvider>,
-  //   );
-  //   expect(screen.getByText(/client sign up/i)).toBeInTheDocument();
-  // });
 
   it('shows App Config link for admin staff', () => {
     localStorage.setItem('role', 'staff');

@@ -60,7 +60,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts).
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
-- Self-service client registration with email OTP verification (currently disabled pending further testing).
+- Clients must be registered by staff or agencies; self-service registration has been removed.
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
 - Configurable cart tare and surplus weight multipliers managed through the Admin → App Configurations page, accessible via the Admin menu.
 - Staff can set a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
@@ -232,18 +232,6 @@ control weight calculations:
 - Agency profile page shows the agency's name, email, and contact info with editable fields and password reset support.
 - Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
 - Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
-
-### Client self-registration (temporarily disabled)
-
-The application previously allowed existing clients to enable online access via a self-service registration flow. Clients would request an email OTP and submit it along with their account details to activate online access.
-
-This feature is currently disabled pending further testing. The backend routes `/api/users/register` and `/api/users/register/otp`, the frontend signup page, and associated tests have been commented out. To re-enable the flow:
-
-1. Uncomment the routes in `MJ_FB_Backend/src/routes/users.ts`.
-2. Restore the signup navigation and route in `MJ_FB_Frontend/src/App.tsx` and the link in `src/pages/auth/Login.tsx`.
-3. Re-enable signup tests in `MJ_FB_Backend/tests` and `MJ_FB_Frontend/src/__tests__`.
-
-Refer to the comments in those files for additional context when reinstating the feature.
 
 ## Deploying to Azure
 

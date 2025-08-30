@@ -43,14 +43,7 @@
 - Users see a random appreciation message on login.
 - The volunteer dashboard rotates encouragement messages when no milestone is reached.
 - The volunteer dashboard shows a monthly contribution line chart of shift counts.
-
-### Client self-registration (temporarily disabled)
-
-The self-service registration endpoints and frontend page are commented out pending further testing. To restore this feature:
-
-- Uncomment `/register` and `/register/otp` routes in `MJ_FB_Backend/src/routes/users.ts`.
-- Restore the signup route and navigation in `MJ_FB_Frontend/src/App.tsx` and the link in `src/pages/auth/Login.tsx`.
-- Re-enable the related tests in `MJ_FB_Backend/tests` and `MJ_FB_Frontend/src/__tests__`.
+ - Clients must be registered by staff or agencies; self-service registration has been removed.
 
 ## Project Layout
 
