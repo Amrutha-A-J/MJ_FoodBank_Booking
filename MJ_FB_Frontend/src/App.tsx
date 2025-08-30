@@ -59,6 +59,9 @@ const VolunteerRecurringBookings = React.lazy(() =>
 const PendingReviews = React.lazy(() =>
   import('./pages/volunteer-management/PendingReviews')
 );
+const VolunteerRankings = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerRankings')
+);
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
@@ -394,6 +397,10 @@ export default function App() {
                   <Route
                     path="/volunteer-management/pending-reviews"
                     element={<PendingReviews />}
+                  />
+                  <Route
+                    path="/volunteer-management/rankings"
+                    element={<VolunteerRankings />}
                   />
                   <Route
                     path="/volunteer-management/:tab"
