@@ -32,6 +32,7 @@ import {
   type ClientVisit,
 } from '../../api/clientVisits';
 import { addUser, getUserByClientId } from '../../api/users';
+import { getAppConfig } from '../../api/appConfig';
 import type { AlertColor } from '@mui/material';
 import { toDayjs, toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
 
@@ -72,7 +73,7 @@ export default function PantryVisits() {
   const [toDelete, setToDelete] = useState<ClientVisit | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor } | null>(null);
 
-  const [cartTare, setCartTare] = useState(27);
+  const [cartTare, setCartTare] = useState(0);
 
   const weekDates = useMemo(() => {
     const start = startOfWeek(toDate());
@@ -101,6 +102,12 @@ export default function PantryVisits() {
   useEffect(() => {
     loadVisits();
   }, [loadVisits]);
+
+  useEffect(() => {
+    getAppConfig()
+      .then(cfg => setCartTare(cfg.cartTare))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (recordOpen && autoWeight) {
@@ -255,35 +262,25 @@ export default function PantryVisits() {
     <Page
       title="Pantry Visits"
       header={
-        <Stack direction="row" spacing={1} mb={2}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({
-                date: format(selectedDate),
-                anonymous: false,
-                clientId: '',
-                weightWithCart: '',
-                weightWithoutCart: '',
-                petItem: '0',
-              });
-              setAutoWeight(true);
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Visit
-          </Button>
-          <TextField
-            label="Cart Tare (lbs)"
-            type="number"
-            size="small"
-            value={cartTare}
-            onChange={e => setCartTare(Number(e.target.value) || 0)}
-            sx={{ width: 140 }}
-          />
-        </Stack>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({
+              date: format(selectedDate),
+              anonymous: false,
+              clientId: '',
+              weightWithCart: '',
+              weightWithoutCart: '',
+              petItem: '0',
+            });
+            setAutoWeight(true);
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+        >
+          Record Visit
+        </Button>
       }
     >
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />

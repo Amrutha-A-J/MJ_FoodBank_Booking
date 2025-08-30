@@ -6,6 +6,8 @@ import { getAppConfig, updateAppConfig } from '../../api/appConfig';
 
 export default function AppConfigurations() {
   const [form, setForm] = useState({
+    breadWeightMultiplier: '',
+    cansWeightMultiplier: '',
     cartTare: '',
   });
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -16,7 +18,13 @@ export default function AppConfigurations() {
 
   useEffect(() => {
     getAppConfig()
-      .then(cfg => setForm({ cartTare: String(cfg.cartTare) }))
+      .then(cfg =>
+        setForm({
+          breadWeightMultiplier: String(cfg.breadWeightMultiplier),
+          cansWeightMultiplier: String(cfg.cansWeightMultiplier),
+          cartTare: String(cfg.cartTare),
+        }),
+      )
       .catch(() => {
         /* ignore */
       });
@@ -48,6 +56,24 @@ export default function AppConfigurations() {
           </Button>
         }
       >
+        <TextField
+          label="Bread Weight Multiplier"
+          type="number"
+          value={form.breadWeightMultiplier}
+          onChange={e =>
+            setForm({ ...form, breadWeightMultiplier: e.target.value })
+          }
+          InputLabelProps={{ shrink: true }}
+        />
+        <TextField
+          label="Cans Weight Multiplier"
+          type="number"
+          value={form.cansWeightMultiplier}
+          onChange={e =>
+            setForm({ ...form, cansWeightMultiplier: e.target.value })
+          }
+          InputLabelProps={{ shrink: true }}
+        />
         <TextField
           label="Cart Tare (lbs)"
           type="number"
