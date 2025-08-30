@@ -29,24 +29,26 @@ export async function requestPasswordReset(
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
 
     if (email) {
-      const staffRes = await pool.query('SELECT id, email FROM staff WHERE email=$1', [email]);
-      if ((staffRes.rowCount ?? 0) > 0) {
-        user = { id: staffRes.rows[0].id, email, table: 'staff' };
-      } else {
-        const volRes = await pool.query('SELECT id, email FROM volunteers WHERE email=$1', [email]);
-        if ((volRes.rowCount ?? 0) > 0) {
-          user = { id: volRes.rows[0].id, email, table: 'volunteers' };
-        } else {
-          const agencyRes = await pool.query('SELECT id, email FROM agencies WHERE email=$1', [email]);
-          if ((agencyRes.rowCount ?? 0) > 0) {
-            user = { id: agencyRes.rows[0].id, email, table: 'agencies' };
-          } else {
-            const clientRes = await pool.query('SELECT client_id, email FROM clients WHERE email=$1', [email]);
-            if ((clientRes.rowCount ?? 0) > 0) {
-              user = { id: clientRes.rows[0].client_id, email, table: 'clients' };
-            }
-          }
-        }
+      const result = await pool.query(
+        `SELECT id, email, user_type FROM (
+          SELECT id, email, 'staff' AS user_type, 1 AS ord FROM staff WHERE email=$1
+          UNION ALL
+          SELECT id, email, 'volunteers' AS user_type, 2 AS ord FROM volunteers WHERE email=$1
+          UNION ALL
+          SELECT id, email, 'agencies' AS user_type, 3 AS ord FROM agencies WHERE email=$1
+          UNION ALL
+          SELECT client_id AS id, email, 'clients' AS user_type, 4 AS ord FROM clients WHERE email=$1
+        ) AS combined
+        ORDER BY ord
+        LIMIT 1`,
+        [email],
+      );
+      if ((result.rowCount ?? 0) > 0) {
+        user = {
+          id: result.rows[0].id,
+          email: result.rows[0].email,
+          table: result.rows[0].user_type,
+        };
       }
     } else if (username) {
       const volRes = await pool.query('SELECT id, email FROM volunteers WHERE username=$1', [username]);
