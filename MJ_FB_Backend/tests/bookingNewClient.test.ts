@@ -18,6 +18,26 @@ jest.mock('../src/models/newClient', () => ({
 jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
 }));
+jest.mock('../src/middleware/authMiddleware', () => ({
+  authMiddleware: (
+    req: any,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    req.user = { id: 'staff1', role: 'staff' };
+    next();
+  },
+  authorizeRoles: () => (
+    _req: express.Request,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => next(),
+  optionalAuthMiddleware: (
+    _req: express.Request,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => next(),
+}));
 
 const app = express();
 app.use(express.json());
