@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { loginStaff, staffExists, createStaff } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
+import type { ApiError } from '../../api/client';
 import { Typography, TextField, Link, Button } from '@mui/material';
 import Page from '../../components/Page';
 import { Link as RouterLink } from 'react-router-dom';
@@ -76,7 +77,12 @@ function StaffLoginForm({
       }
       await onLogin(user);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      const apiErr = err as ApiError;
+      if (apiErr?.status === 401) {
+        setError('Incorrect email or password');
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loginVolunteer } from '../../api/volunteers';
 import type { LoginResponse } from '../../api/users';
+import type { ApiError } from '../../api/client';
 import { TextField, Link, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -30,7 +31,12 @@ export default function VolunteerLogin({
       const user = await loginVolunteer(username, password);
       await onLogin(user);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      const apiErr = err as ApiError;
+      if (apiErr?.status === 401) {
+        setError('Incorrect username or password');
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     }
   }
 

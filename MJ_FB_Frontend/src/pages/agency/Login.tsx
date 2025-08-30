@@ -4,6 +4,7 @@ import { TextField, Button } from '@mui/material';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
+import type { ApiError } from '../../api/client';
 
 export default function AgencyLogin({
   onLogin,
@@ -23,8 +24,13 @@ export default function AgencyLogin({
     try {
       const user = await loginAgency(email, password);
       await onLogin(user);
-    } catch (err: any) {
-      setError(err.message ?? String(err));
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
+      if (apiErr?.status === 401) {
+        setError('Incorrect email or password');
+      } else {
+        setError(err instanceof Error ? err.message : String(err));
+      }
     }
   }
 
