@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
+import { sendEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
@@ -46,6 +47,7 @@ describe('recurring volunteer bookings', () => {
       '2025-01-03',
     ]);
     expect(res.body.skipped).toEqual([]);
+    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(9);
   });
 
   it('skips dates that fail validation', async () => {
@@ -74,14 +76,29 @@ describe('recurring volunteer bookings', () => {
       { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
       { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
     ]);
+    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
   });
 
   it('cancels future recurring bookings', async () => {
-    (pool.query as jest.Mock).mockResolvedValue({});
-    const res = await request(app).delete('/volunteer-bookings/recurring/10?from=2025-01-02');
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            volunteer_id: 1,
+            slot_id: 2,
+            email: 'test@example.com',
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+          },
+        ],
+      })
+      .mockResolvedValue({});
+    const res = await request(app).delete(
+      '/volunteer-bookings/recurring/10?from=2025-01-02',
+    );
     expect(res.status).toBe(200);
-    const firstCall = (pool.query as jest.Mock).mock.calls[0][0];
-    expect(firstCall).toMatch(/UPDATE volunteer_bookings SET status='cancelled'/);
+    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
   });
 
   it('lists recurring bookings', async () => {
