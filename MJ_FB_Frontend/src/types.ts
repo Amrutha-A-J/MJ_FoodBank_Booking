@@ -144,6 +144,15 @@ export interface VolunteerBookingDetail {
   recurring_id?: number;
 }
 
+export interface RecurringVolunteerBooking {
+  id: number;
+  role_id: number;
+  start_date: string;
+  end_date: string | null;
+  pattern: 'daily' | 'weekly';
+  days_of_week: number[];
+}
+
 export interface UserProfile {
   id?: number;
   firstName: string;

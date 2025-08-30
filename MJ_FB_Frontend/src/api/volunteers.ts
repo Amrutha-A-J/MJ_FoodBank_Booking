@@ -7,6 +7,7 @@ import type {
   VolunteerBooking,
   VolunteerBookingStatus,
   UserProfile,
+  RecurringVolunteerBooking,
 } from '../types';
 import type { LoginResponse } from './users';
 
@@ -141,6 +142,13 @@ export async function cancelRecurringVolunteerBooking(
     },
   );
   await handleResponse(res);
+}
+
+export async function getMyRecurringVolunteerBookings(): Promise<
+  RecurringVolunteerBooking[]
+> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/recurring`);
+  return handleResponse<RecurringVolunteerBooking[]>(res);
 }
 
 export async function getMyVolunteerBookings() {
