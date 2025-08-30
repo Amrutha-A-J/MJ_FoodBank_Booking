@@ -390,6 +390,11 @@ CREATE TABLE IF NOT EXISTS email_queue (
     `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_reschedule_token_idx ON volunteer_bookings (reschedule_token);`
   );
 
+  // Create index for new_clients creation date
+  await client.query(
+    `CREATE INDEX IF NOT EXISTS new_clients_created_at_idx ON new_clients (created_at DESC);`
+  );
+
   // Create indexes for donation and warehouse log tables
   await client.query(
     `CREATE INDEX IF NOT EXISTS donations_donor_id_idx ON donations (donor_id);`
