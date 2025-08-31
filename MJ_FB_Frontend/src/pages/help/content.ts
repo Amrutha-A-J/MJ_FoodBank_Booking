@@ -10,11 +10,23 @@ export const helpContent: Record<
   client: [
     {
       title: 'Booking appointments',
-      body: 'Clients can book, reschedule, or cancel appointments from their dashboard.',
+      body: 'Reserve pantry visits from your dashboard.',
+    },
+    {
+      title: 'Rescheduling or canceling',
+      body: 'Change or cancel a booking from the booking history list.',
     },
     {
       title: 'View booking history',
       body: 'Past and upcoming bookings are listed under the booking history page.',
+    },
+    {
+      title: 'Manage profile and password',
+      body: 'Update contact information or change your password from the profile page.',
+    },
+    {
+      title: 'Visit counts and reminders',
+      body: 'The dashboard shows your monthly visit totals and upcoming booking reminders.',
     },
   ],
   volunteer: [
