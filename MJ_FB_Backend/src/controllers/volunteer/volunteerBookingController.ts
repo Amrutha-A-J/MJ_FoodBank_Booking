@@ -437,10 +437,10 @@ export async function resolveVolunteerBookingConflict(
       return res.status(400).json({ message: 'Role is full' });
     }
 
-    await pool.query('UPDATE volunteer_bookings SET status=$1 WHERE id=$2', [
-      'cancelled',
-      existingBookingId,
-    ]);
+    await pool.query(
+      'UPDATE volunteer_bookings SET status=$1, reason=$2 WHERE id=$3',
+      ['cancelled', 'conflict', existingBookingId],
+    );
 
     const token = randomUUID();
     const insertRes = await pool.query(

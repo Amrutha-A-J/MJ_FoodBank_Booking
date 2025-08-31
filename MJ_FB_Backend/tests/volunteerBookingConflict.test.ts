@@ -74,6 +74,10 @@ describe('volunteer booking conflict', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.booking).toMatchObject({ id: 9, role_id: 1, date: '2024-01-02' });
+    expect(pool.query).toHaveBeenCalledWith(
+      'UPDATE volunteer_bookings SET status=$1, reason=$2 WHERE id=$3',
+      ['cancelled', 'conflict', 5],
+    );
   });
 
   it('keeps existing booking when resolving conflict', async () => {
