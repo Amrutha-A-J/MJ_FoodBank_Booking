@@ -46,7 +46,12 @@ interface NextSlot {
 
 function formatDate(dateStr: string) {
   const d = toDate(dateStr);
-  return formatReginaDate(d, { month: 'short', day: 'numeric' });
+  return formatReginaDate(d, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function statusColor(status: string):
