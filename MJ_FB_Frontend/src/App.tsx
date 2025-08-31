@@ -1,5 +1,5 @@
 import React, { useState, Suspense, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 const Dashboard = React.lazy(
@@ -255,239 +255,260 @@ export default function App() {
     role,
     profileLinks,
   };
+  const AppContent = () => {
+    const location = useLocation();
+    const path = location.pathname;
+    const showLanguageSelector =
+      path.startsWith('/login') ||
+      path.startsWith('/forgot-password') ||
+      path.startsWith('/set-password') ||
+      path.startsWith('/book-appointment') ||
+      path.startsWith('/booking-history') ||
+      path.startsWith('/profile') ||
+      path.startsWith('/help') ||
+      (path === '/' && role === 'shopper');
+
+    return (
+      <>
+        {showLanguageSelector && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
+            <LanguageSelector />
+          </div>
+        )}
+        <div className="app-container">
+          <FeedbackSnackbar
+            open={!!error}
+            onClose={() => setError('')}
+            message={error}
+            severity="error"
+          />
+
+          {token ? (
+            <MainLayout {...navbarProps}>
+              <Suspense fallback={<Spinner />}>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      role === 'volunteer' ? (
+                        <VolunteerDashboard />
+                      ) : role === 'agency' ? (
+                        <AgencyGuard>
+                          <AgencyDashboard />
+                        </AgencyGuard>
+                      ) : isStaff ? (
+                        singleAccessOnly && staffRootPath !== '/' ? (
+                          <Navigate to={staffRootPath} replace />
+                        ) : (
+                          <Suspense fallback={<Spinner />}>
+                            <Dashboard role="staff" masterRoleFilter={['Pantry']} />
+                          </Suspense>
+                        )
+                      ) : (
+                        <ClientDashboard />
+                      )
+                    }
+                  />
+                  <Route path="/profile" element={<Profile role={role} />} />
+                  <Route path="/help" element={<HelpPage />} />
+                  {showStaff && (
+                    <Route
+                      path="/pantry"
+                      element={
+                        <Suspense fallback={<Spinner />}>
+                          <Dashboard role="staff" masterRoleFilter={['Pantry']} />
+                        </Suspense>
+                      }
+                    />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/schedule" element={<PantrySchedule />} />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/visits" element={<PantryVisits />} />
+                  )}
+                  {showWarehouse && (
+                    <Route path="/warehouse-management" element={<WarehouseDashboard />} />
+                  )}
+                  {showWarehouse && (
+                    <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
+                  )}
+                  {showWarehouse && (
+                    <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
+                  )}
+                  {showWarehouse && (
+                    <Route
+                      path="/warehouse-management/track-pigpound"
+                      element={<TrackPigpound />}
+                    />
+                  )}
+                  {showWarehouse && (
+                    <Route
+                      path="/warehouse-management/track-outgoing-donations"
+                      element={<TrackOutgoingDonations />}
+                    />
+                  )}
+                  {showWarehouse && (
+                    <Route
+                      path="/warehouse-management/track-surplus"
+                      element={<TrackSurplus />}
+                    />
+                  )}
+                  {showWarehouse && (
+                    <Route
+                      path="/warehouse-management/aggregations"
+                      element={<Aggregations />}
+                    />
+                  )}
+                  {showWarehouse && (
+                    <Route
+                      path="/warehouse-management/exports"
+                      element={<Exports />}
+                    />
+                  )}
+
+                  {role === 'shopper' && (
+                    <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
+                  )}
+                  {role === 'shopper' && (
+                    <Route
+                      path="/booking-history"
+                      element={
+                        <UserHistory
+                          initialUser={{ id: 0, name, client_id: 0 }}
+                        />
+                      }
+                    />
+                  )}
+                  {role === 'volunteer' && userRole === 'shopper' && (
+                    <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
+                  )}
+                  {role === 'volunteer' && userRole === 'shopper' && (
+                    <Route
+                      path="/booking-history"
+                      element={
+                        <UserHistory
+                          initialUser={{ id: 0, name, client_id: 0 }}
+                        />
+                      }
+                    />
+                  )}
+                  {showStaff && (
+                    <Route
+                      path="/pantry/client-management"
+                      element={<ClientManagement />}
+                    />
+                  )}
+                  {showStaff && (
+                    <Route
+                      path="/pantry/agency-management"
+                      element={<AgencyManagement />}
+                    />
+                  )}
+                  {isStaff && <Route path="/events" element={<Events />} />}
+                  {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
+                  {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
+                  {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
+                  {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
+                  {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
+                  {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
+                  {showVolunteerManagement && (
+                    <>
+                      <Route
+                        path="/volunteer-management"
+                        element={<VolunteerManagement />}
+                      />
+                      <Route
+                        path="/volunteer-management/volunteers"
+                        element={<VolunteerTabs />}
+                      />
+                      <Route
+                        path="/volunteer-management/rankings"
+                        element={<VolunteerRankings />}
+                      />
+                      <Route
+                        path="/volunteer-management/recurring"
+                        element={<StaffRecurringBookings />}
+                      />
+                      <Route
+                        path="/volunteer-management/:tab"
+                        element={<VolunteerManagement />}
+                      />
+                    </>
+                  )}
+                  {role === 'volunteer' && (
+                    <>
+                      <Route
+                        path="/volunteer/schedule"
+                        element={<VolunteerBooking />}
+                      />
+                      <Route
+                        path="/volunteer/recurring"
+                        element={<VolunteerRecurringBookings />}
+                      />
+                      <Route
+                        path="/volunteer/history"
+                        element={<VolunteerBookingHistory />}
+                      />
+                    </>
+                  )}
+
+                  {role === 'agency' && (
+                    <>
+                      <Route
+                        path="/agency/book"
+                        element={
+                          <AgencyGuard>
+                            <AgencyBookAppointment />
+                          </AgencyGuard>
+                        }
+                      />
+                      <Route
+                        path="/agency/history"
+                        element={
+                          <AgencyGuard>
+                            <ClientHistory />
+                          </AgencyGuard>
+                        }
+                      />
+                    </>
+                  )}
+                  <Route path="/set-password" element={<PasswordSetup />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </MainLayout>
+          ) : !ready ? (
+            <Spinner />
+          ) : (
+            <>
+              <Navbar {...navbarProps} />
+              <main>
+                <Suspense fallback={<Spinner />}>
+                  <Routes>
+                    <Route path="/login/user" element={<Login onLogin={login} />} />
+                    <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
+                    <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
+                    <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
+                    <Route path="/set-password" element={<PasswordSetup />} />
+                    <Route path="/login" element={<Navigate to="/login/user" replace />} />
+                    <Route path="*" element={<Navigate to="/login/user" replace />} />
+                  </Routes>
+                </Suspense>
+              </main>
+            </>
+          )}
+        </div>
+      </>
+    );
+  };
 
   return (
     <BrowserRouter>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
-        <LanguageSelector />
-      </div>
-      <div className="app-container">
-        <FeedbackSnackbar
-          open={!!error}
-          onClose={() => setError('')}
-          message={error}
-          severity="error"
-        />
-
-        {token ? (
-          <MainLayout {...navbarProps}>
-            <Suspense fallback={<Spinner />}>
-              <Routes>
-              <Route
-                path="/"
-                element={
-                  role === 'volunteer' ? (
-                      <VolunteerDashboard />
-                  ) : role === 'agency' ? (
-                    <AgencyGuard>
-                      <AgencyDashboard />
-                    </AgencyGuard>
-                  ) : isStaff ? (
-                    singleAccessOnly && staffRootPath !== '/' ? (
-                      <Navigate to={staffRootPath} replace />
-                    ) : (
-                      <Suspense fallback={<Spinner />}>
-                        <Dashboard role="staff" masterRoleFilter={['Pantry']} />
-                      </Suspense>
-                    )
-                  ) : (
-                    <ClientDashboard />
-                  )
-                }
-              />
-                <Route path="/profile" element={<Profile role={role} />} />
-                <Route path="/help" element={<HelpPage />} />
-              {showStaff && (
-                <Route
-                  path="/pantry"
-                  element={
-                    <Suspense fallback={<Spinner />}>
-                      <Dashboard role="staff" masterRoleFilter={['Pantry']} />
-                    </Suspense>
-                  }
-                />
-              )}
-              {showStaff && (
-                <Route path="/pantry/manage-availability" element={<ManageAvailability />} />
-              )}
-              {showStaff && (
-                <Route path="/pantry/schedule" element={<PantrySchedule />} />
-              )}
-              {showStaff && (
-                <Route path="/pantry/visits" element={<PantryVisits />} />
-              )}
-              {showWarehouse && (
-                <Route path="/warehouse-management" element={<WarehouseDashboard />} />
-              )}
-              {showWarehouse && (
-                <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
-              )}
-              {showWarehouse && (
-                <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
-              )}
-              {showWarehouse && (
-                <Route
-                  path="/warehouse-management/track-pigpound"
-                  element={<TrackPigpound />}
-                />
-              )}
-              {showWarehouse && (
-                <Route
-                  path="/warehouse-management/track-outgoing-donations"
-                  element={<TrackOutgoingDonations />}
-                />
-              )}
-              {showWarehouse && (
-                <Route
-                  path="/warehouse-management/track-surplus"
-                  element={<TrackSurplus />}
-                />
-              )}
-              {showWarehouse && (
-                <Route
-                  path="/warehouse-management/aggregations"
-                  element={<Aggregations />}
-                />
-              )}
-              {showWarehouse && (
-                <Route
-                  path="/warehouse-management/exports"
-                  element={<Exports />}
-                />
-              )}
-
-              {role === 'shopper' && (
-                <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
-              )}
-              {role === 'shopper' && (
-                <Route
-                  path="/booking-history"
-                  element={
-                    <UserHistory
-                      initialUser={{ id: 0, name, client_id: 0 }}
-                    />
-                  }
-                />
-              )}
-              {role === 'volunteer' && userRole === 'shopper' && (
-                <Route path="/book-appointment" element={<BookingUI shopperName={name || undefined} />} />
-              )}
-              {role === 'volunteer' && userRole === 'shopper' && (
-                <Route
-                  path="/booking-history"
-                  element={
-                    <UserHistory
-                      initialUser={{ id: 0, name, client_id: 0 }}
-                    />
-                  }
-                />
-              )}
-              {showStaff && (
-                <Route
-                  path="/pantry/client-management"
-                  element={<ClientManagement />}
-                />
-              )}
-              {showStaff && (
-                <Route
-                  path="/pantry/agency-management"
-                  element={<AgencyManagement />}
-                />
-              )}
-              {isStaff && <Route path="/events" element={<Events />} />}
-              {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
-              {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
-              {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
-              {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
-              {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
-              {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
-              {showVolunteerManagement && (
-                <>
-                  <Route
-                    path="/volunteer-management"
-                    element={<VolunteerManagement />}
-                  />
-                  <Route
-                    path="/volunteer-management/volunteers"
-                    element={<VolunteerTabs />}
-                  />
-                  <Route
-                    path="/volunteer-management/rankings"
-                    element={<VolunteerRankings />}
-                  />
-                  <Route
-                    path="/volunteer-management/recurring"
-                    element={<StaffRecurringBookings />}
-                  />
-                  <Route
-                    path="/volunteer-management/:tab"
-                    element={<VolunteerManagement />}
-                  />
-                </>
-              )}
-              {role === 'volunteer' && (
-                <>
-                  <Route
-                    path="/volunteer/schedule"
-                    element={<VolunteerBooking />}
-                  />
-                  <Route
-                    path="/volunteer/recurring"
-                    element={<VolunteerRecurringBookings />}
-                  />
-                  <Route
-                    path="/volunteer/history"
-                    element={<VolunteerBookingHistory />}
-                  />
-                </>
-              )}
-
-                {role === 'agency' && (
-                  <>
-                    <Route
-                      path="/agency/book"
-                      element={
-                        <AgencyGuard>
-                          <AgencyBookAppointment />
-                        </AgencyGuard>
-                      }
-                    />
-                    <Route
-                      path="/agency/history"
-                      element={
-                        <AgencyGuard>
-                          <ClientHistory />
-                        </AgencyGuard>
-                      }
-                    />
-                  </>
-                )}
-              <Route path="/set-password" element={<PasswordSetup />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </Suspense>
-          </MainLayout>
-        ) : !ready ? (
-          <Spinner />
-        ) : (
-          <>
-            <Navbar {...navbarProps} />
-            <main>
-              <Suspense fallback={<Spinner />}>
-                <Routes>
-                  <Route path="/login/user" element={<Login onLogin={login} />} />
-                  <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
-                  <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
-                  <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
-                  <Route path="/set-password" element={<PasswordSetup />} />
-                  <Route path="/login" element={<Navigate to="/login/user" replace />} />
-                  <Route path="*" element={<Navigate to="/login/user" replace />} />
-                </Routes>
-              </Suspense>
-            </main>
-          </>
-        )}
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 }
