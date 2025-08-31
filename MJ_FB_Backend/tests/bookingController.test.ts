@@ -4,6 +4,7 @@ describe('createBookingForUser', () => {
   let createBookingForUser: any;
   let enqueueEmail: jest.Mock;
   let pool: any;
+  let checkSlotCapacity: jest.Mock;
 
   beforeEach(() => {
     jest.resetModules();
@@ -31,11 +32,14 @@ describe('createBookingForUser', () => {
       createBookingForUser = require('../src/controllers/bookingController').createBookingForUser;
       enqueueEmail = require('../src/utils/emailQueue').enqueueEmail;
       pool = require('../src/db').default;
+      checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
     });
   });
 
   it('enqueues confirmation email after booking creation', async () => {
-    (pool.query as jest.Mock).mockResolvedValue({ rows: [{ email: 'client@example.com' }] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-01-15' },
@@ -50,6 +54,86 @@ describe('createBookingForUser', () => {
       'Booking approved',
       expect.stringContaining('2024-01-15'),
     );
+  });
+
+  it('returns 400 if booking date is a holiday', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
+    const req = {
+      user: { role: 'staff', id: 99 },
+      body: { userId: 1, slotId: 2, date: '2024-12-25' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Pantry is closed on the selected date.',
+    });
+    expect(checkSlotCapacity).not.toHaveBeenCalled();
+  });
+});
+
+describe('createBooking', () => {
+  let createBooking: any;
+  let pool: any;
+  let checkSlotCapacity: jest.Mock;
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.isolateModules(() => {
+      jest.doMock('../src/utils/emailQueue', () => ({
+        __esModule: true,
+        enqueueEmail: jest.fn(),
+      }));
+      jest.doMock('../src/utils/bookingUtils', () => ({
+        __esModule: true,
+        isDateWithinCurrentOrNextMonth: jest
+          .fn()
+          .mockReturnValue(true),
+        countVisitsAndBookingsForMonth: jest
+          .fn()
+          .mockResolvedValue(0),
+        findUpcomingBooking: jest.fn().mockResolvedValue(null),
+        LIMIT_MESSAGE: 'limit',
+      }));
+      jest.doMock('../src/models/bookingRepository', () => ({
+        __esModule: true,
+        insertBooking: jest.fn(),
+        checkSlotCapacity: jest.fn(),
+      }));
+      jest.doMock('../src/db', () => ({
+        __esModule: true,
+        default: { connect: jest.fn() },
+      }));
+      createBooking = require('../src/controllers/bookingController').createBooking;
+      pool = require('../src/db').default;
+      checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
+    });
+  });
+
+  it('returns 400 when booking date is a holiday', async () => {
+    const client = { query: jest.fn(), release: jest.fn() };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    (client.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('holidays')) return Promise.resolve({ rowCount: 1 });
+      return Promise.resolve({ rows: [] });
+    });
+    const req = {
+      user: { id: 1, userId: 1, email: 'user@example.com' },
+      body: { slotId: 1, date: '2024-12-25' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBooking(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Pantry is closed on the selected date.',
+    });
+    expect(checkSlotCapacity).not.toHaveBeenCalled();
   });
 });
 
