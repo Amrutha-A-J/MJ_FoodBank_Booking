@@ -62,7 +62,11 @@ export async function getVolunteerRolesForVolunteer(
   date: string,
 ): Promise<VolunteerRole[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`);
-  return handleResponse(res);
+  const data = await handleResponse(res);
+  return data.map((r: any) => ({
+    ...r,
+    date: r.date?.split('T')[0] ?? r.date,
+  }));
 }
 
 export async function requestVolunteerBooking(

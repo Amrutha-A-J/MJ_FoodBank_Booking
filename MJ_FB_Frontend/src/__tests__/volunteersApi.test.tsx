@@ -154,4 +154,27 @@ describe('volunteers api', () => {
     );
   });
 
+  it('normalizes ISO dates for volunteer role availability', async () => {
+    (handleResponse as jest.Mock).mockResolvedValueOnce([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        max_volunteers: 3,
+        booked: 0,
+        available: 3,
+        status: 'available',
+        date: '2024-01-29T00:00:00.000Z',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+    const { getVolunteerRolesForVolunteer } = await import('../api/volunteers');
+    const roles = await getVolunteerRolesForVolunteer('2024-01-29');
+    expect(roles[0].date).toBe('2024-01-29');
+  });
+
 });
