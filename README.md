@@ -6,6 +6,8 @@ Individuals who use the food bank are referred to as clients throughout the appl
 
 The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.
 
+The backend automatically runs any pending database migrations on startup and logs each applied migration name to the console.
+
 ## Contribution Guidelines
 
 - Use Node.js 18 or later for development; the backend relies on the native `fetch` API.

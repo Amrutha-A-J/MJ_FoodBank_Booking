@@ -2,7 +2,7 @@ import pgMigrate from 'node-pg-migrate';
 import config from './config';
 import logger from './utils/logger';
 
-async function runMigrations() {
+export async function runMigrations() {
   try {
     const migrations = await pgMigrate({
       databaseUrl: {
@@ -22,11 +22,18 @@ async function runMigrations() {
         error: msg => logger.error(msg),
       },
     });
-    logger.info(`Migrations applied: ${migrations.join(', ') || 'none'}`);
+
+    if (migrations.length > 0) {
+      migrations.forEach(name => logger.info(`Applied migration: ${name}`));
+    } else {
+      logger.info('No migrations to apply');
+    }
   } catch (error) {
     logger.error(`Migration failed: ${(error as Error).message}`);
     process.exit(1);
   }
 }
 
-runMigrations();
+if (require.main === module) {
+  runMigrations();
+}
