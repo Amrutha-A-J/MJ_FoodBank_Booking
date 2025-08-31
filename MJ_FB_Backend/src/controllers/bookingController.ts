@@ -10,6 +10,7 @@ import {
   findUpcomingBooking,
 } from '../utils/bookingUtils';
 import { enqueueEmail } from '../utils/emailQueue';
+import { buildCancelRescheduleButtons } from '../utils/emailUtils';
 import logger from '../utils/logger';
 import {
   SlotCapacityError,
@@ -111,10 +112,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     client.release();
 
     if (user.email) {
+      const buttons = buildCancelRescheduleButtons(token);
       enqueueEmail(
         user.email,
         'Booking approved',
-        `Your booking for ${date} has been automatically approved`,
+        `Your booking for ${date} has been automatically approved.${buttons}`,
       );
     } else {
       logger.warn(

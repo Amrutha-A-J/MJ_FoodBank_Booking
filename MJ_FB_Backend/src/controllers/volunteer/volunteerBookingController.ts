@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../../db';
-import { sendEmail } from '../../utils/emailUtils';
+import { sendEmail, buildCancelRescheduleButtons } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
 import {
   CreateRecurringVolunteerBookingRequest,
@@ -144,10 +144,11 @@ export async function createVolunteerBooking(
     );
 
     if (user.email) {
+      const buttons = buildCancelRescheduleButtons(token);
       await sendEmail(
         user.email,
         'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
       );
     } else {
       logger.warn(
@@ -436,10 +437,11 @@ export async function resolveVolunteerBookingConflict(
     );
 
     if (user.email) {
+      const buttons = buildCancelRescheduleButtons(token);
       await sendEmail(
         user.email,
         'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date} has been confirmed`,
+        `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
       );
     } else {
       logger.warn(

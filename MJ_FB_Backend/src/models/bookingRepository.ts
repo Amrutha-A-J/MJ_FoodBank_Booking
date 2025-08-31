@@ -156,7 +156,8 @@ export async function fetchBookingsForReminder(
     `SELECT
         COALESCE(u.email, nc.email) as user_email,
         s.start_time,
-        s.end_time
+        s.end_time,
+        b.reschedule_token
        FROM bookings b
        LEFT JOIN clients u ON b.user_id = u.client_id
        LEFT JOIN new_clients nc ON b.new_client_id = nc.id
