@@ -162,7 +162,7 @@ export default function VolunteerSchedule() {
           endDate || undefined,
         );
       }
-      const dateLabel = formatDate(currentDate, 'ddd, MMM D');
+      const dateLabel = formatDate(currentDate, 'ddd, MMM D, YYYY');
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
