@@ -31,7 +31,7 @@ export default function VolunteerGroupStatsCard() {
   return (
     <SectionCard title="Community Impact">
       <Stack spacing={2} alignItems="center">
-        <Typography>{`Volunteers distributed ${stats.weekLbs} lbs this week`}</Typography>
+        <Typography>{`Volunteers distributed ${stats.monthLbs} lbs this month`}</Typography>
         <Typography>{`Served ${stats.monthFamilies} families this month`}</Typography>
         <Box
           display="flex"
