@@ -23,7 +23,7 @@ export default function PasswordResetDialog({
   const { t } = useTranslation();
 
   const label =
-    type === 'staff' ? 'Email' : type === 'volunteer' ? 'Username' : t('client_id');
+    type === 'staff' ? t('email') : type === 'volunteer' ? t('username') : t('client_id');
   const formTitle = t('reset_password');
 
   async function handleSubmit(e: React.FormEvent) {
@@ -37,7 +37,7 @@ export default function PasswordResetDialog({
           : { clientId: identifier };
       await requestPasswordReset(body);
       setSnackbarSeverity('success');
-      setMessage('If the account exists, a reset link has been sent.');
+      setMessage(t('reset_link_sent'));
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));

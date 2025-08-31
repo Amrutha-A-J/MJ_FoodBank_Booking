@@ -58,5 +58,11 @@
   "error_loading_slots": "Error loading slots",
   "selected_on": "Selected: {{slot}} on {{date}}",
   "no_slot_selected": "No slot selected",
-  "select_time_slot": "Select {{start}} to {{end}} time slot"
+  "select_time_slot": "Select {{start}} to {{end}} time slot",
+  "email": "Email",
+  "username": "Username",
+  "resend_password_setup_link": "Resend Password Setup Link",
+  "email_or_client_id": "Email or Client ID",
+  "setup_link_sent": "If the account exists, a setup link has been sent.",
+  "reset_link_sent": "If the account exists, a reset link has been sent."
 }
