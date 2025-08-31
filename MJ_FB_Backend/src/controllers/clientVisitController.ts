@@ -22,6 +22,32 @@ export async function refreshClientVisitCount(
   );
 }
 
+export async function getClientBookingsThisMonth(
+  clientId: number,
+  client: Queryable = pool,
+) {
+  const res = await client.query(
+    `SELECT bookings_this_month,
+            DATE_TRUNC('month', booking_count_last_updated) = DATE_TRUNC('month', CURRENT_DATE) AS current
+       FROM clients WHERE client_id = $1`,
+    [clientId],
+  );
+  if ((res.rowCount ?? 0) === 0) return 0;
+  let { bookings_this_month: count, current } = res.rows[0] as {
+    bookings_this_month: number | null;
+    current?: boolean;
+  };
+  if (current === false) {
+    await refreshClientVisitCount(clientId, client);
+    const refreshed = await client.query(
+      'SELECT bookings_this_month FROM clients WHERE client_id = $1',
+      [clientId],
+    );
+    count = refreshed.rows[0]?.bookings_this_month ?? 0;
+  }
+  return count ?? 0;
+}
+
 export async function listVisits(req: Request, res: Response, next: NextFunction) {
   try {
     const date = req.query.date as string;

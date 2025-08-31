@@ -9,6 +9,7 @@ import { validatePassword } from '../utils/passwordUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
 import config from '../config';
+import { getClientBookingsThisMonth } from './clientVisitController';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
@@ -35,11 +36,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const bookingsRes = await pool.query(
-        'SELECT bookings_this_month FROM clients WHERE client_id = $1',
-        [userRow.client_id],
-      );
-      const bookingsThisMonth = bookingsRes.rows[0]?.bookings_this_month ?? 0;
+      const bookingsThisMonth = await getClientBookingsThisMonth(userRow.client_id);
       const payload: AuthPayload = { id: userRow.client_id, role: userRow.role, type: 'user' };
       await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
       return res.json({
@@ -327,7 +324,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
     }
 
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, role, bookings_this_month
+      `SELECT client_id, first_name, last_name, email, phone, role
        FROM clients WHERE client_id = $1`,
       [user.id],
     );
@@ -335,6 +332,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
+    const bookingsThisMonth = await getClientBookingsThisMonth(Number(user.id));
     return res.json({
       firstName: row.first_name,
       lastName: row.last_name,
@@ -342,7 +340,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       phone: row.phone,
       clientId: row.client_id,
       role: row.role,
-      bookingsThisMonth: row.bookings_this_month ?? 0,
+      bookingsThisMonth,
     });
   } catch (error) {
     logger.error('Error fetching user profile:', error);
@@ -437,13 +435,14 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
        SET email = COALESCE($1, email),
            phone = COALESCE($2, phone)
        WHERE client_id = $3
-       RETURNING client_id, first_name, last_name, email, phone, role, bookings_this_month`,
+       RETURNING client_id, first_name, last_name, email, phone, role`,
       [email, phone, user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
     const row = result.rows[0];
+    const bookingsThisMonth = await getClientBookingsThisMonth(Number(user.id));
     return res.json({
       firstName: row.first_name,
       lastName: row.last_name,
@@ -451,7 +450,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
       phone: row.phone,
       clientId: row.client_id,
       role: row.role,
-      bookingsThisMonth: row.bookings_this_month ?? 0,
+      bookingsThisMonth,
     });
   } catch (error) {
     logger.error('Error updating profile:', error);
