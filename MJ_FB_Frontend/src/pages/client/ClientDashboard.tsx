@@ -149,8 +149,8 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>My Upcoming Appointment</span>
-                  <InfoTooltip title="See details of your next visit" />
+                  <span>{t('my_upcoming_appointment')}</span>
+                  <InfoTooltip title={t('tooltip_next_visit_details')} />
                 </Stack>
               }
               icon={<EventAvailable color="primary" />}
@@ -166,7 +166,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => setCancelId(next.id)}
                         >
-                          Cancel
+                          {t('cancel')}
                         </Button>
                         <Button
                           size="small"
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => navigate('/booking-history')}
                         >
-                          Reschedule
+                          {t('reschedule')}
                         </Button>
                       </Stack>
                     }
@@ -188,14 +188,14 @@ export default function ClientDashboard() {
                 </List>
               ) : (
                 <Typography>
-                  No appointment booked —{' '}
+                  {t('no_appointment_booked')}{' '}
                   <Button
                     size="small"
                     variant="contained"
                     sx={{ textTransform: 'none' }}
                     onClick={() => navigate('/book-appointment')}
                   >
-                    Book now
+                    {t('book_now')}
                   </Button>
                 </Typography>
               )}
@@ -204,8 +204,8 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>News & Events</span>
-                  <InfoTooltip title="Updates and holiday closures" />
+                  <span>{t('news_events')}</span>
+                  <InfoTooltip title={t('tooltip_updates_holiday_closures')} />
                 </Stack>
               }
               icon={<Announcement color="primary" />}
@@ -229,7 +229,7 @@ export default function ClientDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
             <SectionCard
-              title="Next Available Slots"
+              title={t('next_available_slots')}
               icon={<EventAvailable color="primary" />}
             >
               <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
@@ -244,7 +244,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => navigate('/book-appointment')}
                         >
-                          Book
+                          {t('book')}
                         </Button>
                       }
                     >
@@ -257,13 +257,13 @@ export default function ClientDashboard() {
                   ))
                 ) : (
                   <ListItem>
-                    <ListItemText primary="No available slots" />
+                    <ListItemText primary={t('no_available_slots')} />
                   </ListItem>
                 )}
               </List>
             </SectionCard>
 
-            <SectionCard title="Quick Actions">
+            <SectionCard title={t('quick_actions')}>
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
                   size="small"
@@ -271,7 +271,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/book-appointment')}
                 >
-                  Book Appointment
+                  {t('book_appointment')}
                 </Button>
                 <Button
                   size="small"
@@ -279,7 +279,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/booking-history')}
                 >
-                  Reschedule
+                  {t('reschedule')}
                 </Button>
                 <Button
                   size="small"
@@ -287,7 +287,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/booking-history')}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </Stack>
             </SectionCard>
@@ -298,8 +298,8 @@ export default function ClientDashboard() {
           <SectionCard
             title={
               <Stack direction="row" spacing={1} alignItems="center">
-                <span>Booking History</span>
-                <InfoTooltip title="Review your past bookings" />
+                <span>{t('booking_history')}</span>
+                <InfoTooltip title={t('tooltip_review_past_bookings')} />
               </Stack>
             }
             icon={<History color="primary" />}
@@ -328,9 +328,9 @@ export default function ClientDashboard() {
       </Grid>
         <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
           <DialogCloseButton onClose={() => setCancelId(null)} />
-          <DialogTitle>Cancel booking</DialogTitle>
+          <DialogTitle>{t('cancel_booking')}</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to cancel this booking?</Typography>
+            <Typography>{t('cancel_booking_question')}</Typography>
           </DialogContent>
           <DialogActions>
             <Button
@@ -340,7 +340,7 @@ export default function ClientDashboard() {
               sx={{ textTransform: 'none' }}
               onClick={confirmCancel}
             >
-              Cancel booking
+              {t('cancel_booking')}
             </Button>
           </DialogActions>
         </Dialog>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getMyVolunteerBookings,
   cancelVolunteerBooking,
@@ -32,6 +33,7 @@ export default function VolunteerBookingHistory() {
   const [cancelSeriesId, setCancelSeriesId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
@@ -141,13 +143,16 @@ export default function VolunteerBookingHistory() {
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
         <DialogCloseButton onClose={() => setCancelBooking(null)} />
-        <DialogTitle>Cancel Booking</DialogTitle>
+        <DialogTitle>{t('cancel_booking')}</DialogTitle>
         <DialogContent dividers>
-          Cancel booking for {cancelBooking?.role_name} on {cancelBooking?.date}?
+          {t('cancel_booking_for_role_on_date', {
+            role: cancelBooking?.role_name,
+            date: cancelBooking?.date,
+          })}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancel} variant="outlined" color="primary">
-            Confirm
+            {t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>

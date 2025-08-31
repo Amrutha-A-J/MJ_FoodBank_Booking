@@ -35,6 +35,7 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface Booking {
   id: number;
@@ -90,6 +91,7 @@ export default function AgencyDashboard() {
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   useEffect(() => {
     getMyAgencyClients()
@@ -193,11 +195,11 @@ export default function AgencyDashboard() {
                   </ListItem>
                 </List>
               ) : (
-                <Typography>No upcoming bookings</Typography>
+                <Typography>{t('no_upcoming_bookings')}</Typography>
               )}
             </SectionCard>
 
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <SectionCard title={t('news_events')} icon={<Announcement color="primary" />}> 
               <Stack spacing={2}>
                 <EventList events={[...events.today, ...events.upcoming]} limit={5} />
                 <List>
@@ -216,7 +218,7 @@ export default function AgencyDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title="Next Available Slots" icon={<EventAvailable color="primary" />}>
+            <SectionCard title={t('next_available_slots')} icon={<EventAvailable color="primary" />}> 
               <List>
                 {nextSlots.length ? (
                   nextSlots.map(s => (
@@ -230,9 +232,9 @@ export default function AgencyDashboard() {
                             sx={{ textTransform: 'none' }}
                             onClick={() => navigate('/agency/book')}
                           >
-                            Book
+                            {t('book')}
                           </Button>
-                          <InfoTooltip title="Slot has remaining capacity" />
+                          <InfoTooltip title={t('tooltip_slot_remaining_capacity')} />
                         </Stack>
                       }
                     >
@@ -245,13 +247,13 @@ export default function AgencyDashboard() {
                   ))
                 ) : (
                   <ListItem>
-                    <ListItemText primary="No available slots" />
+                    <ListItemText primary={t('no_available_slots')} />
                   </ListItem>
                 )}
               </List>
             </SectionCard>
 
-            <SectionCard title="Quick Actions">
+            <SectionCard title={t('quick_actions')}>
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
                   size="small"
@@ -259,7 +261,7 @@ export default function AgencyDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/book')}
                 >
-                  Book Appointment
+                  {t('book_appointment')}
                 </Button>
                 <Button
                   size="small"
@@ -267,7 +269,7 @@ export default function AgencyDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/history')}
                 >
-                  Reschedule
+                  {t('reschedule')}
                 </Button>
                 <Button
                   size="small"
@@ -275,7 +277,7 @@ export default function AgencyDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/history')}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </Stack>
             </SectionCard>
@@ -283,7 +285,7 @@ export default function AgencyDashboard() {
         </Grid>
 
         <Grid size={12}>
-          <SectionCard title="Recent Bookings" icon={<History color="primary" />}>
+          <SectionCard title={t('recent_bookings')} icon={<History color="primary" />}>
             <List>
               {history.slice(0, 3).map(b => {
                 const time = b.start_time ? formatTime(b.start_time) : '';
@@ -311,9 +313,9 @@ export default function AgencyDashboard() {
       </Grid>
       <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
         <DialogCloseButton onClose={() => setCancelId(null)} />
-        <DialogTitle>Cancel booking</DialogTitle>
+        <DialogTitle>{t('cancel_booking')}</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to cancel this booking?</Typography>
+          <Typography>{t('cancel_booking_question')}</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -323,7 +325,7 @@ export default function AgencyDashboard() {
             sx={{ textTransform: 'none' }}
             onClick={confirmCancel}
           >
-            Cancel booking
+            {t('cancel_booking')}
           </Button>
         </DialogActions>
       </Dialog>

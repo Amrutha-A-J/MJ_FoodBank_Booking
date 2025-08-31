@@ -16,6 +16,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 import Announcement from '@mui/icons-material/Announcement';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -78,6 +79,7 @@ export default function VolunteerDashboard() {
     null,
   );
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     getMyVolunteerBookings()
@@ -328,7 +330,7 @@ export default function VolunteerDashboard() {
                       sx={{ textTransform: 'none' }}
                       onClick={() => navigate('/volunteer/schedule')}
                     >
-                      Reschedule
+                      {t('reschedule')}
                     </Button>
                     <Button
                       size="small"
@@ -336,12 +338,14 @@ export default function VolunteerDashboard() {
                       sx={{ textTransform: 'none' }}
                       onClick={cancelNext}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                   </Stack>
                 </Stack>
               ) : (
-                <Typography>No upcoming shifts — Request one</Typography>
+                <Typography>
+                  {t('no_upcoming_shifts')} — {t('request_shift')}
+                </Typography>
               )}
             </SectionCard>
 
@@ -400,11 +404,11 @@ export default function VolunteerDashboard() {
               </List>
             </SectionCard>
 
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <SectionCard title={t('news_events')} icon={<Announcement color="primary" />}> 
               <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
 
-            <SectionCard title="Profile & Training">
+            <SectionCard title={t('profile_training')}>
               <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
                 {roleOptions.map(([id, name]) => (
                   <Chip key={id} label={name} />
@@ -416,7 +420,7 @@ export default function VolunteerDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title="Quick Actions">
+            <SectionCard title={t('quick_actions')}>
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
                   size="small"
@@ -424,7 +428,7 @@ export default function VolunteerDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/volunteer/schedule')}
                 >
-                  Request a shift
+                  {t('request_shift')}
                 </Button>
                 <Button
                   size="small"
@@ -433,7 +437,7 @@ export default function VolunteerDashboard() {
                   onClick={cancelNext}
                   disabled={!nextShift}
                 >
-                  Cancel upcoming
+                  {t('cancel_upcoming')}
                 </Button>
                 <Button
                   size="small"
@@ -442,7 +446,7 @@ export default function VolunteerDashboard() {
                   onClick={() => navigate('/volunteer/schedule')}
                   disabled={!nextShift}
                 >
-                  Reschedule
+                  {t('reschedule')}
                 </Button>
               </Stack>
             </SectionCard>
@@ -450,10 +454,8 @@ export default function VolunteerDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={0.5} alignItems="center">
-                  My Stats
-                  <InfoTooltip
-                    title="Hours and shifts count only completed shifts. Streak shows consecutive weeks volunteering."
-                  />
+                  {t('my_stats')}
+                  <InfoTooltip title={t('tooltip_my_stats')} />
                 </Stack>
               }
             >
@@ -465,14 +467,14 @@ export default function VolunteerDashboard() {
                     ))}
                   </Stack>
                 ) : (
-                  <Typography>No badges earned yet</Typography>
+                  <Typography>{t('no_badges_yet')}</Typography>
                 )}
                 {stats && stats.totalShifts > 0 && (
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 6 }}>
                       <Stack>
                         <Typography variant="body2" color="text.secondary">
-                          Lifetime Hours
+                          {t('lifetime_hours')}
                         </Typography>
                         <Typography variant="h6">{stats.lifetimeHours}</Typography>
                       </Stack>
@@ -480,7 +482,7 @@ export default function VolunteerDashboard() {
                     <Grid size={{ xs: 6 }}>
                       <Stack>
                         <Typography variant="body2" color="text.secondary">
-                          Hours This Month
+                          {t('hours_this_month')}
                         </Typography>
                         <Typography variant="h6">{stats.monthHours}</Typography>
                       </Stack>
@@ -488,7 +490,7 @@ export default function VolunteerDashboard() {
                     <Grid size={{ xs: 6 }}>
                       <Stack>
                         <Typography variant="body2" color="text.secondary">
-                          Total Shifts
+                          {t('total_shifts')}
                         </Typography>
                         <Typography variant="h6">{stats.totalShifts}</Typography>
                       </Stack>
@@ -496,7 +498,7 @@ export default function VolunteerDashboard() {
                     <Grid size={{ xs: 6 }}>
                       <Stack>
                         <Typography variant="body2" color="text.secondary">
-                          Current Streak
+                          {t('current_streak')}
                         </Typography>
                         <Typography variant="h6">
                           {stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}

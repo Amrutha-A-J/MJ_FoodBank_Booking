@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Grid,
   Typography,
@@ -271,6 +272,7 @@ function UserDashboard() {
     upcoming: [],
     past: [],
   });
+  const { t } = useTranslation();
 
   useEffect(() => {
     getBookings().then(setBookings).catch(() => {});
@@ -297,7 +299,7 @@ function UserDashboard() {
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="My Upcoming Appointments" icon={<EventAvailable color="primary" />}>
+        <SectionCard title={t('my_upcoming_appointments')} icon={<EventAvailable color="primary" />}>
           <List>
             {appointments.map(a => (
               <ListItem
@@ -305,10 +307,10 @@ function UserDashboard() {
                 secondaryAction={
                   <Stack direction="row" spacing={1}>
                     <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
-                      Reschedule
+                      {t('reschedule')}
                     </Button>
                   </Stack>
                 }
@@ -322,7 +324,7 @@ function UserDashboard() {
         </SectionCard>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Next Available Slots" icon={<EventAvailable color="primary" />}>
+        <SectionCard title={t('next_available_slots')} icon={<EventAvailable color="primary" />}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {slotOptions.map((s, i) => (
               <Button
@@ -338,7 +340,7 @@ function UserDashboard() {
         </SectionCard>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="Notices" icon={<Announcement color="primary" />}>
+        <SectionCard title={t('notices')} icon={<Announcement color="primary" />}>
           <EventList
             events={[...events.today, ...events.upcoming]}
             limit={5}
@@ -346,16 +348,16 @@ function UserDashboard() {
         </SectionCard>
       </Grid>
       <Grid size={12}>
-        <SectionCard title="Quick Actions">
+        <SectionCard title={t('quick_actions')}>
           <Stack direction="row" spacing={1}>
             <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
-              Book
+              {t('book')}
             </Button>
             <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-              Reschedule
+              {t('reschedule')}
             </Button>
             <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
-              Cancel
+              {t('cancel')}
             </Button>
           </Stack>
         </SectionCard>
