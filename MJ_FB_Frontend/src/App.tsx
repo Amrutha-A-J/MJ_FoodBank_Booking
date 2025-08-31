@@ -1,6 +1,7 @@
 import React, { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useTranslation } from 'react-i18next';
 const Dashboard = React.lazy(
   () => import('./components/dashboard/Dashboard')
 );
@@ -110,6 +111,7 @@ const Spinner = () => <CircularProgress />;
 
 export default function App() {
   const { token, ready, role, name, userRole, access, login, logout } = useAuth();
+  const { t } = useTranslation();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const [pendingReviews, setPendingReviews] = useState(0);
@@ -144,39 +146,39 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
-    ? [{ label: 'Events', to: '/events' }]
+    ? [{ label: t('events'), to: '/events' }]
     : undefined;
   if (!role) {
     navGroups.push(
-      { label: 'Client Login', links: [{ label: 'Client Login', to: '/login/user' }] },
+      { label: t('client_login'), links: [{ label: t('client_login'), to: '/login/user' }] },
       {
-        label: 'Internal Login',
+        label: t('internal_login'),
         links: [
-          { label: 'Staff Login', to: '/login/staff' },
-          { label: 'Volunteer Login', to: '/login/volunteer' },
-          { label: 'Agency Login', to: '/login/agency' },
+          { label: t('staff_login'), to: '/login/staff' },
+          { label: t('volunteer_login'), to: '/login/volunteer' },
+          { label: t('agency_login'), to: '/login/agency' },
         ],
       },
     );
   } else if (isStaff) {
     const staffLinks = [
-      { label: 'Dashboard', to: '/pantry' },
-      { label: 'Manage Availability', to: '/pantry/manage-availability' },
-      { label: 'Pantry Schedule', to: '/pantry/schedule' },
-      { label: 'Pantry Visits', to: '/pantry/visits' },
-      { label: 'Client Management', to: '/pantry/client-management' },
-      { label: 'Agency Management', to: '/pantry/agency-management' },
+      { label: t('dashboard'), to: '/pantry' },
+      { label: t('manage_availability'), to: '/pantry/manage-availability' },
+      { label: t('pantry_schedule'), to: '/pantry/schedule' },
+      { label: t('pantry_visits'), to: '/pantry/visits' },
+      { label: t('client_management'), to: '/pantry/client-management' },
+      { label: t('agency_management'), to: '/pantry/agency-management' },
     ];
-    if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
+    if (showStaff) navGroups.push({ label: t('harvest_pantry'), links: staffLinks });
     if (showVolunteerManagement)
       navGroups.push({
-        label: 'Volunteer Management',
+        label: t('volunteer_management'),
         links: [
-          { label: 'Dashboard', to: '/volunteer-management' },
-          { label: 'Schedule', to: '/volunteer-management/schedule' },
-          { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
+          { label: t('dashboard'), to: '/volunteer-management' },
+          { label: t('schedule'), to: '/volunteer-management/schedule' },
+          { label: t('recurring_shifts'), to: '/volunteer-management/recurring' },
           {
-            label: 'Volunteers',
+            label: t('volunteers'),
             to: '/volunteer-management/volunteers',
             badge: pendingReviews,
           },
@@ -184,62 +186,62 @@ export default function App() {
       });
 
     const warehouseLinks = [
-      { label: 'Dashboard', to: '/warehouse-management' },
-      { label: 'Donation Log', to: '/warehouse-management/donation-log' },
-      { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
+      { label: t('dashboard'), to: '/warehouse-management' },
+      { label: t('donation_log'), to: '/warehouse-management/donation-log' },
+      { label: t('track_pigpound'), to: '/warehouse-management/track-pigpound' },
       {
-        label: 'Track Outgoing Donations',
+        label: t('track_outgoing_donations'),
         to: '/warehouse-management/track-outgoing-donations',
       },
-      { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
-      { label: 'Aggregations', to: '/warehouse-management/aggregations' },
-      { label: 'Exports', to: '/warehouse-management/exports' },
+      { label: t('track_surplus'), to: '/warehouse-management/track-surplus' },
+      { label: t('aggregations'), to: '/warehouse-management/aggregations' },
+      { label: t('exports'), to: '/warehouse-management/exports' },
     ];
-    if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+    if (showWarehouse) navGroups.push({ label: t('warehouse_management'), links: warehouseLinks });
     if (showAdmin)
       navGroups.push({
-        label: 'Admin',
+        label: t('admin'),
         links: [
-          { label: 'Staff', to: '/admin/staff' },
-          { label: 'Warehouse Settings', to: '/admin/warehouse-settings' },
-          { label: 'Pantry Settings', to: '/admin/pantry-settings' },
-          { label: 'Volunteer Settings', to: '/admin/volunteer-settings' },
+          { label: t('staff'), to: '/admin/staff' },
+          { label: t('warehouse_settings'), to: '/admin/warehouse-settings' },
+          { label: t('pantry_settings'), to: '/admin/pantry-settings' },
+          { label: t('volunteer_settings'), to: '/admin/volunteer-settings' },
         ],
       });
 
   } else if (role === 'agency') {
     navGroups.push({
-      label: 'Agency',
+      label: t('agency'),
       links: [
-        { label: 'Dashboard', to: '/' },
-        { label: 'Book Appointment', to: '/agency/book' },
-        { label: 'Booking History', to: '/agency/history' },
+        { label: t('dashboard'), to: '/' },
+        { label: t('book_appointment'), to: '/agency/book' },
+        { label: t('booking_history'), to: '/agency/history' },
       ],
     });
   } else if (role === 'shopper') {
     navGroups.push({
-      label: 'Booking',
+      label: t('booking'),
       links: [
-        { label: 'Book Appointment', to: '/book-appointment' },
-        { label: 'Booking History', to: '/booking-history' },
+        { label: t('book_appointment'), to: '/book-appointment' },
+        { label: t('booking_history'), to: '/booking-history' },
       ],
     });
   } else if (role === 'volunteer') {
     navGroups.push({
-      label: 'Volunteer',
+      label: t('volunteer'),
       links: [
-        { label: 'Dashboard', to: '/' },
-        { label: 'Schedule', to: '/volunteer/schedule' },
-        { label: 'Recurring Bookings', to: '/volunteer/recurring' },
-        { label: 'Booking History', to: '/volunteer/history' },
+        { label: t('dashboard'), to: '/' },
+        { label: t('schedule'), to: '/volunteer/schedule' },
+        { label: t('recurring_bookings'), to: '/volunteer/recurring' },
+        { label: t('booking_history'), to: '/volunteer/history' },
       ],
     });
     if (userRole === 'shopper') {
       navGroups.push({
-        label: 'Booking',
+        label: t('booking'),
         links: [
-          { label: 'Book Appointment', to: '/book-appointment' },
-          { label: 'Booking History', to: '/booking-history' },
+          { label: t('book_appointment'), to: '/book-appointment' },
+          { label: t('booking_history'), to: '/booking-history' },
         ],
       });
     }
