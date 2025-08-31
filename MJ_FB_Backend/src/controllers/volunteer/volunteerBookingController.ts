@@ -33,9 +33,17 @@ function mapBookingRow(b: any) {
 const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
 
 async function notifyCoordinators(subject: string, body: string) {
-  await Promise.all(
+  const results = await Promise.allSettled(
     coordinatorEmails.map(email => sendEmail(email, subject, body)),
   );
+  results.forEach((result, idx) => {
+    if (result.status === 'rejected') {
+      logger.error('Failed to send coordinator email', {
+        email: coordinatorEmails[idx],
+        error: result.reason,
+      });
+    }
+  });
 }
 
 export async function createVolunteerBooking(
