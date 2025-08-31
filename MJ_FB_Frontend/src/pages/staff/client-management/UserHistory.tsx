@@ -251,7 +251,7 @@ export default function UserHistory({
                         ? formatDate(b.date, 'MMM D, YYYY')
                         : 'N/A';
                     return (
-                      <TableRow key={b.id}>
+                      <TableRow key={`${b.id}-${b.created_at}`}>
                         <TableCell sx={cellSx}>{formattedDate}</TableCell>
                         <TableCell sx={cellSx}>
                           {startTime !== 'N/A' && endTime !== 'N/A'
