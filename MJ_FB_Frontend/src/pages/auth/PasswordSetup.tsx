@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { TextField, Button, Link, Box } from '@mui/material';
+import { TextField, Button, Link } from '@mui/material';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { setPassword as setPasswordApi } from '../../api/users';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
-import LanguageSelector from '../../components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
 export default function PasswordSetup() {
@@ -37,7 +36,7 @@ export default function PasswordSetup() {
   }
 
   return (
-    <Page title={t('set_password')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
+    <Page title={t('set_password')}>
       <FormCard
         onSubmit={handleSubmit}
         title={t('set_password')}

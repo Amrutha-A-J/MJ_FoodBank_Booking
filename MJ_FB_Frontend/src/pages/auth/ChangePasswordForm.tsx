@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { TextField, Button, Box } from '@mui/material';
+import { TextField, Button } from '@mui/material';
 import Page from '../../components/Page';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
-import LanguageSelector from '../../components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
 export default function ChangePasswordForm() {
@@ -27,7 +26,7 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <Page title={t('change_password')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
+    <Page title={t('change_password')}>
       <FormCard
         onSubmit={handleSubmit}
         title={t('change_password')}

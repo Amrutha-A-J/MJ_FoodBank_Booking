@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Box } from '@mui/material';
+import { Link, TextField, Button } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
-import LanguageSelector from '../../components/LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
 export default function Login({
@@ -48,7 +47,7 @@ export default function Login({
   }
 
   return (
-    <Page title={t('client_login')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
+    <Page title={t('client_login')}>
       <FormCard
         onSubmit={handleSubmit}
         title={t('client_login')}

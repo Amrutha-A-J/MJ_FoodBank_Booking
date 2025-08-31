@@ -5,7 +5,6 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
-import LanguageSelector from './LanguageSelector';
 import { useTranslation } from 'react-i18next';
 
 export default function PasswordResetDialog({
@@ -56,7 +55,6 @@ export default function PasswordResetDialog({
           <FormCard
             title={formTitle}
             onSubmit={handleSubmit}
-            header={type === 'user' ? <LanguageSelector /> : undefined}
             actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
