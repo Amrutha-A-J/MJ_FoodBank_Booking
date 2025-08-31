@@ -193,8 +193,8 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 ## Booking Workflow
 
 ### Clients and Staff
-- **Clients** book pantry appointments through a calendar; bookings are automatically approved or rejected.
-- **Staff** can cancel or reschedule bookings and mark visits. Assigning a client directly to a slot creates an approved booking. Rejections and cancellations require a reason.
+- **Clients** book pantry appointments through a calendar; bookings are automatically approved and monthly limits are enforced before booking.
+- **Staff** can cancel or reschedule bookings and mark visits. Assigning a client directly to a slot creates an approved booking. Cancellations require a reason.
 - Clients can view a booking history table listing all appointments, each with Cancel and Reschedule options.
 
 - **BookingUI** – renders the calendar shoppers use to view and reserve open time slots.
@@ -212,7 +212,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **staff** – PK `id`; unique `email`; `role` constrained to `staff` or `admin`.
 - **users** – PK `id`; unique `email` and `client_id` (1–9,999,999); `role` is `shopper` or `delivery`; referenced by `bookings.user_id`.
 - **client_email_verifications** – PK `id`; unique `client_id`; FK `client_id` → `clients.id`; stores `email`, `otp_hash`, and `expires_at` for verifying client emails.
-- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `approved|rejected|cancelled|no_show|expired|visited`; includes `reschedule_token`.
+- **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `approved|cancelled|no_show|visited`; includes `reschedule_token`.
 - **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, and `pet_item` counts.
 - **breaks** – PK `id`; unique `(day_of_week, slot_id)`; FK `slot_id` → `slots.id`.
 - **blocked_slots** – PK `id`; unique `(date, slot_id)`; FK `slot_id` → `slots.id`.
@@ -223,7 +223,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **volunteer_slots** – PK `slot_id`; FK `role_id` → `volunteer_roles.id` (cascade); tracks `max_volunteers`, `is_wednesday_slot`, `is_active`.
 - **volunteers** – PK `id`; unique `username`.
 - **volunteer_trained_roles** – composite PK `(volunteer_id, role_id)`; FK `volunteer_id` → `volunteers.id` (cascade); FK `role_id` → `volunteer_roles.id` (cascade); FK `category_id` → `volunteer_master_roles.id`.
-- **volunteer_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); `status` in `approved|rejected|cancelled|no_show|expired`; includes `reschedule_token`.
+- **volunteer_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); `status` in `approved|cancelled|no_show|completed`; includes `reschedule_token`.
 - **volunteer_recurring_bookings** – PK `id`; FK `volunteer_id` → `volunteers.id` (cascade); FK `slot_id` → `volunteer_slots.slot_id` (cascade); includes `start_date`, optional `end_date`, `pattern` (`daily|weekly`), `days_of_week` array, and an `active` flag.
 
 ## Volunteer Management
@@ -278,7 +278,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /bookings` → `{ message: 'Booking created', bookingsThisMonth, rescheduleToken }`
 - `GET /bookings?clientIds=1,2` → `[ { id, status, date, user_id, slot_id, is_staff_booking, reschedule_token, user_name, user_email, user_phone, client_id, bookings_this_month, start_time, end_time } ]` (agencies must specify `clientIds` linked to them)
 - `GET /bookings/history` → `[ { id, status, date, slot_id, reason, start_time, end_time, created_at, is_staff_booking, reschedule_token } ]`
-- `POST /bookings/:id/decision` → `{ message: 'Booking approved'|'Booking rejected' }`
+- `POST /bookings/:id/decision` → `{ message: 'Booking approved' }`
 - `POST /bookings/:id/cancel` → `{ message: 'Booking cancelled' }`
 - `POST /bookings/reschedule/:token` → `{ message: 'Booking rescheduled', rescheduleToken }`
 - `POST /bookings/preapproved` → `{ message: 'Walk-in booking created', rescheduleToken }`

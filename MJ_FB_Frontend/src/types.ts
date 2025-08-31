@@ -110,10 +110,8 @@ export interface VolunteerRoleGroup {
 
 export type VolunteerBookingStatus =
   | 'approved'
-  | 'rejected'
   | 'cancelled'
   | 'no_show'
-  | 'expired'
   | 'completed';
 
 export interface VolunteerBooking {

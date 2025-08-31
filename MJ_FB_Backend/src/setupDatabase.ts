@@ -263,7 +263,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     user_id bigint,
     slot_id integer,
     new_client_id integer,
-    status text NOT NULL CHECK (status IN ('approved', 'rejected', 'cancelled', 'no_show', 'expired', 'visited')),
+    status text NOT NULL CHECK (status IN ('approved', 'cancelled', 'no_show', 'visited')),
     request_data text,
     date date,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS volunteer_bookings (
     volunteer_id integer NOT NULL,
     slot_id integer NOT NULL,
     date date NOT NULL,
-    status text DEFAULT 'approved' NOT NULL CHECK (status IN ('approved', 'rejected', 'cancelled', 'no_show', 'expired', 'completed')),
+    status text DEFAULT 'approved' NOT NULL CHECK (status IN ('approved', 'cancelled', 'no_show', 'completed')),
     reason text,
     CHECK (status <> 'cancelled' OR reason IS NOT NULL),
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
@@ -341,6 +341,21 @@ CREATE TABLE IF NOT EXISTS email_queue (
     next_attempt timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 `);
+
+  await client.query("DELETE FROM bookings WHERE status IN ('rejected', 'expired');");
+  await client.query("DELETE FROM volunteer_bookings WHERE status IN ('rejected', 'expired');");
+  await client.query(
+    "ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_status_check;",
+  );
+  await client.query(
+    "ALTER TABLE volunteer_bookings DROP CONSTRAINT IF EXISTS volunteer_bookings_status_check;",
+  );
+  await client.query(
+    "ALTER TABLE bookings ADD CONSTRAINT bookings_status_check CHECK (status IN ('approved','cancelled','no_show','visited'));",
+  );
+  await client.query(
+    "ALTER TABLE volunteer_bookings ADD CONSTRAINT volunteer_bookings_status_check CHECK (status IN ('approved','cancelled','no_show','completed'));",
+  );
 
   await client.query(
     `CREATE UNIQUE INDEX IF NOT EXISTS password_setup_tokens_token_hash_idx ON password_setup_tokens (token_hash);`

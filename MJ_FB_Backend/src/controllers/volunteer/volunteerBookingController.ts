@@ -9,10 +9,8 @@ import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
 const STATUS_COLORS: Record<string, string> = {
   approved: 'green',
-  rejected: 'red',
   cancelled: 'gray',
   no_show: 'red',
-  expired: 'gray',
   completed: 'green',
 };
 
@@ -572,10 +570,10 @@ export async function updateVolunteerBookingStatus(
 ) {
   const { id } = req.params;
   const { status, reason } = req.body as { status?: string; reason?: string };
-  if (!status || !['cancelled', 'no_show', 'expired', 'completed'].includes(status)) {
+  if (!status || !['cancelled', 'no_show', 'completed'].includes(status)) {
     return res
       .status(400)
-      .json({ message: 'Status must be cancelled, no_show, expired or completed' });
+      .json({ message: 'Status must be cancelled, no_show or completed' });
   }
 
   try {

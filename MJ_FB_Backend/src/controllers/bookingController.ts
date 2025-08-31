@@ -70,7 +70,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     const client = await pool.connect();
     let token: string | undefined;
-    let status = 'rejected';
     try {
       await client.query('BEGIN');
       await client.query('SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE', [userId]);
@@ -80,16 +79,18 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         client.release();
         return res.status(400).json({ message: 'Please choose a valid date' });
       }
-      status = monthlyUsage < 2 ? 'approved' : 'rejected';
-      if (status === 'approved') {
-        await checkSlotCapacity(slotIdNum, date, client);
+      if (monthlyUsage >= 2) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res.status(409).json({ message: LIMIT_MESSAGE });
       }
+      await checkSlotCapacity(slotIdNum, date, client);
       token = randomUUID();
       await insertBooking(
         userId,
         slotIdNum,
-        status,
-        status === 'rejected' ? LIMIT_MESSAGE : '',
+        'approved',
+        '',
         date,
         isStaffBooking || false,
         token,
@@ -108,14 +109,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     client.release();
 
-    const emailSubject =
-      status === 'approved' ? 'Booking approved' : 'Booking rejected';
-    const emailBody =
-      status === 'approved'
-        ? `Your booking for ${date} has been automatically approved`
-        : `Your booking for ${date} was automatically rejected. ${LIMIT_MESSAGE}`;
     if (user.email) {
-      enqueueEmail(user.email, emailSubject, emailBody);
+      enqueueEmail(
+        user.email,
+        'Booking approved',
+        `Your booking for ${date} has been automatically approved`,
+      );
     } else {
       logger.warn(
         'User %s has no email. Skipping booking status email.',
@@ -124,14 +123,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE client_id=$1', [userId]);
     const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
-    res
-      .status(201)
-      .json({
-        message: status === 'approved' ? 'Booking automatically approved' : LIMIT_MESSAGE,
-        bookingsThisMonth,
-        status,
-        rescheduleToken: token,
-      });
+    res.status(201).json({
+      message: 'Booking automatically approved',
+      bookingsThisMonth,
+      status: 'approved',
+      rescheduleToken: token,
+    });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
     return next(error);
@@ -333,19 +330,17 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
 
     const newToken = randomUUID();
     const isStaffReschedule = req.user && req.user.role === 'staff';
-    const newStatus = isStaffReschedule
-      ? booking.status
-      : adjustedUsage < 2
-        ? 'approved'
-        : 'rejected';
     const updateFields: Record<string, any> = {
       slot_id: slotId,
       date,
       reschedule_token: newToken,
-      status: newStatus,
+      status: booking.status,
     };
-    if (newStatus === 'rejected') {
-      updateFields.request_data = LIMIT_MESSAGE;
+    if (!isStaffReschedule) {
+      if (adjustedUsage >= 2) {
+        return res.status(409).json({ message: LIMIT_MESSAGE });
+      }
+      updateFields.status = 'approved';
     }
     await updateBooking(booking.id, updateFields);
 

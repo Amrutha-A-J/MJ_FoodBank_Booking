@@ -94,7 +94,7 @@ describe('booking monthly limits', () => {
     (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(2);
     const today = new Date().toISOString().split('T')[0];
     const res = await request(app).post('/bookings').send({ slotId: 1, date: today });
-    expect(res.body.status).toBe('rejected');
+    expect(res.status).toBe(409);
     expect(res.body.message).toBe('limit');
   });
 
@@ -127,8 +127,7 @@ describe('booking monthly limits', () => {
       request(app).post('/bookings').send({ slotId: 1, date: today }),
     ]);
 
-    const statuses = [res1.body.status, res2.body.status];
-    expect(statuses).toContain('approved');
-    expect(statuses).toContain('rejected');
+    const codes = [res1.status, res2.status].sort();
+    expect(codes).toEqual([201, 409]);
   });
 });

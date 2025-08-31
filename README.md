@@ -58,7 +58,7 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Adding a client visit automatically updates any approved booking for that client on the same date to `visited`.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
- - Booking requests are automatically approved or rejected; the submitted state has been removed.
+ - Booking requests are automatically approved; monthly limits are enforced before booking, and the submitted state has been removed.
  - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.

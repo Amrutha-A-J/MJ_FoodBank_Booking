@@ -151,7 +151,6 @@ export default function ClientHistory() {
               >
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="rejected">Rejected</MenuItem>
                 <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
