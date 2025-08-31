@@ -157,7 +157,7 @@ beforeEach(() => {
         id: 1,
         role_id: 1,
         name: 'Greeter',
-        start_time: '9:00:00',
+        start_time: '09:00:00',
         end_time: '12:00:00',
         max_volunteers: 3,
         booked: 0,
