@@ -34,7 +34,8 @@ export default function LanguageSelector() {
       value={i18n.language}
       onChange={handleChange}
       variant="standard"
-      sx={{ minWidth: 80, color: 'inherit', '&::before, &::after': { borderBottom: 'none' } }}
+      size="small"
+      sx={{ width: 'auto', minWidth: 80, color: 'inherit', '&::before, &::after': { borderBottom: 'none' } }}
       disableUnderline
     >
       {languages.map(lang => (
