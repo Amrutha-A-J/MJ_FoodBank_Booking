@@ -253,7 +253,7 @@ page and cached on the server:
 ### Frontend features
 
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
-- Client login and password pages include a language selector so clients can switch between English and Spanish.
+- Client login and password pages include a language selector so clients can switch between English, Spanish, French, Arabic, Ukrainian, Somali, Tagalog, Chinese, Punjabi, Hindi, Persian, Pashto, Tigrinya, Amharic, Swahili, Malayalam, and Tamil.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
