@@ -18,12 +18,10 @@ import {
   Link,
   type AlertColor,
   useTheme,
-  Tooltip,
   Checkbox,
   FormControlLabel,
   TextField,
 } from '@mui/material';
-import InfoTooltip from '../../components/InfoTooltip';
 import { useTranslation } from 'react-i18next';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
@@ -256,11 +254,7 @@ export default function PantrySchedule({
             ? `[NEW CLIENT] ${booking.user_name}`
             : `${booking.user_name} (${booking.client_id})`;
           if (overCapacity) {
-            content = (
-              <Tooltip title="Capacity exceeded">
-                <span>{text}</span>
-              </Tooltip>
-            );
+            content = <span>{text}</span>;
             backgroundColor = theme.palette.warning.light;
           } else {
             content = text;
@@ -318,7 +312,6 @@ export default function PantrySchedule({
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-            <InfoTooltip title={t('tooltip_pantry_schedule_legend')} />
             {[
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
@@ -345,7 +338,6 @@ export default function PantrySchedule({
           <VolunteerScheduleTable
             maxSlots={maxSlots}
             rows={rows}
-            legend="Colored cells indicate booking status. Click a cell to assign or update volunteers."
           />
         </>
       )}
@@ -371,11 +363,6 @@ export default function PantrySchedule({
               label={
                 <>
                   New client
-                  <InfoTooltip
-                    title={t('tooltip_assign_user_new_client')}
-                    placement="right"
-                    sx={{ ml: 0.5 }}
-                  />
                 </>
               }
             />

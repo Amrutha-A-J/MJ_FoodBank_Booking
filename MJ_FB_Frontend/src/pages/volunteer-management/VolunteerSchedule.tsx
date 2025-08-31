@@ -46,7 +46,6 @@ import {
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import type { AlertColor } from '@mui/material';
-import InfoTooltip from '../../components/InfoTooltip';
 import { useTranslation } from 'react-i18next';
 
 const reginaTimeZone = 'America/Regina';
@@ -404,10 +403,6 @@ export default function VolunteerSchedule() {
                     ? ' (Weekend)'
                     : ''}
               </Typography>
-              <InfoTooltip
-                title={t('tooltip_volunteer_schedule')}
-                sx={{ ml: 0.5 }}
-              />
             </Box>
             <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
           </Box>
@@ -425,7 +420,6 @@ export default function VolunteerSchedule() {
             <VolunteerScheduleTable
               maxSlots={maxSlots}
               rows={rows}
-              legend="Colored cells indicate booking status. Click an available cell to create a booking."
             />
           )}
         </>

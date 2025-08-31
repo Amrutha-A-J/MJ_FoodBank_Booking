@@ -34,7 +34,6 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
-import InfoTooltip from '../../components/InfoTooltip';
 import { useTranslation } from 'react-i18next';
 
 interface Booking {
@@ -175,10 +174,7 @@ export default function AgencyDashboard() {
                       >
                         Cancel
                       </Button>
-                      <InfoTooltip
-                        title={t('tooltip_cancel_24hr')}
-                        placement="top"
-                      />
+
                       {next.reschedule_token && (
                         <Button
                           size="small"
@@ -234,7 +230,7 @@ export default function AgencyDashboard() {
                           >
                             Book
                           </Button>
-                          <InfoTooltip title={t('tooltip_slot_remaining_capacity')} />
+
                         </Stack>
                       }
                     >

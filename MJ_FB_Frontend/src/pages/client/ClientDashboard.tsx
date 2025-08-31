@@ -29,7 +29,6 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
-import InfoTooltip from '../../components/InfoTooltip';
 
 interface Booking {
   id: number;
@@ -149,7 +148,6 @@ export default function ClientDashboard() {
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
                   <span>{t('my_upcoming_appointment')}</span>
-                  <InfoTooltip title={t('tooltip_next_visit_details')} />
                 </Stack>
               }
               icon={<EventAvailable color="primary" />}
@@ -204,7 +202,6 @@ export default function ClientDashboard() {
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
                   <span>{t('news_and_events')}</span>
-                  <InfoTooltip title={t('tooltip_updates_holiday_closures')} />
                 </Stack>
               }
               icon={<Announcement color="primary" />}
@@ -298,7 +295,6 @@ export default function ClientDashboard() {
             title={
               <Stack direction="row" spacing={1} alignItems="center">
                 <span>{t('booking_history')}</span>
-                <InfoTooltip title={t('tooltip_review_past_bookings')} />
               </Stack>
             }
             icon={<History color="primary" />}
