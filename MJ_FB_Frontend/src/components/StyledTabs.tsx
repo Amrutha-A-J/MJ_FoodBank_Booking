@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Paper, Tabs, Tab, Box, type SxProps, type Theme } from '@mui/material';
 
 export interface TabItem {
-  label: string;
-  icon?: React.ReactNode;
-  content: React.ReactNode;
+  label: ReactNode;
+  icon?: ReactNode;
+  content: ReactNode;
 }
 
 interface StyledTabsProps {

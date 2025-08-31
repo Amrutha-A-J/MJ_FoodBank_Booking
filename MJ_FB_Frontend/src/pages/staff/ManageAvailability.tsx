@@ -33,6 +33,7 @@ import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
+import InfoTooltip from '../../components/InfoTooltip';
 import {
   getHolidays,
   addHoliday,
@@ -275,7 +276,12 @@ export default function ManageAvailability() {
   };
   const tabs: TabItem[] = [
     {
-      label: 'Holidays',
+      label: (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <span>Holidays</span>
+          <InfoTooltip title="Add or remove pantry holidays" />
+        </Stack>
+      ),
       icon: <EventBusy />,
       content: (
         <Card sx={{ borderRadius: 3 }}>
@@ -339,7 +345,12 @@ export default function ManageAvailability() {
       ),
     },
     {
-      label: 'Blocked Slots',
+      label: (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <span>Blocked Slots</span>
+          <InfoTooltip title="Block slots for a date or recurring schedule" />
+        </Stack>
+      ),
       icon: <Block />,
       content: (
         <Card sx={{ borderRadius: 3 }}>
@@ -354,7 +365,10 @@ export default function ManageAvailability() {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
-                      <InputLabel id="blocked-day-label">Day</InputLabel>
+                      <InputLabel id="blocked-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        Day
+                        <InfoTooltip title="Day of week for the recurring block" />
+                      </InputLabel>
                       <Select
                         labelId="blocked-day-label"
                         value={blockedDay}
@@ -372,7 +386,10 @@ export default function ManageAvailability() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
-                      <InputLabel id="blocked-week-label">Week</InputLabel>
+                      <InputLabel id="blocked-week-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        Week
+                        <InfoTooltip title="Week of month for the recurring block" />
+                      </InputLabel>
                       <Select
                         labelId="blocked-week-label"
                         value={blockedWeek}
@@ -398,7 +415,10 @@ export default function ManageAvailability() {
                 />
               )}
               <FormControl fullWidth>
-                <InputLabel id="slot-label">Slot</InputLabel>
+                <InputLabel id="slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  Slot
+                  <InfoTooltip title="Slot blocked on the selected date or schedule" />
+                </InputLabel>
                 <Select
                   labelId="slot-label"
                   value={blockedSlotId}
@@ -464,7 +484,12 @@ export default function ManageAvailability() {
       ),
     },
     {
-      label: 'Staff Breaks',
+      label: (
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <span>Staff Breaks</span>
+          <InfoTooltip title="Set up recurring staff breaks" />
+        </Stack>
+      ),
       icon: <Restaurant />,
       content: (
         <Card sx={{ borderRadius: 3 }}>
@@ -473,7 +498,10 @@ export default function ManageAvailability() {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
-                  <InputLabel id="break-day-label">Day</InputLabel>
+                  <InputLabel id="break-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    Day
+                    <InfoTooltip title="Break repeats on this day each week" />
+                  </InputLabel>
                   <Select
                     labelId="break-day-label"
                     value={breakDay}
@@ -491,7 +519,10 @@ export default function ManageAvailability() {
               </Grid>
               <Grid item xs={12} sm={4}>
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
-                  <InputLabel id="break-slot-label">Slot</InputLabel>
+                  <InputLabel id="break-slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    Slot
+                    <InfoTooltip title="Slot unavailable during the break each week" />
+                  </InputLabel>
                   <Select
                     labelId="break-slot-label"
                     value={breakSlotId}
