@@ -98,5 +98,26 @@ describe('NoShowWeek', () => {
     expect(within(table).getByText('No Show')).toBeInTheDocument();
     expect(within(table).queryByText('Approved Past')).not.toBeInTheDocument();
   });
+
+  it('shows full dates for each day', () => {
+    render(
+      <MemoryRouter>
+        <NoShowWeek />
+      </MemoryRouter>,
+    );
+
+    const dates = [
+      'Sunday, Dec 31, 2023',
+      'Monday, Jan 1, 2024',
+      'Tuesday, Jan 2, 2024',
+      'Wednesday, Jan 3, 2024',
+      'Thursday, Jan 4, 2024',
+      'Friday, Jan 5, 2024',
+      'Saturday, Jan 6, 2024',
+    ];
+    dates.forEach(date => {
+      expect(screen.getByText(date)).toBeInTheDocument();
+    });
+  });
 });
 

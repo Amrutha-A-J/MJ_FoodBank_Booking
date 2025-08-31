@@ -94,7 +94,7 @@ export default function NoShowWeek() {
           <Box key={dateStr} mb={3}>
             <Stack direction="row" spacing={2} alignItems="center" mb={1}>
               <Typography variant="h6">
-                {formatDate(d, 'dddd, MMM D')}
+                {formatDate(d, 'dddd, MMM D, YYYY')}
               </Typography>
               {dateStr === formatDate(today) && (
                 <FormControl size="small">
