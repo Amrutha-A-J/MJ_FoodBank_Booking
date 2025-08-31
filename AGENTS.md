@@ -448,6 +448,7 @@ Volunteer booking statuses include `completed`, and cancellations must include a
 - **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display *Booked* or *Available* and clicking an available cell creates a request in `volunteer_bookings`. Past dates are disabled and same-day shifts that have already started are omitted.
 - The Volunteer Dashboard's **Available in My Roles** list excludes shifts the volunteer has already requested or booked and shows server-provided error messages when a booking attempt fails.
 - Volunteers can view their trained roles on the dashboard but cannot update them; staff manage trained areas through the volunteer search interface.
+- Volunteers may only book shifts for roles they are trained in; attempts to book untrained roles must be blocked and handled by staff.
 - Shift booking confirmations display "Shift booked" since bookings are auto-approved and the submitted state has been removed; the volunteer dashboard lists only approved bookings.
 - Volunteer and pantry schedules follow the same grid logic. The y‑axis lists shift times and the x‑axis lists sequential slot numbers up to each shift's `max_volunteers`. When a volunteer requests a shift, the booking is immediately approved and occupies the first open slot.
 - **BookingHistory** shows a volunteer's upcoming bookings with Cancel and Reschedule options.
