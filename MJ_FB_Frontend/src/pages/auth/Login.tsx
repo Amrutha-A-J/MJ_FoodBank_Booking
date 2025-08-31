@@ -65,6 +65,8 @@ export default function Login({
           value={clientId}
           onChange={e => setClientId(e.target.value)}
           label="Client ID"
+          name="clientId"
+          autoComplete="username"
           fullWidth
           required
           error={clientIdError}
@@ -75,6 +77,8 @@ export default function Login({
           value={password}
           onChange={e => setPassword(e.target.value)}
           label="Password"
+          name="password"
+          autoComplete="current-password"
           fullWidth
           required
           error={passwordError}
