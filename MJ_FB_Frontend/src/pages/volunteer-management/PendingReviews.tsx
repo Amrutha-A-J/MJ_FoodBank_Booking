@@ -34,9 +34,9 @@ export default function PendingReviews() {
   const [dialog, setDialog] = useState<VolunteerBookingDetail | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const weekStart = useMemo(() => dayjs().startOf('week'), []);
   const today = dayjs();
-  const weekStart = today.startOf('week');
-  const days = Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day'));
+  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')), [weekStart]);
   const [dayIdx, setDayIdx] = useState(today.day());
   const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'no_show'>('all');
 
