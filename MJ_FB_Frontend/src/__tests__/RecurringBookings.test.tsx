@@ -169,11 +169,11 @@ test('hides cancel options for non-approved bookings', async () => {
     {
       id: 1,
       role_id: 1,
-      role_name: 'Visited Role',
+      role_name: 'Completed Role',
       date: '2024-05-01',
       start_time: '09:00:00',
       end_time: '10:00:00',
-      status: 'visited',
+      status: 'completed',
     },
     {
       id: 2,
@@ -207,8 +207,8 @@ test('hides cancel options for non-approved bookings', async () => {
   render(<VolunteerBookingHistory />);
   await screen.findByText('Approved Role');
   expect(screen.getAllByText('Cancel')).toHaveLength(1);
-  const visitedRow = screen.getByText('Visited Role').closest('tr')!;
-  expect(within(visitedRow).queryByText('Cancel')).toBeNull();
+  const completedRow = screen.getByText('Completed Role').closest('tr')!;
+  expect(within(completedRow).queryByText('Cancel')).toBeNull();
   const cancelledRow = screen.getByText('Cancelled Role').closest('tr')!;
   expect(within(cancelledRow).queryByText('Cancel')).toBeNull();
   const noShowRow = screen.getByText('NoShow Role').closest('tr')!;
