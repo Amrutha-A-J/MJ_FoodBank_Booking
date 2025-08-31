@@ -28,6 +28,7 @@
   - [ ] Added or modified a user-facing route or UI element?
   - [ ] Updated `src/pages/help/content.ts` accordingly?
   - [ ] Verified that the Help page renders the change?
+- Admins can view all help sections, including client and volunteer topics.
 
 ## Testing
 

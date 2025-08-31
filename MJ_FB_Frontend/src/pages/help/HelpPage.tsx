@@ -18,9 +18,12 @@ export default function HelpPage() {
   if (role === 'volunteer') roles.push('volunteer');
   if (role === 'agency') roles.push('agency');
   if (role === 'staff') {
-    if (access.includes('pantry')) roles.push('pantry');
-    if (access.includes('warehouse')) roles.push('warehouse');
-    if (access.includes('admin')) roles.push('admin');
+    if (access.includes('admin'))
+      roles.push('client', 'volunteer', 'agency', 'pantry', 'warehouse', 'admin');
+    else {
+      if (access.includes('pantry')) roles.push('pantry');
+      if (access.includes('warehouse')) roles.push('warehouse');
+    }
   }
 
   const [search, setSearch] = useState('');
