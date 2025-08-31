@@ -12,8 +12,10 @@ import {
   createVolunteerBookingForVolunteer,
   rescheduleVolunteerBooking,
   createRecurringVolunteerBooking,
+  createRecurringVolunteerBookingForVolunteer,
   cancelRecurringVolunteerBooking,
   cancelVolunteerBookingOccurrence,
+  listRecurringVolunteerBookingsByVolunteer,
   resolveVolunteerBookingConflict,
 } from '../../controllers/volunteer/volunteerBookingController';
 import {
@@ -21,7 +23,10 @@ import {
   authorizeRoles,
   optionalAuthMiddleware,
 } from '../../middleware/authMiddleware';
-import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
+import {
+  CreateRecurringVolunteerBookingRequest,
+  CreateRecurringVolunteerBookingForVolunteerRequest,
+} from '../../types/volunteerBooking';
 
 const router = express.Router();
 
@@ -38,11 +43,23 @@ router.post<{}, any, CreateRecurringVolunteerBookingRequest>(
   authorizeRoles('volunteer'),
   createRecurringVolunteerBooking,
 );
+router.post<{}, any, CreateRecurringVolunteerBookingForVolunteerRequest>(
+  '/recurring/staff',
+  authMiddleware,
+  authorizeRoles('staff'),
+  createRecurringVolunteerBookingForVolunteer,
+);
 router.get(
   '/recurring',
   authMiddleware,
   authorizeRoles('volunteer'),
   listMyRecurringVolunteerBookings,
+);
+router.get(
+  '/recurring/volunteer/:volunteer_id',
+  authMiddleware,
+  authorizeRoles('staff'),
+  listRecurringVolunteerBookingsByVolunteer,
 );
 router.get('/mine', authMiddleware, authorizeRoles('volunteer'), listMyVolunteerBookings);
 router.get(

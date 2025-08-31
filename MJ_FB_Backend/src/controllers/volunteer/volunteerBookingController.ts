@@ -3,7 +3,10 @@ import { randomUUID } from 'crypto';
 import pool from '../../db';
 import { sendEmail } from '../../utils/emailUtils';
 import logger from '../../utils/logger';
-import { CreateRecurringVolunteerBookingRequest } from '../../types/volunteerBooking';
+import {
+  CreateRecurringVolunteerBookingRequest,
+  CreateRecurringVolunteerBookingForVolunteerRequest,
+} from '../../types/volunteerBooking';
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
@@ -936,6 +939,187 @@ export async function createRecurringVolunteerBooking(
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
     logger.error('Error creating recurring volunteer bookings:', error);
+    next(error);
+  }
+}
+
+export async function createRecurringVolunteerBookingForVolunteer(
+  req: Request<{}, {}, CreateRecurringVolunteerBookingForVolunteerRequest>,
+  res: Response,
+  next: NextFunction,
+) {
+  const {
+    volunteerId,
+    roleId,
+    startDate,
+    endDate,
+    pattern,
+    daysOfWeek = [],
+    force,
+  } = req.body;
+  if (!volunteerId || !roleId || !startDate || !endDate || !pattern) {
+    return res
+      .status(400)
+      .json({
+        message:
+          'volunteerId, roleId, startDate, endDate and pattern are required',
+      });
+  }
+  try {
+    const slotRes = await pool.query(
+      `SELECT vs.role_id, vs.max_volunteers, vs.start_time, vs.end_time, vmr.name AS category_name
+       FROM volunteer_slots vs
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       WHERE vs.slot_id = $1 AND vs.is_active`,
+      [roleId],
+    );
+    if ((slotRes.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    const slot = slotRes.rows[0];
+
+    const trainedRes = await pool.query(
+      'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
+      [volunteerId, slot.role_id],
+    );
+    if ((trainedRes.rowCount ?? 0) === 0) {
+      return res.status(400).json({ message: 'Volunteer not trained for this role' });
+    }
+
+    const volunteerRes = await pool.query(
+      'SELECT email FROM volunteers WHERE id=$1',
+      [volunteerId],
+    );
+    const volunteerEmail = volunteerRes.rows[0]?.email as string | undefined;
+
+    const recurringRes = await pool.query(
+      `INSERT INTO volunteer_recurring_bookings (volunteer_id, slot_id, start_date, end_date, pattern, days_of_week, active)
+       VALUES ($1,$2,$3,$4,$5,$6,true)
+       RETURNING id`,
+      [volunteerId, roleId, startDate, endDate, pattern, daysOfWeek],
+    );
+    const recurringId = recurringRes.rows[0].id;
+    const dates: string[] = [];
+    const start = new Date(reginaStartOfDayISO(startDate));
+    const end = new Date(reginaStartOfDayISO(endDate));
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      if (
+        pattern === 'daily' ||
+        (pattern === 'weekly' && daysOfWeek.includes(d.getUTCDay()))
+      ) {
+        dates.push(formatReginaDate(d));
+      }
+    }
+    const successes: string[] = [];
+    const skipped: { date: string; reason: string }[] = [];
+    for (const date of dates) {
+      const isWeekend = [0, 6].includes(
+        new Date(reginaStartOfDayISO(date)).getUTCDay(),
+      );
+      const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
+        date,
+      ]);
+      const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+      const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+      if (
+        (isWeekend || isHoliday) &&
+        restrictedCategories.includes(slot.category_name)
+      ) {
+        skipped.push({ date, reason: 'Role not bookable on holidays or weekends' });
+        continue;
+      }
+
+      const countRes = await pool.query(
+        `SELECT COUNT(*) FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
+        [roleId, date],
+      );
+      if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
+        if (force) {
+          await pool.query(
+            'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
+            [Number(countRes.rows[0].count) + 1, roleId],
+          );
+        } else {
+          skipped.push({ date, reason: 'Role is full' });
+          continue;
+        }
+      }
+
+      const existingRes = await pool.query(
+        `SELECT 1 FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
+        [roleId, date, volunteerId],
+      );
+      if ((existingRes.rowCount ?? 0) > 0) {
+        skipped.push({ date, reason: 'Already booked' });
+        continue;
+      }
+
+      const overlapRes = await pool.query(
+        `SELECT vb.id, vs.start_time, vs.end_time
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
+           AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
+        [volunteerId, date, slot.start_time, slot.end_time],
+      );
+      if ((overlapRes.rowCount ?? 0) > 0) {
+        skipped.push({ date, reason: 'Overlapping booking' });
+        continue;
+      }
+
+      const token = randomUUID();
+      await pool.query(
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+         VALUES ($1,$2,$3,'approved',$4,$5)`,
+        [roleId, volunteerId, date, token, recurringId],
+      );
+      successes.push(date);
+
+      const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
+      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      if (volunteerEmail) {
+        await sendEmail(volunteerEmail, subject, body);
+      } else {
+        logger.warn(
+          'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
+          volunteerId,
+        );
+      }
+      await notifyCoordinators(
+        subject,
+        `Volunteer ${volunteerId} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
+      );
+    }
+    res.status(201).json({ recurringId, successes, skipped });
+  } catch (error) {
+    logger.error('Error creating recurring volunteer bookings for volunteer:', error);
+    next(error);
+  }
+}
+
+export async function listRecurringVolunteerBookingsByVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { volunteer_id } = req.params as { volunteer_id?: string };
+  try {
+    const result = await pool.query(
+      `SELECT id, slot_id AS role_id, start_date, end_date, pattern, days_of_week
+       FROM volunteer_recurring_bookings
+       WHERE volunteer_id=$1 AND active
+       ORDER BY start_date`,
+      [volunteer_id],
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error(
+      'Error listing recurring volunteer bookings by volunteer:',
+      error,
+    );
     next(error);
   }
 }
