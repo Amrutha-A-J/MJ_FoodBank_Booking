@@ -282,7 +282,7 @@ export default function ClientDashboard() {
                 const time = b.start_time ? formatTime(b.start_time) : '';
                 return (
                   <ListItem
-                    key={b.id}
+                    key={`${b.id}-${b.date}`}
                     secondaryAction={
                       <Chip label={b.status} color={statusColor(b.status)} />
                     }
