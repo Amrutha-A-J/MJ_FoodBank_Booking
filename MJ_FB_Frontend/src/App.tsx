@@ -103,6 +103,7 @@ const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
 const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
 );
+const HelpPage = React.lazy(() => import('./pages/help/HelpPage'));
 
 const Spinner = () => <CircularProgress />;
 
@@ -288,6 +289,7 @@ export default function App() {
                 }
               />
                 <Route path="/profile" element={<Profile role={role} />} />
+                <Route path="/help" element={<HelpPage />} />
               {showStaff && (
                 <Route
                   path="/pantry"
