@@ -34,6 +34,7 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
+import InfoTooltip from '../../components/InfoTooltip';
 
 interface Booking {
   id: number;
@@ -163,7 +164,7 @@ export default function AgencyDashboard() {
                       primary={`${formatDate(next.date)} ${formatTime(next.start_time || '')}`}
                       secondary={next.user_name}
                     />
-                    <Stack direction="row" spacing={1}>
+                    <Stack direction="row" spacing={1} alignItems="center">
                       <Button
                         size="small"
                         variant="outlined"
@@ -172,6 +173,10 @@ export default function AgencyDashboard() {
                       >
                         Cancel
                       </Button>
+                      <InfoTooltip
+                        title="Cancel at least 24 hours before the booking to avoid a no-show."
+                        placement="top"
+                      />
                       {next.reschedule_token && (
                         <Button
                           size="small"
@@ -218,14 +223,17 @@ export default function AgencyDashboard() {
                     <ListItem
                       key={`${s.date}-${s.slot.id}`}
                       secondaryAction={
-                        <Button
-                          size="small"
-                          variant="contained"
-                          sx={{ textTransform: 'none' }}
-                          onClick={() => navigate('/agency/book')}
-                        >
-                          Book
-                        </Button>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            sx={{ textTransform: 'none' }}
+                            onClick={() => navigate('/agency/book')}
+                          >
+                            Book
+                          </Button>
+                          <InfoTooltip title="Slot has remaining capacity" />
+                        </Stack>
                       }
                     >
                       <ListItemText
