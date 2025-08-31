@@ -24,6 +24,7 @@ import {
   TextField,
 } from '@mui/material';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
@@ -74,6 +75,7 @@ export default function PantrySchedule({
   const [assignMessage, setAssignMessage] = useState('');
   const [isNewClient, setIsNewClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
+  const { t } = useTranslation();
 
   const theme = useTheme();
   const statusColors: Record<string, string> = {
@@ -316,7 +318,7 @@ export default function PantrySchedule({
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
-            <InfoTooltip title="Green = approved, red = no-show, dark green = visited." />
+            <InfoTooltip title={t('tooltip_pantry_schedule_legend')} />
             {[
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
@@ -370,7 +372,7 @@ export default function PantrySchedule({
                 <>
                   New client
                   <InfoTooltip
-                    title="Books a visitor not yet in the system"
+                    title={t('tooltip_assign_user_new_client')}
                     placement="right"
                     sx={{ ml: 0.5 }}
                   />

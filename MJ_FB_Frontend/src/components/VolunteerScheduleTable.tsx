@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { ReactNode } from 'react';
 import InfoTooltip from './InfoTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface Cell {
   content: ReactNode;
@@ -35,9 +36,8 @@ export default function VolunteerScheduleTable({ maxSlots, rows, legend }: Props
   const slotWidth = `calc((100% - 160px) / ${safeMaxSlots})`;
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const legendText =
-    legend ??
-    'Colored cells indicate booking status. Click an available cell to create a booking.';
+  const { t } = useTranslation();
+  const legendText = legend ?? t('tooltip_schedule_legend');
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
       <Table

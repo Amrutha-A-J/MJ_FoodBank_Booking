@@ -5,6 +5,7 @@ import { getMyAgencyClients } from '../../api/agencies';
 import { Stack, Typography } from '@mui/material';
 import InfoTooltip from '../../components/InfoTooltip';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 interface AgencyClient {
   id: number;
@@ -35,6 +36,7 @@ export default function AgencySchedule() {
   }, []);
 
   const clientIds = clients.map(c => c.id);
+  const { t } = useTranslation();
 
   const searchAgencyUsers = useCallback(
     async (_token: string, term: string) => {
@@ -54,7 +56,7 @@ export default function AgencySchedule() {
     <Page title="Agency Schedule">
       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
         <Typography variant="body2">Select a green slot to book; gray slots are full.</Typography>
-        <InfoTooltip title="Green cells show available spots. Gray cells are full or unavailable." />
+        <InfoTooltip title={t('tooltip_agency_schedule')} />
       </Stack>
       <PantrySchedule
         token={token}

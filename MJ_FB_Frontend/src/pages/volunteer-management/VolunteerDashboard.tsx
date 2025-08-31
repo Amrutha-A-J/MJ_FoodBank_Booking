@@ -18,6 +18,7 @@ import {
 import InfoTooltip from '../../components/InfoTooltip';
 import Announcement from '@mui/icons-material/Announcement';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getMyVolunteerBookings,
   getVolunteerRolesForVolunteer,
@@ -78,6 +79,7 @@ export default function VolunteerDashboard() {
     null,
   );
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     getMyVolunteerBookings()
@@ -400,7 +402,7 @@ export default function VolunteerDashboard() {
               </List>
             </SectionCard>
 
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
               <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
 
@@ -452,7 +454,7 @@ export default function VolunteerDashboard() {
                 <Stack direction="row" spacing={0.5} alignItems="center">
                   My Stats
                   <InfoTooltip
-                    title="Hours and shifts count only completed shifts. Streak shows consecutive weeks volunteering."
+                    title={t('tooltip_volunteer_stats')}
                   />
                 </Stack>
               }

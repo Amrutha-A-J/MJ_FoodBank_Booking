@@ -23,6 +23,7 @@ import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
+import { useTranslation } from 'react-i18next';
 
 export interface DashboardProps {
   role: Role;
@@ -293,11 +294,12 @@ function UserDashboard() {
   }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
+  const { t } = useTranslation();
 
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title="My Upcoming Appointments" icon={<EventAvailable color="primary" />}>
+        <SectionCard title={t('my_upcoming_appointments')} icon={<EventAvailable color="primary" />}>
           <List>
             {appointments.map(a => (
               <ListItem

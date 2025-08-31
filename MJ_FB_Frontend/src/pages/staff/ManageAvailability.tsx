@@ -34,6 +34,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 import {
   getHolidays,
   addHoliday,
@@ -98,6 +99,7 @@ export default function ManageAvailability() {
     message: string;
     severity: AlertColor;
   }>({ open: false, message: '', severity: 'success' });
+  const { t } = useTranslation();
 
   const showSnackbar = (message: string, severity: AlertColor) => {
     setSnackbar({ open: true, message, severity });
@@ -279,7 +281,7 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Holidays</span>
-          <InfoTooltip title="Add or remove pantry holidays" />
+          <InfoTooltip title={t('tooltip_add_remove_holidays')} />
         </Stack>
       ),
       icon: <EventBusy />,
@@ -348,7 +350,7 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Blocked Slots</span>
-          <InfoTooltip title="Block slots for a date or recurring schedule" />
+          <InfoTooltip title={t('tooltip_block_slots')} />
         </Stack>
       ),
       icon: <Block />,
@@ -367,7 +369,7 @@ export default function ManageAvailability() {
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Day
-                        <InfoTooltip title="Day of week for the recurring block" />
+                        <InfoTooltip title={t('tooltip_recurring_day_of_week')} />
                       </InputLabel>
                       <Select
                         labelId="blocked-day-label"
@@ -388,7 +390,7 @@ export default function ManageAvailability() {
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-week-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Week
-                        <InfoTooltip title="Week of month for the recurring block" />
+                        <InfoTooltip title={t('tooltip_recurring_week_of_month')} />
                       </InputLabel>
                       <Select
                         labelId="blocked-week-label"
@@ -417,7 +419,7 @@ export default function ManageAvailability() {
               <FormControl fullWidth>
                 <InputLabel id="slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Slot
-                  <InfoTooltip title="Slot blocked on the selected date or schedule" />
+                  <InfoTooltip title={t('tooltip_slot_blocked_on_date')} />
                 </InputLabel>
                 <Select
                   labelId="slot-label"
@@ -487,7 +489,7 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Staff Breaks</span>
-          <InfoTooltip title="Set up recurring staff breaks" />
+          <InfoTooltip title={t('tooltip_recurring_staff_breaks')} />
         </Stack>
       ),
       icon: <Restaurant />,
@@ -500,7 +502,7 @@ export default function ManageAvailability() {
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Day
-                    <InfoTooltip title="Break repeats on this day each week" />
+                    <InfoTooltip title={t('tooltip_break_repeats')} />
                   </InputLabel>
                   <Select
                     labelId="break-day-label"
@@ -521,7 +523,7 @@ export default function ManageAvailability() {
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Slot
-                    <InfoTooltip title="Slot unavailable during the break each week" />
+                    <InfoTooltip title={t('tooltip_slot_unavailable_break')} />
                   </InputLabel>
                   <Select
                     labelId="break-slot-label"

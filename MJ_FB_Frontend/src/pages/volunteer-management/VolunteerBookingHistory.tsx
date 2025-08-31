@@ -9,6 +9,7 @@ import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import { useTranslation } from 'react-i18next';
 import {
   TableContainer,
   Paper,
@@ -32,6 +33,7 @@ export default function VolunteerBookingHistory() {
   const [cancelSeriesId, setCancelSeriesId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
@@ -141,13 +143,13 @@ export default function VolunteerBookingHistory() {
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
         <DialogCloseButton onClose={() => setCancelBooking(null)} />
-        <DialogTitle>Cancel Booking</DialogTitle>
+        <DialogTitle>{t('cancel_booking')}</DialogTitle>
         <DialogContent dividers>
-          Cancel booking for {cancelBooking?.role_name} on {cancelBooking?.date}?
+          {t('cancel_booking_for', { role: cancelBooking?.role_name, date: cancelBooking?.date })}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancel} variant="outlined" color="primary">
-            Confirm
+            {t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -156,11 +158,11 @@ export default function VolunteerBookingHistory() {
         <DialogCloseButton onClose={() => setCancelSeriesId(null)} />
         <DialogTitle>Cancel Series</DialogTitle>
         <DialogContent dividers>
-          Cancel all upcoming bookings in this series?
+          {t('cancel_all_upcoming')}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelSeries} variant="outlined" color="primary">
-            Confirm
+            {t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -47,6 +47,7 @@ import {
 import { lighten } from '@mui/material/styles';
 import type { AlertColor } from '@mui/material';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -74,6 +75,7 @@ export default function VolunteerSchedule() {
   const [endDate, setEndDate] = useState('');
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
   const todayStr = formatDate();
@@ -403,7 +405,7 @@ export default function VolunteerSchedule() {
                     : ''}
               </Typography>
               <InfoTooltip
-                title="Green cells show your bookings, gray cells are filled. Click 'Volunteer Needed' to book."
+                title={t('tooltip_volunteer_schedule')}
                 sx={{ ml: 0.5 }}
               />
             </Box>

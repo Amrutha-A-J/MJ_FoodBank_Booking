@@ -149,8 +149,8 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>My Upcoming Appointment</span>
-                  <InfoTooltip title="See details of your next visit" />
+                  <span>{t('my_upcoming_appointment')}</span>
+                  <InfoTooltip title={t('tooltip_next_visit_details')} />
                 </Stack>
               }
               icon={<EventAvailable color="primary" />}
@@ -195,7 +195,7 @@ export default function ClientDashboard() {
                     sx={{ textTransform: 'none' }}
                     onClick={() => navigate('/book-appointment')}
                   >
-                    Book now
+                    {t('book_now')}
                   </Button>
                 </Typography>
               )}
@@ -204,8 +204,8 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>News & Events</span>
-                  <InfoTooltip title="Updates and holiday closures" />
+                  <span>{t('news_and_events')}</span>
+                  <InfoTooltip title={t('tooltip_updates_holiday_closures')} />
                 </Stack>
               }
               icon={<Announcement color="primary" />}
@@ -299,7 +299,7 @@ export default function ClientDashboard() {
             title={
               <Stack direction="row" spacing={1} alignItems="center">
                 <span>Booking History</span>
-                <InfoTooltip title="Review your past bookings" />
+                <InfoTooltip title={t('tooltip_review_past_bookings')} />
               </Stack>
             }
             icon={<History color="primary" />}
@@ -328,9 +328,9 @@ export default function ClientDashboard() {
       </Grid>
         <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
           <DialogCloseButton onClose={() => setCancelId(null)} />
-          <DialogTitle>Cancel booking</DialogTitle>
+          <DialogTitle>{t('cancel_booking')}</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to cancel this booking?</Typography>
+            <Typography>{t('cancel_booking_question')}</Typography>
           </DialogContent>
           <DialogActions>
             <Button
@@ -340,7 +340,7 @@ export default function ClientDashboard() {
               sx={{ textTransform: 'none' }}
               onClick={confirmCancel}
             >
-              Cancel booking
+              {t('cancel_booking')}
             </Button>
           </DialogActions>
         </Dialog>
