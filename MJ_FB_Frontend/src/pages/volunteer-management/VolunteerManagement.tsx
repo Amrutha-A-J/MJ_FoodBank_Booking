@@ -20,6 +20,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import { useTranslation } from 'react-i18next';
 import PageCard from '../../components/layout/PageCard';
 import {
   Button,
@@ -112,6 +113,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
+  const { t } = useTranslation();
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
   const cellSx = { border: 1, borderColor: 'divider', p: 0.5 } as const;
@@ -742,16 +744,16 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               <Grid item xs={12} md={8} lg={8} sx={{ flexGrow: 1 }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
-                    Booking History
+                    {t('booking_history')}
                   </Typography>
                   <TableContainer sx={{ overflowX: 'auto' }}>
                     <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={cellSx}>Role</TableCell>
-                          <TableCell sx={cellSx}>Date</TableCell>
-                          <TableCell sx={cellSx}>Time</TableCell>
-                          <TableCell sx={cellSx}>Status</TableCell>
+                          <TableCell sx={cellSx}>{t('role')}</TableCell>
+                          <TableCell sx={cellSx}>{t('date')}</TableCell>
+                          <TableCell sx={cellSx}>{t('time')}</TableCell>
+                          <TableCell sx={cellSx}>{t('status')}</TableCell>
                           <TableCell sx={cellSx} />
                         </TableRow>
                       </TableHead>
@@ -764,7 +766,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                               {formatTime(h.start_time || '')} -
                               {formatTime(h.end_time || '')}
                             </TableCell>
-                            <TableCell sx={cellSx}>{h.status}</TableCell>
+                          <TableCell sx={cellSx}>{t(h.status.toLowerCase())}</TableCell>
                             <TableCell sx={cellSx}>
                               {h.status === 'approved' && (
                                 <>

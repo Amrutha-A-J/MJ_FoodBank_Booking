@@ -35,6 +35,7 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import { toDate, formatDate } from '../../../utils/date';
 import Page from '../../../components/Page';
+import { useTranslation } from 'react-i18next';
 
 const TIMEZONE = 'America/Regina';
 
@@ -81,6 +82,7 @@ export default function UserHistory({
   });
 
   const pageSize = 10;
+  const { t } = useTranslation();
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
@@ -135,11 +137,11 @@ export default function UserHistory({
     try {
       await cancelBooking(String(cancelId));
       setSeverity('success');
-      setMessage('Booking cancelled');
+      setMessage(t('booking_cancelled'));
       loadBookings();
     } catch {
       setSeverity('error');
-      setMessage('Failed to cancel booking');
+      setMessage(t('booking_cancel_failed'));
     } finally {
       setCancelId(null);
     }
@@ -160,7 +162,9 @@ export default function UserHistory({
       setEditOpen(true);
     } catch (err) {
       setSeverity('error');
-      setMessage(err instanceof Error ? err.message : 'Failed to load client');
+      setMessage(
+        err instanceof Error ? err.message : t('failed_to_load_client'),
+      );
     }
   }
 
@@ -179,65 +183,67 @@ export default function UserHistory({
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
       );
       setSeverity('success');
-      setMessage('Client updated');
+      setMessage(t('client_updated'));
       setEditOpen(false);
       loadBookings();
     } catch (err) {
       setSeverity('error');
-      setMessage(err instanceof Error ? err.message : 'Update failed');
+      setMessage(err instanceof Error ? err.message : t('update_failed'));
     }
   }
 
   return (
-    <Page title={initialUser ? 'Booking History' : 'Client History'}>
+    <Page title={initialUser ? t('booking_history') : t('client_history')}>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
         {!initialUser && (
           <EntitySearch
             type="user"
-            placeholder="Search by name or client ID"
+            placeholder={t('search_by_name_or_client_id')}
             onSelect={u => setSelected(u as User)}
           />
         )}
         {selected && (
           <div>
             <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-              {selected.name && <h3>History for {selected.name}</h3>}
+              {selected.name && (
+                <h3>{t('history_for_name', { name: selected.name })}</h3>
+              )}
               <Button size="small" variant="contained" onClick={handleEditClient}>
-                Edit Client
+                {t('edit_client')}
               </Button>
             </Stack>
             <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
+              <InputLabel id="filter-label">{t('filter')}</InputLabel>
               <Select
                 labelId="filter-label"
                 value={filter}
-                label="Filter"
+                label={t('filter')}
                 onChange={e => setFilter(e.target.value)}
               >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="visited">Visited</MenuItem>
-                <MenuItem value="no_show">No Show</MenuItem>
-                <MenuItem value="past">Past</MenuItem>
+                <MenuItem value="all">{t('all')}</MenuItem>
+                <MenuItem value="approved">{t('approved')}</MenuItem>
+                <MenuItem value="visited">{t('visited')}</MenuItem>
+                <MenuItem value="no_show">{t('no_show')}</MenuItem>
+                <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={cellSx}>Date</TableCell>
-                    <TableCell sx={cellSx}>Time</TableCell>
-                    <TableCell sx={cellSx}>Status</TableCell>
-                    <TableCell sx={cellSx}>Reason</TableCell>
-                    <TableCell sx={cellSx}>Actions</TableCell>
+                    <TableCell sx={cellSx}>{t('date')}</TableCell>
+                    <TableCell sx={cellSx}>{t('time')}</TableCell>
+                    <TableCell sx={cellSx}>{t('status')}</TableCell>
+                    <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                    <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
-                        No bookings.
+                        {t('no_bookings')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -256,7 +262,7 @@ export default function UserHistory({
                             ? `${startTime} - ${endTime}`
                             : 'N/A'}
                         </TableCell>
-                        <TableCell sx={cellSx}>{b.status}</TableCell>
+                        <TableCell sx={cellSx}>{t(b.status.toLowerCase())}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
@@ -268,14 +274,14 @@ export default function UserHistory({
                                 variant="outlined"
                                 color="primary"
                               >
-                                Cancel
+                                {t('cancel')}
                               </Button>
                               <Button
                                 onClick={() => setRescheduleBooking(b)}
                                 variant="outlined"
                                 color="primary"
                               >
-                                Reschedule
+                                {t('reschedule')}
                               </Button>
                             </Stack>
                           )}
@@ -302,10 +308,10 @@ export default function UserHistory({
                   variant="outlined"
                   color="primary"
                 >
-                  Previous
+                  {t('previous')}
                 </Button>
                 <span>
-                  Page {page} of {totalPages}
+                  {t('page_of', { page, totalPages })}
                 </span>
                 <Button
                   disabled={page === totalPages}
@@ -313,7 +319,7 @@ export default function UserHistory({
                   variant="outlined"
                   color="primary"
                 >
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             )}
@@ -332,54 +338,57 @@ export default function UserHistory({
           {editOpen && (
             <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
               <DialogCloseButton onClose={() => setEditOpen(false)} />
-              <DialogTitle>Edit Client</DialogTitle>
+          {editOpen && (
+            <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+              <DialogCloseButton onClose={() => setEditOpen(false)} />
+              <DialogTitle>{t('edit_client')}</DialogTitle>
               <DialogContent>
-              <Stack spacing={2} mt={1}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.onlineAccess}
+                <Stack spacing={2} mt={1}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={form.onlineAccess}
+                        onChange={e =>
+                          setForm({ ...form, onlineAccess: e.target.checked })
+                        }
+                      />
+                    }
+                    label={t('online_access')}
+                  />
+                  <TextField
+                    label={t('first_name')}
+                    value={form.firstName}
+                    onChange={e => setForm({ ...form, firstName: e.target.value })}
+                  />
+                  <TextField
+                    label={t('last_name')}
+                    value={form.lastName}
+                    onChange={e => setForm({ ...form, lastName: e.target.value })}
+                  />
+                  <TextField
+                    label={t('email_optional')}
+                    type="email"
+                    value={form.email}
+                    onChange={e => setForm({ ...form, email: e.target.value })}
+                  />
+                  <TextField
+                    label={t('phone_optional')}
+                    type="tel"
+                    value={form.phone}
+                    onChange={e => setForm({ ...form, phone: e.target.value })}
+                  />
+                  {form.onlineAccess && (
+                    <TextField
+                      label={t('password')}
+                      type="password"
+                      value={form.password}
                       onChange={e =>
-                        setForm({ ...form, onlineAccess: e.target.checked })
+                        setForm({ ...form, password: e.target.value })
                       }
                     />
-                  }
-                  label="Online Access"
-                />
-                <TextField
-                  label="First Name"
-                  value={form.firstName}
-                  onChange={e => setForm({ ...form, firstName: e.target.value })}
-                />
-                <TextField
-                  label="Last Name"
-                  value={form.lastName}
-                  onChange={e => setForm({ ...form, lastName: e.target.value })}
-                />
-                <TextField
-                  label="Email (optional)"
-                  type="email"
-                  value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
-                />
-                <TextField
-                  label="Phone (optional)"
-                  type="tel"
-                  value={form.phone}
-                  onChange={e => setForm({ ...form, phone: e.target.value })}
-                />
-                {form.onlineAccess && (
-                  <TextField
-                    label="Password"
-                    type="password"
-                    value={form.password}
-                    onChange={e =>
-                      setForm({ ...form, password: e.target.value })
-                    }
-                  />
-                )}
-              </Stack>
-            </DialogContent>
+                  )}
+                </Stack>
+              </DialogContent>
               <DialogActions>
                 <Button
                   variant="contained"
@@ -387,16 +396,16 @@ export default function UserHistory({
                   onClick={handleSaveClient}
                   disabled={!form.firstName || !form.lastName}
                 >
-                  Save
+                  {t('save')}
                 </Button>
               </DialogActions>
             </Dialog>
           )}
           <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
             <DialogCloseButton onClose={() => setCancelId(null)} />
-            <DialogTitle>Cancel booking</DialogTitle>
+            <DialogTitle>{t('cancel_booking')}</DialogTitle>
             <DialogContent>
-              <Typography>Are you sure you want to cancel this booking?</Typography>
+              <Typography>{t('cancel_booking_prompt')}</Typography>
             </DialogContent>
             <DialogActions>
               <Button
@@ -404,7 +413,7 @@ export default function UserHistory({
                 variant="contained"
                 onClick={confirmCancel}
               >
-                Cancel booking
+                {t('cancel_booking_confirm')}
               </Button>
             </DialogActions>
           </Dialog>

@@ -129,7 +129,7 @@ export default function ClientDashboard() {
     if (cancelId === null) return;
     try {
       await cancelBooking(cancelId);
-      setMessage('Booking cancelled');
+      setMessage(t('booking_cancelled'));
       setSnackbarSeverity('success');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {
@@ -298,8 +298,8 @@ export default function ClientDashboard() {
           <SectionCard
             title={
               <Stack direction="row" spacing={1} alignItems="center">
-                <span>Booking History</span>
-                <InfoTooltip title="Review your past bookings" />
+                <span>{t('booking_history')}</span>
+                <InfoTooltip title={t('review_past_bookings')} />
               </Stack>
             }
             icon={<History color="primary" />}
