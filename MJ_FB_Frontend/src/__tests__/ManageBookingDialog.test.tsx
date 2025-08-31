@@ -92,5 +92,29 @@ describe('ManageBookingDialog', () => {
       screen.getByText('Visits: 3, Approved bookings: 1'),
     ).toBeInTheDocument();
   });
+  it('calculates monthly usage when counts are strings', () => {
+    render(
+      <MemoryRouter>
+        <ManageBookingDialog
+          open
+          booking={{
+            id: 1,
+            client_id: 5,
+            user_id: 1,
+            visits_this_month: '1' as any,
+            approved_bookings_this_month: '1' as any,
+            date: '2024-02-01',
+            reschedule_token: '',
+            user_name: 'Client',
+            profile_link: 'https://portal.link2feed.ca/org/1605/intake/5',
+          }}
+          onClose={() => {}}
+          onUpdated={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Monthly usage: 2')).toBeInTheDocument();
+  });
 });
 
