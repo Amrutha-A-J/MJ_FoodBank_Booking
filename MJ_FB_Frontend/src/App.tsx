@@ -11,6 +11,7 @@ import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 import { getVolunteerBookingsForReview } from './api/volunteers';
 import dayjs, { formatDate } from './utils/date';
+import LanguageSelector from './components/LanguageSelector';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -255,6 +256,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <LanguageSelector />
       <div className="app-container">
         <FeedbackSnackbar
           open={!!error}
