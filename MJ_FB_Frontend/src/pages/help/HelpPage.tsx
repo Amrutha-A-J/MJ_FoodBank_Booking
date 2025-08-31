@@ -1,5 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
-import { TextField, Button, Stack, Box, Typography } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Stack,
+  Box,
+  Typography,
+  List,
+  ListItem,
+} from '@mui/material';
 import Page from '../../components/Page';
 import { useAuth } from '../../hooks/useAuth';
 import { helpContent, type HelpSection } from './content';
@@ -42,11 +50,16 @@ export default function HelpPage() {
     const query = search.toLowerCase();
     return roles.map(r => {
       const sections: HelpSection[] =
-        helpContent[r]?.filter(
-          s =>
-            s.title.toLowerCase().includes(query) ||
-            s.body.toLowerCase().includes(query),
-        ) ?? [];
+        helpContent[r]?.filter(s => {
+          const text = [
+            s.title,
+            s.body.description,
+            ...(s.body.steps ?? []),
+          ]
+            .join(' ')
+            .toLowerCase();
+          return text.includes(query);
+        }) ?? [];
       const content = (
         <>
           {sections.map(s => (
@@ -54,7 +67,19 @@ export default function HelpPage() {
               <Typography variant="h5" gutterBottom>
                 {s.title}
               </Typography>
-              <Typography>{s.body}</Typography>
+              <Typography>{s.body.description}</Typography>
+              {s.body.steps && (
+                <List
+                  component="ol"
+                  sx={{ listStyleType: 'decimal', pl: 4 }}
+                >
+                  {s.body.steps.map(step => (
+                    <ListItem key={step} sx={{ display: 'list-item', pl: 0 }}>
+                      {step}
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Box>
           ))}
           {!sections.length && <Typography>No matching topics.</Typography>}

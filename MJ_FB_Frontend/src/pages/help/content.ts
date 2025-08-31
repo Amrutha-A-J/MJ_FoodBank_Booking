@@ -1,6 +1,9 @@
 export interface HelpSection {
   title: string;
-  body: string;
+  body: {
+    description: string;
+    steps?: string[];
+  };
 }
 
 export const helpContent: Record<
@@ -10,129 +13,331 @@ export const helpContent: Record<
   client: [
     {
       title: 'Booking appointments',
-      body: 'Reserve pantry visits from your dashboard.',
+      body: {
+        description: 'Reserve pantry visits from your dashboard.',
+        steps: [
+          'Open your dashboard.',
+          'Choose an available date.',
+          'Select a time and confirm the booking.',
+        ],
+      },
     },
     {
       title: 'Rescheduling or canceling',
-      body: 'Change or cancel a booking from the booking history list.',
+      body: {
+        description: 'Change or cancel an existing booking.',
+        steps: [
+          'Go to Booking History.',
+          'Find the upcoming visit.',
+          'Click Reschedule or Cancel and follow prompts.',
+        ],
+      },
     },
     {
       title: 'View booking history',
-      body: 'Past and upcoming bookings are listed under the booking history page.',
+      body: {
+        description: 'See past and future visits.',
+        steps: [
+          'Open the Booking History page.',
+          'Browse the list of previous and upcoming bookings.',
+        ],
+      },
     },
     {
       title: 'Manage profile and password',
-      body: 'Update contact information or change your password from the profile page.',
+      body: {
+        description: 'Update contact information or change your password.',
+        steps: [
+          'Navigate to the Profile page.',
+          'Edit your information.',
+          'Save changes.',
+        ],
+      },
     },
     {
       title: 'Visit counts and reminders',
-      body: 'The dashboard shows your monthly visit totals and upcoming booking reminders.',
+      body: {
+        description: 'The dashboard shows monthly totals and upcoming reminders.',
+        steps: [
+          'Return to the dashboard.',
+          'Review your visit counter.',
+          'Check reminders for upcoming bookings.',
+        ],
+      },
     },
   ],
   volunteer: [
     {
       title: 'View schedule',
-      body: 'The volunteer schedule shows available shifts for your trained roles.',
+      body: {
+        description: 'The volunteer schedule shows available shifts for your trained roles.',
+        steps: [
+          'Open the Volunteer Schedule.',
+          'Select a role from the dropdown.',
+          'Review open shifts.',
+        ],
+      },
     },
     {
       title: 'Book, cancel, or reschedule shifts',
-      body: 'Pick an open shift to book it, then manage upcoming shifts to cancel or choose a new time.',
+      body: {
+        description: 'Manage your volunteer shifts.',
+        steps: [
+          'Click an available shift to book.',
+          'Go to Upcoming Shifts on the dashboard.',
+          'Choose Cancel or Reschedule as needed.',
+        ],
+      },
     },
     {
       title: 'Recurring bookings',
-      body: 'Use the Recurring Bookings page to reserve the same shift each week.',
+      body: {
+        description: 'Reserve the same shift each week.',
+        steps: [
+          'Open Recurring Bookings.',
+          'Select the role and pattern.',
+          'Submit to create recurring shifts.',
+        ],
+      },
     },
     {
       title: 'Stats, badges, and leaderboard',
-      body: 'Your dashboard shows hours served, earned badges, and your spot on the volunteer leaderboard.',
+      body: {
+        description: 'Track your progress and ranking.',
+        steps: [
+          'Visit the Volunteer Dashboard.',
+          'Check your hours and badges.',
+          'Compare your rank on the leaderboard.',
+        ],
+      },
     },
     {
       title: 'Update profile',
-      body: 'Edit your contact information on the Profile page so coordinators can reach you.',
+      body: {
+        description: 'Keep your contact details current.',
+        steps: [
+          'Go to the Profile page.',
+          'Edit phone or email.',
+          'Save updates.',
+        ],
+      },
     },
   ],
   agency: [
     {
       title: 'Search and link clients',
-      body: 'Find clients by name and link them to your agency.',
+      body: {
+        description: 'Find clients by name and link them to your agency.',
+        steps: [
+          'Go to Agency Clients.',
+          'Search for the client.',
+          'Click Link to add them.',
+        ],
+      },
     },
     {
       title: 'Book for clients',
-      body: 'Create appointments for linked clients from the agency schedule.',
+      body: {
+        description: 'Create appointments for linked clients.',
+        steps: [
+          'Open the Agency Schedule.',
+          'Pick a linked client.',
+          'Choose a date and confirm the booking.',
+        ],
+      },
     },
     {
       title: 'Cancel or reschedule bookings',
-      body: 'Modify client appointments directly from the schedule.',
+      body: {
+        description: 'Modify client appointments directly from the schedule.',
+        steps: [
+          'Open the schedule.',
+          'Select the client\'s booking.',
+          'Choose Reschedule or Cancel.',
+        ],
+      },
     },
     {
       title: 'View schedule and booking history',
-      body: 'Check upcoming appointments and past visits for linked clients.',
+      body: {
+        description: 'Check upcoming appointments and past visits for linked clients.',
+        steps: [
+          'Navigate to Booking History.',
+          'Filter by client.',
+          'Browse visits.',
+        ],
+      },
     },
     {
       title: 'Edit profile and contact info',
-      body: 'Update your agency name, email, and phone from the profile page.',
+      body: {
+        description: 'Update your agency name, email, and phone.',
+        steps: [
+          'Go to the Profile page.',
+          'Adjust name, email, or phone.',
+          'Save changes.',
+        ],
+      },
     },
   ],
   pantry: [
     {
       title: 'Manage availability',
-      body: 'Staff can open or block pantry slots and adjust capacities.',
+      body: {
+        description: 'Open or block pantry slots and adjust capacities.',
+        steps: [
+          'Open the Pantry Schedule.',
+          'Use controls to open or block slots.',
+          'Save capacity changes.',
+        ],
+      },
     },
     {
       title: 'Manage volunteers',
-      body: 'Search, add, and review volunteers from the Volunteers page.',
+      body: {
+        description: 'Search, add, and review volunteers.',
+        steps: [
+          'Go to the Volunteers page.',
+          'Search by name.',
+          'View or edit volunteer information.',
+        ],
+      },
     },
     {
       title: 'Recurring shifts',
-      body: 'Search volunteers and schedule or cancel repeating shifts from the Recurring Shifts page.',
+      body: {
+        description: 'Schedule or cancel repeating shifts for volunteers.',
+        steps: [
+          'Open Recurring Shifts.',
+          'Search for the volunteer.',
+          'Set the pattern and save.',
+        ],
+      },
     },
     {
       title: 'Record visits and handle no-shows',
-      body: 'Mark bookings as visited while logging weights or record no-shows from the schedule.',
+      body: {
+        description: 'Mark bookings as visited while logging weights or record no-shows.',
+        steps: [
+          'Open the schedule.',
+          'Select a booking.',
+          'Mark visited or no-show and enter weight.',
+        ],
+      },
     },
     {
       title: 'Book new clients from the schedule',
-      body: 'Use the Assign User modal to book a slot for an unregistered individual via the New client option.',
+      body: {
+        description: 'Use the Assign User modal to book a slot for an unregistered individual.',
+        steps: [
+          'Click Assign User on a slot.',
+          'Choose New client.',
+          'Enter name and confirm booking.',
+        ],
+      },
     },
     {
       title: 'Manage agencies and their clients',
-      body: 'Link or unlink agency clients and make bookings on their behalf from the agency management pages.',
+      body: {
+        description: 'Link or unlink agency clients and make bookings on their behalf.',
+        steps: [
+          'Open agency management pages.',
+          'Search for the agency or client.',
+          'Link, unlink, or book as needed.',
+        ],
+      },
     },
     {
       title: 'Review volunteer performance and pending bookings',
-      body: 'Staff dashboards show volunteer hours, outstanding requests, and no-show rates for follow-up.',
+      body: {
+        description: 'Staff dashboards show volunteer hours, outstanding requests, and no-show rates for follow-up.',
+        steps: [
+          'Open the staff dashboard.',
+          'Review hours, requests, and no-show rates.',
+          'Follow up with volunteers as required.',
+        ],
+      },
     },
   ],
   warehouse: [
     {
       title: 'Log donations and outgoing shipments',
-      body: 'Record food donations and outgoing shipments from the warehouse dashboard.',
+      body: {
+        description: 'Record food donations and outgoing shipments from the warehouse dashboard.',
+        steps: [
+          'Open the Warehouse Dashboard.',
+          'Select Donor or Outgoing page.',
+          'Enter weights and save.',
+        ],
+      },
     },
     {
       title: 'Track surplus and pig-pound weights',
-      body: 'Use the Track Surplus and Track Pig Pound pages to record weight totals.',
+      body: {
+        description: 'Use the Track Surplus and Track Pig Pound pages to record weight totals.',
+        steps: [
+          'Go to Track Surplus or Track Pig Pound.',
+          'Add the weight entry.',
+          'Submit the form.',
+        ],
+      },
     },
     {
       title: 'Export or review aggregate reports',
-      body: 'Use the Aggregations page to review monthly totals or export yearly spreadsheets.',
+      body: {
+        description: 'Use the Aggregations page to review monthly totals or export yearly spreadsheets.',
+        steps: [
+          'Open the Aggregations page.',
+          'Select the year or month.',
+          'Export the spreadsheet or review the table.',
+        ],
+      },
     },
   ],
   admin: [
     {
       title: 'Staff users and permissions',
-      body: 'Admins can add new staff accounts, edit existing users, and manage permissions.',
+      body: {
+        description: 'Admins can add new staff accounts, edit existing users, and manage permissions.',
+        steps: [
+          'Open Staff Settings.',
+          'Add or edit users.',
+          'Assign permissions and save.',
+        ],
+      },
     },
     {
       title: 'Pantry, warehouse, and volunteer settings',
-      body: 'Configure system options for pantry scheduling, warehouse tracking, and volunteer management.',
+      body: {
+        description: 'Configure system options for pantry scheduling, warehouse tracking, and volunteer management.',
+        steps: [
+          'Open Settings.',
+          'Choose Pantry, Warehouse, or Volunteer.',
+          'Update options and save.',
+        ],
+      },
     },
     {
       title: 'Volunteer master roles and shifts',
-      body: 'Create or update master roles and define the shifts available for each role.',
+      body: {
+        description: 'Create or update master roles and define the shifts available for each role.',
+        steps: [
+          'Go to Volunteer Roles.',
+          'Create or edit a role.',
+          'Set available shifts.',
+        ],
+      },
     },
     {
       title: 'Restore default roles and shifts',
-      body: 'Reset volunteer roles and shift setups to their default configuration when needed.',
+      body: {
+        description: 'Reset volunteer roles and shift setups to their default configuration when needed.',
+        steps: [
+          'Open Volunteer Roles.',
+          'Choose Restore Defaults.',
+          'Confirm the reset.',
+        ],
+      },
     },
   ],
 };
