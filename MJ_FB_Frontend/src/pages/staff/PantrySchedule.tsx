@@ -340,7 +340,11 @@ export default function PantrySchedule({
               </span>
             ))}
           </div>
-          <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+          <VolunteerScheduleTable
+            maxSlots={maxSlots}
+            rows={rows}
+            legend="Colored cells indicate booking status. Click a cell to assign or update volunteers."
+          />
         </>
       )}
 
