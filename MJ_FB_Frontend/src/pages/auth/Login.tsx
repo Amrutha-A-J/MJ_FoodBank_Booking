@@ -36,9 +36,9 @@ export default function Login({
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
-        setError('Incorrect ID or password');
+        setError(t('incorrect_id_password'));
       } else if (apiErr?.status === 403) {
-        setError('Password setup link expired');
+        setError(t('password_setup_expired'));
         setResendOpen(true);
       } else {
         setError(err instanceof Error ? err.message : String(err));

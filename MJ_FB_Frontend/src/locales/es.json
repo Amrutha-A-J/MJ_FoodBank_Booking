@@ -24,6 +24,8 @@
   "forgot_password": "¿Olvidó su contraseña?",
   "client_id_required": "Se requiere ID del cliente",
   "password_required": "Se requiere la contraseña",
+  "incorrect_id_password": "ID o contraseña incorrectos",
+  "password_setup_expired": "El enlace de configuración de la contraseña ha expirado",
   "set_password": "Crear contraseña",
   "back_to_login": "Volver al inicio",
   "resend_link": "Reenviar enlace",

@@ -24,6 +24,8 @@
   "forgot_password": "Forgot password?",
   "client_id_required": "Client ID is required",
   "password_required": "Password is required",
+  "incorrect_id_password": "Incorrect ID or password",
+  "password_setup_expired": "Password setup link expired",
   "set_password": "Set Password",
   "back_to_login": "Back to login",
   "resend_link": "Resend link",
