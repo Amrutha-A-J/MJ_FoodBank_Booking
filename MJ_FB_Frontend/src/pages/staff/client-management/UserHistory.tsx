@@ -137,11 +137,11 @@ export default function UserHistory({
     try {
       await cancelBooking(String(cancelId));
       setSeverity('success');
-      setMessage('Booking cancelled');
+      setMessage(t('booking_cancelled'));
       loadBookings();
     } catch {
       setSeverity('error');
-      setMessage('Failed to cancel booking');
+      setMessage(t('cancel_booking_failed'));
     } finally {
       setCancelId(null);
     }
@@ -160,9 +160,9 @@ export default function UserHistory({
         password: '',
       });
       setEditOpen(true);
-    } catch (err) {
+    } catch {
       setSeverity('error');
-      setMessage(err instanceof Error ? err.message : 'Failed to load client');
+      setMessage(t('load_client_failed'));
     }
   }
 
@@ -181,65 +181,65 @@ export default function UserHistory({
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
       );
       setSeverity('success');
-      setMessage('Client updated');
+      setMessage(t('client_updated'));
       setEditOpen(false);
       loadBookings();
-    } catch (err) {
+    } catch {
       setSeverity('error');
-      setMessage(err instanceof Error ? err.message : 'Update failed');
+      setMessage(t('update_failed'));
     }
   }
 
   return (
-    <Page title={initialUser ? 'Booking History' : 'Client History'}>
+    <Page title={initialUser ? t('booking_history') : t('client_history')}>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
         {!initialUser && (
           <EntitySearch
             type="user"
-            placeholder="Search by name or client ID"
+            placeholder={t('search_by_name_or_client_id')}
             onSelect={u => setSelected(u as User)}
           />
         )}
         {selected && (
           <div>
             <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-              {selected.name && <h3>History for {selected.name}</h3>}
+              {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
               <Button size="small" variant="contained" onClick={handleEditClient}>
                 Edit Client
               </Button>
             </Stack>
             <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
+              <InputLabel id="filter-label">{t('filter')}</InputLabel>
               <Select
                 labelId="filter-label"
                 value={filter}
-                label="Filter"
+                label={t('filter')}
                 onChange={e => setFilter(e.target.value)}
               >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="visited">Visited</MenuItem>
-                <MenuItem value="no_show">No Show</MenuItem>
-                <MenuItem value="past">Past</MenuItem>
+                <MenuItem value="all">{t('all')}</MenuItem>
+                <MenuItem value="approved">{t('approved')}</MenuItem>
+                <MenuItem value="visited">{t('visited')}</MenuItem>
+                <MenuItem value="no_show">{t('no_show')}</MenuItem>
+                <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={cellSx}>Date</TableCell>
-                    <TableCell sx={cellSx}>Time</TableCell>
-                    <TableCell sx={cellSx}>Status</TableCell>
-                    <TableCell sx={cellSx}>Reason</TableCell>
-                    <TableCell sx={cellSx}>Actions</TableCell>
+                    <TableCell sx={cellSx}>{t('date')}</TableCell>
+                    <TableCell sx={cellSx}>{t('time')}</TableCell>
+                    <TableCell sx={cellSx}>{t('status')}</TableCell>
+                    <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                    <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
-                        No bookings.
+                        {t('no_bookings')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -258,7 +258,7 @@ export default function UserHistory({
                             ? `${startTime} - ${endTime}`
                             : 'N/A'}
                         </TableCell>
-                        <TableCell sx={cellSx}>{b.status}</TableCell>
+                        <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
@@ -270,14 +270,14 @@ export default function UserHistory({
                                 variant="outlined"
                                 color="primary"
                               >
-                                Cancel
+                                {t('cancel')}
                               </Button>
                               <Button
                                 onClick={() => setRescheduleBooking(b)}
                                 variant="outlined"
                                 color="primary"
                               >
-                                Reschedule
+                                {t('reschedule')}
                               </Button>
                             </Stack>
                           )}
@@ -304,10 +304,10 @@ export default function UserHistory({
                   variant="outlined"
                   color="primary"
                 >
-                  Previous
+                  {t('previous')}
                 </Button>
                 <span>
-                  Page {page} of {totalPages}
+                  {t('page_of_total', { page, total: totalPages })}
                 </span>
                 <Button
                   disabled={page === totalPages}
@@ -315,7 +315,7 @@ export default function UserHistory({
                   variant="outlined"
                   color="primary"
                 >
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             )}

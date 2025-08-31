@@ -23,6 +23,7 @@ import EntitySearch from '../../components/EntitySearch';
 import { toDate } from '../../utils/date';
 import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
+import { useTranslation } from 'react-i18next';
 
 const TIMEZONE = 'America/Regina';
 
@@ -53,6 +54,7 @@ export default function ClientHistory() {
     null,
   );
   const [clients, setClients] = useState<User[]>([]);
+  const { t } = useTranslation();
 
   const pageSize = 10;
 
@@ -129,47 +131,47 @@ export default function ClientHistory() {
   } as const;
 
   return (
-    <Page title="Client History">
+    <Page title={t('client_history')}>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
         <EntitySearch
           type="user"
-          placeholder="Search by name or client ID"
+          placeholder={t('search_by_name_or_client_id')}
           onSelect={u => setSelected(u as User)}
           searchFn={searchAgencyClients}
         />
         {selected && (
           <div>
-            {selected.name && <h3>History for {selected.name}</h3>}
+            {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
             <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
+              <InputLabel id="filter-label">{t('filter')}</InputLabel>
               <Select
                 labelId="filter-label"
                 value={filter}
-                label="Filter"
+                label={t('filter')}
                 onChange={e => setFilter(e.target.value)}
               >
-                <MenuItem value="all">All</MenuItem>
-                <MenuItem value="approved">Approved</MenuItem>
-                <MenuItem value="past">Past</MenuItem>
+                <MenuItem value="all">{t('all')}</MenuItem>
+                <MenuItem value="approved">{t('approved')}</MenuItem>
+                <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={cellSx}>Date</TableCell>
-                    <TableCell sx={cellSx}>Time</TableCell>
-                    <TableCell sx={cellSx}>Status</TableCell>
-                    <TableCell sx={cellSx}>Reason</TableCell>
-                    <TableCell sx={cellSx}>Actions</TableCell>
+                    <TableCell sx={cellSx}>{t('date')}</TableCell>
+                    <TableCell sx={cellSx}>{t('time')}</TableCell>
+                    <TableCell sx={cellSx}>{t('status')}</TableCell>
+                    <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                    <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
-                        No bookings.
+                        {t('no_bookings')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -188,7 +190,7 @@ export default function ClientHistory() {
                             ? `${startTime} - ${endTime}`
                             : 'N/A'}
                         </TableCell>
-                        <TableCell sx={cellSx}>{b.status}</TableCell>
+                        <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
@@ -199,7 +201,7 @@ export default function ClientHistory() {
                               variant="outlined"
                               color="primary"
                             >
-                              Reschedule
+                              {t('reschedule')}
                             </Button>
                           )}
                         </TableCell>
@@ -225,10 +227,10 @@ export default function ClientHistory() {
                   variant="outlined"
                   color="primary"
                 >
-                  Previous
+                  {t('previous')}
                 </Button>
                 <span>
-                  Page {page} of {totalPages}
+                  {t('page_of_total', { page, total: totalPages })}
                 </span>
                 <Button
                   disabled={page === totalPages}
@@ -236,7 +238,7 @@ export default function ClientHistory() {
                   variant="outlined"
                   color="primary"
                 >
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             )}
