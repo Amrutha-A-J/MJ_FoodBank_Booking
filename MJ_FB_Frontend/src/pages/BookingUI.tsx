@@ -32,6 +32,7 @@ import FeedbackModal from '../components/FeedbackModal';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
 import type { ApiError } from '../api/client';
+import { useTranslation } from 'react-i18next';
 
 // Wrappers to match required signatures
 function useSlots(
@@ -70,6 +71,7 @@ export default function BookingUI({
   embedded = false,
   onLoadingChange,
 }: BookingUIProps) {
+  const { t } = useTranslation();
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
     const today = dayjs();
@@ -153,7 +155,7 @@ export default function BookingUI({
       });
       setSnackbar({
         open: true,
-        message: 'Slot booked successfully',
+        message: t('slot_booked_success'),
         severity: 'success',
       });
       setSelectedSlotId(null);
@@ -199,12 +201,18 @@ export default function BookingUI({
           setSnackbar({
             open: true,
             message:
-              typeof apiErr.message === 'string' ? apiErr.message : 'Booking failed',
+              typeof apiErr.message === 'string'
+                ? apiErr.message
+                : t('booking_failed'),
             severity: 'error',
           });
         }
       } else {
-        setSnackbar({ open: true, message: 'Booking failed', severity: 'error' });
+        setSnackbar({
+          open: true,
+          message: t('booking_failed'),
+          severity: 'error',
+        });
       }
     } finally {
       setBooking(false);
@@ -224,7 +232,10 @@ export default function BookingUI({
         disabled={isFull}
         selected={selected}
         onClick={() => setSelectedSlotId(slot.id)}
-        aria-label={`Select ${start.format('h:mm a')} to ${end.format('h:mm a')} time slot`}
+        aria-label={t('select_time_slot', {
+          start: start.format('h:mm a'),
+          end: end.format('h:mm a'),
+        })}
         sx={{
           borderBottom: 1,
           borderColor: 'divider',
@@ -238,11 +249,17 @@ export default function BookingUI({
         <ListItemText
           primary={label}
           secondary={
-            isFull ? (slot.reason ? slot.reason : 'Fully booked') : 'Choose this time'
+            isFull
+              ? slot.reason || t('fully_booked')
+              : t('choose_this_time')
           }
         />
         <Chip
-          label={isFull ? 'Full' : `Available: ${available}`}
+          label={
+            isFull
+              ? t('full')
+              : t('available_count', { count: available })
+          }
           color={isFull ? 'default' : 'success'}
           size="small"
         />
@@ -262,14 +279,14 @@ export default function BookingUI({
       <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
-        Booking for: {shopperName}
+        {t('booking_for', { name: shopperName })}
       </Typography>
       <Typography
         variant="subtitle1"
         sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
       >
         <AccessTime fontSize="small" />
-        Available Slots for {date.format('ddd, MMM D, YYYY')}
+        {t('available_slots_for', { date: date.format('ddd, MMM D, YYYY') })}
       </Typography>
       <Grid container spacing={2}>
         <Grid item xs={12} md="auto">
@@ -337,7 +354,9 @@ export default function BookingUI({
                   justifyContent: 'center',
                 }}
               >
-                <Typography>{error instanceof Error ? error.message : 'Error loading slots'}</Typography>
+                <Typography>
+                  {error instanceof Error ? error.message : t('error_loading_slots')}
+                </Typography>
               </Box>
             ) : visibleSlots.length === 0 ? (
               <Box
@@ -348,22 +367,20 @@ export default function BookingUI({
                   justifyContent: 'center',
                 }}
               >
-                <Typography>
-                  No slots available. Please choose another date.
-                </Typography>
+                <Typography>{t('no_slots_available')}</Typography>
               </Box>
             ) : (
               <List disablePadding>
                 {morningSlots.length > 0 && (
                   <>
-                    <ListSubheader disableSticky>Morning</ListSubheader>
+                    <ListSubheader disableSticky>{t('morning')}</ListSubheader>
                     {morningSlots.map(renderSlot)}
                     {afternoonSlots.length > 0 && <Divider />}
                   </>
                 )}
                 {afternoonSlots.length > 0 && (
                   <>
-                    <ListSubheader disableSticky>Afternoon</ListSubheader>
+                    <ListSubheader disableSticky>{t('afternoon')}</ListSubheader>
                     {afternoonSlots.map(renderSlot)}
                   </>
                 )}
@@ -387,8 +404,11 @@ export default function BookingUI({
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography>
             {selectedSlotId
-              ? `Selected: ${selectedLabel} on ${date.format('ddd, MMM D, YYYY')}`
-              : 'No slot selected'}
+              ? t('selected_on', {
+                  slot: selectedLabel,
+                  date: date.format('ddd, MMM D, YYYY'),
+                })
+              : t('no_slot_selected')}
           </Typography>
           <Button
             variant="contained"
@@ -396,7 +416,7 @@ export default function BookingUI({
             disabled={!selectedSlotId || booking}
             onClick={handleBook}
           >
-            Book selected slot
+            {t('book_selected_slot')}
           </Button>
         </Stack>
       </Paper>
@@ -417,6 +437,6 @@ export default function BookingUI({
   );
 
   if (embedded) return content;
-  return <Page title="Book Appointment">{content}</Page>;
+  return <Page title={t('book_appointment')}>{content}</Page>;
 }
 

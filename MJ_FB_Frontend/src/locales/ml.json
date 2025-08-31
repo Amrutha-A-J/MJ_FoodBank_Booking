@@ -42,5 +42,21 @@
   "help": "സഹായം",
   "logout": "ലോഗ് ഔട്ട്",
   "breadcrumb": "ബ്രെഡ് ക്രംബ്",
-  "home": "ഹോം"
+  "home": "ഹോം",
+  "slot_booked_success": "Slot booked successfully",
+  "booking_failed": "Booking failed",
+  "full": "Full",
+  "choose_this_time": "Choose this time",
+  "morning": "Morning",
+  "afternoon": "Afternoon",
+  "book_selected_slot": "Book selected slot",
+  "booking_for": "Booking for: {{name}}",
+  "available_slots_for": "Available Slots for {{date}}",
+  "fully_booked": "Fully booked",
+  "available_count": "Available: {{count}}",
+  "no_slots_available": "No slots available. Please choose another date.",
+  "error_loading_slots": "Error loading slots",
+  "selected_on": "Selected: {{slot}} on {{date}}",
+  "no_slot_selected": "No slot selected",
+  "select_time_slot": "Select {{start}} to {{end}} time slot"
 }
