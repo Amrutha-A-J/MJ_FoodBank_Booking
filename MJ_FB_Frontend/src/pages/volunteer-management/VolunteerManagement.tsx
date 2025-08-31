@@ -638,7 +638,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 <h3>{formatDate(currentDate)}</h3>
                 <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
               </div>
-              <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+              <VolunteerScheduleTable
+                maxSlots={maxSlots}
+                rows={rows}
+                legend="Colored cells indicate booking status. Click a cell to manage bookings."
+              />
             </>
           ) : (
             <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>

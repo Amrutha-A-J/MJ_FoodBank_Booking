@@ -413,7 +413,11 @@ export default function VolunteerSchedule() {
               Moose Jaw food bank is closed for {dayName}
             </Typography>
           ) : (
-            <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+            <VolunteerScheduleTable
+              maxSlots={maxSlots}
+              rows={rows}
+              legend="Colored cells indicate booking status. Click an available cell to create a booking."
+            />
           )}
         </>
       ) : showClosedMessage ? (
