@@ -406,11 +406,26 @@ export default function VolunteerManagement() {
         );
         await updateVolunteerTrainedAreas(vol.id, newRoles);
       }
-      await createVolunteerBookingForVolunteer(
-        vol.id,
-        assignSlot.id,
-        formatDate(currentDate),
-      );
+      try {
+        await createVolunteerBookingForVolunteer(
+          vol.id,
+          assignSlot.id,
+          formatDate(currentDate),
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg === 'Role is full' &&
+            window.confirm('Role is full. Force booking and increase capacity?')) {
+          await createVolunteerBookingForVolunteer(
+            vol.id,
+            assignSlot.id,
+            formatDate(currentDate),
+            true,
+          );
+        } else {
+          throw err;
+        }
+      }
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);

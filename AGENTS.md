@@ -452,6 +452,7 @@ Volunteer booking statuses include `completed`, and cancellations must include a
 - Volunteer and pantry schedules follow the same grid logic. The y‑axis lists shift times and the x‑axis lists sequential slot numbers up to each shift's `max_volunteers`. When a volunteer requests a shift, the booking is immediately approved and occupies the first open slot.
 - **BookingHistory** shows a volunteer's upcoming bookings with Cancel and Reschedule options.
 - **CoordinatorDashboard** is the staff view using `VolunteerScheduleTable`. Staff see volunteer names for booked cells and can cancel or reschedule bookings. Staff can also search volunteers, assign them to roles, and update trained areas.
+- Staff assigning volunteers may force a booking beyond capacity after a confirmation prompt; this increases the slot's `max_volunteers`.
 - The volunteer search page shows the selected volunteer's profile and role editor alongside their booking history in a two-column card layout.
 - Role selection in the volunteer search role editor uses a simple dropdown without search.
 - These workflows rely on `volunteer_slots`, `volunteer_roles`, `volunteer_master_roles`, `volunteer_bookings`, `volunteers`, and `volunteer_trained_roles`. Training records in `volunteer_trained_roles` restrict which roles a volunteer can book.
