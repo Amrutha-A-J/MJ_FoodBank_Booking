@@ -29,6 +29,7 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
+import InfoTooltip from '../../components/InfoTooltip';
 
 interface Booking {
   id: number;
@@ -146,7 +147,12 @@ export default function ClientDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
             <SectionCard
-              title="My Upcoming Appointment"
+              title={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <span>My Upcoming Appointment</span>
+                  <InfoTooltip title="See details of your next visit" />
+                </Stack>
+              }
               icon={<EventAvailable color="primary" />}
             >
               {next ? (
@@ -195,7 +201,15 @@ export default function ClientDashboard() {
               )}
             </SectionCard>
 
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <SectionCard
+              title={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <span>News & Events</span>
+                  <InfoTooltip title="Updates and holiday closures" />
+                </Stack>
+              }
+              icon={<Announcement color="primary" />}
+            >
               <Stack spacing={2}>
                 <EventList events={[...events.today, ...events.upcoming]} limit={5} />
                 <List>
@@ -281,7 +295,15 @@ export default function ClientDashboard() {
         </Grid>
 
         <Grid size={12}>
-          <SectionCard title="Recent Bookings" icon={<History color="primary" />}>
+          <SectionCard
+            title={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <span>Booking History</span>
+                <InfoTooltip title="Review your past bookings" />
+              </Stack>
+            }
+            icon={<History color="primary" />}
+          >
             <List>
               {history.slice(0, 3).map(b => {
                 const time = b.start_time ? formatTime(b.start_time) : '';
