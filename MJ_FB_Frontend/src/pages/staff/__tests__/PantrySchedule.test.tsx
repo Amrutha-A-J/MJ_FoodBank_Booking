@@ -61,3 +61,63 @@ describe('PantrySchedule new client workflow', () => {
     );
   });
 });
+
+describe('PantrySchedule status display', () => {
+  beforeEach(() => {
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 2, maxCapacity: 2 },
+    ]);
+    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  it('shows bookings with non-cancelled statuses', async () => {
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'completed',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'Done',
+        user_id: 1,
+        client_id: 1,
+        visits_this_month: 0,
+        approved_bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+        profile_link: '',
+      },
+      {
+        id: 2,
+        status: 'no_show',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'Flake',
+        user_id: 2,
+        client_id: 2,
+        visits_this_month: 0,
+        approved_bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+        profile_link: '',
+      },
+      {
+        id: 3,
+        status: 'cancelled',
+        date: '2024-01-01',
+        slot_id: 1,
+        user_name: 'Cancel',
+        user_id: 3,
+        client_id: 3,
+        visits_this_month: 0,
+        approved_bookings_this_month: 0,
+        is_staff_booking: false,
+        reschedule_token: '',
+        profile_link: '',
+      },
+    ]);
+    render(<PantrySchedule />);
+    expect(await screen.findByText('Done (1)')).toBeInTheDocument();
+    expect(await screen.findByText('Flake (2)')).toBeInTheDocument();
+    expect(screen.queryByText('Cancel (3)')).toBeNull();
+  });
+});

@@ -119,6 +119,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
+  const statusColors: Record<string, string> = {
+    approved: approvedColor,
+    no_show: 'rgb(255, 200, 200)',
+    completed: 'rgb(111,146,113)',
+  };
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -577,16 +582,17 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const bookingsForDate = bookings.filter(b => {
     const bookingDate = formatDate(b.date);
-    return bookingDate === formatDate(currentDate) && b.status.toLowerCase() === 'approved';
+    return (
+      bookingDate === formatDate(currentDate) &&
+      b.status.toLowerCase() !== 'cancelled'
+    );
   });
   const rows = selectedRole
     ? roleInfos.map(role => {
         const slotBookings = bookingsForDate.filter(
           b => b.role_id === role.id
         );
-        const approvedCount = slotBookings.filter(
-          b => b.status.toLowerCase() === 'approved'
-        ).length;
+        const approvedCount = slotBookings.length;
         const canBook = approvedCount < role.max_volunteers;
         return {
           time: `${formatTime(role.start_time || '')} - ${formatTime(role.end_time || '')}`,
@@ -594,7 +600,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             const booking = slotBookings[i];
             return {
               content: booking ? booking.volunteer_name : 'Available',
-              backgroundColor: booking ? approvedColor : undefined,
+              backgroundColor: booking
+                ? statusColors[booking.status] || approvedColor
+                : undefined,
               onClick: () => {
                 if (booking) {
                   setManageShift(booking);

@@ -177,3 +177,75 @@ describe('VolunteerManagement role updates', () => {
   });
 });
 
+describe('VolunteerManagement schedule statuses', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 2,
+        category_name: 'Front',
+        shifts: [
+          {
+            id: 10,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'completed',
+        role_id: 10,
+        volunteer_id: 1,
+        volunteer_name: 'Alice',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+      },
+      {
+        id: 2,
+        status: 'no_show',
+        role_id: 10,
+        volunteer_id: 2,
+        volunteer_name: 'Bob',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+      },
+      {
+        id: 3,
+        status: 'cancelled',
+        role_id: 10,
+        volunteer_id: 3,
+        volunteer_name: 'Carol',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+      },
+    ]);
+  });
+
+  it('shows non-cancelled bookings on schedule', async () => {
+    render(
+      <MemoryRouter initialEntries={['/volunteers/schedule']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText('Role'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+
+    expect(await screen.findByText('Alice')).toBeInTheDocument();
+    expect(await screen.findByText('Bob')).toBeInTheDocument();
+    expect(screen.queryByText('Carol')).toBeNull();
+  });
+});
+
