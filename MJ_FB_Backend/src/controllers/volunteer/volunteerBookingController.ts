@@ -74,9 +74,9 @@ export async function createVolunteerBooking(
     }
 
     const isWeekend = [0, 6].includes(
-      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+      new Date(reginaStartOfDayISO(date!)).getUTCDay(),
     );
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date!]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
@@ -86,7 +86,7 @@ export async function createVolunteerBooking(
     const existingRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings
        WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
-      [roleId, date, user.id]
+      [roleId, date!, user.id]
     );
     if ((existingRes.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Already booked for this shift' });
@@ -314,7 +314,11 @@ export async function resolveVolunteerBookingConflict(
 ) {
   const user = req.user;
   const existingBookingId = Number((req.body as any).existingBookingId);
-  const roleId = Number((req.body as any).roleId);
+  const rawRoleId = (req.body as any).roleId;
+  const roleId =
+    rawRoleId !== undefined && rawRoleId !== null
+      ? Number(rawRoleId)
+      : undefined;
   const { date, keep } = req.body as {
     date?: string;
     keep?: 'existing' | 'new';
@@ -323,12 +327,12 @@ export async function resolveVolunteerBookingConflict(
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (
     !existingBookingId ||
-    !roleId ||
-    !date ||
-    (keep !== 'existing' && keep !== 'new')
+    !keep ||
+    (keep === 'new' && (!roleId || !date))
   ) {
     return res.status(400).json({
-      message: 'existingBookingId, roleId, date and keep are required',
+      message:
+        'existingBookingId and keep are required; roleId and date are required when keep is new',
     });
   }
 
@@ -384,9 +388,9 @@ export async function resolveVolunteerBookingConflict(
     }
 
     const isWeekend = [0, 6].includes(
-      new Date(reginaStartOfDayISO(date)).getUTCDay(),
+      new Date(reginaStartOfDayISO(date!)).getUTCDay(),
     );
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date!]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
@@ -398,7 +402,7 @@ export async function resolveVolunteerBookingConflict(
     const existingShiftRes = await pool.query(
       `SELECT 1 FROM volunteer_bookings
        WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
-      [roleId, date, user.id]
+      [roleId, date!, user.id]
     );
     if ((existingShiftRes.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Already booked for this shift' });
@@ -413,7 +417,7 @@ export async function resolveVolunteerBookingConflict(
          AND vb.status='approved'
          AND vb.id <> $3
          AND NOT (vs.end_time <= $4 OR vs.start_time >= $5)`,
-      [user.id, date, existingBookingId, slot.start_time, slot.end_time]
+      [user.id, date!, existingBookingId, slot.start_time, slot.end_time]
     );
     if ((overlapRes.rowCount ?? 0) > 0) {
       return res
@@ -424,7 +428,7 @@ export async function resolveVolunteerBookingConflict(
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
        WHERE slot_id = $1 AND date = $2 AND status='approved'`,
-      [roleId, date]
+      [roleId, date!]
     );
     if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
       return res.status(400).json({ message: 'Role is full' });
@@ -440,7 +444,7 @@ export async function resolveVolunteerBookingConflict(
       `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
        VALUES ($1, $2, $3, 'approved', $4)
        RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-      [roleId, user.id, date, token]
+      [roleId, user.id, date!, token]
     );
 
     if (user.email) {
@@ -448,7 +452,7 @@ export async function resolveVolunteerBookingConflict(
       await sendEmail(
         user.email,
         'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
+        `Volunteer booking for role ${roleId} on ${date!} has been confirmed.${buttons}`,
       );
     } else {
       logger.warn(

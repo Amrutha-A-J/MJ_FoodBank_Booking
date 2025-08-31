@@ -86,10 +86,13 @@ export async function resolveVolunteerBookingConflict(
   date: string,
   keep: 'existing' | 'new'
 ): Promise<VolunteerBooking> {
+  const body: any = { existingBookingId, keep };
+  if (roleId !== undefined) body.roleId = roleId;
+  if (date !== undefined) body.date = date;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ existingBookingId, roleId, date, keep }),
+    body: JSON.stringify(body),
   });
   const data = await handleResponse(res);
   return normalizeVolunteerBooking(data.booking);

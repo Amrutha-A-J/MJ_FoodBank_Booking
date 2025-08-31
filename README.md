@@ -49,7 +49,7 @@ Before merging a pull request, confirm the following:
 - Volunteers see a random appreciation message on each login with a link to download their card when available.
 - Volunteers also see rotating encouragement messages on the dashboard when no milestone is reached.
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
-- Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict`.
+- Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict` (body: `{ existingBookingId, keep, roleId?, date? }`; `roleId` and `date` are required only when keeping the new booking).
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
 - Staff assigning volunteers can override a full role via a confirmation prompt, which increases that slot's `max_volunteers`.
 - Volunteer badges are calculated from activity and manually awardable. Manual awards are issued via `POST /volunteers/me/badges`. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. Only shifts marked as `completed` contribute to hours and shift totals; `approved` or `no_show` shifts are ignored. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
