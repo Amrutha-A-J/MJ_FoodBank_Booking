@@ -123,7 +123,7 @@ export default function Navbar({
           <Box
           component="img"
           src="/images/mjfoodbank_logo.png"
-          alt={t('food_bank_logo')}
+          alt="Food Bank logo"
           sx={{ position: 'absolute', top: -26, left: 15, width: 178 }}
         />
       </Box>
@@ -135,7 +135,7 @@ export default function Navbar({
             <>
               <IconButton
                 color="inherit"
-                aria-label={t('open_navigation_menu')}
+                aria-label="open navigation menu"
                 onClick={(e) => setMobileAnchorEl(e.currentTarget)}
               >
                 <MenuIcon />
