@@ -54,6 +54,7 @@ beforeEach(() => {
     monthHoursGoal: 0,
     totalLbs: 0,
     weekLbs: 0,
+    monthLbs: 0,
     monthFamilies: 0,
   });
   localStorage.clear();
@@ -431,6 +432,7 @@ beforeEach(() => {
       monthHoursGoal: 8,
       totalLbs: 100,
       weekLbs: 25,
+      monthLbs: 25,
       monthFamilies: 0,
     });
     const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
@@ -442,7 +444,7 @@ beforeEach(() => {
     );
 
     expect(
-      await screen.findByText(/Volunteers distributed 25 lbs this week/),
+      await screen.findByText(/Volunteers distributed 25 lbs this month/),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/4 \/ 8 hrs/),
@@ -485,6 +487,7 @@ beforeEach(() => {
       monthHoursGoal: 10,
       totalLbs: 100,
       weekLbs: 25,
+      monthLbs: 25,
       monthFamilies: 0,
     });
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
