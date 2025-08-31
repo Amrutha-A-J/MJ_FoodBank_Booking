@@ -87,7 +87,7 @@ describe('bookingRepository', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
     const call = (pool.query as jest.Mock).mock.calls[0];
-    expect(call[0]).toMatch(/SELECT\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time/);
+    expect(call[0]).toMatch(/SELECT\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/);
     expect(call[0]).toMatch(/WHERE b.status = 'approved' AND b.date = \$1/);
     expect(call[1]).toEqual(['2024-01-01']);
   });

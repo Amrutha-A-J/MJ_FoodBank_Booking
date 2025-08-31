@@ -35,6 +35,7 @@ describe('sendNextDayBookingReminders', () => {
         user_email: 'user@example.com',
         start_time: '09:00:00',
         end_time: '10:00:00',
+        reschedule_token: 'tok',
       },
     ]);
 

@@ -3,6 +3,7 @@ import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
+import { buildCancelRescheduleButtons } from './emailUtils';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -13,7 +14,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
   const nextDate = formatReginaDate(tomorrow);
   try {
     const res = await pool.query(
-      `SELECT v.email, vs.start_time, vs.end_time
+      `SELECT v.email, vs.start_time, vs.end_time, vb.reschedule_token
        FROM volunteer_bookings vb
        JOIN volunteers v ON vb.volunteer_id = v.id
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
@@ -23,10 +24,11 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
     for (const row of res.rows) {
       if (!row.email) continue;
       const time = row.start_time && row.end_time ? ` from ${row.start_time} to ${row.end_time}` : '';
+      const buttons = buildCancelRescheduleButtons(row.reschedule_token);
       enqueueEmail(
         row.email,
         'Volunteer Shift Reminder',
-        `This is a reminder for your volunteer shift on ${nextDate}${time}.`,
+        `This is a reminder for your volunteer shift on ${nextDate}${time}.${buttons}`,
       );
     }
   } catch (err) {

@@ -8,6 +8,7 @@
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 18+ for native `fetch`; the `node-fetch` polyfill has been removed and earlier versions are not supported.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
+- Booking confirmation and reminder emails include Cancel and Reschedule buttons with links generated from each booking's reschedule token.
 - Email queue retries failed sends with exponential backoff and persists jobs in the `email_queue` table so retries survive restarts. Configure `EMAIL_QUEUE_MAX_RETRIES` and `EMAIL_QUEUE_BACKOFF_MS` to adjust retry behavior.
 - Password setup token expiry is configurable via `PASSWORD_SETUP_TOKEN_TTL_HOURS` (default 24 hours).
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.

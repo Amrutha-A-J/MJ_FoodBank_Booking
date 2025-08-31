@@ -36,6 +36,7 @@ Before merging a pull request, confirm the following:
 - Staff can manage recurring volunteer shift series from the **Recurring Shifts** page under Volunteer Management.
 - Only staff can update volunteer trained roles; volunteers may view but not modify their assigned roles from the dashboard.
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
+- Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours and emails coordinators about the changes.
 - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
