@@ -3,12 +3,14 @@ import {
   getMyVolunteerBookings,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
+  rescheduleVolunteerBookingByToken,
 } from '../../api/volunteers';
 import type { VolunteerBooking } from '../../types';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import { useTranslation } from 'react-i18next';
 import {
   TableContainer,
@@ -31,6 +33,8 @@ export default function VolunteerBookingHistory() {
   const [cancelBooking, setCancelBooking] =
     useState<VolunteerBooking | null>(null);
   const [cancelSeriesId, setCancelSeriesId] = useState<number | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] =
+    useState<VolunteerBooking | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const { t } = useTranslation();
@@ -84,6 +88,25 @@ export default function VolunteerBookingHistory() {
     }
   }
 
+  async function handleReschedule(date: string, roleId: number) {
+    if (!rescheduleBooking) return;
+    try {
+      await rescheduleVolunteerBookingByToken(
+        rescheduleBooking.reschedule_token || '',
+        roleId,
+        date,
+      );
+      setSeverity('success');
+      setMessage('Booking rescheduled');
+      loadHistory();
+    } catch {
+      setSeverity('error');
+      setMessage('Failed to reschedule booking');
+    } finally {
+      setRescheduleBooking(null);
+    }
+  }
+
   return (
     <Page title={t('booking_history')}>
       <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
@@ -115,6 +138,12 @@ export default function VolunteerBookingHistory() {
                           onClick={() => setCancelBooking(h)}
                         >
                           {t('cancel')}
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={() => setRescheduleBooking(h)}
+                        >
+                          {t('reschedule')}
                         </Button>
                         {h.recurring_id && (
                           <Button
@@ -166,6 +195,12 @@ export default function VolunteerBookingHistory() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <VolunteerRescheduleDialog
+        open={!!rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onSubmit={handleReschedule}
+      />
 
       <FeedbackSnackbar
         open={!!message}

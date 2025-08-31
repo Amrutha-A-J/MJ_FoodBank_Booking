@@ -11,6 +11,8 @@ import {
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   resolveVolunteerBookingConflict,
+  rescheduleVolunteerBookingByToken,
+  getRoles,
 } from '../api/volunteers';
 import { getHolidays } from '../api/bookings';
 
@@ -23,6 +25,8 @@ jest.mock('../api/volunteers', () => ({
   cancelRecurringVolunteerBooking: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
   getRecurringVolunteerBookings: jest.fn(),
+  rescheduleVolunteerBookingByToken: jest.fn(),
+  getRoles: jest.fn(),
 }));
 jest.mock('../api/bookings', () => ({
   getHolidays: jest.fn(),
@@ -56,6 +60,8 @@ beforeEach(() => {
   (createRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
+  (rescheduleVolunteerBookingByToken as jest.Mock).mockResolvedValue(undefined);
+  (getRoles as jest.Mock).mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -161,6 +167,40 @@ test('cancels single and recurring bookings', async () => {
   fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
   await waitFor(() =>
     expect(cancelRecurringVolunteerBooking).toHaveBeenCalledWith(5),
+  );
+});
+
+test('reschedules booking', async () => {
+  (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+    {
+      id: 1,
+      role_id: 1,
+      role_name: 'Role1',
+      date: '2024-05-01',
+      start_time: '09:00:00',
+      end_time: '10:00:00',
+      status: 'approved',
+      reschedule_token: 'abc',
+    },
+  ]);
+  (getRoles as jest.Mock).mockResolvedValue([
+    { roleId: 1, roleName: 'Role1', categoryName: 'Cat' },
+  ]);
+  render(<VolunteerBookingHistory />);
+  fireEvent.click(await screen.findByText('Reschedule'));
+  fireEvent.change(await screen.findByLabelText(/date/i), {
+    target: { value: '2024-05-02' },
+  });
+  fireEvent.mouseDown(screen.getByLabelText(/role/i));
+  const listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Role1 (Cat)'));
+  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  await waitFor(() =>
+    expect(rescheduleVolunteerBookingByToken).toHaveBeenCalledWith(
+      'abc',
+      1,
+      '2024-05-02',
+    ),
   );
 });
 
