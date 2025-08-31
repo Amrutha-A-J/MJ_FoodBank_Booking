@@ -23,6 +23,7 @@ import {
   FormControlLabel,
   TextField,
 } from '@mui/material';
+import InfoTooltip from '../../components/InfoTooltip';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
@@ -314,7 +315,8 @@ export default function PantrySchedule({
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+            <InfoTooltip title="Green = approved, red = no-show, dark green = visited." />
             {[
               { label: 'Approved', color: statusColors.approved },
               { label: 'No Show', color: statusColors.no_show },
@@ -360,7 +362,16 @@ export default function PantrySchedule({
             <h4>Assign User</h4>
             <FormControlLabel
               control={<Checkbox checked={isNewClient} onChange={e => setIsNewClient(e.target.checked)} />}
-              label="New client"
+              label={
+                <>
+                  New client
+                  <InfoTooltip
+                    title="Books a visitor not yet in the system"
+                    placement="right"
+                    sx={{ ml: 0.5 }}
+                  />
+                </>
+              }
             />
             {isNewClient ? (
               <>
