@@ -4,6 +4,7 @@ import { resendPasswordSetup } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import DialogCloseButton from './DialogCloseButton';
+import { useTranslation } from 'react-i18next';
 
 export default function ResendPasswordSetupDialog({
   open,
@@ -15,6 +16,7 @@ export default function ResendPasswordSetupDialog({
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,7 +26,7 @@ export default function ResendPasswordSetupDialog({
         ? { clientId: value }
         : { email: value };
       await resendPasswordSetup(body);
-      setMessage('If the account exists, a setup link has been sent.');
+      setMessage(t('setup_link_sent'));
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -36,19 +38,19 @@ export default function ResendPasswordSetupDialog({
       <Dialog open={open} onClose={onClose} aria-labelledby="resend-setup-dialog-title">
         <DialogCloseButton onClose={onClose} />
         <DialogTitle id="resend-setup-dialog-title" sx={{ display: 'none' }}>
-          Resend Password Setup Link
+          {t('resend_password_setup_link')}
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <FormCard
-            title="Resend Password Setup Link"
+            title={t('resend_password_setup_link')}
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">Submit</Button>}
+            actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <TextField
               autoFocus
               margin="dense"
-              label="Email or Client ID"
+              label={t('email_or_client_id')}
               name="email"
               autoComplete="email"
               fullWidth
