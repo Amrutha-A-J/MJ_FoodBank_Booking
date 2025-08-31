@@ -14,6 +14,7 @@ interface EmailJob {
 
 let processing = false;
 let scheduled = false;
+const timers = new Set<NodeJS.Timeout>();
 
 export function enqueueEmail(to: string, subject: string, body: string, retries = 0): void {
   pool
@@ -34,10 +35,12 @@ async function scheduleNextRun(): Promise<void> {
   const next = res.rows[0].next_attempt as Date;
   const delay = Math.max(0, next.getTime() - Date.now());
   scheduled = true;
-  setTimeout(() => {
+  const timeout = setTimeout(() => {
+    timers.delete(timeout);
     scheduled = false;
     processQueue().catch((err) => logger.error('Email queue processing error:', err));
   }, delay);
+  timers.add(timeout);
 }
 
 async function processQueue(): Promise<void> {
@@ -75,5 +78,14 @@ async function processQueue(): Promise<void> {
 
 export function initEmailQueue(): void {
   processQueue().catch((err) => logger.error('Email queue processing error:', err));
+}
+
+export function shutdownQueue(): void {
+  for (const t of timers) {
+    clearTimeout(t);
+    clearInterval(t);
+  }
+  timers.clear();
+  scheduled = false;
 }
 

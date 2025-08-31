@@ -68,6 +68,8 @@ describe('persistent email queue', () => {
   });
 
   afterEach(() => {
+    const { shutdownQueue } = require('../src/utils/emailQueue');
+    shutdownQueue();
     jest.useRealTimers();
     jest.clearAllTimers();
     jest.resetModules();
