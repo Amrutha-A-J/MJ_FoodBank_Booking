@@ -275,7 +275,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Agency navigation offers Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all behind an `AgencyGuard`.
 - Agency profile page shows the agency's name, email, and contact info with editable fields and sends password reset links via email.
 - Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
-- Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
+- Staff can add agencies, assign clients, and book appointments for those clients through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list with Book buttons for scheduling on their behalf.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 
 ## Deploying to Azure

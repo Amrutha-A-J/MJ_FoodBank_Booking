@@ -245,7 +245,7 @@ export function getHelpContent(
         steps: [
           'Open agency management pages.',
           'Search for the agency or client.',
-          'Link, unlink, or book as needed.',
+          'Link, unlink, or use the Book button to schedule for a client.',
         ],
       },
     },
