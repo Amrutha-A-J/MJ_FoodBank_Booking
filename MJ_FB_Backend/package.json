@@ -34,7 +34,8 @@
     "ts-jest": "^29",
     "tsx": "^4",
     "typescript": "^5",
-    "undici": "^6"
+    "undici": "^6",
+    "pg-mem": "^3"
   },
   "overrides": {
     "test-exclude": "^7"

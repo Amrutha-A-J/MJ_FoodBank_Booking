@@ -126,50 +126,70 @@ export async function createVolunteerBooking(
       });
     }
 
-    const countRes = await pool.query(
-      `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
-      [roleId, date]
-    );
-    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
-      return res.status(400).json({ message: 'Role is full' });
-    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const token = randomUUID();
-    const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-       VALUES ($1, $2, $3, 'approved', $4)
-       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-      [roleId, user.id, date, token]
-    );
-
-    if (user.email) {
-      const buttons = buildCancelRescheduleButtons(token);
-      await sendEmail(
-        user.email,
-        'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
+      const lockRes = await client.query(
+        'SELECT max_volunteers FROM volunteer_slots WHERE slot_id = $1 FOR UPDATE',
+        [roleId],
       );
-    } else {
-      logger.warn(
-        'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
-        user.id,
-      );
-    }
+      const maxVolunteers = Number(lockRes.rows[0].max_volunteers);
 
-    const booking = insertRes.rows[0];
-    booking.role_id = booking.slot_id;
-    delete booking.slot_id;
-    booking.status_color = statusColor(booking.status);
-    booking.date =
-      booking.date instanceof Date
-        ? booking.date.toISOString().split('T')[0]
-        : booking.date;
-    res.status(201).json(booking);
+      const countRes = await client.query(
+        `SELECT COUNT(*) FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
+        [roleId, date],
+      );
+      if (Number(countRes.rows[0].count) >= maxVolunteers) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Role is full' });
+      }
+
+      const token = randomUUID();
+      const insertRes = await client.query(
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+         VALUES ($1, $2, $3, 'approved', $4)
+         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
+        [roleId, user.id, date, token],
+      );
+
+      await client.query('COMMIT');
+
+      if (user.email) {
+        const buttons = buildCancelRescheduleButtons(token);
+        await sendEmail(
+          user.email,
+          'Volunteer booking confirmed',
+          `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
+        );
+      } else {
+        logger.warn(
+          'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
+          user.id,
+        );
+      }
+
+      const booking = insertRes.rows[0];
+      booking.role_id = booking.slot_id;
+      delete booking.slot_id;
+      booking.status_color = statusColor(booking.status);
+      booking.date =
+        booking.date instanceof Date
+          ? booking.date.toISOString().split('T')[0]
+          : booking.date;
+      res.status(201).json(booking);
+    } catch (error: any) {
+      await client.query('ROLLBACK').catch(() => {});
+      if (error.code === '23505') {
+        return res.status(400).json({ message: 'Already booked for this shift' });
+      }
+      logger.error('Error creating volunteer booking:', error);
+      next(error);
+    } finally {
+      client.release();
+    }
   } catch (error: any) {
-    if (error.code === '23505') {
-      return res.status(400).json({ message: 'Already booked for this shift' });
-    }
     logger.error('Error creating volunteer booking:', error);
     next(error);
   }
@@ -268,43 +288,64 @@ export async function createVolunteerBookingForVolunteer(
       });
     }
 
-    const countRes = await pool.query(
-      `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND status='approved'`,
-      [roleId, date]
-    );
-    if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
-      if (force) {
-        await pool.query(
-          'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
-          [Number(countRes.rows[0].count) + 1, roleId],
-        );
-      } else {
-        return res.status(400).json({ message: 'Role is full' });
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const lockRes = await client.query(
+        'SELECT max_volunteers FROM volunteer_slots WHERE slot_id = $1 FOR UPDATE',
+        [roleId],
+      );
+      let maxVolunteers = Number(lockRes.rows[0].max_volunteers);
+
+      const countRes = await client.query(
+        `SELECT COUNT(*) FROM volunteer_bookings
+         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
+        [roleId, date],
+      );
+      if (Number(countRes.rows[0].count) >= maxVolunteers) {
+        if (force) {
+          maxVolunteers = Number(countRes.rows[0].count) + 1;
+          await client.query(
+            'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
+            [maxVolunteers, roleId],
+          );
+        } else {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ message: 'Role is full' });
+        }
       }
+
+      const token = randomUUID();
+      const insertRes = await client.query(
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+         VALUES ($1, $2, $3, 'approved', $4)
+         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
+        [roleId, volunteerId, date, token],
+      );
+
+      await client.query('COMMIT');
+
+      const booking = insertRes.rows[0];
+      booking.role_id = booking.slot_id;
+      delete booking.slot_id;
+      booking.status_color = statusColor(booking.status);
+      booking.date =
+        booking.date instanceof Date
+          ? booking.date.toISOString().split('T')[0]
+          : booking.date;
+      res.status(201).json(booking);
+    } catch (error: any) {
+      await client.query('ROLLBACK').catch(() => {});
+      if (error.code === '23505') {
+        return res.status(400).json({ message: 'Already booked for this shift' });
+      }
+      logger.error('Error creating volunteer booking for volunteer:', error);
+      next(error);
+    } finally {
+      client.release();
     }
-
-    const token = randomUUID();
-    const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-       VALUES ($1, $2, $3, 'approved', $4)
-       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-      [roleId, volunteerId, date, token]
-    );
-
-    const booking = insertRes.rows[0];
-    booking.role_id = booking.slot_id;
-    delete booking.slot_id;
-    booking.status_color = statusColor(booking.status);
-    booking.date =
-      booking.date instanceof Date
-        ? booking.date.toISOString().split('T')[0]
-        : booking.date;
-    res.status(201).json(booking);
   } catch (error: any) {
-    if (error.code === '23505') {
-      return res.status(400).json({ message: 'Already booked for this shift' });
-    }
     logger.error('Error creating volunteer booking for volunteer:', error);
     next(error);
   }

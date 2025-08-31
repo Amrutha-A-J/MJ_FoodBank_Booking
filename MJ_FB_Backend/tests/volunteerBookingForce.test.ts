@@ -27,9 +27,13 @@ const app = express();
 app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
+const client = { query: jest.fn(), release: jest.fn() } as any;
+
 describe('createVolunteerBookingForVolunteer force', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    client.query.mockReset();
+    (pool.connect as jest.Mock).mockResolvedValue(client);
   });
 
   it('increases capacity and creates booking when forced', async () => {
@@ -50,11 +54,14 @@ describe('createVolunteerBookingForVolunteer force', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 1 }] })
-      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+    client.query
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ max_volunteers: 1 }] })
+      .mockResolvedValueOnce({ rows: [{ count: '1' }] })
+      .mockResolvedValueOnce({}) // UPDATE volunteer_slots
       .mockResolvedValueOnce({
-        rowCount: 1,
         rows: [
           {
             id: 9,
@@ -66,16 +73,18 @@ describe('createVolunteerBookingForVolunteer force', () => {
             recurring_id: null,
           },
         ],
-      });
+      })
+      .mockResolvedValueOnce({}); // COMMIT
 
     const res = await request(app)
       .post('/volunteer-bookings/staff')
       .send({ volunteerId: 5, roleId: 1, date: '2024-01-01', force: true });
 
     expect(res.status).toBe(201);
-    expect((pool.query as jest.Mock).mock.calls[6][0]).toMatch(
+    const updateCall = client.query.mock.calls[3];
+    expect(updateCall[0]).toMatch(
       /UPDATE volunteer_slots SET max_volunteers = \$1 WHERE slot_id = \$2/,
     );
-    expect((pool.query as jest.Mock).mock.calls[6][1]).toEqual([2, 1]);
+    expect(updateCall[1]).toEqual([2, 1]);
   });
 });
