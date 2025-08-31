@@ -80,16 +80,20 @@ interface VolunteerResult {
   hasShopper: boolean;
 }
 
+interface VolunteerManagementProps {
+  initialTab?: 'dashboard' | 'schedule' | 'search' | 'create';
+}
 
-export default function VolunteerManagement() {
+export default function VolunteerManagement({ initialTab }: VolunteerManagementProps = {}) {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' =
-    tabParam === 'schedule' ||
+    initialTab ??
+    (tabParam === 'schedule' ||
     tabParam === 'search' ||
     tabParam === 'create'
       ? (tabParam as 'schedule' | 'search' | 'create')
-      : 'dashboard';
+      : 'dashboard');
   const tabTitles: Record<typeof tab, string> = {
     dashboard: 'Dashboard',
     schedule: 'Schedule',

@@ -488,6 +488,46 @@ export async function listUnmarkedVolunteerBookings(
   }
 }
 
+export async function listVolunteerBookingsForReview(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { start, end } = req.query as { start?: string; end?: string };
+    const startDate =
+      start ?? new Date().toISOString().split('T')[0];
+    const endDate =
+      end ??
+      new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0];
+    const result = await pool.query(
+      `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
+              vb.reschedule_token, vb.recurring_id,
+              vs.start_time, vs.end_time, vs.max_volunteers, vr.name AS role_name, vmr.name AS category_name,
+              v.first_name || ' ' || v.last_name AS volunteer_name
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       JOIN volunteers v ON vb.volunteer_id = v.id
+       WHERE vb.date BETWEEN $1 AND $2
+         AND (
+           vb.status = 'no_show'
+           OR (vb.status = 'approved' AND vb.date = CURRENT_DATE AND vs.start_time < (CURRENT_TIME AT TIME ZONE 'America/Regina')::time)
+         )
+       ORDER BY vb.date, vs.start_time`,
+      [startDate, endDate],
+    );
+    const bookings = result.rows.map(mapBookingRow);
+    res.json(bookings);
+  } catch (error) {
+    logger.error('Error listing volunteer bookings for review:', error);
+    next(error);
+  }
+}
+
 export async function listVolunteerBookings(
   _req: Request,
   res: Response,
