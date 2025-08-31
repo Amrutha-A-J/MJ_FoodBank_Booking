@@ -2,7 +2,6 @@ import pool from '../db';
 import logger from './logger';
 import cron from 'node-cron';
 import config from '../config';
-import { formatReginaDate } from './dateUtils';
 import coordinatorEmailsConfig from '../config/coordinatorEmails.json';
 import { sendEmail } from './emailUtils';
 
@@ -13,16 +12,15 @@ const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails ||
  */
 export async function cleanupVolunteerNoShows(): Promise<void> {
   const hours = config.volunteerNoShowHours;
-  const cutoff = new Date();
-  cutoff.setHours(cutoff.getHours() - hours);
-  const cutoffDate = formatReginaDate(cutoff);
   try {
     const res = await pool.query(
       `UPDATE volunteer_bookings vb
        SET status='no_show'
-       WHERE vb.status='approved' AND vb.date < $1
+       FROM volunteer_slots vs
+       WHERE vb.slot_id = vs.slot_id
+         AND vb.status='approved'
+         AND (vb.date + vs.end_time) < NOW() - INTERVAL '${hours} hours'
        RETURNING vb.id`,
-      [cutoffDate],
     );
     if (res.rowCount && res.rowCount > 0) {
       const ids = res.rows.map((r: any) => r.id).join(', ');

@@ -24,10 +24,10 @@ describe('cleanupVolunteerNoShows', () => {
 
   it('marks past approved volunteer bookings as no_show and notifies coordinators', async () => {
     await cleanupVolunteerNoShows();
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE volunteer_bookings'),
-      ['2024-01-01'],
-    );
+    const query = (pool.query as jest.Mock).mock.calls[0][0];
+    expect(query).toContain("NOW() - INTERVAL '24 hours'");
+    expect(query).toContain('FROM volunteer_slots');
+    expect(query).toContain('vb.date + vs.end_time');
     expect(sendEmail).toHaveBeenCalled();
   });
 });
@@ -41,7 +41,7 @@ describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    cleanupSpy = jest.spyOn(job, 'cleanupVolunteerNoShows').mockResolvedValue();
+    cleanupSpy = jest.spyOn(job, 'cleanupVolunteerNoShows').mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 
