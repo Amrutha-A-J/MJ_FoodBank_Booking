@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tabs, Tab, TextField, Button, Stack, Box, Typography } from '@mui/material';
 import Page from '../../components/Page';
 import { useAuth } from '../../hooks/useAuth';
 import { helpContent, type HelpSection } from './content';
+import resetCss from '../../reset.css?url';
 
 function roleLabel(role: string) {
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -24,6 +25,17 @@ export default function HelpPage() {
   const [tab, setTab] = useState(0);
   const [search, setSearch] = useState('');
   const currentRole = roles[tab];
+
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = resetCss;
+    link.media = 'print';
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   const sections: HelpSection[] = useMemo(() => {
     const query = search.toLowerCase();
