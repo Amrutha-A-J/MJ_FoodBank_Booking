@@ -86,6 +86,22 @@ export const helpContent: Record<
       title: 'Recurring shifts',
       body: 'Search volunteers and schedule or cancel repeating shifts from the Recurring Shifts page.',
     },
+    {
+      title: 'Record visits and handle no-shows',
+      body: 'Mark bookings as visited while logging weights or record no-shows from the schedule.',
+    },
+    {
+      title: 'Book new clients from the schedule',
+      body: 'Use the Assign User modal to book a slot for an unregistered individual via the New client option.',
+    },
+    {
+      title: 'Manage agencies and their clients',
+      body: 'Link or unlink agency clients and make bookings on their behalf from the agency management pages.',
+    },
+    {
+      title: 'Review volunteer performance and pending bookings',
+      body: 'Staff dashboards show volunteer hours, outstanding requests, and no-show rates for follow-up.',
+    },
   ],
   warehouse: [
     {
