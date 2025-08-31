@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Box } from '@mui/material';
 import Page from '../../components/Page';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
+import LanguageSelector from '../../components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,27 +27,27 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <Page title="Change Password">
+    <Page title={t('change_password')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
       <FormCard
         onSubmit={handleSubmit}
-        title="Change Password"
+        title={t('change_password')}
         centered={false}
         actions={
           <Button type="submit" variant="contained" color="primary" fullWidth>
-            Reset Password
+            {t('reset_password')}
           </Button>
         }
       >
         <TextField
           type="password"
-          label="Current Password"
+          label={t('current_password')}
           value={currentPassword}
           onChange={e => setCurrentPassword(e.target.value)}
           fullWidth
         />
         <TextField
           type="password"
-          label="New Password"
+          label={t('new_password')}
           value={newPassword}
           onChange={e => setNewPassword(e.target.value)}
           fullWidth

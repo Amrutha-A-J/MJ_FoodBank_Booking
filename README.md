@@ -252,6 +252,7 @@ page and cached on the server:
 ### Frontend features
 
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
+- Client login and password pages include a language selector so clients can switch between English and Spanish.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.

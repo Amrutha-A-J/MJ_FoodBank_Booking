@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { TextField, Button, Link } from '@mui/material';
+import { TextField, Button, Link, Box } from '@mui/material';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { setPassword as setPasswordApi } from '../../api/users';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
+import LanguageSelector from '../../components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 export default function PasswordSetup() {
   const [searchParams] = useSearchParams();
@@ -14,11 +16,12 @@ export default function PasswordSetup() {
   const [error, setError] = useState('');
   const [resendOpen, setResendOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token) {
-      setError('Invalid or expired token');
+      setError(t('invalid_or_expired_token'));
       return;
     }
     try {
@@ -34,19 +37,19 @@ export default function PasswordSetup() {
   }
 
   return (
-    <Page title="Set Password">
+    <Page title={t('set_password')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
       <FormCard
         onSubmit={handleSubmit}
-        title="Set Password"
+        title={t('set_password')}
         actions={
           <Button type="submit" variant="contained" color="primary" fullWidth>
-            Set Password
+            {t('set_password')}
           </Button>
         }
       >
         <TextField
           type="password"
-          label="Password"
+          label={t('password')}
           name="password"
           autoComplete="new-password"
           value={password}
@@ -55,11 +58,11 @@ export default function PasswordSetup() {
           required
         />
         <Link component={RouterLink} to="/login" underline="hover">
-          Back to login
+          {t('back_to_login')}
         </Link>
         {error.toLowerCase().includes('expired token') && (
           <Link component="button" onClick={() => setResendOpen(true)} underline="hover">
-            Resend link
+            {t('resend_link')}
           </Link>
         )}
       </FormCard>

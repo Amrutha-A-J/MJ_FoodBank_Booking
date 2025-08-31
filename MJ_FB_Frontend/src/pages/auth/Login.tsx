@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button } from '@mui/material';
+import { Link, TextField, Button, Box } from '@mui/material';
 import Page from '../../components/Page';
-import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
+import LanguageSelector from '../../components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 export default function Login({
   onLogin,
@@ -21,6 +22,7 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { t } = useTranslation();
 
   const clientIdError = submitted && clientId === '';
   const passwordError = submitted && password === '';
@@ -46,10 +48,10 @@ export default function Login({
   }
 
   return (
-    <Page title="Client Login">
+    <Page title={t('client_login')} header={<Box textAlign="right"><LanguageSelector /></Box>}>
       <FormCard
         onSubmit={handleSubmit}
-        title="Client Login"
+        title={t('client_login')}
         actions={
           <Button
             type="submit"
@@ -57,35 +59,35 @@ export default function Login({
             color="primary"
             fullWidth
           >
-            Login
+            {t('login')}
           </Button>
         }
       >
         <TextField
           value={clientId}
           onChange={e => setClientId(e.target.value)}
-          label="Client ID"
+          label={t('client_id')}
           name="clientId"
           autoComplete="username"
           fullWidth
           required
           error={clientIdError}
-          helperText={clientIdError ? 'Client ID is required' : ''}
+          helperText={clientIdError ? t('client_id_required') : ''}
         />
         <TextField
           type="password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          label="Password"
+          label={t('password')}
           name="password"
           autoComplete="current-password"
           fullWidth
           required
           error={passwordError}
-          helperText={passwordError ? 'Password is required' : ''}
+          helperText={passwordError ? t('password_required') : ''}
         />
         <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
-          Forgot password?
+          {t('forgot_password')}
         </Link>
       </FormCard>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
