@@ -1,9 +1,11 @@
 import { apiFetch, handleResponse } from '../api/client';
 import {
   createVolunteerBookingForVolunteer,
+  createRecurringVolunteerBookingForVolunteer,
   updateVolunteerTrainedAreas,
   getVolunteerMasterRoles,
   getMyRecurringVolunteerBookings,
+  getRecurringVolunteerBookingsForVolunteer,
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
   getUnmarkedVolunteerBookings,
@@ -69,6 +71,54 @@ describe('volunteers api', () => {
   it('fetches recurring volunteer bookings', async () => {
     await getMyRecurringVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
+  });
+
+  it('creates recurring volunteer booking for volunteer', async () => {
+    (handleResponse as jest.Mock).mockResolvedValueOnce({
+      recurringId: 1,
+      successes: [
+        {
+          id: 10,
+          status: 'approved',
+          role_id: 3,
+          date: '2024-01-01T00:00:00.000Z',
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          role_name: 'Role',
+        },
+      ],
+      skipped: [],
+    });
+    const result = await createRecurringVolunteerBookingForVolunteer(
+      5,
+      3,
+      '2024-01-01',
+      'weekly',
+      [1, 3],
+      '2024-02-01',
+    );
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/recurring/staff',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          volunteerId: 5,
+          roleId: 3,
+          startDate: '2024-01-01',
+          pattern: 'weekly',
+          daysOfWeek: [1, 3],
+          endDate: '2024-02-01',
+        }),
+      }),
+    );
+    expect(result.successes[0].date).toBe('2024-01-01');
+  });
+
+  it('fetches recurring volunteer bookings for volunteer', async () => {
+    await getRecurringVolunteerBookingsForVolunteer(7);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/recurring/volunteer/7',
+    );
   });
 
   it('updates volunteer booking status with reason', async () => {
