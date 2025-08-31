@@ -117,6 +117,11 @@ export default function Navbar({
         position: 'relative',
       }}
     >
+      {role === 'client' && !isSmall && (
+        <Box sx={{ position: 'absolute', top: 8, left: 16 }}>
+          <LanguageSelector />
+        </Box>
+      )}
       {/* Logo sitting on the black ribbon */}
       <Box sx={{ position: 'relative', height: 0 }}>
         <Box
@@ -132,6 +137,7 @@ export default function Navbar({
         <Toolbar sx={{ gap: 2, flexWrap: 'wrap', minHeight: { xs: 48, sm: 56 }, justifyContent: 'flex-end' }}>
           {isSmall ? (
             <>
+              {role === 'client' && <LanguageSelector />}
               <IconButton
                 color="inherit"
                 aria-label="open navigation menu"
@@ -317,8 +323,6 @@ export default function Navbar({
               )
             )
           )}
-
-          {role === 'client' && <LanguageSelector />}
 
           {/* Profile menu / Logout on desktop */}
           {onLogout &&
