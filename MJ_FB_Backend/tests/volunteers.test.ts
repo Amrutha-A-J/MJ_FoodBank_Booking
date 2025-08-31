@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import config from '../src/config';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -55,7 +56,9 @@ describe('Volunteer routes role ID validation', () => {
     expect(res.body).toEqual({ id: 5 });
     expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/SELECT id FROM volunteer_roles/);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('updates trained areas when role IDs are valid', async () => {
@@ -120,7 +123,9 @@ describe('Volunteer shopper profile', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ userId: 9 });
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 123);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('removes a shopper profile for a volunteer', async () => {

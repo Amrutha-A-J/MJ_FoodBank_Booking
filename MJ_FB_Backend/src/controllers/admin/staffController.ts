@@ -56,11 +56,11 @@ export async function createStaff(
     );
     const staffId = result.rows[0].id;
     const token = await generatePasswordSetupToken('staff', staffId);
-    await sendTemplatedEmail({
-      to: email,
-      templateId: 1,
-      params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
-    });
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+      });
 
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {

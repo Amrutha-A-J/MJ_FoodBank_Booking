@@ -37,11 +37,11 @@ export async function createAgency(
     }
     const agency = await insertAgency(name, email, contactInfo);
     const token = await generatePasswordSetupToken('agencies', agency.id);
-    await sendTemplatedEmail({
-      to: email,
-      templateId: 1,
-      params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
-    });
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+      });
     res.status(201).json({ id: agency.id });
   } catch (err) {
     next(err);

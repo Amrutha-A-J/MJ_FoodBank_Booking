@@ -4,6 +4,7 @@ import adminStaffRouter from '../src/routes/admin/adminStaff';
 import pool from '../src/db';
 import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import config from '../src/config';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/passwordSetupUtils');
@@ -54,6 +55,8 @@ describe('POST /admin/staff', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ message: 'Staff created' });
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 8);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 });

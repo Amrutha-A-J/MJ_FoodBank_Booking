@@ -4,6 +4,7 @@ import agenciesRoutes from '../src/routes/agencies';
 import pool from '../src/db';
 import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import config from '../src/config';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/passwordSetupUtils');
@@ -58,7 +59,9 @@ describe('POST /agencies', () => {
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id', 5);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('agencies', 5);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('rejects non-staff user', async () => {
