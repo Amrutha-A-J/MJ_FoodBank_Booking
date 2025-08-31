@@ -347,6 +347,49 @@ export default function VolunteerDashboard() {
               )}
             </SectionCard>
 
+            <SectionCard title="Profile & Training">
+              <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
+                {roleOptions.map(([id, name]) => (
+                  <Chip key={id} label={name} />
+                ))}
+              </Stack>
+            </SectionCard>
+          </Stack>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack spacing={2}>
+            <SectionCard title="Quick Actions">
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Button
+                  size="small"
+                  variant="contained"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/volunteer/schedule')}
+                >
+                  Request a shift
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={cancelNext}
+                  disabled={!nextShift}
+                >
+                  Cancel upcoming
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/volunteer/schedule')}
+                  disabled={!nextShift}
+                >
+                  Reschedule
+                </Button>
+              </Stack>
+            </SectionCard>
+
             <SectionCard title="Available in My Roles">
               <Stack direction="row" spacing={1} alignItems="center" mb={2}>
                 <ToggleButtonGroup
@@ -404,49 +447,6 @@ export default function VolunteerDashboard() {
 
             <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
               <EventList events={[...events.today, ...events.upcoming]} limit={5} />
-            </SectionCard>
-
-            <SectionCard title="Profile & Training">
-              <Stack direction="row" spacing={1} flexWrap="wrap" mb={1}>
-                {roleOptions.map(([id, name]) => (
-                  <Chip key={id} label={name} />
-                ))}
-              </Stack>
-            </SectionCard>
-          </Stack>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack spacing={2}>
-            <SectionCard title="Quick Actions">
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Button
-                  size="small"
-                  variant="contained"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/volunteer/schedule')}
-                >
-                  Request a shift
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={cancelNext}
-                  disabled={!nextShift}
-                >
-                  Cancel upcoming
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/volunteer/schedule')}
-                  disabled={!nextShift}
-                >
-                  Reschedule
-                </Button>
-              </Stack>
             </SectionCard>
 
             <SectionCard
