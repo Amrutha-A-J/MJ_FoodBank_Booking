@@ -19,7 +19,9 @@ describe('POST /auth/refresh', () => {
       userRole: 'shopper',
       jti: 'oldjti',
     };
-    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!);
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
+      algorithm: 'HS256',
+    });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ token_id: 'oldjti' }] })
       .mockResolvedValueOnce({});

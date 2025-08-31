@@ -35,7 +35,9 @@ async function authenticate(req: Request): Promise<AuthResult> {
   }
 
   try {
-    const decoded = jwt.verify(token, config.jwtSecret) as {
+    const decoded = jwt.verify(token, config.jwtSecret, {
+      algorithms: ['HS256'],
+    }) as {
       id: number | string;
       role: string;
       type: string;
