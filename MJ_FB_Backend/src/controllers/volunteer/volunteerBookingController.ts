@@ -173,10 +173,11 @@ export async function createVolunteerBookingForVolunteer(
   res: Response,
   next: NextFunction,
 ) {
-  const { volunteerId, roleId, date } = req.body as {
+  const { volunteerId, roleId, date, force } = req.body as {
     volunteerId?: number;
     roleId?: number;
     date?: string;
+    force?: boolean;
   };
   if (!volunteerId || !roleId || !date) {
     return res
@@ -266,7 +267,14 @@ export async function createVolunteerBookingForVolunteer(
       [roleId, date]
     );
     if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
-      return res.status(400).json({ message: 'Role is full' });
+      if (force) {
+        await pool.query(
+          'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
+          [Number(countRes.rows[0].count) + 1, roleId],
+        );
+      } else {
+        return res.status(400).json({ message: 'Role is full' });
+      }
     }
 
     const token = randomUUID();

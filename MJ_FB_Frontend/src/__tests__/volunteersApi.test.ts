@@ -27,7 +27,18 @@ describe('volunteers api', () => {
       '/api/volunteer-bookings/staff',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ volunteerId: 5, roleId: 3, date: '2024-01-01' }),
+        body: JSON.stringify({ volunteerId: 5, roleId: 3, date: '2024-01-01', force: false }),
+      }),
+    );
+  });
+
+  it('creates volunteer booking with force', async () => {
+    await createVolunteerBookingForVolunteer(5, 3, '2024-01-01', true);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings/staff',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ volunteerId: 5, roleId: 3, date: '2024-01-01', force: true }),
       }),
     );
   });

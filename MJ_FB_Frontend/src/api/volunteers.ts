@@ -338,14 +338,15 @@ export async function updateVolunteerBookingStatus(
 export async function createVolunteerBookingForVolunteer(
   volunteerId: number,
   roleId: number,
-  date: string
+  date: string,
+  force = false,
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/staff`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ volunteerId, roleId, date }),
+    body: JSON.stringify({ volunteerId, roleId, date, force }),
   });
   await handleResponse(res);
 }
