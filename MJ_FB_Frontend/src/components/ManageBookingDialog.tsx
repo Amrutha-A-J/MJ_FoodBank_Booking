@@ -27,7 +27,8 @@ interface Booking {
   client_id: number;
   user_id: number;
   user_name: string;
-  bookings_this_month: number;
+  visits_this_month: number;
+  approved_bookings_this_month: number;
   date: string;
   profile_link: string;
 }
@@ -162,7 +163,12 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                 {booking.client_id}
               </MuiLink>
             </Typography>
-            <Typography>Visits this month: {booking.bookings_this_month}</Typography>
+            <Typography>
+              Monthly usage: {booking.visits_this_month + booking.approved_bookings_this_month}
+            </Typography>
+            <Typography>
+              Visits: {booking.visits_this_month}, Approved bookings: {booking.approved_bookings_this_month}
+            </Typography>
           </Stack>
           <TextField
             select
