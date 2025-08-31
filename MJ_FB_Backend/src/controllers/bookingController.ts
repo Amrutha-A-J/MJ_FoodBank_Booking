@@ -25,7 +25,7 @@ import {
 } from '../models/bookingRepository';
 import { insertNewClient } from '../models/newClient';
 import { isAgencyClient, getAgencyClientSet } from '../models/agency';
-import { refreshClientVisitCount } from './clientVisitController';
+import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -124,8 +124,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         userId,
       );
     }
-    const countRes = await pool.query('SELECT bookings_this_month FROM clients WHERE client_id=$1', [userId]);
-    const bookingsThisMonth = countRes.rows[0]?.bookings_this_month ?? 0;
+    const bookingsThisMonth = await getClientBookingsThisMonth(userId);
     res.status(201).json({
       message: 'Booking automatically approved',
       bookingsThisMonth,
