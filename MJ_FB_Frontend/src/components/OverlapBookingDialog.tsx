@@ -42,7 +42,7 @@ export default function OverlapBookingDialog({
           You already have a shift at this time. Which one would you like to keep?
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2">Existing Shift</Typography>
             <Typography>{existing.role_name}</Typography>
             <Typography>
@@ -50,7 +50,7 @@ export default function OverlapBookingDialog({
               {formatTime(existing.end_time)}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="subtitle2">New Shift</Typography>
             <Typography>{attempted.role_name}</Typography>
             <Typography>

@@ -289,7 +289,7 @@ export default function BookingUI({
         {t('available_slots_for', { date: date.format('ddd, MMM D, YYYY') })}
       </Typography>
       <Grid container spacing={2}>
-        <Grid item xs={12} md="auto">
+        <Grid size={{ xs: 12, md: 'auto' }}>
           <Paper sx={{ p: 2, borderRadius: 2 }}>
             {!holidaysReady ? (
               <Skeleton variant="rectangular" height={296} />
@@ -324,7 +324,7 @@ export default function BookingUI({
             )}
           </Paper>
         </Grid>
-        <Grid item xs={12} md sx={{ flexGrow: 1 }}>
+        <Grid size={{ xs: 12, md: 'grow' }} sx={{ flexGrow: 1 }}>
           <Paper
             ref={slotsRef}
             sx={{
