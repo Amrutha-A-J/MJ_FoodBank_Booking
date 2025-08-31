@@ -26,6 +26,7 @@ describe('StaffDashboard', () => {
     );
 
     await screen.findByText('Today at a Glance');
+    expect(screen.getByText('News & Events')).toBeInTheDocument();
     expect(screen.queryByText('No-Show Rankings')).toBeNull();
   });
 });
