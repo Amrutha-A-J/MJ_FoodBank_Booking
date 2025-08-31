@@ -21,6 +21,14 @@
 - A nightly no-show cleanup job (`MJ_FB_Backend/src/utils/noShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved bookings as `no_show`. It exposes `startNoShowCleanupJob`/`stopNoShowCleanupJob`.
 - A nightly volunteer no-show cleanup job (`MJ_FB_Backend/src/utils/volunteerNoShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show`. It logs results, emails coordinators, and waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) after each shift before auto-marking.
 
+## Help Page Maintenance
+
+- Update `MJ_FB_Frontend/src/pages/help/content.ts` whenever user-facing features or routes change so the Help page remains accurate.
+- Before merging a pull request, ensure new routes and UI elements are reflected in the Help page:
+  - [ ] Added or modified a user-facing route or UI element?
+  - [ ] Updated `src/pages/help/content.ts` accordingly?
+  - [ ] Verified that the Help page renders the change?
+
 ## Testing
 
 - For changes in `MJ_FB_Backend`, run `npm test` from the `MJ_FB_Backend` directory.

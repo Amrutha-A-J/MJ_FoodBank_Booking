@@ -14,6 +14,18 @@ The `clients` table uses `client_id` as its primary key. Do not reference an `id
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
 
+## Help Page Updates
+
+Keep the Help page current whenever user-facing features change. Update
+`MJ_FB_Frontend/src/pages/help/content.ts` whenever you add or modify a
+route or UI element so users see accurate guidance.
+
+Before merging a pull request, confirm the following:
+
+- [ ] Added or changed a user-facing route or UI element?
+- [ ] Updated `src/pages/help/content.ts` with the new information?
+- [ ] Viewed the Help page to ensure the change appears?
+
 ## Features
 
  - Appointment booking workflow for clients with automatic approval and rescheduling.
