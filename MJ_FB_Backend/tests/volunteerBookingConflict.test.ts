@@ -4,7 +4,10 @@ import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 
 jest.mock('../src/db');
-jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/utils/emailUtils', () => ({
+  sendEmail: jest.fn(),
+  buildCancelRescheduleButtons: () => '',
+}));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
     ( _req as any).user = { id: 1, email: 'test@example.com', role: 'volunteer' };
@@ -71,5 +74,36 @@ describe('volunteer booking conflict', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.booking).toMatchObject({ id: 9, role_id: 1, date: '2024-01-02' });
+  });
+
+  it('keeps existing booking when resolving conflict', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          id: 5,
+          role_id: 3,
+          date: '2024-01-02',
+          start_time: '10:00:00',
+          end_time: '13:00:00',
+          role_name: 'Sorter',
+        },
+      ],
+    });
+
+    const res = await request(app)
+      .post('/volunteer-bookings/resolve-conflict')
+      .send({ existingBookingId: 5, keep: 'existing' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.kept).toBe('existing');
+    expect(res.body.booking).toEqual({
+      id: 5,
+      role_id: 3,
+      role_name: 'Sorter',
+      date: '2024-01-02',
+      start_time: '10:00:00',
+      end_time: '13:00:00',
+    });
   });
 });
