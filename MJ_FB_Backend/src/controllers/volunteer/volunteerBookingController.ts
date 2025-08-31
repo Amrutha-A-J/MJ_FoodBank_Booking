@@ -312,19 +312,23 @@ export async function resolveVolunteerBookingConflict(
   next: NextFunction,
 ) {
   const user = req.user;
-  const { existingBookingId, roleId, date, keep } = req.body as {
-    existingBookingId?: number;
-    roleId?: number;
+  const existingBookingId = Number((req.body as any).existingBookingId);
+  const roleId = Number((req.body as any).roleId);
+  const { date, keep } = req.body as {
     date?: string;
     keep?: 'existing' | 'new';
   };
+
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  if (!existingBookingId || !roleId || !date || !keep) {
-    return res
-      .status(400)
-      .json({
-        message: 'existingBookingId, roleId, date and keep are required',
-      });
+  if (
+    !existingBookingId ||
+    !roleId ||
+    !date ||
+    (keep !== 'existing' && keep !== 'new')
+  ) {
+    return res.status(400).json({
+      message: 'existingBookingId, roleId, date and keep are required',
+    });
   }
 
   try {
@@ -403,9 +407,12 @@ export async function resolveVolunteerBookingConflict(
       `SELECT 1
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved' AND vb.id <> $5
-         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
-      [user.id, date, slot.start_time, slot.end_time, existingBookingId]
+       WHERE vb.volunteer_id = $1
+         AND vb.date = $2
+         AND vb.status='approved'
+         AND vb.id <> $3
+         AND NOT (vs.end_time <= $4 OR vs.start_time >= $5)`,
+      [user.id, date, existingBookingId, slot.start_time, slot.end_time]
     );
     if ((overlapRes.rowCount ?? 0) > 0) {
       return res
