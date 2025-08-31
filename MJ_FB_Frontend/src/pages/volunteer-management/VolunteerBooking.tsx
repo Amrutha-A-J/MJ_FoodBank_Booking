@@ -14,6 +14,7 @@ import {
   Button,
   Skeleton,
 } from '@mui/material';
+import InfoTooltip from '../../components/InfoTooltip';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
@@ -227,11 +228,14 @@ export default function VolunteerBooking() {
         }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography>
-            {selected
-              ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('ddd, MMM D, YYYY')}`
-              : 'No slot selected'}
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography>
+              {selected
+                ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('ddd, MMM D, YYYY')}`
+                : 'No slot selected'}
+            </Typography>
+            <InfoTooltip title="Select a slot above, then click Request shift to book it." />
+          </Stack>
           <Button
             variant="contained"
             size="small"

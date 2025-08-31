@@ -46,6 +46,7 @@ import {
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import type { AlertColor } from '@mui/material';
+import InfoTooltip from '../../components/InfoTooltip';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -392,14 +393,20 @@ export default function VolunteerSchedule() {
             >
               Previous
             </Button>
-            <Typography variant="h6" component="h3">
-              {dateStr} - {dayName}
-              {isHoliday
-                ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
-                : isWeekend
-                  ? ' (Weekend)'
-                  : ''}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="h6" component="h3">
+                {dateStr} - {dayName}
+                {isHoliday
+                  ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
+                  : isWeekend
+                    ? ' (Weekend)'
+                    : ''}
+              </Typography>
+              <InfoTooltip
+                title="Green cells show your bookings, gray cells are filled. Click 'Volunteer Needed' to book."
+                sx={{ ml: 0.5 }}
+              />
+            </Box>
             <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
           </Box>
           <FeedbackSnackbar

@@ -15,6 +15,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import InfoTooltip from '../../components/InfoTooltip';
 import Announcement from '@mui/icons-material/Announcement';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -446,7 +447,16 @@ export default function VolunteerDashboard() {
               </Stack>
             </SectionCard>
 
-            <SectionCard title="My Stats">
+            <SectionCard
+              title={
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  My Stats
+                  <InfoTooltip
+                    title="Hours and shifts count only completed shifts. Streak shows consecutive weeks volunteering."
+                  />
+                </Stack>
+              }
+            >
               <Stack spacing={2}>
                 {badges.length > 0 ? (
                   <Stack direction="row" spacing={1} flexWrap="wrap">
