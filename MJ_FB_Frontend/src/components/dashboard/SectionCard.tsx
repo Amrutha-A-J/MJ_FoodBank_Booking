@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import PageCard from '../layout/PageCard';
 
 interface SectionCardProps {
-  title: string;
+  title: ReactNode;
   icon?: ReactNode;
   children: ReactNode;
 }
