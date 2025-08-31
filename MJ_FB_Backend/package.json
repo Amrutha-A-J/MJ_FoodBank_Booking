@@ -14,6 +14,7 @@
     "dotenv": "^17",
     "express": "^5",
     "jsonwebtoken": "^9",
+    "helmet": "^8.1.0",
     "node-cron": "^3",
     "pg": "^8",
     "write-excel-file": "^2",

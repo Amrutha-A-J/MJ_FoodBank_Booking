@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
 import config from './config';
@@ -38,6 +39,8 @@ import logger from './utils/logger';
 import csrfMiddleware from './middleware/csrf';
 
 const app = express();
+
+app.use(helmet());
 
 // ⭐ Add CORS middleware before routes
 // Origins are parsed from FRONTEND_ORIGIN env variable as a comma-separated list.
