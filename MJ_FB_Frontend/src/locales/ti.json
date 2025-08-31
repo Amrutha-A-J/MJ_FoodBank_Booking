@@ -39,7 +39,58 @@
   "booking": "ቆርቆሮ",
   "hello_name": "ሰላም {{name}}",
   "profile": "ፕሮፋይል",
-  "help": "ሓገዝ",
+  "help": {
+    "title": "ሓገዝ",
+    "search": "Search",
+    "print": "Print",
+    "no_matching_topics": "No matching topics.",
+    "client": {
+      "booking_appointments": {
+        "title": "Booking appointments",
+        "description": "Reserve pantry visits from your dashboard.",
+        "steps": [
+          "Open your dashboard.",
+          "Choose an available date.",
+          "Select a time and confirm the booking."
+        ]
+      },
+      "rescheduling_or_canceling": {
+        "title": "Rescheduling or canceling",
+        "description": "Change or cancel an existing booking.",
+        "steps": [
+          "Go to Booking History.",
+          "Find the upcoming visit.",
+          "Click Reschedule or Cancel and follow prompts."
+        ]
+      },
+      "view_booking_history": {
+        "title": "View booking history",
+        "description": "See past and future visits.",
+        "steps": [
+          "Open the Booking History page.",
+          "Browse the list of previous and upcoming bookings."
+        ]
+      },
+      "manage_profile_and_password": {
+        "title": "Manage profile and password",
+        "description": "Update contact information or change your password.",
+        "steps": [
+          "Navigate to the Profile page.",
+          "Edit your information.",
+          "Save changes."
+        ]
+      },
+      "visit_counts_and_reminders": {
+        "title": "Visit counts and reminders",
+        "description": "The dashboard shows monthly totals and upcoming reminders.",
+        "steps": [
+          "Return to the dashboard.",
+          "Review your visit counter.",
+          "Check reminders for upcoming bookings."
+        ]
+      }
+    }
+  },
   "logout": "መውጽእ",
   "breadcrumb": "ትካል መንገዲ",
   "home": "ገዛ",

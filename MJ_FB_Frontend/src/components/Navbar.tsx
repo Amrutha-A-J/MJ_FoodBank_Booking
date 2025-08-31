@@ -214,7 +214,7 @@ export default function Navbar({
                           disabled={loading}
                           sx={DROPDOWN_ITEM_SX}
                         >
-                          {t('help')}
+                          {t('help.title')}
                         </MenuItem>
                         <MenuItem
                           onClick={() => {
@@ -375,7 +375,7 @@ export default function Navbar({
                     disabled={loading}
                     sx={DROPDOWN_ITEM_SX}
                   >
-                    {t('help')}
+                    {t('help.title')}
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
