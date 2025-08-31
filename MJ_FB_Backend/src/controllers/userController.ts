@@ -5,7 +5,6 @@ import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
-import { validatePassword } from '../utils/passwordUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
 import config from '../config';

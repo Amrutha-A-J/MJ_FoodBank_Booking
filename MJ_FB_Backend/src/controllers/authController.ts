@@ -257,7 +257,7 @@ function getRefreshTokenFromCookies(req: Request) {
   return cookies.refreshToken;
 }
 
-export async function refreshToken(req: Request, res: Response, next: NextFunction) {
+export async function refreshToken(req: Request, res: Response, _next: NextFunction) {
   try {
     const token = getRefreshTokenFromCookies(req);
     if (!token) {
