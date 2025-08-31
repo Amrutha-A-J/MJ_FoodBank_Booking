@@ -25,12 +25,17 @@ describe('AgencyDashboard', () => {
       {
         id: 1,
         status: 'approved',
-        date: new Date().toISOString(),
+        date: '2024-01-15',
         user_name: 'Client A',
       },
     ]);
     (getSlots as jest.Mock).mockResolvedValue([]);
-    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([
+      {
+        date: '2024-01-20',
+        reason: 'Closed',
+      },
+    ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
     render(
@@ -41,5 +46,9 @@ describe('AgencyDashboard', () => {
 
     await waitFor(() => expect(getBookings).toHaveBeenCalled());
     expect(screen.getByText(/Client A/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Mon, Jan 15, 2024/)).toBeInTheDocument();
+      expect(screen.getByText(/Sat, Jan 20, 2024 Closed/)).toBeInTheDocument();
+    });
   });
 });
