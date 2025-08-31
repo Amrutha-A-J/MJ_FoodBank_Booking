@@ -8,6 +8,7 @@ import {
   IconButton,
   TextField,
   Button,
+  Stack,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -18,6 +19,7 @@ import {
 } from '../../api/agencies';
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
+import InfoTooltip from '../../components/InfoTooltip';
 
 interface AgencyClient {
   id: number;
@@ -90,9 +92,10 @@ export default function ClientList() {
     <Page title="Agency Clients">
     <Grid container spacing={2}>
       <Grid item xs={12} md={6}>
-        <Typography variant="h5" gutterBottom>
-          Clients
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
+          <Typography variant="h5">Clients</Typography>
+          <InfoTooltip title="Shows assigned clients and their public IDs." />
+        </Stack>
         <List dense>
           {clients.map(c => (
             <ListItem
