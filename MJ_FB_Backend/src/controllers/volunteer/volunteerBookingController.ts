@@ -597,7 +597,15 @@ export async function updateVolunteerBookingStatus(
 ) {
   const { id } = req.params;
   const { status, reason } = req.body as { status?: string; reason?: string };
-  if (!status || !['cancelled', 'no_show', 'completed'].includes(status)) {
+  if (!status) {
+    return res.status(400).json({ message: 'Status is required' });
+  }
+  if (status === 'visited') {
+    return res
+      .status(400)
+      .json({ message: 'Use completed instead of visited for volunteer shifts' });
+  }
+  if (!['cancelled', 'no_show', 'completed'].includes(status)) {
     return res
       .status(400)
       .json({ message: 'Status must be cancelled, no_show or completed' });

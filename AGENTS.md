@@ -351,6 +351,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - Volunteer management navigation includes a **Pending Reviews** tab for staff to mark past shifts as `completed` or `no_show`.
 
 Volunteer booking statuses include `completed`, and cancellations must include a reason.
+Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid for volunteer bookings and the backend responds with "Use completed instead of visited for volunteer shifts" when submitted.
 
 ### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
 - `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`

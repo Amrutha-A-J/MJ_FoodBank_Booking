@@ -60,6 +60,15 @@ describe('updateVolunteerBookingStatus', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects visited status with guidance', async () => {
+    const res = await request(app)
+      .patch('/volunteer-bookings/1')
+      .send({ status: 'visited' });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/completed/);
+    expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
+  });
+
   it('allows status completed', async () => {
     const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
     (pool.query as jest.Mock)
