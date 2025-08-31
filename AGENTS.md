@@ -356,6 +356,8 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 ### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
 - `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`
 - `GET /volunteer-bookings/recurring` → `[ { id, role_id, start_date, end_date, pattern, days_of_week } ]`
+- `POST /volunteer-bookings/recurring/staff` `{ volunteerId, roleId, startDate, endDate, pattern, daysOfWeek, force? }` → `{ recurringId, successes, skipped }`
+- `GET /volunteer-bookings/recurring/volunteer/:volunteer_id` → `[ { id, role_id, start_date, end_date, pattern, days_of_week } ]`
 - `DELETE /volunteer-bookings/recurring/:id?from=YYYY-MM-DD` → `{ message: 'Recurring bookings cancelled' }`
 - `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
 

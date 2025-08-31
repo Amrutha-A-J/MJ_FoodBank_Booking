@@ -9,3 +9,12 @@ export const recurringBookingSchema = z.object({
 });
 
 export type RecurringBookingSchema = z.infer<typeof recurringBookingSchema>;
+
+export const recurringBookingForVolunteerSchema = recurringBookingSchema.extend({
+  volunteerId: z.number().int(),
+  force: z.boolean().optional(),
+});
+
+export type RecurringBookingForVolunteerSchema = z.infer<
+  typeof recurringBookingForVolunteerSchema
+>;

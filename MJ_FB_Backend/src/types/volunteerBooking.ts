@@ -6,7 +6,23 @@ export interface CreateRecurringVolunteerBookingRequest {
   daysOfWeek?: number[];
 }
 
-export interface RecurringVolunteerBookingResponse {
+export interface CreateRecurringVolunteerBookingForVolunteerRequest
+  extends CreateRecurringVolunteerBookingRequest {
+  volunteerId: number;
+  force?: boolean;
+}
+
+export interface RecurringVolunteerBookingResult {
   recurringId: number;
-  count: number;
+  successes: string[];
+  skipped: { date: string; reason: string }[];
+}
+
+export interface RecurringVolunteerBooking {
+  id: number;
+  role_id: number;
+  start_date: string;
+  end_date: string;
+  pattern: 'daily' | 'weekly';
+  days_of_week: number[];
 }
