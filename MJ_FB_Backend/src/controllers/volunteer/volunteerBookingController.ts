@@ -242,14 +242,29 @@ export async function createVolunteerBookingForVolunteer(
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
     }
 
-    const isWeekend = [0, 6].includes(
-      new Date(reginaStartOfDayISO(date)).getUTCDay(),
-    );
+    let bookingDate: Date;
+    try {
+      bookingDate = new Date(reginaStartOfDayISO(date));
+    } catch {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
+    if (isNaN(bookingDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
+
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    if (bookingDate < today) {
+      return res.status(400).json({ message: 'Date cannot be in the past' });
+    }
+
+    const isWeekend = [0, 6].includes(bookingDate.getUTCDay());
     const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
     const isHoliday = (holidayRes.rowCount ?? 0) > 0;
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
     if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
-      return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
+      return res
+        .status(400)
+        .json({ message: 'Role not bookable on holidays or weekends' });
     }
 
     const existingRes = await pool.query(
