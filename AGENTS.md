@@ -406,7 +406,7 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 
 ## Slot API
 
-`/slots` returns each slot with an `overbooked` flag when approved bookings exceed `max_capacity`, and `available` values are never negative.
+`/slots` returns each slot with an `overbooked` flag when approved bookings exceed `max_capacity`, and `available` values are never negative. Volunteers can access this endpoint alongside shoppers, delivery, staff, and agencies.
 
 `GET /volunteer-roles` returns all volunteer roles with their active shifts by default. Append `?includeInactive=true` to include inactive shifts:
 
