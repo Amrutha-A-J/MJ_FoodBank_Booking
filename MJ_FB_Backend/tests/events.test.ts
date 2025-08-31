@@ -52,3 +52,66 @@ describe('DELETE /events/:id', () => {
       expect(pool.query).toHaveBeenCalledWith('DELETE FROM events WHERE id = $1', [1]);
     });
   });
+
+describe('POST /events', () => {
+  const validBody = {
+    title: 'Test',
+    details: 'Details',
+    category: 'General',
+    date: '2024-01-01',
+    staffIds: [2],
+  };
+
+  it('creates an event and commits the transaction', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+    });
+    const client = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce(undefined) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ id: 42 }] }) // insert event
+        .mockResolvedValueOnce(undefined) // insert event_staff
+        .mockResolvedValueOnce(undefined), // COMMIT
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    const res = await request(app)
+      .post('/events')
+      .set('Authorization', 'Bearer token')
+      .send(validBody);
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ id: 42 });
+    expect(client.query).toHaveBeenNthCalledWith(1, 'BEGIN');
+    expect(client.query).toHaveBeenCalledWith('COMMIT');
+    expect(client.release).toHaveBeenCalled();
+  });
+
+  it('rolls back if inserting staff fails', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+    });
+    const client = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce(undefined) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // insert event
+        .mockRejectedValueOnce(new Error('fail')) // insert event_staff fails
+        .mockResolvedValueOnce(undefined), // ROLLBACK
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    const res = await request(app)
+      .post('/events')
+      .set('Authorization', 'Bearer token')
+      .send(validBody);
+    expect(res.status).toBe(500);
+    expect(client.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(client.query).not.toHaveBeenCalledWith('COMMIT');
+    expect(client.release).toHaveBeenCalled();
+  });
+});

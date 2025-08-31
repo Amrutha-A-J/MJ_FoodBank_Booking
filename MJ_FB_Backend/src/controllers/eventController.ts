@@ -3,6 +3,7 @@ import pool from '../db';
 import logger from '../utils/logger';
 import { createEventSchema } from '../schemas/eventSchemas';
 import { formatReginaDate } from '../utils/dateUtils';
+import type { PoolClient } from 'pg';
 
 export async function listEvents(req: Request, res: Response, next: NextFunction) {
   try {
@@ -65,25 +66,38 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     visibleToVolunteers = false,
     visibleToClients = false,
   } = parsed.data;
+  let client: PoolClient | undefined;
   try {
     const createdBy = Number((req.user as any).id);
     const reginaDate = formatReginaDate(date);
-    const inserted = await pool.query(
+    client = await pool.connect();
+    await client.query('BEGIN');
+    const inserted = await client.query(
       `INSERT INTO events (title, details, category, date, created_by, visible_to_volunteers, visible_to_clients) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
       [title, details, category, reginaDate, createdBy, visibleToVolunteers, visibleToClients]
     );
     const eventId = inserted.rows[0].id;
     if (staffIds && staffIds.length > 0) {
       const values = staffIds.map((_, i) => `($1,$${i + 2})`).join(',');
-      await pool.query(
+      await client.query(
         `INSERT INTO event_staff (event_id, staff_id) VALUES ${values}`,
         [eventId, ...staffIds]
       );
     }
+    await client.query('COMMIT');
     res.status(201).json({ id: eventId });
   } catch (error) {
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error('Error rolling back event creation:', rollbackError);
+      }
+    }
     logger.error('Error creating event:', error);
     next(error);
+  } finally {
+    client?.release();
   }
 }
 
