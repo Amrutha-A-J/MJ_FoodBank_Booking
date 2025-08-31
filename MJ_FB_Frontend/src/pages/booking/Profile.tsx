@@ -16,6 +16,7 @@ import { getVolunteerProfile } from '../../api/volunteers';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PageContainer from '../../components/layout/PageContainer';
 import PageCard from '../../components/layout/PageCard';
+import { useTranslation } from 'react-i18next';
 
 export default function Profile({ role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -34,10 +35,11 @@ export default function Profile({ role }: { role: Role }) {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
+  const { t } = useTranslation();
 
   useEffect(() => {
-    document.title = 'MJ Foodbank - User Profile';
-  }, []);
+    document.title = t('profile_page.title');
+  }, [t]);
 
   useEffect(() => {
     const loader = role === 'volunteer' ? getVolunteerProfile : getUserProfile;
@@ -57,9 +59,9 @@ export default function Profile({ role }: { role: Role }) {
   const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
   function validatePassword(pwd: string) {
-    if (pwd.length < 8) return 'Password must be at least 8 characters.';
-    if (!/\d/.test(pwd)) return 'Password must include a number.';
-    if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must include a symbol.';
+    if (pwd.length < 8) return t('profile_page.password_min_length');
+    if (!/\d/.test(pwd)) return t('profile_page.password_number');
+    if (!/[^A-Za-z0-9]/.test(pwd)) return t('profile_page.password_symbol');
     return '';
   }
 
@@ -74,7 +76,7 @@ export default function Profile({ role }: { role: Role }) {
     setPasswordError('');
     try {
       await changePassword(currentPassword, newPassword);
-      setToast({ open: true, message: 'Password updated.', severity: 'success' });
+      setToast({ open: true, message: t('profile_page.password_updated'), severity: 'success' });
       setCurrentPassword('');
       setNewPassword('');
     } catch (err) {
@@ -90,7 +92,7 @@ export default function Profile({ role }: { role: Role }) {
     if (!profile) return;
     if (editing) {
       if (profile.role !== 'agency' && phone && phoneError) {
-        setToast({ open: true, message: 'Please enter a valid phone number.', severity: 'error' });
+        setToast({ open: true, message: t('profile_page.phone_invalid'), severity: 'error' });
         return;
       }
       setSaving(true);
@@ -99,7 +101,7 @@ export default function Profile({ role }: { role: Role }) {
         setProfile(updated);
         setEmail(updated.email ?? '');
         setPhone(updated.phone ?? '');
-        setToast({ open: true, message: 'Profile updated.', severity: 'success' });
+        setToast({ open: true, message: t('profile_page.profile_updated'), severity: 'success' });
         setEditing(false);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -128,45 +130,45 @@ export default function Profile({ role }: { role: Role }) {
             </Avatar>
             <Stack>
               <Typography variant="h4" fontWeight={700}>
-                User Profile
+                {t('profile_page.user_profile')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Home / Profile
+                {t('profile_page.breadcrumb')}
               </Typography>
             </Stack>
           </Stack>
 
           {/* Profile info */}
           {error && <Typography color="error">{error}</Typography>}
-          {!profile && !error && <Typography>Loading...</Typography>}
+          {!profile && !error && <Typography>{t('profile_page.loading')}</Typography>}
           {profile && (
             <Stack spacing={1}>
               <Typography>
-                <strong>Name:</strong> {profile.firstName} {profile.lastName}
+                <strong>{t('profile_page.name')}</strong> {profile.firstName} {profile.lastName}
               </Typography>
               {profile.clientId !== undefined && (
                 <Typography>
-                  <strong>Client ID:</strong> {profile.clientId}
+                  <strong>{t('profile_page.client_id')}</strong> {profile.clientId}
                 </Typography>
               )}
               {profile.roles && profile.roles.length > 0 && (
                 <Typography>
-                  <strong>Roles:</strong> {profile.roles.join(', ')}
+                  <strong>{t('profile_page.roles')}</strong> {profile.roles.join(', ')}
                 </Typography>
               )}
               {profile.username && (
                 <Typography>
-                  <strong>Username:</strong> {profile.username}
+                  <strong>{t('profile_page.username')}</strong> {profile.username}
                 </Typography>
               )}
               {profile.trainedAreas && profile.trainedAreas.length > 0 && (
                 <Typography>
-                  <strong>Trained Areas:</strong> {profile.trainedAreas.join(', ')}
+                  <strong>{t('profile_page.trained_areas')}</strong> {profile.trainedAreas.join(', ')}
                 </Typography>
               )}
               <Divider sx={{ my: 1 }} />
               <TextField
-                label="Email"
+                label={t('email')}
                 type="email"
                 size="small"
                 value={email}
@@ -175,7 +177,7 @@ export default function Profile({ role }: { role: Role }) {
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
-                label={profile.role === 'agency' ? 'Contact Info' : 'Phone'}
+                label={profile.role === 'agency' ? t('profile_page.contact_info') : t('profile_page.phone')}
                 type={profile.role === 'agency' ? 'text' : 'tel'}
                 size="small"
                 value={phone}
@@ -184,7 +186,7 @@ export default function Profile({ role }: { role: Role }) {
                   setPhone(val);
                   if (profile.role !== 'agency') {
                     if (val && !phoneRegex.test(val)) {
-                      setPhoneError('Use only numbers, spaces, or dashes.');
+                      setPhoneError(t('profile_page.phone_chars'));
                     } else {
                       setPhoneError('');
                     }
@@ -196,12 +198,12 @@ export default function Profile({ role }: { role: Role }) {
                 helperText={
                   profile.role === 'agency'
                     ? undefined
-                    : phoneError || 'Format: 123-456-7890'
+                    : phoneError || t('profile_page.phone_hint')
                 }
               />
               {profile.bookingsThisMonth !== undefined && (
                 <Typography>
-                  <strong>Visits this month:</strong> {profile.bookingsThisMonth}
+                  <strong>{t('profile_page.visits_this_month')}</strong> {profile.bookingsThisMonth}
                 </Typography>
               )}
             </Stack>
@@ -214,7 +216,7 @@ export default function Profile({ role }: { role: Role }) {
             disabled={saving || !profile}
             onClick={handleEdit}
           >
-            {editing ? 'Save' : 'Edit Profile'}
+            {editing ? t('profile_page.save') : t('profile_page.edit_profile')}
           </Button>
 
           <Divider sx={{ my: 1 }} />
@@ -223,12 +225,12 @@ export default function Profile({ role }: { role: Role }) {
           <Stack spacing={2}>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Lock fontSize="small" />
-              <Typography variant="h6">Reset Password</Typography>
+              <Typography variant="h6">{t('reset_password')}</Typography>
             </Stack>
 
             <TextField
               id="current-password"
-              label="Current Password"
+              label={t('current_password')}
               type="password"
               autoComplete="current-password"
               fullWidth
@@ -241,7 +243,7 @@ export default function Profile({ role }: { role: Role }) {
             />
             <TextField
               id="new-password"
-              label="New Password"
+              label={t('new_password')}
               type="password"
               autoComplete="new-password"
               fullWidth
@@ -256,7 +258,7 @@ export default function Profile({ role }: { role: Role }) {
               helperText={passwordError}
             />
             <Typography variant="caption" color="text.secondary">
-              Use at least 8 characters, including a number and a symbol.
+              {t('profile_page.password_requirements')}
             </Typography>
 
             <Button
@@ -274,7 +276,7 @@ export default function Profile({ role }: { role: Role }) {
               startIcon={submitting ? <CircularProgress size={20} /> : null}
               onClick={handleReset}
             >
-              {submitting ? 'Updating…' : 'Reset Password'}
+              {submitting ? t('profile_page.updating') : t('reset_password')}
             </Button>
           </Stack>
         </Stack>
