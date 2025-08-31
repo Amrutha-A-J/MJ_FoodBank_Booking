@@ -57,6 +57,9 @@ const VolunteerBooking = React.lazy(() =>
 const VolunteerRecurringBookings = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerRecurringBookings')
 );
+const StaffRecurringBookings = React.lazy(() =>
+  import('./pages/volunteer-management/StaffRecurringBookings')
+);
 const VolunteerRankings = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerRankings')
 );
@@ -170,6 +173,7 @@ export default function App() {
         links: [
           { label: 'Dashboard', to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
+          { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
           {
             label: 'Volunteers',
             to: '/volunteer-management/volunteers',
@@ -404,6 +408,10 @@ export default function App() {
                   <Route
                     path="/volunteer-management/rankings"
                     element={<VolunteerRankings />}
+                  />
+                  <Route
+                    path="/volunteer-management/recurring"
+                    element={<StaffRecurringBookings />}
                   />
                   <Route
                     path="/volunteer-management/:tab"

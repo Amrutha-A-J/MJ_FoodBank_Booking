@@ -42,6 +42,10 @@ export const helpContent: Record<
       title: 'Manage volunteers',
       body: 'Search, add, and review volunteers from the Volunteers page.',
     },
+    {
+      title: 'Recurring shifts',
+      body: 'Schedule repeating volunteer shifts from the Recurring Shifts page.',
+    },
   ],
   warehouse: [
     {
