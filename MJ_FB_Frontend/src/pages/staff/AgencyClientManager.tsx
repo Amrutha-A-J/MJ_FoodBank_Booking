@@ -120,7 +120,7 @@ export default function AgencyClientManager() {
       </Card>
       {agency && (
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h5" gutterBottom>
@@ -150,7 +150,7 @@ export default function AgencyClientManager() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>

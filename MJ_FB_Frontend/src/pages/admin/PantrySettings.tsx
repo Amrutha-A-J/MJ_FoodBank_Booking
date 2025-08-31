@@ -68,7 +68,7 @@ export default function PantrySettings() {
   return (
     <Page title="Pantry Settings">
       <Grid container spacing={2} p={2}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardHeader title="Pantry max booking capacity" />
             <CardContent>
@@ -90,7 +90,7 @@ export default function PantrySettings() {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardHeader title="Cart Tare (lbs)" />
             <CardContent>

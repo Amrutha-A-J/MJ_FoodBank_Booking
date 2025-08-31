@@ -290,7 +290,7 @@ export default function ManageAvailability() {
           <CardHeader title="Add Holiday" />
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <DatePicker
                   label="Date"
                   value={holidayDate}
@@ -298,7 +298,7 @@ export default function ManageAvailability() {
                   slotProps={{ textField: { fullWidth: true, size: 'medium' } }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Reason"
                   value={holidayReason}
@@ -307,7 +307,7 @@ export default function ManageAvailability() {
                   size="medium"
                 />
               </Grid>
-              <Grid item xs={12} sm={2}>
+              <Grid size={{ xs: 12, sm: 2 }}>
                 <Button
                   fullWidth
                   variant="contained"
@@ -365,7 +365,7 @@ export default function ManageAvailability() {
               />
               {isRecurring ? (
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Day
@@ -386,7 +386,7 @@ export default function ManageAvailability() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-week-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Week
@@ -498,7 +498,7 @@ export default function ManageAvailability() {
           <CardHeader title="Staff Breaks" />
           <CardContent>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Day
@@ -519,7 +519,7 @@ export default function ManageAvailability() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Slot
@@ -540,7 +540,7 @@ export default function ManageAvailability() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <TextField
                   label="Reason"
                   value={breakReason}
@@ -548,7 +548,7 @@ export default function ManageAvailability() {
                   fullWidth
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Button
                   variant="contained"
                   size="small"

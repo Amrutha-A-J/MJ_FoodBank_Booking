@@ -170,7 +170,7 @@ export default function VolunteerBooking() {
     <Page title="Volunteer Booking">
       <Container sx={{ pb: 8 }}>
         <Grid container spacing={2} alignItems="stretch">
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper
             sx={{ p: 2, borderRadius: 2, height: '100%', display: 'flex', flexDirection: 'column' }}
           >
@@ -182,7 +182,7 @@ export default function VolunteerBooking() {
             />
           </Paper>
         </Grid>
-        <Grid item xs={12} md sx={{ flexGrow: 1 }}>
+        <Grid size={{ xs: 12, md: 'grow' }} sx={{ flexGrow: 1 }}>
           <Paper
             ref={slotsRef}
             sx={{ p: 2, borderRadius: 2, maxHeight: { xs: 420, md: 560 }, overflow: 'auto' }}

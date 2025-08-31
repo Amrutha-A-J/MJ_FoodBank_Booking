@@ -430,12 +430,12 @@ export default function VolunteerSettings() {
                 {(rolesByCategory.get(master.id) || []).map(role => (
                   <Box key={role.id} mb={2}>
                     <Grid container alignItems="center" spacing={1}>
-                      <Grid item xs>
+                      <Grid size="grow">
                         <Typography variant="subtitle1" fontWeight="bold">
                           {role.name}
                         </Typography>
                       </Grid>
-                      <Grid item>
+                      <Grid>
                         <Button
                           size="small"
                           variant="outlined"
@@ -451,7 +451,7 @@ export default function VolunteerSettings() {
                           Add Shift
                         </Button>
                       </Grid>
-                      <Grid item>
+                      <Grid>
                         <IconButton aria-label="delete" onClick={() => removeRole(role)}>
                           <DeleteIcon />
                         </IconButton>

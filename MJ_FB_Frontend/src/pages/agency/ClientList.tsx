@@ -93,7 +93,7 @@ export default function ClientList() {
   return (
     <Page title="Agency Clients">
     <Grid container spacing={2}>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
           <Typography variant="h5">Clients</Typography>
           <InfoTooltip title={t('tooltip_assigned_clients')} />
@@ -120,7 +120,7 @@ export default function ClientList() {
           )}
         </List>
       </Grid>
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Typography variant="h5" gutterBottom>
           Add Client
         </Typography>

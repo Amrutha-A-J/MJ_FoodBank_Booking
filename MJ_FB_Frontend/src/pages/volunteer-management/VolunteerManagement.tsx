@@ -662,10 +662,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           {selectedVolunteer && (
             <Grid container spacing={2} mt={2}>
               <Grid
-                item
-                xs={12}
-                md={4}
-                lg={4}
+                size={{ xs: 12, md: 4, lg: 4 }}
                 sx={{ flexBasis: { md: '33.333%' }, maxWidth: { md: '33.333%' } }}
               >
                 <Stack spacing={2} sx={{ width: 1 }}>
@@ -741,7 +738,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                   </PageCard>
                 </Stack>
               </Grid>
-              <Grid item xs={12} md={8} lg={8} sx={{ flexGrow: 1 }}>
+              <Grid size={{ xs: 12, md: 8, lg: 8 }} sx={{ flexGrow: 1 }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('booking_history')}
