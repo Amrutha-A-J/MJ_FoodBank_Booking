@@ -63,7 +63,12 @@ function parseLocalDate(dateStr: string) {
 
 function formatDate(dateStr: string) {
   const d = parseLocalDate(dateStr);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function formatLocalDate(date: Date) {
