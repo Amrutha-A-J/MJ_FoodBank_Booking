@@ -38,6 +38,26 @@ describe('HelpPage', () => {
     expect(screen.getByText(/Recurring bookings/i)).toBeInTheDocument();
   });
 
+  it('calls window.print when clicking Print', () => {
+    mockUseAuth.mockReturnValue({
+      role: 'volunteer',
+      access: [],
+      token: '',
+      name: '',
+      userRole: '',
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+      id: null,
+    } as any);
+    const printSpy = jest.spyOn(window, 'print').mockImplementation(() => {});
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /print/i }));
+    expect(printSpy).toHaveBeenCalled();
+    printSpy.mockRestore();
+  });
+
   it('shows tabs for available roles', () => {
     mockUseAuth.mockReturnValue({
       role: 'staff',
