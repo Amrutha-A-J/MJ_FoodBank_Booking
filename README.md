@@ -254,6 +254,7 @@ page and cached on the server:
 
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
 - A language selector lets users switch languages on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages.
+- Profile pages provide a button to email a password reset link instead of changing passwords directly.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
@@ -268,7 +269,7 @@ page and cached on the server:
 - Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients load once and appear only after entering a search term, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
 - Agencies can view slot availability and cancel or reschedule bookings for their clients using the standard booking APIs.
 - Agency navigation offers Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all behind an `AgencyGuard`.
-- Agency profile page shows the agency's name, email, and contact info with editable fields and password reset support.
+- Agency profile page shows the agency's name, email, and contact info with editable fields and sends password reset links via email.
 - Agency navigation offers Dashboard, Book Appointment, and Booking History pages, all behind an `AgencyGuard`.
 - Staff can add agencies and assign clients to them through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list for managing associations.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
