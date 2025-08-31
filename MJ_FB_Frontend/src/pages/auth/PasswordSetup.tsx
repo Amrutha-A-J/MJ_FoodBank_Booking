@@ -47,6 +47,8 @@ export default function PasswordSetup() {
         <TextField
           type="password"
           label="Password"
+          name="password"
+          autoComplete="new-password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           fullWidth

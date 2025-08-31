@@ -65,9 +65,28 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           </Button>
         }
       >
-        <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-        <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
-        <TextField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+        <TextField
+          label="First Name"
+          name="firstName"
+          autoComplete="given-name"
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
+        />
+        <TextField
+          label="Last Name"
+          name="lastName"
+          autoComplete="family-name"
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+        />
+        <TextField
+          label="Email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
         <Typography variant="body2" color="text.secondary">
           An email invitation will be sent.
         </Typography>
