@@ -187,7 +187,7 @@ export default function ClientDashboard() {
                 </List>
               ) : (
                 <Typography>
-                  No appointment booked —{' '}
+                  {t('no_appointment_booked')}{' '}
                   <Button
                     size="small"
                     variant="contained"
@@ -228,7 +228,7 @@ export default function ClientDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
             <SectionCard
-              title="Next Available Slots"
+              title={t('next_available_slots')}
               icon={<EventAvailable color="primary" />}
             >
               <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
@@ -243,7 +243,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => navigate('/book-appointment')}
                         >
-                          Book
+                          {t('book')}
                         </Button>
                       }
                     >
@@ -256,13 +256,13 @@ export default function ClientDashboard() {
                   ))
                 ) : (
                   <ListItem>
-                    <ListItemText primary="No available slots" />
+                    <ListItemText primary={t('no_slots_available')} />
                   </ListItem>
                 )}
               </List>
             </SectionCard>
 
-            <SectionCard title="Quick Actions">
+            <SectionCard title={t('quick_actions')}>
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
                   size="small"
