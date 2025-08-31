@@ -171,14 +171,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
               }
             />
           </Grid>
-          <Grid size={12}>
-            <SectionCard title="Notices & Events" icon={<Announcement color="primary" />}>
-              <EventList
-                events={[...events.today, ...events.upcoming]}
-                limit={5}
-              />
-            </SectionCard>
-          </Grid>
         </Grid>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
@@ -241,6 +233,14 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                   </Button>
                 </Stack>
               </Stack>
+            </SectionCard>
+          </Grid>
+          <Grid size={12}>
+            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+              <EventList
+                events={[...events.today, ...events.upcoming]}
+                limit={5}
+              />
             </SectionCard>
           </Grid>
           <Grid size={12}>
