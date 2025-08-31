@@ -8,7 +8,6 @@ import {
   Button,
   TextField,
   Autocomplete,
-  Tooltip,
   Chip,
   FormControl,
   InputLabel,
@@ -18,7 +17,6 @@ import {
   Stack,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import TrendingUp from '@mui/icons-material/TrendingUp';
 import WarningAmber from '@mui/icons-material/WarningAmber';
 import Announcement from '@mui/icons-material/Announcement';
@@ -29,7 +27,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RTooltip,
   Legend,
   BarChart,
   Bar,
@@ -321,9 +318,6 @@ export default function WarehouseDashboard() {
                 title={
                   <Stack direction="row" spacing={0.5} alignItems="center">
                     <span>{k.title}</span>
-                    <Tooltip title={k.tooltip || ''}>
-                      <InfoOutlined fontSize="small" color="action" />
-                    </Tooltip>
                   </Stack>
                 }
               />
@@ -360,7 +354,6 @@ export default function WarehouseDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <RTooltip formatter={(val: number) => fmtLbs(val)} />
                 <Legend />
                 <Line
                   type="monotone"
@@ -390,7 +383,6 @@ export default function WarehouseDashboard() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <RTooltip formatter={(val: number) => fmtLbs(val)} />
                 <Legend />
                 <Bar
                   dataKey="donations"

@@ -65,7 +65,7 @@ let theme = createTheme({
       sharp:     'cubic-bezier(0.4, 0, 0.6, 1)',
     },
   },
-  zIndex: { appBar: 1100, drawer: 1200, modal: 1300, snackbar: 1400, tooltip: 1500 },
+  zIndex: { appBar: 1100, drawer: 1200, modal: 1300, snackbar: 1400 },
 
   shadows: [
     'none',
@@ -270,10 +270,6 @@ let theme = createTheme({
           '&:active': { transform: 'translateY(0.5px)' },
         },
       },
-    },
-    MuiTooltip: {
-      defaultProps: { arrow: true, enterDelay: 300 },
-      styleOverrides: { tooltip: { borderRadius: 5, fontSize: '0.85rem', padding: '8px 10px' } },
     },
 
     // Layout rhythm

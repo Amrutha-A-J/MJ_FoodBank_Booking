@@ -10,8 +10,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { ReactNode } from 'react';
-import InfoTooltip from './InfoTooltip';
-import { useTranslation } from 'react-i18next';
 
 interface Cell {
   content: ReactNode;
@@ -28,16 +26,13 @@ interface Row {
 interface Props {
   maxSlots: number;
   rows: Row[];
-  legend?: ReactNode;
 }
 
-export default function VolunteerScheduleTable({ maxSlots, rows, legend }: Props) {
+export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
   const slotWidth = `calc((100% - 160px) / ${safeMaxSlots})`;
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const { t } = useTranslation();
-  const legendText = legend ?? t('tooltip_schedule_legend');
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
       <Table
@@ -62,10 +57,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows, legend }: Props
         </colgroup>
         <TableHead>
           <TableRow>
-            <TableCell>
-              Time
-              <InfoTooltip title={legendText} sx={{ ml: 0.5 }} />
-            </TableCell>
+            <TableCell>Time</TableCell>
             {Array.from({ length: safeMaxSlots }).map((_, i) => (
               <TableCell key={i}>Slot {i + 1}</TableCell>
             ))}

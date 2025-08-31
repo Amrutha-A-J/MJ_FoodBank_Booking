@@ -6,7 +6,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
 } from 'recharts';
 
 export interface ContributionDatum {
@@ -37,7 +36,6 @@ export default function PersonalContributionChart({ data, roles }: PersonalContr
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
         <YAxis allowDecimals={false} />
-        <Tooltip />
         <Line
           type="monotone"
           dataKey="total"

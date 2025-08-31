@@ -15,7 +15,6 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import InfoTooltip from '../../components/InfoTooltip';
 import Announcement from '@mui/icons-material/Announcement';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -453,9 +452,6 @@ export default function VolunteerDashboard() {
               title={
                 <Stack direction="row" spacing={0.5} alignItems="center">
                   My Stats
-                  <InfoTooltip
-                    title={t('tooltip_volunteer_stats')}
-                  />
                 </Stack>
               }
             >

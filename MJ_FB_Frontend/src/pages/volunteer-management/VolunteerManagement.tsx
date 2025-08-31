@@ -651,7 +651,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               <VolunteerScheduleTable
                 maxSlots={maxSlots}
                 rows={rows}
-                legend="Colored cells indicate booking status. Click a cell to manage bookings."
               />
             </>
           ) : (

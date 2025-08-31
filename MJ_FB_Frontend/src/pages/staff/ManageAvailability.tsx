@@ -17,7 +17,6 @@ import {
   FormControlLabel,
   Chip,
   IconButton,
-  Tooltip,
   List,
   ListItem,
   ListItemText,
@@ -33,7 +32,6 @@ import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
-import InfoTooltip from '../../components/InfoTooltip';
 import { useTranslation } from 'react-i18next';
 import {
   getHolidays,
@@ -281,7 +279,6 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Holidays</span>
-          <InfoTooltip title={t('tooltip_add_remove_holidays')} />
         </Stack>
       ),
       icon: <EventBusy />,
@@ -326,11 +323,9 @@ export default function ManageAvailability() {
               <ListItem
                 key={h.date}
                 secondaryAction={
-                  <Tooltip title="Remove">
-                    <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.date)}>
-                      <DeleteOutline />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton aria-label="remove" onClick={() => handleRemoveHoliday(h.date)}>
+                    <DeleteOutline />
+                  </IconButton>
                 }
               >
                 <ListItemText primary={formatLocaleDate(h.date)} />
@@ -350,7 +345,6 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Blocked Slots</span>
-          <InfoTooltip title={t('tooltip_block_slots')} />
         </Stack>
       ),
       icon: <Block />,
@@ -369,7 +363,6 @@ export default function ManageAvailability() {
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Day
-                        <InfoTooltip title={t('tooltip_recurring_day_of_week')} />
                       </InputLabel>
                       <Select
                         labelId="blocked-day-label"
@@ -390,7 +383,6 @@ export default function ManageAvailability() {
                     <FormControl fullWidth sx={{ minWidth: 200 }}>
                       <InputLabel id="blocked-week-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Week
-                        <InfoTooltip title={t('tooltip_recurring_week_of_month')} />
                       </InputLabel>
                       <Select
                         labelId="blocked-week-label"
@@ -419,7 +411,6 @@ export default function ManageAvailability() {
               <FormControl fullWidth>
                 <InputLabel id="slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   Slot
-                  <InfoTooltip title={t('tooltip_slot_blocked_on_date')} />
                 </InputLabel>
                 <Select
                   labelId="slot-label"
@@ -458,11 +449,9 @@ export default function ManageAvailability() {
               <ListItem
                 key={b.id}
                 secondaryAction={
-                  <Tooltip title="Remove">
-                    <IconButton aria-label="remove" onClick={() => handleRemoveBlocked(b.id)}>
-                      <DeleteOutline />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton aria-label="remove" onClick={() => handleRemoveBlocked(b.id)}>
+                    <DeleteOutline />
+                  </IconButton>
                 }
               >
                 <ListItemText
@@ -489,7 +478,6 @@ export default function ManageAvailability() {
       label: (
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <span>Staff Breaks</span>
-          <InfoTooltip title={t('tooltip_recurring_staff_breaks')} />
         </Stack>
       ),
       icon: <Restaurant />,
@@ -502,7 +490,6 @@ export default function ManageAvailability() {
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-day-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Day
-                    <InfoTooltip title={t('tooltip_break_repeats')} />
                   </InputLabel>
                   <Select
                     labelId="break-day-label"
@@ -523,7 +510,6 @@ export default function ManageAvailability() {
                 <FormControl fullWidth sx={{ minWidth: 200 }}>
                   <InputLabel id="break-slot-label" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     Slot
-                    <InfoTooltip title={t('tooltip_slot_unavailable_break')} />
                   </InputLabel>
                   <Select
                     labelId="break-slot-label"
@@ -566,11 +552,9 @@ export default function ManageAvailability() {
               <ListItem
                 key={b.id}
                 secondaryAction={
-                  <Tooltip title="Remove">
-                    <IconButton aria-label="remove" onClick={() => handleRemoveBreak(b.id)}>
-                      <DeleteOutline />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton aria-label="remove" onClick={() => handleRemoveBreak(b.id)}>
+                    <DeleteOutline />
+                  </IconButton>
                 }
               >
                 <ListItemText primary={`${days[b.day]} - ${slotLabel(b.slotId)}`} />
