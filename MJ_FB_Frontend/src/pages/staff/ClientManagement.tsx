@@ -6,6 +6,7 @@ import AddClient from './client-management/AddClient';
 import UpdateClientData from './client-management/UpdateClientData';
 import UserHistory from './client-management/UserHistory';
 import NewClients from './client-management/NewClients';
+import NoShowWeek from './client-management/NoShowWeek';
 
 export default function ClientManagement() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,8 @@ export default function ClientManagement() {
         return 2;
       case 'new':
         return 3;
+      case 'noshow':
+        return 4;
       default:
         return 0;
     }
@@ -28,6 +31,7 @@ export default function ClientManagement() {
     if (t === 'update') setTab(1);
     else if (t === 'history') setTab(2);
     else if (t === 'new') setTab(3);
+    else if (t === 'noshow') setTab(4);
     else setTab(0);
   }, [searchParams]);
   const tabs = [
@@ -35,6 +39,7 @@ export default function ClientManagement() {
     { label: 'Update', content: <UpdateClientData /> },
     { label: 'History', content: <UserHistory /> },
     { label: 'New Clients', content: <NewClients /> },
+    { label: 'No Shows', content: <NoShowWeek /> },
   ];
 
   return (
