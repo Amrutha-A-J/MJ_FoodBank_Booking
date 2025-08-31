@@ -43,8 +43,8 @@ import {
   TableContainer,
   Typography,
   useTheme,
-  Grid,
   Stack,
+  Box,
   Chip,
   CircularProgress,
 } from '@mui/material';
@@ -660,11 +660,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             onSelect={selectVolunteer}
           />
           {selectedVolunteer && (
-            <Grid container spacing={2} mt={2}>
-              <Grid
-                size={{ xs: 12, md: 4, lg: 4 }}
-                sx={{ flexBasis: { md: '33.333%' }, maxWidth: { md: '33.333%' } }}
-              >
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={2}
+              mt={2}
+            >
+              <Box sx={{ width: { xs: 1, md: '33%' } }}>
                 <Stack spacing={2} sx={{ width: 1 }}>
                   <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>
@@ -737,8 +738,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     )}
                   </PageCard>
                 </Stack>
-              </Grid>
-              <Grid size={{ xs: 12, md: 8, lg: 8 }} sx={{ flexGrow: 1 }}>
+              </Box>
+              <Box sx={{ width: { xs: 1, md: '67%' } }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
                     {t('booking_history')}
@@ -804,8 +805,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     </Table>
                   </TableContainer>
                 </PageCard>
-              </Grid>
-            </Grid>
+              </Box>
+            </Stack>
           )}
         </>
       )}
