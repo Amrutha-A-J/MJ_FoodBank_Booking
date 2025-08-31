@@ -164,10 +164,13 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
               </MuiLink>
             </Typography>
             <Typography>
-              Monthly usage: {booking.visits_this_month + booking.approved_bookings_this_month}
+              Monthly usage:{' '}
+              {Number(booking.visits_this_month) +
+                Number(booking.approved_bookings_this_month)}
             </Typography>
             <Typography>
-              Visits: {booking.visits_this_month}, Approved bookings: {booking.approved_bookings_this_month}
+              Visits: {Number(booking.visits_this_month)}, Approved bookings:{' '}
+              {Number(booking.approved_bookings_this_month)}
             </Typography>
           </Stack>
           <TextField
