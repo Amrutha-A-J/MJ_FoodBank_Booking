@@ -5,6 +5,21 @@ import { useTranslation } from 'react-i18next';
 const languages = [
   { code: 'en', labelKey: 'english' },
   { code: 'es', labelKey: 'spanish' },
+  { code: 'fr', labelKey: 'french' },
+  { code: 'ar', labelKey: 'arabic' },
+  { code: 'uk', labelKey: 'ukrainian' },
+  { code: 'so', labelKey: 'somali' },
+  { code: 'tl', labelKey: 'tagalog' },
+  { code: 'zh', labelKey: 'chinese' },
+  { code: 'pa', labelKey: 'punjabi' },
+  { code: 'hi', labelKey: 'hindi' },
+  { code: 'fa', labelKey: 'persian' },
+  { code: 'ps', labelKey: 'pashto' },
+  { code: 'ti', labelKey: 'tigrinya' },
+  { code: 'am', labelKey: 'amharic' },
+  { code: 'sw', labelKey: 'swahili' },
+  { code: 'ml', labelKey: 'malayalam' },
+  { code: 'ta', labelKey: 'tamil' },
 ];
 
 export default function LanguageSelector() {
