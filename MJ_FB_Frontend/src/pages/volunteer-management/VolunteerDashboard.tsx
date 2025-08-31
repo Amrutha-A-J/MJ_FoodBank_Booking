@@ -422,7 +422,7 @@ export default function VolunteerDashboard() {
                 {availableSlots.map(r => (
                   <ListItem
                     key={`${r.id}-${r.date}`}
-                    disableGutters
+                    sx={{ pl: 0 }}
                     secondaryAction={
                       <Button
                         size="small"
