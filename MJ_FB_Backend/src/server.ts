@@ -1,6 +1,7 @@
 import config from './config';
 import pool from './db';
 import { setupDatabase } from './setupDatabase';
+import { runMigrations } from './runMigrations';
 import logger from './utils/logger';
 import app from './app';
 import { startBookingReminderJob } from './utils/bookingReminderJob';
@@ -14,6 +15,7 @@ const PORT = config.port;
 async function init() {
   try {
     await setupDatabase();
+    await runMigrations();
     const client = await pool.connect();
     logger.info('✅ Connected to the database successfully!');
     client.release();
