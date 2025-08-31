@@ -47,3 +47,26 @@ describe('AuthProvider refresh handling', () => {
     expect(localStorage.getItem('role')).toBe('staff');
   });
 });
+
+describe('AuthProvider with no prior session', () => {
+  afterEach(() => {
+    global.fetch = realFetch;
+    jest.restoreAllMocks();
+    localStorage.clear();
+  });
+
+  it('does not show session expired when refresh fails without auth', async () => {
+    (global as any).fetch = jest
+      .fn()
+      .mockResolvedValue({ ok: false, status: 401 });
+
+    render(
+      <AuthProvider>
+        <div />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => expect((global as any).fetch).toHaveBeenCalled());
+    expect(screen.queryByText('Session expired')).toBeNull();
+  });
+});

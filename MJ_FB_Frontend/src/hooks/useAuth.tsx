@@ -86,6 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    const hadAuth = !!localStorage.getItem('role');
+    const handleExpired = () => {
+      clearAuth();
+      if (hadAuth) setSessionMessage('Session expired');
+    };
     const attemptRefresh = async (tries = 0): Promise<void> => {
       try {
         const res = await apiFetch(`${API_BASE}/auth/refresh`, {
@@ -97,22 +102,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Another tab already refreshed; token cookie is still valid
           if (active) setToken('cookie');
         } else if (res.status === 401) {
-          if (active) {
-            clearAuth();
-            setSessionMessage('Session expired');
-          }
+          if (active) handleExpired();
         } else if (tries < 1) {
           await attemptRefresh(tries + 1);
         } else if (active) {
-          clearAuth();
-          setSessionMessage('Session expired');
+          handleExpired();
         }
       } catch {
         if (tries < 1) {
           await attemptRefresh(tries + 1);
         } else if (active) {
-          clearAuth();
-          setSessionMessage('Session expired');
+          handleExpired();
         }
       }
     };
