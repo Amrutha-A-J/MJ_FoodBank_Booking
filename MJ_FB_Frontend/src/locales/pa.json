@@ -42,5 +42,11 @@
   "help": "ਮਦਦ",
   "logout": "ਲੌਗ ਆਊਟ",
   "breadcrumb": "ਬ੍ਰੇਡਕ੍ਰੰਬ",
-  "home": "ਘਰ"
+  "home": "ਘਰ",
+  "email": "Email",
+  "username": "Username",
+  "resend_password_setup_link": "Resend Password Setup Link",
+  "email_or_client_id": "Email or Client ID",
+  "if_account_exists_reset": "If the account exists, a reset link has been sent.",
+  "if_account_exists_setup": "If the account exists, a setup link has been sent."
 }

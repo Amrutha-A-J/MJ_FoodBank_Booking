@@ -42,5 +42,11 @@
   "help": "帮助",
   "logout": "退出登录",
   "breadcrumb": "面包屑导航",
-  "home": "首页"
+  "home": "首页",
+  "email": "Email",
+  "username": "Username",
+  "resend_password_setup_link": "Resend Password Setup Link",
+  "email_or_client_id": "Email or Client ID",
+  "if_account_exists_reset": "If the account exists, a reset link has been sent.",
+  "if_account_exists_setup": "If the account exists, a setup link has been sent."
 }

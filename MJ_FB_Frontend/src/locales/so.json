@@ -42,5 +42,11 @@
   "help": "Caawimaad",
   "logout": "Ka bax",
   "breadcrumb": "raadraac",
-  "home": "Bogga hore"
+  "home": "Bogga hore",
+  "email": "Email",
+  "username": "Username",
+  "resend_password_setup_link": "Resend Password Setup Link",
+  "email_or_client_id": "Email or Client ID",
+  "if_account_exists_reset": "If the account exists, a reset link has been sent.",
+  "if_account_exists_setup": "If the account exists, a setup link has been sent."
 }
