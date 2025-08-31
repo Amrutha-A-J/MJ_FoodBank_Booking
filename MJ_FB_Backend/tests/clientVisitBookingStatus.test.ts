@@ -3,8 +3,14 @@ import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
 import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
+import * as bookingRepository from '../src/models/bookingRepository';
 
 jest.mock('../src/db');
+jest.mock('../src/models/bookingRepository', () => ({
+  __esModule: true,
+  ...jest.requireActual('../src/models/bookingRepository'),
+  updateBooking: jest.fn(),
+}));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -50,11 +56,13 @@ app.use(
 describe('client visit booking integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
   });
 
   it('updates booking to visited and avoids duplicate history record', async () => {
-    (pool.query as jest.Mock)
-      // insert visit
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({
         rows: [
           {
@@ -68,18 +76,22 @@ describe('client visit booking integration', () => {
           },
         ],
         rowCount: 1,
-      })
-      // select client name
+      }) // insert visit
       .mockResolvedValueOnce({
         rows: [{ first_name: 'Ann', last_name: 'Client' }],
         rowCount: 1,
-      })
-      // refresh visit count
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-      // find existing booking
-      .mockResolvedValueOnce({ rows: [{ id: 55 }], rowCount: 1 })
-      // update booking status
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+      }) // select client
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // refresh count
+      .mockResolvedValueOnce({ rows: [{ id: 55 }], rowCount: 1 }) // same-day booking
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (pool.connect as jest.Mock).mockResolvedValue({
+      query: queryMock,
+      release: jest.fn(),
+    });
+
+    (pool.query as jest.Mock)
       // booking history query
       .mockResolvedValueOnce({
         rows: [
@@ -113,9 +125,10 @@ describe('client visit booking integration', () => {
       });
     expect(visitRes.status).toBe(201);
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE bookings SET status'),
-      ['visited', 55],
+    expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
+      55,
+      { status: 'visited' },
+      expect.anything(),
     );
 
     const historyRes = await request(app)
@@ -124,6 +137,72 @@ describe('client visit booking integration', () => {
     expect(historyRes.status).toBe(200);
     expect(historyRes.body).toHaveLength(1);
     expect(historyRes.body[0].status).toBe('visited');
+  });
+
+  it('marks future booking visited and frees slot', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 7, date: '2024-01-02', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, petItem: 0, anonymous: false },
+        ],
+        rowCount: 1,
+      }) // insert visit
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // refresh
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // same-day booking
+      .mockResolvedValueOnce({ rows: [{ id: 77, date: '2024-01-10' }], rowCount: 1 }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (pool.connect as jest.Mock).mockResolvedValue({
+      query: queryMock,
+      release: jest.fn(),
+    });
+
+    const res = await request(app)
+      .post('/client-visits')
+      .send({ date: '2024-01-02', clientId: 123 });
+
+    expect(res.status).toBe(201);
+    expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
+      77,
+      { status: 'visited', slot_id: null, date: '2024-01-02' },
+      expect.anything(),
+    );
+  });
+
+  it('marks past booking no_show', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 7, date: '2024-01-15', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, petItem: 0, anonymous: false },
+        ],
+        rowCount: 1,
+      }) // insert visit
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // refresh
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // same-day booking
+      .mockResolvedValueOnce({ rows: [{ id: 88, date: '2024-01-05' }], rowCount: 1 }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (pool.connect as jest.Mock).mockResolvedValue({
+      query: queryMock,
+      release: jest.fn(),
+    });
+
+    const res = await request(app)
+      .post('/client-visits')
+      .send({ date: '2024-01-15', clientId: 123 });
+
+    expect(res.status).toBe(201);
+    expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
+      88,
+      { status: 'no_show' },
+      expect.anything(),
+    );
   });
 });
 

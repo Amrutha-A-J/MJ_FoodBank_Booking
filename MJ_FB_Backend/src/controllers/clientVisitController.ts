@@ -2,9 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { formatReginaDate } from '../utils/dateUtils';
+import { Queryable } from '../utils/bookingUtils';
+import { updateBooking } from '../models/bookingRepository';
 
-export async function refreshClientVisitCount(clientId: number) {
-  await pool.query(
+export async function refreshClientVisitCount(
+  clientId: number,
+  client: Queryable = pool,
+) {
+  await client.query(
     `UPDATE clients c
      SET bookings_this_month = (
        SELECT COUNT(*) FROM client_visits v
@@ -39,9 +44,11 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
 }
 
 export async function addVisit(req: Request, res: Response, next: NextFunction) {
+  const client = await pool.connect();
   try {
     const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous } = req.body;
-    const result = await pool.query(
+    await client.query('BEGIN');
+    const insertRes = await client.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous)
        VALUES ($1, $2, $3, $4, COALESCE($5,0), $6)
        RETURNING id, date, client_id as "clientId", weight_with_cart as "weightWithCart",
@@ -50,34 +57,60 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
     );
     let clientName: string | null = null;
     if (clientId) {
-      const clientRes = await pool.query(
+      const clientRes = await client.query(
         'SELECT first_name, last_name FROM clients WHERE client_id = $1',
         [clientId]
       );
       if ((clientRes.rowCount ?? 0) > 0) {
         clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
       }
-      await refreshClientVisitCount(clientId);
+      await refreshClientVisitCount(clientId, client);
 
       // If the client had an approved booking on this date, mark it visited
-      const bookingRes = await pool.query(
+      const sameDayRes = await client.query(
         `SELECT b.id
            FROM bookings b
            INNER JOIN clients c ON b.user_id = c.client_id
            WHERE c.client_id = $1 AND b.date = $2 AND b.status = 'approved'`,
         [clientId, formatReginaDate(date)]
       );
-      if ((bookingRes.rowCount ?? 0) > 0) {
-        await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', [
-          'visited',
-          bookingRes.rows[0].id,
-        ]);
+      if ((sameDayRes.rowCount ?? 0) > 0) {
+        await updateBooking(sameDayRes.rows[0].id, { status: 'visited' }, client);
+      }
+
+      // Handle other approved bookings in the month
+      const otherRes = await client.query(
+        `SELECT b.id, b.date
+           FROM bookings b
+           INNER JOIN clients c ON b.user_id = c.client_id
+           WHERE c.client_id = $1
+             AND b.status = 'approved'
+             AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', $2::date)
+             AND b.date <> $2`,
+        [clientId, formatReginaDate(date)]
+      );
+      const visitDate = new Date(formatReginaDate(date));
+      for (const row of otherRes.rows) {
+        const bookingDate = new Date(row.date);
+        if (bookingDate > visitDate) {
+          await updateBooking(
+            row.id,
+            { status: 'visited', slot_id: null, date: formatReginaDate(date) },
+            client,
+          );
+        } else {
+          await updateBooking(row.id, { status: 'no_show' }, client);
+        }
       }
     }
-    res.status(201).json({ ...result.rows[0], clientName });
+    await client.query('COMMIT');
+    res.status(201).json({ ...insertRes.rows[0], clientName });
   } catch (error) {
+    await client.query('ROLLBACK');
     logger.error('Error adding client visit:', error);
     next(error);
+  } finally {
+    client.release();
   }
 }
 
