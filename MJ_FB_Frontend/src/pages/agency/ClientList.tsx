@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface AgencyClient {
   id: number;
@@ -33,6 +34,7 @@ export default function ClientList() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
   >(null);
+  const { t } = useTranslation();
 
   useAuth(); // ensure auth context
 
@@ -94,7 +96,7 @@ export default function ClientList() {
       <Grid item xs={12} md={6}>
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
           <Typography variant="h5">Clients</Typography>
-          <InfoTooltip title="Shows assigned clients and their public IDs." />
+          <InfoTooltip title={t('tooltip_assigned_clients')} />
         </Stack>
         <List dense>
           {clients.map(c => (

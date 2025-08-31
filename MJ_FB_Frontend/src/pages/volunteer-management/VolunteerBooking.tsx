@@ -15,6 +15,7 @@ import {
   Skeleton,
 } from '@mui/material';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
@@ -76,6 +77,7 @@ export default function VolunteerBooking() {
     existing: any;
   } | null>(null);
   const slotsRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!isDisabled(date)) return;
@@ -234,7 +236,7 @@ export default function VolunteerBooking() {
                 ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('ddd, MMM D, YYYY')}`
                 : 'No slot selected'}
             </Typography>
-            <InfoTooltip title="Select a slot above, then click Request shift to book it." />
+            <InfoTooltip title={t('tooltip_select_slot_request')} />
           </Stack>
           <Button
             variant="contained"

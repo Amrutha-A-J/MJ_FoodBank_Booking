@@ -35,6 +35,7 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import InfoTooltip from '../../components/InfoTooltip';
+import { useTranslation } from 'react-i18next';
 
 interface Booking {
   id: number;
@@ -90,6 +91,7 @@ export default function AgencyDashboard() {
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   useEffect(() => {
     getMyAgencyClients()
@@ -174,7 +176,7 @@ export default function AgencyDashboard() {
                         Cancel
                       </Button>
                       <InfoTooltip
-                        title="Cancel at least 24 hours before the booking to avoid a no-show."
+                        title={t('tooltip_cancel_24hr')}
                         placement="top"
                       />
                       {next.reschedule_token && (
@@ -197,7 +199,7 @@ export default function AgencyDashboard() {
               )}
             </SectionCard>
 
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
               <Stack spacing={2}>
                 <EventList events={[...events.today, ...events.upcoming]} limit={5} />
                 <List>
@@ -232,7 +234,7 @@ export default function AgencyDashboard() {
                           >
                             Book
                           </Button>
-                          <InfoTooltip title="Slot has remaining capacity" />
+                          <InfoTooltip title={t('tooltip_slot_remaining_capacity')} />
                         </Stack>
                       }
                     >
@@ -311,9 +313,9 @@ export default function AgencyDashboard() {
       </Grid>
       <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
         <DialogCloseButton onClose={() => setCancelId(null)} />
-        <DialogTitle>Cancel booking</DialogTitle>
+        <DialogTitle>{t('cancel_booking')}</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to cancel this booking?</Typography>
+          <Typography>{t('cancel_booking_question')}</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -323,7 +325,7 @@ export default function AgencyDashboard() {
             sx={{ textTransform: 'none' }}
             onClick={confirmCancel}
           >
-            Cancel booking
+            {t('cancel_booking')}
           </Button>
         </DialogActions>
       </Dialog>

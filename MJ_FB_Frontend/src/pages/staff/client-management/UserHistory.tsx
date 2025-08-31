@@ -33,6 +33,7 @@ import RescheduleDialog from '../../../components/RescheduleDialog';
 import EntitySearch from '../../../components/EntitySearch';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import { useTranslation } from 'react-i18next';
 import { toDate, formatDate } from '../../../utils/date';
 import Page from '../../../components/Page';
 
@@ -79,6 +80,7 @@ export default function UserHistory({
     onlineAccess: false,
     password: '',
   });
+  const { t } = useTranslation();
 
   const pageSize = 10;
 
@@ -394,9 +396,9 @@ export default function UserHistory({
           )}
           <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
             <DialogCloseButton onClose={() => setCancelId(null)} />
-            <DialogTitle>Cancel booking</DialogTitle>
+            <DialogTitle>{t('cancel_booking')}</DialogTitle>
             <DialogContent>
-              <Typography>Are you sure you want to cancel this booking?</Typography>
+              <Typography>{t('cancel_booking_question')}</Typography>
             </DialogContent>
             <DialogActions>
               <Button
@@ -404,7 +406,7 @@ export default function UserHistory({
                 variant="contained"
                 onClick={confirmCancel}
               >
-                Cancel booking
+                {t('cancel_booking')}
               </Button>
             </DialogActions>
           </Dialog>
