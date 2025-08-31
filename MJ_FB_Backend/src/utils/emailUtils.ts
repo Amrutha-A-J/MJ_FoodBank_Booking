@@ -36,7 +36,11 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
       });
     }
   } catch (error) {
-    logger.warn('Email not sent. Check Brevo configuration or running in local environment.', { to, subject, body });
+    logger.warn(
+      'Email not sent. Check Brevo configuration or running in local environment.',
+      { to, subject, body, error }
+    );
+    throw error;
   }
 }
 
@@ -89,11 +93,11 @@ export async function sendTemplatedEmail({
       });
     }
   } catch (error) {
-    logger.warn('Template email not sent. Check Brevo configuration or running in local environment.', {
-      to,
-      templateId,
-      params,
-    });
+    logger.warn(
+      'Template email not sent. Check Brevo configuration or running in local environment.',
+      { to, templateId, params, error }
+    );
+    throw error;
   }
 }
 
