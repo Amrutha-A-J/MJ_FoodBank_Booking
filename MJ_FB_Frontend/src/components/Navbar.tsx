@@ -15,6 +15,7 @@ import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import LanguageSelector from './LanguageSelector';
 
 export type NavLink = { label: string; to: string; badge?: number };
 export type NavGroup = { label: string; links: NavLink[] };
@@ -316,6 +317,8 @@ export default function Navbar({
               )
             )
           )}
+
+          {role === 'client' && <LanguageSelector />}
 
           {/* Profile menu / Logout on desktop */}
           {onLogout &&

@@ -1,0 +1,22 @@
+{
+  "language": "Idioma",
+  "english": "English",
+  "spanish": "Español",
+  "login": "Iniciar sesión",
+  "client_login": "Acceso de cliente",
+  "client_id": "ID del cliente",
+  "password": "Contraseña",
+  "forgot_password": "¿Olvidó su contraseña?",
+  "client_id_required": "Se requiere ID del cliente",
+  "password_required": "Se requiere la contraseña",
+  "set_password": "Crear contraseña",
+  "back_to_login": "Volver al inicio",
+  "resend_link": "Reenviar enlace",
+  "change_password": "Cambiar contraseña",
+  "current_password": "Contraseña actual",
+  "new_password": "Nueva contraseña",
+  "reset_password": "Restablecer contraseña",
+  "submit": "Enviar",
+  "invalid_or_expired_token": "Token inválido o expirado",
+  "client_dashboard": "Panel del cliente"
+}

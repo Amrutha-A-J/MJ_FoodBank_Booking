@@ -28,6 +28,7 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
+import { useTranslation } from 'react-i18next';
 
 interface Booking {
   id: number;
@@ -77,6 +78,7 @@ export default function ClientDashboard() {
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   useEffect(() => {
     getBookingHistory({ includeVisits: true })
@@ -134,7 +136,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <Page title="Client Dashboard">
+    <Page title={t('client_dashboard')}>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>

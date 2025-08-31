@@ -5,6 +5,8 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
+import LanguageSelector from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 export default function PasswordResetDialog({
   open,
@@ -19,10 +21,11 @@ export default function PasswordResetDialog({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const { t } = useTranslation();
 
   const label =
-    type === 'staff' ? 'Email' : type === 'volunteer' ? 'Username' : 'Client ID';
-  const formTitle = 'Reset Password';
+    type === 'staff' ? 'Email' : type === 'volunteer' ? 'Username' : t('client_id');
+  const formTitle = t('reset_password');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +56,8 @@ export default function PasswordResetDialog({
           <FormCard
             title={formTitle}
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">Submit</Button>}
+            header={type === 'user' ? <LanguageSelector /> : undefined}
+            actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <TextField

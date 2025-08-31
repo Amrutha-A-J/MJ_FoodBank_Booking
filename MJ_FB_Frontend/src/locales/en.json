@@ -1,0 +1,22 @@
+{
+  "language": "Language",
+  "english": "English",
+  "spanish": "Español",
+  "login": "Login",
+  "client_login": "Client Login",
+  "client_id": "Client ID",
+  "password": "Password",
+  "forgot_password": "Forgot password?",
+  "client_id_required": "Client ID is required",
+  "password_required": "Password is required",
+  "set_password": "Set Password",
+  "back_to_login": "Back to login",
+  "resend_link": "Resend link",
+  "change_password": "Change Password",
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "reset_password": "Reset Password",
+  "submit": "Submit",
+  "invalid_or_expired_token": "Invalid or expired token",
+  "client_dashboard": "Client Dashboard"
+}
