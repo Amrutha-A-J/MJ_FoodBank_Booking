@@ -55,8 +55,20 @@ export const helpContent: Record<
   ],
   admin: [
     {
-      title: 'Manage staff',
-      body: 'Admins can add staff members and configure system settings.',
+      title: 'Staff users and permissions',
+      body: 'Admins can add new staff accounts, edit existing users, and manage permissions.',
+    },
+    {
+      title: 'Pantry, warehouse, and volunteer settings',
+      body: 'Configure system options for pantry scheduling, warehouse tracking, and volunteer management.',
+    },
+    {
+      title: 'Volunteer master roles and shifts',
+      body: 'Create or update master roles and define the shifts available for each role.',
+    },
+    {
+      title: 'Restore default roles and shifts',
+      body: 'Reset volunteer roles and shift setups to their default configuration when needed.',
     },
   ],
 };
