@@ -33,9 +33,13 @@ const app = express();
 app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
+const client = { query: jest.fn(), release: jest.fn() } as any;
+
 describe('rebooking after cancellation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    client.query.mockReset();
+    (pool.connect as jest.Mock).mockResolvedValue(client);
   });
 
   it('creates booking when previous one was cancelled', async () => {
@@ -56,10 +60,13 @@ describe('rebooking after cancellation', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] }) // trained
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // holiday
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // existing approved
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // overlap
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] }) // count
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }); // overlap
+
+    client.query
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ max_volunteers: 3 }] })
+      .mockResolvedValueOnce({ rows: [{ count: '0' }] })
       .mockResolvedValueOnce({
-        rowCount: 1,
         rows: [
           {
             id: 9,
@@ -71,7 +78,8 @@ describe('rebooking after cancellation', () => {
             recurring_id: null,
           },
         ],
-      }); // insert
+      })
+      .mockResolvedValueOnce({}); // COMMIT
 
     const res = await request(app)
       .post('/volunteer-bookings')
