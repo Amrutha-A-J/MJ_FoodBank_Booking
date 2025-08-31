@@ -9,7 +9,8 @@ import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
-import { getUnmarkedVolunteerBookings } from './api/volunteers';
+import { getVolunteerBookingsForReview } from './api/volunteers';
+import dayjs, { formatDate } from './utils/date';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -61,6 +62,9 @@ const PendingReviews = React.lazy(() =>
 );
 const VolunteerRankings = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerRankings')
+);
+const VolunteerTabs = React.lazy(() =>
+  import('./pages/volunteer-management/VolunteerTabs')
 );
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
@@ -128,7 +132,9 @@ export default function App() {
 
   useEffect(() => {
     if (showVolunteerManagement) {
-      getUnmarkedVolunteerBookings()
+      const start = formatDate(dayjs().startOf('week'));
+      const end = formatDate(dayjs().startOf('week').add(6, 'day'));
+      getVolunteerBookingsForReview(start, end)
         .then(b => setPendingReviews(b.length))
         .catch(() => setPendingReviews(0));
     }
@@ -166,13 +172,11 @@ export default function App() {
         links: [
           { label: 'Dashboard', to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
-          { label: 'Search', to: '/volunteer-management/search' },
           {
-            label: 'Pending Reviews',
-            to: '/volunteer-management/pending-reviews',
+            label: 'Volunteers',
+            to: '/volunteer-management/volunteers',
             badge: pendingReviews,
           },
-          { label: 'Create', to: '/volunteer-management/create' },
         ],
       });
 
@@ -395,9 +399,23 @@ export default function App() {
                     element={<VolunteerManagement />}
                   />
                   <Route
-                    path="/volunteer-management/pending-reviews"
-                    element={<PendingReviews />}
-                  />
+                    path="/volunteer-management/volunteers/*"
+                    element={<VolunteerTabs />}
+                  >
+                    <Route index element={<Navigate to="search" replace />} />
+                    <Route
+                      path="search"
+                      element={<VolunteerManagement initialTab="search" />}
+                    />
+                    <Route
+                      path="create"
+                      element={<VolunteerManagement initialTab="create" />}
+                    />
+                    <Route
+                      path="pending-reviews"
+                      element={<PendingReviews />}
+                    />
+                  </Route>
                   <Route
                     path="/volunteer-management/rankings"
                     element={<VolunteerRankings />}

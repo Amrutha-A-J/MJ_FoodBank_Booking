@@ -6,6 +6,7 @@ import {
   listMyVolunteerBookings,
   listMyRecurringVolunteerBookings,
   listUnmarkedVolunteerBookings,
+  listVolunteerBookingsForReview,
   updateVolunteerBookingStatus,
   listVolunteerBookingsByVolunteer,
   createVolunteerBookingForVolunteer,
@@ -55,6 +56,12 @@ router.get(
   authMiddleware,
   authorizeRoles('staff'),
   listUnmarkedVolunteerBookings,
+);
+router.get(
+  '/review',
+  authMiddleware,
+  authorizeRoles('staff'),
+  listVolunteerBookingsForReview,
 );
 router.get('/', authMiddleware, authorizeRoles('staff'), listVolunteerBookings);
 router.get('/:role_id', authMiddleware, authorizeRoles('staff'), listVolunteerBookingsByRole);
