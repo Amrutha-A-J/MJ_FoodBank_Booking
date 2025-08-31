@@ -86,7 +86,7 @@ export async function countVisitsAndBookingsForMonth(
     const res = await client.query(
       `SELECT (
         SELECT COUNT(*) FROM bookings
-        WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3
+        WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3 AND date >= CURRENT_DATE
       ) + (
         SELECT COUNT(*) FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
