@@ -27,8 +27,11 @@
     "date-fns": "^4",
     "date-fns-tz": "^3",
     "dayjs": "^1",
+    "i18next": "^25.4.2",
+    "i18next-http-backend": "^3.0.2",
     "react": "^19",
     "react-dom": "^19",
+    "react-i18next": "^15.7.3",
     "react-router-dom": "^7",
     "recharts": "^3",
     "write-excel-file": "^2"
