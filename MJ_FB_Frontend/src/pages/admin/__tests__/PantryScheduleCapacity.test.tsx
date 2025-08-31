@@ -53,9 +53,9 @@ describe('PantrySchedule status colors', () => {
       { id: '1', startTime: '09:00:00', endTime: '10:00:00', maxCapacity: 3 },
     ]);
     (getBookings as jest.Mock).mockResolvedValue([
-      { id: 1, status: 'approved', date: '2024-01-01', slot_id: 1, user_name: 'App', user_id: 1, client_id: 1, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
-      { id: 2, status: 'no_show', date: '2024-01-01', slot_id: 1, user_name: 'No', user_id: 2, client_id: 2, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
-      { id: 3, status: 'visited', date: '2024-01-01', slot_id: 1, user_name: 'Vis', user_id: 3, client_id: 3, bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
+      { id: 1, status: 'approved', date: '2024-01-01', slot_id: 1, user_name: 'App', user_id: 1, client_id: 1, visits_this_month: 0, approved_bookings_this_month: 1, is_staff_booking: false, reschedule_token: '' },
+      { id: 2, status: 'no_show', date: '2024-01-01', slot_id: 1, user_name: 'No', user_id: 2, client_id: 2, visits_this_month: 0, approved_bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
+      { id: 3, status: 'visited', date: '2024-01-01', slot_id: 1, user_name: 'Vis', user_id: 3, client_id: 3, visits_this_month: 0, approved_bookings_this_month: 0, is_staff_booking: false, reschedule_token: '' },
       ]);
     (getHolidays as jest.Mock).mockResolvedValue([]);
 
@@ -93,7 +93,8 @@ describe('PantrySchedule status colors', () => {
         user_name: 'App',
         user_id: 1,
         client_id: 1,
-        bookings_this_month: 0,
+        visits_this_month: 0,
+        approved_bookings_this_month: 1,
         is_staff_booking: false,
         reschedule_token: '',
       },
@@ -105,7 +106,8 @@ describe('PantrySchedule status colors', () => {
         user_name: 'Over',
         user_id: 2,
         client_id: 2,
-        bookings_this_month: 0,
+        visits_this_month: 0,
+        approved_bookings_this_month: 2,
         is_staff_booking: false,
         reschedule_token: '',
       },

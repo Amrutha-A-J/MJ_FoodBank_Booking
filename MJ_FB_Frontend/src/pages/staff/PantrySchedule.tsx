@@ -36,7 +36,8 @@ interface Booking {
   user_id: number | null;
   client_id: number | null;
   newClientId?: number | null;
-  bookings_this_month: number;
+  visits_this_month: number;
+  approved_bookings_this_month: number;
   is_staff_booking: boolean;
   reschedule_token: string;
   profile_link: string;

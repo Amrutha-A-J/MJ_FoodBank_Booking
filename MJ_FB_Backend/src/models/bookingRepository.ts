@@ -121,7 +121,8 @@ export async function fetchBookings(
         COALESCE(u.email, nc.email) as user_email,
         COALESCE(u.phone, nc.phone) as user_phone,
         u.client_id, u.profile_link,
-        COALESCE(v.visits, 0) AS bookings_this_month,
+        COALESCE(v.visits, 0) AS visits_this_month,
+        COALESCE(ab.approved, 0) AS approved_bookings_this_month,
         s.start_time, s.end_time
         FROM bookings b
         LEFT JOIN clients u ON b.user_id = u.client_id
@@ -133,6 +134,13 @@ export async function fetchBookings(
           GROUP BY client_id, month
         ) v ON v.client_id = u.client_id
           AND b.date BETWEEN v.month AND (v.month + INTERVAL '1 month' - INTERVAL '1 day')
+        LEFT JOIN (
+          SELECT user_id AS client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS approved
+          FROM bookings
+          WHERE status = 'approved'
+          GROUP BY user_id, month
+        ) ab ON ab.client_id = u.client_id
+          AND b.date BETWEEN ab.month AND (ab.month + INTERVAL '1 month' - INTERVAL '1 day')
       ${whereClause}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
