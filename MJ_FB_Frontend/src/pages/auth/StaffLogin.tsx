@@ -112,6 +112,8 @@ function StaffLoginForm({
           value={email}
           onChange={e => setEmail(e.target.value)}
           label="Email"
+          name="email"
+          autoComplete="email"
           fullWidth
           required
           error={emailError}
@@ -122,6 +124,8 @@ function StaffLoginForm({
           value={password}
           onChange={e => setPassword(e.target.value)}
           label="Password"
+          name="password"
+          autoComplete="current-password"
           fullWidth
           required
           error={passwordError}
@@ -182,6 +186,8 @@ function CreateStaffForm({ error: initError }: { error: string }) {
           value={firstName}
           onChange={e => setFirstName(e.target.value)}
           label="First name"
+          name="firstName"
+          autoComplete="given-name"
           fullWidth
           required
           error={firstNameError}
@@ -191,6 +197,8 @@ function CreateStaffForm({ error: initError }: { error: string }) {
           value={lastName}
           onChange={e => setLastName(e.target.value)}
           label="Last name"
+          name="lastName"
+          autoComplete="family-name"
           fullWidth
           required
           error={lastNameError}
@@ -201,6 +209,8 @@ function CreateStaffForm({ error: initError }: { error: string }) {
           value={email}
           onChange={e => setEmail(e.target.value)}
           label="Email"
+          name="email"
+          autoComplete="email"
           fullWidth
           required
           error={emailError}
