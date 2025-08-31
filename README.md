@@ -250,6 +250,8 @@ page and cached on the server:
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
 
+The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show`.
+
 ### Frontend features
 
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).

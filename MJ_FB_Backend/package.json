@@ -14,6 +14,7 @@
     "dotenv": "^17",
     "express": "^5",
     "jsonwebtoken": "^9",
+    "helmet": "^8.1.0",
     "node-cron": "^3",
     "pg": "^8",
     "write-excel-file": "^2",
@@ -37,7 +38,8 @@
     "ts-jest": "^29",
     "tsx": "^4",
     "typescript": "^5",
-    "undici": "^6"
+    "undici": "^6",
+    "pg-mem": "^3"
   },
   "overrides": {
     "test-exclude": "^7"
