@@ -77,8 +77,16 @@ export const helpContent: Record<
   ],
   warehouse: [
     {
-      title: 'Track donations',
-      body: 'Warehouse staff record incoming and outgoing donations from the dashboard.',
+      title: 'Log donations and outgoing shipments',
+      body: 'Record food donations and outgoing shipments from the warehouse dashboard.',
+    },
+    {
+      title: 'Track surplus and pig-pound weights',
+      body: 'Use the Track Surplus and Track Pig Pound pages to record weight totals.',
+    },
+    {
+      title: 'Export or review aggregate reports',
+      body: 'Use the Aggregations page to review monthly totals or export yearly spreadsheets.',
     },
   ],
   admin: [
