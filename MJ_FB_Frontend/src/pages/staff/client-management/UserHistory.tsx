@@ -205,9 +205,11 @@ export default function UserHistory({
           <div>
             <Stack direction="row" spacing={1} alignItems="center" mb={1}>
               {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
-              <Button size="small" variant="contained" onClick={handleEditClient}>
-                Edit Client
-              </Button>
+              {!initialUser && (
+                <Button size="small" variant="contained" onClick={handleEditClient}>
+                  Edit Client
+                </Button>
+              )}
             </Stack>
             <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
               <InputLabel id="filter-label">{t('filter')}</InputLabel>
