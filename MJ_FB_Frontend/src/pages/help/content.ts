@@ -32,11 +32,23 @@ export const helpContent: Record<
   volunteer: [
     {
       title: 'View schedule',
-      body: 'The volunteer schedule shows available shifts for trained roles.',
+      body: 'The volunteer schedule shows available shifts for your trained roles.',
+    },
+    {
+      title: 'Book, cancel, or reschedule shifts',
+      body: 'Pick an open shift to book it, then manage upcoming shifts to cancel or choose a new time.',
     },
     {
       title: 'Recurring bookings',
-      body: 'Set up weekly shifts from the recurring bookings page.',
+      body: 'Use the Recurring Bookings page to reserve the same shift each week.',
+    },
+    {
+      title: 'Stats, badges, and leaderboard',
+      body: 'Your dashboard shows hours served, earned badges, and your spot on the volunteer leaderboard.',
+    },
+    {
+      title: 'Update profile',
+      body: 'Edit your contact information on the Profile page so coordinators can reach you.',
     },
   ],
   agency: [
