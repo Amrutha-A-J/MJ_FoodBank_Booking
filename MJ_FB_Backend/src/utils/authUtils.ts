@@ -42,9 +42,13 @@ export async function issueAuthTokens(
   subject: string,
 ) {
   const jti = randomUUID();
-  const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+  const token = jwt.sign(payload, config.jwtSecret, {
+    expiresIn: '1h',
+    algorithm: 'HS256',
+  });
   const refreshToken = jwt.sign({ ...payload, jti }, config.jwtRefreshSecret, {
     expiresIn: '7d',
+    algorithm: 'HS256',
   });
 
   await pool.query(

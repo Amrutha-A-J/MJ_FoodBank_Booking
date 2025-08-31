@@ -263,7 +263,9 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
     if (!token) {
       return res.status(401).json({ message: 'Missing refresh token' });
     }
-    const payload = jwt.verify(token, config.jwtRefreshSecret) as {
+    const payload = jwt.verify(token, config.jwtRefreshSecret, {
+      algorithms: ['HS256'],
+    }) as {
       id: number | string;
       role: string;
       type: string;
@@ -301,11 +303,12 @@ export async function refreshToken(req: Request, res: Response, next: NextFuncti
 
     const accessToken = jwt.sign(basePayload, config.jwtSecret, {
       expiresIn: '1h',
+      algorithm: 'HS256',
     });
     const newRefreshToken = jwt.sign(
       { ...basePayload, jti: newJti },
       config.jwtRefreshSecret,
-      { expiresIn: '7d' },
+      { expiresIn: '7d', algorithm: 'HS256' },
     );
     const refreshExpiry = 7 * 24 * 60 * 60 * 1000; // 7 days
     res.cookie('token', accessToken, {
@@ -331,7 +334,9 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
     const token = getRefreshTokenFromCookies(req);
     if (token) {
       try {
-        const payload = jwt.verify(token, config.jwtRefreshSecret) as {
+        const payload = jwt.verify(token, config.jwtRefreshSecret, {
+          algorithms: ['HS256'],
+        }) as {
           id: number | string;
           type: string;
         };
