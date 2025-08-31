@@ -44,7 +44,7 @@ export const helpContent: Record<
     },
     {
       title: 'Recurring shifts',
-      body: 'Schedule repeating volunteer shifts from the Recurring Shifts page.',
+      body: 'Search volunteers and schedule or cancel repeating shifts from the Recurring Shifts page.',
     },
   ],
   warehouse: [
