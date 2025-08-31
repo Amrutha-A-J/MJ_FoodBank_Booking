@@ -11,7 +11,7 @@ import {
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Lock from '@mui/icons-material/Lock';
 import type { Role, UserProfile } from '../../types';
-import { getUserProfile, changePassword, updateMyProfile } from '../../api/users';
+import { getUserProfile, requestPasswordReset, updateMyProfile } from '../../api/users';
 import { getVolunteerProfile } from '../../api/volunteers';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PageContainer from '../../components/layout/PageContainer';
@@ -21,9 +21,6 @@ import { useTranslation } from 'react-i18next';
 export default function Profile({ role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [email, setEmail] = useState('');
@@ -58,30 +55,20 @@ export default function Profile({ role }: { role: Role }) {
     : '';
   const phoneRegex = /^\+?[0-9\s-]{7,15}$/;
 
-  function validatePassword(pwd: string) {
-    if (pwd.length < 8) return t('profile_page.password_min_length');
-    if (!/\d/.test(pwd)) return t('profile_page.password_number');
-    if (!/[^A-Za-z0-9]/.test(pwd)) return t('profile_page.password_symbol');
-    return '';
-  }
-
   async function handleReset() {
-    const validationError = validatePassword(newPassword);
-    if (validationError) {
-      setPasswordError(validationError);
-      return;
-    }
-
+    if (!profile) return;
     setSubmitting(true);
-    setPasswordError('');
     try {
-      await changePassword(currentPassword, newPassword);
-      setToast({ open: true, message: t('profile_page.password_updated'), severity: 'success' });
-      setCurrentPassword('');
-      setNewPassword('');
+      const body =
+        profile.role === 'volunteer'
+          ? { username: profile.username ?? '' }
+          : profile.role === 'shopper' || profile.role === 'delivery'
+          ? { clientId: String(profile.clientId) }
+          : { email: profile.email ?? '' };
+      await requestPasswordReset(body);
+      setToast({ open: true, message: t('reset_link_sent'), severity: 'success' });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setPasswordError(msg);
       setToast({ open: true, message: msg, severity: 'error' });
     } finally {
       setSubmitting(false);
@@ -228,55 +215,16 @@ export default function Profile({ role }: { role: Role }) {
               <Typography variant="h6">{t('reset_password')}</Typography>
             </Stack>
 
-            <TextField
-              id="current-password"
-              label={t('current_password')}
-              type="password"
-              autoComplete="current-password"
-              fullWidth
-              value={currentPassword}
-              onChange={e => {
-                setCurrentPassword(e.target.value);
-                setPasswordError('');
-              }}
-              disabled={submitting}
-            />
-            <TextField
-              id="new-password"
-              label={t('new_password')}
-              type="password"
-              autoComplete="new-password"
-              fullWidth
-              value={newPassword}
-              onChange={e => {
-                const val = e.target.value;
-                setNewPassword(val);
-                setPasswordError(validatePassword(val));
-              }}
-              disabled={submitting}
-              error={!!passwordError}
-              helperText={passwordError}
-            />
-            <Typography variant="caption" color="text.secondary">
-              {t('profile_page.password_requirements')}
-            </Typography>
-
             <Button
               variant="contained"
               color="success"
               size="small"
               fullWidth
-              disabled={
-                submitting ||
-                !currentPassword ||
-                !newPassword ||
-                !!validatePassword(newPassword) ||
-                !!passwordError
-              }
+              disabled={submitting || !profile}
               startIcon={submitting ? <CircularProgress size={20} /> : null}
               onClick={handleReset}
             >
-              {submitting ? t('profile_page.updating') : t('reset_password')}
+              {t('reset_password')}
             </Button>
           </Stack>
         </Stack>
