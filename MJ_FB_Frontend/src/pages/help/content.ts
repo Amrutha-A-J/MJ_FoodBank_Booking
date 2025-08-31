@@ -41,8 +41,24 @@ export const helpContent: Record<
   ],
   agency: [
     {
+      title: 'Search and link clients',
+      body: 'Find clients by name and link them to your agency.',
+    },
+    {
       title: 'Book for clients',
-      body: 'Agencies may create, reschedule, or cancel bookings for linked clients.',
+      body: 'Create appointments for linked clients from the agency schedule.',
+    },
+    {
+      title: 'Cancel or reschedule bookings',
+      body: 'Modify client appointments directly from the schedule.',
+    },
+    {
+      title: 'View schedule and booking history',
+      body: 'Check upcoming appointments and past visits for linked clients.',
+    },
+    {
+      title: 'Edit profile and contact info',
+      body: 'Update your agency name, email, and phone from the profile page.',
     },
   ],
   pantry: [
