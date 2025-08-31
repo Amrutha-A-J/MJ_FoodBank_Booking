@@ -28,11 +28,19 @@ function Main() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root')!;
+const root = ReactDOM.createRoot(container);
+
+root.render(
   <React.StrictMode>
     <Main />
   </React.StrictMode>,
 );
+
+if (import.meta.hot) {
+  import.meta.hot.accept();
+  import.meta.hot.dispose(() => root.unmount());
+}
 
 registerServiceWorker();
 
