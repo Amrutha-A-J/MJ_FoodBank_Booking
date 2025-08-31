@@ -190,16 +190,17 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
     const requesterId = Number((requester as any).userId ?? requester.id);
+    const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
     if (requester.role === 'agency') {
-      if (booking.user_id) {
-        const associated = await isAgencyClient(requesterId, booking.user_id);
+      if (bookingUserId !== undefined) {
+        const associated = await isAgencyClient(requesterId, bookingUserId);
         if (!associated) {
           return res.status(403).json({
             message: 'Client not associated with agency',
           });
         }
       }
-    } else if (requester.role !== 'staff' && booking.user_id !== requesterId) {
+    } else if (requester.role !== 'staff' && bookingUserId !== requesterId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -220,10 +221,10 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     });
 
     let email: string | undefined;
-    if (booking.user_id) {
+    if (bookingUserId !== undefined) {
       const emailRes = await pool.query(
         'SELECT email FROM clients WHERE client_id=$1',
-        [booking.user_id],
+        [bookingUserId],
       );
       email = emailRes.rows[0]?.email;
     } else if (booking.new_client_id) {
@@ -333,7 +334,11 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     }
     await checkSlotCapacity(slotId, date);
 
-    const usage = await countVisitsAndBookingsForMonth(booking.user_id, date);
+    const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
+    const usage =
+      bookingUserId !== undefined
+        ? await countVisitsAndBookingsForMonth(bookingUserId, date)
+        : 0;
     if (usage === false) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
@@ -361,10 +366,10 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     await updateBooking(booking.id, updateFields);
 
     let email: string | undefined;
-    if (booking.user_id) {
+    if (bookingUserId !== undefined) {
       const emailRes = await pool.query(
         'SELECT email FROM clients WHERE client_id=$1',
-        [booking.user_id],
+        [bookingUserId],
       );
       email = emailRes.rows[0]?.email;
     } else if (booking.new_client_id) {
