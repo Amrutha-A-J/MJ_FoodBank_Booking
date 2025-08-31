@@ -1,29 +1,25 @@
-import { Tabs, Tab } from '@mui/material';
-import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom';
+import React, { useState, Suspense } from 'react';
+import { Tabs, Tab, CircularProgress } from '@mui/material';
 import Page from '../../components/Page';
 
+const VolunteerManagement = React.lazy(() => import('./VolunteerManagement'));
+const PendingReviews = React.lazy(() => import('./PendingReviews'));
+
 export default function VolunteerTabs() {
-  const location = useLocation();
-  const base = '/volunteer-management/volunteers';
-  const path = location.pathname.replace(base, '');
-  const value = path.startsWith('/create')
-    ? 1
-    : path.startsWith('/pending-reviews')
-    ? 2
-    : 0;
+  const [tab, setTab] = useState(0);
 
   return (
-    <Page
-      title="Volunteers"
-      header={
-        <Tabs value={value} sx={{ mb: 2 }}>
-          <Tab label="Search" component={RouterLink} to={`${base}/search`} />
-          <Tab label="Add Volunteer" component={RouterLink} to={`${base}/create`} />
-          <Tab label="Pending Reviews" component={RouterLink} to={`${base}/pending-reviews`} />
-        </Tabs>
-      }
-    >
-      <Outlet />
+    <Page title="Volunteers">
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
+        <Tab label="Search" />
+        <Tab label="Add Volunteer" />
+        <Tab label="Pending Reviews" />
+      </Tabs>
+      <Suspense fallback={<CircularProgress />}>
+        {tab === 0 && <VolunteerManagement initialTab="search" />}
+        {tab === 1 && <VolunteerManagement initialTab="create" />}
+        {tab === 2 && <PendingReviews />}
+      </Suspense>
     </Page>
   );
 }
