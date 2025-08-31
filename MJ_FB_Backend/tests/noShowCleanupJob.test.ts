@@ -57,3 +57,22 @@ describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
     expect(stopMock).toHaveBeenCalled();
   });
 });
+
+describe('countVisitsAndBookingsForMonth', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('excludes past approved bookings', async () => {
+    const { countVisitsAndBookingsForMonth, getMonthRange } = require('../src/utils/bookingUtils');
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ total: '0' }] });
+    const userId = 1;
+    const date = '2024-05-15';
+    await countVisitsAndBookingsForMonth(userId, date);
+    const { start, end } = getMonthRange(date)!;
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining("status='approved' AND date BETWEEN $2 AND $3 AND date >= CURRENT_DATE"),
+      [userId, start, end],
+    );
+  });
+});
