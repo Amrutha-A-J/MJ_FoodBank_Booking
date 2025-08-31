@@ -86,6 +86,14 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         client.release();
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
+      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
+      if ((holiday.rowCount ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        client.release();
+        return res
+          .status(400)
+          .json({ message: 'Pantry is closed on the selected date.' });
+      }
       await checkSlotCapacity(slotIdNum, date, client);
       token = randomUUID();
       await insertBooking(
@@ -531,6 +539,12 @@ export async function createBookingForUser(
         .status(409)
         .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
     }
+    const holiday = await pool.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
+    if ((holiday.rowCount ?? 0) > 0) {
+      return res
+        .status(400)
+        .json({ message: 'Pantry is closed on the selected date.' });
+    }
 
     await checkSlotCapacity(slotIdNum, date);
     const status = 'approved';
@@ -594,6 +608,13 @@ export async function createBookingForNewClient(
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
+      if ((holiday.rowCount ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        return res
+          .status(400)
+          .json({ message: 'Pantry is closed on the selected date.' });
+      }
       await checkSlotCapacity(Number(slotId), date, client);
       const newClientId = await insertNewClient(name, email || null, phone || null, client);
       const token = randomUUID();
