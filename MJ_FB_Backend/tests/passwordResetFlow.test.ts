@@ -9,6 +9,7 @@ import {
   markPasswordTokenUsed,
 } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import config from '../src/config';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/passwordSetupUtils');
@@ -39,7 +40,9 @@ describe('requestPasswordReset', () => {
     expect(pool.query).toHaveBeenCalledTimes(1);
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/UNION ALL/);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 7);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('handles username lookup for volunteers', async () => {
@@ -53,7 +56,9 @@ describe('requestPasswordReset', () => {
       .send({ username: 'vol' });
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('handles clientId lookup for clients', async () => {
@@ -67,7 +72,9 @@ describe('requestPasswordReset', () => {
       .send({ clientId: 3 });
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 3);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 });
 
@@ -122,7 +129,9 @@ describe('resendPasswordSetup', () => {
       .send({ email: 'resend@example.com' });
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 9);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 
   it('requires an identifier', async () => {

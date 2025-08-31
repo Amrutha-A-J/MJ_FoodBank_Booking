@@ -4,6 +4,7 @@ import usersRouter from '../src/routes/users';
 import pool from '../src/db';
 import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import config from '../src/config';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/passwordSetupUtils');
@@ -59,6 +60,8 @@ describe('POST /users/add-client', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ message: 'User created' });
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 123);
-    expect(sendTemplatedEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
   });
 });

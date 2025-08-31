@@ -214,11 +214,11 @@ export async function createVolunteer(
     );
     const token = await generatePasswordSetupToken('volunteers', volunteerId);
     if (email) {
-      await sendTemplatedEmail({
-        to: email,
-        templateId: 1,
-        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
-      });
+        await sendTemplatedEmail({
+          to: email,
+          templateId: config.passwordSetupTemplateId,
+          params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+        });
     }
     res.status(201).json({ id: volunteerId });
   } catch (error) {
@@ -274,11 +274,11 @@ export async function createVolunteerShopperProfile(
     ]);
     const token = await generatePasswordSetupToken('clients', clientId);
     if (volRes.rows[0].email) {
-      await sendTemplatedEmail({
-        to: volRes.rows[0].email,
-        templateId: 1,
-        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
-      });
+        await sendTemplatedEmail({
+          to: volRes.rows[0].email,
+          templateId: config.passwordSetupTemplateId,
+          params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+        });
     }
     res.status(201).json({ userId });
   } catch (error) {

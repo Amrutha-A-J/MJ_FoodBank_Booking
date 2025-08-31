@@ -75,13 +75,13 @@ export async function requestPasswordReset(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-      await sendTemplatedEmail({
-        to: user.email,
-        templateId: 1,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-        },
-      });
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: config.passwordSetupTemplateId,
+          params: {
+            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          },
+        });
       logger.info(`Password reset requested for ${user.email}`);
     }
     res.status(204).send();
@@ -147,13 +147,13 @@ export async function resendPasswordSetup(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-      await sendTemplatedEmail({
-        to: user.email,
-        templateId: 1,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-        },
-      });
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: config.passwordSetupTemplateId,
+          params: {
+            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          },
+        });
       logger.info(`Password setup link resent for ${user.email}`);
     }
     res.status(204).send();
