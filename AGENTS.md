@@ -97,7 +97,7 @@
 - Volunteer Settings provides separate dialogs for creating sub-roles (with an initial shift) and for adding or editing shifts.
 - Deleting sub-roles and shifts prompts confirmation dialogs to prevent accidental removal.
 - Users complete initial password creation at `/set-password` using a token from the setup email.
-- A global language selector in the top navigation bar allows switching between English and Spanish; avoid adding page-specific selectors.
+- A language selector is available on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages; avoid adding page-specific selectors elsewhere.
 - After setting a password, users are redirected to the login page for their role.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations.
