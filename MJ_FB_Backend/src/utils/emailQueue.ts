@@ -47,6 +47,7 @@ async function processQueue(): Promise<void> {
   if (processing) return;
   processing = true;
   try {
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const res = await pool.query<EmailJob>(
         'SELECT id, recipient as to, subject, body, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'

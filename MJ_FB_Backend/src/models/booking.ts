@@ -1,4 +1,4 @@
-interface Booking {
+export interface Booking {
   id: number;
   status: string;
   date: string;
