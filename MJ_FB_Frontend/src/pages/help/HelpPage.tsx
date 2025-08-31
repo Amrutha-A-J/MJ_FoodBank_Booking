@@ -10,9 +10,10 @@ import {
 } from '@mui/material';
 import Page from '../../components/Page';
 import { useAuth } from '../../hooks/useAuth';
-import { helpContent, type HelpSection } from './content';
+import { getHelpContent, type HelpSection } from './content';
 import resetCss from '../../reset.css?url';
 import RoleTabs, { type RoleTabOption } from '../../components/RoleTabs';
+import { useTranslation } from 'react-i18next';
 
 function roleLabel(role: string) {
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -20,6 +21,7 @@ function roleLabel(role: string) {
 
 export default function HelpPage() {
   const { role, access } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const roles: string[] = [];
   if (role === 'shopper') roles.push('client');
@@ -46,6 +48,7 @@ export default function HelpPage() {
     };
   }, []);
 
+  const helpContent = useMemo(() => getHelpContent(t), [t, i18n.language]);
   const tabs: RoleTabOption[] = useMemo(() => {
     const query = search.toLowerCase();
     return roles.map(r => {
@@ -82,21 +85,23 @@ export default function HelpPage() {
               )}
             </Box>
           ))}
-          {!sections.length && <Typography>No matching topics.</Typography>}
+          {!sections.length && (
+            <Typography>{t('help.no_matching_topics')}</Typography>
+          )}
         </>
       );
       return { label: roleLabel(r), content };
     });
-  }, [roles, search]);
+  }, [roles, search, helpContent, t]);
 
   return (
     <Page
-      title="Help"
+      title={t('help.title')}
       header={
         <Stack spacing={2} sx={{ mb: 2, '@media print': { display: 'none' } }}>
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
-              label="Search"
+              label={t('help.search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               size="small"
@@ -107,7 +112,7 @@ export default function HelpPage() {
               onClick={() => window.print()}
               sx={{ '@media print': { display: 'none' } }}
             >
-              Print
+              {t('help.print')}
             </Button>
           </Stack>
         </Stack>

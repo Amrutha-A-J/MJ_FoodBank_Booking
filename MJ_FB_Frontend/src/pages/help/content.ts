@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+
 export interface HelpSection {
   title: string;
   body: {
@@ -6,67 +8,67 @@ export interface HelpSection {
   };
 }
 
-export const helpContent: Record<
-  'client' | 'volunteer' | 'agency' | 'pantry' | 'warehouse' | 'admin',
-  HelpSection[]
-> = {
-  client: [
-    {
-      title: 'Booking appointments',
-      body: {
-        description: 'Reserve pantry visits from your dashboard.',
-        steps: [
-          'Open your dashboard.',
-          'Choose an available date.',
-          'Select a time and confirm the booking.',
-        ],
+export function getHelpContent(
+  t: TFunction,
+): Record<'client' | 'volunteer' | 'agency' | 'pantry' | 'warehouse' | 'admin', HelpSection[]> {
+  return {
+    client: [
+      {
+        title: t('help.client.booking_appointments.title'),
+        body: {
+          description: t('help.client.booking_appointments.description'),
+          steps: [
+            t('help.client.booking_appointments.steps.0'),
+            t('help.client.booking_appointments.steps.1'),
+            t('help.client.booking_appointments.steps.2'),
+          ],
+        },
       },
-    },
-    {
-      title: 'Rescheduling or canceling',
-      body: {
-        description: 'Change or cancel an existing booking.',
-        steps: [
-          'Go to Booking History.',
-          'Find the upcoming visit.',
-          'Click Reschedule or Cancel and follow prompts.',
-        ],
+      {
+        title: t('help.client.rescheduling_or_canceling.title'),
+        body: {
+          description: t('help.client.rescheduling_or_canceling.description'),
+          steps: [
+            t('help.client.rescheduling_or_canceling.steps.0'),
+            t('help.client.rescheduling_or_canceling.steps.1'),
+            t('help.client.rescheduling_or_canceling.steps.2'),
+          ],
+        },
       },
-    },
-    {
-      title: 'View booking history',
-      body: {
-        description: 'See past and future visits.',
-        steps: [
-          'Open the Booking History page.',
-          'Browse the list of previous and upcoming bookings.',
-        ],
+      {
+        title: t('help.client.view_booking_history.title'),
+        body: {
+          description: t('help.client.view_booking_history.description'),
+          steps: [
+            t('help.client.view_booking_history.steps.0'),
+            t('help.client.view_booking_history.steps.1'),
+          ],
+        },
       },
-    },
-    {
-      title: 'Manage profile and password',
-      body: {
-        description: 'Update contact information or change your password.',
-        steps: [
-          'Navigate to the Profile page.',
-          'Edit your information.',
-          'Save changes.',
-        ],
+      {
+        title: t('help.client.manage_profile_and_password.title'),
+        body: {
+          description: t('help.client.manage_profile_and_password.description'),
+          steps: [
+            t('help.client.manage_profile_and_password.steps.0'),
+            t('help.client.manage_profile_and_password.steps.1'),
+            t('help.client.manage_profile_and_password.steps.2'),
+          ],
+        },
       },
-    },
-    {
-      title: 'Visit counts and reminders',
-      body: {
-        description: 'The dashboard shows monthly totals and upcoming reminders.',
-        steps: [
-          'Return to the dashboard.',
-          'Review your visit counter.',
-          'Check reminders for upcoming bookings.',
-        ],
+      {
+        title: t('help.client.visit_counts_and_reminders.title'),
+        body: {
+          description: t('help.client.visit_counts_and_reminders.description'),
+          steps: [
+            t('help.client.visit_counts_and_reminders.steps.0'),
+            t('help.client.visit_counts_and_reminders.steps.1'),
+            t('help.client.visit_counts_and_reminders.steps.2'),
+          ],
+        },
       },
-    },
-  ],
-  volunteer: [
+    ],
+    volunteer: [
     {
       title: 'View schedule',
       body: {
@@ -340,5 +342,6 @@ export const helpContent: Record<
       },
     },
   ],
-};
+  };
+}
 
