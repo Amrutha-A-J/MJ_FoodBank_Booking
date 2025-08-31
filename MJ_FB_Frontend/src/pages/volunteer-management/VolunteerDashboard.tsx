@@ -35,7 +35,7 @@ import {
   formatRegina,
   REGINA_TIMEZONE,
 } from '../../utils/time';
-import { zonedTimeToUtc } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 import type { AlertColor } from '@mui/material';
@@ -101,7 +101,7 @@ export default function VolunteerDashboard() {
         const agg = Object.entries(monthly)
           .sort(([a], [b]) => a.localeCompare(b))
           .map(([k, { total, roles }]) => {
-            const dt = zonedTimeToUtc(`${k}-01T12:00:00`, REGINA_TIMEZONE);
+            const dt = fromZonedTime(`${k}-01T12:00:00`, REGINA_TIMEZONE);
             const base: ContributionDatum = {
               month: formatRegina(dt, 'MMM yyyy'),
               total,
