@@ -206,6 +206,15 @@ export default function Navbar({
                           Profile
                         </MenuItem>
                         <MenuItem
+                          component={RouterLink}
+                          to="/help"
+                          onClick={() => setMobileAnchorEl(null)}
+                          disabled={loading}
+                          sx={DROPDOWN_ITEM_SX}
+                        >
+                          Help
+                        </MenuItem>
+                        <MenuItem
                           onClick={() => {
                             setMobileAnchorEl(null);
                             onLogout?.();
@@ -356,6 +365,15 @@ export default function Navbar({
                     sx={DROPDOWN_ITEM_SX}
                   >
                     Profile
+                  </MenuItem>
+                  <MenuItem
+                    component={RouterLink}
+                    to="/help"
+                    onClick={closeProfileMenu}
+                    disabled={loading}
+                    sx={DROPDOWN_ITEM_SX}
+                  >
+                    Help
                   </MenuItem>
                   <MenuItem
                     onClick={() => {

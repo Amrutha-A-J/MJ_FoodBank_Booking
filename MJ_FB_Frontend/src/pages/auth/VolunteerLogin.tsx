@@ -62,6 +62,8 @@ export default function VolunteerLogin({
         }
       >
         <TextField
+          name="username"
+          autoComplete="username"
           value={username}
           onChange={e => setUsername(e.target.value)}
           label="Username"
@@ -72,6 +74,8 @@ export default function VolunteerLogin({
         />
         <TextField
           type="password"
+          name="password"
+          autoComplete="current-password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           label="Password"
