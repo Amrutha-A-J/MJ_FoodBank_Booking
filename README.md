@@ -29,7 +29,7 @@ Before merging a pull request, confirm the following:
 ## Features
 
  - Appointment booking workflow for clients with automatic approval and rescheduling.
-- Help page offers role-specific guidance with real-time search and a printable view.
+ - Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
 - Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
