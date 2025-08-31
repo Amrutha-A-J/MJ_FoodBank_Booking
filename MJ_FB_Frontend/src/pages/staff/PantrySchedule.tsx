@@ -100,8 +100,8 @@ export default function PantrySchedule({
         getBookings({ date: dateStr, clientIds }),
       ]);
       setSlots(slotsData);
-      const filtered = bookingsData.filter((b: Booking) =>
-        ['approved', 'no_show', 'visited'].includes(b.status),
+      const filtered = bookingsData.filter(
+        (b: Booking) => b.status.toLowerCase() !== 'cancelled',
       );
       setBookings(filtered);
     } catch (err) {
