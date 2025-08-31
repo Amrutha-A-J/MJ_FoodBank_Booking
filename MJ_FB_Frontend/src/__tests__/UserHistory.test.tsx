@@ -49,8 +49,22 @@ describe('UserHistory', () => {
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(getBookingHistory).toHaveBeenCalledWith({ includeVisits: true });
-    expect(await screen.findByText('approved')).toBeInTheDocument();
-    expect(await screen.findByText('visited')).toBeInTheDocument();
+    expect(await screen.findByText(/approved/i)).toBeInTheDocument();
+    expect(await screen.findByText(/visited/i)).toBeInTheDocument();
+  });
+
+  it('hides edit client button when initialUser is provided', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('button', { name: /edit client/i })
+    ).not.toBeInTheDocument();
   });
 });
 
