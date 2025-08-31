@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Tabs, Tab, TextField, Button, Stack, Box, Typography } from '@mui/material';
+import { TextField, Button, Stack, Box, Typography } from '@mui/material';
 import Page from '../../components/Page';
 import { useAuth } from '../../hooks/useAuth';
 import { helpContent, type HelpSection } from './content';
 import resetCss from '../../reset.css?url';
+import RoleTabs, { type RoleTabOption } from '../../components/RoleTabs';
 
 function roleLabel(role: string) {
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -22,10 +23,7 @@ export default function HelpPage() {
     if (access.includes('admin')) roles.push('admin');
   }
 
-  const [tab, setTab] = useState(0);
   const [search, setSearch] = useState('');
-  const currentRole = roles[tab];
-
   useEffect(() => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -37,32 +35,37 @@ export default function HelpPage() {
     };
   }, []);
 
-  const sections: HelpSection[] = useMemo(() => {
+  const tabs: RoleTabOption[] = useMemo(() => {
     const query = search.toLowerCase();
-    return helpContent[currentRole]?.filter(
-      s =>
-        s.title.toLowerCase().includes(query) ||
-        s.body.toLowerCase().includes(query),
-    ) ?? [];
-  }, [currentRole, search]);
+    return roles.map(r => {
+      const sections: HelpSection[] =
+        helpContent[r]?.filter(
+          s =>
+            s.title.toLowerCase().includes(query) ||
+            s.body.toLowerCase().includes(query),
+        ) ?? [];
+      const content = (
+        <>
+          {sections.map(s => (
+            <Box key={s.title} sx={{ mb: 3 }}>
+              <Typography variant="h5" gutterBottom>
+                {s.title}
+              </Typography>
+              <Typography>{s.body}</Typography>
+            </Box>
+          ))}
+          {!sections.length && <Typography>No matching topics.</Typography>}
+        </>
+      );
+      return { label: roleLabel(r), content };
+    });
+  }, [roles, search]);
 
   return (
     <Page
       title="Help"
       header={
         <Stack spacing={2} sx={{ mb: 2, '@media print': { display: 'none' } }}>
-          {roles.length > 1 && (
-            <Tabs
-              value={tab}
-              onChange={(_, v) => setTab(v)}
-              variant="scrollable"
-              allowScrollButtonsMobile
-            >
-              {roles.map(r => (
-                <Tab key={r} label={roleLabel(r)} />
-              ))}
-            </Tabs>
-          )}
           <Stack direction="row" spacing={1} alignItems="center">
             <TextField
               label="Search"
@@ -82,15 +85,7 @@ export default function HelpPage() {
         </Stack>
       }
     >
-      {sections.map(s => (
-        <Box key={s.title} sx={{ mb: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            {s.title}
-          </Typography>
-          <Typography>{s.body}</Typography>
-        </Box>
-      ))}
-      {!sections.length && <Typography>No matching topics.</Typography>}
+      {roles.length > 1 ? tabs.length && <RoleTabs tabs={tabs} /> : tabs[0]?.content}
     </Page>
   );
 }
