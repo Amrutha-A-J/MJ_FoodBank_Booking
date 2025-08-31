@@ -10,6 +10,13 @@ import {
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+function isValidDateString(date: string): boolean {
+  if (!DATE_REGEX.test(date)) return false;
+  const parsed = new Date(date);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
+
 const STATUS_COLORS: Record<string, string> = {
   approved: 'green',
   cancelled: 'gray',
@@ -49,6 +56,13 @@ export async function createVolunteerBooking(
   if (!roleId || !date) {
     return res.status(400).json({ message: 'roleId and date are required' });
   }
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
+  }
+  const today = formatReginaDate(new Date());
+  if (date < today) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
+  }
 
   try {
     const slotRes = await pool.query(
@@ -64,6 +78,19 @@ export async function createVolunteerBooking(
       return res.status(404).json({ message: 'Role not found' });
     }
     const slot = slotRes.rows[0];
+
+    if (date === today) {
+      const nowTime = new Date().toLocaleTimeString('en-CA', {
+        timeZone: 'America/Regina',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      });
+      if (slot.start_time <= nowTime) {
+        return res.status(400).json({ message: 'Shift has already started' });
+      }
+    }
 
     const volRes = await pool.query(
       'SELECT 1 FROM volunteer_trained_roles WHERE volunteer_id = $1 AND role_id = $2',
