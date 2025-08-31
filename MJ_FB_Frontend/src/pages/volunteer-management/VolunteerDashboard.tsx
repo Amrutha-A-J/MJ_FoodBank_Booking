@@ -364,11 +364,11 @@ export default function VolunteerDashboard() {
                     labelId="role-filter-label"
                     label="Role"
                     value={roleFilter}
-                    onChange={e => setRoleFilter(e.target.value)}
+                    onChange={e => setRoleFilter(String(e.target.value))}
                   >
                     <MenuItem value="">All</MenuItem>
                     {roleOptions.map(([id, name]) => (
-                      <MenuItem key={id} value={id}>
+                      <MenuItem key={id} value={String(id)}>
                         {name}
                       </MenuItem>
                     ))}

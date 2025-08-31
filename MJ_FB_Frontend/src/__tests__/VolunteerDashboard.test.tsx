@@ -218,6 +218,62 @@ beforeEach(() => {
     jest.useRealTimers();
   });
 
+  it('filters available shifts by role', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-29T14:00:00Z'));
+
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        max_volunteers: 3,
+        booked: 0,
+        available: 3,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+      {
+        id: 2,
+        role_id: 2,
+        name: 'Warehouse',
+        start_time: '13:00:00',
+        end_time: '16:00:00',
+        max_volunteers: 2,
+        booked: 0,
+        available: 2,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 2,
+        category_name: 'Back',
+        is_wednesday_slot: false,
+      },
+    ]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByLabelText('Role'));
+    fireEvent.click(screen.getByRole('option', { name: 'Warehouse' }));
+
+    expect(screen.queryByText(/Greeter •/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Warehouse •/)).toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
+
   it('shows server error when shift request fails', async () => {
     const today = new Date().toISOString().split('T')[0];
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
