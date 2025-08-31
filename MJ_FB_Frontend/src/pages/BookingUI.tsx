@@ -168,7 +168,7 @@ export default function BookingUI({
         const apiErr = err as ApiError;
         const existing = (apiErr.details as any)?.existingBooking;
         if (existing) {
-          const dateStr = dayjs(existing.date).format('MMM D');
+          const dateStr = dayjs(existing.date).format('ddd, MMM D, YYYY');
           const timeStr = dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A');
           const status = existing.status;
           setModal({
@@ -269,7 +269,7 @@ export default function BookingUI({
         sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
       >
         <AccessTime fontSize="small" />
-        Available Slots for {date.format('ddd, MMM D')}
+        Available Slots for {date.format('ddd, MMM D, YYYY')}
       </Typography>
       <Grid container spacing={2}>
         <Grid item xs={12} md="auto">
@@ -387,7 +387,7 @@ export default function BookingUI({
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography>
             {selectedSlotId
-              ? `Selected: ${selectedLabel} on ${date.format('MMM D')}`
+              ? `Selected: ${selectedLabel} on ${date.format('ddd, MMM D, YYYY')}`
               : 'No slot selected'}
           </Typography>
           <Button
