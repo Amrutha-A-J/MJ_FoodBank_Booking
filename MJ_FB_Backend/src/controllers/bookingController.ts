@@ -191,11 +191,13 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
 
     const requesterId = Number((requester as any).userId ?? requester.id);
     if (requester.role === 'agency') {
-      const associated = await isAgencyClient(requesterId, booking.user_id);
-      if (!associated) {
-        return res.status(403).json({
-          message: 'Client not associated with agency',
-        });
+      if (booking.user_id) {
+        const associated = await isAgencyClient(requesterId, booking.user_id);
+        if (!associated) {
+          return res.status(403).json({
+            message: 'Client not associated with agency',
+          });
+        }
       }
     } else if (requester.role !== 'staff' && booking.user_id !== requesterId) {
       return res.status(403).json({ message: 'Forbidden' });

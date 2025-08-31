@@ -240,6 +240,23 @@ describe('Agency booking modifications', () => {
     expect(res.body).toHaveProperty('message', 'Booking cancelled');
   });
 
+  it('cancels new client booking without association', async () => {
+    (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: null,
+      new_client_id: 7,
+      status: 'approved',
+      date: futureDate,
+    });
+    (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+
+    const res = await request(app).post('/api/bookings/1/cancel');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('message', 'Booking cancelled');
+    expect(isAgencyClient).not.toHaveBeenCalled();
+  });
+
   it('rejects cancellation for unassociated client', async () => {
     (isAgencyClient as jest.Mock).mockResolvedValue(false);
     (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
