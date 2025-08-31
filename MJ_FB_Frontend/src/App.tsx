@@ -256,7 +256,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <LanguageSelector />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
+        <LanguageSelector />
+      </div>
       <div className="app-container">
         <FeedbackSnackbar
           open={!!error}
