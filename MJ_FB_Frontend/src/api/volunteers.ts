@@ -362,6 +362,45 @@ export async function createVolunteerBookingForVolunteer(
   await handleResponse(res);
 }
 
+export async function createRecurringVolunteerBookingForVolunteer(
+  volunteerId: number,
+  roleId: number,
+  startDate: string,
+  frequency: 'daily' | 'weekly',
+  weekdays?: number[],
+  endDate?: string,
+) {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/recurring/staff`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        volunteerId,
+        roleId,
+        startDate,
+        pattern: frequency,
+        daysOfWeek: weekdays,
+        endDate,
+      }),
+    },
+  );
+  const data = await handleResponse(res);
+  return {
+    ...(data || {}),
+    successes: (data?.successes ?? []).map(normalizeVolunteerBooking),
+  };
+}
+
+export async function getRecurringVolunteerBookingsForVolunteer(
+  volunteerId: number,
+): Promise<VolunteerRecurringBooking[]> {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/recurring/volunteer/${volunteerId}`,
+  );
+  return handleResponse(res);
+}
+
 export async function getVolunteerBookingHistory(
   volunteerId: number,
 ) {
