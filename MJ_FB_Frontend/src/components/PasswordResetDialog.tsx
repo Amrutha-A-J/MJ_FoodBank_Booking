@@ -61,6 +61,20 @@ export default function PasswordResetDialog({
               margin="dense"
               label={label}
               type={type === 'staff' ? 'email' : 'text'}
+              name={
+                type === 'staff'
+                  ? 'email'
+                  : type === 'volunteer'
+                  ? 'username'
+                  : 'clientId'
+              }
+              autoComplete={
+                type === 'staff'
+                  ? 'email'
+                  : type === 'volunteer'
+                  ? 'username'
+                  : 'off'
+              }
               fullWidth
               value={identifier}
               onChange={e => setIdentifier(e.target.value)}

@@ -49,6 +49,8 @@ export default function ResendPasswordSetupDialog({
               autoFocus
               margin="dense"
               label="Email or Client ID"
+              name="email"
+              autoComplete="email"
               fullWidth
               value={identifier}
               onChange={e => setIdentifier(e.target.value)}
