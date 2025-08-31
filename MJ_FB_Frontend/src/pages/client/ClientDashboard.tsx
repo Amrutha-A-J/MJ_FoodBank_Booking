@@ -129,12 +129,11 @@ export default function ClientDashboard() {
     if (cancelId === null) return;
     try {
       await cancelBooking(cancelId);
-      setMessage('Booking cancelled');
+      setMessage(t('booking_cancelled'));
       setSnackbarSeverity('success');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setMessage(msg);
+      setMessage(t('cancel_booking_failed'));
       setSnackbarSeverity('error');
     } finally {
       setCancelId(null);
@@ -166,7 +165,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => setCancelId(next.id)}
                         >
-                          Cancel
+                          {t('cancel')}
                         </Button>
                         <Button
                           size="small"
@@ -174,7 +173,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => navigate('/booking-history')}
                         >
-                          Reschedule
+                          {t('reschedule')}
                         </Button>
                       </Stack>
                     }
@@ -271,7 +270,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/book-appointment')}
                 >
-                  Book Appointment
+                  {t('book_appointment')}
                 </Button>
                 <Button
                   size="small"
@@ -279,7 +278,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/booking-history')}
                 >
-                  Reschedule
+                  {t('reschedule')}
                 </Button>
                 <Button
                   size="small"
@@ -287,7 +286,7 @@ export default function ClientDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/booking-history')}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
               </Stack>
             </SectionCard>
@@ -298,7 +297,7 @@ export default function ClientDashboard() {
           <SectionCard
             title={
               <Stack direction="row" spacing={1} alignItems="center">
-                <span>Booking History</span>
+                <span>{t('booking_history')}</span>
                 <InfoTooltip title={t('tooltip_review_past_bookings')} />
               </Stack>
             }
@@ -311,7 +310,7 @@ export default function ClientDashboard() {
                   <ListItem
                     key={`${b.id}-${b.date}`}
                     secondaryAction={
-                      <Chip label={b.status} color={statusColor(b.status)} />
+                      <Chip label={t(b.status)} color={statusColor(b.status)} />
                     }
                   >
                     <ListItemText

@@ -56,6 +56,7 @@ import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
 import Page from '../../components/Page';
+import { useTranslation } from 'react-i18next';
 
 
 
@@ -118,6 +119,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (tab !== 'search') {
@@ -742,16 +744,16 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               <Grid item xs={12} md={8} lg={8} sx={{ flexGrow: 1 }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
-                    Booking History
+                    {t('booking_history')}
                   </Typography>
                   <TableContainer sx={{ overflowX: 'auto' }}>
                     <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={cellSx}>Role</TableCell>
-                          <TableCell sx={cellSx}>Date</TableCell>
-                          <TableCell sx={cellSx}>Time</TableCell>
-                          <TableCell sx={cellSx}>Status</TableCell>
+                          <TableCell sx={cellSx}>{t('role')}</TableCell>
+                          <TableCell sx={cellSx}>{t('date')}</TableCell>
+                          <TableCell sx={cellSx}>{t('time')}</TableCell>
+                          <TableCell sx={cellSx}>{t('status')}</TableCell>
                           <TableCell sx={cellSx} />
                         </TableRow>
                       </TableHead>
@@ -764,7 +766,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                               {formatTime(h.start_time || '')} -
                               {formatTime(h.end_time || '')}
                             </TableCell>
-                            <TableCell sx={cellSx}>{h.status}</TableCell>
+                            <TableCell sx={cellSx}>{t(h.status)}</TableCell>
                             <TableCell sx={cellSx}>
                               {h.status === 'approved' && (
                                 <>
@@ -774,7 +776,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                                     color="primary"
                                     size="small"
                                   >
-                                    Manage
+                                    {t('manage')}
                                   </Button>
                                   {h.recurring_id && (
                                     <>
@@ -785,7 +787,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                                         color="primary"
                                         size="small"
                                       >
-                                        Cancel all upcoming
+                                        {t('cancel_all_upcoming_short')}
                                       </Button>
                                     </>
                                   )}
@@ -797,7 +799,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         {history.length === 0 && (
                           <TableRow>
                             <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
-                              No bookings.
+                              {t('no_bookings')}
                             </TableCell>
                           </TableRow>
                         )}
