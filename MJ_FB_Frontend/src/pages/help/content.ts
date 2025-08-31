@@ -38,6 +38,10 @@ export const helpContent: Record<
       title: 'Manage availability',
       body: 'Staff can open or block pantry slots and adjust capacities.',
     },
+    {
+      title: 'Manage volunteers',
+      body: 'Search, add, and review volunteers from the Volunteers page.',
+    },
   ],
   warehouse: [
     {
