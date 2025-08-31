@@ -27,9 +27,17 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
       logger.info('Marked volunteer bookings as no_show', { ids });
       const subject = 'Volunteer bookings marked as no_show';
       const body = `The following volunteer bookings were automatically marked as no_show: ${ids}`;
-      await Promise.all(
+      const results = await Promise.allSettled(
         coordinatorEmails.map(email => sendEmail(email, subject, body)),
       );
+      results.forEach((result, idx) => {
+        if (result.status === 'rejected') {
+          logger.error('Failed to send coordinator email', {
+            email: coordinatorEmails[idx],
+            error: result.reason,
+          });
+        }
+      });
     } else {
       logger.info('No volunteer bookings to mark as no_show');
     }
