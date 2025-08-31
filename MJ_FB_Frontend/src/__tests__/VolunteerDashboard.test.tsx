@@ -460,6 +460,56 @@ beforeEach(() => {
     rand.mockRestore();
   });
 
+  it('displays year in date labels', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-10T12:00:00Z'));
+
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        role_id: 1,
+        date: '2024-01-15',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Greeter',
+      },
+    ]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 2,
+        role_id: 2,
+        name: 'Cook',
+        start_time: '13:00:00',
+        end_time: '16:00:00',
+        max_volunteers: 3,
+        booked: 0,
+        available: 3,
+        status: 'available',
+        date: '2024-01-20',
+        category_id: 1,
+        category_name: 'Kitchen',
+        is_wednesday_slot: false,
+      },
+    ]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    const nextShift = await screen.findByText(/Greeter/);
+    expect(nextShift).toHaveTextContent('2024');
+
+    const slot = await screen.findByText(/Cook •/);
+    expect(slot).toHaveTextContent('2024');
+
+    jest.useRealTimers();
+  });
+
   it('renders contribution trend and community gauge charts', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
