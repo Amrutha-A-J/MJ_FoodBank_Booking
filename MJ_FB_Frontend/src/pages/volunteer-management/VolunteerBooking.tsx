@@ -229,7 +229,7 @@ export default function VolunteerBooking() {
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Typography>
             {selected
-              ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('MMM D')}`
+              ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('ddd, MMM D, YYYY')}`
               : 'No slot selected'}
           </Typography>
           <Button
