@@ -166,7 +166,10 @@ export async function createVolunteerBooking(
         ? booking.date.toISOString().split('T')[0]
         : booking.date;
     res.status(201).json(booking);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
     logger.error('Error creating volunteer booking:', error);
     next(error);
   }
@@ -471,7 +474,10 @@ export async function resolveVolunteerBookingConflict(
         : booking.date;
 
     return res.status(201).json({ kept: 'new', booking });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(400).json({ message: 'Already booked for this shift' });
+    }
     logger.error('Error resolving volunteer booking conflict:', error);
     next(error);
   }
@@ -927,11 +933,19 @@ export async function createRecurringVolunteerBooking(
       }
 
       const token = randomUUID();
-      await pool.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
-         VALUES ($1,$2,$3,'approved',$4,$5)`,
-        [roleId, user.id, date, token, recurringId],
-      );
+      try {
+        await pool.query(
+          `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+           VALUES ($1,$2,$3,'approved',$4,$5)`,
+          [roleId, user.id, date, token, recurringId],
+        );
+      } catch (err: any) {
+        if (err.code === '23505') {
+          skipped.push({ date, reason: 'Already booked' });
+          continue;
+        }
+        throw err;
+      }
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
@@ -1084,11 +1098,19 @@ export async function createRecurringVolunteerBookingForVolunteer(
       }
 
       const token = randomUUID();
-      await pool.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
-         VALUES ($1,$2,$3,'approved',$4,$5)`,
-        [roleId, volunteerId, date, token, recurringId],
-      );
+      try {
+        await pool.query(
+          `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+           VALUES ($1,$2,$3,'approved',$4,$5)`,
+          [roleId, volunteerId, date, token, recurringId],
+        );
+      } catch (err: any) {
+        if (err.code === '23505') {
+          skipped.push({ date, reason: 'Already booked' });
+          continue;
+        }
+        throw err;
+      }
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
