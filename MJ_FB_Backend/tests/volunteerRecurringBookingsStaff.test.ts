@@ -73,4 +73,28 @@ describe('staff recurring volunteer bookings', () => {
       },
     ]);
   });
+
+  it('cancels future recurring bookings for a volunteer', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            volunteer_id: 5,
+            slot_id: 2,
+            email: 'vol@example.com',
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+          },
+        ],
+      })
+      .mockResolvedValue({});
+
+    const res = await request(app).delete(
+      '/volunteer-bookings/recurring/10?from=2025-01-02',
+    );
+
+    expect(res.status).toBe(200);
+    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
+  });
 });
