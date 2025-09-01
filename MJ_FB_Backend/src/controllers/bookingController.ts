@@ -78,18 +78,15 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
       if (monthlyUsage === false) {
         await client.query('ROLLBACK');
-        client.release();
         return res.status(400).json({ message: 'Please choose a valid date' });
       }
       if (monthlyUsage >= 2) {
         await client.query('ROLLBACK');
-        client.release();
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
       const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
       if ((holiday.rowCount ?? 0) > 0) {
         await client.query('ROLLBACK');
-        client.release();
         return res
           .status(400)
           .json({ message: 'Pantry is closed on the selected date.' });
@@ -111,13 +108,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     } catch (err) {
       await client.query('ROLLBACK');
       if (err instanceof SlotCapacityError) {
-        client.release();
         return res.status(err.status).json({ message: err.message });
       }
-      client.release();
       throw err;
+    } finally {
+      client.release();
     }
-    client.release();
 
     if (user.email) {
       const buttons = buildCancelRescheduleButtons(token);
