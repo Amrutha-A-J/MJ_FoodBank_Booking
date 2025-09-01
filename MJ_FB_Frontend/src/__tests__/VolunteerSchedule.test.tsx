@@ -28,11 +28,15 @@ jest.mock('../api/bookings', () => ({ getHolidays: jest.fn() }));
 
 describe('VolunteerSchedule', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-29T19:00:00Z'));
   });
 
   afterEach(() => {
+    jest.useRealTimers();
+    jest.useFakeTimers();
     jest.setSystemTime(new Date());
+    jest.useRealTimers();
   });
 
   it('disables past days and hides past slots', async () => {

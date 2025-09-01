@@ -1,5 +1,6 @@
 import { buildCancelRescheduleLinks } from '../src/utils/emailUtils';
 import config from '../src/config';
+import logger from '../src/utils/logger';
 
 describe('buildCancelRescheduleLinks', () => {
   it('returns cancel and reschedule links', () => {
@@ -10,12 +11,16 @@ describe('buildCancelRescheduleLinks', () => {
     });
   });
 
-  it('throws when no frontend origin is configured', () => {
+  it('returns placeholder links when no frontend origin is configured', () => {
     const original = config.frontendOrigins;
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     config.frontendOrigins = [];
-    expect(() => buildCancelRescheduleLinks('tok')).toThrow(
-      'No frontend origin configured',
-    );
+
+    const links = buildCancelRescheduleLinks('tok');
+    expect(links).toEqual({ cancelLink: '#', rescheduleLink: '#' });
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    spy.mockRestore();
     config.frontendOrigins = original;
   });
 });
