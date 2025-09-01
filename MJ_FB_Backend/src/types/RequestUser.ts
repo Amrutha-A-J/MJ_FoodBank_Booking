@@ -1,11 +1,10 @@
-export interface RequestUser {
-  id: string;
-  role: string;
+import type { AuthenticatedUser } from './AuthenticatedUser';
+
+export interface RequestUser extends AuthenticatedUser {
   type: 'user' | 'staff' | 'volunteer' | 'agency';
   email?: string;
   phone?: string;
   name?: string;
-  userId?: string;
   userRole?: 'shopper' | 'delivery';
   access?: string[];
 }

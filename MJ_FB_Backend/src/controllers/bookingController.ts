@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import type { AuthRequest } from '../types/AuthRequest';
 import { randomUUID } from 'crypto';
 import pool from '../db';
 import config from '../config';
@@ -182,7 +183,7 @@ export async function listBookings(req: Request, res: Response, next: NextFuncti
 }
 
 // --- Cancel booking (staff or user) ---
-export async function cancelBooking(req: Request, res: Response, next: NextFunction) {
+export async function cancelBooking(req: AuthRequest, res: Response, next: NextFunction) {
   const bookingId = req.params.id;
   const requester = req.user;
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
@@ -193,7 +194,7 @@ export async function cancelBooking(req: Request, res: Response, next: NextFunct
     const booking = await fetchBookingById(Number(bookingId));
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-    const requesterId = Number((requester as any).userId ?? requester.id);
+    const requesterId = Number(requester.userId ?? requester.id);
     const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
     if (requester.role === 'agency') {
       if (bookingUserId !== undefined) {
@@ -632,7 +633,7 @@ export async function createBookingForNewClient(
 
 // --- Get booking history ---
 export async function getBookingHistory(
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) {
@@ -691,7 +692,7 @@ export async function getBookingHistory(
         userIds = [parsed];
       }
     } else {
-      const parsed = Number((requester as any).userId ?? requester.id);
+      const parsed = Number(requester.userId ?? requester.id);
       if (Number.isNaN(parsed)) {
         return res.status(400).json({ message: 'Invalid user' });
       }
