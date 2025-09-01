@@ -1,9 +1,18 @@
 import writeXlsxFile from 'write-excel-file';
 
-export function exportTableToExcel(table: HTMLTableElement, filename: string) {
-  const data = Array.from(table.rows).map((row) =>
-    Array.from(row.cells).map((cell) => ({ value: cell.textContent || '' }))
+export async function exportTableToExcel(
+  table: HTMLTableElement,
+  filename: string,
+): Promise<boolean> {
+  const data = Array.from(table.rows).map(row =>
+    Array.from(row.cells).map(cell => ({ value: cell.textContent || '' })),
   );
 
-  void writeXlsxFile(data, { fileName: `${filename}.xlsx` });
+  try {
+    await writeXlsxFile(data, { fileName: `${filename}.xlsx` });
+    return true;
+  } catch (err) {
+    console.error('Failed to export table to Excel', err);
+    return false;
+  }
 }

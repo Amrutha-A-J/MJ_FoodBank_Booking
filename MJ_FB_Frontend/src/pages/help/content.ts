@@ -287,7 +287,8 @@ export function getHelpContent(
     {
       title: 'Export or review aggregate reports',
       body: {
-        description: 'Use the Aggregations page to review monthly totals or export yearly spreadsheets.',
+        description:
+          'Use the Aggregations page to review monthly totals or export donor and overall yearly spreadsheets.',
         steps: [
           'Open the Aggregations page.',
           'Select the year or month.',
