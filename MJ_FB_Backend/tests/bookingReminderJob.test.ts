@@ -1,20 +1,29 @@
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
+
+jest.doMock('../src/db', () => ({
+  __esModule: true,
+  default: { query: jest.fn() },
+}));
+jest.doMock('../src/models/bookingRepository', () => ({
+  fetchBookingsForReminder: jest.fn(),
+}));
+jest.doMock('../src/utils/emailQueue', () => ({
+  enqueueEmail: jest.fn(),
+}));
+
+const { fetchBookingsForReminder } = require('../src/models/bookingRepository');
+const { enqueueEmail } = require('../src/utils/emailQueue');
 const bookingReminder = require('../src/utils/bookingReminderJob');
 const {
   sendNextDayBookingReminders,
   startBookingReminderJob,
   stopBookingReminderJob,
 } = bookingReminder;
-import { fetchBookingsForReminder } from '../src/models/bookingRepository';
-import { enqueueEmail } from '../src/utils/emailQueue';
+const db = require('../src/db').default;
 
-jest.mock('../src/models/bookingRepository', () => ({
-  fetchBookingsForReminder: jest.fn(),
-}));
-
-jest.mock('../src/utils/emailQueue', () => ({
-  enqueueEmail: jest.fn(),
-}));
+test('does not query database on import', () => {
+  expect(db.query).not.toHaveBeenCalled();
+});
 
 describe('sendNextDayBookingReminders', () => {
   let originalEnv: string | undefined;
