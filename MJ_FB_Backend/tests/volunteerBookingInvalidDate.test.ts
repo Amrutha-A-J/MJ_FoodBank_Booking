@@ -11,8 +11,9 @@ describe('volunteer booking date validation', () => {
         __esModule: true,
         default: { query: jest.fn() },
       }));
+      const sendTemplatedEmail = jest.fn();
       jest.doMock('../src/utils/emailUtils', () => ({
-        sendEmail: jest.fn(),
+        sendTemplatedEmail,
         buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
       }));
       jest.doMock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));

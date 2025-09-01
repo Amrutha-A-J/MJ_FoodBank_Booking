@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../../db';
-import { sendEmail, buildCancelRescheduleLinks } from '../../utils/emailUtils';
+import { sendTemplatedEmail, buildCancelRescheduleLinks } from '../../utils/emailUtils';
 import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
 import {
@@ -41,7 +41,9 @@ const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails ||
 
 async function notifyCoordinators(subject: string, body: string) {
   const results = await Promise.allSettled(
-    coordinatorEmails.map(email => sendEmail(email, subject, body)),
+    coordinatorEmails.map(email =>
+      sendTemplatedEmail({ to: email, templateId: 0, params: { subject, body } }),
+    ),
   );
   results.forEach((result, idx) => {
     if (result.status === 'rejected') {
@@ -1052,7 +1054,11 @@ export async function createRecurringVolunteerBooking(
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
       const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
       if (user.email) {
-        await sendEmail(user.email, subject, body);
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: 0,
+          params: { subject, body },
+        });
       } else {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -1217,7 +1223,11 @@ export async function createRecurringVolunteerBookingForVolunteer(
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
       const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
       if (volunteerEmail) {
-        await sendEmail(volunteerEmail, subject, body);
+        await sendTemplatedEmail({
+          to: volunteerEmail,
+          templateId: 0,
+          params: { subject, body },
+        });
       } else {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -1328,7 +1338,11 @@ export async function cancelVolunteerBookingOccurrence(
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
     const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
     if (volunteerEmail) {
-      await sendEmail(volunteerEmail, subject, body);
+      await sendTemplatedEmail({
+        to: volunteerEmail,
+        templateId: 0,
+        params: { subject, body },
+      });
     } else {
       logger.warn(
         'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
@@ -1388,7 +1402,11 @@ export async function cancelRecurringVolunteerBooking(
     const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
     const body = `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled.`;
     if (info.email) {
-      await sendEmail(info.email, subject, body);
+      await sendTemplatedEmail({
+        to: info.email,
+        templateId: 0,
+        params: { subject, body },
+      });
     } else {
       logger.warn(
         'Volunteer booking cancellation email not sent. Volunteer %s has no email.',

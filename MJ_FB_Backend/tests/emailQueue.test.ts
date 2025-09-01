@@ -98,6 +98,11 @@ describe('persistent email queue', () => {
     enqueueEmail({ to: 'user@example.com', templateId: 1, params: { body: 'Body' } });
     await Promise.resolve();
     expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toEqual({
+      to: 'user@example.com',
+      templateId: 1,
+      params: { body: 'Body' },
+    });
 
     await jest.advanceTimersByTimeAsync(1);
     expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
@@ -122,6 +127,11 @@ describe('persistent email queue', () => {
     enqueueEmail({ to: 'user@example.com', templateId: 1, params: { body: 'Body' } });
     await Promise.resolve();
     expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toEqual({
+      to: 'user@example.com',
+      templateId: 1,
+      params: { body: 'Body' },
+    });
 
     // simulate restart before retry
     jest.clearAllTimers();
@@ -139,7 +149,7 @@ describe('persistent email queue', () => {
     process.env.EMAIL_QUEUE_BACKOFF_MS = '1';
     const sendTemplatedEmailMock: jest.Mock = jest
       .fn()
-      .mockRejectedValue(new Error('fail'));
+      .mockRejectedValue(new Error('fail') as any);
     jest.doMock('../src/utils/emailUtils', () => ({ sendTemplatedEmail: sendTemplatedEmailMock }));
     const logger = require('../src/utils/logger').default;
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
