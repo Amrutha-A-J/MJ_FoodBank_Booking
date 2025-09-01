@@ -2,13 +2,14 @@ import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
-import { sendEmail } from '../src/utils/emailUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({
-  sendEmail: jest.fn(),
+  sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
 }));
+const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
     req.user = { id: 1, role: 'staff', email: 'staff@example.com' };
@@ -47,7 +48,12 @@ describe('staff recurring volunteer bookings', () => {
     expect(res.body.recurringId).toBe(30);
     expect(res.body.successes).toEqual(['2025-01-01', '2025-01-02', '2025-01-03']);
     expect(res.body.skipped).toEqual([]);
-    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(9);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(9);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
+      to: 'vol@example.com',
+      templateId: 0,
+      params: expect.any(Object),
+    });
   });
 
   it('lists recurring bookings for a volunteer', async () => {
@@ -98,6 +104,6 @@ describe('staff recurring volunteer bookings', () => {
     );
 
     expect(res.status).toBe(200);
-    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
   });
 });

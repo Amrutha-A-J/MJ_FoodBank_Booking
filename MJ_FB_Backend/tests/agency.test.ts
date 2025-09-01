@@ -24,7 +24,9 @@ import { enqueueEmail } from '../src/utils/emailQueue';
 jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
-jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/utils/emailUtils', () => ({
+  sendTemplatedEmail: jest.fn(),
+}));
 jest.mock('../src/utils/emailQueue', () => ({
   __esModule: true,
   enqueueEmail: jest.fn(),

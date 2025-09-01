@@ -2,14 +2,15 @@ import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
-import { sendEmail } from '../src/utils/emailUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({
-  sendEmail: jest.fn().mockResolvedValue(undefined),
+  sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
 }));
+const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -48,9 +49,15 @@ describe('updateVolunteerBookingStatus', () => {
 
     expect(res.status).toBe(200);
     expect((pool.query as jest.Mock).mock.calls[1][1][2]).toBe('sick');
-    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(2);
-    expect((sendEmail as jest.Mock).mock.calls[0][0]).toBe('coordinator1@example.com');
-    expect((sendEmail as jest.Mock).mock.calls[1][0]).toBe('coordinator2@example.com');
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(2);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
+      to: 'coordinator1@example.com',
+      templateId: 0,
+    });
+    expect(sendTemplatedEmailMock.mock.calls[1][0]).toMatchObject({
+      to: 'coordinator2@example.com',
+      templateId: 0,
+    });
   });
 
   it('logs failure for one coordinator email but continues with others', async () => {
@@ -64,8 +71,9 @@ describe('updateVolunteerBookingStatus', () => {
         ],
       });
 
-    const sendEmailMock = sendEmail as jest.Mock;
-    sendEmailMock.mockRejectedValueOnce(new Error('fail')).mockResolvedValue(undefined);
+    sendTemplatedEmailMock
+      .mockRejectedValueOnce(new Error('fail'))
+      .mockResolvedValue(undefined);
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
     const res = await request(app)
@@ -73,7 +81,7 @@ describe('updateVolunteerBookingStatus', () => {
       .send({ status: 'cancelled', reason: 'sick' });
 
     expect(res.status).toBe(200);
-    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
     expect(errorSpy).toHaveBeenCalledWith(
       'Failed to send coordinator email',
       expect.objectContaining({ email: 'coordinator1@example.com' }),
@@ -144,8 +152,11 @@ describe('cancelVolunteerBookingOccurrence', () => {
     const res = await request(app).patch('/volunteer-bookings/1/cancel');
 
     expect(res.status).toBe(200);
-    expect((sendEmail as jest.Mock).mock.calls).toHaveLength(3);
-    expect((sendEmail as jest.Mock).mock.calls[0][0]).toBe('vol@example.com');
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
+      to: 'vol@example.com',
+      templateId: 0,
+    });
   });
 });
 
