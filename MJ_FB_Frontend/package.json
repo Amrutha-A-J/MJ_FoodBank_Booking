@@ -12,6 +12,7 @@
     "preview": "vite preview --https",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty",
+    "pretest": "node -e \"if (!process.version.startsWith('v22')) { console.error('Node v22 is required'); process.exit(1); }\"",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint:deps": "npx npm-check-updates",

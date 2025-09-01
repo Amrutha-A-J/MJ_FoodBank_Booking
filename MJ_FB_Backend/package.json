@@ -50,6 +50,7 @@
     "dev": "tsx --env-file=.env src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "pretest": "node -e \"if (!process.version.startsWith('v22')) { console.error('Node v22 is required'); process.exit(1); }\"",
     "test": "jest",
     "migrate": "tsx src/runMigrations.ts",
     "migration:create": "node-pg-migrate create -m src/migrations -j ts",
