@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import pool from '../src/db';
 import {
   checkSlotCapacity,
@@ -9,7 +10,6 @@ import {
   fetchBookingHistory,
 } from '../src/models/bookingRepository';
 
-jest.mock('../src/db');
 
 describe('bookingRepository', () => {
   beforeEach(() => {

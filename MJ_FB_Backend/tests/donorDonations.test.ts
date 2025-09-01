@@ -1,10 +1,10 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import donorsRoutes from '../src/routes/donors';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../src/db');
 jest.mock('jsonwebtoken');
 
 const app = express();

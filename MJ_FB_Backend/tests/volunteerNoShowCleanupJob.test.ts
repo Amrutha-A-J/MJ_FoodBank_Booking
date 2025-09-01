@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
@@ -13,7 +14,6 @@ const {
   stopVolunteerNoShowCleanupJob,
 } = job;
 import pool from '../src/db';
-jest.mock('../src/db');
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import { VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID } from '../src/config/emailTemplates';
 jest.mock('../src/utils/emailUtils');

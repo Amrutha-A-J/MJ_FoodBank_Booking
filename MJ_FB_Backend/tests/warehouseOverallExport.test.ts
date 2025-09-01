@@ -1,10 +1,10 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouse/warehouseOverall';
 import pool from '../src/db';
 import writeXlsxFile from 'write-excel-file/node';
 
-jest.mock('../src/db');
 jest.mock('write-excel-file/node', () => jest.fn().mockResolvedValue(Buffer.from('test')));
 
 const app = express();

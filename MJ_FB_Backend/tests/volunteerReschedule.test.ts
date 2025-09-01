@@ -1,10 +1,10 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
-jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
