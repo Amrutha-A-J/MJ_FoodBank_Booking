@@ -125,7 +125,13 @@ export default function VolunteerDashboard() {
   }, []);
 
   useEffect(() => {
-    getEvents().then(setEvents).catch(() => {});
+    getEvents()
+      .then(setEvents)
+      .catch(err => {
+        console.error('Failed to load events', err);
+        setSnackbarSeverity('error');
+        setMessage('Failed to load events');
+      });
   }, []);
 
   useEffect(() => {
