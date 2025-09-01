@@ -19,7 +19,6 @@ const { getSlots, getHolidays } = jest.requireMock('../api/bookings');
 
 describe('BookingUI visible slots', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T10:30:00'));
   });
 
@@ -28,7 +27,7 @@ describe('BookingUI visible slots', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.setSystemTime(new Date());
   });
 
   it('hides past slots when viewing today', async () => {
