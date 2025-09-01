@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 
 let dbAvailable = true;
 let pool: Pool;
+let app: express.Express;
 
 beforeAll(async () => {
   try {
@@ -31,6 +32,13 @@ beforeAll(async () => {
     await pool.query(`TRUNCATE volunteer_bookings RESTART IDENTITY`);
     await pool.query(`TRUNCATE volunteer_trained_roles`);
     await pool.query(`INSERT INTO volunteer_trained_roles(volunteer_id, role_id) VALUES (1,1),(2,1)`);
+
+    // Mock db and import router after pool is ready so handlers use initialized pool
+    jest.doMock('../src/db', () => ({ __esModule: true, default: pool }));
+    const { default: volunteerBookingsRouter } = await import('../src/routes/volunteer/volunteerBookings');
+    app = express();
+    app.use(express.json());
+    app.use('/volunteer-bookings', volunteerBookingsRouter);
   } catch (e) {
     dbAvailable = false;
   }
@@ -40,7 +48,6 @@ afterAll(async () => {
   if (dbAvailable) await pool.end();
 });
 
-// Mock db module after pool initialized
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
@@ -66,15 +73,6 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     next: express.NextFunction,
   ) => next(),
 }));
-
-// Module mock for db depends on pool; done after potential initialization
-jest.mock('../src/db', () => ({ __esModule: true, default: pool }));
-
-import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
-
-const app = express();
-app.use(express.json());
-app.use('/volunteer-bookings', volunteerBookingsRouter);
 
 describe('concurrent volunteer bookings', () => {
   it('does not exceed max_volunteers', async () => {
