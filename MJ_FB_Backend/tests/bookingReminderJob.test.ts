@@ -7,14 +7,18 @@ const {
   stopBookingReminderJob,
 } = bookingReminder;
 import { fetchBookingsForReminder } from '../src/models/bookingRepository';
-import { enqueueEmail } from '../src/utils/emailQueue';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/models/bookingRepository', () => ({
   fetchBookingsForReminder: jest.fn(),
 }));
 
-jest.mock('../src/utils/emailQueue', () => ({
-  enqueueEmail: jest.fn(),
+jest.mock('../src/utils/emailUtils', () => ({
+  sendTemplatedEmail: jest.fn(),
+  buildCancelRescheduleLinks: jest.fn().mockReturnValue({
+    cancelLink: 'cancel',
+    rescheduleLink: 'reschedule',
+  }),
 }));
 
 describe('sendNextDayBookingReminders', () => {
@@ -42,10 +46,15 @@ describe('sendNextDayBookingReminders', () => {
     await sendNextDayBookingReminders();
 
     expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      'user@example.com',
-      expect.stringContaining('Reminder'),
-      expect.stringContaining('2024-01-02'),
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'user@example.com',
+        params: expect.objectContaining({
+          date: '2024-01-02',
+          cancelLink: 'cancel',
+          rescheduleLink: 'reschedule',
+        }),
+      }),
     );
   });
 });
@@ -61,7 +70,7 @@ describe('startBookingReminderJob/stopBookingReminderJob', () => {
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
     sendSpy = jest
       .spyOn(bookingReminder, 'sendNextDayBookingReminders')
-      .mockResolvedValue();
+      .mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 

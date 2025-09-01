@@ -101,15 +101,16 @@ export async function sendTemplatedEmail({
   }
 }
 
-export function buildCancelRescheduleButtons(token: string): string {
+export function buildCancelRescheduleLinks(token: string): {
+  cancelLink: string;
+  rescheduleLink: string;
+} {
   const base = config.frontendOrigins[0];
   if (!base) {
     throw new Error('No frontend origin configured; unable to build cancel/reschedule links');
   }
-  const cancelLink = `${base}/cancel/${token}`;
-  const rescheduleLink = `${base}/reschedule/${token}`;
-  return `<div style="margin-top:16px;">` +
-    `<a href="${cancelLink}" style="display:inline-block;padding:8px 16px;background-color:#d32f2f;color:#ffffff;text-decoration:none;border-radius:4px;">Cancel</a>` +
-    `<a href="${rescheduleLink}" style="display:inline-block;padding:8px 16px;background-color:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;margin-left:8px;">Reschedule</a>` +
-    `</div>`;
+  return {
+    cancelLink: `${base}/cancel/${token}`,
+    rescheduleLink: `${base}/reschedule/${token}`,
+  };
 }

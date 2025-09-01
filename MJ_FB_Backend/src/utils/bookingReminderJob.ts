@@ -1,9 +1,12 @@
 import { fetchBookingsForReminder } from '../models/bookingRepository';
-import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
-import { buildCancelRescheduleButtons } from './emailUtils';
+import {
+  sendTemplatedEmail,
+  buildCancelRescheduleLinks,
+} from './emailUtils';
+import config from '../config';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -16,13 +19,17 @@ export async function sendNextDayBookingReminders(): Promise<void> {
     const bookings = await fetchBookingsForReminder(nextDate);
     for (const b of bookings) {
       if (!b.user_email) continue;
-      const time = b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';
-      const buttons = buildCancelRescheduleButtons(b.reschedule_token);
-      enqueueEmail(
-        b.user_email,
-        'Booking Reminder',
-        `This is a reminder for your booking on ${nextDate}${time}.${buttons}`,
-      );
+      const links = buildCancelRescheduleLinks(b.reschedule_token);
+      await sendTemplatedEmail({
+        to: b.user_email,
+        templateId: config.bookingReminderTemplateId,
+        params: {
+          date: nextDate,
+          startTime: b.start_time,
+          endTime: b.end_time,
+          ...links,
+        },
+      });
     }
   } catch (err) {
     logger.error('Failed to send booking reminders', err);

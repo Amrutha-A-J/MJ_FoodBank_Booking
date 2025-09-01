@@ -1,9 +1,12 @@
 import pool from '../db';
-import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
-import { buildCancelRescheduleButtons } from './emailUtils';
+import {
+  sendTemplatedEmail,
+  buildCancelRescheduleLinks,
+} from './emailUtils';
+import config from '../config';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -23,13 +26,17 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
     );
     for (const row of res.rows) {
       if (!row.email) continue;
-      const time = row.start_time && row.end_time ? ` from ${row.start_time} to ${row.end_time}` : '';
-      const buttons = buildCancelRescheduleButtons(row.reschedule_token);
-      enqueueEmail(
-        row.email,
-        'Volunteer Shift Reminder',
-        `This is a reminder for your volunteer shift on ${nextDate}${time}.${buttons}`,
-      );
+      const links = buildCancelRescheduleLinks(row.reschedule_token);
+      await sendTemplatedEmail({
+        to: row.email,
+        templateId: config.volunteerReminderTemplateId,
+        params: {
+          date: nextDate,
+          startTime: row.start_time,
+          endTime: row.end_time,
+          ...links,
+        },
+      });
     }
   } catch (err) {
     logger.error('Failed to send volunteer shift reminders', err);

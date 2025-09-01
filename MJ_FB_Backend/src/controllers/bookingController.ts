@@ -10,7 +10,10 @@ import {
   findUpcomingBooking,
 } from '../utils/bookingUtils';
 import { enqueueEmail } from '../utils/emailQueue';
-import { buildCancelRescheduleButtons } from '../utils/emailUtils';
+import {
+  sendTemplatedEmail,
+  buildCancelRescheduleLinks,
+} from '../utils/emailUtils';
 import logger from '../utils/logger';
 import {
   SlotCapacityError,
@@ -120,12 +123,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     client.release();
 
     if (user.email) {
-      const buttons = buildCancelRescheduleButtons(token);
-      enqueueEmail(
-        user.email,
-        'Booking approved',
-        `Your booking for ${date} has been automatically approved.${buttons}`,
-      );
+      const links = buildCancelRescheduleLinks(token);
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: config.bookingApprovedTemplateId,
+        params: { date, ...links },
+      });
     } else {
       logger.warn(
         'User %s has no email. Skipping booking status email.',

@@ -1,8 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../../db';
-import { sendEmail, buildCancelRescheduleButtons } from '../../utils/emailUtils';
+import {
+  sendEmail,
+  sendTemplatedEmail,
+  buildCancelRescheduleLinks,
+} from '../../utils/emailUtils';
 import logger from '../../utils/logger';
+import config from '../../config';
 import {
   CreateRecurringVolunteerBookingRequest,
   CreateRecurringVolunteerBookingForVolunteerRequest,
@@ -192,12 +197,12 @@ export async function createVolunteerBooking(
       await client.query('COMMIT');
 
       if (user.email) {
-        const buttons = buildCancelRescheduleButtons(token);
-        await sendEmail(
-          user.email,
-          'Volunteer booking confirmed',
-          `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
-        );
+        const links = buildCancelRescheduleLinks(token);
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: config.volunteerBookingTemplateId,
+          params: { roleId, date, ...links },
+        });
       } else {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -542,12 +547,12 @@ export async function resolveVolunteerBookingConflict(
     );
 
     if (user.email) {
-      const buttons = buildCancelRescheduleButtons(token);
-      await sendEmail(
-        user.email,
-        'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date!} has been confirmed.${buttons}`,
-      );
+      const links = buildCancelRescheduleLinks(token);
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: config.volunteerBookingTemplateId,
+        params: { roleId, date, ...links },
+      });
     } else {
       logger.warn(
         'Volunteer booking confirmation email not sent. Volunteer %s has no email.',

@@ -12,6 +12,12 @@ jest.mock('../src/models/bookingRepository', () => ({
   updateBooking: jest.fn(),
 }));
 
+jest.mock('../src/utils/emailUtils', () => ({
+  sendEmail: jest.fn(),
+  sendTemplatedEmail: jest.fn(),
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+}));
+
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     req: any,
