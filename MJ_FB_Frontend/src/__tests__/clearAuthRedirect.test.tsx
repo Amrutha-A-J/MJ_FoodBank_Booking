@@ -1,12 +1,12 @@
 import { apiFetch } from '../api/client';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('clearAuthAndRedirect', () => {
-  const realFetch = global.fetch;
   const originalLocation = window.location;
 
   afterEach(() => {
-    global.fetch = realFetch;
     window.location = originalLocation;
+    restoreFetch();
     jest.restoreAllMocks();
     localStorage.clear();
   });
@@ -18,7 +18,7 @@ describe('clearAuthAndRedirect', () => {
       writable: true,
     });
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch().mockResolvedValue({
       status: 401,
       ok: false,
       headers: new Headers(),
@@ -36,7 +36,7 @@ describe('clearAuthAndRedirect', () => {
       writable: true,
     });
 
-    global.fetch = jest.fn().mockResolvedValue({
+    mockFetch().mockResolvedValue({
       status: 401,
       ok: false,
       headers: new Headers(),
