@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import VolunteerSchedule from '../pages/volunteer-management/VolunteerSchedule';
 import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBookingHistory';
 import VolunteerRecurringBookings from '../pages/volunteer-management/VolunteerRecurringBookings';
@@ -35,7 +35,6 @@ jest.mock('../api/bookings', () => ({
 beforeEach(() => {
   jest.useFakeTimers();
   jest.setSystemTime(new Date('2024-04-30T06:00:00Z'));
-  jest.clearAllMocks();
   (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
     {
       id: 1,
@@ -64,8 +63,12 @@ beforeEach(() => {
   (getRoles as jest.Mock).mockResolvedValue([]);
 });
 
-afterEach(() => {
+afterEach(async () => {
+  await act(async () => {
+    jest.runOnlyPendingTimers();
+  });
   jest.useRealTimers();
+  jest.clearAllMocks();
 });
 
 test('submits weekly recurring booking', async () => {
