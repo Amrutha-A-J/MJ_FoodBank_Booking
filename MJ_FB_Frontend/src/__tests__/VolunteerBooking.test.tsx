@@ -1,6 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from '../utils/date';
 import VolunteerBooking from '../pages/volunteer-management/VolunteerBooking';
 import {
   getVolunteerRolesForVolunteer,
@@ -51,7 +54,12 @@ describe('VolunteerBooking', () => {
     render(
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <VolunteerBooking />
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            dateLibInstance={dayjs}
+          >
+            <VolunteerBooking />
+          </LocalizationProvider>
         </QueryClientProvider>
       </MemoryRouter>,
     );
@@ -121,7 +129,12 @@ describe('VolunteerBooking', () => {
     render(
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <VolunteerBooking />
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            dateLibInstance={dayjs}
+          >
+            <VolunteerBooking />
+          </LocalizationProvider>
         </QueryClientProvider>
       </MemoryRouter>,
     );
