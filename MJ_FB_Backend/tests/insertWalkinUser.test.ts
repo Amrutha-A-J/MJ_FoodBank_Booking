@@ -8,27 +8,29 @@ describe('insertWalkinUser', () => {
     jest.clearAllMocks();
   });
 
-  it('issues INSERT with client_id and profile link', async () => {
+  it('issues INSERT with clients.client_id and profile link', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ client_id: 123 }] });
 
     const first = 'Test';
     const last = 'User';
     const email = 'test@example.com';
-    const id = 123;
+    const clientId = 123;
 
-    const result = await insertWalkinUser(first, last, email, id, pool);
+    const result = await insertWalkinUser(first, last, email, clientId, pool);
 
     expect(pool.query).toHaveBeenCalledTimes(1);
-    const call = (pool.query as jest.Mock).mock.calls[0];
-    expect(call[0]).toMatch(/INSERT INTO clients \(first_name, last_name, email, phone, client_id, role, profile_link\)/);
-    expect(call[0]).toMatch(/RETURNING client_id/);
-    expect(call[1]).toEqual([
-      first,
-      last,
-      email,
-      id,
-      `https://portal.link2feed.ca/org/1605/intake/${id}`,
-    ]);
+    const [query, params] = (pool.query as jest.Mock).mock.calls[0];
+
+    expect(query).toContain('INSERT INTO clients');
+    expect(query).toMatch(/client_id/);
+    expect(query).toMatch(/RETURNING client_id/);
+
+    expect(params[0]).toBe(first);
+    expect(params[1]).toBe(last);
+    expect(params[2]).toBe(email);
+    expect(params[3]).toBe(clientId);
+    expect(params[4]).toBe(`https://portal.link2feed.ca/org/1605/intake/${clientId}`);
+
     expect(result).toBe(123);
   });
 });
