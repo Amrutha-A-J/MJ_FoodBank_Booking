@@ -300,11 +300,12 @@ export function getHelpContent(
     {
       title: 'Staff users and permissions',
       body: {
-        description: 'Admins can add new staff accounts, edit existing users, and manage permissions.',
+        description:
+          'Admins can add new staff accounts, edit existing users, resend password setup links, and manage permissions.',
         steps: [
-          'Open Staff Settings.',
-          'Add or edit users.',
-          'Assign permissions and save.',
+          'Go to Admin > Staff.',
+          'Use Add Staff or Edit to modify a user.',
+          'Assign permissions, save changes, or resend setup links.',
         ],
       },
     },
