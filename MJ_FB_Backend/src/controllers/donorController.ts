@@ -36,7 +36,17 @@ export async function topDonors(req: Request, res: Response, next: NextFunction)
     const year =
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const limit = parseInt((req.query.limit as string) ?? '', 10) || 7;
+
+    const limitParam = req.query.limit as string | undefined;
+    let limit = 7;
+    if (limitParam !== undefined) {
+      const parsed = Number(limitParam);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        return res.status(400).json({ message: 'Invalid limit parameter' });
+      }
+      limit = Math.min(parsed, 100);
+    }
+
     const result = await pool.query(
       `SELECT o.name, SUM(d.weight)::int AS "totalLbs", TO_CHAR(MAX(d.date), 'YYYY-MM-DD') AS "lastDonationISO"
        FROM donations d JOIN donors o ON d.donor_id = o.id
@@ -92,3 +102,4 @@ export async function donorDonations(
     next(error);
   }
 }
+

@@ -26,6 +26,26 @@ describe('GET /donors/top', () => {
       { name: 'Alice', totalLbs: 100, lastDonationISO: '2024-01-10' },
     ]);
   });
+
+  it('clamps limit to 100', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(app).get('/donors/top?year=2024&limit=150');
+    expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([2024, 100]);
+  });
+
+  it('returns 400 for non-numeric limit', async () => {
+    const res = await request(app).get('/donors/top?year=2024&limit=abc');
+    expect(res.status).toBe(400);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 for limit less than 1', async () => {
+    const res = await request(app).get('/donors/top?year=2024&limit=0');
+    expect(res.status).toBe(400);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
 });
 
 describe('GET /outgoing-receivers/top', () => {
