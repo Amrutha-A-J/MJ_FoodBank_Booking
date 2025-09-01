@@ -3,8 +3,10 @@ import { registerServiceWorker } from '../registerServiceWorker';
 describe('registerServiceWorker', () => {
   const originalNodeEnv = process.env.NODE_ENV;
   let registerMock: jest.Mock;
+  let originalSecure: boolean;
 
   beforeEach(() => {
+    originalSecure = window.isSecureContext;
     registerMock = jest.fn().mockResolvedValue(undefined);
     Object.defineProperty(window, 'isSecureContext', {
       value: true,
@@ -18,6 +20,7 @@ describe('registerServiceWorker', () => {
   });
 
   afterEach(() => {
+    Object.defineProperty(window, 'isSecureContext', { value: originalSecure, configurable: true });
     process.env.NODE_ENV = originalNodeEnv;
     // @ts-ignore
     delete navigator.serviceWorker;
