@@ -37,7 +37,7 @@
 
 - For changes in `MJ_FB_Backend`, run `npm test` from the `MJ_FB_Backend` directory.
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
-- Tests polyfill `global.fetch` with `undici` in a `beforeAll`; keep this setup for compatibility.
+- Tests polyfill `global.fetch` with `undici` via top-level assignments in `tests/setupFetch.ts`. Ensure this file remains configured in Jest's setup files.
 - Tests for invitation and password setup flows live in `MJ_FB_Backend/tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
