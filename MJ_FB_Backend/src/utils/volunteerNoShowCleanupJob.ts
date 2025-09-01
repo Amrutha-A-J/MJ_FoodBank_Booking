@@ -59,6 +59,7 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
 const volunteerNoShowCleanupJob = scheduleDailyJob(
   cleanupVolunteerNoShows,
   '0 20 * * *',
+  true,
 );
 
 export const startVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.start;

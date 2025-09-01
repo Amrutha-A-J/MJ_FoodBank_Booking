@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import i18n from '../i18n';
 
 describe('Language selector visibility', () => {
   let fetchMock: jest.Mock;
@@ -35,7 +36,7 @@ describe('Language selector visibility', () => {
         <App />
       </AuthProvider>
     );
-    expect(screen.getByText(/english/i)).toBeInTheDocument();
+    expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
   });
 
   it('shows language selector on client dashboard', () => {
@@ -47,7 +48,7 @@ describe('Language selector visibility', () => {
         <App />
       </AuthProvider>
     );
-    expect(screen.getByText(/english/i)).toBeInTheDocument();
+    expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
   });
 
   it('hides language selector on staff dashboard', () => {
@@ -60,6 +61,6 @@ describe('Language selector visibility', () => {
         <App />
       </AuthProvider>
     );
-    expect(screen.queryByText(/english/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(i18n.t('english'))).not.toBeInTheDocument();
   });
 });

@@ -39,6 +39,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
 const bookingReminderJob = scheduleDailyJob(
   sendNextDayBookingReminders,
   '0 9 * * *',
+  true,
 );
 
 export const startBookingReminderJob = bookingReminderJob.start;

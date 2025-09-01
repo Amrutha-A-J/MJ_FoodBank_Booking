@@ -8,7 +8,11 @@ jest.mock('../src/utils/volunteerShiftReminderJob', () => {
   const scheduleDailyJob = jest.requireActual(
     '../src/utils/scheduleDailyJob',
   ).default;
-  const job = scheduleDailyJob(sendNextDayVolunteerShiftRemindersMock, '0 9 * * *');
+  const job = scheduleDailyJob(
+    sendNextDayVolunteerShiftRemindersMock,
+    '0 9 * * *',
+    false,
+  );
   return {
     __esModule: true,
     sendNextDayVolunteerShiftReminders: sendNextDayVolunteerShiftRemindersMock,
@@ -49,9 +53,8 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('schedules and stops the cron job without querying the database', async () => {
+  it('schedules and stops the cron job without querying the database', () => {
     startVolunteerShiftReminderJob();
-    await Promise.resolve();
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 9 * * *',
       expect.any(Function),
