@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import donationsRoutes from '../src/routes/warehouse/donations';

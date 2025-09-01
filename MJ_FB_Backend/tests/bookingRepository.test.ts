@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import pool from '../src/db';
 import {
   checkSlotCapacity,

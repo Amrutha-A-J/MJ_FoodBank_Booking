@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');

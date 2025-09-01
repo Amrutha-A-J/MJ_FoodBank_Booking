@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import express from 'express';
 import request from 'supertest';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
