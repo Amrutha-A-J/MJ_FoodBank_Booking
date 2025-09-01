@@ -56,19 +56,21 @@ async function renderDashboard() {
 }
 
 describe('VolunteerDashboard', () => {
-beforeEach(() => {
-  (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
-  (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
-    totalHours: 0,
-    monthHours: 0,
-    monthHoursGoal: 0,
-    totalLbs: 0,
-    weekLbs: 0,
-    monthLbs: 0,
-    monthFamilies: 0,
+  beforeEach(() => {
+    (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
+    (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
+      totalHours: 0,
+      monthHours: 0,
+      monthHoursGoal: 0,
+      totalLbs: 0,
+      weekLbs: 0,
+      monthLbs: 0,
+      monthFamilies: 0,
+    });
+    localStorage.clear();
   });
-  localStorage.clear();
-});
+
+  afterEach(() => jest.useRealTimers());
 
   it('does not show update trained roles button', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -157,7 +159,6 @@ beforeEach(() => {
     expect(
       await screen.findByText('No available shifts'),
     ).toBeInTheDocument();
-    jest.useRealTimers();
   });
 
   it('excludes past shifts from available slots', async () => {
@@ -188,8 +189,6 @@ beforeEach(() => {
 
     await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText('No available shifts')).toBeInTheDocument();
-
-    jest.useRealTimers();
   });
 
   it('lists upcoming available shifts', async () => {
@@ -221,8 +220,6 @@ beforeEach(() => {
 
     await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
-
-    jest.useRealTimers();
   });
 
   it('filters available shifts by role', async () => {
@@ -278,8 +275,6 @@ beforeEach(() => {
 
     expect(screen.queryByText(/Greeter •/)).not.toBeInTheDocument();
     expect(screen.getByText(/Warehouse •/)).toBeInTheDocument();
-
-    jest.useRealTimers();
   });
 
   it('shows server error when shift request fails', async () => {
@@ -324,7 +319,6 @@ beforeEach(() => {
     expect(
       await screen.findByText('Already booked for this shift'),
     ).toBeInTheDocument();
-    jest.useRealTimers();
   });
 
   it('shows upcoming approved shift in My Next Shift', async () => {
@@ -351,8 +345,6 @@ beforeEach(() => {
     await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
     expect(await screen.findByText(/Greeter/)).toBeInTheDocument();
     expect(screen.queryByText(/No upcoming shifts/)).not.toBeInTheDocument();
-
-    jest.useRealTimers();
   });
 
   it('displays earned badges', async () => {
@@ -415,7 +407,6 @@ beforeEach(() => {
     expect(
       within(card as HTMLElement).getByText("You're in the top 75%!")
     ).toBeInTheDocument();
-    jest.useRealTimers();
   });
 
   it('shows milestone banner when milestone is returned', async () => {
@@ -468,7 +459,6 @@ beforeEach(() => {
         /This month you've helped serve 3 families and handle 30 lbs/,
       ),
     ).toBeInTheDocument();
-    jest.useRealTimers();
   });
 
   it('shows group stats card with progress and quote', async () => {
@@ -549,8 +539,6 @@ beforeEach(() => {
 
     const slot = await screen.findByText(/Cook •/);
     expect(slot).toHaveTextContent('2024');
-
-    jest.useRealTimers();
   });
 
   it('renders contribution trend and community gauge charts', async () => {
