@@ -1,3 +1,5 @@
+import { fetchWithRetry } from './fetchWithRetry';
+
 const API_BASE = (globalThis as any).VITE_API_BASE;
 
 if (!API_BASE) {
@@ -37,26 +39,10 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       ? input.toString()
       : (input as Request).url;
   const isRefreshCall = urlString.includes('/auth/refresh');
-  const fetchWithRetry = async (
-    resource: RequestInfo | URL,
-    options: RequestInit,
-    retries = 1,
-    backoff = 300,
-  ): Promise<Response> => {
-    for (let i = 0; i <= retries; i++) {
-      try {
-        return await fetch(resource, options);
-      } catch (e) {
-        if (i === retries) throw e;
-        await new Promise(res => setTimeout(res, backoff * 2 ** i));
-      }
-    }
-    throw new Error('Unreachable');
-  };
 
   let res: Response;
   try {
-    res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+    res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1, 300);
   } catch (e) {
     // network failure; propagate without clearing auth
     throw e;
@@ -73,13 +59,14 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
           `${API_BASE}/auth/refresh`,
           { method: 'POST', credentials: 'include' },
           1,
+          300,
         );
       }
       const refreshRes = await refreshPromise;
       refreshPromise = null;
       if ([200, 204, 409].includes(refreshRes.status)) {
         // 409 indicates another request already refreshed the tokens
-        res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1);
+        res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1, 300);
       } else {
         clearAuthAndRedirect();
       }
