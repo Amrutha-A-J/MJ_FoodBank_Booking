@@ -14,24 +14,17 @@ import {
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { getSlots, rescheduleBookingByToken, cancelBooking, markBookingNoShow } from '../api/bookings';
+import {
+  getSlots,
+  rescheduleBookingByToken,
+  cancelBooking,
+  markBookingNoShow,
+} from '../api/bookings';
 import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
-import type { Slot } from '../types';
+import type { Slot, Booking } from '../types';
 
 const CART_TARE = 27;
-
-interface Booking {
-  id: number;
-  reschedule_token: string;
-  client_id: number;
-  user_id: number;
-  user_name: string;
-  visits_this_month: number;
-  approved_bookings_this_month: number;
-  date: string;
-  profile_link: string;
-}
 
 interface ManageBookingDialogProps {
   open: boolean;

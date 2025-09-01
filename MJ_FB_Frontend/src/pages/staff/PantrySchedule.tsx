@@ -7,7 +7,7 @@ import {
   createBookingForNewClient,
 } from '../../api/bookings';
 import { searchUsers } from '../../api/users';
-import type { Slot, Holiday } from '../../types';
+import type { Slot, Holiday, Booking } from '../../types';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
 import { formatDate, addDays } from '../../utils/date';
@@ -26,22 +26,6 @@ import { useTranslation } from 'react-i18next';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
-
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  slot_id: number;
-  user_name: string;
-  user_id: number | null;
-  client_id: number | null;
-  newClientId?: number | null;
-  visits_this_month: number;
-  approved_bookings_this_month: number;
-  is_staff_booking: boolean;
-  reschedule_token: string;
-  profile_link: string;
-}
 
 interface User {
   client_id: number;

@@ -30,6 +30,7 @@ import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import useHolidays from '../../hooks/useHolidays';
+import type { VolunteerBookingConflict } from '../../types';
 
 function useVolunteerSlots(
   date: Dayjs,
@@ -71,10 +72,7 @@ export default function VolunteerBooking() {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
-  const [conflict, setConflict] = useState<{
-    attempted: any;
-    existing: any;
-  } | null>(null);
+  const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
   const slotsRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -102,9 +100,9 @@ export default function VolunteerBooking() {
       refetch();
     } catch (e) {
       const err = e as ApiError;
-      const details = err.details as any;
+      const details = err.details as VolunteerBookingConflict | undefined;
       if (err.status === 409 && details?.attempted && details?.existing) {
-        setConflict({ attempted: details.attempted, existing: details.existing });
+        setConflict(details);
       } else {
         setSnackbar({
           open: true,

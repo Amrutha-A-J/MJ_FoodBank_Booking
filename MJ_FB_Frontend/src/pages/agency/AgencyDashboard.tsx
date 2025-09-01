@@ -27,7 +27,7 @@ import {
   cancelBooking,
 } from '../../api/bookings';
 import { getEvents, type EventGroups } from '../../api/events';
-import type { Slot, Holiday } from '../../types';
+import type { Slot, Holiday, Booking } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';
 import SectionCard from '../../components/dashboard/SectionCard';
@@ -35,16 +35,6 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
-
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  start_time?: string;
-  end_time?: string;
-  reschedule_token?: string;
-  user_name?: string;
-}
 
 interface NextSlot {
   date: string;

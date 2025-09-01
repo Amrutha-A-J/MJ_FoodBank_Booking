@@ -20,22 +20,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import ManageBookingDialog from '../../../components/ManageBookingDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
-
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  slot_id: number;
-  user_name: string;
-  user_id: number | null;
-  client_id: number | null;
-  newClientId?: number | null;
-  visits_this_month: number;
-  approved_bookings_this_month: number;
-  is_staff_booking: boolean;
-  reschedule_token: string;
-  profile_link: string;
-}
+import type { Booking } from '../../../types';
 
 export default function NoShowWeek() {
   const [start] = useState(() => toDayjs().startOf('week'));

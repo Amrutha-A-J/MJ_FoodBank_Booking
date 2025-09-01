@@ -6,6 +6,8 @@ import type {
   BlockedSlot,
   Break,
   Holiday,
+  Booking,
+  BookingResponse,
 } from '../types';
 
 interface SlotResponse {
@@ -90,29 +92,22 @@ export async function createBooking(
   return handleResponse(res);
 }
 
-interface BookingResponse {
-  [key: string]: unknown;
-  start_time?: string;
-  end_time?: string;
-  startTime?: string;
-  endTime?: string;
-}
-
-function normalizeBooking(b: BookingResponse) {
-  const newClientId = (b as any).newClientId ?? (b as any).new_client_id ?? null;
+function normalizeBooking(b: BookingResponse): Booking {
+  const { new_client_id, ...rest } = b;
+  const newClientId = b.newClientId ?? new_client_id ?? null;
   return {
-    ...b,
-    start_time: b.start_time ?? b.startTime,
-    end_time: b.end_time ?? b.endTime,
-    startTime: b.startTime ?? b.start_time,
-    endTime: b.endTime ?? b.end_time,
+    ...rest,
+    start_time: b.start_time ?? b.startTime ?? '',
+    end_time: b.end_time ?? b.endTime ?? '',
+    startTime: b.startTime ?? b.start_time ?? '',
+    endTime: b.endTime ?? b.end_time ?? '',
     newClientId,
-  } as BookingResponse & { newClientId: number | null };
+  };
 }
 
 export async function getBookings(
   opts: { status?: string; date?: string; clientIds?: number[] } = {},
-) {
+): Promise<Booking[] | Booking> {
   const params = new URLSearchParams();
   if (opts.status) params.append('status', opts.status);
   if (opts.date) params.append('date', opts.date);
@@ -134,7 +129,7 @@ export async function getBookingHistory(
     limit?: number;
     offset?: number;
   } = {},
-) {
+): Promise<Booking[] | Booking> {
   const params = new URLSearchParams();
   if (opts.status) params.append('status', opts.status);
   if (opts.past) params.append('past', 'true');

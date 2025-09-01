@@ -26,25 +26,13 @@ import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import type { Booking } from '../../types';
 
 const TIMEZONE = 'America/Regina';
 
 interface User {
   name: string;
   client_id: number;
-}
-
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  created_at: string;
-  slot_id: number;
-  is_staff_booking: boolean;
-  reason?: string;
-  reschedule_token: string;
 }
 
 export default function ClientHistory() {
