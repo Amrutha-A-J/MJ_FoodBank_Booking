@@ -4,8 +4,10 @@ describe('registerServiceWorker', () => {
   const originalNodeEnv = process.env.NODE_ENV;
   let registerMock: jest.Mock;
   let originalSecure: boolean;
+  let originalImportMetaEnv: any;
 
   beforeEach(() => {
+    originalImportMetaEnv = (import.meta as any).env;
     originalSecure = window.isSecureContext;
     registerMock = jest.fn().mockResolvedValue(undefined);
     Object.defineProperty(window, 'isSecureContext', {
@@ -24,6 +26,7 @@ describe('registerServiceWorker', () => {
     process.env.NODE_ENV = originalNodeEnv;
     // @ts-ignore
     delete navigator.serviceWorker;
+    (import.meta as any).env = originalImportMetaEnv;
   });
 
   it('registers the service worker in production mode', () => {
