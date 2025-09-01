@@ -103,6 +103,9 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// Handle unknown routes
+app.use((req, res) => res.status(404).json({ message: 'Not found' }));
+
 // Global error handler
 app.use(errorHandler);
 
