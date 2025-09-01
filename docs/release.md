@@ -36,6 +36,14 @@ Define these variables (Settings → Secrets and variables → Actions → Varia
 | `BACKEND_APP_NAME` | Name of the backend Container App |
 | `FRONTEND_APP_NAME` | Name of the frontend Container App |
 
+## Backend Environment Variables
+Set the following variables in the backend deployment environment:
+
+- `BOOKING_CONFIRMATION_TEMPLATE_ID`
+- `BOOKING_REMINDER_TEMPLATE_ID`
+- `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID`
+- `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`
+
 ## Deployment Notes
 - Images are tagged with the branch or tag name that triggered the workflow.
 - Ensure backend and frontend environment variables are configured in the Azure portal before deploying.

@@ -22,6 +22,10 @@ const envSchema = z.object({
   EMAIL_QUEUE_MAX_RETRIES: z.coerce.number().default(5),
   EMAIL_QUEUE_BACKOFF_MS: z.coerce.number().default(1000),
   PASSWORD_SETUP_TEMPLATE_ID: z.coerce.number(),
+  BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
+  BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
+  VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
+  VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
 });
 
@@ -55,5 +59,9 @@ export default {
   emailQueueMaxRetries: env.EMAIL_QUEUE_MAX_RETRIES,
   emailQueueBackoffMs: env.EMAIL_QUEUE_BACKOFF_MS,
   passwordSetupTemplateId: env.PASSWORD_SETUP_TEMPLATE_ID,
+  bookingConfirmationTemplateId: env.BOOKING_CONFIRMATION_TEMPLATE_ID,
+  bookingReminderTemplateId: env.BOOKING_REMINDER_TEMPLATE_ID,
+  volunteerBookingConfirmationTemplateId: env.VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID,
+  volunteerBookingReminderTemplateId: env.VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
 };
