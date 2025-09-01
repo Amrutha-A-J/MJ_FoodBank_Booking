@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserRole('');
     setAccess([]);
     setId(null);
+    setCardUrl('');
     localStorage.removeItem('role');
     localStorage.removeItem('name');
     localStorage.removeItem('userRole');
