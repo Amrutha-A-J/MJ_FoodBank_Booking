@@ -24,8 +24,7 @@ The backend automatically runs any pending database migrations on startup and lo
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
-- Tests polyfill `global.fetch` with `undici` using `tests/setupFetch.ts`, which is included in Jest's setup files.
-- Required environment variables are set in `tests/setupEnv.ts`, also listed in Jest's `setupFilesAfterEnv`. If you run a test file directly instead of through Jest, manually import `'../setupEnv'` so these variables are initialized.
+- Backend tests use `tests/setupTests.ts` to load required environment variables, polyfill `global.fetch` with `undici`, and mock the database. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
 
 ## Help Page Updates
 
