@@ -29,11 +29,11 @@ export async function getWarehouseSettings(): Promise<WarehouseSettings> {
 }
 
 export async function updateWarehouseSettings(settings: WarehouseSettings): Promise<void> {
-  const entries = [
+  const entries: [string, number][] = [
     ['bread_weight_multiplier', settings.breadWeightMultiplier],
     ['cans_weight_multiplier', settings.cansWeightMultiplier],
   ];
-  const values: any[] = [];
+  const values: string[] = [];
   const placeholders = entries
     .map(([k, v], i) => {
       values.push(k, String(v));
