@@ -1,18 +1,22 @@
 import { createHash } from 'crypto';
-import pool from '../src/db';
-import {
-  generatePasswordSetupToken,
-  verifyPasswordSetupToken,
-} from '../src/utils/passwordSetupUtils';
 
 jest.mock('../src/db');
 
+let pool: any;
+
 describe('passwordSetupUtils', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    jest.resetModules();
     jest.clearAllMocks();
+    pool = (await import('../src/db')).default;
+    delete process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS;
   });
 
   it('generates a token and stores its hash with configured expiry', async () => {
+    process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '1';
+    const { generatePasswordSetupToken } = await import(
+      '../src/utils/passwordSetupUtils'
+    );
     process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '2';
     (pool.query as jest.Mock).mockResolvedValue({});
     const before = Date.now();
@@ -29,6 +33,9 @@ describe('passwordSetupUtils', () => {
   });
 
   it('verifies a stored token', async () => {
+    const { verifyPasswordSetupToken } = await import(
+      '../src/utils/passwordSetupUtils'
+    );
     const token = 'abc123';
     const hash = createHash('sha256').update(token).digest('hex');
     (pool.query as jest.Mock).mockResolvedValue({
