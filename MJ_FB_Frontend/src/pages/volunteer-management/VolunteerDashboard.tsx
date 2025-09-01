@@ -50,6 +50,7 @@ import PersonalContributionChart, {
 } from '../../components/dashboard/PersonalContributionChart';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import type { ApiError } from '../../api/client';
+import type { VolunteerBookingConflict } from '../../types';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -74,9 +75,7 @@ export default function VolunteerDashboard() {
   const [leaderboard, setLeaderboard] = useState<{ rank: number; percentile: number }>();
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-  const [conflict, setConflict] = useState<{ attempted: any; existing: any } | null>(
-    null,
-  );
+  const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -238,9 +237,9 @@ export default function VolunteerDashboard() {
       ]);
     } catch (e: unknown) {
       const err = e as ApiError;
-      const details = err.details as any;
+      const details = err.details as VolunteerBookingConflict | undefined;
       if (err.status === 409 && details?.attempted && details?.existing) {
-        setConflict({ attempted: details.attempted, existing: details.existing });
+        setConflict(details);
       } else {
         setSnackbarSeverity('error');
         setMessage(err.message ?? 'Failed to request shift');

@@ -26,6 +26,7 @@ import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import type { ApiError } from '../../api/client';
+import type { VolunteerBookingConflict } from '../../types';
 import {
   Box,
   FormControl,
@@ -65,9 +66,7 @@ export default function VolunteerSchedule() {
   const [decisionReason, setDecisionReason] = useState('');
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBooking | null>(null);
-  const [conflict, setConflict] = useState<{ attempted: any; existing: any } | null>(
-    null,
-  );
+  const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
   const [frequency, setFrequency] =
     useState<'one-time' | 'daily' | 'weekly'>('one-time');
   const [weekdays, setWeekdays] = useState<number[]>([]);
@@ -174,9 +173,9 @@ export default function VolunteerSchedule() {
       await loadData();
     } catch (err) {
       const apiErr = err as ApiError;
-      const details = apiErr.details as any;
+      const details = apiErr.details as VolunteerBookingConflict | undefined;
       if (apiErr.status === 409 && details?.attempted && details?.existing) {
-        setConflict({ attempted: details.attempted, existing: details.existing });
+        setConflict(details);
       } else {
         setSnackbarSeverity('error');
         setMessage(apiErr.message);

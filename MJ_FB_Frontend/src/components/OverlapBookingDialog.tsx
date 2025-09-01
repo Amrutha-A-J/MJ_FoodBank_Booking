@@ -9,20 +9,12 @@ import {
 } from '@mui/material';
 import { formatTime } from '../utils/time';
 import { formatReginaDate } from '../utils/date';
-
-interface BookingInfo {
-  id?: number;
-  role_id: number;
-  role_name: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-}
+import type { VolunteerBookingInfo } from '../types';
 
 interface Props {
   open: boolean;
-  attempted: BookingInfo;
-  existing: BookingInfo;
+  attempted: VolunteerBookingInfo;
+  existing: VolunteerBookingInfo;
   onClose: () => void;
   onResolve: (choice: 'existing' | 'new') => void;
 }

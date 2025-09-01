@@ -206,3 +206,50 @@ export interface EditableSlot {
   is_wednesday_slot: boolean;
   is_active: boolean;
 }
+
+export interface BookingResponse {
+  id: number;
+  status: string;
+  date: string;
+  slot_id: number;
+  user_id?: number | null;
+  new_client_id?: number | null;
+  newClientId?: number | null;
+  is_staff_booking?: boolean;
+  reschedule_token?: string;
+  user_name?: string;
+  user_email?: string;
+  user_phone?: string;
+  client_id?: number | null;
+  profile_link?: string;
+  visits_this_month?: number;
+  approved_bookings_this_month?: number;
+  start_time?: string;
+  end_time?: string;
+  startTime?: string;
+  endTime?: string;
+  reason?: string;
+}
+
+export interface Booking
+  extends Omit<BookingResponse, 'new_client_id' | 'startTime' | 'endTime'> {
+  start_time: string;
+  end_time: string;
+  startTime: string;
+  endTime: string;
+  newClientId: number | null;
+}
+
+export interface VolunteerBookingInfo {
+  id?: number;
+  role_id: number;
+  role_name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+}
+
+export interface VolunteerBookingConflict {
+  attempted: VolunteerBookingInfo;
+  existing: VolunteerBookingInfo;
+}

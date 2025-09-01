@@ -16,7 +16,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
 import { getBookings, getSlotsRange } from '../../api/bookings';
-import type { Role } from '../../types';
+import type { Role, Booking } from '../../types';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
 import { getEvents, type EventGroups } from '../../api/events';
@@ -47,15 +47,6 @@ const Stat = ({ icon, label, value }: StatProps) => (
     </Stack>
   </Stack>
 );
-
-interface Booking {
-  id: number;
-  status: string;
-  date: string;
-  user_name?: string;
-  start_time?: string;
-  end_time?: string;
-}
 
 function parseLocalDate(dateStr: string) {
   const [year, month, day] = dateStr.split('-').map(Number);
