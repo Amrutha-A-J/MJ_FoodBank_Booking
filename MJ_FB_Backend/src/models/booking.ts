@@ -3,6 +3,7 @@ export interface Booking {
   status: string;
   date: string;
   user_id: number | null;
+  new_client_id: number | null;
   user_name: string | null;
   user_email: string | null;
   user_phone: string | null;
