@@ -17,6 +17,12 @@ jest.mock('../components/EntitySearch', () =>
   },
 );
 
+const mockBookingUI = jest.fn();
+jest.mock('../pages/BookingUI', () => (props: any) => {
+  mockBookingUI(props);
+  return <div>BookingUI {props.shopperName}</div>;
+});
+
 describe('AgencyClientManager', () => {
   it('shows modal when client already associated with another agency', async () => {
     const { addAgencyClient } = require('../api/agencies');
@@ -35,6 +41,26 @@ describe('AgencyClientManager', () => {
           /This client is already associated with Other Agency/i,
         ),
       ).toBeInTheDocument(),
+    );
+  });
+
+  it('opens booking dialog for a client', async () => {
+    const { getAgencyClients } = require('../api/agencies');
+    (getAgencyClients as jest.Mock).mockResolvedValue([
+      {
+        client_id: 5,
+        first_name: 'Client',
+        last_name: 'One',
+        email: 'c@example.com',
+      },
+    ]);
+    render(<AgencyClientManager />);
+    fireEvent.click(screen.getByText('select agency'));
+    await screen.findByText('Clients for Agency A');
+    fireEvent.click(screen.getByText('Book'));
+    expect(await screen.findByText('BookingUI Client One')).toBeInTheDocument();
+    expect(mockBookingUI).toHaveBeenCalledWith(
+      expect.objectContaining({ shopperName: 'Client One', userId: 5 }),
     );
   });
 });

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getBookingHistory } from '../../api/bookings';
+import { getBookingHistory, cancelBooking } from '../../api/bookings';
 import { getMyAgencyClients } from '../../api/agencies';
 import { formatTime } from '../../utils/time';
 import {
@@ -17,6 +17,7 @@ import {
   TableContainer,
   useMediaQuery,
   useTheme,
+  Stack,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
@@ -24,6 +25,7 @@ import { toDate } from '../../utils/date';
 import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 
 const TIMEZONE = 'America/Regina';
 
@@ -54,6 +56,9 @@ export default function ClientHistory() {
     null,
   );
   const [clients, setClients] = useState<User[]>([]);
+  const [snackbar, setSnackbar] = useState<
+    { message: string; severity: 'success' | 'error' } | null
+  >(null);
   const { t } = useTranslation();
 
   const pageSize = 10;
@@ -130,6 +135,20 @@ export default function ClientHistory() {
     textAlign: 'left',
   } as const;
 
+  const handleCancel = async (b: Booking) => {
+    if (!window.confirm('Cancel this booking?')) return;
+    try {
+      await cancelBooking(String(b.id));
+      setSnackbar({ message: 'Booking cancelled', severity: 'success' });
+      loadBookings();
+    } catch (err: any) {
+      setSnackbar({
+        message: err.message || 'Failed to cancel booking',
+        severity: 'error',
+      });
+    }
+  };
+
   return (
     <Page title={t('client_history')}>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
@@ -193,16 +212,23 @@ export default function ClientHistory() {
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
-                          {['approved'].includes(
-                            b.status.toLowerCase(),
-                          ) && (
-                            <Button
-                              onClick={() => setRescheduleBooking(b)}
-                              variant="outlined"
-                              color="primary"
-                            >
-                              {t('reschedule')}
-                            </Button>
+                          {['approved'].includes(b.status.toLowerCase()) && (
+                            <Stack direction="row" spacing={1}>
+                              <Button
+                                onClick={() => setRescheduleBooking(b)}
+                                variant="outlined"
+                                color="primary"
+                              >
+                                {t('reschedule')}
+                              </Button>
+                              <Button
+                                onClick={() => handleCancel(b)}
+                                variant="outlined"
+                                color="error"
+                              >
+                                {t('cancel')}
+                              </Button>
+                            </Stack>
                           )}
                         </TableCell>
                       </TableRow>
@@ -254,6 +280,12 @@ export default function ClientHistory() {
             }}
           />
         )}
+        <FeedbackSnackbar
+          open={!!snackbar}
+          onClose={() => setSnackbar(null)}
+          message={snackbar?.message || ''}
+          severity={snackbar?.severity}
+        />
       </Box>
     </Box>
     </Page>

@@ -13,6 +13,9 @@ import {
   DialogActions,
   Card,
   CardContent,
+  Box,
+  Stack,
+  CircularProgress,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EntitySearch from '../../components/EntitySearch';
@@ -22,6 +25,7 @@ import {
   removeAgencyClient,
   getAgencyClients,
 } from '../../api/agencies';
+import BookingUI from '../BookingUI';
 
 interface AgencyClient {
   clientId: number;
@@ -36,6 +40,8 @@ export default function AgencyClientManager() {
     { message: string; severity: 'success' | 'error' } | null
   >(null);
   const [conflictAgency, setConflictAgency] = useState<string | null>(null);
+  const [bookingClient, setBookingClient] = useState<AgencyClient | null>(null);
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   const load = async (id: number) => {
     try {
@@ -104,6 +110,10 @@ export default function AgencyClientManager() {
       });
     }
   };
+  const handleBook = (client: AgencyClient) => {
+    setBookingClient(client);
+    setBookingLoading(true);
+  };
   return (
     <>
       <Card sx={{ mb: 2 }}>
@@ -161,13 +171,22 @@ export default function AgencyClientManager() {
                     <ListItem
                       key={c.clientId}
                       secondaryAction={
-                        <IconButton
-                          edge="end"
-                          aria-label="remove"
-                          onClick={() => handleRemove(c.clientId)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleBook(c)}
+                          >
+                            Book
+                          </Button>
+                          <IconButton
+                            edge="end"
+                            aria-label="remove"
+                            onClick={() => handleRemove(c.clientId)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Stack>
                       }
                     >
                       <ListItemText primary={c.name} secondary={`ID: ${c.clientId}`} />
@@ -196,6 +215,43 @@ export default function AgencyClientManager() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConflictAgency(null)}>OK</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={!!bookingClient}
+        onClose={() => setBookingClient(null)}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          {bookingClient ? `Book for ${bookingClient.name}` : 'Book Appointment'}
+        </DialogTitle>
+        <DialogContent>
+          {bookingLoading && (
+            <Box
+              sx={{
+                minHeight: 200,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <CircularProgress size={24} />
+            </Box>
+          )}
+          {bookingClient && (
+            <Box sx={{ display: bookingLoading ? 'none' : 'block' }}>
+              <BookingUI
+                shopperName={bookingClient.name}
+                userId={bookingClient.clientId}
+                embedded
+                onLoadingChange={setBookingLoading}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBookingClient(null)}>Close</Button>
         </DialogActions>
       </Dialog>
     </>
