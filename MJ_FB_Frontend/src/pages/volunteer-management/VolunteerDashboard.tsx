@@ -166,17 +166,13 @@ export default function VolunteerDashboard() {
               return d;
             })
           : [today];
-      const all: VolunteerRole[] = [];
-      for (const day of days) {
-        const ds = formatRegina(day, 'yyyy-MM-dd');
-        try {
-          const roles = await getVolunteerRolesForVolunteer(ds);
-          all.push(...roles);
-        } catch {
-          // ignore
-        }
-      }
-      setAvailability(all);
+      const requests = days.map(day =>
+        getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
+          () => [],
+        ),
+      );
+      const results = await Promise.all(requests);
+      setAvailability(results.flat());
     }
     loadAvailability();
   }, [dateMode]);
