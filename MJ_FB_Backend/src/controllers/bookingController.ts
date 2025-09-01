@@ -58,7 +58,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   }
 
   try {
-    const userId = Number((req.user as any).userId ?? req.user?.id);
+    const userId = Number(req.user?.userId ?? req.user?.id);
     if (!isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }

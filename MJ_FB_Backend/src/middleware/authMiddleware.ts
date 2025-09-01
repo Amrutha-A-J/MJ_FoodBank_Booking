@@ -5,7 +5,7 @@ import config from '../config';
 import logger from '../utils/logger';
 import cookie from 'cookie';
 import { cookieOptions } from '../utils/authUtils';
-import type { AuthUser } from '../types/AuthUser';
+import type { RequestUser } from '../types/RequestUser';
 
 function getTokenFromCookies(req: Request) {
   const header = req.headers.cookie;
@@ -18,7 +18,7 @@ type AuthResult =
   | { status: 'missing' }
   | { status: 'invalid' }
   | { status: 'expired' }
-  | { status: 'ok'; user: AuthUser };
+  | { status: 'ok'; user: RequestUser };
 
 async function authenticate(req: Request): Promise<AuthResult> {
   const authHeader = req.headers['authorization'];
@@ -54,7 +54,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((staffRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
-      const user: AuthUser = {
+      const user: RequestUser = {
         id: staffRes.rows[0].id.toString(),
         type: 'staff',
         role,
@@ -74,7 +74,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
           [id],
         );
         if ((userRes.rowCount ?? 0) > 0) {
-          const user: AuthUser = {
+          const user: RequestUser = {
             id: userRes.rows[0].client_id.toString(),
             type: 'user',
             role,
@@ -98,7 +98,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((volRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
-      const user: AuthUser = {
+      const user: RequestUser = {
         id: volRes.rows[0].id.toString(),
         type: 'volunteer',
         role: 'volunteer',
@@ -121,7 +121,7 @@ async function authenticate(req: Request): Promise<AuthResult> {
       if ((agRes.rowCount ?? 0) === 0) {
         return { status: 'invalid' };
       }
-      const user: AuthUser = {
+      const user: RequestUser = {
         id: agRes.rows[0].id.toString(),
         type: 'agency',
         role: 'agency',

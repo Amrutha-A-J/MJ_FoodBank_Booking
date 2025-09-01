@@ -1,4 +1,4 @@
-export interface AuthUser {
+export interface RequestUser {
   id: string;
   role: string;
   type: 'user' | 'staff' | 'volunteer' | 'agency';
