@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import VolunteerSchedule from '../pages/volunteer-management/VolunteerSchedule';
+import i18n from '../i18n';
 import {
   getVolunteerRolesForVolunteer,
   getMyVolunteerBookings,
@@ -58,12 +59,12 @@ describe('VolunteerSchedule', () => {
 
     render(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText('Role'));
+    fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
     fireEvent.click(await screen.findByText('Greeter'));
 
-    const prev = await screen.findByRole('button', { name: /Previous/i });
+    const prev = await screen.findByRole('button', { name: i18n.t('previous') });
     expect(prev).toBeDisabled();
 
-    expect(await screen.findByText('No bookings.')).toBeInTheDocument();
+    expect(await screen.findByText(i18n.t('no_bookings'))).toBeInTheDocument();
   });
 });
