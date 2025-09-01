@@ -1,6 +1,6 @@
 import pool from '../db';
 import logger from './logger';
-import cron from 'node-cron';
+import scheduleDailyJob from './scheduleDailyJob';
 import config from '../config';
 import coordinatorEmailsConfig from '../config/coordinatorEmails.json';
 import { sendTemplatedEmail } from './emailUtils';
@@ -56,28 +56,10 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
 /**
  * Schedule the volunteer no-show cleanup job to run nightly at 8:00 PM Regina time.
  */
-let volunteerNoShowCleanupTask: cron.ScheduledTask | undefined;
+const volunteerNoShowCleanupJob = scheduleDailyJob(
+  cleanupVolunteerNoShows,
+  '0 20 * * *',
+);
 
-export function startVolunteerNoShowCleanupJob(): void {
-  if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then on the scheduled interval.
-  cleanupVolunteerNoShows().catch(err =>
-    logger.error('Initial volunteer no-show cleanup failed', err),
-  );
-  volunteerNoShowCleanupTask = cron.schedule(
-    '0 20 * * *',
-    () => {
-      cleanupVolunteerNoShows().catch(err =>
-        logger.error('Scheduled volunteer no-show cleanup failed', err),
-      );
-    },
-    { timezone: 'America/Regina' },
-  );
-}
-
-export function stopVolunteerNoShowCleanupJob(): void {
-  if (volunteerNoShowCleanupTask) {
-    volunteerNoShowCleanupTask.stop();
-    volunteerNoShowCleanupTask = undefined;
-  }
-}
+export const startVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.start;
+export const stopVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.stop;

@@ -1,6 +1,6 @@
 import pool from '../db';
 import logger from './logger';
-import cron from 'node-cron';
+import scheduleDailyJob from './scheduleDailyJob';
 
 /**
  * Mark past approved bookings as no-show.
@@ -18,29 +18,11 @@ export async function cleanupNoShows(): Promise<void> {
 /**
  * Schedule the cleanup job to run nightly at 8:00 PM Regina time.
  */
-let noShowCleanupTask: cron.ScheduledTask | undefined;
+const noShowCleanupJob = scheduleDailyJob(
+  cleanupNoShows,
+  '0 20 * * *',
+);
 
-export function startNoShowCleanupJob(): void {
-  if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then on the scheduled interval.
-  cleanupNoShows().catch((err) =>
-    logger.error('Initial no-show cleanup failed', err),
-  );
-  noShowCleanupTask = cron.schedule(
-    '0 20 * * *',
-    () => {
-      cleanupNoShows().catch((err) =>
-        logger.error('Scheduled no-show cleanup failed', err),
-      );
-    },
-    { timezone: 'America/Regina' },
-  );
-}
-
-export function stopNoShowCleanupJob(): void {
-  if (noShowCleanupTask) {
-    noShowCleanupTask.stop();
-    noShowCleanupTask = undefined;
-  }
-}
+export const startNoShowCleanupJob = noShowCleanupJob.start;
+export const stopNoShowCleanupJob = noShowCleanupJob.stop;
 
