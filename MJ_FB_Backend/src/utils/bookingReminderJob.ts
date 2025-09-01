@@ -21,7 +21,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
         b.reschedule_token,
       );
       const body = `This is a reminder for your booking on ${nextDate}${time}.`;
-      enqueueEmail({
+      await enqueueEmail({
         to: b.user_email,
         templateId: 1,
         params: { body, cancelLink, rescheduleLink },
@@ -29,6 +29,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
     }
   } catch (err) {
     logger.error('Failed to send booking reminders', err);
+    throw err;
   }
 }
 
