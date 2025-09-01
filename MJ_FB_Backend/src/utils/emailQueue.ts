@@ -84,7 +84,6 @@ export function initEmailQueue(): void {
 export function shutdownQueue(): void {
   for (const t of timers) {
     clearTimeout(t);
-    clearInterval(t);
   }
   timers.clear();
   scheduled = false;
