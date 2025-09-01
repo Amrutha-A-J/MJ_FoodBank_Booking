@@ -41,7 +41,11 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `PASSWORD_SETUP_TOKEN_TTL_HOURS` – Hours until password setup tokens expire (default 24).
 
+`PASSWORD_SETUP_TEMPLATE_ID` – Brevo template ID used for password setup emails.
+
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
+
+Tests mock these variables via `tests/setupEnv.ts`. Update that file when adding new required environment settings.
 
 ## Password Policy
 
