@@ -9,7 +9,7 @@ describe('sendTemplatedEmail', () => {
   } = process.env;
 
   beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, text: jest.fn() });
     process.env.BREVO_API_KEY = 'test-key';
     process.env.BREVO_FROM_EMAIL = 'from@example.com';
     process.env.BREVO_FROM_NAME = 'Test Sender';
