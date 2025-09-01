@@ -22,6 +22,7 @@ import {
 import type { VolunteerBookingDetail, Shift } from '../types';
 import type { ApiError } from '../api/client';
 import { formatTime } from '../utils/time';
+import { formatReginaDate } from '../utils/date';
 
 interface ManageVolunteerShiftDialogProps {
   open: boolean;
@@ -44,7 +45,7 @@ export default function ManageVolunteerShiftDialog({
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
     if (open) {

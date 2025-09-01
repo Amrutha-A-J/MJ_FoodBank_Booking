@@ -4,6 +4,7 @@ import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
 import * as bookingRepository from '../src/models/bookingRepository';
 import * as newClientModel from '../src/models/newClient';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/models/bookingRepository', () => ({
@@ -57,7 +58,7 @@ beforeEach(() => {
 
 describe('POST /bookings/new-client', () => {
   it('creates booking and new client', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     const res = await request(app)
       .post('/bookings/new-client')
       .send({ name: 'New Client', email: 'n@example.com', phone: '123', slotId: 1, date: today });
@@ -82,7 +83,7 @@ describe('POST /bookings/new-client', () => {
   });
 
   it('creates booking without email', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     const res = await request(app)
       .post('/bookings/new-client')
       .send({ name: 'No Email', phone: '123', slotId: 1, date: today });

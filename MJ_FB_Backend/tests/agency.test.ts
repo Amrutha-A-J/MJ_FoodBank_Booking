@@ -20,6 +20,7 @@ import {
 import * as bookingUtils from '../src/utils/bookingUtils';
 import pool from '../src/db';
 import { enqueueEmail } from '../src/utils/emailQueue';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
@@ -137,7 +138,7 @@ describe('Agency login and token issuance', () => {
 });
 
 describe('Agency booking creation', () => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatReginaDate(new Date());
 
   it('creates booking for associated client', async () => {
     (isAgencyClient as jest.Mock).mockResolvedValue(true);

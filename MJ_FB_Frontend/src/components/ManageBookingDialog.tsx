@@ -22,6 +22,7 @@ import {
 } from '../api/bookings';
 import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
+import { formatReginaDate } from '../utils/date';
 import type { Slot, Booking } from '../types';
 
 const CART_TARE = 27;
@@ -45,7 +46,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   const [autoWeight, setAutoWeight] = useState(true);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
     if (open) {

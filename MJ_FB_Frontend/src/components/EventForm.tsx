@@ -17,6 +17,7 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent } from '../api/events';
 import { searchStaff, type StaffOption } from '../api/staff';
 import DialogCloseButton from './DialogCloseButton';
+import { formatReginaDate } from '../utils/date';
 
 interface EventFormProps {
   open: boolean;
@@ -88,7 +89,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
         title,
         details,
         category,
-        date: date.toISOString().split('T')[0],
+        date: formatReginaDate(date),
         staffIds: selectedStaff.map(s => s.id),
         visibleToVolunteers,
         visibleToClients,

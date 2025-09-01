@@ -4,6 +4,7 @@ import bookingsRouter from '../src/routes/bookings';
 import * as bookingUtils from '../src/utils/bookingUtils';
 import * as bookingRepository from '../src/models/bookingRepository';
 import pool from '../src/db';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({
@@ -98,7 +99,7 @@ describe('volunteer acting as shopper', () => {
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
 
     const res = await request(app)
       .post('/bookings')
@@ -115,9 +116,7 @@ describe('volunteer acting as shopper', () => {
   });
 
   it('can cancel their booking', async () => {
-    const futureDate = new Date(Date.now() + 86400000)
-      .toISOString()
-      .split('T')[0];
+    const futureDate = formatReginaDate(new Date(Date.now() + 86400000));
     (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
       id: 1,
       user_id: 10,

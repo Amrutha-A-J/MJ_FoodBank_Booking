@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/bookingUtils', () => ({
@@ -37,7 +38,7 @@ beforeEach(() => {
 
 describe('POST /bookings slotId validation', () => {
   it('returns 400 for missing slotId without querying the DB', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     const res = await request(app).post('/bookings').send({ date: today });
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('Please select a time slot');
@@ -46,7 +47,7 @@ describe('POST /bookings slotId validation', () => {
   });
 
   it('returns 400 for invalid slotId without querying the DB', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     const res = await request(app).post('/bookings').send({ slotId: 'abc', date: today });
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('Please select a valid time slot');

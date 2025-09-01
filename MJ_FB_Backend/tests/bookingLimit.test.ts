@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express from 'express';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 describe('booking monthly limits', () => {
   let app: express.Express;
@@ -92,7 +93,7 @@ describe('booking monthly limits', () => {
 
   it('rejects third visit in current month', async () => {
     (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(2);
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     const res = await request(app).post('/bookings').send({ slotId: 1, date: today });
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('limit');
@@ -107,9 +108,9 @@ describe('booking monthly limits', () => {
       },
     );
     const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 5)
-      .toISOString()
-      .split('T')[0];
+    const nextMonth = formatReginaDate(
+      new Date(now.getFullYear(), now.getMonth() + 1, 5),
+    );
     const res = await request(app)
       .post('/bookings')
       .send({ slotId: 1, date: nextMonth });
@@ -120,7 +121,7 @@ describe('booking monthly limits', () => {
     (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock)
       .mockResolvedValueOnce(1)
       .mockResolvedValueOnce(2);
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
 
     const [res1, res2] = await Promise.all([
       request(app).post('/bookings').send({ slotId: 1, date: today }),

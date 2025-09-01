@@ -12,6 +12,7 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import { getRoles } from '../api/volunteers';
 import type { RoleOption } from '../types';
 import DialogCloseButton from './DialogCloseButton';
+import { formatReginaDate } from '../utils/date';
 
 interface RescheduleDialogProps {
   open: boolean;
@@ -28,7 +29,7 @@ export default function RescheduleDialog({
   const [roleId, setRoleId] = useState('');
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [message, setMessage] = useState('');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
     if (!open) {

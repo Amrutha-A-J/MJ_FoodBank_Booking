@@ -13,6 +13,7 @@ import {
   type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
+import { formatReginaDate } from '../utils/date';
 
 jest.mock('../api/volunteers', () => ({
   getMyVolunteerBookings: jest.fn(),
@@ -120,7 +121,7 @@ beforeEach(() => {
   });
 
   it('hides slots already booked by volunteer', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -291,7 +292,7 @@ beforeEach(() => {
   });
 
   it('shows server error when shift request fails', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatReginaDate(new Date());
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
       {

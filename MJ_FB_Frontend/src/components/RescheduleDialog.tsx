@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
+import { formatReginaDate } from '../utils/date';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import DialogCloseButton from './DialogCloseButton';
 import type { Slot } from '../types';
@@ -34,7 +35,7 @@ export default function RescheduleDialog({
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] =
     useState<AlertColor>('success');
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
     if (open && date) {
