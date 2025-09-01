@@ -1,12 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
-
-const realFetch = global.fetch;
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('AgencyManagement', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    fetchMock = mockFetch();
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 204,
       json: async () => ({}),
@@ -16,7 +18,8 @@ describe('AgencyManagement', () => {
   });
 
   afterEach(() => {
-    global.fetch = realFetch;
+    restoreFetch();
+    jest.resetAllMocks();
   });
 
   it('shows tabs for adding agencies and managing clients', async () => {

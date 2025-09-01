@@ -1,11 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
-const originalFetch = (global as any).fetch;
+let fetchMock: jest.Mock;
 
 beforeEach(() => {
-  (global as any).fetch = jest.fn().mockResolvedValue({
+  fetchMock = mockFetch();
+  fetchMock.mockResolvedValue({
     ok: true,
     status: 204,
     json: async () => ({}),
@@ -16,11 +18,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  if (originalFetch) {
-    (global as any).fetch = originalFetch;
-  } else {
-    delete (global as any).fetch;
-  }
+  restoreFetch();
+  jest.resetAllMocks();
 });
 
 jest.mock('../pages/volunteer-management/VolunteerManagement', () => () => <div>VolunteerManagement</div>);

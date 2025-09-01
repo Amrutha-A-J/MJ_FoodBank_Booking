@@ -1,40 +1,37 @@
 import { fetchWithRetry } from '../api/fetchWithRetry';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('fetchWithRetry', () => {
-  const originalFetch = global.fetch;
+  let fetchMock: jest.Mock;
+
+  beforeEach(() => {
+    fetchMock = mockFetch();
+  });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    restoreFetch();
     jest.resetAllMocks();
   });
 
   it('retries on 5xx responses', async () => {
     const first = new Response(null, { status: 500 });
     const second = new Response(null, { status: 200 });
-    const mockFetch = jest
-      .fn()
-      .mockResolvedValueOnce(first)
-      .mockResolvedValueOnce(second);
-    global.fetch = mockFetch as any;
+    fetchMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
     const res = await fetchWithRetry('/test', {}, 1, 0);
 
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(res).toBe(second);
   });
 
   it('retries on configured status codes', async () => {
     const first = new Response(null, { status: 429 });
     const second = new Response(null, { status: 200 });
-    const mockFetch = jest
-      .fn()
-      .mockResolvedValueOnce(first)
-      .mockResolvedValueOnce(second);
-    global.fetch = mockFetch as any;
+    fetchMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
     const res = await fetchWithRetry('/test', {}, 1, 0, [429]);
 
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(res).toBe(second);
   });
 });

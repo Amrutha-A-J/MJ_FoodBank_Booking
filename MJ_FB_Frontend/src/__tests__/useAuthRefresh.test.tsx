@@ -1,17 +1,19 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../hooks/useAuth';
-
-const realFetch = global.fetch;
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('AuthProvider refresh handling', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
+    fetchMock = mockFetch();
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test');
-    (global as any).fetch = jest.fn().mockRejectedValue(new Error('network'));
+    fetchMock.mockRejectedValue(new Error('network'));
   });
 
   afterEach(() => {
-    global.fetch = realFetch;
+    restoreFetch();
     jest.restoreAllMocks();
     localStorage.clear();
   });
@@ -28,9 +30,7 @@ describe('AuthProvider refresh handling', () => {
   });
 
   it('retains auth when refresh returns 409', async () => {
-    (global as any).fetch = jest
-      .fn()
-      .mockResolvedValue({ ok: false, status: 409 });
+    fetchMock.mockResolvedValue({ ok: false, status: 409 });
 
     function Child() {
       const { token, ready } = useAuth();
@@ -49,16 +49,20 @@ describe('AuthProvider refresh handling', () => {
 });
 
 describe('AuthProvider with no prior session', () => {
+  let fetchMock: jest.Mock;
+
+  beforeEach(() => {
+    fetchMock = mockFetch();
+  });
+
   afterEach(() => {
-    global.fetch = realFetch;
+    restoreFetch();
     jest.restoreAllMocks();
     localStorage.clear();
   });
 
   it('does not show session expired when refresh fails without auth', async () => {
-    (global as any).fetch = jest
-      .fn()
-      .mockResolvedValue({ ok: false, status: 401 });
+    fetchMock.mockResolvedValue({ ok: false, status: 401 });
 
     render(
       <AuthProvider>
@@ -66,7 +70,7 @@ describe('AuthProvider with no prior session', () => {
       </AuthProvider>,
     );
 
-    await waitFor(() => expect((global as any).fetch).toHaveBeenCalled());
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(screen.queryByText('Session expired')).toBeNull();
   });
 });
