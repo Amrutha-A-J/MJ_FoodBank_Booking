@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Table,
   TableHead,
@@ -25,6 +25,7 @@ import { getDonorAggregations, type DonorAggregation } from '../../api/donations
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
+import { exportTableToExcel } from '../../utils/exportTableToExcel';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -39,6 +40,8 @@ export default function Aggregations() {
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [donorExportLoading, setDonorExportLoading] = useState(false);
+  const donorTableRef = useRef<HTMLTableElement>(null);
 
   useEffect(() => {
     async function loadYears() {
@@ -141,6 +144,21 @@ export default function Aggregations() {
     }
   }
 
+  async function handleExportDonors() {
+    if (!donorTableRef.current) return;
+    setDonorExportLoading(true);
+    const success = await exportTableToExcel(
+      donorTableRef.current,
+      `${donorYear}_donor_aggregations`,
+    );
+    setSnackbar({
+      open: true,
+      message: success ? 'Export ready' : 'Failed to export',
+      severity: success ? 'success' : 'error',
+    });
+    setDonorExportLoading(false);
+  }
+
   const donorContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
@@ -159,9 +177,17 @@ export default function Aggregations() {
             ))}
           </Select>
         </FormControl>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleExportDonors}
+          disabled={donorExportLoading}
+        >
+          {donorExportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
       </Stack>
       <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
-        <Table size="small" stickyHeader>
+        <Table size="small" stickyHeader ref={donorTableRef}>
           <TableHead>
             <TableRow>
               <TableCell
