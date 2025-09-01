@@ -3,6 +3,7 @@ import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import * as bookingRepository from '../src/models/bookingRepository';
 import pool from '../src/db';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('../src/db');
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
@@ -56,7 +57,7 @@ beforeEach(() => {
 
 describe('client cancelling own booking', () => {
   it('allows client to cancel their booking', async () => {
-    const futureDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const futureDate = formatReginaDate(new Date(Date.now() + 86400000));
     (bookingRepository.fetchBookingById as jest.Mock).mockResolvedValue({
       id: 1,
       user_id: '10',

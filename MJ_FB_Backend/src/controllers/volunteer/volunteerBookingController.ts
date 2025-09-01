@@ -32,8 +32,7 @@ function statusColor(status: string) {
 function mapBookingRow(b: any) {
   return {
     ...b,
-    date:
-      b.date instanceof Date ? b.date.toISOString().split('T')[0] : b.date,
+    date: b.date instanceof Date ? formatReginaDate(b.date) : b.date,
     status_color: statusColor(b.status),
   };
 }
@@ -154,7 +153,7 @@ export async function createVolunteerBooking(
           role_name: existing.role_name,
           date:
             existing.date instanceof Date
-              ? existing.date.toISOString().split('T')[0]
+              ? formatReginaDate(existing.date)
               : existing.date,
           start_time: existing.start_time,
           end_time: existing.end_time,
@@ -218,7 +217,7 @@ export async function createVolunteerBooking(
       booking.status_color = statusColor(booking.status);
       booking.date =
         booking.date instanceof Date
-          ? booking.date.toISOString().split('T')[0]
+          ? formatReginaDate(booking.date)
           : booking.date;
       res.status(201).json(booking);
     } catch (error: any) {
@@ -337,7 +336,7 @@ export async function createVolunteerBookingForVolunteer(
           role_name: existing.role_name,
           date:
             existing.date instanceof Date
-              ? existing.date.toISOString().split('T')[0]
+              ? formatReginaDate(existing.date)
               : existing.date,
           start_time: existing.start_time,
           end_time: existing.end_time,
@@ -389,7 +388,7 @@ export async function createVolunteerBookingForVolunteer(
       booking.status_color = statusColor(booking.status);
       booking.date =
         booking.date instanceof Date
-          ? booking.date.toISOString().split('T')[0]
+          ? formatReginaDate(booking.date)
           : booking.date;
       res.status(201).json(booking);
     } catch (error: any) {
@@ -456,7 +455,7 @@ export async function resolveVolunteerBookingConflict(
       role_name: existing.role_name,
       date:
         existing.date instanceof Date
-          ? existing.date.toISOString().split('T')[0]
+          ? formatReginaDate(existing.date)
           : existing.date,
       start_time: existing.start_time,
       end_time: existing.end_time,
@@ -572,7 +571,7 @@ export async function resolveVolunteerBookingConflict(
     booking.status_color = statusColor(booking.status);
     booking.date =
       booking.date instanceof Date
-        ? booking.date.toISOString().split('T')[0]
+        ? formatReginaDate(booking.date)
         : booking.date;
 
     return res.status(201).json({ kept: 'new', booking });
@@ -620,7 +619,7 @@ export async function listVolunteerBookingsForReview(
   try {
     const { start, end } = req.query as { start?: string; end?: string };
     const startDate =
-      start ?? new Date().toISOString().split('T')[0];
+      start ?? formatReginaDate(new Date());
     const endDate =
       end ??
       new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
@@ -818,7 +817,7 @@ export async function updateVolunteerBookingStatus(
     updated.status_color = statusColor(updated.status);
     updated.date =
       updated.date instanceof Date
-        ? updated.date.toISOString().split('T')[0]
+        ? formatReginaDate(updated.date)
         : updated.date;
     await notifyCoordinators(
       `Volunteer booking ${status}`,
@@ -1324,7 +1323,7 @@ export async function cancelVolunteerBookingOccurrence(
     const slot = slotRes.rows[0];
     const dateStr =
       booking.date instanceof Date
-        ? booking.date.toISOString().split('T')[0]
+        ? formatReginaDate(booking.date)
         : booking.date;
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
     const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
