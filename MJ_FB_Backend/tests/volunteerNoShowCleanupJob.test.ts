@@ -8,7 +8,8 @@ const {
 } = job;
 import pool from '../src/db';
 jest.mock('../src/db');
-import { sendEmail } from '../src/utils/emailUtils';
+import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID } from '../src/config/emailTemplates';
 jest.mock('../src/utils/emailUtils');
 
 describe('cleanupVolunteerNoShows', () => {
@@ -28,7 +29,17 @@ describe('cleanupVolunteerNoShows', () => {
     expect(query).toContain("NOW() - INTERVAL '24 hours'");
     expect(query).toContain('FROM volunteer_slots');
     expect(query).toContain('vb.date + vs.end_time');
-    expect(sendEmail).toHaveBeenCalled();
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmail).toHaveBeenCalledWith({
+      to: 'coordinator1@example.com',
+      templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+      params: { ids: '1' },
+    });
+    expect(sendTemplatedEmail).toHaveBeenCalledWith({
+      to: 'coordinator2@example.com',
+      templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+      params: { ids: '1' },
+    });
   });
 });
 

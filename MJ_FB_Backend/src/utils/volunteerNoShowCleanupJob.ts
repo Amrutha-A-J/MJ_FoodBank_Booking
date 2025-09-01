@@ -3,7 +3,8 @@ import logger from './logger';
 import cron from 'node-cron';
 import config from '../config';
 import coordinatorEmailsConfig from '../config/coordinatorEmails.json';
-import { sendEmail } from './emailUtils';
+import { sendTemplatedEmail } from './emailUtils';
+import { VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID } from '../config/emailTemplates';
 
 const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
 
@@ -25,10 +26,15 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
     if (res.rowCount && res.rowCount > 0) {
       const ids = res.rows.map((r: any) => r.id).join(', ');
       logger.info('Marked volunteer bookings as no_show', { ids });
-      const subject = 'Volunteer bookings marked as no_show';
-      const body = `The following volunteer bookings were automatically marked as no_show: ${ids}`;
+      const params = { ids };
       const results = await Promise.allSettled(
-        coordinatorEmails.map(email => sendEmail(email, subject, body)),
+        coordinatorEmails.map(email =>
+          sendTemplatedEmail({
+            to: email,
+            templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+            params,
+          }),
+        ),
       );
       results.forEach((result, idx) => {
         if (result.status === 'rejected') {
