@@ -15,7 +15,7 @@ jest.doMock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
     __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false),
+    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
 
@@ -34,17 +34,13 @@ test('does not query database on import', () => {
 });
 
 describe('sendNextDayBookingReminders', () => {
-  let originalEnv: string | undefined;
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T12:00:00Z'));
-    originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
   });
   afterEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
-    process.env.NODE_ENV = originalEnv;
   });
 
   it('fetches next-day bookings and queues reminder emails', async () => {
@@ -94,21 +90,17 @@ describe('sendNextDayBookingReminders', () => {
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let originalEnv: string | undefined;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
   });
 
   afterEach(() => {
     stopBookingReminderJob();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    process.env.NODE_ENV = originalEnv;
   });
 
   it('schedules and stops the cron job', () => {

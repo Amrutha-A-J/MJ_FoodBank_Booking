@@ -60,6 +60,7 @@ const volunteerNoShowCleanupJob = scheduleDailyJob(
   cleanupVolunteerNoShows,
   '0 20 * * *',
   true,
+  true,
 );
 
 export const startVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.start;

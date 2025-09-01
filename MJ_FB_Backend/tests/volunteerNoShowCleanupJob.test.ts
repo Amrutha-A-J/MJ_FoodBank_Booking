@@ -1,10 +1,9 @@
-const originalEnv = process.env.NODE_ENV;
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
     __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false),
+    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
 const job = require('../src/utils/volunteerNoShowCleanupJob');
@@ -59,14 +58,12 @@ describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    process.env.NODE_ENV = 'development';
   });
 
   afterEach(() => {
     stopVolunteerNoShowCleanupJob();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    process.env.NODE_ENV = originalEnv;
   });
 
   it('schedules and stops the cron job', () => {
@@ -79,8 +76,4 @@ describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
     stopVolunteerNoShowCleanupJob();
     expect(stopMock).toHaveBeenCalled();
   });
-});
-
-afterAll(() => {
-  process.env.NODE_ENV = originalEnv;
 });
