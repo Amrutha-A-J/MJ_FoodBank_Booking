@@ -1,5 +1,4 @@
 const originalEnv = process.env.NODE_ENV;
-process.env.NODE_ENV = 'development';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 const job = require('../src/utils/volunteerNoShowCleanupJob');
 const {
