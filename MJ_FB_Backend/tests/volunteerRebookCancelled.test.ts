@@ -6,8 +6,9 @@ import pool from '../src/db';
 jest.mock('../src/db');
 jest.mock('../src/utils/emailUtils', () => ({
   sendEmail: jest.fn(),
-  buildCancelRescheduleButtons: () => '',
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
 }));
+jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     req: express.Request,

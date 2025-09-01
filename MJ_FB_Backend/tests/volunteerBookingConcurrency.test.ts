@@ -43,8 +43,9 @@ afterAll(async () => {
 // Mock db module after pool initialized
 jest.mock('../src/utils/emailUtils', () => ({
   sendEmail: jest.fn(),
-  buildCancelRescheduleButtons: () => '',
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
 }));
+jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     req: express.Request,

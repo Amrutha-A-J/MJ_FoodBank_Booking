@@ -4,7 +4,10 @@ import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 
 jest.mock('../src/db');
-jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/utils/emailUtils', () => ({
+  sendEmail: jest.fn(),
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+}));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     _req: express.Request,
