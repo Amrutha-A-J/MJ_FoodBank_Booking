@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
@@ -10,10 +11,6 @@ jest.mock('../src/models/bookingRepository', () => ({
   updateBooking: jest.fn(),
 }));
 
-jest.mock('../src/db', () => ({
-  __esModule: true,
-  default: { query: jest.fn() },
-}));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {

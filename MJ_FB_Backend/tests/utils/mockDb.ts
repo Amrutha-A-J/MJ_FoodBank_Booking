@@ -1,5 +1,7 @@
 import { Pool } from 'pg';
 
+// Shared mocked pg Pool for tests that access the database.
+
 const mockPool = {
   query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
   connect: jest.fn().mockResolvedValue({

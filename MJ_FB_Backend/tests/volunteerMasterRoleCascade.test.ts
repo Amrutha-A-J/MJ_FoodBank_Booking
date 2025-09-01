@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express from 'express';
+import mockDb from '../tests/utils/mockDb';
 
 // In-memory mock data to simulate cascading deletes
 const masterRoles = [{ id: 1, name: 'Master' }];
@@ -39,10 +40,8 @@ const mockQuery = jest.fn(async (sql: string, params?: any[]) => {
   return { rows: [], rowCount: 0 };
 });
 
-jest.mock('../src/db', () => ({
-  __esModule: true,
-  default: { query: mockQuery },
-}));
+(mockDb.query as jest.Mock).mockImplementation(mockQuery);
+
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),

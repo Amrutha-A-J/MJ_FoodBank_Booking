@@ -39,7 +39,7 @@
 - For changes in `MJ_FB_Frontend`, run `npm test` from the `MJ_FB_Frontend` directory.
 - Tests polyfill `global.fetch` with `undici` via top-level assignments in `tests/setupFetch.ts`. Ensure this file remains configured in Jest's setup files.
 - Tests for invitation and password setup flows live in `MJ_FB_Backend/tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
-- Mock database access in backend tests by importing `../tests/utils/mockDb` instead of calling `jest.mock('../src/db')` directly.
+- Mock database access in backend tests by adding `import '../tests/utils/mockDb'`. The helper mocks `../src/db` and exports the mocked `pool` for custom query behavior.
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one. The stats endpoint also returns
