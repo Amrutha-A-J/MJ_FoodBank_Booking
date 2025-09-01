@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import BookingUI from '../pages/BookingUI';
 import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,15 +19,20 @@ const { getSlots, getHolidays } = jest.requireMock('../api/bookings');
 
 describe('BookingUI visible slots', () => {
   beforeAll(() => {
+    jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T10:30:00'));
   });
 
   beforeEach(() => {
+    jest.setSystemTime(new Date('2024-01-01T10:30:00'));
     jest.clearAllMocks();
   });
 
   afterAll(() => {
+    jest.useRealTimers();
+    jest.useFakeTimers();
     jest.setSystemTime(new Date());
+    jest.useRealTimers();
   });
 
   it('hides past slots when viewing today', async () => {
@@ -46,6 +51,10 @@ describe('BookingUI visible slots', () => {
       </MemoryRouter>,
     );
 
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
     await screen.findByText(/11:00 am/i);
     expect(screen.queryByText(/9:00 am/i)).toBeNull();
     expect(screen.getByText(/11:00 am/i)).toBeInTheDocument();
@@ -64,6 +73,10 @@ describe('BookingUI visible slots', () => {
       </MemoryRouter>,
     );
 
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
     await waitFor(() => {
       expect(getSlots).toHaveBeenCalledWith('2024-01-01');
     });
@@ -83,6 +96,10 @@ describe('BookingUI visible slots', () => {
       </MemoryRouter>,
     );
 
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
     await screen.findByText(/Booking for: Test/);
     expect(screen.queryByText('Book Appointment')).toBeNull();
   });
