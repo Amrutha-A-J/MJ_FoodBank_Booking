@@ -310,9 +310,11 @@ describe('Agency client notifications', () => {
 
     expect(res.status).toBe(204);
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'agency@example.com',
-      'Client John Doe added',
-      'John Doe has been added to your agency.',
+      expect.objectContaining({
+        to: 'agency@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({ body: 'John Doe has been added to your agency.' }),
+      }),
     );
   });
 
@@ -325,9 +327,11 @@ describe('Agency client notifications', () => {
 
     expect(res.status).toBe(204);
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'agency@example.com',
-      'Client John Doe removed',
-      'John Doe has been removed from your agency.',
+      expect.objectContaining({
+        to: 'agency@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({ body: 'John Doe has been removed from your agency.' }),
+      }),
     );
   });
 });

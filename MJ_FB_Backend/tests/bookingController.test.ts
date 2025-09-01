@@ -50,9 +50,11 @@ describe('createBookingForUser', () => {
     await createBookingForUser(req, res, next);
 
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'client@example.com',
-      'Booking approved',
-      expect.stringContaining('2024-01-15'),
+      expect.objectContaining({
+        to: 'client@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({ body: expect.stringContaining('2024-01-15') }),
+      }),
     );
   });
 
@@ -179,9 +181,13 @@ describe('markBookingNoShow', () => {
 
     expect(updateBooking).toHaveBeenCalledWith(1, { status: 'no_show', request_data: '' });
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'client@example.com',
-      'Booking marked as no-show',
-      expect.stringContaining('http://localhost:3000/reschedule/tok'),
+      expect.objectContaining({
+        to: 'client@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({
+          body: expect.stringContaining('http://localhost:3000/reschedule/tok'),
+        }),
+      }),
     );
     expect(res.json).toHaveBeenCalledWith({ message: 'Booking marked as no-show' });
   });

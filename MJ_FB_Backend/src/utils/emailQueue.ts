@@ -1,29 +1,34 @@
 import pool from '../db';
 import config from '../config';
-import { sendEmail } from './emailUtils';
+import { sendTemplatedEmail } from './emailUtils';
 import logger from './logger';
 
 interface EmailJob {
   id: number;
   to: string;
-  subject: string;
-  body: string;
+  templateId: number;
+  params: Record<string, unknown>;
   retries: number;
   next_attempt: Date;
+}
+
+interface EnqueueOptions {
+  to: string;
+  templateId: number;
+  params?: Record<string, unknown>;
+  retries?: number;
 }
 
 let processing = false;
 let scheduled = false;
 const timers = new Set<NodeJS.Timeout>();
 
-export function enqueueEmail(to: string, subject: string, body: string, retries = 0): void {
+export function enqueueEmail({ to, templateId, params = {}, retries = 0 }: EnqueueOptions): void {
   pool
-    .query('INSERT INTO email_queue (recipient, subject, body, retries, next_attempt) VALUES ($1,$2,$3,$4, now())', [
-      to,
-      subject,
-      body,
-      retries,
-    ])
+    .query(
+      'INSERT INTO email_queue (recipient, template_id, params, retries, next_attempt) VALUES ($1,$2,$3,$4, now())',
+      [to, templateId, params, retries],
+    )
     .then(() => processQueue().catch((err) => logger.error('Email queue processing error:', err)))
     .catch((err) => logger.error('Failed to enqueue email', err));
 }
@@ -50,12 +55,12 @@ async function processQueue(): Promise<void> {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const res = await pool.query<EmailJob>(
-        'SELECT id, recipient as to, subject, body, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'
+        'SELECT id, recipient as to, template_id as "templateId", params, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'
       );
       if (res.rowCount === 0) break;
       const job = res.rows[0];
       try {
-        await sendEmail(job.to, job.subject, job.body);
+        await sendTemplatedEmail({ to: job.to, templateId: job.templateId, params: job.params });
         await pool.query('DELETE FROM email_queue WHERE id=$1', [job.id]);
       } catch (err) {
         if (job.retries < config.emailQueueMaxRetries) {

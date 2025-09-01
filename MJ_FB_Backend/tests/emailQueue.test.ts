@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 interface Job {
   id: number;
   to: string;
-  subject: string;
-  body: string;
+  templateId: number;
+  params: Record<string, unknown>;
   retries: number;
   next_attempt: number;
 }
@@ -18,8 +18,8 @@ const db = {
       const job: Job = {
         id: idCounter++,
         to: params[0],
-        subject: params[1],
-        body: params[2],
+        templateId: params[1],
+        params: params[2],
         retries: params[3],
         next_attempt: Date.now(),
       };
@@ -31,7 +31,7 @@ const db = {
       const job = [...jobs].sort((a, b) => a.next_attempt - b.next_attempt)[0];
       return { rows: [{ next_attempt: new Date(job.next_attempt) }], rowCount: 1 };
     }
-    if (sql.startsWith('SELECT id, recipient as to, subject')) {
+    if (sql.startsWith('SELECT id, recipient as to, template_id')) {
       const now = Date.now();
       const job = jobs.filter((j) => j.next_attempt <= now).sort((a, b) => a.id - b.id)[0];
       if (!job) return { rows: [], rowCount: 0 };
@@ -83,7 +83,7 @@ describe('persistent email queue', () => {
   it('retries failed jobs with exponential backoff', async () => {
     process.env.EMAIL_QUEUE_MAX_RETRIES = '2';
     process.env.EMAIL_QUEUE_BACKOFF_MS = '1';
-    const sendEmailMock: jest.Mock = jest
+    const sendTemplatedEmailMock: jest.Mock = jest
       .fn()
       // @ts-ignore
       .mockRejectedValueOnce(new Error('fail1'))
@@ -91,68 +91,70 @@ describe('persistent email queue', () => {
       .mockRejectedValueOnce(new Error('fail2'))
       // @ts-ignore
       .mockResolvedValueOnce(undefined);
-    jest.doMock('../src/utils/emailUtils', () => ({ sendEmail: sendEmailMock }));
+    jest.doMock('../src/utils/emailUtils', () => ({ sendTemplatedEmail: sendTemplatedEmailMock }));
     mockDb();
     const { enqueueEmail } = require('../src/utils/emailQueue');
 
-    enqueueEmail('user@example.com', 'Sub', 'Body');
+    enqueueEmail({ to: 'user@example.com', templateId: 1, params: { body: 'Body' } });
     await Promise.resolve();
-    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
 
     await jest.advanceTimersByTimeAsync(1);
-    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
 
     await jest.advanceTimersByTimeAsync(2);
-    expect(sendEmailMock).toHaveBeenCalledTimes(3);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(3);
   });
 
   it('resumes pending jobs after a restart', async () => {
     process.env.EMAIL_QUEUE_MAX_RETRIES = '2';
     process.env.EMAIL_QUEUE_BACKOFF_MS = '1';
-    const sendEmailMock: jest.Mock = jest
+    const sendTemplatedEmailMock: jest.Mock = jest
       .fn()
       // @ts-ignore
       .mockRejectedValueOnce(new Error('fail1'))
       // @ts-ignore
       .mockResolvedValueOnce(undefined);
-    jest.doMock('../src/utils/emailUtils', () => ({ sendEmail: sendEmailMock }));
+    jest.doMock('../src/utils/emailUtils', () => ({ sendTemplatedEmail: sendTemplatedEmailMock }));
     mockDb();
     const { enqueueEmail } = require('../src/utils/emailQueue');
 
-    enqueueEmail('user@example.com', 'Sub', 'Body');
+    enqueueEmail({ to: 'user@example.com', templateId: 1, params: { body: 'Body' } });
     await Promise.resolve();
-    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
 
     // simulate restart before retry
     jest.clearAllTimers();
     jest.resetModules();
-    jest.doMock('../src/utils/emailUtils', () => ({ sendEmail: sendEmailMock }));
+    jest.doMock('../src/utils/emailUtils', () => ({ sendTemplatedEmail: sendTemplatedEmailMock }));
     mockDb();
     require('../src/utils/emailQueue');
 
     await jest.advanceTimersByTimeAsync(1);
-    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
   });
 
   it('stops retrying after max retries', async () => {
     process.env.EMAIL_QUEUE_MAX_RETRIES = '1';
     process.env.EMAIL_QUEUE_BACKOFF_MS = '1';
-    const sendEmailMock = jest.fn().mockRejectedValue(new Error('fail'));
-    jest.doMock('../src/utils/emailUtils', () => ({ sendEmail: sendEmailMock }));
+    const sendTemplatedEmailMock: jest.Mock = jest
+      .fn()
+      .mockRejectedValue(new Error('fail'));
+    jest.doMock('../src/utils/emailUtils', () => ({ sendTemplatedEmail: sendTemplatedEmailMock }));
     const logger = require('../src/utils/logger').default;
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockDb();
     const { enqueueEmail } = require('../src/utils/emailQueue');
 
-    enqueueEmail('user@example.com', 'Sub', 'Body');
+    enqueueEmail({ to: 'user@example.com', templateId: 1, params: { body: 'Body' } });
     await Promise.resolve();
-    expect(sendEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
 
     await jest.advanceTimersByTimeAsync(1);
-    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
 
     await jest.advanceTimersByTimeAsync(2);
-    expect(sendEmailMock).toHaveBeenCalledTimes(2);
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
     expect(errorSpy).toHaveBeenCalledWith('Failed to send email job after max retries', expect.any(Error));
   });
 });

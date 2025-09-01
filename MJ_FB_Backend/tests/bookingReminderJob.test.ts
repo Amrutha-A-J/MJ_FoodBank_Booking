@@ -43,9 +43,11 @@ describe('sendNextDayBookingReminders', () => {
 
     expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'user@example.com',
-      expect.stringContaining('Reminder'),
-      expect.stringContaining('2024-01-02'),
+      expect.objectContaining({
+        to: 'user@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({ body: expect.stringContaining('2024-01-02') }),
+      }),
     );
   });
 });

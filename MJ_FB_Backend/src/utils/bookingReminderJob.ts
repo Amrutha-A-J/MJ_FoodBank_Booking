@@ -18,11 +18,12 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       if (!b.user_email) continue;
       const time = b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';
       const buttons = buildCancelRescheduleButtons(b.reschedule_token);
-      enqueueEmail(
-        b.user_email,
-        'Booking Reminder',
-        `This is a reminder for your booking on ${nextDate}${time}.${buttons}`,
-      );
+      const body = `This is a reminder for your booking on ${nextDate}${time}.${buttons}`;
+      enqueueEmail({
+        to: b.user_email,
+        templateId: 1,
+        params: { body },
+      });
     }
   } catch (err) {
     logger.error('Failed to send booking reminders', err);
