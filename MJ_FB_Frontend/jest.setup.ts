@@ -16,6 +16,20 @@ if (!process.env.VITE_API_BASE) {
   (globalThis as any).VITE_API_BASE = 'http://localhost:4000';
 }
 
+// Polyfill matchMedia for testing environment with modern and legacy listeners
+if (!window.matchMedia) {
+  (window as any).matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  });
+}
+
 beforeAll(() => {
   (global as any).fetch = fetch;
   (global as any).Headers = Headers as any;

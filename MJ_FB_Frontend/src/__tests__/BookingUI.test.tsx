@@ -21,11 +21,6 @@ describe('BookingUI visible slots', () => {
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-01T10:30:00'));
-    window.matchMedia = window.matchMedia || ((() => ({
-      matches: false,
-      addListener: () => {},
-      removeListener: () => {},
-    })) as any);
   });
 
   beforeEach(() => {
