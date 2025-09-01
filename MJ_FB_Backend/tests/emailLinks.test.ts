@@ -1,8 +1,12 @@
 import { buildCancelRescheduleLinks } from '../src/utils/emailUtils';
 import config from '../src/config';
 import logger from '../src/utils/logger';
+import { shutdownQueue } from '../src/utils/emailQueue';
 
 describe('buildCancelRescheduleLinks', () => {
+  afterEach(() => {
+    shutdownQueue();
+  });
   it('returns cancel and reschedule links', () => {
     const links = buildCancelRescheduleLinks('tok');
     expect(links).toEqual({

@@ -1,5 +1,6 @@
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
+import { shutdownQueue } from '../src/utils/emailQueue';
 
 describe('emailUtils error logging', () => {
   const originalFetch = global.fetch;
@@ -28,6 +29,7 @@ describe('emailUtils error logging', () => {
     process.env.BREVO_API_KEY = originalApiKey;
     process.env.BREVO_FROM_EMAIL = originalFromEmail;
     process.env.BREVO_FROM_NAME = originalFromName;
+    shutdownQueue();
     jest.resetAllMocks();
   });
 
