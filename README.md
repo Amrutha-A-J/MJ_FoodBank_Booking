@@ -151,6 +151,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `PASSWORD_SETUP_TEMPLATE_ID` | Brevo template ID for invitation and password setup emails |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS` | Hours until password setup tokens expire (default 24) |
 
+See [docs/emailTemplates.md](docs/emailTemplates.md) for a list of email templates and parameters.
+
 ### Invitation flow
 
 New clients, volunteers, staff, and agencies are created without passwords. The backend generates a one-time token and emails a setup link using the Brevo template defined by `PASSWORD_SETUP_TEMPLATE_ID`. The link points to `/set-password` on the first origin listed in `FRONTEND_ORIGIN`.
