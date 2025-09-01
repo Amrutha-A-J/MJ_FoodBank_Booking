@@ -15,6 +15,7 @@ The backend automatically runs any pending database migrations on startup and lo
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
+- Tests polyfill `global.fetch` with `undici` using `tests/setupFetch.ts`, which is included in Jest's setup files.
 
 ## Help Page Updates
 
