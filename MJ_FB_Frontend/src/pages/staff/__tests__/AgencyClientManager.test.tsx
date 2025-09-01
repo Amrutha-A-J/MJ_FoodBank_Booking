@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import AgencyClientManager from '../AgencyClientManager';
 
 jest.mock('../../../components/EntitySearch', () => (props: any) => (
@@ -23,10 +24,12 @@ describe('AgencyClientManager', () => {
   it('shows agency search before selection then shows client search', async () => {
     render(<AgencyClientManager />);
 
-    expect(screen.getByText('Select Agency')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Select Agency' }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Select Client')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Select Agency'));
+    await userEvent.click(screen.getByRole('button', { name: 'Select Agency' }));
 
     expect(await screen.findByText('Select Client')).toBeInTheDocument();
     expect(
@@ -42,11 +45,11 @@ describe('AgencyClientManager', () => {
 
     render(<AgencyClientManager />);
 
-    fireEvent.click(screen.getByText('Select Agency'));
+    await userEvent.click(screen.getByRole('button', { name: 'Select Agency' }));
     await screen.findByText('Clients for Test Agency');
     expect(await screen.findByText('Client One')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('Book'));
+    await userEvent.click(screen.getByText('Book'));
     expect(await screen.findByText('BookingUI Client One')).toBeInTheDocument();
     expect(mockBookingUI).toHaveBeenCalledWith(
       expect.objectContaining({ shopperName: 'Client One', userId: 5 }),
