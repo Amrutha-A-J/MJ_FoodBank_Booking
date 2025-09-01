@@ -1,12 +1,14 @@
 import { render, screen } from '@testing-library/react';
 import App from '../App';
 import { AuthProvider } from '../hooks/useAuth';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('Language selector visibility', () => {
-  const originalFetch = (global as any).fetch;
+  let fetchMock: jest.Mock;
 
   beforeEach(() => {
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    fetchMock = mockFetch();
+    fetchMock.mockResolvedValue({
       ok: true,
       status: 204,
       json: async () => ({}),
@@ -16,15 +18,12 @@ describe('Language selector visibility', () => {
   });
 
   afterEach(() => {
-    if (originalFetch) {
-      (global as any).fetch = originalFetch;
-    } else {
-      delete (global as any).fetch;
-    }
+    restoreFetch();
+    jest.resetAllMocks();
   });
 
   it('shows language selector on login page', () => {
-    (global as any).fetch = jest.fn().mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: false,
       status: 401,
       json: async () => ({}),

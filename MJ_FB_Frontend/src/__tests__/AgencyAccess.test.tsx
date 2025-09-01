@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { loginAgency } from '../api/users';
 import { AuthProvider } from '../hooks/useAuth';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 jest.mock('../api/users', () => ({
   loginAgency: jest.fn(),
@@ -10,13 +11,14 @@ jest.mock('../api/users', () => ({
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
 jest.mock('../pages/agency/ClientHistory', () => () => <div>AgencyClientHistory</div>);
 
-const realFetch = global.fetch;
-
 describe('Agency UI access', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
-    (global as any).fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      status: 204,
+    fetchMock = mockFetch();
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
       json: async () => ({}),
       headers: new Headers(),
     });
@@ -25,7 +27,8 @@ describe('Agency UI access', () => {
   });
 
   afterEach(() => {
-    global.fetch = realFetch;
+    restoreFetch();
+    jest.resetAllMocks();
   });
 
   it('allows agency login and shows agency links', async () => {
@@ -40,7 +43,8 @@ describe('Agency UI access', () => {
       </AuthProvider>
     );
 
-    fireEvent.click(screen.getByText(/agency login/i));
+    const loginLink = await screen.findByText(/agency login/i);
+    fireEvent.click(loginLink);
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: 'a@b.com' },
     });
