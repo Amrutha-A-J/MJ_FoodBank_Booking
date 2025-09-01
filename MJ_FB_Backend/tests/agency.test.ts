@@ -1,38 +1,20 @@
 import request from 'supertest';
 import express from 'express';
-import usersRouter from '../src/routes/users';
-import bookingsRouter from '../src/routes/bookings';
-import agenciesRoutes from '../src/routes/agencies';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import * as bookingRepository from '../src/models/bookingRepository';
-import {
-  getAgencyByEmail,
-  isAgencyClient,
-  addAgencyClient,
-  removeAgencyClient,
-  clientExists,
-  getAgencyForClient,
-  getAgencyEmail,
-  getClientName,
-  getAgencyClientSet,
-} from '../src/models/agency';
-import * as bookingUtils from '../src/utils/bookingUtils';
-import pool from '../src/db';
-import { enqueueEmail } from '../src/utils/emailQueue';
-import { formatReginaDate } from '../src/utils/dateUtils';
 
-jest.mock('../src/db');
-jest.mock('bcrypt');
-jest.mock('jsonwebtoken');
-jest.mock('../src/utils/emailUtils', () => ({
+jest.doMock('../src/db', () => ({
+  __esModule: true,
+  default: { query: jest.fn(), connect: jest.fn() },
+}));
+jest.doMock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
-jest.mock('../src/utils/emailQueue', () => ({
+jest.doMock('../src/utils/emailQueue', () => ({
   __esModule: true,
   enqueueEmail: jest.fn(),
 }));
-jest.mock('../src/models/bookingRepository', () => ({
+jest.doMock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),
   checkSlotCapacity: jest.fn(),
@@ -43,7 +25,7 @@ jest.mock('../src/models/bookingRepository', () => ({
   fetchBookingByToken: jest.fn(),
   updateBooking: jest.fn(),
 }));
-jest.mock('../src/models/agency', () => ({
+jest.doMock('../src/models/agency', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/agency'),
   getAgencyByEmail: jest.fn(),
@@ -56,8 +38,7 @@ jest.mock('../src/models/agency', () => ({
   getClientName: jest.fn(),
   getAgencyClientSet: jest.fn(),
 }));
-
-jest.mock('../src/middleware/authMiddleware', () => ({
+jest.doMock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     req: any,
     _res: express.Response,
@@ -85,6 +66,33 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     next();
   },
 }));
+
+jest.mock('bcrypt');
+jest.mock('jsonwebtoken');
+
+const usersRouter = require('../src/routes/users').default;
+const bookingsRouter = require('../src/routes/bookings').default;
+const agenciesRoutes = require('../src/routes/agencies').default;
+const bookingRepository = require('../src/models/bookingRepository');
+const {
+  getAgencyByEmail,
+  isAgencyClient,
+  addAgencyClient,
+  removeAgencyClient,
+  clientExists,
+  getAgencyForClient,
+  getAgencyEmail,
+  getClientName,
+  getAgencyClientSet,
+} = require('../src/models/agency');
+const bookingUtils = require('../src/utils/bookingUtils');
+const pool = require('../src/db').default;
+const { enqueueEmail } = require('../src/utils/emailQueue');
+const { formatReginaDate } = require('../src/utils/dateUtils');
+
+test('does not query database on import', () => {
+  expect(pool.query).not.toHaveBeenCalled();
+});
 
 const app = express();
 app.use(express.json());
