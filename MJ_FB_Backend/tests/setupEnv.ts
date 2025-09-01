@@ -14,4 +14,25 @@ process.env.BREVO_FROM_NAME = 'MJ Food Bank';
 process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = '24';
 process.env.PASSWORD_SETUP_TEMPLATE_ID = '1';
 
+const requiredEnvVars = [
+  'JWT_SECRET',
+  'JWT_REFRESH_SECRET',
+  'PG_USER',
+  'PG_PASSWORD',
+  'PG_HOST',
+  'PG_PORT',
+  'PG_DATABASE',
+  'FRONTEND_ORIGIN',
+  'BREVO_API_KEY',
+  'BREVO_FROM_EMAIL',
+  'BREVO_FROM_NAME',
+  'PASSWORD_SETUP_TOKEN_TTL_HOURS',
+  'PASSWORD_SETUP_TEMPLATE_ID',
+];
+
+const missing = requiredEnvVars.filter((key) => !process.env[key]);
+if (missing.length > 0) {
+  console.warn(`Warning: Missing environment variables: ${missing.join(', ')}`);
+}
+
 export {};
