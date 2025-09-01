@@ -35,5 +35,13 @@ export function formatReginaDateTime(date: string | Date): string {
 }
 
 export function reginaStartOfDayISO(date: string | Date): string {
-  return `${formatReginaDate(date)}T00:00:00-06:00`;
+  const d = toReginaDate(date);
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: REGINA_TZ,
+    timeZoneName: 'longOffset',
+  }).formatToParts(d);
+  const offset =
+    parts.find(p => p.type === 'timeZoneName')?.value.replace('GMT', '') ||
+    REGINA_OFFSET;
+  return `${formatReginaDate(d)}T00:00:00${offset}`;
 }
