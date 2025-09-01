@@ -11,6 +11,14 @@ jest.doMock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
 }));
 
+jest.doMock('../src/utils/scheduleDailyJob', () => {
+  const actual = jest.requireActual('../src/utils/scheduleDailyJob');
+  return {
+    __esModule: true,
+    default: (cb: any, schedule: string) => actual.default(cb, schedule, false),
+  };
+});
+
 const { fetchBookingsForReminder } = require('../src/models/bookingRepository');
 const { enqueueEmail } = require('../src/utils/emailQueue');
 const bookingReminder = require('../src/utils/bookingReminderJob');
@@ -86,32 +94,25 @@ describe('sendNextDayBookingReminders', () => {
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let sendSpy: jest.SpyInstance;
   let originalEnv: string | undefined;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    sendSpy = jest
-      .spyOn(bookingReminder, 'sendNextDayBookingReminders')
-      .mockResolvedValue(undefined);
     originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     stopBookingReminderJob();
-    await Promise.resolve();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    sendSpy.mockRestore();
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('schedules and stops the cron job', async () => {
+  it('schedules and stops the cron job', () => {
     startBookingReminderJob();
-    await Promise.resolve();
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 9 * * *',
       expect.any(Function),
