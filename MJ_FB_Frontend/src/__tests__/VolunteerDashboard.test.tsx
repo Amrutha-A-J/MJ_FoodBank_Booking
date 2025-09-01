@@ -13,7 +13,6 @@ import {
   type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
-import { formatReginaDate } from '../utils/date';
 
 jest.mock('../api/volunteers', () => ({
   getMyVolunteerBookings: jest.fn(),
@@ -119,7 +118,8 @@ beforeEach(() => {
   });
 
   it('hides slots already booked by volunteer', async () => {
-    const today = formatReginaDate(new Date());
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-29'));
+    const today = '2024-01-29';
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
