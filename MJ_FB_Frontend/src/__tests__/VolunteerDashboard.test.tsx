@@ -103,6 +103,22 @@ beforeEach(() => {
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
   });
 
+  it('shows an error message if events cannot be fetched', async () => {
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockRejectedValue(new Error('fail'));
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
+
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getEvents).toHaveBeenCalled());
+    expect(await screen.findByText('Failed to load events')).toBeInTheDocument();
+  });
+
   it('hides slots already booked by volunteer', async () => {
     const today = new Date().toISOString().split('T')[0];
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
