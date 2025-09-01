@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
@@ -35,8 +35,8 @@ import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
 import volunteerStatsRoutes from './routes/volunteerStats';
 import { initializeSlots } from './data';
-import logger from './utils/logger';
 import csrfMiddleware from './middleware/csrf';
+import errorHandler from './middleware/errorHandler';
 
 const app = express();
 
@@ -102,10 +102,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Global error handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error('Unhandled error:', err);
-  const status = err.status || err.statusCode || 500;
-  res.status(status).json({ message: err.message || 'Internal Server Error' });
-});
+app.use(errorHandler);
 
 export default app;
