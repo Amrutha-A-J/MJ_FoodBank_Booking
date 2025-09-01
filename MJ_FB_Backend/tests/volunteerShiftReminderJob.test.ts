@@ -1,4 +1,3 @@
-process.env.NODE_ENV = 'development';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 const volunteerJob = require('../src/utils/volunteerShiftReminderJob');
 const {
@@ -10,6 +9,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
   let sendSpy: jest.SpyInstance;
+  let originalEnv: string | undefined;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
@@ -18,6 +18,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     sendSpy = jest
       .spyOn(volunteerJob, 'sendNextDayVolunteerShiftReminders')
       .mockResolvedValue(undefined);
+    originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
   });
 
@@ -27,7 +28,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     jest.useRealTimers();
     scheduleMock.mockReset();
     sendSpy.mockRestore();
-    process.env.NODE_ENV = 'test';
+    process.env.NODE_ENV = originalEnv;
   });
 
   it('schedules and stops the cron job', async () => {
