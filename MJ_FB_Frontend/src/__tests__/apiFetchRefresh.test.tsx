@@ -3,8 +3,10 @@ import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('apiFetch refresh handling', () => {
   let fetchMock: jest.Mock;
+  let originalLocation: Location;
 
   beforeEach(() => {
+    originalLocation = window.location;
     document.cookie = 'csrfToken=test';
     localStorage.setItem('role', 'test');
     Object.defineProperty(window, 'location', {
@@ -15,8 +17,11 @@ describe('apiFetch refresh handling', () => {
   });
 
   afterEach(() => {
+    Object.defineProperty(window, 'location', { value: originalLocation });
     restoreFetch();
     jest.resetAllMocks();
+    document.cookie = '';
+    localStorage.clear();
   });
 
   it('redirects when refresh returns unexpected status', async () => {
