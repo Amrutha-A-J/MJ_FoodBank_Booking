@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import usersRouter from '../src/routes/users';
@@ -5,7 +6,6 @@ import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/bookingUtils', () => ({

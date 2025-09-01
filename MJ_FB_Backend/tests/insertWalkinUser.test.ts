@@ -1,7 +1,7 @@
+import '../tests/utils/mockDb';
 import pool from '../src/db';
 import { insertWalkinUser } from '../src/models/bookingRepository';
 
-jest.mock('../src/db');
 
 describe('insertWalkinUser', () => {
   beforeEach(() => {

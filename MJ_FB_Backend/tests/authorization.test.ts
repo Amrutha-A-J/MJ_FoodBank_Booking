@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import blockedSlotsRouter from '../src/routes/blockedSlots';
@@ -6,7 +7,6 @@ import { authMiddleware, authorizeRoles, authorizeAccess } from '../src/middlewa
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../src/db');
 jest.mock('jsonwebtoken');
 jest.mock('../src/controllers/slotController', () => ({
   __esModule: true,

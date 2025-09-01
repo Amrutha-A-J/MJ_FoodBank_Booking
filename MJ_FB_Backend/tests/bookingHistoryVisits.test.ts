@@ -1,7 +1,7 @@
+import '../tests/utils/mockDb';
 import pool from '../src/db';
 import { fetchBookingHistory } from '../src/models/bookingRepository';
 
-jest.mock('../src/db');
 
 describe('fetchBookingHistory includeVisits', () => {
   beforeEach(() => {

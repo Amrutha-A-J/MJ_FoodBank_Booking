@@ -1,8 +1,8 @@
+import '../tests/utils/mockDb';
 import { describe, it, expect, jest } from '@jest/globals';
 import pool from '../src/db';
 import { findUpcomingBooking } from '../src/utils/bookingUtils';
 
-jest.mock('../src/db');
 
 describe('findUpcomingBooking', () => {
   it('ignores bookings with recorded visits', async () => {

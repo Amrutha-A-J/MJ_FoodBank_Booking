@@ -1,9 +1,9 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 
-jest.mock('../src/db');
 
 const app = express();
 app.use('/auth', authRouter);

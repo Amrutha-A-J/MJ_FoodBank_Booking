@@ -1,6 +1,6 @@
+import '../tests/utils/mockDb';
 import { createHash } from 'crypto';
 
-jest.mock('../src/db');
 
 let pool: any;
 
