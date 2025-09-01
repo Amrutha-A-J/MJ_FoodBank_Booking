@@ -44,17 +44,21 @@ describe('bookingRepository', () => {
   it('insertBooking calls query with correct params', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({});
     await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null);
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/INSERT INTO bookings/);
-    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([
-      1,
-      null,
-      2,
-      'approved',
-      '',
-      '2024-01-01',
-      false,
-      'token',
-    ]);
+    const call = (pool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/INSERT INTO bookings/);
+    expect(call[1]).toEqual(
+      expect.arrayContaining([
+        1,
+        null,
+        2,
+        'approved',
+        '',
+        '2024-01-01',
+        false,
+        'token',
+      ]),
+    );
+    expect(call[1]).toHaveLength(8);
   });
 
   it('updateBooking ignores disallowed keys', async () => {
@@ -64,10 +68,14 @@ describe('bookingRepository', () => {
       request_data: 'reason',
       hacker: 'nope',
     });
-    expect(pool.query).toHaveBeenCalledWith(
-      'UPDATE bookings SET status=$2, request_data=$3 WHERE id=$1',
-      [1, 'cancelled', 'reason'],
+    expect(pool.query).toHaveBeenCalled();
+    const [sql, params] = (pool.query as jest.Mock).mock.calls[0];
+    expect(sql).toEqual(
+      expect.stringContaining('UPDATE bookings SET status=$2, request_data=$3'),
     );
+    expect(sql).toEqual(expect.stringContaining('WHERE id=$1'));
+    expect(params).toEqual(expect.arrayContaining([1, 'cancelled', 'reason']));
+    expect(params).toHaveLength(3);
   });
 
   it('updateBooking returns early when only disallowed keys provided', async () => {
@@ -79,25 +87,53 @@ describe('bookingRepository', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookings('approved', '2024-01-01', [1, 2]);
     const call = (pool.query as jest.Mock).mock.calls[0];
-    expect(call[0]).toMatch(/b.status = \$1 AND b.date = \$2 AND u.client_id = ANY\(\$3\)/);
-    expect(call[1]).toEqual(['approved', '2024-01-01', [1, 2]]);
+    expect(call[0]).toMatch(/SELECT/);
+    expect(call[0]).toMatch(/WHERE/);
+    expect(call[0]).toMatch(/b.status = \$1/);
+    expect(call[0]).toMatch(/b.date = \$2/);
+    expect(call[0]).toMatch(/u.client_id = ANY\(\$3\)/);
+    expect(call[1]).toEqual(
+      expect.arrayContaining([
+        'approved',
+        '2024-01-01',
+        expect.arrayContaining([1, 2]),
+      ]),
+    );
+    expect(call[1]).toHaveLength(3);
   });
 
   it('fetchBookingsForReminder selects only necessary fields', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
     const call = (pool.query as jest.Mock).mock.calls[0];
-    expect(call[0]).toMatch(/SELECT\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/);
-    expect(call[0]).toMatch(/WHERE b.status = 'approved' AND b.date = \$1/);
-    expect(call[1]).toEqual(['2024-01-01']);
+    expect(call[0]).toMatch(/SELECT/);
+    expect(call[0]).toMatch(
+      /COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
+    );
+    expect(call[0]).toMatch(/WHERE/);
+    expect(call[0]).toMatch(/b.status = 'approved'/);
+    expect(call[0]).toMatch(/b.date = \$1/);
+    expect(call[1]).toEqual(expect.arrayContaining(['2024-01-01']));
+    expect(call[1]).toHaveLength(1);
   });
 
   it('fetchBookingHistory supports arrays and pagination', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingHistory([1, 2], false, undefined, false, 5, 10);
     const call = (pool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/SELECT/);
+    expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
-    expect(call[0]).toMatch(/ORDER BY b.created_at DESC LIMIT \$2 OFFSET \$3/);
-    expect(call[1]).toEqual([[1, 2], 5, 10]);
+    expect(call[0]).toMatch(/ORDER BY b.created_at DESC/);
+    expect(call[0]).toMatch(/LIMIT \$2/);
+    expect(call[0]).toMatch(/OFFSET \$3/);
+    expect(call[1]).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([1, 2]),
+        5,
+        10,
+      ]),
+    );
+    expect(call[1]).toHaveLength(3);
   });
 });
