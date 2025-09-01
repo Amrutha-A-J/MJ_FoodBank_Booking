@@ -57,6 +57,7 @@ export default function NoShowWeek() {
     const approvedPast = list.filter(
       b =>
         b.status === 'approved' &&
+        b.start_time &&
         toDayjs(`${dateStr}T${b.start_time}`).isBefore(now),
     );
     const noShows = list.filter(b => b.status === 'no_show');

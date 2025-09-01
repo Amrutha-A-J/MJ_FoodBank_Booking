@@ -136,4 +136,11 @@ describe('bookingRepository', () => {
     );
     expect(call[1]).toHaveLength(3);
   });
+
+  it('fetchBookingHistory uses LEFT JOIN on slots', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    await fetchBookingHistory([1], false, undefined, false);
+    const call = (pool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/LEFT JOIN\s+slots\s+s\s+ON b.slot_id = s.id/);
+  });
 });

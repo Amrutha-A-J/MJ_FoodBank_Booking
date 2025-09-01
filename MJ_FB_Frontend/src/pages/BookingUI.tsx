@@ -171,14 +171,17 @@ export default function BookingUI({
         const existing = (apiErr.details as any)?.existingBooking;
         if (existing) {
           const dateStr = dayjs(existing.date).format('ddd, MMM D, YYYY');
-          const timeStr = dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A');
+          const timeStr = existing.start_time
+            ? dayjs(existing.start_time, 'HH:mm:ss').format('h:mm A')
+            : '';
           const status = existing.status;
           setModal({
             open: true,
             message: (
               <Stack spacing={2}>
                 <Typography>
-                  You already have an {status} appointment on {dateStr} at {timeStr}.
+                  You already have an {status} appointment on {dateStr}
+                  {timeStr ? ` at ${timeStr}` : ''}.
                 </Typography>
                 <Typography>
                   If you need to reschedule, please do so from your bookings{' '}
