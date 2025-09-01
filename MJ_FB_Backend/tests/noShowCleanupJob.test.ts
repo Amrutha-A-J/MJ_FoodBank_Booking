@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 const originalEnv = process.env.NODE_ENV;
 process.env.NODE_ENV = 'development';
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
@@ -15,7 +16,6 @@ const {
   stopNoShowCleanupJob,
 } = noShowJob;
 import pool from '../src/db';
-jest.mock('../src/db');
 
 describe('cleanupNoShows', () => {
   beforeEach(() => {

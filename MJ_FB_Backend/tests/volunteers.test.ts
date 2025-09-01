@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import volunteersRouter from '../src/routes/volunteer/volunteers';
@@ -8,7 +9,6 @@ import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
 
-jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/passwordSetupUtils');

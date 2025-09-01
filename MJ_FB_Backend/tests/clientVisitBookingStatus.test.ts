@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
@@ -5,7 +6,6 @@ import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
 import * as bookingRepository from '../src/models/bookingRepository';
 
-jest.mock('../src/db');
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),

@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
@@ -5,7 +6,6 @@ import * as bookingRepository from '../src/models/bookingRepository';
 import pool from '../src/db';
 import { formatReginaDate } from '../src/utils/dateUtils';
 
-jest.mock('../src/db');
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,

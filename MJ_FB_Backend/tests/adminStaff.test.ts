@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import adminStaffRouter from '../src/routes/admin/adminStaff';
@@ -6,7 +7,6 @@ import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
 
-jest.mock('../src/db');
 jest.mock('../src/utils/passwordSetupUtils');
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),

@@ -1,3 +1,4 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import warehouseSettingsRouter from '../src/routes/admin/warehouseSettings';
@@ -8,7 +9,6 @@ import {
   clearWarehouseSettingsCache,
 } from '../src/utils/warehouseSettings';
 
-jest.mock('../src/db');
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),

@@ -1,10 +1,10 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
 import { formatReginaDate } from '../src/utils/dateUtils';
 
-jest.mock('../src/db');
 jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn(),
   countVisitsAndBookingsForMonth: jest.fn(),

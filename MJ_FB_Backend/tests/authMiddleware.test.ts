@@ -1,10 +1,10 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import { authMiddleware, optionalAuthMiddleware } from '../src/middleware/authMiddleware';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 
-jest.mock('../src/db');
 jest.mock('jsonwebtoken', () => ({
   ...jest.requireActual('jsonwebtoken'),
   verify: jest.fn(),

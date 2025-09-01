@@ -1,9 +1,9 @@
+import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import volunteerRolesRouter from '../src/routes/volunteer/volunteerRoles';
 import pool from '../src/db';
 
-jest.mock('../src/db');
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
