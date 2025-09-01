@@ -2,6 +2,15 @@
 
 This repository uses Git submodules for the backend and frontend components. After cloning, make sure to pull in the submodules and install their dependencies.
 
+## Node Version
+
+Requires **Node.js 22+**. The repo includes a `.nvmrc` file and installation is engine‑strict, so use the pinned version:
+
+```bash
+nvm install   # installs the version listed in .nvmrc
+nvm use
+```
+
 Individuals who use the food bank are referred to as clients throughout the application.
 
 The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.
