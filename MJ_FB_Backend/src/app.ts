@@ -2,6 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
+import morgan from 'morgan';
 import config from './config';
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
@@ -51,6 +52,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use(csrfMiddleware);
+app.use(morgan(':method :url :status :response-time ms'));
 
 initializeSlots();
 
