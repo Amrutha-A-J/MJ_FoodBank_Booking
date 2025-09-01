@@ -12,11 +12,13 @@ import {
   MenuItem,
   Stack,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import Page from '../../components/Page';
 import {
   getWarehouseOverall,
   getWarehouseOverallYears,
+  exportWarehouseOverall,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
@@ -36,6 +38,7 @@ export default function Aggregations() {
   const [tab, setTab] = useState(0);
   const [donorRows, setDonorRows] = useState<DonorAggregation[]>([]);
   const [donorLoading, setDonorLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   useEffect(() => {
     async function loadYears() {
@@ -117,6 +120,26 @@ export default function Aggregations() {
     }),
     { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 },
   );
+
+  async function handleExportOverall() {
+    setExportLoading(true);
+    try {
+      const blob = await exportWarehouseOverall(overallYear);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${overallYear}_warehouse_overall_stats.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setSnackbar({ open: true, message: 'Export ready', severity: 'success' });
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
+    } finally {
+      setExportLoading(false);
+    }
+  }
 
   const donorContent = (
     <>
@@ -293,6 +316,14 @@ export default function Aggregations() {
             ))}
           </Select>
         </FormControl>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={handleExportOverall}
+          disabled={exportLoading}
+        >
+          {exportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small">
