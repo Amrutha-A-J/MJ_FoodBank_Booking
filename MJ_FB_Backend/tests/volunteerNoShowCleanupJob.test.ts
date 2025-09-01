@@ -25,8 +25,9 @@ describe('cleanupVolunteerNoShows', () => {
 
   it('marks past approved volunteer bookings as no_show and notifies coordinators', async () => {
     await cleanupVolunteerNoShows();
-    const query = (pool.query as jest.Mock).mock.calls[0][0];
-    expect(query).toContain("NOW() - INTERVAL '24 hours'");
+    const [query, params] = (pool.query as jest.Mock).mock.calls[0];
+    expect(query).toContain("NOW() - $1::int * INTERVAL '1 hour'");
+    expect(params).toEqual([24]);
     expect(query).toContain('FROM volunteer_slots');
     expect(query).toContain('vb.date + vs.end_time');
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(2);
