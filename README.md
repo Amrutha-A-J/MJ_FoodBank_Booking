@@ -301,3 +301,20 @@ docker push <registry>.azurecr.io/mjfb-frontend
 3. Configure the environment variables in the Azure portal using the provided `.env.example` files. Ensure `JWT_SECRET` is set to a strong value.
 
 This setup prepares the project so it can be hosted on Azure with containerized services.
+
+## Release Workflow
+
+An automated workflow in `.github/workflows/release.yml` builds, tests, and deploys the backend and frontend Docker images to Azure Container Apps. It runs on pushes to `main` and on tags beginning with `v`.
+
+Set the following repository **secrets**:
+- `AZURE_CREDENTIALS` – Azure service principal credentials in JSON format
+- `REGISTRY_LOGIN_SERVER` – Azure Container Registry login server
+- `REGISTRY_USERNAME` – Azure Container Registry username
+- `REGISTRY_PASSWORD` – Azure Container Registry password
+
+Define these repository **variables**:
+- `AZURE_RESOURCE_GROUP` – Resource group containing the container apps
+- `BACKEND_APP_NAME` – Backend container app name
+- `FRONTEND_APP_NAME` – Frontend container app name
+
+See [docs/release.md](docs/release.md) for full details.
