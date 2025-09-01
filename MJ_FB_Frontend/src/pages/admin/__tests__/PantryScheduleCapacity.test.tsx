@@ -129,7 +129,7 @@ describe('PantrySchedule status colors', () => {
       theme.palette.warning.light,
     );
     fireEvent.mouseOver(over);
-    expect(await screen.findByText('Capacity exceeded')).toBeInTheDocument();
+    expect(await screen.findByText(/capacity exceeded/i)).toBeInTheDocument();
   });
 });
 

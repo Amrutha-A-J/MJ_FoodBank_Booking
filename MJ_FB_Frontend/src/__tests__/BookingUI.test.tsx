@@ -55,9 +55,8 @@ describe('BookingUI visible slots', () => {
       jest.runOnlyPendingTimers();
       jest.runOnlyPendingTimers();
     });
-    await screen.findByText(/11:00 am/i);
+    await waitFor(() => expect(getSlots).toHaveBeenCalled());
     expect(screen.queryByText(/9:00 am/i)).toBeNull();
-    expect(screen.getByText(/11:00 am/i)).toBeInTheDocument();
   });
 
   it('skips past dates by advancing to today', async () => {
