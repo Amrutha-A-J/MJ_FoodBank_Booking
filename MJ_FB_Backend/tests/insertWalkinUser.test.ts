@@ -1,24 +1,24 @@
-import pool from '../src/db';
+import mockPool from './utils/mockDb';
 import { insertWalkinUser } from '../src/models/bookingRepository';
 
 
 describe('insertWalkinUser', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => {
+    (mockPool.query as jest.Mock).mockReset();
   });
 
   it('issues INSERT with clients.client_id and profile link', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ client_id: 123 }] });
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ client_id: 123 }] });
 
     const first = 'Test';
     const last = 'User';
     const email = 'test@example.com';
     const clientId = 123;
 
-    const result = await insertWalkinUser(first, last, email, clientId, pool);
+    const result = await insertWalkinUser(first, last, email, clientId, mockPool);
 
-    expect(pool.query).toHaveBeenCalledTimes(1);
-    const [query, params] = (pool.query as jest.Mock).mock.calls[0];
+    expect(mockPool.query).toHaveBeenCalledTimes(1);
+    const [query, params] = (mockPool.query as jest.Mock).mock.calls[0];
 
     expect(query).toContain('INSERT INTO clients');
     expect(query).toMatch(/client_id/);
