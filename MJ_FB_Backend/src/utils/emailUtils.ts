@@ -106,10 +106,15 @@ export async function sendTemplatedEmail({
 export function buildCancelRescheduleLinks(
   token: string,
 ): { cancelLink: string; rescheduleLink: string } {
-  const base = config.frontendOrigins[0];
-  if (!base) {
-    throw new Error('No frontend origin configured; unable to build cancel/reschedule links');
+  if (!config.frontendOrigins.length) {
+    logger.error('No frontend origin configured; returning placeholder links', { token });
+    return {
+      cancelLink: '#',
+      rescheduleLink: '#',
+    };
   }
+
+  const base = config.frontendOrigins[0];
   return {
     cancelLink: `${base}/cancel/${token}`,
     rescheduleLink: `${base}/reschedule/${token}`,
