@@ -7,7 +7,7 @@ Run `npm run migrate` to apply TypeScript database migrations from `src/migratio
 
 ## Requirements
 
-- Node.js 18 or later is required for native `fetch` support; the `node-fetch` polyfill has been removed, so earlier versions are not supported.
+- Node.js 22 or later is required for native `fetch` support; the `node-fetch` polyfill has been removed, so earlier versions are not supported.
 
 ## Environment Variables
 
