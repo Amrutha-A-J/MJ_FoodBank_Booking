@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import staffRoutes from '../src/routes/admin/staff';

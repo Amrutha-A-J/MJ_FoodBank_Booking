@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import { createHash } from 'crypto';
 
 
