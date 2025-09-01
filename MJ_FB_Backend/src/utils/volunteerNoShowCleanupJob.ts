@@ -20,8 +20,9 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
        FROM volunteer_slots vs
        WHERE vb.slot_id = vs.slot_id
          AND vb.status='approved'
-         AND (vb.date + vs.end_time) < NOW() - INTERVAL '${hours} hours'
+         AND (vb.date + vs.end_time) < NOW() - $1::int * INTERVAL '1 hour'
        RETURNING vb.id`,
+      [hours],
     );
     if (res.rowCount && res.rowCount > 0) {
       const ids = res.rows.map((r: any) => r.id).join(', ');
