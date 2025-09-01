@@ -27,13 +27,11 @@ describe('cleanupNoShows', () => {
 describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let cleanupSpy: jest.SpyInstance;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    cleanupSpy = jest.spyOn(noShowJob, 'cleanupNoShows').mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 
@@ -42,7 +40,6 @@ describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
     await Promise.resolve();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    cleanupSpy.mockRestore();
     process.env.NODE_ENV = originalEnv;
   });
 

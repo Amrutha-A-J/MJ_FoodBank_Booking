@@ -77,16 +77,14 @@ describe('sendNextDayBookingReminders', () => {
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let sendSpy: jest.SpyInstance;
   let originalEnv: string | undefined;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    sendSpy = jest
-      .spyOn(bookingReminder, 'sendNextDayBookingReminders')
-      .mockResolvedValue(undefined);
+    (fetchBookingsForReminder as jest.Mock).mockResolvedValue([]);
+    (enqueueEmail as jest.Mock).mockResolvedValue(undefined);
     originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
   });
@@ -96,7 +94,8 @@ describe('startBookingReminderJob/stopBookingReminderJob', () => {
     await Promise.resolve();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    sendSpy.mockRestore();
+    (fetchBookingsForReminder as jest.Mock).mockReset();
+    (enqueueEmail as jest.Mock).mockReset();
     process.env.NODE_ENV = originalEnv;
   });
 

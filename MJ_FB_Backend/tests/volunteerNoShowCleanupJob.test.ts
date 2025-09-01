@@ -47,13 +47,13 @@ describe('cleanupVolunteerNoShows', () => {
 describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let cleanupSpy: jest.SpyInstance;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    cleanupSpy = jest.spyOn(job, 'cleanupVolunteerNoShows').mockResolvedValue(undefined);
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
+    (sendTemplatedEmail as jest.Mock).mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 
@@ -62,7 +62,8 @@ describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
     await Promise.resolve();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    cleanupSpy.mockRestore();
+    (pool.query as jest.Mock).mockReset();
+    (sendTemplatedEmail as jest.Mock).mockReset();
     process.env.NODE_ENV = originalEnv;
   });
 
