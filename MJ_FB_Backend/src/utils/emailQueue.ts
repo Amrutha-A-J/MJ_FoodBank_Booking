@@ -95,3 +95,6 @@ export function shutdownQueue(): void {
   scheduled = false;
 }
 
+// Kick off the queue on module load so any pending jobs are scheduled
+scheduleNextRun().catch((err) => logger.error('Email queue scheduling error:', err));
+
