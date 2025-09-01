@@ -2,7 +2,7 @@ import pool from '../db';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
-import cron from 'node-cron';
+import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 
 /**
@@ -42,29 +42,11 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
 /**
  * Schedule the volunteer shift reminder job to run once a day at 9:00 AM Regina time.
  */
-let volunteerShiftReminderTask: cron.ScheduledTask | undefined;
+const volunteerShiftReminderJob = scheduleDailyJob(
+  sendNextDayVolunteerShiftReminders,
+  '0 9 * * *',
+);
 
-export function startVolunteerShiftReminderJob(): void {
-  if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then on the scheduled interval.
-  sendNextDayVolunteerShiftReminders().catch((err) =>
-    logger.error('Initial volunteer shift reminder run failed', err),
-  );
-  volunteerShiftReminderTask = cron.schedule(
-    '0 9 * * *',
-    () => {
-      sendNextDayVolunteerShiftReminders().catch((err) =>
-        logger.error('Scheduled volunteer shift reminder run failed', err),
-      );
-    },
-    { timezone: 'America/Regina' },
-  );
-}
-
-export function stopVolunteerShiftReminderJob(): void {
-  if (volunteerShiftReminderTask) {
-    volunteerShiftReminderTask.stop();
-    volunteerShiftReminderTask = undefined;
-  }
-}
+export const startVolunteerShiftReminderJob = volunteerShiftReminderJob.start;
+export const stopVolunteerShiftReminderJob = volunteerShiftReminderJob.stop;
 

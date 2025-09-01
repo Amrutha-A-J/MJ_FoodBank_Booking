@@ -2,7 +2,7 @@ import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
-import cron from 'node-cron';
+import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 
 /**
@@ -35,29 +35,11 @@ export async function sendNextDayBookingReminders(): Promise<void> {
 /**
  * Schedule the reminder job to run once a day at 9:00 AM Regina time.
  */
-let bookingReminderTask: cron.ScheduledTask | undefined;
+const bookingReminderJob = scheduleDailyJob(
+  sendNextDayBookingReminders,
+  '0 9 * * *',
+);
 
-export function startBookingReminderJob(): void {
-  if (process.env.NODE_ENV === 'test') return;
-  // Run immediately and then on the scheduled interval.
-  sendNextDayBookingReminders().catch((err) =>
-    logger.error('Initial reminder run failed', err),
-  );
-  bookingReminderTask = cron.schedule(
-    '0 9 * * *',
-    () => {
-      sendNextDayBookingReminders().catch((err) =>
-        logger.error('Scheduled reminder run failed', err),
-      );
-    },
-    { timezone: 'America/Regina' },
-  );
-}
-
-export function stopBookingReminderJob(): void {
-  if (bookingReminderTask) {
-    bookingReminderTask.stop();
-    bookingReminderTask = undefined;
-  }
-}
+export const startBookingReminderJob = bookingReminderJob.start;
+export const stopBookingReminderJob = bookingReminderJob.stop;
 
