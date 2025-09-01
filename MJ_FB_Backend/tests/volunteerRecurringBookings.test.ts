@@ -5,7 +5,10 @@ import pool from '../src/db';
 import { sendEmail } from '../src/utils/emailUtils';
 
 jest.mock('../src/db');
-jest.mock('../src/utils/emailUtils', () => ({ sendEmail: jest.fn() }));
+jest.mock('../src/utils/emailUtils', () => ({
+  sendEmail: jest.fn(),
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+}));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
     req.user = { id: 1, role: 'volunteer', email: 'test@example.com' };

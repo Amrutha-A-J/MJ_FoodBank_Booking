@@ -3,7 +3,7 @@ import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
-import { buildCancelRescheduleButtons } from './emailUtils';
+import { buildCancelRescheduleLinks } from './emailUtils';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -17,12 +17,14 @@ export async function sendNextDayBookingReminders(): Promise<void> {
     for (const b of bookings) {
       if (!b.user_email) continue;
       const time = b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';
-      const buttons = buildCancelRescheduleButtons(b.reschedule_token);
-      const body = `This is a reminder for your booking on ${nextDate}${time}.${buttons}`;
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
+        b.reschedule_token,
+      );
+      const body = `This is a reminder for your booking on ${nextDate}${time}.`;
       enqueueEmail({
         to: b.user_email,
         templateId: 1,
-        params: { body },
+        params: { body, cancelLink, rescheduleLink },
       });
     }
   } catch (err) {

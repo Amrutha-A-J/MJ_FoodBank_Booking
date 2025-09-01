@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../../db';
-import { sendEmail, buildCancelRescheduleButtons } from '../../utils/emailUtils';
+import { sendEmail, buildCancelRescheduleLinks } from '../../utils/emailUtils';
+import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
 import {
   CreateRecurringVolunteerBookingRequest,
@@ -192,12 +193,18 @@ export async function createVolunteerBooking(
       await client.query('COMMIT');
 
       if (user.email) {
-        const buttons = buildCancelRescheduleButtons(token);
-        await sendEmail(
-          user.email,
-          'Volunteer booking confirmed',
-          `Volunteer booking for role ${roleId} on ${date} has been confirmed.${buttons}`,
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
+          token,
         );
+        enqueueEmail({
+          to: user.email,
+          templateId: 1,
+          params: {
+            body: `Volunteer booking for role ${roleId} on ${date} has been confirmed.`,
+            cancelLink,
+            rescheduleLink,
+          },
+        });
       } else {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -542,12 +549,16 @@ export async function resolveVolunteerBookingConflict(
     );
 
     if (user.email) {
-      const buttons = buildCancelRescheduleButtons(token);
-      await sendEmail(
-        user.email,
-        'Volunteer booking confirmed',
-        `Volunteer booking for role ${roleId} on ${date!} has been confirmed.${buttons}`,
-      );
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+      enqueueEmail({
+        to: user.email,
+        templateId: 1,
+        params: {
+          body: `Volunteer booking for role ${roleId} on ${date!} has been confirmed.`,
+          cancelLink,
+          rescheduleLink,
+        },
+      });
     } else {
       logger.warn(
         'Volunteer booking confirmation email not sent. Volunteer %s has no email.',

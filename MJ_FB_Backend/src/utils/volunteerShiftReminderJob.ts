@@ -3,7 +3,7 @@ import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import cron from 'node-cron';
-import { buildCancelRescheduleButtons } from './emailUtils';
+import { buildCancelRescheduleLinks } from './emailUtils';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -24,12 +24,14 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
     for (const row of res.rows) {
       if (!row.email) continue;
       const time = row.start_time && row.end_time ? ` from ${row.start_time} to ${row.end_time}` : '';
-      const buttons = buildCancelRescheduleButtons(row.reschedule_token);
-      const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.${buttons}`;
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
+        row.reschedule_token,
+      );
+      const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.`;
       enqueueEmail({
         to: row.email,
         templateId: 1,
-        params: { body },
+        params: { body, cancelLink, rescheduleLink },
       });
     }
   } catch (err) {
