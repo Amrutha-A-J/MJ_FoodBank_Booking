@@ -145,7 +145,7 @@ describe('VolunteerManagement search reset', () => {
 });
 
 describe('VolunteerManagement role updates', () => {
-  it.skip('saves trained roles for volunteer', async () => {
+  it('saves trained roles for volunteer', async () => {
     mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
     (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
@@ -155,7 +155,15 @@ describe('VolunteerManagement role updates', () => {
         name: 'Greeter',
         max_volunteers: 2,
         category_name: 'Front',
-        shifts: [],
+        shifts: [
+          {
+            id: 10,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
       },
     ]);
 
@@ -169,9 +177,8 @@ describe('VolunteerManagement role updates', () => {
 
     fireEvent.click(screen.getByText('Select Volunteer'));
     const input = await screen.findByLabelText(/add role/i);
-    await userEvent.click(input);
-    await userEvent.type(input, 'Greeter');
-    await userEvent.click(await screen.findByText('Greeter'));
+    fireEvent.mouseDown(input);
+    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
