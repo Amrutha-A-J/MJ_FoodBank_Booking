@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../hooks/useAuth';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { useAuth } from '../hooks/useAuth';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import { APPRECIATION_MESSAGES } from '../utils/appreciationMessages';
 import type { Role } from '../types';
 
@@ -30,11 +31,7 @@ describe('appreciation message on login', () => {
   });
 
   it('shows appreciation message and card link for volunteers', async () => {
-    render(
-      <AuthProvider>
-        <Trigger role="volunteer" />
-      </AuthProvider>
-    );
+    renderWithProviders(<Trigger role="volunteer" />);
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalled());
     expect(
@@ -45,11 +42,7 @@ describe('appreciation message on login', () => {
   });
 
   it('does not show appreciation message for staff', async () => {
-    render(
-      <AuthProvider>
-        <Trigger role="staff" />
-      </AuthProvider>
-    );
+    renderWithProviders(<Trigger role="staff" />);
     fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalled());
     expect(

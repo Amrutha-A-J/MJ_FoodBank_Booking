@@ -1,8 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { loginAgency } from '../api/users';
-import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 jest.mock('../api/users', () => ({
   loginAgency: jest.fn(),
@@ -37,11 +37,7 @@ describe('Agency UI access', () => {
       name: 'Agency',
       id: 1,
     });
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
 
     const loginLink = await screen.findByText(/agency login/i);
     fireEvent.click(loginLink);
@@ -67,11 +63,7 @@ describe('Agency UI access', () => {
 
   it('redirects unauthenticated users away from agency routes', async () => {
     window.history.pushState({}, '', '/agency/book');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
     await waitFor(() => expect(window.location.pathname).toBe('/login/user'));
     expect(screen.getByText(/client login/i)).toBeInTheDocument();
   });

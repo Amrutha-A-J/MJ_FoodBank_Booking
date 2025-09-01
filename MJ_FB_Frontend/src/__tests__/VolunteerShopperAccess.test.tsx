@@ -1,6 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { loginVolunteer } from '../api/volunteers';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 jest.mock('../api/volunteers', () => ({
   loginVolunteer: jest.fn(),
@@ -23,7 +24,7 @@ describe('Volunteer with shopper profile', () => {
       userRole: 'shopper',
     });
 
-    render(<App />);
+    renderWithProviders(<App />);
 
     fireEvent.click(screen.getByText(/volunteer login/i));
 

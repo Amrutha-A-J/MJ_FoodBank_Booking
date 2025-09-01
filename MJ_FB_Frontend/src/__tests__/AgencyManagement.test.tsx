@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import App from '../App';
-import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 describe('AgencyManagement', () => {
   let fetchMock: jest.Mock;
@@ -27,11 +27,7 @@ describe('AgencyManagement', () => {
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['pantry']));
     window.history.pushState({}, '', '/pantry/agency-management');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
     expect(
       await screen.findByRole('tab', { name: /add agency/i }),
     ).toBeInTheDocument();

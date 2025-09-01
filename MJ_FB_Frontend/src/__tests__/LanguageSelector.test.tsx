@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import App from '../App';
-import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import i18n from '../i18n';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 describe('Language selector visibility', () => {
   let fetchMock: jest.Mock;
@@ -31,11 +31,7 @@ describe('Language selector visibility', () => {
       headers: new Headers(),
     });
     window.history.pushState({}, '', '/login/user');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
     expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
   });
 
@@ -43,11 +39,7 @@ describe('Language selector visibility', () => {
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
     window.history.pushState({}, '', '/');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
     expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
   });
 
@@ -56,11 +48,7 @@ describe('Language selector visibility', () => {
     localStorage.setItem('name', 'Staff User');
     localStorage.setItem('access', JSON.stringify(['pantry']));
     window.history.pushState({}, '', '/pantry');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    );
+    renderWithProviders(<App />);
     expect(screen.queryByText(i18n.t('english'))).not.toBeInTheDocument();
   });
 });
