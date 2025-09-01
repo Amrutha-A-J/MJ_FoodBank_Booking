@@ -18,6 +18,8 @@ Run the test suite:
 npm test
 ```
 
+`jest.setup.ts` provides global test configuration and must remain referenced in `jest.config.cjs` via `setupFilesAfterEnv`.
+
 ## Environment Variables
 
 The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with:

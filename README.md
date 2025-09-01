@@ -10,7 +10,7 @@ The backend automatically runs any pending database migrations on startup and lo
 
 ## Contribution Guidelines
 
-- Use Node.js 18 or later for development; the backend relies on the native `fetch` API.
+- Use Node.js 22 or later for development; the backend relies on the native `fetch` API.
 - The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
 - Run the relevant backend and frontend test suites (`npm test`) after making changes.
 - Update `AGENTS.md` with new repository instructions.
@@ -118,7 +118,7 @@ git submodule update --init --recursive
 ## Backend setup (`MJ_FB_Backend`)
 
 Prerequisites:
-- Node.js 18 or later and npm (uses the built-in `fetch`; earlier versions are not supported)
+- Node.js 22 or later and npm (uses the built-in `fetch`; earlier versions are not supported)
 
 Install and run:
 ```bash
@@ -231,7 +231,7 @@ openssl rand -hex 32
 ## Frontend setup (`MJ_FB_Frontend`)
 
 Prerequisites:
-- Node.js 18 or later and npm
+- Node.js 22 or later and npm
 
 Install and run:
 ```bash
