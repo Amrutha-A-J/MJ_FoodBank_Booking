@@ -8,7 +8,7 @@ describe('global error handler', () => {
     const app = express();
 
     app.get('/boom', () => {
-      const err: any = new Error('Sensitive internal details');
+      const err = new Error('Sensitive internal details') as Error & { status?: number };
       err.status = 500;
       throw err;
     });
