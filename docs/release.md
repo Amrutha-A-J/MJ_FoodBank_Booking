@@ -1,6 +1,6 @@
 # Release Workflow
 
-The `Release` GitHub Actions workflow builds, tests, and deploys the backend and frontend.
+The `Release` GitHub Actions workflow builds, tests, and deploys the backend and frontend. It reads the Node.js version from `.nvmrc` (Node 22) so CI runs with the same runtime as local development.
 
 ## Triggers
 - Pushes to the `main` branch

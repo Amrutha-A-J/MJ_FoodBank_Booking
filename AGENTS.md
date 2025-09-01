@@ -9,6 +9,7 @@
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 22+ for native `fetch`; earlier versions are not supported.
 - Development is pinned to Node 22 via `.nvmrc`, and `.npmrc` sets `engine-strict=true` to prevent using other Node versions.
+- GitHub Actions reads the Node version from `.nvmrc` to keep CI builds and tests on the same runtime.
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME` in the backend environment.
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons with links generated from each booking's reschedule token.
 - Email queue retries failed sends with exponential backoff and persists jobs in the `email_queue` table so retries survive restarts. Configure `EMAIL_QUEUE_MAX_RETRIES` and `EMAIL_QUEUE_BACKOFF_MS` to adjust retry behavior.
@@ -41,8 +42,9 @@
 - Always run tests through `npm test` so `jest.setup.ts` applies required polyfills and sets a default `VITE_API_BASE`; invoking Jest directly can skip this setup.
 - Tests polyfill `global.fetch` with `undici` via top-level assignments in `tests/setupFetch.ts`. Ensure this file remains configured in Jest's setup files.
 - Tests load required environment variables from `tests/setupEnv.ts`, which is listed in Jest's `setupFilesAfterEnv`. When running a test file directly, import `'../setupEnv'` so these variables are set, or run the test through Jest.
+- Backend tests rely on `tests/setupTests.ts` to load required environment variables, polyfill `global.fetch` with `undici`, and mock the database. Ensure this file remains configured in Jest's setup files. When running a test file directly, import `'../setupTests'` or run the file through Jest.
 - Tests for invitation and password setup flows live in `MJ_FB_Backend/tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
-- Mock database access in backend tests by adding `import '../tests/utils/mockDb'`. The helper mocks `../src/db` and exports the mocked `pool` for custom query behavior.
+- To customize the mocked database in backend tests, import `../tests/utils/mockDb`, which mocks `../src/db` and exports the mocked `pool` for custom query behavior.
 
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one. The stats endpoint also returns

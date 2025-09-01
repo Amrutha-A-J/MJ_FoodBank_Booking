@@ -11,6 +11,8 @@ nvm install   # installs the version listed in .nvmrc
 nvm use
 ```
 
+GitHub Actions reads the same `.nvmrc` to run CI on Node 22. Run all backend and frontend tests on this runtime to match CI results.
+
 Individuals who use the food bank are referred to as clients throughout the application.
 
 The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.
@@ -24,8 +26,7 @@ The backend automatically runs any pending database migrations on startup and lo
 - Run the relevant backend and frontend test suites via `npm test` after making changes. Tests must be executed with `npm test` so `jest.setup.ts` loads required polyfills and provides a default `VITE_API_BASE`.
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
-- Tests polyfill `global.fetch` with `undici` using `tests/setupFetch.ts`, which is included in Jest's setup files.
-- Required environment variables are set in `tests/setupEnv.ts`, also listed in Jest's `setupFilesAfterEnv`. If you run a test file directly instead of through Jest, manually import `'../setupEnv'` so these variables are initialized.
+- Backend tests use `tests/setupTests.ts` to load required environment variables, polyfill `global.fetch` with `undici`, and mock the database. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
 
 ## Help Page Updates
 
