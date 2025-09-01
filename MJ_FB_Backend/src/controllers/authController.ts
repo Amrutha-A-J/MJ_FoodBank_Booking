@@ -212,7 +212,7 @@ export async function changePassword(
     currentPassword?: string;
     newPassword?: string;
   };
-  const user = req.user as any;
+  const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Missing fields' });

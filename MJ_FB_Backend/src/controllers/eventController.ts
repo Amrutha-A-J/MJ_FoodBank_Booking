@@ -7,7 +7,7 @@ import type { PoolClient } from 'pg';
 
 export async function listEvents(req: Request, res: Response, next: NextFunction) {
   try {
-    const role = (req.user as any)?.role;
+    const role = req.user?.role;
     let where = '';
     if (role === 'volunteer') {
       where = 'WHERE e.visible_to_volunteers = true';
@@ -68,7 +68,7 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
   } = parsed.data;
   let client: PoolClient | undefined;
   try {
-    const createdBy = Number((req.user as any).id);
+    const createdBy = Number(req.user?.id);
     const reginaDate = formatReginaDate(date);
     client = await pool.connect();
     await client.query('BEGIN');
