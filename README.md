@@ -11,6 +11,8 @@ nvm install   # installs the version listed in .nvmrc
 nvm use
 ```
 
+GitHub Actions reads the same `.nvmrc` to run CI on Node 22. Run all backend and frontend tests on this runtime to match CI results.
+
 Individuals who use the food bank are referred to as clients throughout the application.
 
 The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.
