@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
-import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 let fetchMock: jest.Mock;
 
@@ -60,22 +60,14 @@ describe('App authentication persistence', () => {
       json: async () => ({}),
       headers: new Headers(),
     });
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     expect(await screen.findByText(/client login/i)).toBeInTheDocument();
   });
 
   it('keeps user logged in when role exists', () => {
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     expect(screen.queryByText(/user login/i)).not.toBeInTheDocument();
   });
 
@@ -83,11 +75,7 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     window.history.pushState({}, '', '/set-password?token=abc');
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     const els = await screen.findAllByText(/set password/i);
     expect(els.length).toBeGreaterThan(0);
   });
@@ -96,11 +84,7 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['pantry']));
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     await waitFor(() => expect(window.location.pathname).toBe('/pantry'));
   });
 
@@ -109,11 +93,7 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['volunteer_management']));
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     await waitFor(() => expect(window.location.pathname).toBe('/volunteer-management'));
   });
 
@@ -121,11 +101,7 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['warehouse']));
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
@@ -133,11 +109,7 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Admin User');
     localStorage.setItem('access', JSON.stringify(['admin']));
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
-    );
+    renderWithProviders(<App />);
     const adminButton = screen.getByRole('button', { name: /admin/i });
     fireEvent.click(adminButton);
     expect(

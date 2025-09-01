@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import App from '../App';
-import { AuthProvider } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 let fetchMock: jest.Mock;
 
@@ -35,11 +35,7 @@ test('shows Recurring Shifts link for staff with volunteer-management access', a
   localStorage.setItem('name', 'Test Staff');
   localStorage.setItem('access', JSON.stringify(['volunteer_management']));
 
-  render(
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  );
+  renderWithProviders(<App />);
 
   const vmButton = await screen.findByRole('button', { name: /volunteer management/i });
   fireEvent.click(vmButton);

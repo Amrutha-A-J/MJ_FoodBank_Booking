@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import VolunteerSchedule from '../pages/volunteer-management/VolunteerSchedule';
 import i18n from '../i18n';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import {
   getVolunteerRolesForVolunteer,
   getMyVolunteerBookings,
@@ -60,7 +61,7 @@ describe('VolunteerSchedule', () => {
       },
     ]);
 
-    render(<VolunteerSchedule />);
+    renderWithProviders(<VolunteerSchedule />);
 
     fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
     fireEvent.click(await screen.findByText('Greeter'));

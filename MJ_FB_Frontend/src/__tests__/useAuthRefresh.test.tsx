@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../hooks/useAuth';
+import { screen, waitFor } from '@testing-library/react';
+import { useAuth } from '../hooks/useAuth';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 describe('AuthProvider refresh handling', () => {
   let fetchMock: jest.Mock;
@@ -19,11 +20,7 @@ describe('AuthProvider refresh handling', () => {
   });
 
   it('clears auth and shows message when refresh fails', async () => {
-    render(
-      <AuthProvider>
-        <div />
-      </AuthProvider>,
-    );
+    renderWithProviders(<div />);
 
     await waitFor(() => expect(localStorage.getItem('role')).toBeNull());
     expect(await screen.findByText('Session expired')).toBeInTheDocument();
@@ -37,11 +34,7 @@ describe('AuthProvider refresh handling', () => {
       return <div>{ready ? token : ''}</div>;
     }
 
-    render(
-      <AuthProvider>
-        <Child />
-      </AuthProvider>,
-    );
+    renderWithProviders(<Child />);
 
     await waitFor(() => expect(screen.getByText('cookie')).toBeInTheDocument());
     expect(localStorage.getItem('role')).toBe('staff');
@@ -64,11 +57,7 @@ describe('AuthProvider with no prior session', () => {
   it('does not show session expired when refresh fails without auth', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401 });
 
-    render(
-      <AuthProvider>
-        <div />
-      </AuthProvider>,
-    );
+    renderWithProviders(<div />);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(screen.queryByText('Session expired')).toBeNull();

@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../hooks/useAuth';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { useAuth } from '../hooks/useAuth';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 jest.mock('../api/client', () => ({
   API_BASE: '',
@@ -39,11 +40,7 @@ describe('AuthProvider cardUrl cleanup', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
     (apiLogout as jest.Mock).mockResolvedValue(undefined);
 
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>,
-    );
+    renderWithProviders(<TestComponent />);
 
     fireEvent.click(screen.getByText('login'));
     await waitFor(() =>
@@ -61,11 +58,7 @@ describe('AuthProvider cardUrl cleanup', () => {
       .mockResolvedValueOnce({ ok: true, status: 200 })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
 
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>,
-    );
+    renderWithProviders(<TestComponent />);
 
     fireEvent.click(screen.getByText('login'));
     await waitFor(() =>
