@@ -3,12 +3,15 @@ import cron from 'node-cron';
 export default function scheduleDailyJob(
   callback: () => void | Promise<void>,
   schedule: string,
+  runOnStart = true,
 ): { start: () => void; stop: () => void } {
   let task: cron.ScheduledTask | undefined;
 
   const start = (): void => {
     if (process.env.NODE_ENV === 'test') return;
-    void callback();
+    if (runOnStart) {
+      void callback();
+    }
     task = cron.schedule(
       schedule,
       () => {

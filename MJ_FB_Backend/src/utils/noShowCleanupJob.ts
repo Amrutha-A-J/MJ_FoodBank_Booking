@@ -21,6 +21,7 @@ export async function cleanupNoShows(): Promise<void> {
 const noShowCleanupJob = scheduleDailyJob(
   cleanupNoShows,
   '0 20 * * *',
+  true,
 );
 
 export const startNoShowCleanupJob = noShowCleanupJob.start;

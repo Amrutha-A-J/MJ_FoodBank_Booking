@@ -1,5 +1,12 @@
 const originalEnv = process.env.NODE_ENV;
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
+jest.mock('../src/utils/scheduleDailyJob', () => {
+  const actual = jest.requireActual('../src/utils/scheduleDailyJob');
+  return {
+    __esModule: true,
+    default: (cb: any, schedule: string) => actual.default(cb, schedule, false),
+  };
+});
 const job = require('../src/utils/volunteerNoShowCleanupJob');
 const {
   cleanupVolunteerNoShows,
@@ -47,28 +54,23 @@ describe('cleanupVolunteerNoShows', () => {
 describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
-  let cleanupSpy: jest.SpyInstance;
   beforeEach(() => {
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    cleanupSpy = jest.spyOn(job, 'cleanupVolunteerNoShows').mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     stopVolunteerNoShowCleanupJob();
-    await Promise.resolve();
     jest.useRealTimers();
     scheduleMock.mockReset();
-    cleanupSpy.mockRestore();
     process.env.NODE_ENV = originalEnv;
   });
 
-  it('schedules and stops the cron job', async () => {
+  it('schedules and stops the cron job', () => {
     startVolunteerNoShowCleanupJob();
-    await Promise.resolve();
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 20 * * *',
       expect.any(Function),
