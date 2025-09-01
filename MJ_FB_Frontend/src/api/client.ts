@@ -1,4 +1,4 @@
-const API_BASE = (globalThis as any).VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE ?? (globalThis as any).VITE_API_BASE;
 
 if (!API_BASE) {
   const message =
