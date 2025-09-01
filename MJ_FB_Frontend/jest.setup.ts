@@ -12,7 +12,7 @@ import './src/i18n';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');
 (Element.prototype as any).scrollIntoView = jest.fn();
-if (!(import.meta as any).env?.VITE_API_BASE) {
+if (!process.env.VITE_API_BASE) {
   (globalThis as any).VITE_API_BASE = 'http://localhost:4000';
 }
 
