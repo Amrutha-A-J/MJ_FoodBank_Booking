@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ManageVolunteerShiftDialog from '../components/ManageVolunteerShiftDialog';
+import type { VolunteerBookingDetail } from '../types';
 
 jest.mock('../api/volunteers', () => ({
   getRoleShifts: jest.fn(),
@@ -18,7 +19,7 @@ const {
 } = jest.requireMock('../api/volunteers');
 
 describe('ManageVolunteerShiftDialog', () => {
-  const booking = {
+  const booking: VolunteerBookingDetail = {
     id: 1,
     role_id: 1,
     volunteer_id: 2,
@@ -29,16 +30,21 @@ describe('ManageVolunteerShiftDialog', () => {
     end_time: '12:00:00',
     status: 'approved',
     reschedule_token: 'abc',
-  } as any;
+  };
 
   beforeAll(() => {
     window.matchMedia =
       window.matchMedia ||
-      ((() => ({
+      ((query: string): MediaQueryList => ({
         matches: false,
+        media: query,
+        onchange: null,
         addListener: () => {},
         removeListener: () => {},
-      })) as any);
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }));
   });
 
   beforeEach(() => {
