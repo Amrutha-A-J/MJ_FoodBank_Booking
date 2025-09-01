@@ -25,8 +25,9 @@ export async function sendEmail(to: string, subject: string, body: string): Prom
       }),
     });
 
-    if (!response.ok) {
-      const responseText = await response.text();
+    if (response.ok !== true) {
+      const responseText =
+        typeof response.text === 'function' ? await response.text() : undefined;
       logger.error('Failed to send email via Brevo', {
         status: response.status,
         responseText,
@@ -82,8 +83,9 @@ export async function sendTemplatedEmail({
       }),
     });
 
-    if (!response.ok) {
-      const responseText = await response.text();
+    if (response.ok !== true) {
+      const responseText =
+        typeof response.text === 'function' ? await response.text() : undefined;
       logger.error('Failed to send template email via Brevo', {
         status: response.status,
         responseText,
