@@ -77,9 +77,17 @@ test('submits weekly recurring booking', async () => {
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
   fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
-  fireEvent.mouseDown(screen.getByLabelText(/frequency/i));
-  const freqList = await screen.findAllByRole('listbox');
-  fireEvent.click(within(freqList[freqList.length - 1]).getByText('Weekly'));
+  const frequency = screen.getByLabelText(/frequency/i);
+  fireEvent.mouseDown(frequency);
+  let freqList: HTMLElement;
+  try {
+    freqList = within(screen.getByLabelText(/frequency/i)).getByRole('listbox');
+  } catch {
+    freqList = document.getElementById(
+      frequency.getAttribute('aria-controls')!,
+    ) as HTMLElement;
+  }
+  fireEvent.click(within(freqList).getByText('Weekly'));
   fireEvent.click(screen.getByLabelText('Mon'));
   fireEvent.click(screen.getByLabelText('Wed'));
   fireEvent.change(screen.getByLabelText(/end date/i), {
@@ -101,9 +109,17 @@ test('submits daily recurring booking with end date', async () => {
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
   fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
-  fireEvent.mouseDown(screen.getByLabelText(/frequency/i));
-  const freqList = await screen.findAllByRole('listbox');
-  fireEvent.click(within(freqList[freqList.length - 1]).getByText('Daily'));
+  const frequency = screen.getByLabelText(/frequency/i);
+  fireEvent.mouseDown(frequency);
+  let freqList: HTMLElement;
+  try {
+    freqList = within(screen.getByLabelText(/frequency/i)).getByRole('listbox');
+  } catch {
+    freqList = document.getElementById(
+      frequency.getAttribute('aria-controls')!,
+    ) as HTMLElement;
+  }
+  fireEvent.click(within(freqList).getByText('Daily'));
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
