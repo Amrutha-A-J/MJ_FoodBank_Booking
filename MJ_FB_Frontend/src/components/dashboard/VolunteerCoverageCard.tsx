@@ -3,6 +3,7 @@ import { List, ListItem, ListItemText, Chip } from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import { formatReginaDate } from '../../utils/time';
+import FeedbackSnackbar from '../FeedbackSnackbar';
 
 interface CoverageItem {
   roleName: string;
@@ -21,6 +22,7 @@ export default function VolunteerCoverageCard({
   onCoverageLoaded,
 }: VolunteerCoverageCardProps) {
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const todayStr = formatReginaDate(new Date());
@@ -53,28 +55,39 @@ export default function VolunteerCoverageCard({
         setCoverage(data);
         onCoverageLoaded?.(data);
       })
-      .catch(() => {});
+      .catch(err => {
+        console.error(err);
+        setError('Failed to load volunteer coverage');
+      });
   }, [masterRoleFilter, onCoverageLoaded]);
 
   return (
-    <SectionCard title="Volunteer Coverage">
-      <List>
-        {coverage.map((c, i) => {
-          const ratio = c.filled / c.total;
-          let color: 'success' | 'warning' | 'error' | 'default' = 'default';
-          if (ratio >= 1) color = 'success';
-          else if (ratio >= 0.5) color = 'warning';
-          else color = 'error';
-          return (
-            <ListItem
-              key={i}
-              secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
-            >
-              <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
-            </ListItem>
-          );
-        })}
-      </List>
-    </SectionCard>
+    <>
+      <SectionCard title="Volunteer Coverage">
+        <List>
+          {coverage.map(c => {
+            const ratio = c.filled / c.total;
+            let color: 'success' | 'warning' | 'error' | 'default' = 'default';
+            if (ratio >= 1) color = 'success';
+            else if (ratio >= 0.5) color = 'warning';
+            else color = 'error';
+            return (
+              <ListItem
+                key={`${c.roleName}-${c.masterRole}`}
+                secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
+              >
+                <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
+              </ListItem>
+            );
+          })}
+        </List>
+      </SectionCard>
+      <FeedbackSnackbar
+        open={!!error}
+        onClose={() => setError('')}
+        message={error}
+        severity="error"
+      />
+    </>
   );
 }
