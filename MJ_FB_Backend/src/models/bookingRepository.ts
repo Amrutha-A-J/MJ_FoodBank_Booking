@@ -196,9 +196,12 @@ export async function fetchBookingHistory(
     limitOffset += ` OFFSET $${params.length}`;
   }
   const res = await client.query(
-    `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, s.start_time, s.end_time, b.created_at, b.is_staff_booking, b.reschedule_token
+    `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason,
+            CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.start_time END AS start_time,
+            CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.end_time END AS end_time,
+            b.created_at, b.is_staff_booking, b.reschedule_token
        FROM bookings b
-       INNER JOIN slots s ON b.slot_id = s.id
+       LEFT JOIN slots s ON b.slot_id = s.id
        WHERE ${where}
        ORDER BY b.created_at DESC${limitOffset}`,
     params,

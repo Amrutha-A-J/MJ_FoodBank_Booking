@@ -97,10 +97,10 @@ function normalizeBooking(b: BookingResponse): Booking {
   const newClientId = b.newClientId ?? new_client_id ?? null;
   return {
     ...rest,
-    start_time: b.start_time ?? b.startTime ?? '',
-    end_time: b.end_time ?? b.endTime ?? '',
-    startTime: b.startTime ?? b.start_time ?? '',
-    endTime: b.endTime ?? b.end_time ?? '',
+    start_time: b.start_time ?? b.startTime ?? null,
+    end_time: b.end_time ?? b.endTime ?? null,
+    startTime: b.startTime ?? b.start_time ?? null,
+    endTime: b.endTime ?? b.end_time ?? null,
     newClientId,
   };
 }

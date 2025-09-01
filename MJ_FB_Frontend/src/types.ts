@@ -211,7 +211,7 @@ export interface BookingResponse {
   id: number;
   status: string;
   date: string;
-  slot_id: number;
+  slot_id: number | null;
   user_id?: number | null;
   new_client_id?: number | null;
   newClientId?: number | null;
@@ -224,19 +224,19 @@ export interface BookingResponse {
   profile_link?: string;
   visits_this_month?: number;
   approved_bookings_this_month?: number;
-  start_time?: string;
-  end_time?: string;
-  startTime?: string;
-  endTime?: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
   reason?: string;
 }
 
 export interface Booking
   extends Omit<BookingResponse, 'new_client_id' | 'startTime' | 'endTime'> {
-  start_time: string;
-  end_time: string;
-  startTime: string;
-  endTime: string;
+  start_time: string | null;
+  end_time: string | null;
+  startTime: string | null;
+  endTime: string | null;
   newClientId: number | null;
 }
 
