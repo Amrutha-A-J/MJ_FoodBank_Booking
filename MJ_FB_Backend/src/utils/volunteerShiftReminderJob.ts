@@ -46,6 +46,7 @@ const volunteerShiftReminderJob = scheduleDailyJob(
   sendNextDayVolunteerShiftReminders,
   '0 9 * * *',
   true,
+  true,
 );
 
 export const startVolunteerShiftReminderJob = volunteerShiftReminderJob.start;

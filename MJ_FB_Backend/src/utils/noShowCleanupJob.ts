@@ -22,6 +22,7 @@ const noShowCleanupJob = scheduleDailyJob(
   cleanupNoShows,
   '0 20 * * *',
   true,
+  true,
 );
 
 export const startNoShowCleanupJob = noShowCleanupJob.start;
