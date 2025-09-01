@@ -1,4 +1,4 @@
-import pool from '../src/db';
+import mockPool from './utils/mockDb';
 import {
   checkSlotCapacity,
   insertBooking,
@@ -11,20 +11,20 @@ import {
 
 
 describe('bookingRepository', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => {
+    (mockPool.query as jest.Mock).mockReset();
   });
 
   describe('checkSlotCapacity', () => {
     it('throws for invalid slot', async () => {
-      (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toBeInstanceOf(
         SlotCapacityError,
       );
     });
 
     it('throws when slot full', async () => {
-      (pool.query as jest.Mock)
+      (mockPool.query as jest.Mock)
         .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_capacity: 1 }] })
         .mockResolvedValueOnce({ rows: [{ count: '1' }] });
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toThrow(
@@ -33,7 +33,7 @@ describe('bookingRepository', () => {
     });
 
     it('resolves when slot has capacity', async () => {
-      (pool.query as jest.Mock)
+      (mockPool.query as jest.Mock)
         .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_capacity: 2 }] })
         .mockResolvedValueOnce({ rows: [{ count: '1' }] });
       await expect(checkSlotCapacity(1, '2024-01-01')).resolves.toBeUndefined();
@@ -41,9 +41,9 @@ describe('bookingRepository', () => {
   });
 
   it('insertBooking calls query with correct params', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({});
     await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null);
-    const call = (pool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/INSERT INTO bookings/);
     expect(call[1]).toEqual(
       expect.arrayContaining([
@@ -61,14 +61,14 @@ describe('bookingRepository', () => {
   });
 
   it('updateBooking ignores disallowed keys', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({});
     await updateBooking(1, {
       status: 'cancelled',
       request_data: 'reason',
       hacker: 'nope',
     });
-    expect(pool.query).toHaveBeenCalled();
-    const [sql, params] = (pool.query as jest.Mock).mock.calls[0];
+    expect(mockPool.query).toHaveBeenCalled();
+    const [sql, params] = (mockPool.query as jest.Mock).mock.calls[0];
     expect(sql).toEqual(
       expect.stringContaining('UPDATE bookings SET status=$2, request_data=$3'),
     );
@@ -79,13 +79,13 @@ describe('bookingRepository', () => {
 
   it('updateBooking returns early when only disallowed keys provided', async () => {
     await updateBooking(1, { hacker: 'nope' });
-    expect(pool.query).not.toHaveBeenCalled();
+    expect(mockPool.query).not.toHaveBeenCalled();
   });
 
   it('fetchBookings applies optional filters', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookings('approved', '2024-01-01', [1, 2]);
-    const call = (pool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.status = \$1/);
@@ -102,9 +102,9 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingsForReminder selects only necessary fields', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
-    const call = (pool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(
       /COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
@@ -117,9 +117,9 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingHistory supports arrays and pagination', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingHistory([1, 2], false, undefined, false, 5, 10);
-    const call = (pool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
@@ -137,9 +137,9 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingHistory uses LEFT JOIN on slots', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
     await fetchBookingHistory([1], false, undefined, false);
-    const call = (pool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/LEFT JOIN\s+slots\s+s\s+ON b.slot_id = s.id/);
   });
 });
