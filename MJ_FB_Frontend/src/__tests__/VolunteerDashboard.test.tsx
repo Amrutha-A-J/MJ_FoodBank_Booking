@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerDashboard from '../pages/volunteer-management/VolunteerDashboard';
 import {
@@ -46,6 +46,16 @@ function makeStats(overrides: Partial<VolunteerStats> = {}): VolunteerStats {
   return { ...baseStats, ...overrides };
 }
 
+async function renderDashboard() {
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <VolunteerDashboard />
+      </MemoryRouter>,
+    );
+  });
+}
+
 describe('VolunteerDashboard', () => {
 beforeEach(() => {
   (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
@@ -67,11 +77,7 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     await screen.findByText('Profile & Training');
     expect(screen.queryByText('Update trained roles')).not.toBeInTheDocument();
@@ -94,11 +100,7 @@ beforeEach(() => {
     });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/Volunteer Event/)).toBeInTheDocument();
@@ -110,11 +112,7 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockRejectedValue(new Error('fail'));
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText('Failed to load events')).toBeInTheDocument();
@@ -153,15 +151,13 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(
       await screen.findByText('No available shifts'),
     ).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('excludes past shifts from available slots', async () => {
@@ -188,12 +184,9 @@ beforeEach(() => {
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText('No available shifts')).toBeInTheDocument();
 
     jest.useRealTimers();
@@ -224,12 +217,9 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
 
     jest.useRealTimers();
@@ -275,15 +265,16 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByLabelText('Role'));
-    fireEvent.click(screen.getByRole('option', { name: 'Warehouse' }));
+    await act(async () => {
+      fireEvent.mouseDown(screen.getByLabelText('Role'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('option', { name: 'Warehouse' }));
+    });
 
     expect(screen.queryByText(/Greeter •/)).not.toBeInTheDocument();
     expect(screen.getByText(/Warehouse •/)).toBeInTheDocument();
@@ -292,7 +283,10 @@ beforeEach(() => {
   });
 
   it('shows server error when shift request fails', async () => {
-    const today = formatReginaDate(new Date());
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-10T12:00:00Z'));
+
+    const today = '2024-01-15';
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
       {
@@ -317,19 +311,20 @@ beforeEach(() => {
     );
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerRolesForVolunteer).toHaveBeenCalled());
+    await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
     const requestButton = await screen.findByRole('button', { name: /^Request$/ });
-    fireEvent.click(requestButton);
+    await act(async () => {
+      fireEvent.click(requestButton);
+    });
 
     await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
     expect(
       await screen.findByText('Already booked for this shift'),
     ).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('shows upcoming approved shift in My Next Shift', async () => {
@@ -351,11 +346,7 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
     expect(await screen.findByText(/Greeter/)).toBeInTheDocument();
@@ -372,12 +363,9 @@ beforeEach(() => {
       makeStats({ badges: ['early-bird'] }),
     );
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText('early-bird')).toBeInTheDocument();
   });
 
@@ -399,12 +387,9 @@ beforeEach(() => {
       monthPoundsHandled: 0,
     });
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(await screen.findByText('Lifetime Hours')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
     expect(screen.getByText('Hours This Month')).toBeInTheDocument();
@@ -422,11 +407,7 @@ beforeEach(() => {
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 3, percentile: 75 });
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     const myStatsHeader = await screen.findByText('My Stats');
     const card = myStatsHeader.closest('.MuiCard-root');
@@ -434,6 +415,7 @@ beforeEach(() => {
     expect(
       within(card as HTMLElement).getByText("You're in the top 75%!")
     ).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('shows milestone banner when milestone is returned', async () => {
@@ -452,15 +434,12 @@ beforeEach(() => {
     );
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
-    expect(
-      await screen.findByText(/Congratulations on completing 5 shifts!/),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
+    const milestoneTitle = await screen.findByText('Milestone');
+    const card = milestoneTitle.closest('.MuiCard-root') as HTMLElement;
+    expect(within(card).getByText(/Congratulations on completing 5 shifts!/)).toBeInTheDocument();
   });
 
   it('shows appreciation message with monthly totals', async () => {
@@ -481,17 +460,15 @@ beforeEach(() => {
     );
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(
       await screen.findByText(
         /This month you've helped serve 3 families and handle 30 lbs/,
       ),
     ).toBeInTheDocument();
+    jest.useRealTimers();
   });
 
   it('shows group stats card with progress and quote', async () => {
@@ -510,12 +487,9 @@ beforeEach(() => {
     });
     const rand = jest.spyOn(Math, 'random').mockReturnValue(0);
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
+    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
     expect(
       await screen.findByText(/Volunteers distributed 25 lbs this month/),
     ).toBeInTheDocument();
@@ -568,11 +542,7 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
     const nextShift = await screen.findByText(/Greeter/);
     expect(nextShift).toHaveTextContent('2024');
@@ -584,6 +554,8 @@ beforeEach(() => {
   });
 
   it('renders contribution trend and community gauge charts', async () => {
+    const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = () => ({ width: 800, height: 300, top: 0, left: 0, bottom: 300, right: 800 } as DOMRect);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -617,20 +589,16 @@ beforeEach(() => {
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
     (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
-    render(
-      <MemoryRouter>
-        <VolunteerDashboard />
-      </MemoryRouter>,
-    );
+    await renderDashboard();
 
-    expect(await screen.findByText('My Contribution Trend')).toBeInTheDocument();
-    const contribution = screen.getByTestId('contribution-chart');
-    expect(contribution.querySelector('svg')).toBeInTheDocument();
-    expect(
-      contribution.querySelectorAll('.recharts-line-curve').length,
-    ).toBe(2);
+    await waitFor(() => expect(getVolunteerGroupStats).toHaveBeenCalled());
+    await waitFor(() => expect(getMyVolunteerBookings).toHaveBeenCalled());
+    const section = (await screen.findByText('My Contribution Trend')).closest('.MuiCard-root') as HTMLElement;
+    await waitFor(() => expect(section.querySelector('svg')).toBeInTheDocument());
+    expect(section.querySelectorAll('.recharts-line-curve').length).toBe(2);
 
     const gauge = await screen.findByTestId('group-progress-gauge');
     expect(gauge.querySelector('svg')).toBeInTheDocument();
+    Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
   });
 });
