@@ -55,24 +55,25 @@ async function processQueue(): Promise<void> {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const res = await pool.query<EmailJob>(
-        'SELECT id, recipient as to, template_id as "templateId", params, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 1'
+        'SELECT id, recipient as to, template_id as "templateId", params, retries, next_attempt FROM email_queue WHERE next_attempt <= now() ORDER BY id LIMIT 10'
       );
       if (res.rowCount === 0) break;
-      const job = res.rows[0];
-      try {
-        await sendTemplatedEmail({ to: job.to, templateId: job.templateId, params: job.params });
-        await pool.query('DELETE FROM email_queue WHERE id=$1', [job.id]);
-      } catch (err) {
-        if (job.retries < config.emailQueueMaxRetries) {
-          const newRetries = job.retries + 1;
-          const delay = config.emailQueueBackoffMs * 2 ** (newRetries - 1);
-          await pool.query(
-            'UPDATE email_queue SET retries=$1, next_attempt=now() + $2::int * interval \'1 millisecond\' WHERE id=$3',
-            [newRetries, delay, job.id]
-          );
-        } else {
-          logger.error('Failed to send email job after max retries', err);
+      for (const job of res.rows) {
+        try {
+          await sendTemplatedEmail({ to: job.to, templateId: job.templateId, params: job.params });
           await pool.query('DELETE FROM email_queue WHERE id=$1', [job.id]);
+        } catch (err) {
+          if (job.retries < config.emailQueueMaxRetries) {
+            const newRetries = job.retries + 1;
+            const delay = config.emailQueueBackoffMs * 2 ** (newRetries - 1);
+            await pool.query(
+              'UPDATE email_queue SET retries=$1, next_attempt=now() + $2::int * interval \'1 millisecond\' WHERE id=$3',
+              [newRetries, delay, job.id]
+            );
+          } else {
+            logger.error('Failed to send email job after max retries', err);
+            await pool.query('DELETE FROM email_queue WHERE id=$1', [job.id]);
+          }
         }
       }
     }
