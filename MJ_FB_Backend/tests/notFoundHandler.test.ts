@@ -8,7 +8,7 @@ describe('404 middleware', () => {
     const handlerSpy = jest.fn();
 
     app.use((req, res) => res.status(404).json({ message: 'Not found' }));
-    app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    app.use((err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
       handlerSpy();
       return errorHandler(err, req, res, next);
     });
