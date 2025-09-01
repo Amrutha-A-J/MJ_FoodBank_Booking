@@ -25,11 +25,12 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       if (!row.email) continue;
       const time = row.start_time && row.end_time ? ` from ${row.start_time} to ${row.end_time}` : '';
       const buttons = buildCancelRescheduleButtons(row.reschedule_token);
-      enqueueEmail(
-        row.email,
-        'Volunteer Shift Reminder',
-        `This is a reminder for your volunteer shift on ${nextDate}${time}.${buttons}`,
-      );
+      const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.${buttons}`;
+      enqueueEmail({
+        to: row.email,
+        templateId: 1,
+        params: { body },
+      });
     }
   } catch (err) {
     logger.error('Failed to send volunteer shift reminders', err);

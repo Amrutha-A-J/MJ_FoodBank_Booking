@@ -32,7 +32,7 @@ describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    cleanupSpy = jest.spyOn(noShowJob, 'cleanupNoShows').mockResolvedValue();
+    cleanupSpy = jest.spyOn(noShowJob, 'cleanupNoShows').mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 

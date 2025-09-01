@@ -107,11 +107,8 @@ export async function addClientToAgency(
     ]);
     if (agencyEmail && client) {
       const fullName = `${client.first_name} ${client.last_name}`;
-      enqueueEmail(
-        agencyEmail,
-        `Client ${fullName} added`,
-        `${fullName} has been added to your agency.`,
-      );
+      const body = `${fullName} has been added to your agency.`;
+      enqueueEmail({ to: agencyEmail, templateId: 1, params: { body } });
     }
     res.status(204).send();
   } catch (err) {
@@ -146,11 +143,8 @@ export async function removeClientFromAgency(
     ]);
     if (agencyEmail && client) {
       const fullName = `${client.first_name} ${client.last_name}`;
-      enqueueEmail(
-        agencyEmail,
-        `Client ${fullName} removed`,
-        `${fullName} has been removed from your agency.`,
-      );
+      const body = `${fullName} has been removed from your agency.`;
+      enqueueEmail({ to: agencyEmail, templateId: 1, params: { body } });
     }
     res.status(204).send();
   } catch (err) {

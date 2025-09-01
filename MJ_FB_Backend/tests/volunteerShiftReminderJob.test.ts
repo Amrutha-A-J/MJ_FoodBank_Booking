@@ -17,7 +17,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
     sendSpy = jest
       .spyOn(volunteerJob, 'sendNextDayVolunteerShiftReminders')
-      .mockResolvedValue();
+      .mockResolvedValue(undefined);
     process.env.NODE_ENV = 'development';
   });
 

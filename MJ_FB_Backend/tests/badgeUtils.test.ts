@@ -9,9 +9,14 @@ describe('awardMilestoneBadge', () => {
   it('queues a thank-you email and returns a card url', () => {
     const cardUrl = awardMilestoneBadge('user@example.com', 'gold');
     expect(enqueueEmail).toHaveBeenCalledWith(
-      'user@example.com',
-      expect.stringContaining('gold'),
-      expect.stringContaining('Download your card'),
+      expect.objectContaining({
+        to: 'user@example.com',
+        templateId: expect.any(Number),
+        params: expect.objectContaining({
+          body: expect.stringContaining('Download your card'),
+          cardUrl: expect.stringContaining('gold'),
+        }),
+      }),
     );
     expect(cardUrl).toContain('gold');
   });
