@@ -1,8 +1,9 @@
 import { apiFetch } from '../api/client';
-
-const realFetch = global.fetch;
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('apiFetch refresh handling', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
     document.cookie = 'csrfToken=test';
     localStorage.setItem('role', 'test');
@@ -10,16 +11,16 @@ describe('apiFetch refresh handling', () => {
       value: { assign: jest.fn(), pathname: '/' },
       writable: true,
     });
-    global.fetch = jest.fn().mockResolvedValue(new Response(null));
+    fetchMock = mockFetch();
   });
 
   afterEach(() => {
-    global.fetch = realFetch;
+    restoreFetch();
     jest.resetAllMocks();
   });
 
   it('redirects when refresh returns unexpected status', async () => {
-    (global.fetch as jest.Mock)
+    fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(new Response(null, { status: 500 }));
 
@@ -28,7 +29,7 @@ describe('apiFetch refresh handling', () => {
   });
 
   it('redirects when refresh encounters network error', async () => {
-    (global.fetch as jest.Mock)
+    fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockRejectedValueOnce(new Error('network'))
       .mockRejectedValueOnce(new Error('network'));
