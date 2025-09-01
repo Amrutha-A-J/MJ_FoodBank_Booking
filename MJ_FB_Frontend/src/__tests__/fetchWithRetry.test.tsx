@@ -5,12 +5,16 @@ describe('fetchWithRetry', () => {
   let fetchMock: jest.Mock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     fetchMock = mockFetch();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
     restoreFetch();
     jest.resetAllMocks();
+    await Promise.resolve();
   });
 
   it('retries on 5xx responses', async () => {
@@ -18,7 +22,10 @@ describe('fetchWithRetry', () => {
     const second = new Response(null, { status: 200 });
     fetchMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
-    const res = await fetchWithRetry('/test', {}, 1, 0);
+    const promise = fetchWithRetry('/test', {}, 1, 0);
+    await Promise.resolve();
+    jest.runAllTimers();
+    const res = await promise;
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(res).toBe(second);
@@ -29,7 +36,10 @@ describe('fetchWithRetry', () => {
     const second = new Response(null, { status: 200 });
     fetchMock.mockResolvedValueOnce(first).mockResolvedValueOnce(second);
 
-    const res = await fetchWithRetry('/test', {}, 1, 0, [429]);
+    const promise = fetchWithRetry('/test', {}, 1, 0, [429]);
+    await Promise.resolve();
+    jest.runAllTimers();
+    const res = await promise;
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(res).toBe(second);
