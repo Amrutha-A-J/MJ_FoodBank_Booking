@@ -1,5 +1,6 @@
 import request from 'supertest';
 import express from 'express';
+import mockDb from '../tests/utils/mockDb';
 
 const DEFAULT_MASTER_ROLES = [
   { id: 1, name: 'Pantry' },
@@ -104,10 +105,8 @@ const mockQuery = jest.fn(async (sql: string) => {
 
 const mockConnect = jest.fn(async () => ({ query: mockQuery, release: jest.fn() }));
 
-jest.mock('../src/db', () => ({
-  __esModule: true,
-  default: { query: (sql: string) => mockQuery(sql), connect: mockConnect },
-}));
+(mockDb.query as jest.Mock).mockImplementation((sql: string) => mockQuery(sql));
+(mockDb.connect as jest.Mock).mockImplementation(mockConnect);
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
