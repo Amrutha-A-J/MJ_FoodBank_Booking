@@ -19,7 +19,7 @@ import {
   rescheduleVolunteerBookingByToken,
   updateVolunteerBookingStatus,
 } from '../api/volunteers';
-import type { VolunteerBookingDetail, Shift } from '../types';
+import type { VolunteerBookingDetail, Shift, VolunteerBookingStatus } from '../types';
 import type { ApiError } from '../api/client';
 import { formatTime } from '../utils/time';
 import { formatReginaDate } from '../utils/date';
@@ -37,11 +37,12 @@ export default function ManageVolunteerShiftDialog({
   onClose,
   onUpdated,
 }: ManageVolunteerShiftDialogProps) {
-  const [status, setStatus] = useState('');
+  type ManageStatus = 'reschedule' | 'cancel' | VolunteerBookingStatus;
+  const [status, setStatus] = useState<ManageStatus | ''>('');
   const [date, setDate] = useState('');
   const [shiftId, setShiftId] = useState('');
   const [shifts, setShifts] = useState<Shift[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [reason, setReason] = useState('');
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
@@ -142,7 +143,7 @@ export default function ManageVolunteerShiftDialog({
           return;
         case 'completed':
         case 'no_show':
-          await updateVolunteerBookingStatus(booking.id, status as any);
+          await updateVolunteerBookingStatus(booking.id, status);
           onUpdated('Status updated', 'success');
           onClose();
           return;
