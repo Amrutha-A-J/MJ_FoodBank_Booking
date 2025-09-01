@@ -15,7 +15,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  AlertColor,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import Page from '../../components/Page';
 import PageCard from '../../components/layout/PageCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -33,12 +35,13 @@ export default function PendingReviews() {
   const [selected, setSelected] = useState<number[]>([]);
   const [dialog, setDialog] = useState<VolunteerBookingDetail | null>(null);
   const [message, setMessage] = useState('');
-  const [severity, setSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [severity, setSeverity] = useState<AlertColor>('success');
   const weekStart = useMemo(() => dayjs().startOf('week'), []);
   const today = dayjs();
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')), [weekStart]);
   const [dayIdx, setDayIdx] = useState(today.day());
-  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'no_show'>('all');
+  type StatusFilter = 'all' | 'approved' | 'no_show';
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     const startStr = weekStart.format('YYYY-MM-DD');
@@ -91,7 +94,7 @@ export default function PendingReviews() {
     }
   }
 
-  function handleUpdated(msg: string, sev: any) {
+  function handleUpdated(msg: string, sev: AlertColor) {
     setSeverity(sev);
     setMessage(msg);
     if (dialog) {
@@ -120,7 +123,9 @@ export default function PendingReviews() {
                 labelId="status-filter-label"
                 value={statusFilter}
                 label="Status"
-                onChange={e => setStatusFilter(e.target.value as any)}
+                onChange={(e: SelectChangeEvent<StatusFilter>) =>
+                  setStatusFilter(e.target.value as StatusFilter)
+                }
               >
                 <MenuItem value="all">All</MenuItem>
                 <MenuItem value="approved">Approved</MenuItem>
