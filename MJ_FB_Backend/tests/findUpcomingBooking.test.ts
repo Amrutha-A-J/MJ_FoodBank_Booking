@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import { describe, it, expect, jest } from '@jest/globals';
 import pool from '../src/db';
 import { findUpcomingBooking } from '../src/utils/bookingUtils';

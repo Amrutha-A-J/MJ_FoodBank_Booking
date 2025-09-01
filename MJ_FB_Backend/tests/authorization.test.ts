@@ -1,4 +1,3 @@
-import '../tests/utils/mockDb';
 import request from 'supertest';
 import express from 'express';
 import blockedSlotsRouter from '../src/routes/blockedSlots';

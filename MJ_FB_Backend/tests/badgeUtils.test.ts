@@ -30,3 +30,5 @@ describe('awardMilestoneBadge', () => {
     expect(cardUrl).toContain('gold');
   });
 });
+
+export {};
