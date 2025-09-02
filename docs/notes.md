@@ -2,7 +2,9 @@
 
 Clients can include an optional note when booking an appointment. The note is stored with the booking and appears in staff dialogs when managing client bookings or volunteer shifts.
 
-Staff and agency users can include visit notes in booking history responses by adding `includeVisitNotes=true` to `/bookings/history`.
+Staff can add notes when recording client visits in the pantry schedule. These notes are stored with the visit.
+
+Staff and agency users can include visit notes in booking history responses by adding `includeVisitNotes=true` to `/bookings/history` and filter visit history by note text using the `notes` query parameter.
 
 ## Environment variables
 

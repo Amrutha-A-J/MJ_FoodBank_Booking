@@ -87,12 +87,13 @@
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
 - The database schema is managed via TypeScript migrations in `src/migrations`. The backend runs pending migrations automatically on startup and logs each applied migration name. You can also run them manually with `npm run migrate`.
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
-- The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
+ - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights and notes to create a client visit.
 - The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
 - Bookings accept optional notes; clients may include a message during booking, and staff see it in Manage Booking and Manage Volunteer Shift dialogs.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
-- Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
+ - Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
+ - Visit history can be filtered by note text using the `notes` query parameter on `/bookings/history`.
 - Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
 - `PUT /slots/capacity` updates the `max_capacity` for all slots.
