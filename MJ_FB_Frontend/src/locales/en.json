@@ -235,5 +235,15 @@
       "shortfall": "Shortfall",
       "ot_bank_remaining": "OT Bank Remaining"
     }
+  },
+  "leave_requests": {
+    "title": "Leave Requests",
+    "start": "Start Date",
+    "end": "End Date",
+    "reason": "Reason",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "reject": "Reject"
   }
 }

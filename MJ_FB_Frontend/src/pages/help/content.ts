@@ -293,6 +293,17 @@ export function getHelpContent(
         ],
       },
     },
+    {
+      title: t('leave_requests.title'),
+      body: {
+        description: 'Submit vacation or other leave for approval.',
+        steps: [
+          'Open the Leave Requests page.',
+          'Enter start and end dates and submit.',
+          'Your supervisor will approve or reject the request.',
+        ],
+      },
+    },
   ],
   warehouse: [
     {

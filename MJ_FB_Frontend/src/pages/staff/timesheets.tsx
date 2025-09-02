@@ -34,6 +34,7 @@ interface Day {
   vac: number;
   note: string;
   expected: number;
+  locked: boolean;
 }
 
 export default function Timesheets() {
@@ -55,13 +56,14 @@ export default function Timesheets() {
     setDays(
       rawDays.map(d => ({
         date: d.work_date,
-        reg: d.actual_hours,
-        ot: 0,
-        stat: 0,
-        sick: 0,
-        vac: 0,
-        note: '',
+        reg: (d as any).reg_hours ?? d.actual_hours ?? 0,
+        ot: (d as any).ot_hours ?? 0,
+        stat: (d as any).stat_hours ?? 0,
+        sick: (d as any).sick_hours ?? 0,
+        vac: (d as any).vac_hours ?? 0,
+        note: (d as any).note ?? '',
         expected: d.expected_hours,
+        locked: (d as any).locked_by_leave ?? false,
       })),
     );
   }, [rawDays]);
@@ -138,7 +140,7 @@ export default function Timesheets() {
             {days.map((d, i) => {
               const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
               const over = paid > 8;
-              const disabled = inputsDisabled || d.stat === 8;
+              const disabled = inputsDisabled || d.stat === 8 || d.locked;
               return (
                 <TableRow key={d.date}>
                   <TableCell>

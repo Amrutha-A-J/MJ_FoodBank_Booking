@@ -226,5 +226,15 @@
     "remove_row": "Remove row",
     "export_csv": "Export CSV",
     "payroll_export": "Payroll export"
+  },
+  "leave_requests": {
+    "title": "Leave Requests",
+    "start": "Start Date",
+    "end": "End Date",
+    "reason": "Reason",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "reject": "Reject"
   }
 }

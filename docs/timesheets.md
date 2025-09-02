@@ -48,6 +48,7 @@ After a timesheet is processed, staff can download the period as a CSV using the
 | `paid_total` | Total paid hours for the day |
 
 Stat holidays are auto-filled with the day's expected hours and locked from editing. Days may also be locked when leave is approved.
+Approved leave requests automatically fill vacation hours for the affected dates and prevent manual edits.
 
 ## Localization
 
