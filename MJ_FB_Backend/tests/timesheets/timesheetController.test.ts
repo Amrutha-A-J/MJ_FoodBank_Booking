@@ -38,6 +38,42 @@ describe('timesheet controller', () => {
     ]);
   });
 
+  it('auto-fills stat holiday and locks editing', async () => {
+    const lockErr: any = new Error('Cannot edit stat holiday');
+    lockErr.status = 400;
+    lockErr.code = 'STAT_DAY_LOCKED';
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 1, timesheet_id: 1, work_date: '2024-07-01', expected_hours: 8, actual_hours: 8 },
+        ],
+        rowCount: 1,
+      })
+      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ submitted_at: null, approved_at: null }], rowCount: 1 })
+      .mockRejectedValueOnce(lockErr);
+
+    const getReq: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const getRes: any = { json: jest.fn() };
+    await getTimesheetDays(getReq, getRes, () => {});
+    expect(getRes.json).toHaveBeenCalledWith([
+      { id: 1, timesheet_id: 1, work_date: '2024-07-01', expected_hours: 8, actual_hours: 8 },
+    ]);
+
+    const updReq: any = {
+      user: { id: '1', role: 'volunteer' },
+      params: { id: '1', date: '2024-07-01' },
+      body: { hours: 4 },
+    };
+    const updRes: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await updateTimesheetDay(updReq, updRes, nextErr(updReq, updRes));
+    expect(updRes.status).toHaveBeenCalledWith(400);
+    expect(updRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: { code: 'STAT_DAY_LOCKED', message: 'Cannot edit stat holiday' } }),
+    );
+  });
+
   it('updates a timesheet day', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
@@ -71,6 +107,23 @@ describe('timesheet controller', () => {
     );
   });
 
+  it('prevents editing a processed timesheet', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ submitted_at: '2024-01-10', approved_at: '2024-01-11' }], rowCount: 1 });
+    const req: any = {
+      user: { id: '1', role: 'volunteer' },
+      params: { id: '1', date: '2024-01-02' },
+      body: { hours: 2 },
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await updateTimesheetDay(req, res, nextErr(req, res));
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: { code: 'TIMESHEET_LOCKED', message: 'Timesheet is locked' } }),
+    );
+  });
+
   it('returns validation error when shortfall exceeds OT', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
@@ -81,6 +134,27 @@ describe('timesheet controller', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ error: { code: 'VALIDATION_ERROR', message: 'Shortfall 2 exceeds OT 1' } }),
+    );
+  });
+
+  it('enforces daily paid hour cap', async () => {
+    const capErr: any = new Error('Daily paid hours cannot exceed 8');
+    capErr.status = 400;
+    capErr.code = 'DAILY_CAP_EXCEEDED';
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ submitted_at: null, approved_at: null }], rowCount: 1 })
+      .mockRejectedValueOnce(capErr);
+    const req: any = {
+      user: { id: '1', role: 'volunteer' },
+      params: { id: '1', date: '2024-01-02' },
+      body: { hours: 10 },
+    };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await updateTimesheetDay(req, res, nextErr(req, res));
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ error: { code: 'DAILY_CAP_EXCEEDED', message: 'Daily paid hours cannot exceed 8' } }),
     );
   });
 
