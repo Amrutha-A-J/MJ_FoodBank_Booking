@@ -30,8 +30,23 @@ const errorHandler = (
 
   logger.error('Unhandled error:', originalMessage, err);
 
-  const responseBody: { message: string; stack?: string } = {
-    message: status === 500 ? 'Internal Server Error' : originalMessage,
+  const code =
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    typeof (err as any).code === 'string'
+      ? (err as any).code
+      : 'UNKNOWN';
+
+  const safeMessage = status === 500 ? 'Internal Server Error' : originalMessage;
+
+  const responseBody: {
+    message: string;
+    error: { code: string; message: string };
+    stack?: string;
+  } = {
+    message: safeMessage,
+    error: { code, message: safeMessage },
   };
 
   if (
