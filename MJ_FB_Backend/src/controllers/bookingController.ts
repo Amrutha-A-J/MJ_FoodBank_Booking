@@ -40,7 +40,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-  const { slotId, date, isStaffBooking } = req.body;
+  const { slotId, date, isStaffBooking, note } = req.body;
   if (slotId === undefined || slotId === null) {
     return res.status(400).json({ message: 'Please select a time slot' });
   }
@@ -103,6 +103,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         isStaffBooking || false,
         token,
         null,
+        note ?? null,
         client,
       );
       await client.query('COMMIT');
@@ -408,7 +409,7 @@ export async function createPreapprovedBooking(
   if (!req.user || req.user.role !== 'staff')
     return res.status(403).json({ message: 'Forbidden' });
 
-  const { name, slotId, requestData, date } = req.body;
+  const { name, slotId, requestData, date, note } = req.body;
   if (!name || !slotId || !date) {
     return res
       .status(400)
@@ -462,6 +463,7 @@ export async function createPreapprovedBooking(
       true,
       token,
       null,
+      note ?? null,
       client,
     );
 
@@ -485,7 +487,7 @@ export async function createBookingForUser(
   if (!req.user || (req.user.role !== 'staff' && req.user.role !== 'agency'))
     return res.status(403).json({ message: 'Forbidden' });
 
-  const { userId, slotId, date } = req.body;
+  const { userId, slotId, date, note } = req.body;
   const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
     return res
@@ -548,6 +550,7 @@ export async function createBookingForUser(
       staffBookingFlag,
       token,
       null,
+      note ?? null,
     );
     const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
     const clientEmail = emailRes.rows[0]?.email;
@@ -576,7 +579,7 @@ export async function createBookingForNewClient(
   next: NextFunction,
 ) {
   try {
-    const { name, email, phone, slotId, date } = req.body;
+    const { name, email, phone, slotId, date, note } = req.body;
     if (!name || !slotId || !date) {
       return res
         .status(400)
@@ -613,6 +616,7 @@ export async function createBookingForNewClient(
         false,
         token,
         newClientId,
+        note ?? null,
         client,
       );
       await client.query('COMMIT');

@@ -15,6 +15,7 @@ export interface Booking {
   date?: string | null; // Add date here
   isStaffBooking?: boolean;
   createdAt?: string;
+  note?: string;
 }
 
 export const slots: Slot[] = [];

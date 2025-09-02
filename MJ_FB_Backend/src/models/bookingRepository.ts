@@ -44,18 +44,20 @@ export async function insertBooking(
   isStaffBooking: boolean,
   rescheduleToken: string,
   newClientId: number | null = null,
+  note: string | null = null,
   client: Queryable = pool,
 ) {
   const reginaDate = formatReginaDate(date);
   await client.query(
-    `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, date, is_staff_booking, reschedule_token)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
       userId,
       newClientId,
       slotId,
       status,
       requestData,
+      note,
       reginaDate,
       isStaffBooking,
       rescheduleToken,
@@ -83,6 +85,7 @@ export async function updateBooking(
     'date',
     'status',
     'request_data',
+    'note',
     'reschedule_token',
   ];
   const keys = Object.keys(fields).filter((k) => whitelist.includes(k));
@@ -116,7 +119,7 @@ export async function fetchBookings(
   const res = await client.query(
     `SELECT
         b.id, b.status, b.date, b.user_id, b.new_client_id, b.slot_id, b.is_staff_booking,
-        b.reschedule_token,
+        b.reschedule_token, b.note,
         COALESCE(u.first_name || ' ' || u.last_name, nc.name) as user_name,
         COALESCE(u.email, nc.email) as user_email,
         COALESCE(u.phone, nc.phone) as user_phone,
