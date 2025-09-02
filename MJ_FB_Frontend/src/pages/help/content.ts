@@ -228,6 +228,17 @@ export function getHelpContent(
       },
     },
     {
+      title: 'View booking notes',
+      body: {
+        description: 'Staff dialogs display any note submitted with a booking.',
+        steps: [
+          'Open the schedule.',
+          'Select a booking.',
+          'Read the note in the dialog.',
+        ],
+      },
+    },
+    {
       title: 'Book new clients from the schedule',
       body: {
         description: 'Use the Assign User modal to book a slot for an unregistered individual.',
