@@ -99,7 +99,8 @@
         "steps": [
           "Open the Timesheets page.",
           "Fill in your hours for each day.",
-          "Review totals and submit."
+          "Review totals and submit.",
+          "Export a CSV for payroll."
         ]
       }
     }
@@ -224,6 +225,10 @@
     "note": "Note",
     "paid_total": "Paid Total",
     "lock_stat_tooltip": "Stat holiday is locked at 8h",
+    "add_row": "Add row",
+    "remove_row": "Remove row",
+    "export_csv": "Export CSV",
+    "payroll_export": "Payroll export",
     "summary": {
       "totals": "Totals",
       "expected": "Expected Hours",
