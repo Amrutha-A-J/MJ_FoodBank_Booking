@@ -5,6 +5,7 @@
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
+- Document translation strings for localization in `docs/` and update `src/locales` when user-facing text is added.
 - A GitHub Actions workflow in `.github/workflows/release.yml` builds, tests, and deploys container images to Azure Container Apps. Configure repository secrets `AZURE_CREDENTIALS`, `REGISTRY_LOGIN_SERVER`, `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` and variables `AZURE_RESOURCE_GROUP`, `BACKEND_APP_NAME`, and `FRONTEND_APP_NAME`; see `docs/release.md` for details.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 22+ for native `fetch`; earlier versions are not supported.
@@ -88,6 +89,7 @@
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights to create a client visit.
 - The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
+- Bookings accept optional notes; clients may include a message during booking, and staff see it in Manage Booking and Manage Volunteer Shift dialogs.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
 - Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
