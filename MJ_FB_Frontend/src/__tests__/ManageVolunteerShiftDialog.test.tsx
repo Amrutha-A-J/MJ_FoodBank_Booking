@@ -111,5 +111,11 @@ describe('ManageVolunteerShiftDialog', () => {
     render(<ManageVolunteerShiftDialog open booking={booking} onClose={() => {}} onUpdated={() => {}} />);
     expect(screen.getByText('Note: bring gloves')).toBeInTheDocument();
   });
+
+  it('hides note when not provided', () => {
+    const noNote = { ...booking, note: undefined };
+    render(<ManageVolunteerShiftDialog open booking={noNote} onClose={() => {}} onUpdated={() => {}} />);
+    expect(screen.queryByText(/Note:/)).toBeNull();
+  });
 });
 

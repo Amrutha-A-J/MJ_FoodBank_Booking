@@ -106,6 +106,20 @@ describe('ManageBookingDialog', () => {
     );
     expect(screen.getByText('Note: bring cart')).toBeInTheDocument();
   });
+
+  it('omits note when not provided', () => {
+    render(
+      <MemoryRouter>
+        <ManageBookingDialog
+          open
+          booking={{ id: 3, client_id: 7, user_id: 1, visits_this_month: 0, approved_bookings_this_month: 0, date: '2024-02-03', reschedule_token: '', user_name: 'None', profile_link: 'https://portal.link2feed.ca/org/1605/intake/7' }}
+          onClose={() => {}}
+          onUpdated={() => {}}
+        />
+      </MemoryRouter>
+    );
+    expect(screen.queryByText(/Note:/)).toBeNull();
+  });
   it('calculates monthly usage when counts are strings', () => {
     render(
       <MemoryRouter>

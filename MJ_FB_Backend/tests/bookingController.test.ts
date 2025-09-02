@@ -5,6 +5,7 @@ describe('createBookingForUser', () => {
   let enqueueEmail: jest.Mock;
   let pool: any;
   let checkSlotCapacity: jest.Mock;
+  let insertBooking: jest.Mock;
 
   beforeEach(() => {
     jest.resetModules();
@@ -33,6 +34,7 @@ describe('createBookingForUser', () => {
       enqueueEmail = require('../src/utils/emailQueue').enqueueEmail;
       pool = require('../src/db').default;
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
+      insertBooking = require('../src/models/bookingRepository').insertBooking;
     });
   });
 
@@ -74,6 +76,32 @@ describe('createBookingForUser', () => {
       message: 'Pantry is closed on the selected date.',
     });
     expect(checkSlotCapacity).not.toHaveBeenCalled();
+  });
+
+  it('passes note to insertBooking', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    const req = {
+      user: { role: 'staff', id: 99 },
+      body: { userId: 1, slotId: 2, date: '2024-01-15', note: 'bring ID' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(insertBooking).toHaveBeenCalledWith(
+      1,
+      2,
+      'approved',
+      '',
+      '2024-01-15',
+      false,
+      expect.any(String),
+      null,
+      'bring ID',
+    );
   });
 });
 
