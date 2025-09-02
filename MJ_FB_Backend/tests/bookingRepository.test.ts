@@ -103,6 +103,12 @@ describe('bookingRepository', () => {
     expect(call[1]).toHaveLength(3);
   });
 
+  it('fetchBookings returns notes from query result', async () => {
+    setQueryResults({ rows: [{ id: 1, note: 'remember ID' }] });
+    const rows = await fetchBookings(undefined, undefined, undefined);
+    expect(rows[0].note).toBe('remember ID');
+  });
+
   it('fetchBookingsForReminder selects only necessary fields', async () => {
     setQueryResults({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
