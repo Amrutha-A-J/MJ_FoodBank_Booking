@@ -36,6 +36,7 @@ import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
 import volunteerStatsRoutes from './routes/volunteerStats';
 import timesheetsRoutes from './routes/timesheets';
+import leaveRequestsRoutes from './routes/leaveRequests';
 import { initializeSlots } from './data';
 import csrfMiddleware from './middleware/csrf';
 import errorHandler from './middleware/errorHandler';
@@ -89,6 +90,7 @@ app.use('/events', eventsRoutes);
 app.use('/badges', badgesRoutes);
 app.use('/stats', statsRoutes);
 app.use('/timesheets', timesheetsRoutes);
+app.use('/api/leave/requests', leaveRequestsRoutes);
 
 // Serve the frontend in production
 if (process.env.NODE_ENV === 'production') {

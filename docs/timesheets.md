@@ -28,6 +28,8 @@ node src/utils/timesheetSeeder.ts
 - `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
 - `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
 - `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.
+- `GET /api/leave/requests` – list all leave requests (admin only).
+- `POST /api/leave/requests` – submit a leave request for the logged in staff member.
 
 ## UI walkthrough
 
@@ -39,15 +41,15 @@ node src/utils/timesheetSeeder.ts
 
 After a timesheet is processed, staff can download the period as a CSV using the **Export CSV** action. The file lists one row per day with the following columns:
 
-| Column | Description |
-| --- | --- |
-| `date` | Work date |
-| `reg` | Regular hours |
-| `ot` | Overtime hours |
-| `stat` | Stat holiday hours |
-| `sick` | Sick hours |
-| `vac` | Vacation hours |
-| `note` | Free-form note |
+| Column       | Description                  |
+| ------------ | ---------------------------- |
+| `date`       | Work date                    |
+| `reg`        | Regular hours                |
+| `ot`         | Overtime hours               |
+| `stat`       | Stat holiday hours           |
+| `sick`       | Sick hours                   |
+| `vac`        | Vacation hours               |
+| `note`       | Free-form note               |
 | `paid_total` | Total paid hours for the day |
 
 Stat holidays are auto-filled with the day's expected hours and locked from editing. Days may also be locked when leave is approved.

@@ -7,7 +7,8 @@
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Document translation strings for localization in `docs/` and update `src/locales` when user-facing text is added.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
- - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes. Timesheets now support vacation leave requests via `/timesheets/:id/leave-requests`; ensure related translations are added.
+- Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes. Timesheets now support vacation leave requests via `/timesheets/:id/leave-requests`; ensure related translations are added.
+- Global review endpoints exist under `/api/leave/requests` for leave submissions; document changes and translations when updating leave features.
 - A GitHub Actions workflow in `.github/workflows/release.yml` builds, tests, and deploys container images to Azure Container Apps. Configure repository secrets `AZURE_CREDENTIALS`, `REGISTRY_LOGIN_SERVER`, `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` and variables `AZURE_RESOURCE_GROUP`, `BACKEND_APP_NAME`, and `FRONTEND_APP_NAME`; see `docs/release.md` for details.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 22+ for native `fetch`; earlier versions are not supported.
@@ -81,6 +82,7 @@
 ## Project Layout
 
 ### Backend (`MJ_FB_Backend`)
+
 - Node.js + Express API written in TypeScript.
 - `controllers/` – business logic for each resource, grouped by domain (e.g., volunteer, warehouse, admin).
 - `routes/` – REST endpoints wiring, organized by matching domain directories.
@@ -89,18 +91,19 @@
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
 - The database schema is managed via TypeScript migrations in `src/migrations`. The backend runs pending migrations automatically on startup and logs each applied migration name. You can also run them manually with `npm run migrate`.
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
- - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights and notes to create a client visit.
+- The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights and notes to create a client visit.
 - The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
 - Bookings accept optional notes; clients may include a message during booking, and staff see it in Manage Booking and Manage Volunteer Shift dialogs.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
- - Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
- - Visit history can be filtered by note text using the `notes` query parameter on `/bookings/history`.
+- Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
+- Visit history can be filtered by note text using the `notes` query parameter on `/bookings/history`.
 - Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
 - `PUT /slots/capacity` updates the `max_capacity` for all slots.
 
 ### Frontend (`MJ_FB_Frontend`)
+
 - React app built with Vite.
 - Build requires `VITE_API_BASE` to be set in `MJ_FB_Frontend/.env`.
 - `pages/` define top-level views and are organized into feature-based directories (booking, staff, volunteer-management, warehouse-management, etc.).
@@ -135,17 +138,20 @@
 ## UI Rules & Design System (Global)
 
 ### Tech & Theme
+
 - Library: Material UI v5 only (no Tailwind).
 - Theme: Use the app’s `ThemeProvider` theme (primary `#941818`, Golos font, rounded corners). Never hard-code colors, spacing, or fonts—pull from the theme.
 - Typography: Default to theme typography. Section titles use `subtitle1`/`h5` with bold as defined in theme.
- - Typography: Default to theme typography. Page and form titles use uppercase `h4`/`h5` variants with a slightly lighter font weight.
+- Typography: Default to theme typography. Page and form titles use uppercase `h4`/`h5` variants with a slightly lighter font weight.
 
 ### Layout
+
 - Grid: Use `Grid` with `spacing={2}` for page layout; prefer 12-column responsive layouts.
 - Cards: Group related content in `Card` (or `Paper`) with the themed light border and subtle shadow. Avoid “floating” elements.
 - Responsive: Ensure components work on xs→xl. Hide non-critical details on small screens, not critical actions.
 
 ### Components & Patterns
+
 - Buttons: `size="small"`, `variant="contained"` for primary actions, outlined/text for secondary/tertiary. No ALL CAPS; `textTransform: 'none'`.
 - Lists: `List` + `ListItem` for short, actionable sets.
 - Tables: Use dense row height; keep actions in a trailing column; keep columns ≤ 7 on desktop.
@@ -157,6 +163,7 @@
 - Icons: Use `@mui/icons-material`. Pair icons with labels (accessibility + clarity).
 
 ### Status & Colors
+
 - Status chips:
   - success = approved/ok,
   - warning = needs attention,
@@ -172,27 +179,32 @@
   - capacity exceeded → theme warning light.
 
 ### Interactions
+
 - Affordance: Primary action visible and enabled when valid; disabled state must include a reason (helper text or tooltip).
 - Confirmation: Only confirm destructive actions (e.g., Cancel, Reject). Use dialogs with clear verb-first buttons (“Cancel booking”, “Keep booking”).
 - Undo: Prefer “Undo” in `FeedbackSnackbar` where safe (e.g., client-side remove before API commit).
 
 ### Content Style
+
 - Copy: Plain, concise, second person (“You”).
 - Dates/Times: Show local time with clear format (e.g., Tue, Aug 12 · 9:30–10:00). Avoid ambiguity.
 - Errors: Actionable and specific (“Slot is full. Pick another time.”), not generic.
 
 ### Dashboards (by role)
- - Staff: “Today at a Glance” stats, Pantry Schedule snapshot, Volunteer Coverage, Quick Search, Cancellations, Notices & Events.
- - Volunteer: My Next Shifts, Available in My Roles, Announcements, Quick Actions, Profile & Training.
- - User: Upcoming Appointments, Next Available Slots, Notices, Quick Actions.
- - Each section should be a card with a concise header and an action (e.g., “Review All”, “Open Schedule”).
+
+- Staff: “Today at a Glance” stats, Pantry Schedule snapshot, Volunteer Coverage, Quick Search, Cancellations, Notices & Events.
+- Volunteer: My Next Shifts, Available in My Roles, Announcements, Quick Actions, Profile & Training.
+- User: Upcoming Appointments, Next Available Slots, Notices, Quick Actions.
+- Each section should be a card with a concise header and an action (e.g., “Review All”, “Open Schedule”).
 
 ### Accessibility
+
 - Keyboard: All interactive controls must be focusable; visible focus ring (default MUI is fine).
 - ARIA: Use semantic components; add `aria-label` on icon-only buttons.
 - Contrast: Rely on theme tokens; don’t reduce contrast below MUI defaults.
 
 ### Do / Don’t
+
 - Do reuse existing shared components (`FeedbackSnackbar`, search inputs, role-aware guards).
 - Do keep pages fast; fetch minimal data for first paint, then lazy-load details.
 - Don’t inline custom CSS or use non-themed colors.
@@ -211,12 +223,14 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 ## Functional Overview
 
 ### Backend
+
 - Express server configures CORS, initializes default slots, and mounts routes for clients, slots, bookings, holidays, blocked slots, breaks, staff, volunteer roles, volunteer bookings, and authentication.
 - Booking logic checks slot capacity, enforces monthly visit limits, and sends confirmation emails when a booking is created.
 - JWT-based middleware extracts tokens from headers or cookies, verifies them, and loads the matching staff, client, or volunteer record from PostgreSQL.
 - A setup script provisions PostgreSQL tables for slots, users (clients), staff, volunteer roles, bookings, breaks, and related data when the server starts.
 
 ### Frontend
+
 - The React app manages authentication for shoppers, staff, and volunteers, switching between login components and role-specific navigation/routes such as slot booking, schedule management, and volunteer coordination.
 - `BookingUI` provides a calendar view that excludes weekends and holidays, fetches available slots, and submits bookings via the API.
 - Staff manage holidays, blocked slots, and staff breaks through `ManageAvailability`, which pulls data from and sends updates to the backend API.
@@ -226,6 +240,7 @@ Similarly, volunteers should be able to log into the app to see which roles requ
 ## Booking Workflow
 
 ### Clients and Staff
+
 - **Clients** book pantry appointments through a calendar; bookings are automatically approved.
 - **Staff** can cancel or reschedule bookings and mark visits. Assigning a client directly to a slot creates an approved booking. Cancellations require a reason.
 - Clients can view a booking history table listing all appointments, each with Cancel and Reschedule options.
@@ -264,6 +279,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 Volunteer management coordinates role-based staffing for the food bank.
 
 ### Role Categories (`volunteer_master_roles`)
+
 1. Pantry
 2. Warehouse
 3. Gardening
@@ -271,6 +287,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 5. Special Events
 
 ### Subroles (`volunteer_roles`)
+
 1. Food Sorter (Warehouse)
 2. Production Worker (Warehouse)
 3. Driver Assistant (Warehouse)
@@ -290,24 +307,29 @@ Volunteer management coordinates role-based staffing for the food bank.
 ## API Reference
 
 ### Auth
+
 - `POST /auth/request-password-reset` → 204 No Content.
 - `POST /auth/change-password` → 204 No Content (auth required).
 
 ### Clients
+
 - `POST /users/login` → `{ token, role, name, bookingsThisMonth? }`
 - `POST /users` → `{ message: 'Client created' }`
 - `GET /users/search?search=query` → `[ { id, name, email, phone, client_id } ]`
 - `GET /users/me` → `{ id, firstName, lastName, email, phone, clientId, role, bookingsThisMonth }`
 
 ### Staff
+
 - `GET /staff/exists` → `{ exists: boolean }`
 - `POST /staff` → `{ message: 'Staff created' }`
 
 ### Slots
+
 - `GET /slots?date=YYYY-MM-DD` → `[ { id, startTime, endTime, maxCapacity, available } ]`
 - `GET /slots/all` → `[ { id, startTime, endTime, maxCapacity } ]`
 
 ### Bookings
+
 - `POST /bookings` → `{ message: 'Booking created', bookingsThisMonth, rescheduleToken }`
 - `GET /bookings?clientIds=1,2` → `[ { id, status, date, user_id, slot_id, is_staff_booking, reschedule_token, user_name, user_email, user_phone, client_id, bookings_this_month, start_time, end_time } ]` (agencies must specify `clientIds` linked to them)
 - `GET /bookings/history` → `[ { id, status, date, slot_id, reason, start_time, end_time, created_at, is_staff_booking, reschedule_token } ]`
@@ -318,36 +340,43 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /bookings/staff` → `{ message: 'Booking created for client', rescheduleToken }`
 
 ### Holidays
+
 - `GET /holidays` → `[ { date, reason } ]`
 - `POST /holidays` → `{ message: 'Added' }`
 - `DELETE /holidays/:date` → `{ message: 'Removed' }`
 
 ### Blocked Slots
+
 - `GET /blocked-slots?date=YYYY-MM-DD` → `[ { slotId, reason } ]`
 - `POST /blocked-slots` → `{ message: 'Added' }`
 - `DELETE /blocked-slots/:date/:slotId` → `{ message: 'Removed' }`
 
 ### Recurring Blocked Slots (`src/routes/recurringBlockedSlots.ts`)
+
 - `GET /recurring-blocked-slots` → `[ { id, dayOfWeek, weekOfMonth, slotId, reason } ]`
 - `POST /recurring-blocked-slots` `{ dayOfWeek, weekOfMonth, slotId, reason }` → `{ message: 'Added' }`
 - `DELETE /recurring-blocked-slots/:id` → `{ message: 'Removed' }`
 
 ### Breaks
+
 - `GET /breaks` → `[ { dayOfWeek, slotId, reason } ]`
 - `POST /breaks` → `{ message: 'Added' }`
 - `DELETE /breaks/:day/:slotId` → `{ message: 'Removed' }`
 
 ### Roles
+
 - `GET /roles` → `[ { categoryId, categoryName, roleId, roleName } ]`
 - `GET /roles/:roleId/shifts` → `[ { shiftId, startTime, endTime, maxVolunteers } ]`
 
 ### Volunteers
+
 - `POST /volunteers/login` → `{ token, role: 'volunteer', name }`
 - `POST /volunteers` → `{ id }`
 - `GET /volunteers/search?search=query` → `[ { id, name, trainedAreas } ]`
 - `PUT /volunteers/:id/trained-areas` → `{ id, roleIds }`
 
 ### Volunteer Roles
+
 - `GET /volunteer-roles/mine?date=YYYY-MM-DD` → `[ { id, role_id, name, start_time, end_time, max_volunteers, category_id, category_name, is_wednesday_slot, booked, available, status, date } ]`
 - `POST /volunteer-roles` (requires `roleId` or `name` + `categoryId`) → `{ id, role_id, name, start_time, end_time, max_volunteers, category_id, is_wednesday_slot, is_active, category_name }`
 - `GET /volunteer-roles` (`?includeInactive=true` to include inactive shifts) → `[ { id, role_id, category_id, name, max_volunteers, category_name, shifts } ]`
@@ -356,6 +385,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `DELETE /volunteer-roles/:id` → `{ message: 'Deleted' }`
 
 ### Volunteer Master Roles
+
 - `GET /volunteer-master-roles` → `[ { id, name } ]`
 - `POST /volunteer-master-roles` → `{ id, name }`
 - `PUT /volunteer-master-roles/:id` → `{ id, name }`
@@ -363,6 +393,7 @@ Volunteer management coordinates role-based staffing for the food bank.
 - `POST /volunteer-roles/restore` → `{ message: 'Volunteer roles restored' }` (staff only; resets roles, shifts, and training links)
 
 ### Volunteer Bookings
+
 - `POST /volunteer-bookings` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }` (409 returns `{ attempted, existing }` on overlap)
 - `POST /volunteer-bookings/staff` → `{ id, role_id, volunteer_id, date, status, reschedule_token, status_color }`
 - `POST /volunteer-bookings/resolve-conflict` `{ existingBookingId, keep, roleId?, date? }` → `{ kept, booking }`
@@ -382,6 +413,7 @@ Volunteer booking statuses include `completed`, and cancellations must include a
 Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid for volunteer bookings and the backend responds with "Use completed instead of visited for volunteer shifts" when submitted.
 
 ### Volunteer Recurring Bookings (`src/routes/volunteer/volunteerBookings.ts`)
+
 - `POST /volunteer-bookings/recurring` `{ roleId, startDate, endDate, pattern, daysOfWeek }` → `{ recurringId, successes, skipped }`
 - `GET /volunteer-bookings/recurring` → `[ { id, role_id, start_date, end_date, pattern, days_of_week } ]`
 - `POST /volunteer-bookings/recurring/staff` `{ volunteerId, roleId, startDate, endDate, pattern, daysOfWeek, force? }` → `{ recurringId, successes, skipped }`
@@ -390,6 +422,7 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 - `PATCH /volunteer-bookings/:id/cancel` → `{ id, role_id, volunteer_id, date, status }`
 
 ### Agencies (`src/routes/agencies.ts`)
+
 - `GET /agencies/:id/clients` → `[ clientId ]`
 - `POST /agencies/add-client` `{ agencyId, clientId }` → `204` (404 if client not found)
 - `DELETE /agencies/:id/clients/:clientId` → `204`
@@ -404,6 +437,7 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
   routes (e.g. `GET /agencies/me/clients`).
 
 ### Donors (`src/routes/donors.ts`)
+
 - `GET /donors?search=name` → `[ { id, name } ]`
 - `POST /donors` `{ name }` → `{ id, name }`
 - `GET /donors/:id` → `{ id, name, totalLbs, lastDonationISO }`
@@ -411,11 +445,13 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 - `GET /donors/top?year=YYYY&limit=N` → `[ { name, totalLbs, lastDonationISO } ]`
 
 ### Events (`src/routes/events.ts`)
+
 - `GET /events` → `{ today: [event], upcoming: [event], past: [event] }`
 - `POST /events` `{ title, details, category, date, staffIds?, visibleToVolunteers?, visibleToClients? }` → `{ id }`
 - `DELETE /events/:id` → `{ message: 'Deleted' }`
 
 ### Warehouse Management
+
 - `/warehouse-overall` routes provide yearly summaries of donations, surplus, pig pound, and outgoing donations.
 - `GET /warehouse-overall?year=YYYY` lists monthly aggregates, and `GET /warehouse-overall/export?year=YYYY` exports it as a spreadsheet. Aggregates update in real time; manual rebuilds are no longer needed.
 - Frontend pages under `/warehouse-management/*` (Dashboard, Donation Log, Track Pigpound, Track Outgoing Donations, Track Surplus, Aggregations) surface these warehouse features.
@@ -476,7 +512,7 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 
 ## Components & Workflow
 
-- **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display *Booked* or *Available* and clicking an available cell creates a request in `volunteer_bookings`. Past dates are disabled and same-day shifts that have already started are omitted.
+- **VolunteerSchedule** lets volunteers choose a role from a dropdown and view a grid of shifts. Columns correspond to slot numbers and rows show shift times (e.g. 9:30–12:00, 12:30–3:30). Cells display _Booked_ or _Available_ and clicking an available cell creates a request in `volunteer_bookings`. Past dates are disabled and same-day shifts that have already started are omitted.
 - The Volunteer Dashboard's **Available in My Roles** list excludes shifts the volunteer has already requested or booked and shows server-provided error messages when a booking attempt fails.
 - Volunteers can view their trained roles on the dashboard but cannot update them; staff manage trained areas through the volunteer search interface.
 - Volunteers may only book shifts for roles they are trained in; attempts to book untrained roles must be blocked and handled by staff.
@@ -488,4 +524,3 @@ Volunteer UIs and tests must use `completed` or `no_show`; `visited` is invalid 
 - The volunteer search page shows the selected volunteer's profile and role editor alongside their booking history in a two-column card layout.
 - Role selection in the volunteer search role editor uses a simple dropdown without search.
 - These workflows rely on `volunteer_slots`, `volunteer_roles`, `volunteer_master_roles`, `volunteer_bookings`, `volunteers`, and `volunteer_trained_roles`. Training records in `volunteer_trained_roles` restrict which roles a volunteer can book.
-

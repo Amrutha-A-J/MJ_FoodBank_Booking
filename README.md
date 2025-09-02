@@ -5,6 +5,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - [MJ_FB_Backend](MJ_FB_Backend) – Node.js/Express API.
 - [MJ_FB_Frontend](MJ_FB_Frontend) – React single-page app.
 - [docs](docs/) with setup notes and a [Timesheets guide](docs/timesheets.md).
+- Leave request API under `/api/leave/requests` for staff vacations.
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 
@@ -50,8 +51,8 @@ Before merging a pull request, confirm the following:
 
 - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Bookings support an optional **note** field. Clients can add notes during booking, and staff see them in booking dialogs. Notes are stored and returned via `/bookings` endpoints.
- - Client visit records include an optional **note** field. Staff and agency users can record notes for each visit and retrieve them through `/bookings/history?includeVisitNotes=true`.
- - Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
+- Client visit records include an optional **note** field. Staff and agency users can record notes for each visit and retrieve them through `/bookings/history?includeVisitNotes=true`.
+- Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
 - Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
@@ -104,14 +105,14 @@ Before merging a pull request, confirm the following:
 - Adding a client visit automatically updates any approved booking for that client on the same date to `visited`.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
- - Booking requests are automatically approved; the submitted state has been removed.
- - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
+- Booking requests are automatically approved; the submitted state has been removed.
+- Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
 - **Volunteer Recurring Bookings** let volunteers schedule repeating shifts with start and end dates, choose daily, weekly, or weekday patterns, and cancel individual occurrences or the remaining series.
 - Staff can create recurring volunteer booking series for volunteers via `POST /volunteer-bookings/recurring/staff` and list active series with `GET /volunteer-bookings/recurring/volunteer/:volunteer_id`.
- - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts). Volunteers can create new series and manage existing ones from separate tabs on the **Recurring Bookings** page.
+- Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts). Volunteers can create new series and manage existing ones from separate tabs on the **Recurring Bookings** page.
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
@@ -137,9 +138,11 @@ git submodule update --init --recursive
 ## Backend setup (`MJ_FB_Backend`)
 
 Prerequisites:
+
 - Node.js 22 or later and npm (uses the built-in `fetch`; earlier versions are not supported)
 
 Install and run:
+
 ```bash
 cd MJ_FB_Backend
 npm install
@@ -152,28 +155,28 @@ The database schema is managed via TypeScript migrations in `src/migrations`; ru
 
 Create a `.env` file in `MJ_FB_Backend` with the following variables. The server fails to start if any required variable is missing.
 
-| Variable | Description |
-| --- | --- |
-| `PG_HOST` | PostgreSQL host |
-| `PG_PORT` | PostgreSQL port |
-| `PG_USER` | PostgreSQL username |
-| `PG_PASSWORD` | PostgreSQL password |
-| `PG_DATABASE` | PostgreSQL database name |
-| `JWT_SECRET` | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
-| `JWT_REFRESH_SECRET` | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`. |
-| `FRONTEND_ORIGIN` | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored) |
-| `PORT` | Port for the backend server (defaults to 4000) |
-| `BREVO_API_KEY` | Brevo API key for transactional emails |
-| `BREVO_FROM_EMAIL` | Email address used as the sender |
-| `BREVO_FROM_NAME` | Optional sender name displayed in emails |
-| `EMAIL_QUEUE_MAX_RETRIES` | Max retry attempts for failed email jobs (default 5) |
-| `EMAIL_QUEUE_BACKOFF_MS` | Initial backoff delay in ms for email retries (default 1000) |
-| `PASSWORD_SETUP_TEMPLATE_ID` | Brevo template ID for invitation and password setup emails |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for booking confirmation emails |
-| `BOOKING_REMINDER_TEMPLATE_ID` | Brevo template ID for booking reminder emails |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations |
-| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Brevo template ID for volunteer shift reminder emails |
-| `PASSWORD_SETUP_TOKEN_TTL_HOURS` | Hours until password setup tokens expire (default 24) |
+| Variable                                     | Description                                                                                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `PG_HOST`                                    | PostgreSQL host                                                                                                                           |
+| `PG_PORT`                                    | PostgreSQL port                                                                                                                           |
+| `PG_USER`                                    | PostgreSQL username                                                                                                                       |
+| `PG_PASSWORD`                                | PostgreSQL password                                                                                                                       |
+| `PG_DATABASE`                                | PostgreSQL database name                                                                                                                  |
+| `JWT_SECRET`                                 | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
+| `JWT_REFRESH_SECRET`                         | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`.                                     |
+| `FRONTEND_ORIGIN`                            | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored)                               |
+| `PORT`                                       | Port for the backend server (defaults to 4000)                                                                                            |
+| `BREVO_API_KEY`                              | Brevo API key for transactional emails                                                                                                    |
+| `BREVO_FROM_EMAIL`                           | Email address used as the sender                                                                                                          |
+| `BREVO_FROM_NAME`                            | Optional sender name displayed in emails                                                                                                  |
+| `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
+| `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |
+| `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails                                                                                |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                                                                                         |
+| `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                                                                                             |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                                                                                     |
+| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                                                                                     |
+| `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                                                                                     |
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for a list of email templates and parameters.
 
@@ -191,46 +194,54 @@ After setting a password, users are redirected to the login page for their role.
      -H "Authorization: Bearer <staff-token>" \
     -H "Content-Type: application/json" \
     -d '{"name":"Sample Agency","email":"agency@example.com","contactInfo":"123-4567"}'
-  ```
-
-   The endpoint emails a password setup link and returns the new agency ID. You can also create one directly in SQL if needed:
-
-   ```bash
-   node -e "console.log(require('bcrypt').hashSync('secret123', 10))"
-   psql -U $PG_USER -d $PG_DATABASE \
-     -c "INSERT INTO agencies (name,email,password) VALUES ('Sample Agency','agency@example.com','<hashed-password>');"
    ```
+
+````
+
+ The endpoint emails a password setup link and returns the new agency ID. You can also create one directly in SQL if needed:
+
+ ```bash
+ node -e "console.log(require('bcrypt').hashSync('secret123', 10))"
+ psql -U $PG_USER -d $PG_DATABASE \
+   -c "INSERT INTO agencies (name,email,password) VALUES ('Sample Agency','agency@example.com','<hashed-password>');"
+````
 
 2. **Assign clients to the agency** – authenticate as staff or the
    agency and call the API:
 
    ```bash
-  # As staff assigning client 42 to agency 1
-  curl -X POST http://localhost:4000/agencies/add-client \
-    -H "Authorization: Bearer <token>" \
-   -H "Content-Type: application/json" \
-   -d '{"agencyId":1,"clientId":42}'
 
-   # As the agency itself
-   curl -X POST http://localhost:4000/agencies/add-client \
-     -H "Authorization: Bearer <agency-token>" \
-    -H "Content-Type: application/json" \
-    -d '{"agencyId":1,"clientId":42}'
-  ```
+   ```
 
-   In these examples, `clientId` is the public identifier from the `clients`
-   table (`clients.client_id`), which also serves as the table's primary key.
+# As staff assigning client 42 to agency 1
 
-  A client may be linked to only one agency at a time. If the client is
-  already associated with another agency, the request returns a `409 Conflict`
-  response containing that agency's name. Supplying a `clientId` that doesn't
-  exist results in a `404 Not Found` error.
+curl -X POST http://localhost:4000/agencies/add-client \
+ -H "Authorization: Bearer <token>" \
+ -H "Content-Type: application/json" \
+ -d '{"agencyId":1,"clientId":42}'
 
-   Remove a client with
-   `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
+# As the agency itself
 
-   List clients for an agency with
-   `GET /agencies/:id/clients` (use `me` for the authenticated agency).
+curl -X POST http://localhost:4000/agencies/add-client \
+ -H "Authorization: Bearer <agency-token>" \
+ -H "Content-Type: application/json" \
+ -d '{"agencyId":1,"clientId":42}'
+
+````
+
+ In these examples, `clientId` is the public identifier from the `clients`
+ table (`clients.client_id`), which also serves as the table's primary key.
+
+A client may be linked to only one agency at a time. If the client is
+already associated with another agency, the request returns a `409 Conflict`
+response containing that agency's name. Supplying a `clientId` that doesn't
+exist results in a `404 Not Found` error.
+
+ Remove a client with
+ `DELETE /agencies/:id/clients/:clientId` (use `me` for the authenticated agency).
+
+ List clients for an agency with
+ `GET /agencies/:id/clients` (use `me` for the authenticated agency).
 
 ### Password Requirements
 
@@ -243,16 +254,18 @@ You can generate a secure `JWT_SECRET` with:
 
 ```bash
 openssl rand -hex 32
-```
+````
 
 **Production note:** The backend issues cookies with the `secure` flag when `NODE_ENV` is not `development`. Ensure that your production deployment uses HTTPS so these cookies are transmitted to clients.
 
 ## Frontend setup (`MJ_FB_Frontend`)
 
 Prerequisites:
+
 - Node.js 22 or later and npm
 
 Install and run:
+
 ```bash
 cd MJ_FB_Frontend
 npm install
@@ -335,12 +348,14 @@ This setup prepares the project so it can be hosted on Azure with containerized 
 An automated workflow in `.github/workflows/release.yml` builds, tests, and deploys the backend and frontend Docker images to Azure Container Apps. It runs on pushes to `main` and on tags beginning with `v`.
 
 Set the following repository **secrets**:
+
 - `AZURE_CREDENTIALS` – Azure service principal credentials in JSON format
 - `REGISTRY_LOGIN_SERVER` – Azure Container Registry login server
 - `REGISTRY_USERNAME` – Azure Container Registry username
 - `REGISTRY_PASSWORD` – Azure Container Registry password
 
 Define these repository **variables**:
+
 - `AZURE_RESOURCE_GROUP` – Resource group containing the container apps
 - `BACKEND_APP_NAME` – Backend container app name
 - `FRONTEND_APP_NAME` – Frontend container app name
