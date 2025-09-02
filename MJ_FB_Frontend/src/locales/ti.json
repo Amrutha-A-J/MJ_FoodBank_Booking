@@ -89,6 +89,17 @@
           "Check reminders for upcoming bookings."
         ]
       }
+    },
+    "pantry": {
+      "timesheets": {
+        "title": "Timesheets",
+        "description": "Record hours and submit pay periods.",
+        "steps": [
+          "Open the Timesheets page.",
+          "Fill in your hours for each day.",
+          "Review totals and submit."
+        ]
+      }
     }
   },
   "logout": "መውጽእ",
@@ -192,5 +203,23 @@
   "timesheet_already_submitted": "Timesheet already submitted",
   "timesheet_not_submitted": "Timesheet not submitted",
   "timesheet_already_processed": "Timesheet already processed",
-  "timesheet_unbalanced": "Timesheet must balance"
+  "timesheet_unbalanced": "Timesheet must balance",
+  "timesheets": {
+    "title": "Timesheets",
+    "date": "Date",
+    "reg": "Reg",
+    "ot": "OT",
+    "stat": "Stat",
+    "sick": "Sick",
+    "vac": "Vac",
+    "note": "Note",
+    "paid_total": "Paid Total",
+    "lock_stat_tooltip": "Stat holiday is locked at 8h",
+    "summary": {
+      "totals": "Totals",
+      "expected": "Expected Hours",
+      "shortfall": "Shortfall",
+      "ot_bank_remaining": "OT Bank Remaining"
+    }
+  }
 }

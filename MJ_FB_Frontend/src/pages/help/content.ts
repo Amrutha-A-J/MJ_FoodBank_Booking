@@ -282,6 +282,17 @@ export function getHelpContent(
         ],
       },
     },
+    {
+      title: t('help.pantry.timesheets.title'),
+      body: {
+        description: t('help.pantry.timesheets.description'),
+        steps: [
+          t('help.pantry.timesheets.steps.0'),
+          t('help.pantry.timesheets.steps.1'),
+          t('help.pantry.timesheets.steps.2'),
+        ],
+      },
+    },
   ],
   warehouse: [
     {

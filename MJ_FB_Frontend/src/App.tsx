@@ -101,6 +101,7 @@ const VolunteerSettings = React.lazy(() =>
 );
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
+const Timesheets = React.lazy(() => import('./pages/staff/timesheets'));
 const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
 const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
@@ -166,6 +167,7 @@ export default function App() {
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
+      { label: t('timesheets.title'), to: '/pantry/timesheets' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
     ];
@@ -329,6 +331,9 @@ export default function App() {
                   )}
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/timesheets" element={<Timesheets />} />
                   )}
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
