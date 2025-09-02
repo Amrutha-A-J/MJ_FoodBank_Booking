@@ -43,6 +43,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   const [weightWithCart, setWeightWithCart] = useState('');
   const [weightWithoutCart, setWeightWithoutCart] = useState('');
   const [petItem, setPetItem] = useState('0');
+  const [note, setNote] = useState('');
   const [autoWeight, setAutoWeight] = useState(true);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
@@ -58,6 +59,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       setWeightWithCart('');
       setWeightWithoutCart('');
       setPetItem('0');
+      setNote('');
       setAutoWeight(true);
     }
   }, [open]);
@@ -128,6 +130,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             weightWithCart: Number(weightWithCart),
             weightWithoutCart: Number(weightWithoutCart),
             petItem: Number(petItem || 0),
+            note: note.trim() || undefined,
           });
           onUpdated('Visit recorded', 'success');
           onClose();
@@ -239,6 +242,13 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                 type="number"
                 value={petItem}
                 onChange={e => setPetItem(e.target.value)}
+              />
+              <TextField
+                label="Note"
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                multiline
+                rows={2}
               />
             </>
           )}

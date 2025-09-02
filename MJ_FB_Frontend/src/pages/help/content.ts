@@ -219,11 +219,11 @@ export function getHelpContent(
     {
       title: 'Record visits and handle no-shows',
       body: {
-        description: 'Mark bookings as visited while logging weights or record no-shows.',
+        description: 'Mark bookings as visited while logging weights, notes, or record no-shows.',
         steps: [
           'Open the schedule.',
           'Select a booking.',
-          'Mark visited or no-show and enter weight.',
+          'Mark visited or no-show, enter weight, and add a note if needed.',
         ],
       },
     },

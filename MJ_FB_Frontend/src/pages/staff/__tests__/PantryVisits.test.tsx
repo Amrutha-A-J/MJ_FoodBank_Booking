@@ -58,7 +58,7 @@ describe('PantryVisits', () => {
     fireEvent.change(withCart, { target: { value: '50' } });
 
     const withoutCart = screen.getByLabelText('Weight Without Cart');
-    expect(withoutCart).toHaveValue('40');
+    expect(withoutCart).toHaveValue(40);
   });
 
   it('filters visits by search input', async () => {

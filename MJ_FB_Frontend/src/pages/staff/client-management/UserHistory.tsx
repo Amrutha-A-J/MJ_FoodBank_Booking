@@ -60,6 +60,7 @@ export default function UserHistory({
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const [editOpen, setEditOpen] = useState(false);
+  const [notesOnly, setNotesOnly] = useState(false);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -79,14 +80,16 @@ export default function UserHistory({
       past?: boolean;
       userId?: number;
       includeVisits?: boolean;
-    } = { includeVisits: true };
+      includeVisitNotes?: boolean;
+    } = { includeVisits: true, includeVisitNotes: true };
     if (!initialUser) opts.userId = selected.client_id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
     return getBookingHistory(opts)
       .then(data => {
         const sorted = [...data].sort(
-          (a, b) => toDate(b.created_at).getTime() - toDate(a.created_at).getTime()
+          (a, b) =>
+            toDate(b.created_at).getTime() - toDate(a.created_at).getTime(),
         );
         setBookings(sorted);
         setPage(1);
@@ -107,8 +110,11 @@ export default function UserHistory({
     }
   }, [searchParams, initialUser]);
 
-  const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
-  const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
+  const filtered = notesOnly
+    ? bookings.filter(b => b.status === 'visited' && b.note)
+    : bookings;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
@@ -214,6 +220,15 @@ export default function UserHistory({
                 <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={notesOnly}
+                  onChange={e => setNotesOnly(e.target.checked)}
+                />
+              }
+              label="View visits with notes only"
+            />
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
@@ -222,13 +237,14 @@ export default function UserHistory({
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                    <TableCell sx={cellSx}>Note</TableCell>
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
+                      <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
                         {t('no_bookings')}
                       </TableCell>
                     </TableRow>
@@ -250,6 +266,7 @@ export default function UserHistory({
                         </TableCell>
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
+                        <TableCell sx={cellSx}>{b.note || ''}</TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
                             b.status.toLowerCase()
