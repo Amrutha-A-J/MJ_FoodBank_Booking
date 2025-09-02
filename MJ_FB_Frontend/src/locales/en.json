@@ -242,5 +242,17 @@
     "request_leave": "Request Leave",
     "review_leave": "Review Leave Requests",
     "approve_leave": "Approve"
+  },
+  "leave": {
+    "title": "Leave Requests",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "hours": "Hours",
+    "reason": "Reason",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   }
 }
