@@ -168,7 +168,8 @@ CREATE TABLE IF NOT EXISTS client_visits (
     is_anonymous boolean NOT NULL DEFAULT false,
     weight_with_cart integer NOT NULL,
     weight_without_cart integer NOT NULL,
-    pet_item integer NOT NULL DEFAULT 0
+    pet_item integer NOT NULL DEFAULT 0,
+    note text
 );
 
 CREATE TABLE IF NOT EXISTS surplus_log (

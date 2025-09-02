@@ -7,6 +7,7 @@ export const clientVisitSchema = z.object({
   weightWithCart: z.number().int(),
   weightWithoutCart: z.number().int(),
   petItem: z.number().int().optional(),
+  note: z.string().optional(),
 });
 
 export const addVisitSchema = clientVisitSchema;

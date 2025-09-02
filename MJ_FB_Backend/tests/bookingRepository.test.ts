@@ -126,6 +126,7 @@ describe('bookingRepository', () => {
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
     expect(call[0]).toMatch(/ORDER BY b.created_at DESC/);
+    expect(call[0]).toMatch(/b\.note/);
     expect(call[0]).toMatch(/LIMIT \$2/);
     expect(call[0]).toMatch(/OFFSET \$3/);
     expect(call[1]).toEqual(

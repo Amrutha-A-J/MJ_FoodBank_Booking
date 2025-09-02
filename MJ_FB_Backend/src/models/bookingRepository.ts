@@ -199,7 +199,7 @@ export async function fetchBookingHistory(
     limitOffset += ` OFFSET $${params.length}`;
   }
   const res = await client.query(
-    `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason,
+    `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason, b.note,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.start_time END AS start_time,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.end_time END AS end_time,
             b.created_at, b.is_staff_booking, b.reschedule_token
@@ -216,7 +216,7 @@ export async function fetchBookingHistory(
       visitWhere.push('v.date < CURRENT_DATE');
     }
     const visitRes = await client.query(
-      `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token
+      `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, v.note, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token
          FROM client_visits v
          INNER JOIN clients c ON c.client_id = v.client_id
          LEFT JOIN bookings b ON b.user_id = c.client_id AND b.date = v.date

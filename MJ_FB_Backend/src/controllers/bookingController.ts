@@ -292,14 +292,15 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
   const weightWithCart = req.body?.weightWithCart as number | undefined;
   const weightWithoutCart = req.body?.weightWithoutCart as number | undefined;
   const petItem = req.body?.petItem as number | undefined;
+  const note = req.body?.note as string | undefined;
   try {
     const insertRes = await pool.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous)
-       SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note)
+       SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4
        FROM bookings b
-       WHERE b.id = $4
+       WHERE b.id = $5
        RETURNING client_id`,
-      [weightWithCart ?? null, weightWithoutCart ?? null, petItem ?? 0, bookingId],
+      [weightWithCart ?? null, weightWithoutCart ?? null, petItem ?? 0, note ?? null, bookingId],
     );
     await updateBooking(bookingId, { status: 'visited', request_data: requestData });
     const clientId: number | null = insertRes.rows[0]?.client_id ?? null;
@@ -710,6 +711,7 @@ export async function getBookingHistory(
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
+    const includeVisitNotes = req.query.includeVisitNotes === 'true';
     const limitParam = req.query.limit as string | undefined;
     const offsetParam = req.query.offset as string | undefined;
     const limit = limitParam ? Number(limitParam) : undefined;
@@ -722,6 +724,10 @@ export async function getBookingHistory(
       return res.status(400).json({ message: 'Invalid offset' });
     }
 
+    if (includeVisitNotes && requester.role !== 'staff' && requester.role !== 'agency') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     const rows = await repoFetchBookingHistory(
       userIds,
       past,
@@ -730,7 +736,16 @@ export async function getBookingHistory(
       limit,
       offset,
     );
-    res.json(rows);
+
+    const filtered = includeVisitNotes
+      ? rows
+      : rows.map(r =>
+          r.slot_id === null && r.status === 'visited'
+            ? { ...r, note: undefined }
+            : r,
+        );
+
+    res.json(filtered);
   } catch (error) {
     logger.error('Error fetching booking history:', error);
     next(error);

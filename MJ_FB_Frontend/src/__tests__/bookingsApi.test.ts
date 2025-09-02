@@ -31,4 +31,12 @@ describe('bookings api', () => {
       body: JSON.stringify({ requestData: 'notes' }),
     }));
   });
+
+  it('includes note when provided', async () => {
+    await markBookingVisited(8, undefined, 'memo');
+    expect(apiFetch).toHaveBeenCalledWith('/api/bookings/8/visited', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ note: 'memo' }),
+    }));
+  });
 });

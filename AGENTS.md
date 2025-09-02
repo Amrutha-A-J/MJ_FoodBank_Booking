@@ -90,6 +90,7 @@
 - The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
+- Staff or agency users may append `includeVisitNotes=true` to `/bookings/history` to include visit notes.
 - Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.
 - `PUT /slots/capacity` updates the `max_capacity` for all slots.
@@ -240,7 +241,7 @@ The booking flow uses the following PostgreSQL tables. **PK** denotes a primary 
 - **users** – PK `id`; unique `email` and `client_id` (1–9,999,999); `role` is `shopper` or `delivery`; referenced by `bookings.user_id`.
 - **client_email_verifications** – PK `id`; unique `client_id`; FK `client_id` → `clients.id`; stores `email`, `otp_hash`, and `expires_at` for verifying client emails.
 - **bookings** – PK `id`; FK `user_id` → `users.id`; FK `slot_id` → `slots.id`; `status` in `approved|cancelled|no_show|visited`; includes `reschedule_token`.
-- **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, and `pet_item` counts.
+- **client_visits** – PK `id`; FK `client_id` → `clients.client_id`; records `date`, `is_anonymous` (default `false`), `weight_with_cart`, `weight_without_cart`, `pet_item`, and optional `note`.
 - **breaks** – PK `id`; unique `(day_of_week, slot_id)`; FK `slot_id` → `slots.id`.
 - **blocked_slots** – PK `id`; unique `(date, slot_id)`; FK `slot_id` → `slots.id`.
 - **recurring_blocked_slots** – PK `id`; unique `(day_of_week, week_of_month, slot_id)`; FK `slot_id` → `slots.id`; defines weekly/monthly slot blocks with a `reason`.

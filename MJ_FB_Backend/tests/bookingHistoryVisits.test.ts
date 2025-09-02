@@ -33,6 +33,7 @@ describe('fetchBookingHistory includeVisits', () => {
             date: '2024-01-02',
             slot_id: null,
             reason: null,
+            note: null,
             start_time: null,
             end_time: null,
             created_at: '2024-01-02',
@@ -49,6 +50,7 @@ describe('fetchBookingHistory includeVisits', () => {
     const visitQuery = (mockPool.query as jest.Mock).mock.calls[1][0];
     expect(visitQuery).toMatch(/LEFT JOIN bookings b/);
     expect(visitQuery).toMatch(/b\.id IS NULL/);
+    expect(visitQuery).toMatch(/v\.note/);
   });
 
   it('omits visits that already have a booking', async () => {
@@ -76,6 +78,7 @@ describe('fetchBookingHistory includeVisits', () => {
     const visitQuery = (mockPool.query as jest.Mock).mock.calls[1][0];
     expect(visitQuery).toMatch(/LEFT JOIN bookings b/);
     expect(visitQuery).toMatch(/b\.id IS NULL/);
+    expect(visitQuery).toMatch(/v\.note/);
   });
 });
 

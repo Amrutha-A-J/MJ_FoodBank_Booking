@@ -229,6 +229,7 @@ export interface BookingResponse {
   startTime?: string | null;
   endTime?: string | null;
   reason?: string;
+  note?: string | null;
 }
 
 export interface Booking

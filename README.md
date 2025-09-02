@@ -43,7 +43,7 @@ Before merging a pull request, confirm the following:
 ## Features
 
 - Appointment booking workflow for clients with automatic approval and rescheduling.
-- Bookings support an optional **note** field stored and returned via `/bookings` endpoints.
+- Bookings support an optional **note** field stored and returned via `/bookings` endpoints. Client visits also allow an optional note.
  - Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
@@ -100,6 +100,7 @@ Before merging a pull request, confirm the following:
  - Booking requests are automatically approved; the submitted state has been removed.
  - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
+- Staff and agency users can add `includeVisitNotes=true` to `/bookings/history` to receive visit notes.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
 - **Volunteer Recurring Bookings** let volunteers schedule repeating shifts with start and end dates, choose daily, weekly, or weekday patterns, and cancel individual occurrences or the remaining series.
