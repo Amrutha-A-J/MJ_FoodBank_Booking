@@ -4,7 +4,7 @@ import type { ApiError } from './client';
 
 export interface TimesheetSummary {
   id: number;
-  volunteer_id: number;
+  staff_id: number;
   start_date: string;
   end_date: string;
   submitted_at: string | null;
@@ -12,6 +12,7 @@ export interface TimesheetSummary {
   total_hours: number;
   expected_hours: number;
   balance_hours: number;
+  ot_hours: number;
 }
 
 export interface TimesheetDay {
@@ -19,11 +20,18 @@ export interface TimesheetDay {
   timesheet_id: number;
   work_date: string;
   expected_hours: number;
-  actual_hours: number;
+  reg_hours: number;
+  ot_hours: number;
+  stat_hours: number;
+  sick_hours: number;
+  vac_hours: number;
+  note: string | null;
+  locked_by_rule: boolean;
+  locked_by_leave: boolean;
 }
 
 export async function listTimesheets(): Promise<TimesheetSummary[]> {
-  const res = await apiFetch(`${API_BASE}/timesheets`);
+  const res = await apiFetch(`${API_BASE}/timesheets/mine`);
   return handleResponse(res);
 }
 
@@ -35,12 +43,19 @@ export async function getTimesheetDays(timesheetId: number): Promise<TimesheetDa
 export async function updateTimesheetDay(
   timesheetId: number,
   date: string,
-  hours: number,
+  data: {
+    regHours: number;
+    otHours: number;
+    statHours: number;
+    sickHours: number;
+    vacHours: number;
+    note?: string;
+  },
 ): Promise<void> {
   const res = await apiFetch(`${API_BASE}/timesheets/${timesheetId}/days/${date}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ hours }),
+    body: JSON.stringify(data),
   });
   await handleResponse(res);
 }
@@ -88,9 +103,17 @@ export function useUpdateTimesheetDay(timesheetId: number) {
   return useMutation<
     void,
     ApiError,
-    { date: string; hours: number }
+    {
+      date: string;
+      regHours: number;
+      otHours: number;
+      statHours: number;
+      sickHours: number;
+      vacHours: number;
+      note?: string;
+    }
   >({
-    mutationFn: ({ date, hours }) => updateTimesheetDay(timesheetId, date, hours),
+    mutationFn: ({ date, ...rest }) => updateTimesheetDay(timesheetId, date, rest),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
       qc.invalidateQueries({ queryKey: ['timesheets'] });

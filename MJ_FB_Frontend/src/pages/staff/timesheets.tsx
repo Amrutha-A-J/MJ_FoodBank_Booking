@@ -11,6 +11,7 @@ import {
   Tooltip,
   Typography,
   CircularProgress,
+  Button,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import Page from '../../components/Page';
@@ -23,7 +24,15 @@ import {
   useTimesheets,
   useTimesheetDays,
   useUpdateTimesheetDay,
+  useSubmitTimesheet,
+  useRejectTimesheet,
+  useProcessTimesheet,
 } from '../../api/timesheets';
+import {
+  useCreateLeaveRequest,
+  useLeaveRequests,
+  useApproveLeaveRequest,
+} from '../../api/leaveRequests';
 
 interface Day {
   date: string;
@@ -34,6 +43,8 @@ interface Day {
   vac: number;
   note: string;
   expected: number;
+  lockedRule: boolean;
+  lockedLeave: boolean;
 }
 
 export default function Timesheets() {
@@ -55,18 +66,26 @@ export default function Timesheets() {
     setDays(
       rawDays.map(d => ({
         date: d.work_date,
-        reg: d.actual_hours,
-        ot: 0,
-        stat: 0,
-        sick: 0,
-        vac: 0,
-        note: '',
+        reg: d.reg_hours,
+        ot: d.ot_hours,
+        stat: d.stat_hours,
+        sick: d.sick_hours,
+        vac: d.vac_hours,
+        note: d.note ?? '',
         expected: d.expected_hours,
+        lockedRule: d.locked_by_rule,
+        lockedLeave: d.locked_by_leave,
       })),
     );
   }, [rawDays]);
 
   const updateMutation = useUpdateTimesheetDay(current?.id ?? 0);
+  const submitMutation = useSubmitTimesheet();
+  const rejectMutation = useRejectTimesheet();
+  const processMutation = useProcessTimesheet();
+  const leaveMutation = useCreateLeaveRequest(current?.id ?? 0);
+  const { requests } = useLeaveRequests(current?.id);
+  const approveLeaveMutation = useApproveLeaveRequest();
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -91,10 +110,17 @@ export default function Timesheets() {
 
     const handleBlur = (index: number) => {
       const d = days[index];
-      const hours = d.reg + d.ot + d.stat + d.sick + d.vac;
       if (!current) return;
       updateMutation.mutate(
-        { date: d.date, hours },
+        {
+          date: d.date,
+          regHours: d.reg,
+          otHours: d.ot,
+          statHours: d.stat,
+          sickHours: d.sick,
+          vacHours: d.vac,
+          note: d.note,
+        },
         {
           onError: e =>
             setMessage((e as ApiError).message || 'Failed to update day'),
@@ -138,13 +164,20 @@ export default function Timesheets() {
             {days.map((d, i) => {
               const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
               const over = paid > 8;
-              const disabled = inputsDisabled || d.stat === 8;
+              const disabled =
+                inputsDisabled || d.lockedRule || d.lockedLeave;
               return (
                 <TableRow key={d.date}>
                   <TableCell>
                     {formatLocaleDate(d.date)}
-                    {d.stat === 8 && (
-                      <Tooltip title={t('timesheets.lock_stat_tooltip')}>
+                    {(d.lockedRule || d.lockedLeave) && (
+                      <Tooltip
+                        title={
+                          d.lockedRule
+                            ? t('timesheets.lock_stat_tooltip')
+                            : t('timesheets.lock_leave_tooltip')
+                        }
+                      >
                         <LockIcon sx={{ ml: 1, fontSize: 16 }} />
                       </Tooltip>
                     )}
@@ -254,6 +287,101 @@ export default function Timesheets() {
         <CircularProgress />
       ) : (
         <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+      )}
+      {current && (
+        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+          {!current.submitted_at && (
+            <Button
+              variant="contained"
+              onClick={() => submitMutation.mutate(current.id)}
+            >
+              {t('timesheets.submit')}
+            </Button>
+          )}
+          {current.submitted_at && !current.approved_at && (
+            <>
+              <Button
+                variant="contained"
+                onClick={() => rejectMutation.mutate(current.id)}
+              >
+                {t('timesheets.reject')}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => processMutation.mutate(current.id)}
+              >
+                {t('timesheets.process')}
+              </Button>
+            </>
+          )}
+        </Box>
+      )}
+      {current && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6">
+            {t('timesheets.request_leave')}
+          </Typography>
+          <Box
+            component="form"
+            sx={{ display: 'flex', gap: 1, mt: 1 }}
+            onSubmit={e => {
+              e.preventDefault();
+              const form = e.currentTarget as typeof e.currentTarget & {
+                date: { value: string };
+                hours: { value: string };
+              };
+              leaveMutation.mutate({
+                date: form.date.value,
+                hours: Number(form.hours.value),
+              });
+              form.reset();
+            }}
+          >
+            <TextField
+              name="date"
+              type="date"
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              name="hours"
+              type="number"
+              size="small"
+              defaultValue={8}
+            />
+            <Button type="submit" variant="contained">
+              {t('timesheets.submit')}
+            </Button>
+          </Box>
+          {requests.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1">
+                {t('timesheets.review_leave')}
+              </Typography>
+              {requests.map(r => (
+                <Box
+                  key={r.id}
+                  sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}
+                >
+                  <span>
+                    {formatLocaleDate(r.work_date)} - {r.hours}
+                  </span>
+                  <Button
+                    size="small"
+                    onClick={() =>
+                      approveLeaveMutation.mutate({
+                        requestId: r.id,
+                        timesheetId: current.id,
+                      })
+                    }
+                  >
+                    {t('timesheets.approve_leave')}
+                  </Button>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
       )}
       <FeedbackSnackbar
         open={!!message}

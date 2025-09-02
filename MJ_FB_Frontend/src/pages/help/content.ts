@@ -290,6 +290,7 @@ export function getHelpContent(
           t('help.pantry.timesheets.steps.0'),
           t('help.pantry.timesheets.steps.1'),
           t('help.pantry.timesheets.steps.2'),
+          t('help.pantry.timesheets.steps.3'),
         ],
       },
     },

@@ -11,6 +11,9 @@ import {
 
 const router = express.Router();
 
+// list pay periods for the logged in staff member
+router.get('/mine', authMiddleware, authorizeRoles('staff'), listMyTimesheets);
+// deprecated: retain root path for backwards compatibility
 router.get('/', authMiddleware, authorizeRoles('staff'), listMyTimesheets);
 router.get('/:id/days', authMiddleware, authorizeRoles('staff'), getTimesheetDays);
 router.patch('/:id/days/:date', authMiddleware, authorizeRoles('staff'), updateTimesheetDay);

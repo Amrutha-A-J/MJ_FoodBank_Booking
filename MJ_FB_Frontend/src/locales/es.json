@@ -98,8 +98,8 @@
         "description": "Record hours and submit pay periods.",
         "steps": [
           "Open the Timesheets page.",
-          "Fill in your hours for each day.",
-          "Review totals and submit.",
+          "Fill in hours or request leave days.",
+          "Submit the period for review.",
           "Export a CSV for payroll."
         ]
       }
@@ -227,6 +227,13 @@
     "add_row": "Add row",
     "remove_row": "Remove row",
     "export_csv": "Export CSV",
-    "payroll_export": "Payroll export"
+    "payroll_export": "Payroll export",
+    "submit": "Submit",
+    "reject": "Reject",
+    "process": "Process",
+    "lock_leave_tooltip": "Leave day is locked",
+    "request_leave": "Request Leave",
+    "review_leave": "Review Leave Requests",
+    "approve_leave": "Approve"
   }
 }

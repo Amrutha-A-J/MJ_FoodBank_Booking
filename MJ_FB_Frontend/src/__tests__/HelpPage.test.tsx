@@ -76,5 +76,24 @@ describe('HelpPage', () => {
     expect(screen.getByRole('tab', { name: /Warehouse/i })).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: /Admin/i })).not.toBeInTheDocument();
   });
+
+  it('includes updated timesheet help', () => {
+    mockUseAuth.mockReturnValue({
+      role: 'staff',
+      access: ['pantry'],
+      token: '',
+      name: '',
+      userRole: '',
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+      id: null,
+    } as any);
+    renderPage();
+    expect(
+      screen.getByText(/Fill in hours or request leave days./i),
+    ).toBeInTheDocument();
+  });
 });
 
