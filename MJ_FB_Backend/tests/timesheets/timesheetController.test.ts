@@ -13,9 +13,9 @@ import mockPool from '../utils/mockDb';
 const nextErr = (req: any, res: any) => (err: any) => errorHandler(err, req, res, () => {});
 
 describe('timesheet controller', () => {
-  it('lists volunteer timesheets', async () => {
+  it('lists staff timesheets', async () => {
     (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
-    const req: any = { user: { id: '1', role: 'volunteer' } };
+    const req: any = { user: { id: '1', role: 'staff', type: 'staff' } };
     const res: any = { json: jest.fn() };
     await listMyTimesheets(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([{ id: 1 }]);
@@ -23,7 +23,7 @@ describe('timesheet controller', () => {
 
   it('gets timesheet days', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -43,7 +43,7 @@ describe('timesheet controller', () => {
         ],
         rowCount: 1,
       });
-    const req: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const req: any = { user: { id: '1', role: 'staff', type: 'staff' }, params: { id: '1' } };
     const res: any = { json: jest.fn() };
     await getTimesheetDays(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([
@@ -69,7 +69,7 @@ describe('timesheet controller', () => {
     lockErr.status = 400;
     lockErr.code = 'STAT_DAY_LOCKED';
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -89,11 +89,11 @@ describe('timesheet controller', () => {
         ],
         rowCount: 1,
       })
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ submitted_at: null, approved_at: null }], rowCount: 1 })
       .mockRejectedValueOnce(lockErr);
 
-    const getReq: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const getReq: any = { user: { id: '1', role: 'staff', type: 'staff' }, params: { id: '1' } };
     const getRes: any = { json: jest.fn() };
     await getTimesheetDays(getReq, getRes, () => {});
     expect(getRes.json).toHaveBeenCalledWith([
@@ -114,7 +114,7 @@ describe('timesheet controller', () => {
     ]);
 
     const updReq: any = {
-      user: { id: '1', role: 'volunteer' },
+      user: { id: '1', role: 'staff', type: 'staff' },
       params: { id: '1', date: '2024-07-01' },
       body: { regHours: 4 },
     };
@@ -128,11 +128,11 @@ describe('timesheet controller', () => {
 
   it('updates a timesheet day', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ submitted_at: null, approved_at: null }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 5 }], rowCount: 1 });
     const req: any = {
-      user: { id: '1', role: 'volunteer' },
+      user: { id: '1', role: 'staff', type: 'staff' },
       params: { id: '1', date: '2024-01-02' },
       body: { regHours: 3, otHours: 1, statHours: 0, sickHours: 0, vacHours: 0, note: 'hi' },
     };
@@ -144,10 +144,10 @@ describe('timesheet controller', () => {
 
   it('prevents editing a submitted timesheet', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ submitted_at: '2024-01-10', approved_at: null }], rowCount: 1 });
     const req: any = {
-      user: { id: '1', role: 'volunteer' },
+      user: { id: '1', role: 'staff', type: 'staff' },
       params: { id: '1', date: '2024-01-02' },
       body: { regHours: 2 },
     };
@@ -161,10 +161,10 @@ describe('timesheet controller', () => {
 
   it('prevents editing a processed timesheet', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ submitted_at: '2024-01-10', approved_at: '2024-01-11' }], rowCount: 1 });
     const req: any = {
-      user: { id: '1', role: 'volunteer' },
+      user: { id: '1', role: 'staff', type: 'staff' },
       params: { id: '1', date: '2024-01-02' },
       body: { regHours: 2 },
     };
@@ -178,9 +178,9 @@ describe('timesheet controller', () => {
 
   it('returns validation error when shortfall exceeds OT', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockRejectedValueOnce(new Error('Shortfall 2 exceeds OT 1'));
-    const req: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const req: any = { user: { id: '1', role: 'staff', type: 'staff' }, params: { id: '1' } };
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await submitTimesheet(req, res, nextErr(req, res));
     expect(res.status).toHaveBeenCalledWith(400);
@@ -194,11 +194,11 @@ describe('timesheet controller', () => {
     capErr.status = 400;
     capErr.code = 'DAILY_CAP_EXCEEDED';
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ submitted_at: null, approved_at: null }], rowCount: 1 })
       .mockRejectedValueOnce(capErr);
     const req: any = {
-      user: { id: '1', role: 'volunteer' },
+      user: { id: '1', role: 'staff', type: 'staff' },
       params: { id: '1', date: '2024-01-02' },
       body: { regHours: 10 },
     };
@@ -212,10 +212,10 @@ describe('timesheet controller', () => {
 
   it('submits timesheet when shortfall is covered by OT', async () => {
     (mockPool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ result: null }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
-    const req: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const req: any = { user: { id: '1', role: 'staff', type: 'staff' }, params: { id: '1' } };
     const res: any = { json: jest.fn() };
     await submitTimesheet(req, res, nextErr(req, res));
     expect(res.json).toHaveBeenCalledWith({ message: 'Submitted' });

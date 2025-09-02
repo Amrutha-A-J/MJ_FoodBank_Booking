@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {
-  getTimesheetsForVolunteer,
+  getTimesheetsForStaff,
   getTimesheetDays as modelGetTimesheetDays,
   getTimesheetById,
   updateTimesheetDay as modelUpdateTimesheetDay,
@@ -16,8 +16,9 @@ export async function listMyTimesheets(
   next: NextFunction,
 ) {
   try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    const rows = await getTimesheetsForVolunteer(Number(req.user.id));
+    if (!req.user || req.user.type !== 'staff')
+      return res.status(401).json({ message: 'Unauthorized' });
+    const rows = await getTimesheetsForStaff(Number(req.user.id));
     res.json(rows);
   } catch (err) {
     next(err);
@@ -26,10 +27,11 @@ export async function listMyTimesheets(
 
 export async function getTimesheetDays(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user || req.user.type !== 'staff')
+      return res.status(401).json({ message: 'Unauthorized' });
     const timesheetId = Number(req.params.id);
     const ts = await getTimesheetById(timesheetId);
-    if (!ts || ts.volunteer_id !== Number(req.user.id)) {
+    if (!ts || ts.staff_id !== Number(req.user.id)) {
       return next({
         status: 404,
         code: 'TIMESHEET_NOT_FOUND',
@@ -45,7 +47,8 @@ export async function getTimesheetDays(req: Request, res: Response, next: NextFu
 
 export async function updateTimesheetDay(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user || req.user.type !== 'staff')
+      return res.status(401).json({ message: 'Unauthorized' });
     const timesheetId = Number(req.params.id);
     const workDate = req.params.date;
     const {
@@ -57,7 +60,7 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
       note = undefined,
     } = req.body;
     const ts = await getTimesheetById(timesheetId);
-    if (!ts || ts.volunteer_id !== Number(req.user.id)) {
+    if (!ts || ts.staff_id !== Number(req.user.id)) {
       return next({
         status: 404,
         code: 'TIMESHEET_NOT_FOUND',
@@ -80,10 +83,11 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
 
 export async function submitTimesheet(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user || req.user.type !== 'staff')
+      return res.status(401).json({ message: 'Unauthorized' });
     const timesheetId = Number(req.params.id);
     const ts = await getTimesheetById(timesheetId);
-    if (!ts || ts.volunteer_id !== Number(req.user.id)) {
+    if (!ts || ts.staff_id !== Number(req.user.id)) {
       return next({
         status: 404,
         code: 'TIMESHEET_NOT_FOUND',

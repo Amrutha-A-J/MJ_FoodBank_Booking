@@ -2,7 +2,7 @@ import pool from '../db';
 
 export interface Timesheet {
   id: number;
-  volunteer_id: number;
+  staff_id: number;
   start_date: string;
   end_date: string;
   submitted_at: string | null;
@@ -31,9 +31,9 @@ export interface TimesheetSummary extends Timesheet {
   ot_hours: number;
 }
 
-export async function getTimesheetsForVolunteer(volunteerId: number): Promise<TimesheetSummary[]> {
+export async function getTimesheetsForStaff(staffId: number): Promise<TimesheetSummary[]> {
   const res = await pool.query(
-    `SELECT t.id, t.volunteer_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
+    `SELECT t.id, t.staff_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
             COALESCE(tot.total_hours, 0) AS total_hours,
             COALESCE(exp.expected_hours, 0) AS expected_hours,
             COALESCE(bal.balance_hours, 0) AS balance_hours,
@@ -42,9 +42,9 @@ export async function getTimesheetsForVolunteer(volunteerId: number): Promise<Ti
        LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
        LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
        LEFT JOIN v_timesheet_balance bal ON bal.timesheet_id = t.id
-      WHERE t.volunteer_id = $1
+      WHERE t.staff_id = $1
       ORDER BY t.start_date DESC`,
-    [volunteerId],
+    [staffId],
   );
   return res.rows;
 }

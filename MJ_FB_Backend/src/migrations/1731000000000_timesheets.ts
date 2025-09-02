@@ -3,10 +3,10 @@ import { MigrationBuilder } from 'node-pg-migrate';
 export async function up(pgm: MigrationBuilder): Promise<void> {
   pgm.createTable('timesheets', {
     id: 'id',
-    volunteer_id: {
+    staff_id: {
       type: 'integer',
       notNull: true,
-      references: 'volunteers',
+      references: 'staff',
       onDelete: 'CASCADE',
     },
     start_date: { type: 'date', notNull: true },
@@ -17,8 +17,8 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
 
   pgm.addConstraint(
     'timesheets',
-    'timesheets_volunteer_period_unique',
-    'UNIQUE(volunteer_id, start_date, end_date)',
+    'timesheets_staff_period_unique',
+    'UNIQUE(staff_id, start_date, end_date)',
   );
 
   pgm.createTable('timesheet_days', {
