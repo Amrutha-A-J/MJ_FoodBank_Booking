@@ -78,9 +78,14 @@ export async function getSlotsRange(
 export async function createBooking(
   slotId: string,
   date: string,
+  note: string,
   userId?: number,
 ) {
-  const body: CreateBookingBody = { slotId: Number(slotId), date, requestData: '' };
+  const body: CreateBookingBody = {
+    slotId: Number(slotId),
+    date,
+    requestData: note,
+  };
   if (userId) body.userId = userId;
   const res = await apiFetch(`${API_BASE}/bookings`, {
     method: 'POST',
