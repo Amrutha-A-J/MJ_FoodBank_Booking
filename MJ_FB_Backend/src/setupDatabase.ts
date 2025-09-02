@@ -265,6 +265,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     new_client_id integer,
     status text NOT NULL CHECK (status IN ('approved', 'cancelled', 'no_show', 'visited')),
     request_data text,
+    note text,
     date date,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     is_staff_booking boolean DEFAULT false,

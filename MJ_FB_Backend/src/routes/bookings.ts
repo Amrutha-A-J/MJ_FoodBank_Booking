@@ -19,7 +19,7 @@ import {
 
 const router = express.Router();
 
-// Wrapper to handle bookings created by staff or regular users
+// Wrapper to handle bookings created by staff or regular users (supports optional note)
 const handleCreateBooking = (req: Request, res: Response, next: NextFunction) => {
   if (req.user && (req.user.role === 'staff' || req.user.role === 'agency')) {
     // Allow staff to create a booking for themselves or another user

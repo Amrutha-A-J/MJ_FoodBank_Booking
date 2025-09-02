@@ -14,4 +14,5 @@ export interface Booking {
   created_at: string;
   reason?: string | null;
   reschedule_token: string | null;
+  note?: string | null;
 }

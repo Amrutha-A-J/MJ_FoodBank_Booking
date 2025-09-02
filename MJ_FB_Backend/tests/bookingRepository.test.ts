@@ -42,7 +42,7 @@ describe('bookingRepository', () => {
 
   it('insertBooking calls query with correct params', async () => {
     setQueryResults({});
-    await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null);
+    await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null, 'note');
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/INSERT INTO bookings/);
     expect(call[1]).toEqual(
@@ -52,12 +52,13 @@ describe('bookingRepository', () => {
         2,
         'approved',
         '',
+        'note',
         '2024-01-01',
         false,
         'token',
       ]),
     );
-    expect(call[1]).toHaveLength(8);
+    expect(call[1]).toHaveLength(9);
   });
 
   it('updateBooking ignores disallowed keys', async () => {
@@ -88,6 +89,7 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(/WHERE/);
+    expect(call[0]).toMatch(/b\.note/);
     expect(call[0]).toMatch(/b.status = \$1/);
     expect(call[0]).toMatch(/b.date = \$2/);
     expect(call[0]).toMatch(/u.client_id = ANY\(\$3\)/);
