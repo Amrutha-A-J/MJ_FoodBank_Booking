@@ -1,6 +1,12 @@
 # MJ FoodBank Booking
 
-This repository uses Git submodules for the backend and frontend components. After cloning, make sure to pull in the submodules and install their dependencies.
+Booking and volunteer management for the Moose Jaw Food Bank. This monorepo includes:
+
+- [MJ_FB_Backend](MJ_FB_Backend) – Node.js/Express API.
+- [MJ_FB_Frontend](MJ_FB_Frontend) – React single-page app.
+- [docs](docs/) with setup notes and a [Timesheets guide](docs/timesheets.md).
+
+This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 
 ## Node Version
 
