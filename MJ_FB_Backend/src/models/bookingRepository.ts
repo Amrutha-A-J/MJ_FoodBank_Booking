@@ -216,7 +216,7 @@ export async function fetchBookingHistory(
       visitWhere.push('v.date < CURRENT_DATE');
     }
     const visitRes = await client.query(
-      `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token
+      `SELECT v.id, 'visited' AS status, v.date, NULL AS slot_id, NULL AS reason, NULL AS start_time, NULL AS end_time, v.date AS created_at, false AS is_staff_booking, NULL AS reschedule_token, v.note
          FROM client_visits v
          INNER JOIN clients c ON c.client_id = v.client_id
          LEFT JOIN bookings b ON b.user_id = c.client_id AND b.date = v.date
