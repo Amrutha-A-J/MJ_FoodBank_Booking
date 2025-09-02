@@ -7,6 +7,7 @@
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Document translation strings for localization in `docs/` and update `src/locales` when user-facing text is added.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
+ - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes. Timesheets now support vacation leave requests via `/timesheets/:id/leave-requests`; ensure related translations are added.
 - A GitHub Actions workflow in `.github/workflows/release.yml` builds, tests, and deploys container images to Azure Container Apps. Configure repository secrets `AZURE_CREDENTIALS`, `REGISTRY_LOGIN_SERVER`, `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` and variables `AZURE_RESOURCE_GROUP`, `BACKEND_APP_NAME`, and `FRONTEND_APP_NAME`; see `docs/release.md` for details.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 22+ for native `fetch`; earlier versions are not supported.

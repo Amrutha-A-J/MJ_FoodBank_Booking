@@ -19,12 +19,15 @@ node src/utils/timesheetSeeder.ts
 
 ## API usage
 
-- `GET /timesheets` – list pay periods.
+- `GET /timesheets/mine` – list pay periods for the logged in staff member.
 - `GET /timesheets/:id/days` – list daily entries for a timesheet.
 - `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
 - `POST /timesheets/:id/reject` – reject a submitted timesheet.
 - `POST /timesheets/:id/process` – mark a timesheet as processed and exportable.
+- `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
+- `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
+- `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.
 
 ## UI walkthrough
 
@@ -63,6 +66,13 @@ Add the following translation strings to locale files:
 - `timesheets.note`
 - `timesheets.paid_total`
 - `timesheets.lock_stat_tooltip`
+- `timesheets.lock_leave_tooltip`
+- `timesheets.submit`
+- `timesheets.reject`
+- `timesheets.process`
+- `timesheets.request_leave`
+- `timesheets.review_leave`
+- `timesheets.approve_leave`
 - `timesheets.summary.totals`
 - `timesheets.summary.expected`
 - `timesheets.summary.shortfall`
