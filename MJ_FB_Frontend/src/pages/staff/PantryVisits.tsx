@@ -90,6 +90,7 @@ export default function PantryVisits() {
     weightWithCart: '',
     weightWithoutCart: '',
     petItem: '0',
+    note: '',
   });
   const [autoWeight, setAutoWeight] = useState(true);
   const [clientFound, setClientFound] = useState<boolean | null>(null);
@@ -155,6 +156,7 @@ export default function PantryVisits() {
       weightWithCart: Number(form.weightWithCart),
       weightWithoutCart: Number(form.weightWithoutCart),
       petItem: Number(form.petItem || 0),
+      note: form.note.trim() || undefined,
     };
     const action = editing
       ? updateClientVisit(editing.id, payload)
@@ -170,6 +172,7 @@ export default function PantryVisits() {
           weightWithCart: '',
           weightWithoutCart: '',
           petItem: '0',
+          note: '',
         });
         setAutoWeight(true);
         loadVisits();
@@ -201,13 +204,14 @@ export default function PantryVisits() {
             <TableCell>Weight With Cart</TableCell>
             <TableCell>Weight Without Cart</TableCell>
             <TableCell>Pet Item</TableCell>
+            <TableCell>Note</TableCell>
             <TableCell align="right"></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {filteredVisits.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} align="center">
+              <TableCell colSpan={9} align="center">
                 No records
               </TableCell>
             </TableRow>
@@ -233,6 +237,7 @@ export default function PantryVisits() {
                 <TableCell>{v.weightWithCart}</TableCell>
                 <TableCell>{v.weightWithoutCart}</TableCell>
                 <TableCell>{v.petItem}</TableCell>
+                <TableCell>{v.note || ''}</TableCell>
                 <TableCell align="right">
                   <IconButton
                     size="small"
@@ -245,6 +250,7 @@ export default function PantryVisits() {
                         weightWithCart: String(v.weightWithCart),
                         weightWithoutCart: String(v.weightWithoutCart),
                         petItem: String(v.petItem),
+                        note: v.note ?? '',
                       });
                       setAutoWeight(true);
                       setRecordOpen(true);
@@ -293,6 +299,7 @@ export default function PantryVisits() {
                 weightWithCart: '',
                 weightWithoutCart: '',
                 petItem: '0',
+                note: '',
               });
               setAutoWeight(true);
               setEditing(null);
@@ -366,6 +373,13 @@ export default function PantryVisits() {
               type="number"
               value={form.petItem}
               onChange={e => setForm({ ...form, petItem: e.target.value })}
+            />
+            <TextField
+              label="Note"
+              value={form.note}
+              onChange={e => setForm({ ...form, note: e.target.value })}
+              multiline
+              rows={2}
             />
           </Stack>
         </DialogContent>

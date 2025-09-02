@@ -14,7 +14,10 @@ export async function createClientVisit(
   const res = await apiFetch(`${API_BASE}/client-visits`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      note: payload.note ?? undefined,
+    }),
   });
   return handleResponse(res);
 }
@@ -26,7 +29,10 @@ export async function updateClientVisit(
   const res = await apiFetch(`${API_BASE}/client-visits/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      note: payload.note ?? undefined,
+    }),
   });
   return handleResponse(res);
 }

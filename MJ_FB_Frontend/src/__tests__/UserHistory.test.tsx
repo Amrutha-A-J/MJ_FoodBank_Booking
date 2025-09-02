@@ -48,7 +48,10 @@ describe('UserHistory', () => {
     );
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
-    expect(getBookingHistory).toHaveBeenCalledWith({ includeVisits: true });
+    expect(getBookingHistory).toHaveBeenCalledWith({
+      includeVisits: true,
+      includeVisitNotes: true,
+    });
     expect(await screen.findByText(/approved/i)).toBeInTheDocument();
     expect(await screen.findByText(/visited/i)).toBeInTheDocument();
   });
