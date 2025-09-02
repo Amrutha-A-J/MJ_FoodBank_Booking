@@ -26,7 +26,20 @@ describe('timesheet controller', () => {
       .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
-          { id: 2, timesheet_id: 1, work_date: '2024-01-02', expected_hours: 3, actual_hours: 1 },
+          {
+            id: 2,
+            timesheet_id: 1,
+            work_date: '2024-01-02',
+            expected_hours: 3,
+            reg_hours: 1,
+            ot_hours: 0,
+            stat_hours: 0,
+            sick_hours: 0,
+            vac_hours: 0,
+            note: null,
+            locked_by_rule: false,
+            locked_by_leave: false,
+          },
         ],
         rowCount: 1,
       });
@@ -34,7 +47,20 @@ describe('timesheet controller', () => {
     const res: any = { json: jest.fn() };
     await getTimesheetDays(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([
-      { id: 2, timesheet_id: 1, work_date: '2024-01-02', expected_hours: 3, actual_hours: 1 },
+      {
+        id: 2,
+        timesheet_id: 1,
+        work_date: '2024-01-02',
+        expected_hours: 3,
+        reg_hours: 1,
+        ot_hours: 0,
+        stat_hours: 0,
+        sick_hours: 0,
+        vac_hours: 0,
+        note: null,
+        locked_by_rule: false,
+        locked_by_leave: false,
+      },
     ]);
   });
 
@@ -46,7 +72,20 @@ describe('timesheet controller', () => {
       .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
-          { id: 1, timesheet_id: 1, work_date: '2024-07-01', expected_hours: 8, actual_hours: 8 },
+          {
+            id: 1,
+            timesheet_id: 1,
+            work_date: '2024-07-01',
+            expected_hours: 8,
+            reg_hours: 0,
+            ot_hours: 0,
+            stat_hours: 8,
+            sick_hours: 0,
+            vac_hours: 0,
+            note: null,
+            locked_by_rule: true,
+            locked_by_leave: false,
+          },
         ],
         rowCount: 1,
       })
@@ -58,13 +97,26 @@ describe('timesheet controller', () => {
     const getRes: any = { json: jest.fn() };
     await getTimesheetDays(getReq, getRes, () => {});
     expect(getRes.json).toHaveBeenCalledWith([
-      { id: 1, timesheet_id: 1, work_date: '2024-07-01', expected_hours: 8, actual_hours: 8 },
+      {
+        id: 1,
+        timesheet_id: 1,
+        work_date: '2024-07-01',
+        expected_hours: 8,
+        reg_hours: 0,
+        ot_hours: 0,
+        stat_hours: 8,
+        sick_hours: 0,
+        vac_hours: 0,
+        note: null,
+        locked_by_rule: true,
+        locked_by_leave: false,
+      },
     ]);
 
     const updReq: any = {
       user: { id: '1', role: 'volunteer' },
       params: { id: '1', date: '2024-07-01' },
-      body: { hours: 4 },
+      body: { regHours: 4 },
     };
     const updRes: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await updateTimesheetDay(updReq, updRes, nextErr(updReq, updRes));
@@ -82,7 +134,7 @@ describe('timesheet controller', () => {
     const req: any = {
       user: { id: '1', role: 'volunteer' },
       params: { id: '1', date: '2024-01-02' },
-      body: { hours: 3 },
+      body: { regHours: 3, otHours: 1, statHours: 0, sickHours: 0, vacHours: 0, note: 'hi' },
     };
     const res: any = { json: jest.fn() };
     await updateTimesheetDay(req, res, () => {});
@@ -97,7 +149,7 @@ describe('timesheet controller', () => {
     const req: any = {
       user: { id: '1', role: 'volunteer' },
       params: { id: '1', date: '2024-01-02' },
-      body: { hours: 2 },
+      body: { regHours: 2 },
     };
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await updateTimesheetDay(req, res, nextErr(req, res));
@@ -114,7 +166,7 @@ describe('timesheet controller', () => {
     const req: any = {
       user: { id: '1', role: 'volunteer' },
       params: { id: '1', date: '2024-01-02' },
-      body: { hours: 2 },
+      body: { regHours: 2 },
     };
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await updateTimesheetDay(req, res, nextErr(req, res));
@@ -148,7 +200,7 @@ describe('timesheet controller', () => {
     const req: any = {
       user: { id: '1', role: 'volunteer' },
       params: { id: '1', date: '2024-01-02' },
-      body: { hours: 10 },
+      body: { regHours: 10 },
     };
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await updateTimesheetDay(req, res, nextErr(req, res));

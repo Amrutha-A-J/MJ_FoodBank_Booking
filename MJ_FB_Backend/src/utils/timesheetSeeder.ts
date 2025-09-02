@@ -46,8 +46,18 @@ export async function seedTimesheets(staffId?: number): Promise<void> {
 
       // Insert weekday rows with zeroed hours
       await pool.query(
-        `INSERT INTO timesheet_days (timesheet_id, work_date, expected_hours, actual_hours)
-         SELECT $1, gs.day, 0, 0
+        `INSERT INTO timesheet_days (
+            timesheet_id,
+            work_date,
+            expected_hours,
+            reg_hours,
+            ot_hours,
+            stat_hours,
+            sick_hours,
+            vac_hours,
+            note
+         )
+         SELECT $1, gs.day, 0, 0, 0, 0, 0, 0, NULL
            FROM generate_series(GREATEST($2::date, $3::date), $4::date, '1 day') AS gs(day)
           WHERE EXTRACT(ISODOW FROM gs.day) < 6
           ON CONFLICT (timesheet_id, work_date) DO NOTHING`,

@@ -21,7 +21,7 @@ node src/utils/timesheetSeeder.ts
 
 - `GET /timesheets` – list pay periods.
 - `GET /timesheets/:id/days` – list daily entries for a timesheet.
-- `PATCH /timesheets/:id/days/:date` – update hours for a day.
+- `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
 - `POST /timesheets/:id/reject` – reject a submitted timesheet.
 - `POST /timesheets/:id/process` – mark a timesheet as processed and exportable.
@@ -46,6 +46,8 @@ After a timesheet is processed, staff can download the period as a CSV using the
 | `vac` | Vacation hours |
 | `note` | Free-form note |
 | `paid_total` | Total paid hours for the day |
+
+Stat holidays are auto-filled with the day's expected hours and locked from editing. Days may also be locked when leave is approved.
 
 ## Localization
 
