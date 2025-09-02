@@ -15,6 +15,7 @@ import type { LoginResponse } from './users';
 function normalizeVolunteerBooking(b: any): VolunteerBooking {
   return {
     ...b,
+    note: b.note ?? null,
     date: b.date?.split('T')[0] ?? b.date,
     start_time: b.start_time ?? b.startTime,
     end_time: b.end_time ?? b.endTime,

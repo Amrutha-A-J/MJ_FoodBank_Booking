@@ -169,6 +169,7 @@ export default function ManageVolunteerShiftDialog({
           <Typography>
             {booking.role_name} on {booking.date} {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
           </Typography>
+          {booking.note && <Typography>Note: {booking.note}</Typography>}
           <TextField
             select
             label="Status"

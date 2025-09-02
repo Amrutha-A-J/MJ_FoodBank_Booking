@@ -30,6 +30,7 @@ describe('ManageVolunteerShiftDialog', () => {
     end_time: '12:00:00',
     status: 'approved',
     reschedule_token: 'abc',
+    note: 'bring gloves',
   };
 
   beforeAll(() => {
@@ -88,7 +89,7 @@ describe('ManageVolunteerShiftDialog', () => {
       target: { value: '2024-02-02' },
     });
 
-    fireEvent.mouseDown(screen.getByLabelText(/shift/i));
+    fireEvent.mouseDown(await screen.findByLabelText('Shift'));
     fireEvent.click(await screen.findByRole('option', { name: /9:00/i }));
 
     fireEvent.click(screen.getByText(/submit/i));
@@ -104,6 +105,11 @@ describe('ManageVolunteerShiftDialog', () => {
       <ManageVolunteerShiftDialog open booking={null} onClose={() => {}} onUpdated={() => {}} />,
     );
     expect(container.firstChild).toBeNull();
+  });
+
+  it('shows note when provided', () => {
+    render(<ManageVolunteerShiftDialog open booking={booking} onClose={() => {}} onUpdated={() => {}} />);
+    expect(screen.getByText('Note: bring gloves')).toBeInTheDocument();
   });
 });
 

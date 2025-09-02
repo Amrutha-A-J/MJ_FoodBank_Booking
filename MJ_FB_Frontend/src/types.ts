@@ -125,6 +125,7 @@ export interface VolunteerBooking {
   status_color?: string;
   reschedule_token?: string;
   recurring_id?: number;
+  note?: string | null;
 }
 
 export interface VolunteerRecurringBooking {
@@ -150,6 +151,7 @@ export interface VolunteerBookingDetail {
   can_book?: boolean;
   reschedule_token?: string;
   recurring_id?: number;
+  note?: string | null;
 }
 
 export interface RecurringVolunteerBooking {
@@ -229,15 +231,20 @@ export interface BookingResponse {
   startTime?: string | null;
   endTime?: string | null;
   reason?: string;
+  note?: string | null;
 }
 
 export interface Booking
-  extends Omit<BookingResponse, 'new_client_id' | 'startTime' | 'endTime'> {
+  extends Omit<
+    BookingResponse,
+    'new_client_id' | 'startTime' | 'endTime' | 'note'
+  > {
   start_time: string | null;
   end_time: string | null;
   startTime: string | null;
   endTime: string | null;
   newClientId: number | null;
+  note?: string | null;
 }
 
 export interface VolunteerBookingInfo {
