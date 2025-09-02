@@ -6,6 +6,7 @@ import { StaffAccess } from '../../models/staff';
 import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
+import seedTimesheets from '../../utils/timesheetSeeder';
 
 export async function checkStaffExists(
   _req: Request,
@@ -61,6 +62,7 @@ export async function createStaff(
         templateId: config.passwordSetupTemplateId,
         params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
       });
+    await seedTimesheets(staffId);
 
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {
