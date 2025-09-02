@@ -11,10 +11,10 @@ import {
 
 const router = express.Router();
 
-router.get('/', authMiddleware, listMyTimesheets);
-router.get('/:id/days', authMiddleware, getTimesheetDays);
-router.patch('/:id/days/:date', authMiddleware, updateTimesheetDay);
-router.post('/:id/submit', authMiddleware, submitTimesheet);
+router.get('/', authMiddleware, authorizeRoles('staff'), listMyTimesheets);
+router.get('/:id/days', authMiddleware, authorizeRoles('staff'), getTimesheetDays);
+router.patch('/:id/days/:date', authMiddleware, authorizeRoles('staff'), updateTimesheetDay);
+router.post('/:id/submit', authMiddleware, authorizeRoles('staff'), submitTimesheet);
 router.post('/:id/reject', authMiddleware, authorizeRoles('staff'), rejectTimesheet);
 router.post('/:id/process', authMiddleware, authorizeRoles('staff'), processTimesheet);
 
