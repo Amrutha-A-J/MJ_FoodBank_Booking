@@ -88,14 +88,6 @@ export async function updateTimesheetDay(
 }
 
 export async function submitTimesheet(id: number): Promise<void> {
-  try {
-    await pool.query('SELECT validate_timesheet_balance($1)', [id]);
-  } catch (e) {
-    const err: any = new Error('Timesheet must balance');
-    err.status = 400;
-    err.code = 'TIMESHEET_UNBALANCED';
-    throw err;
-  }
   const res = await pool.query(
     'UPDATE timesheets SET submitted_at = NOW() WHERE id = $1 AND submitted_at IS NULL RETURNING id',
     [id],

@@ -71,17 +71,30 @@ describe('timesheet controller', () => {
     );
   });
 
-  it('rejects unbalanced timesheet on submit', async () => {
+  it('returns validation error when shortfall exceeds OT', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
-      .mockRejectedValueOnce(new Error('Timesheet unbalanced'));
+      .mockRejectedValueOnce(new Error('Shortfall 2 exceeds OT 1'));
     const req: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
     const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
     await submitTimesheet(req, res, nextErr(req, res));
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: { code: 'TIMESHEET_UNBALANCED', message: 'Timesheet must balance' } }),
+      expect.objectContaining({ error: { code: 'VALIDATION_ERROR', message: 'Shortfall 2 exceeds OT 1' } }),
     );
+  });
+
+  it('submits timesheet when shortfall is covered by OT', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ volunteer_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ result: null }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 1 }], rowCount: 1 });
+    const req: any = { user: { id: '1', role: 'volunteer' }, params: { id: '1' } };
+    const res: any = { json: jest.fn() };
+    await submitTimesheet(req, res, nextErr(req, res));
+    expect(res.json).toHaveBeenCalledWith({ message: 'Submitted' });
+    expect((mockPool.query as jest.Mock).mock.calls[1][0]).toContain('validate_timesheet_balance');
+    expect((mockPool.query as jest.Mock).mock.calls[2][0]).toContain('UPDATE timesheets');
   });
 
   it('rejects and processes timesheet', async () => {

@@ -8,6 +8,7 @@ import {
   rejectTimesheet as modelRejectTimesheet,
   processTimesheet as modelProcessTimesheet,
 } from '../models/timesheet';
+import pool from '../db';
 
 export async function listMyTimesheets(
   req: Request,
@@ -74,6 +75,11 @@ export async function submitTimesheet(req: Request, res: Response, next: NextFun
         code: 'TIMESHEET_NOT_FOUND',
         message: 'Timesheet not found',
       });
+    }
+    try {
+      await pool.query('SELECT validate_timesheet_balance($1)', [timesheetId]);
+    } catch (err: any) {
+      return next({ status: 400, code: 'VALIDATION_ERROR', message: err.message });
     }
     await modelSubmitTimesheet(timesheetId);
     res.json({ message: 'Submitted' });
