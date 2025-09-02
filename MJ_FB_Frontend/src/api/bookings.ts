@@ -131,6 +131,7 @@ export async function getBookingHistory(
     past?: boolean;
     userId?: number;
     includeVisits?: boolean;
+    includeVisitNotes?: boolean;
     clientIds?: number[];
     limit?: number;
     offset?: number;
@@ -141,6 +142,7 @@ export async function getBookingHistory(
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
   if (opts.includeVisits) params.append('includeVisits', 'true');
+  if (opts.includeVisitNotes) params.append('includeVisitNotes', 'true');
   if (opts.clientIds && opts.clientIds.length)
     params.append('clientIds', opts.clientIds.join(','));
   if (typeof opts.limit === 'number')
@@ -291,11 +293,15 @@ export async function markBookingNoShow(
 export async function markBookingVisited(
   bookingId: number,
   requestData?: string,
+  note?: string,
 ): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (requestData) body.requestData = requestData;
+  if (note) body.note = note;
   const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/visited`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestData ? { requestData } : {}),
+    body: JSON.stringify(body),
   });
   await handleResponse<void>(res);
 }

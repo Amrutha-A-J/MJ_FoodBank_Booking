@@ -260,3 +260,15 @@ export interface VolunteerBookingConflict {
   attempted: VolunteerBookingInfo;
   existing: VolunteerBookingInfo;
 }
+
+export interface ClientVisit {
+  id: number;
+  date: string;
+  clientId: number | null;
+  clientName: string | null;
+  anonymous: boolean;
+  weightWithCart: number;
+  weightWithoutCart: number;
+  petItem: number;
+  note?: string | null;
+}

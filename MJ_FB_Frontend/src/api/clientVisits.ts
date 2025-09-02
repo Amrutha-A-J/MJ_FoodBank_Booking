@@ -1,15 +1,5 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
-
-export interface ClientVisit {
-  id: number;
-  date: string;
-  clientId: number | null;
-  clientName: string | null;
-  anonymous: boolean;
-  weightWithCart: number;
-  weightWithoutCart: number;
-  petItem: number;
-}
+import type { ClientVisit } from '../types';
 
 export async function getClientVisits(date: string): Promise<ClientVisit[]> {
   const res = await apiFetch(

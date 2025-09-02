@@ -25,11 +25,11 @@ describe('bookings api', () => {
     }));
   });
 
-  it('calls visited endpoint', async () => {
-    await markBookingVisited(7, 'notes');
+  it('calls visited endpoint with note', async () => {
+    await markBookingVisited(7, 'notes', 'visit');
     expect(apiFetch).toHaveBeenCalledWith('/api/bookings/7/visited', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ requestData: 'notes' }),
+      body: JSON.stringify({ requestData: 'notes', note: 'visit' }),
     }));
   });
 

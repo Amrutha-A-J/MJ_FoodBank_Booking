@@ -55,6 +55,7 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
     const result = await pool.query(
       `SELECT v.id, v.date, v.client_id as "clientId", v.weight_with_cart as "weightWithCart",
               v.weight_without_cart as "weightWithoutCart", v.pet_item as "petItem", v.is_anonymous as "anonymous",
+              v.note as "note",
               COALESCE(c.first_name || ' ' || c.last_name, '') as "clientName"
        FROM client_visits v
        LEFT JOIN clients c ON v.client_id = c.client_id
@@ -72,14 +73,14 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
 export async function addVisit(req: Request, res: Response, next: NextFunction) {
   const client = await pool.connect();
   try {
-    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous } = req.body;
+    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous, note } = req.body;
     await client.query('BEGIN');
     const insertRes = await client.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous)
-       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6)
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note)
+       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7)
        RETURNING id, date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous"`,
-      [date, clientId ?? null, weightWithCart, weightWithoutCart, petItem ?? 0, anonymous ?? false]
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note`,
+      [date, clientId ?? null, weightWithCart, weightWithoutCart, petItem ?? 0, anonymous ?? false, note ?? null]
     );
     let clientName: string | null = null;
     if (clientId) {
@@ -143,16 +144,25 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
 export async function updateVisit(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous } = req.body;
+    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous, note } = req.body;
     const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
     const prevClientId: number | null = existing.rows[0]?.client_id ?? null;
     const result = await pool.query(
       `UPDATE client_visits
-       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6
-       WHERE id = $7
+       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7
+       WHERE id = $8
        RETURNING id, date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous"`,
-      [date, clientId ?? null, weightWithCart, weightWithoutCart, petItem ?? 0, anonymous ?? false, id]
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note`,
+      [
+        date,
+        clientId ?? null,
+        weightWithCart,
+        weightWithoutCart,
+        petItem ?? 0,
+        anonymous ?? false,
+        note ?? null,
+        id,
+      ]
     );
     let clientName: string | null = null;
     if (clientId) {
