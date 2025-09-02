@@ -1,4 +1,4 @@
-import mockPool from './utils/mockDb';
+import mockPool, { setQueryResults } from './utils/mockDb';
 import {
   checkSlotCapacity,
   insertBooking,
@@ -41,7 +41,7 @@ describe('bookingRepository', () => {
   });
 
   it('insertBooking calls query with correct params', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({});
+    setQueryResults({});
     await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/INSERT INTO bookings/);
@@ -61,7 +61,7 @@ describe('bookingRepository', () => {
   });
 
   it('updateBooking ignores disallowed keys', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({});
+    setQueryResults({});
     await updateBooking(1, {
       status: 'cancelled',
       request_data: 'reason',
@@ -83,7 +83,7 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookings applies optional filters', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    setQueryResults({ rows: [] });
     await fetchBookings('approved', '2024-01-01', [1, 2]);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
@@ -102,7 +102,7 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingsForReminder selects only necessary fields', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    setQueryResults({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
@@ -117,7 +117,7 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingHistory supports arrays and pagination', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    setQueryResults({ rows: [] });
     await fetchBookingHistory([1, 2], false, undefined, false, 5, 10);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
@@ -137,7 +137,7 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingHistory uses LEFT JOIN on slots', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    setQueryResults({ rows: [] });
     await fetchBookingHistory([1], false, undefined, false);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/LEFT JOIN\s+slots\s+s\s+ON b.slot_id = s.id/);

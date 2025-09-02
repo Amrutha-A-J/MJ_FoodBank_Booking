@@ -105,9 +105,6 @@ const mockQuery = jest.fn(async (sql: string) => {
 
 const mockConnect = jest.fn(async () => ({ query: mockQuery, release: jest.fn() }));
 
-(mockDb.query as jest.Mock).mockImplementation((sql: string) => mockQuery(sql));
-(mockDb.connect as jest.Mock).mockImplementation(mockConnect);
-
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -121,6 +118,10 @@ app.use('/volunteer-roles', volunteerRolesRouter);
 
 describe('POST /volunteer-roles/restore', () => {
   beforeEach(() => {
+    (mockDb.query as jest.Mock).mockReset();
+    (mockDb.connect as jest.Mock).mockReset();
+    (mockDb.query as jest.Mock).mockImplementation((sql: string) => mockQuery(sql));
+    (mockDb.connect as jest.Mock).mockImplementation(mockConnect);
     masterRoles = [{ id: 1, name: 'Old' }, { id: 99, name: 'Temp' }];
     roles = [
       { id: 1, name: 'Old Role', category_id: 1 },
@@ -135,6 +136,11 @@ describe('POST /volunteer-roles/restore', () => {
     ];
     tempTrained = [];
     mockQuery.mockClear();
+  });
+
+  afterEach(() => {
+    (mockDb.query as jest.Mock).mockReset();
+    (mockDb.connect as jest.Mock).mockReset();
   });
 
   it('restores defaults and preserves training for existing roles', async () => {
