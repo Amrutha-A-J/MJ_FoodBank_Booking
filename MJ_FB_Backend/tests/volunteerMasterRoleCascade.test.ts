@@ -40,9 +40,6 @@ const mockQuery = jest.fn(async (sql: string, params?: any[]) => {
   return { rows: [], rowCount: 0 };
 });
 
-(mockDb.query as jest.Mock).mockImplementation(mockQuery);
-
-
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -56,6 +53,8 @@ app.use('/volunteer-master-roles', volunteerMasterRolesRouter);
 
 describe('DELETE /volunteer-master-roles/:id', () => {
   beforeEach(() => {
+    (mockDb.query as jest.Mock).mockReset();
+    (mockDb.query as jest.Mock).mockImplementation(mockQuery);
     mockQuery.mockClear();
     masterRoles.splice(0, masterRoles.length, { id: 1, name: 'Master' });
     roles.splice(0, roles.length, { id: 10, name: 'Role', category_id: 1 });
@@ -68,6 +67,10 @@ describe('DELETE /volunteer-master-roles/:id', () => {
       is_wednesday_slot: false,
       is_active: true,
     });
+  });
+
+  afterEach(() => {
+    (mockDb.query as jest.Mock).mockReset();
   });
 
   it('removes associated roles and slots', async () => {

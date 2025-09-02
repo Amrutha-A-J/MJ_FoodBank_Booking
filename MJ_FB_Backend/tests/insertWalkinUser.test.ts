@@ -1,4 +1,4 @@
-import mockPool from './utils/mockDb';
+import mockPool, { setQueryResults } from './utils/mockDb';
 import { insertWalkinUser } from '../src/models/bookingRepository';
 
 
@@ -8,7 +8,7 @@ describe('insertWalkinUser', () => {
   });
 
   it('issues INSERT with clients.client_id and profile link', async () => {
-    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ client_id: 123 }] });
+    setQueryResults({ rows: [{ client_id: 123 }] });
 
     const first = 'Test';
     const last = 'User';

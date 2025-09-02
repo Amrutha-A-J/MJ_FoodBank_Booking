@@ -11,6 +11,10 @@ const mockPool = new EventEmitter() as unknown as Pool & EventEmitter;
   release: jest.fn(),
 });
 
+export const setQueryResults = (result: any) => {
+  (mockPool.query as jest.Mock).mockResolvedValue(result);
+};
+
 jest.mock('../../src/db', () => ({
   __esModule: true,
   default: mockPool,
