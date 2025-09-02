@@ -98,10 +98,11 @@ export async function createBooking(
 }
 
 function normalizeBooking(b: BookingResponse): Booking {
-  const { new_client_id, ...rest } = b;
+  const { new_client_id, note, ...rest } = b;
   const newClientId = b.newClientId ?? new_client_id ?? null;
   return {
     ...rest,
+    note: note ?? null,
     start_time: b.start_time ?? b.startTime ?? null,
     end_time: b.end_time ?? b.endTime ?? null,
     startTime: b.startTime ?? b.start_time ?? null,
