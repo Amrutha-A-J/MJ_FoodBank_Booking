@@ -50,6 +50,15 @@
 - Tests for invitation and password setup flows live in `MJ_FB_Backend/tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
 - To customize the mocked database in backend tests, import `../tests/utils/mockDb`, which mocks `../src/db` and exports the mocked `pool` for custom query behavior.
 
+### Acceptance tests
+
+For timesheet and leave features, confirm the following before merging:
+
+- [ ] Stat holidays auto-fill expected hours and lock editing.
+- [ ] OT shortfalls draw from the bank and report remaining balance.
+- [ ] Leave requests can be submitted, approved, and lock the day.
+- [ ] Email notifications send using configured Brevo settings.
+
 - Volunteers can earn badges. Use `GET /volunteers/me/stats` to retrieve badges and
   `POST /volunteers/me/badges` to manually award one. The stats endpoint also returns
   lifetime volunteer hours, hours served in the current month, total completed shifts,

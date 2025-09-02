@@ -20,6 +20,40 @@ nvm use
 
 GitHub Actions reads the same `.nvmrc` to run CI on Node 22. Run all backend and frontend tests on this runtime to match CI results.
 
+## Timesheet and Leave Setup
+
+Timesheet features require backend migrations, seeded pay periods, and email
+configuration.
+
+1. Run migrations:
+
+```bash
+cd MJ_FB_Backend
+npm run migrate
+```
+
+2. Seed upcoming pay periods in the `pay_periods` table (biweekly records with
+   `start_date` and `end_date`).
+
+3. Seed timesheets for active staff:
+
+```bash
+node src/utils/timesheetSeeder.ts
+```
+
+4. Configure Brevo email credentials and optional approver addresses in
+   `MJ_FB_Backend/.env`:
+
+```bash
+BREVO_API_KEY=your_api_key
+BREVO_FROM_EMAIL=noreply@example.com
+BREVO_FROM_NAME="MJ Food Bank"
+TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
+```
+
+Staff submit leave through `/api/leave/requests`; admins approve or reject via
+`/api/leave/requests/:id/approve` and `/api/leave/requests/:id/reject`.
+
 Individuals who use the food bank are referred to as clients throughout the application.
 
 The `clients` table uses `client_id` as its primary key. Do not reference an `id` column for clients; always use `client_id` in database queries and API responses.

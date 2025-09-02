@@ -4,17 +4,56 @@ Staff can record daily hours and submit pay periods.
 
 ## Setup
 
-1. Run database migrations to create the `timesheets` tables:
+1. Run database migrations to create the timesheet and leave tables:
 
 ```bash
 cd MJ_FB_Backend
 npm run migrate
 ```
 
-2. Seed current pay periods for active staff (optional):
+2. Insert biweekly records into the `pay_periods` table so each period has a
+   `start_date` and `end_date`.
+
+3. Seed current pay periods for active staff (optional):
 
 ```bash
 node src/utils/timesheetSeeder.ts
+```
+
+## Pay periods
+
+Each timesheet belongs to a `pay_periods` row. Pay periods typically span two
+weeks and the seeder ensures every active staff member has a timesheet covering
+the current period.
+
+## Stat holidays and OT banking
+
+A database trigger auto-fills stat holidays with the day's expected hours and
+locks them from editing. The same trigger validates that paid hours do not
+exceed eight per day.
+
+Overtime is banked via the `ot_hours` field. When a period is submitted, any
+shortfall is covered by available OT bank and the remaining balance is reported
+in `summary.ot_bank_remaining`.
+
+## Leave approval workflow
+
+Staff can request vacation leave by posting to
+`/timesheets/:id/leave-requests`. Pending requests appear under the same path
+and globally via `/api/leave/requests` for admins. Approving a request applies
+vacation hours to that day and locks it from editing; rejection simply removes
+the request.
+
+## Email settings
+
+Timesheet submissions and leave approvals send notifications through the Brevo
+email queue. Configure the following backend environment variables:
+
+```bash
+BREVO_API_KEY=your_api_key
+BREVO_FROM_EMAIL=noreply@example.com
+BREVO_FROM_NAME="MJ Food Bank"
+TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
 ## API usage
@@ -89,3 +128,11 @@ Add the following translation strings to locale files:
 - `help.pantry.timesheets.steps.1`
 - `help.pantry.timesheets.steps.2`
 - `help.pantry.timesheets.steps.3`
+- `leave.title`
+- `leave.start_date`
+- `leave.end_date`
+- `leave.hours`
+- `leave.reason`
+- `leave.status.pending`
+- `leave.status.approved`
+- `leave.status.rejected`
