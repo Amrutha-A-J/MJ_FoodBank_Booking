@@ -14,13 +14,21 @@ export interface TimesheetDay {
   timesheet_id: number;
   work_date: string;
   expected_hours: number;
-  actual_hours: number;
+  reg_hours: number;
+  ot_hours: number;
+  stat_hours: number;
+  sick_hours: number;
+  vac_hours: number;
+  note: string | null;
+  locked_by_rule: boolean;
+  locked_by_leave: boolean;
 }
 
 export interface TimesheetSummary extends Timesheet {
   total_hours: number;
   expected_hours: number;
   balance_hours: number;
+  ot_hours: number;
 }
 
 export async function getTimesheetsForVolunteer(volunteerId: number): Promise<TimesheetSummary[]> {
@@ -28,7 +36,8 @@ export async function getTimesheetsForVolunteer(volunteerId: number): Promise<Ti
     `SELECT t.id, t.volunteer_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
             COALESCE(tot.total_hours, 0) AS total_hours,
             COALESCE(exp.expected_hours, 0) AS expected_hours,
-            COALESCE(bal.balance_hours, 0) AS balance_hours
+            COALESCE(bal.balance_hours, 0) AS balance_hours,
+            COALESCE(bal.ot_hours, 0) AS ot_hours
        FROM timesheets t
        LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
        LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
@@ -47,16 +56,29 @@ export async function getTimesheetById(id: number): Promise<Timesheet | undefine
 
 export async function getTimesheetDays(timesheetId: number): Promise<TimesheetDay[]> {
   const res = await pool.query(
-    'SELECT id, timesheet_id, work_date, expected_hours, actual_hours FROM timesheet_days WHERE timesheet_id = $1 ORDER BY work_date',
+    `SELECT id, timesheet_id, work_date, expected_hours, reg_hours, ot_hours, stat_hours,
+            sick_hours, vac_hours, note, locked_by_rule, locked_by_leave
+       FROM timesheet_days
+      WHERE timesheet_id = $1
+      ORDER BY work_date`,
     [timesheetId],
   );
   return res.rows;
 }
 
+export interface TimesheetDayUpdate {
+  regHours: number;
+  otHours: number;
+  statHours: number;
+  sickHours: number;
+  vacHours: number;
+  note?: string;
+}
+
 export async function updateTimesheetDay(
   timesheetId: number,
   workDate: string,
-  hours: number,
+  data: TimesheetDayUpdate,
 ): Promise<void> {
   const tsRes = await pool.query(
     'SELECT submitted_at, approved_at FROM timesheets WHERE id = $1',
@@ -76,8 +98,25 @@ export async function updateTimesheetDay(
     throw err;
   }
   const res = await pool.query(
-    'UPDATE timesheet_days SET actual_hours = $3 WHERE timesheet_id = $1 AND work_date = $2 RETURNING id',
-    [timesheetId, workDate, hours],
+    `UPDATE timesheet_days
+        SET reg_hours = $3,
+            ot_hours = $4,
+            stat_hours = $5,
+            sick_hours = $6,
+            vac_hours = $7,
+            note = $8
+      WHERE timesheet_id = $1 AND work_date = $2
+      RETURNING id`,
+    [
+      timesheetId,
+      workDate,
+      data.regHours,
+      data.otHours,
+      data.statHours,
+      data.sickHours,
+      data.vacHours,
+      data.note ?? null,
+    ],
   );
   if ((res.rowCount ?? 0) === 0) {
     const err: any = new Error('Day not found');

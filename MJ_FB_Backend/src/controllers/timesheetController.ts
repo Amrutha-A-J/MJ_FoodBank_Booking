@@ -48,7 +48,14 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     const timesheetId = Number(req.params.id);
     const workDate = req.params.date;
-    const hours = Number(req.body.hours);
+    const {
+      regHours = 0,
+      otHours = 0,
+      statHours = 0,
+      sickHours = 0,
+      vacHours = 0,
+      note = undefined,
+    } = req.body;
     const ts = await getTimesheetById(timesheetId);
     if (!ts || ts.volunteer_id !== Number(req.user.id)) {
       return next({
@@ -57,7 +64,14 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
         message: 'Timesheet not found',
       });
     }
-    await modelUpdateTimesheetDay(timesheetId, workDate, hours);
+    await modelUpdateTimesheetDay(timesheetId, workDate, {
+      regHours: Number(regHours),
+      otHours: Number(otHours),
+      statHours: Number(statHours),
+      sickHours: Number(sickHours),
+      vacHours: Number(vacHours),
+      note,
+    });
     res.json({ message: 'Updated' });
   } catch (err) {
     next(err);
