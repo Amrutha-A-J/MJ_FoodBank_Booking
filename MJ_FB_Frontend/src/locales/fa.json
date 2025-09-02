@@ -51,7 +51,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time and confirm the booking."
+          "Select a time, add extra info if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -182,5 +182,8 @@
   "cancel_all_upcoming_short": "Cancel all upcoming",
   "manage": "Manage",
   "client_history": "Client History",
-  "cancelled": "Cancelled"
+  "cancelled": "Cancelled",
+  "confirm_booking": "Confirm booking",
+  "booking_summary": "Date: {{date}} • Time: {{time}} • Visits this month: {{count}}",
+  "extra_info_label": "Extra info (optional)"
 }

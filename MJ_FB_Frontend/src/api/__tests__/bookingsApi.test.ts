@@ -1,10 +1,11 @@
-import { apiFetch, handleResponse } from '../api/client';
+import { apiFetch, handleResponse } from '../client';
 import {
   markBookingNoShow,
   markBookingVisited,
-} from '../api/bookings';
+  createBooking,
+} from '../bookings';
 
-jest.mock('../api/client', () => ({
+jest.mock('../client', () => ({
   API_BASE: '/api',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
@@ -29,6 +30,14 @@ describe('bookings api', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/bookings/7/visited', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ requestData: 'notes' }),
+    }));
+  });
+
+  it('creates booking with note', async () => {
+    await createBooking('3', '2024-05-01', 'note');
+    expect(apiFetch).toHaveBeenCalledWith('/api/bookings', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ slotId: 3, date: '2024-05-01', requestData: 'note' }),
     }));
   });
 });

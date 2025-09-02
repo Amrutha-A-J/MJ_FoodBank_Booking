@@ -17,6 +17,11 @@ import {
   Toolbar,
   Skeleton,
   Link,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -26,9 +31,11 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
+import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
+import DialogCloseButton from '../components/DialogCloseButton';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
 import type { ApiError } from '../api/client';
@@ -52,8 +59,13 @@ function useSlots(
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-function bookSlot(payload: { date: string; slotId: string; userId?: number }): Promise<void> {
-  return createBooking(payload.slotId, payload.date, payload.userId);
+function bookSlot(payload: {
+  date: string;
+  slotId: string;
+  note: string;
+  userId?: number;
+}): Promise<void> {
+  return createBooking(payload.slotId, payload.date, payload.note, payload.userId);
 }
 
 export type BookingUIProps = {
@@ -106,6 +118,10 @@ export default function BookingUI({
     message: null,
   });
   const [booking, setBooking] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [usage, setUsage] = useState<number | null>(null);
+  const [loadingConfirm, setLoadingConfirm] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
@@ -143,6 +159,18 @@ export default function BookingUI({
       setSelectedSlotId(null);
     }
   }, [selectedSlotId, visibleSlots]);
+  async function handleOpenConfirm() {
+    if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
+    setLoadingConfirm(true);
+    setNote('');
+    try {
+      const profile = await getUserProfile();
+      setUsage(profile.bookingsThisMonth ?? 0);
+      setConfirmOpen(true);
+    } finally {
+      setLoadingConfirm(false);
+    }
+  }
 
   async function handleBook() {
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
@@ -151,6 +179,7 @@ export default function BookingUI({
       await bookSlot({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
+        note,
         userId,
       });
       setSnackbar({
@@ -159,6 +188,7 @@ export default function BookingUI({
         severity: 'success',
       });
       setSelectedSlotId(null);
+      setNote('');
       refetch();
     } catch (err: unknown) {
       if (
@@ -219,6 +249,7 @@ export default function BookingUI({
       }
     } finally {
       setBooking(false);
+      setConfirmOpen(false);
     }
   }
 
@@ -416,13 +447,40 @@ export default function BookingUI({
           <Button
             variant="contained"
             size="small"
-            disabled={!selectedSlotId || booking}
-            onClick={handleBook}
+            disabled={!selectedSlotId || booking || loadingConfirm}
+            onClick={handleOpenConfirm}
           >
             {t('book_selected_slot')}
           </Button>
         </Stack>
       </Paper>
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogCloseButton onClose={() => setConfirmOpen(false)} />
+        <DialogTitle>{t('confirm_booking')}</DialogTitle>
+        <DialogContent>
+          <Typography>
+            {t('booking_summary', {
+              date: date.format('ddd, MMM D, YYYY'),
+              time: selectedLabel,
+              count: usage ?? 0,
+            })}
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            margin="normal"
+            label={t('extra_info_label')}
+            value={note}
+            onChange={e => setNote(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>{t('cancel')}</Button>
+          <Button onClick={handleBook} variant="contained" disabled={booking}>
+            {t('confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar(s => ({ ...s, open: false }))}
