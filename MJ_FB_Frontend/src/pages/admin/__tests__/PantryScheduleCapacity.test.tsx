@@ -20,8 +20,9 @@ jest.mock('../../../components/RescheduleDialog', () => () => null);
 
 const { getSlots, getBookings, getHolidays } = jest.requireMock('../../../api/bookings');
 
-function hexToRgb(hex: string) {
-  const sanitized = hex.replace('#', '');
+function hexToRgb(color: string) {
+  if (color.startsWith('rgb')) return color;
+  const sanitized = color.replace('#', '');
   const bigint = parseInt(sanitized, 16);
   const r = (bigint >> 16) & 255;
   const g = (bigint >> 8) & 255;
@@ -126,7 +127,7 @@ describe('PantrySchedule status colors', () => {
     const over = await screen.findByText('Over (2)');
     const cell = over.closest('td') as HTMLElement;
     expect(getComputedStyle(cell).backgroundColor).toBe(
-      theme.palette.warning.light,
+      hexToRgb(theme.palette.warning.light),
     );
     fireEvent.mouseOver(over);
     expect(await screen.findByText(/capacity exceeded/i)).toBeInTheDocument();
