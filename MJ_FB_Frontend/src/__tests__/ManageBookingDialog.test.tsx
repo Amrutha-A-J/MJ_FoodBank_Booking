@@ -57,6 +57,7 @@ describe('ManageBookingDialog', () => {
     );
 
     fireEvent.change(screen.getByLabelText(/pet item/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/note/i), { target: { value: 'bring ID' } });
 
     fireEvent.click(screen.getByText(/submit/i));
 
@@ -68,6 +69,7 @@ describe('ManageBookingDialog', () => {
         weightWithCart: 30,
         weightWithoutCart: 3,
         petItem: 1,
+        note: 'bring ID',
       })
     );
     expect(onUpdated).toHaveBeenCalledWith('Visit recorded', 'success');

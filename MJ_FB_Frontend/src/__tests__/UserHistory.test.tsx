@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
@@ -38,6 +38,7 @@ describe('UserHistory', () => {
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
+        note: 'bring ID',
       },
     ]);
 
@@ -54,6 +55,7 @@ describe('UserHistory', () => {
     });
     expect(await screen.findByText(/approved/i)).toBeInTheDocument();
     expect(await screen.findByText(/visited/i)).toBeInTheDocument();
+    expect(screen.getByText('bring ID')).toBeInTheDocument();
   });
 
   it('hides edit client button when initialUser is provided', async () => {
@@ -68,6 +70,48 @@ describe('UserHistory', () => {
     expect(
       screen.queryByRole('button', { name: /edit client/i })
     ).not.toBeInTheDocument();
+  });
+
+  it('filters visits with notes only', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-01',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-01',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+        note: 'has note',
+      },
+      {
+        id: 2,
+        status: 'visited',
+        date: '2024-01-02',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-02',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getAllByText(/visited/i)).toHaveLength(2);
+
+    fireEvent.click(screen.getByLabelText('View visits with notes only'));
+
+    expect(screen.getAllByText(/visited/i)).toHaveLength(1);
+    expect(screen.getByText('has note')).toBeInTheDocument();
   });
 });
 
