@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Table,
@@ -10,14 +10,22 @@ import {
   TextField,
   Tooltip,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import Page from '../../components/Page';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
+import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import type { ApiError } from '../../api/client';
+import {
+  useTimesheets,
+  useTimesheetDays,
+  useUpdateTimesheetDay,
+} from '../../api/timesheets';
 
-type Day = {
+interface Day {
   date: string;
   reg: number;
   ot: number;
@@ -26,71 +34,75 @@ type Day = {
   vac: number;
   note: string;
   expected: number;
-};
-
-type PayPeriod = {
-  id: number;
-  start: string;
-  end: string;
-  submitted: boolean;
-  processed: boolean;
-  days: Day[];
-};
-
-const mockPeriods: PayPeriod[] = [
-  {
-    id: 2,
-    start: '2023-12-15',
-    end: '2023-12-31',
-    submitted: true,
-    processed: true,
-    days: [
-      { date: '2023-12-15', reg: 8, ot: 0, stat: 0, sick: 0, vac: 0, note: '', expected: 8 },
-      { date: '2023-12-16', reg: 4, ot: 4, stat: 0, sick: 0, vac: 0, note: '', expected: 8 },
-    ],
-  },
-  {
-    id: 1,
-    start: '2024-01-01',
-    end: '2024-01-07',
-    submitted: false,
-    processed: false,
-    days: [
-      { date: '2024-01-01', reg: 0, ot: 0, stat: 8, sick: 0, vac: 0, note: '', expected: 8 },
-      { date: '2024-01-02', reg: 8, ot: 0, stat: 0, sick: 0, vac: 0, note: '', expected: 8 },
-      { date: '2024-01-03', reg: 8, ot: 1, stat: 0, sick: 0, vac: 0, note: '', expected: 8 },
-    ],
-  },
-];
+}
 
 export default function Timesheets() {
   const { t } = useTranslation();
-  const [periods, setPeriods] = useState<PayPeriod[]>(mockPeriods);
-  const [tab, setTab] = useState(() => {
-    const idx = mockPeriods.findIndex(p => !p.processed);
-    return idx === -1 ? mockPeriods.length - 1 : idx;
-  });
+  const { timesheets, isLoading: loadingSheets, error: sheetsError } =
+    useTimesheets();
+  const [tab, setTab] = useState(0);
 
-  const current = periods[tab];
-  const inputsDisabled = current.submitted || current.processed;
+  useEffect(() => {
+    if (!timesheets.length) return;
+    const idx = timesheets.findIndex(p => !p.approved_at);
+    setTab(idx === -1 ? timesheets.length - 1 : idx);
+  }, [timesheets.length]);
 
-  const tabs: TabItem[] = periods.map(p => ({
-    label: `${formatLocaleDate(p.start)} - ${formatLocaleDate(p.end)}`,
-    content: renderTable(p),
-  }));
+  const current = timesheets[tab];
+  const { days: rawDays, error: daysError } = useTimesheetDays(current?.id);
+  const [days, setDays] = useState<Day[]>([]);
+  useEffect(() => {
+    setDays(
+      rawDays.map(d => ({
+        date: d.work_date,
+        reg: d.actual_hours,
+        ot: 0,
+        stat: 0,
+        sick: 0,
+        vac: 0,
+        note: '',
+        expected: d.expected_hours,
+      })),
+    );
+  }, [rawDays]);
 
-  function renderTable(period: PayPeriod) {
+  const updateMutation = useUpdateTimesheetDay(current?.id ?? 0);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const err = sheetsError || daysError;
+    if (err) setMessage((err as ApiError).message || 'Error');
+  }, [sheetsError, daysError]);
+
+  function renderTable() {
+    if (!current) return null;
+    const inputsDisabled = !!current.submitted_at || !!current.approved_at;
+
     const handleChange = (index: number, field: keyof Day, value: string) => {
-      setPeriods(prev => {
+      setDays(prev => {
         const copy = [...prev];
-        const days = [...copy[tab].days];
-        days[index] = { ...days[index], [field]: field === 'note' ? value : Number(value) };
-        copy[tab] = { ...copy[tab], days };
+        copy[index] = {
+          ...copy[index],
+          [field]: field === 'note' ? value : Number(value),
+        };
         return copy;
       });
     };
 
-    const totals = period.days.reduce(
+    const handleBlur = (index: number) => {
+      const d = days[index];
+      const hours = d.reg + d.ot + d.stat + d.sick + d.vac;
+      if (!current) return;
+      updateMutation.mutate(
+        { date: d.date, hours },
+        {
+          onError: e =>
+            setMessage((e as ApiError).message || 'Failed to update day'),
+        },
+      );
+    };
+
+    const totals = days.reduce(
       (acc, d) => {
         const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
         acc.reg += d.reg;
@@ -123,7 +135,7 @@ export default function Timesheets() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {period.days.map((d, i) => {
+            {days.map((d, i) => {
               const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
               const over = paid > 8;
               const disabled = inputsDisabled || d.stat === 8;
@@ -145,6 +157,7 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'reg', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -155,6 +168,7 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'ot', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -173,6 +187,7 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'sick', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -183,6 +198,7 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'vac', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -191,6 +207,7 @@ export default function Timesheets() {
                       size="small"
                       disabled={disabled}
                       onChange={e => handleChange(i, 'note', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell sx={{ color: over ? 'error.main' : undefined }}>
@@ -226,9 +243,24 @@ export default function Timesheets() {
     );
   }
 
+  const tabs: TabItem[] = timesheets.map(p => ({
+    label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
+    content: p.id === current?.id ? renderTable() : null,
+  }));
+
   return (
     <Page title={t('timesheets.title')}>
-      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+      {loadingSheets ? (
+        <CircularProgress />
+      ) : (
+        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+      )}
+      <FeedbackSnackbar
+        open={!!message}
+        onClose={() => setMessage('')}
+        message={message}
+        severity="error"
+      />
     </Page>
   );
 }
