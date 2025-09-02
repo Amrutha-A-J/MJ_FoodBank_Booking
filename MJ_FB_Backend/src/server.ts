@@ -15,6 +15,7 @@ import {
   stopVolunteerNoShowCleanupJob,
 } from './utils/volunteerNoShowCleanupJob';
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
+import seedTimesheets from './utils/timesheetSeeder';
 
 const PORT = config.port;
 
@@ -36,6 +37,7 @@ async function init() {
     startVolunteerShiftReminderJob();
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
+    await seedTimesheets();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
