@@ -360,7 +360,7 @@ export function getHelpContent(
       body: {
         description: 'Configure system options for pantry scheduling, warehouse tracking, and volunteer management.',
         steps: [
-          'Open Settings.',
+          'Go to Admin > Settings.',
           'Choose Pantry, Warehouse, or Volunteer.',
           'Update options and save.',
         ],
