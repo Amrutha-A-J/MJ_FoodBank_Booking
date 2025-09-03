@@ -189,6 +189,11 @@ export default function ClientDashboard() {
               )}
             </SectionCard>
 
+          </Stack>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack spacing={2}>
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -210,11 +215,7 @@ export default function ClientDashboard() {
                 </List>
               </Stack>
             </SectionCard>
-          </Stack>
-        </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack spacing={2}>
             <SectionCard
               title={t('next_available_slots')}
               icon={<EventAvailable color="primary" />}
