@@ -336,10 +336,10 @@ export default function App() {
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
                   )}
-                  {showStaff && (
+                  {isStaff && (
                     <Route path="/timesheet" element={<Timesheets />} />
                   )}
-                  {showStaff && (
+                  {isStaff && (
                     <Route
                       path="/leave-requests"
                       element={<LeaveManagement />}
