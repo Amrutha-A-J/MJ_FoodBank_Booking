@@ -41,7 +41,7 @@ import {
 import { formatTime } from '../../../utils/time';
 import type { VolunteerRoleWithShifts } from '../../../types';
 
-export default function VolunteerSettings() {
+export default function VolunteerSettingsTab() {
   const [masterRoles, setMasterRoles] = useState<MasterRole[]>([]);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
