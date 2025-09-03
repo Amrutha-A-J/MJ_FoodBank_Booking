@@ -12,7 +12,7 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import { getAllSlots, updateSlotCapacity } from '../../../api/slots';
 import { getAppConfig, updateAppConfig } from '../../../api/appConfig';
 
-export default function PantrySettings() {
+export default function PantrySettingsTab() {
   const [capacity, setCapacity] = useState<number>(0);
   const [cartTare, setCartTare] = useState<number>(0);
   const [snackbar, setSnackbar] = useState<

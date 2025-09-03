@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PantrySettings from '../settings/PantrySettings';
+import PantrySettingsTab from '../settings/PantrySettingsTab';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
 
@@ -19,14 +19,14 @@ jest.mock('../../../api/appConfig', () => ({
 const { getAllSlots, updateSlotCapacity } = jest.requireMock('../../../api/slots');
 const { getAppConfig, updateAppConfig } = jest.requireMock('../../../api/appConfig');
 
-describe('PantrySettings', () => {
+describe('PantrySettingsTab', () => {
   it('updates capacity and cart tare', async () => {
     (getAllSlots as jest.Mock).mockResolvedValue<Slot[]>([{ maxCapacity: 5 }]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
 
     render(
       <ThemeProvider theme={theme}>
-        <PantrySettings />
+        <PantrySettingsTab />
       </ThemeProvider>,
     );
 
