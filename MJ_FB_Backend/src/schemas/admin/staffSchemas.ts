@@ -1,7 +1,14 @@
 import { z } from 'zod';
 import { passwordSchema } from '../../utils/passwordUtils';
 
-export const staffAccessEnum = z.enum(['pantry','volunteer_management','warehouse','admin']);
+export const staffAccessEnum = z.enum([
+  'pantry',
+  'volunteer_management',
+  'warehouse',
+  'admin',
+  'other',
+  'payroll_management',
+]);
 
 export const createStaffSchema = z.object({
   firstName: z.string().min(1),

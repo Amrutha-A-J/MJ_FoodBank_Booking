@@ -108,6 +108,19 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           label="Warehouse"
         />
         <FormControlLabel
+          control={
+            <Checkbox
+              checked={access.includes('payroll_management')}
+              onChange={() => toggleAccess('payroll_management')}
+            />
+          }
+          label="Payroll Management"
+        />
+        <FormControlLabel
+          control={<Checkbox checked={access.includes('other')} onChange={() => toggleAccess('other')} />}
+          label="Other"
+        />
+        <FormControlLabel
           control={<Checkbox checked={access.includes('admin')} onChange={() => toggleAccess('admin')} />}
           label="Admin"
         />

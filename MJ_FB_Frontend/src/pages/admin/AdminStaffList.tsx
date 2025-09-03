@@ -16,13 +16,22 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { listStaff, deleteStaff, searchStaff } from '../../api/adminStaff';
-import type { Staff } from '../../types';
+import type { Staff, StaffAccess } from '../../types';
 
 export default function AdminStaffList() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const accessLabels: Record<StaffAccess, string> = {
+    pantry: 'Pantry',
+    volunteer_management: 'Volunteer Management',
+    warehouse: 'Warehouse',
+    admin: 'Admin',
+    other: 'Other',
+    payroll_management: 'Payroll Management',
+  };
 
   async function load() {
     try {
@@ -77,7 +86,7 @@ export default function AdminStaffList() {
               <TableRow key={s.id}>
                 <TableCell>{s.firstName} {s.lastName}</TableCell>
                 <TableCell>{s.email}</TableCell>
-                <TableCell>{s.access.join(', ')}</TableCell>
+                <TableCell>{s.access.map(a => accessLabels[a]).join(', ')}</TableCell>
                 <TableCell align="right">
                   <IconButton component={RouterLink} to={`/admin/staff/${s.id}`} size="small" aria-label="edit">
                     <EditIcon />
