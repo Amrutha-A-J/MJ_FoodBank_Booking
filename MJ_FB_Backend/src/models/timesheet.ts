@@ -31,7 +31,15 @@ export interface TimesheetSummary extends Timesheet {
   ot_hours: number;
 }
 
-export async function getTimesheetsForStaff(staffId: number): Promise<TimesheetSummary[]> {
+export async function getTimesheets(
+  staffId?: number,
+): Promise<TimesheetSummary[]> {
+  const params: any[] = [];
+  let where = '';
+  if (staffId !== undefined) {
+    params.push(staffId);
+    where = 'WHERE t.staff_id = $1';
+  }
   const res = await pool.query(
     `SELECT t.id, t.staff_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
             COALESCE(tot.total_hours, 0) AS total_hours,
@@ -42,11 +50,36 @@ export async function getTimesheetsForStaff(staffId: number): Promise<TimesheetS
        LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
        LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
        LEFT JOIN v_timesheet_balance bal ON bal.timesheet_id = t.id
-      WHERE t.staff_id = $1
+      ${where}
       ORDER BY t.start_date DESC`,
-    [staffId],
+    params,
   );
   return res.rows;
+}
+
+export async function getTimesheetsForStaff(
+  staffId: number,
+): Promise<TimesheetSummary[]> {
+  return getTimesheets(staffId);
+}
+
+export async function getTimesheetSummary(
+  id: number,
+): Promise<TimesheetSummary | undefined> {
+  const res = await pool.query(
+    `SELECT t.id, t.staff_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
+            COALESCE(tot.total_hours, 0) AS total_hours,
+            COALESCE(exp.expected_hours, 0) AS expected_hours,
+            COALESCE(bal.balance_hours, 0) AS balance_hours,
+            COALESCE(bal.ot_hours, 0) AS ot_hours
+       FROM timesheets t
+       LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
+       LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
+       LEFT JOIN v_timesheet_balance bal ON bal.timesheet_id = t.id
+      WHERE t.id = $1`,
+    [id],
+  );
+  return res.rows[0];
 }
 
 export async function getTimesheetById(id: number): Promise<Timesheet | undefined> {
