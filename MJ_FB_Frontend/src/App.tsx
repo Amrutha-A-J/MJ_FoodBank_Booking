@@ -171,7 +171,6 @@ export default function App() {
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
-      { label: t('timesheets.title'), to: '/timesheet' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
     ];
