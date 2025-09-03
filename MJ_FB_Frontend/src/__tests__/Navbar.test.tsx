@@ -23,7 +23,7 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Logout/i)).toBeInTheDocument();
   });
 
-  it('shows staff profile links', () => {
+  it('shows staff profile links only in the profile menu', () => {
     render(
       <MemoryRouter>
         <Navbar
@@ -39,6 +39,8 @@ describe('Navbar component', () => {
       </MemoryRouter>,
     );
 
+    expect(screen.queryByText(/Timesheets/i)).toBeNull();
+    expect(screen.queryByText(/Leave Management/i)).toBeNull();
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     expect(screen.getByText(/Timesheets/i)).toBeInTheDocument();
     expect(screen.getByText(/Leave Management/i)).toBeInTheDocument();
