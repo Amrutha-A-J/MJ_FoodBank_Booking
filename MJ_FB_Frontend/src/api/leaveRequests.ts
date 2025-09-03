@@ -31,6 +31,11 @@ export async function listLeaveRequests(
   return handleResponse(res);
 }
 
+export async function listAllLeaveRequests(): Promise<LeaveRequest[]> {
+  const res = await apiFetch(`${API_BASE}/leave/requests`);
+  return handleResponse(res);
+}
+
 export async function approveLeaveRequest(requestId: number): Promise<void> {
   const res = await apiFetch(
     `${API_BASE}/timesheets/leave-requests/${requestId}/approve`,
@@ -44,6 +49,14 @@ export function useLeaveRequests(timesheetId?: number) {
     queryKey: ['leaveRequests', timesheetId],
     queryFn: () => listLeaveRequests(timesheetId!),
     enabled: !!timesheetId,
+  });
+  return { requests: data ?? [], isLoading: isFetching, error };
+}
+
+export function useAllLeaveRequests() {
+  const { data, isFetching, error } = useQuery<LeaveRequest[]>({
+    queryKey: ['leaveRequests'],
+    queryFn: listAllLeaveRequests,
   });
   return { requests: data ?? [], isLoading: isFetching, error };
 }

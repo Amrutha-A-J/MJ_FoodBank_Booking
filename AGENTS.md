@@ -9,6 +9,7 @@
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes. Timesheets now support vacation leave requests via `/timesheets/:id/leave-requests`; ensure related translations are added.
 - Global review endpoints exist under `/api/leave/requests` for leave submissions; document changes and translations when updating leave features.
+- Staff access timesheets and leave requests from the profile menu; admins review them under Admin → Timesheets and Admin → Leave Requests.
 - A GitHub Actions workflow in `.github/workflows/release.yml` builds, tests, and deploys container images to Azure Container Apps. Configure repository secrets `AZURE_CREDENTIALS`, `REGISTRY_LOGIN_SERVER`, `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` and variables `AZURE_RESOURCE_GROUP`, `BACKEND_APP_NAME`, and `FRONTEND_APP_NAME`; see `docs/release.md` for details.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The backend requires Node.js 22+ for native `fetch`; earlier versions are not supported.

@@ -102,6 +102,12 @@ const VolunteerSettings = React.lazy(() =>
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
 const Timesheets = React.lazy(() => import('./pages/staff/timesheets'));
+const LeaveManagement = React.lazy(
+  () => import('./pages/staff/LeaveManagement'),
+);
+const AdminLeaveRequests = React.lazy(
+  () => import('./pages/admin/LeaveRequests'),
+);
 const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
 const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
@@ -147,7 +153,11 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
-    ? [{ label: 'Events', to: '/events' }]
+    ? [
+        { label: t('news_and_events'), to: '/events' },
+        { label: t('timesheets.title'), to: '/pantry/timesheets' },
+        { label: t('leave.title'), to: '/pantry/leave-requests' },
+      ]
     : undefined;
   if (!role) {
     navGroups.push(
@@ -205,6 +215,8 @@ export default function App() {
         label: 'Admin',
         links: [
           { label: 'Staff', to: '/admin/staff' },
+          { label: t('timesheets.title'), to: '/admin/timesheets' },
+          { label: t('leave.title'), to: '/admin/leave-requests' },
           { label: 'Warehouse Settings', to: '/admin/warehouse-settings' },
           { label: 'Pantry Settings', to: '/admin/pantry-settings' },
           { label: 'Volunteer Settings', to: '/admin/volunteer-settings' },
@@ -335,6 +347,12 @@ export default function App() {
                   {showStaff && (
                     <Route path="/pantry/timesheets" element={<Timesheets />} />
                   )}
+                  {showStaff && (
+                    <Route
+                      path="/pantry/leave-requests"
+                      element={<LeaveManagement />}
+                    />
+                  )}
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
                   )}
@@ -417,6 +435,15 @@ export default function App() {
                   {showAdmin && <Route path="/admin/staff" element={<AdminStaffList />} />}
                   {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
                   {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
+                  {showAdmin && (
+                    <Route path="/admin/timesheets" element={<Timesheets />} />
+                  )}
+                  {showAdmin && (
+                    <Route
+                      path="/admin/leave-requests"
+                      element={<AdminLeaveRequests />}
+                    />
+                  )}
                   {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
                   {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
                   {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}

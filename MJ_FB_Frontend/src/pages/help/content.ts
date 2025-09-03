@@ -294,6 +294,17 @@ export function getHelpContent(
         ],
       },
     },
+    {
+      title: t('help.pantry.leave.title'),
+      body: {
+        description: t('help.pantry.leave.description'),
+        steps: [
+          t('help.pantry.leave.steps.0'),
+          t('help.pantry.leave.steps.1'),
+          t('help.pantry.leave.steps.2'),
+        ],
+      },
+    },
   ],
   warehouse: [
     {
@@ -377,7 +388,29 @@ export function getHelpContent(
         ],
       },
     },
+    {
+      title: 'Review timesheets',
+      body: {
+        description: 'Approve or reject submitted timesheets.',
+        steps: [
+          'Go to Admin > Timesheets.',
+          'Open a period and review hours.',
+          'Approve or reject as needed.',
+        ],
+      },
+    },
+    {
+      title: 'Approve leave requests',
+      body: {
+        description: 'Review staff vacation requests.',
+        steps: [
+          'Navigate to Admin > Leave Requests.',
+          'Review pending requests.',
+          'Approve requests to apply vacation hours.',
+        ],
+      },
+    },
   ],
-  };
+};
 }
 

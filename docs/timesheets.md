@@ -2,6 +2,10 @@
 
 Staff can record daily hours and submit pay periods.
 
+Staff access timesheets and leave management from the **Hello** menu in the
+top-right corner. Admins can review periods and vacation requests from the
+**Admin → Timesheets** and **Admin → Leave Requests** menu items.
+
 ## Setup
 
 1. Start the backend once so `setupDatabase` creates the pay period, timesheet, and leave tables.
