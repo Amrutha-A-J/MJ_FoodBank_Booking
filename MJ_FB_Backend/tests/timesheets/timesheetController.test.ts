@@ -1,8 +1,8 @@
 import '../setupTests';
 import {
   listMyTimesheets,
+  listTimesheets,
   getTimesheetDays,
-  getTimesheetDaysAdmin,
   updateTimesheetDay,
   submitTimesheet,
   rejectTimesheet,
@@ -20,6 +20,29 @@ describe('timesheet controller', () => {
     const res: any = { json: jest.fn() };
     await listMyTimesheets(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([{ id: 1 }]);
+  });
+
+  it('lists all timesheets for admin', async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ id: 1 }, { id: 2 }],
+      rowCount: 2,
+    });
+    const req: any = { user: { id: '99', role: 'admin', type: 'staff' }, query: {} };
+    const res: any = { json: jest.fn() };
+    await listTimesheets(req, res, () => {});
+    expect(res.json).toHaveBeenCalledWith([{ id: 1 }, { id: 2 }]);
+  });
+
+  it('filters timesheets by staffId for admin', async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 3 }], rowCount: 1 });
+    const req: any = {
+      user: { id: '99', role: 'admin', type: 'staff' },
+      query: { staffId: '3' },
+    };
+    const res: any = { json: jest.fn() };
+    await listTimesheets(req, res, () => {});
+    expect(mockPool.query).toHaveBeenCalledWith(expect.stringContaining('WHERE t.staff_id = $1'), [3]);
+    expect(res.json).toHaveBeenCalledWith([{ id: 3 }]);
   });
 
   it('gets timesheet days', async () => {
@@ -102,7 +125,7 @@ describe('timesheet controller', () => {
       });
     const req: any = { user: { id: '99', role: 'admin', type: 'staff' }, params: { id: '1' } };
     const res: any = { json: jest.fn() };
-    await getTimesheetDaysAdmin(req, res, () => {});
+    await getTimesheetDays(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([
       {
         id: 3,

@@ -65,12 +65,12 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ## API usage
 
 - `GET /timesheets/mine` – list pay periods for the logged in staff member.
-- `GET /timesheets/:id/days` – list daily entries for a timesheet.
-- `GET /admin/timesheets/:id/days` – admins can list daily entries for any staff timesheet.
+- `GET /timesheets` – admins can list pay periods for all staff and may filter with `?staffId=`.
+- `GET /timesheets/:id/days` – list daily entries for a timesheet. Admins may retrieve any staff timesheet.
 - `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
-- `POST /timesheets/:id/reject` – reject a submitted timesheet.
-- `POST /timesheets/:id/process` – mark a timesheet as processed and exportable.
+- `POST /timesheets/:id/reject` – reject a submitted timesheet (admin only).
+- `POST /timesheets/:id/process` – mark a timesheet as processed and exportable (admin only).
 - `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
 - `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
 - `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.

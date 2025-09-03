@@ -55,6 +55,7 @@ const mockUseTimesheetDays = jest.fn(() => ({
   error: null,
 }));
 const mockUseAllTimesheets = jest.fn();
+const mockSearchStaff = jest.fn();
 
 jest.mock('../../../api/timesheets', () => ({
   useTimesheets: () => ({
@@ -83,6 +84,9 @@ jest.mock('../../../api/timesheets', () => ({
   useProcessTimesheet: () => ({ mutate: jest.fn() }),
 }));
 
+jest.mock('../../../api/staff', () => ({
+  searchStaff: (...args: any[]) => mockSearchStaff(...args),
+}));
 jest.mock('../../../api/leaveRequests', () => ({
   useCreateLeaveRequest: () => ({ mutate: jest.fn() }),
   useLeaveRequests: () => ({ requests: [], isLoading: false, error: null }),
@@ -94,6 +98,7 @@ beforeEach(() => {
   mockUpdate.mockClear();
   mockUseTimesheetDays.mockClear();
   mockUseAllTimesheets.mockClear();
+  mockSearchStaff.mockClear();
 });
 
 function render(path = '/timesheet') {
@@ -195,6 +200,40 @@ describe('Timesheets', () => {
     });
     render('/admin/timesheet');
     expect(screen.getByText('Select Staff')).toBeInTheDocument();
+  });
+
+  it('loads timesheets after selecting staff in admin', async () => {
+    mockSearchStaff.mockResolvedValueOnce([{ id: 2, name: 'Alice' }]);
+    mockUseAllTimesheets.mockImplementation((id?: number) =>
+      id === 2
+        ? {
+            timesheets: [
+              {
+                id: 10,
+                staff_id: 2,
+                start_date: '2024-01-01',
+                end_date: '2024-01-07',
+                submitted_at: '2024-01-02',
+                approved_at: null,
+                total_hours: 0,
+                expected_hours: 0,
+                balance_hours: 0,
+                ot_hours: 0,
+              },
+            ],
+            isLoading: false,
+            error: null,
+          }
+        : { timesheets: [], isLoading: false, error: null },
+    );
+    const user = userEvent.setup();
+    render('/admin/timesheet');
+    const input = screen.getByLabelText('Staff');
+    await user.type(input, 'Ali');
+    const option = await screen.findByText('Alice');
+    await user.click(option);
+    expect(mockUseAllTimesheets).toHaveBeenLastCalledWith(2);
+    await screen.findByText('Reject');
   });
 });
 

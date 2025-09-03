@@ -343,7 +343,7 @@ export default function Timesheets() {
               {t('timesheets.submit')}
             </Button>
           )}
-          {current.submitted_at && !current.approved_at && (
+          {current.submitted_at && !current.approved_at && inAdmin && (
             <>
               <Button
                 variant="contained"
