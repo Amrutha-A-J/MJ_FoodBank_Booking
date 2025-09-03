@@ -359,6 +359,10 @@ export default function VolunteerDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
+            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
+              <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+            </SectionCard>
+
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
@@ -443,10 +447,6 @@ export default function VolunteerDashboard() {
                   <Typography>No available shifts</Typography>
                 )}
               </List>
-            </SectionCard>
-
-            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
-              <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
 
             <SectionCard
