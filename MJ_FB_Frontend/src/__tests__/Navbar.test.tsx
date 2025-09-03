@@ -32,8 +32,8 @@ describe('Navbar component', () => {
           name="Tester"
           role="staff"
           profileLinks={[
-            { label: 'Timesheets', to: '/pantry/timesheets' },
-            { label: 'Leave Management', to: '/pantry/leave-requests' },
+            { label: 'Timesheets', to: '/timesheet' },
+            { label: 'Leave Management', to: '/leave-requests' },
           ]}
         />
       </MemoryRouter>,
