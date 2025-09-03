@@ -25,25 +25,40 @@ export async function listMyTimesheets(
   }
 }
 
-export async function getTimesheetDays(req: Request, res: Response, next: NextFunction) {
-  try {
-    if (!req.user || req.user.type !== 'staff')
-      return res.status(401).json({ message: 'Unauthorized' });
-    const timesheetId = Number(req.params.id);
-    const ts = await getTimesheetById(timesheetId);
-    if (!ts || ts.staff_id !== Number(req.user.id)) {
-      return next({
-        status: 404,
-        code: 'TIMESHEET_NOT_FOUND',
-        message: 'Timesheet not found',
-      });
+function getTimesheetDaysHandler({ bypassOwnershipCheck = false } = {}) {
+  return async function getTimesheetDays(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    try {
+      if (!req.user || req.user.type !== 'staff')
+        return res.status(401).json({ message: 'Unauthorized' });
+      const timesheetId = Number(req.params.id);
+      const ts = await getTimesheetById(timesheetId);
+      if (
+        !ts ||
+        (ts.staff_id !== Number(req.user.id) &&
+          (!bypassOwnershipCheck || req.user.role !== 'admin'))
+      ) {
+        return next({
+          status: 404,
+          code: 'TIMESHEET_NOT_FOUND',
+          message: 'Timesheet not found',
+        });
+      }
+      const days = await modelGetTimesheetDays(timesheetId);
+      res.json(days);
+    } catch (err) {
+      next(err);
     }
-    const days = await modelGetTimesheetDays(timesheetId);
-    res.json(days);
-  } catch (err) {
-    next(err);
-  }
+  };
 }
+
+export const getTimesheetDays = getTimesheetDaysHandler();
+export const getTimesheetDaysAdmin = getTimesheetDaysHandler({
+  bypassOwnershipCheck: true,
+});
 
 export async function updateTimesheetDay(req: Request, res: Response, next: NextFunction) {
   try {

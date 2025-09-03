@@ -10,7 +10,9 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see
 **Timesheets** at `/admin/timesheet` and **Leave Requests** at
-`/admin/leave-requests` under the Admin menu for reviewing submissions.
+`/admin/leave-requests` under the Admin menu for reviewing submissions. Admins can
+also retrieve any staff timesheet's day entries through the API at
+`GET /admin/timesheets/:id/days`.
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 

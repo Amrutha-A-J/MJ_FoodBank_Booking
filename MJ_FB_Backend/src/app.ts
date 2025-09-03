@@ -36,6 +36,7 @@ import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
 import volunteerStatsRoutes from './routes/volunteerStats';
 import timesheetsRoutes from './routes/timesheets';
+import adminTimesheetsRoutes from './routes/admin/timesheets';
 import leaveRequestsRoutes from './routes/leaveRequests';
 import { initializeSlots } from './data';
 import csrfMiddleware from './middleware/csrf';
@@ -90,6 +91,7 @@ app.use('/events', eventsRoutes);
 app.use('/badges', badgesRoutes);
 app.use('/stats', statsRoutes);
 app.use('/timesheets', timesheetsRoutes);
+app.use('/admin/timesheets', adminTimesheetsRoutes);
 app.use('/api/leave/requests', leaveRequestsRoutes);
 
 // Serve the frontend in production
