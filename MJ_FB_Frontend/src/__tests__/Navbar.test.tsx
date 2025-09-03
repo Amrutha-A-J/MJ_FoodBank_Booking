@@ -40,7 +40,11 @@ describe('Navbar component', () => {
           onLogout={() => {}}
           name="Tester"
           role="staff"
-          profileLinks={[{ label: 'News & Events', to: '/events' }]}
+          profileLinks={[
+            { label: 'News & Events', to: '/events' },
+            { label: 'Timesheets', to: '/timesheet' },
+            { label: 'Leave Management', to: '/leave-requests' },
+          ]}
         />
       </MemoryRouter>,
     );
@@ -51,8 +55,8 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Leave Management/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     const profileMenu = document.getElementById('profile-menu') as HTMLElement;
-    expect(within(profileMenu).queryByText(/Timesheets/i)).toBeNull();
-    expect(within(profileMenu).queryByText(/Leave Management/i)).toBeNull();
+    expect(within(profileMenu).getByText(/Timesheets/i)).toBeInTheDocument();
+    expect(within(profileMenu).getByText(/Leave Management/i)).toBeInTheDocument();
   });
 
   it('renders without greeting when name is absent', () => {
