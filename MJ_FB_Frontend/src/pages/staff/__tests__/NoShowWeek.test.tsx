@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NoShowWeek from '../client-management/NoShowWeek';
 import { getBookings } from '../../../api/bookings';
@@ -10,9 +10,9 @@ jest.mock('../../../api/bookings', () => ({
 describe('NoShowWeek', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T12:00:00'));
+    jest.setSystemTime(new Date('2023-12-31T12:00:00'));
     (getBookings as jest.Mock).mockImplementation(({ date }) => {
-      if (date === '2024-01-01') {
+      if (date === '2023-12-31') {
         return Promise.resolve([
           {
             id: 1,
@@ -70,42 +70,14 @@ describe('NoShowWeek', () => {
     (getBookings as jest.Mock).mockReset();
   });
 
-  it('filters today bookings by status', async () => {
+  it('shows each day in tabs with full date when selected', async () => {
     render(
       <MemoryRouter>
         <NoShowWeek />
       </MemoryRouter>,
     );
 
-    const table = await screen.findByTestId('today-bookings');
-
-    expect(within(table).getByText('No Show')).toBeInTheDocument();
-    expect(within(table).getByText('Approved Past')).toBeInTheDocument();
-    expect(within(table).queryByText('Approved Future')).not.toBeInTheDocument();
-
-    const filter = screen.getByLabelText('Status');
-    fireEvent.mouseDown(filter);
-    let listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText(/Approved/i));
-
-    expect(within(table).queryByText('No Show')).not.toBeInTheDocument();
-    expect(within(table).getByText('Approved Past')).toBeInTheDocument();
-
-    fireEvent.mouseDown(filter);
-    listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText(/No Show/i));
-
-    expect(within(table).getByText('No Show')).toBeInTheDocument();
-    expect(within(table).queryByText('Approved Past')).not.toBeInTheDocument();
-  });
-
-  it('shows full dates for each day', () => {
-    render(
-      <MemoryRouter>
-        <NoShowWeek />
-      </MemoryRouter>,
-    );
-
+    const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dates = [
       'Sunday, Dec 31, 2023',
       'Monday, Jan 1, 2024',
@@ -115,9 +87,16 @@ describe('NoShowWeek', () => {
       'Friday, Jan 5, 2024',
       'Saturday, Jan 6, 2024',
     ];
-    dates.forEach(date => {
-      expect(screen.getByText(date)).toBeInTheDocument();
+
+    labels.forEach(label => {
+      expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
     });
+
+    for (let i = 0; i < labels.length; i++) {
+      const tab = screen.getByRole('tab', { name: labels[i] });
+      fireEvent.click(tab);
+      expect(await screen.findByText(dates[i])).toBeInTheDocument();
+    }
   });
 });
 
