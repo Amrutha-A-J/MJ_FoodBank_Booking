@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PantrySettings from '../PantrySettings';
+import PantrySettings from '../settings/PantrySettings';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
 

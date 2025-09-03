@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { TextField, Button } from '@mui/material';
-import FormCard from '../../components/FormCard';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import FormCard from '../../../components/FormCard';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import {
   getWarehouseSettings,
   updateWarehouseSettings,
-} from '../../api/warehouseSettings';
+} from '../../../api/warehouseSettings';
 
 export default function WarehouseSettings() {
   const [form, setForm] = useState({

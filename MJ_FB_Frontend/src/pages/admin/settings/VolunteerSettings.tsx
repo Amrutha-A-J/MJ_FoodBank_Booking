@@ -22,11 +22,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Page from '../../components/Page';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import MasterRoleDialog, { type MasterRole } from './components/MasterRoleDialog';
-import SubRoleDialog from './components/SubRoleDialog';
-import ShiftDialog from './components/ShiftDialog';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import MasterRoleDialog, { type MasterRole } from '../components/MasterRoleDialog';
+import SubRoleDialog from '../components/SubRoleDialog';
+import ShiftDialog from '../components/ShiftDialog';
 import {
   getVolunteerMasterRoles,
   getVolunteerRoles,
@@ -38,9 +37,9 @@ import {
   toggleVolunteerRole,
   deleteVolunteerRole,
   restoreVolunteerRoles,
-} from '../../api/volunteers';
-import { formatTime } from '../../utils/time';
-import type { VolunteerRoleWithShifts } from '../../types';
+} from '../../../api/volunteers';
+import { formatTime } from '../../../utils/time';
+import type { VolunteerRoleWithShifts } from '../../../types';
 
 export default function VolunteerSettings() {
   const [masterRoles, setMasterRoles] = useState<MasterRole[]>([]);
@@ -354,7 +353,7 @@ export default function VolunteerSettings() {
   }
 
   return (
-    <Page title="Volunteer Settings">
+    <>
       <Box p={2}>
         <Box mb={2}>
           <Stack direction="row" spacing={1}>
@@ -591,6 +590,6 @@ export default function VolunteerSettings() {
         message={snack.message}
         onClose={() => setSnack({ ...snack, open: false })}
       />
-    </Page>
+    </>
   );
 }
