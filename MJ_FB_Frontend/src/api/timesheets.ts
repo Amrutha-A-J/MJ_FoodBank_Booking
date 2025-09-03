@@ -35,6 +35,15 @@ export async function listTimesheets(): Promise<TimesheetSummary[]> {
   return handleResponse(res);
 }
 
+export async function listAllTimesheets(
+  staffId?: number,
+): Promise<TimesheetSummary[]> {
+  const url = new URL(`${API_BASE}/timesheets`);
+  if (staffId) url.searchParams.set('staffId', String(staffId));
+  const res = await apiFetch(url.toString());
+  return handleResponse(res);
+}
+
 export async function getTimesheetDays(timesheetId: number): Promise<TimesheetDay[]> {
   const res = await apiFetch(`${API_BASE}/timesheets/${timesheetId}/days`);
   return handleResponse(res);
@@ -89,6 +98,15 @@ export function useTimesheets() {
   return { timesheets: data ?? [], isLoading: isFetching, error };
 }
 
+export function useAllTimesheets(staffId?: number) {
+  const { data, isFetching, error } = useQuery<TimesheetSummary[]>({
+    queryKey: ['allTimesheets', staffId],
+    queryFn: () => listAllTimesheets(staffId),
+    enabled: staffId !== undefined,
+  });
+  return { timesheets: data ?? [], isLoading: isFetching, error };
+}
+
 export function useTimesheetDays(timesheetId?: number) {
   const { data, isFetching, error } = useQuery<TimesheetDay[]>({
     queryKey: ['timesheets', timesheetId, 'days'],
@@ -117,6 +135,7 @@ export function useUpdateTimesheetDay(timesheetId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
       qc.invalidateQueries({ queryKey: ['timesheets'] });
+      qc.invalidateQueries({ queryKey: ['allTimesheets'] });
     },
   });
 }
@@ -128,6 +147,7 @@ export function useSubmitTimesheet() {
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ['timesheets'] });
       qc.invalidateQueries({ queryKey: ['timesheets', id, 'days'] });
+      qc.invalidateQueries({ queryKey: ['allTimesheets'] });
     },
   });
 }
@@ -138,6 +158,7 @@ export function useRejectTimesheet() {
     mutationFn: rejectTimesheet,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['timesheets'] });
+      qc.invalidateQueries({ queryKey: ['allTimesheets'] });
     },
   });
 }
@@ -148,6 +169,7 @@ export function useProcessTimesheet() {
     mutationFn: processTimesheet,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['timesheets'] });
+      qc.invalidateQueries({ queryKey: ['allTimesheets'] });
     },
   });
 }

@@ -30,12 +30,12 @@ describe('HelpPage', () => {
     } as any);
     renderPage();
     expect(screen.getByText(/View schedule/i)).toBeInTheDocument();
-    expect(screen.getByText(/Recurring bookings/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Recurring bookings/i)[0]).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/search/i), {
       target: { value: 'recurring' },
     });
     expect(screen.queryByText(/View schedule/i)).toBeNull();
-    expect(screen.getByText(/Recurring bookings/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Recurring bookings/i)[0]).toBeInTheDocument();
   });
 
   it('calls window.print when clicking Print', () => {

@@ -12,6 +12,7 @@ import {
   Typography,
   CircularProgress,
   Button,
+  Autocomplete,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import Page from '../../components/Page';
@@ -22,6 +23,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import type { ApiError } from '../../api/client';
 import {
   useTimesheets,
+  useAllTimesheets,
   useTimesheetDays,
   useUpdateTimesheetDay,
   useSubmitTimesheet,
@@ -33,6 +35,8 @@ import {
   useLeaveRequests,
   useApproveLeaveRequest,
 } from '../../api/leaveRequests';
+import { useMatch } from 'react-router-dom';
+import { searchStaff, type StaffOption } from '../../api/staff';
 
 interface Day {
   date: string;
@@ -49,8 +53,32 @@ interface Day {
 
 export default function Timesheets() {
   const { t } = useTranslation();
-  const { timesheets, isLoading: loadingSheets, error: sheetsError } =
-    useTimesheets();
+  const inAdmin = useMatch('/admin/*') !== null;
+  const [staffInput, setStaffInput] = useState('');
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
+  const [staff, setStaff] = useState<StaffOption | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (staffInput.length < 3) {
+      setStaffOptions([]);
+      return () => {
+        active = false;
+      };
+    }
+    searchStaff(staffInput)
+      .then(data => {
+        if (active) setStaffOptions(data);
+      })
+      .catch(() => {
+        if (active) setStaffOptions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [staffInput]);
+  const { timesheets, isLoading: loadingSheets, error: sheetsError } = inAdmin
+    ? useAllTimesheets(staff?.id)
+    : useTimesheets();
   const [tab, setTab] = useState(0);
 
   useEffect(() => {
@@ -283,12 +311,29 @@ export default function Timesheets() {
 
   return (
     <Page title={t('timesheets.title')}>
-      {loadingSheets ? (
-        <CircularProgress />
-      ) : (
-        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+      {inAdmin && (
+        <Autocomplete
+          options={staffOptions}
+          getOptionLabel={o => o.name}
+          value={staff}
+          onChange={(_, val) => setStaff(val)}
+          onInputChange={(_, val) => setStaffInput(val)}
+          renderInput={params => (
+            <TextField {...params} label={t('timesheets.staff')} margin="normal" />
+          )}
+          sx={{ mb: 2, maxWidth: 400 }}
+        />
       )}
-      {current && (
+      {!inAdmin || staff ? (
+        loadingSheets ? (
+          <CircularProgress />
+        ) : (
+          <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+        )
+      ) : (
+        <Typography sx={{ mt: 2 }}>{t('timesheets.select_staff')}</Typography>
+      )}
+      {current && (!inAdmin || staff) && (
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
           {!current.submitted_at && (
             <Button
@@ -316,7 +361,7 @@ export default function Timesheets() {
           )}
         </Box>
       )}
-      {current && (
+      {current && (!inAdmin || staff) && (
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6">
             {t('timesheets.request_leave')}

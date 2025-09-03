@@ -5,7 +5,7 @@ Staff can record daily hours and submit pay periods.
 Staff access timesheets at `/timesheet` and leave management at `/leave-requests`
 from the **Hello** menu in the top-right corner. Admins can review periods at
 `/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
-Admin menu.
+Admin menu. Admins select a staff member before viewing their periods.
 
 ## Setup
 
@@ -129,6 +129,8 @@ Add the following translation strings to locale files:
 - `timesheets.remove_row`
 - `timesheets.export_csv`
 - `timesheets.payroll_export`
+- `timesheets.staff`
+- `timesheets.select_staff`
 - `help.pantry.timesheets.title`
 - `help.pantry.timesheets.description`
 - `help.pantry.timesheets.steps.0`

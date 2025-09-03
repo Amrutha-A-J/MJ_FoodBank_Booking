@@ -243,7 +243,9 @@
     "lock_leave_tooltip": "Leave day is locked",
     "request_leave": "Request Leave",
     "review_leave": "Review Leave Requests",
-    "approve_leave": "Approve"
+    "approve_leave": "Approve",
+    "staff": "Staff",
+    "select_staff": "Select Staff"
   },
   "leave": {
     "title": "Leave Requests",

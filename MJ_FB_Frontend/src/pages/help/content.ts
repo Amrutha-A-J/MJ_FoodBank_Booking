@@ -394,6 +394,7 @@ export function getHelpContent(
         description: 'Approve or reject submitted timesheets.',
         steps: [
           'Go to Admin > Timesheets.',
+          'Select a staff member.',
           'Open a period and review hours.',
           'Approve or reject as needed.',
         ],

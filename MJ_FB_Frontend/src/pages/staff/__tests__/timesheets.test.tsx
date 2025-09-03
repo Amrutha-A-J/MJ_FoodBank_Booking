@@ -1,7 +1,8 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../../testUtils/renderWithProviders';
+import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 import Timesheets from '../timesheets';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockSubmit = jest.fn();
 const mockUpdate = jest.fn();
@@ -53,6 +54,7 @@ const mockUseTimesheetDays = jest.fn(() => ({
   isLoading: false,
   error: null,
 }));
+const mockUseAllTimesheets = jest.fn();
 
 jest.mock('../../../api/timesheets', () => ({
   useTimesheets: () => ({
@@ -73,6 +75,7 @@ jest.mock('../../../api/timesheets', () => ({
     isLoading: false,
     error: null,
   }),
+  useAllTimesheets: (...args: any[]) => mockUseAllTimesheets(...args),
   useTimesheetDays: (...args: any[]) => mockUseTimesheetDays(...args),
   useUpdateTimesheetDay: () => ({ mutate: mockUpdate }),
   useSubmitTimesheet: () => ({ mutate: mockSubmit }),
@@ -90,18 +93,27 @@ beforeEach(() => {
   mockSubmit.mockClear();
   mockUpdate.mockClear();
   mockUseTimesheetDays.mockClear();
+  mockUseAllTimesheets.mockClear();
 });
+
+function render(path = '/timesheet') {
+  return renderWithProviders(
+    <MemoryRouter initialEntries={[path]}>
+      <Timesheets />
+    </MemoryRouter>,
+  );
+}
 
 describe('Timesheets', () => {
   it('renders table headers', () => {
-    renderWithProviders(<Timesheets />);
+    render();
     expect(screen.getByText('Date')).toBeInTheDocument();
     expect(screen.getByText('Reg')).toBeInTheDocument();
     expect(screen.getByText('OT')).toBeInTheDocument();
   });
 
   it('shows stat day lock icon and tooltip', () => {
-    renderWithProviders(<Timesheets />);
+    render();
     const rows = screen.getAllByRole('row');
     const statRow = rows[1];
     expect(within(statRow).getByTestId('LockIcon')).toBeInTheDocument();
@@ -112,7 +124,7 @@ describe('Timesheets', () => {
 
   it('shows hint when day total exceeds cap', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<Timesheets />);
+    render();
     const rows = screen.getAllByRole('row');
     const dayRow = rows[2];
     const regInput = within(dayRow).getAllByRole('spinbutton')[0];
@@ -125,7 +137,7 @@ describe('Timesheets', () => {
   });
 
   it('calculates footer summaries', () => {
-    renderWithProviders(<Timesheets />);
+    render();
     const totalsRow = screen.getByText('Totals').closest('tr')!;
     const cells = within(totalsRow).getAllByRole('cell');
     expect(cells[1]).toHaveTextContent('16');
@@ -139,7 +151,7 @@ describe('Timesheets', () => {
 
   it('submits timesheet', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<Timesheets />);
+    render();
     await user.click(screen.getByRole('button', { name: /submit/i }));
     expect(mockSubmit).toHaveBeenCalledWith(1);
   });
@@ -165,7 +177,7 @@ describe('Timesheets', () => {
       isLoading: false,
       error: null,
     });
-    renderWithProviders(<Timesheets />);
+    render();
     const rows = screen.getAllByRole('row');
     const leaveRow = rows[1];
     expect(within(leaveRow).getByTestId('LockIcon')).toBeInTheDocument();
@@ -173,6 +185,16 @@ describe('Timesheets', () => {
     const vacInput = inputs[4];
     expect(vacInput).toBeDisabled();
     expect(screen.getByText('Leave day is locked')).toBeInTheDocument();
+  });
+
+  it('shows select staff message for admin', () => {
+    mockUseAllTimesheets.mockReturnValue({
+      timesheets: [],
+      isLoading: false,
+      error: null,
+    });
+    render('/admin/timesheet');
+    expect(screen.getByText('Select Staff')).toBeInTheDocument();
   });
 });
 
