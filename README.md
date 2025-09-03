@@ -135,8 +135,8 @@ Before merging a pull request, confirm the following:
 - Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
 - Volunteer booking statuses include `completed`, and cancelling a booking now requires a reason.
 - Volunteer interfaces show `completed` or `no_show`; submitting `visited` for a volunteer shift now returns `Use completed instead of visited for volunteer shifts`.
-- Admins can manage volunteer master roles, sub-roles, and their shifts from the Volunteer Settings page. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
-- Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Volunteer Settings page's **Restore Original Roles & Shifts** button.
+- Admins can manage volunteer master roles, sub-roles, and their shifts from the Settings page's Volunteer tab. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
+- Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Settings page's Volunteer tab **Restore Original Roles & Shifts** button.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).
 - Staff can mark bookings as no-show or visited through `/bookings/:id/no-show` and `/bookings/:id/visited` endpoints.
 - Walk-in bookings created via `/bookings/preapproved` are saved with status `approved` (the `preapproved` status has been removed).
@@ -155,9 +155,9 @@ Before merging a pull request, confirm the following:
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)).
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
-- Staff can set a cart tare value and a single maximum booking capacity applied to all pantry time slots through the Admin → Pantry Settings page or `PUT /slots/capacity`.
-- Bread and can surplus weight multipliers are configurable via the Admin → Warehouse Settings page.
-- Volunteer roles and shifts are managed through the Admin → Volunteer Settings page.
+- Staff can set a cart tare value and a single maximum booking capacity applied to all pantry time slots through the Admin → Settings → Pantry tab or `PUT /slots/capacity`.
+- Bread and can surplus weight multipliers are configurable via the Admin → Settings → Warehouse tab.
+- Volunteer roles and shifts are managed through the Admin → Settings → Volunteer tab.
 - `/volunteer-roles` now returns each role with `id` representing the role ID (the `role_id` field has been removed).
 - Creating volunteer role slots (`POST /volunteer-roles`) accepts either an existing `roleId` or a new `name` with `categoryId`.
 - Volunteer role start and end times are selected via a native time picker and stored as `HH:MM:SS`.
@@ -324,8 +324,8 @@ The build will fail if this variable is missing.
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to
-set default multipliers; values are editable in the Admin → Warehouse Settings
-page and cached on the server:
+set default multipliers; values are editable in the Admin → Settings → Warehouse tab
+and cached on the server:
 
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
@@ -344,8 +344,8 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Warehouse Aggregations page provides yearly totals and supports exporting them via `/warehouse-overall/export`.
 - Page and form titles render in uppercase with a lighter font weight for clarity.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
-- Admin navigation includes Pantry Settings and Volunteer Settings pages.
-- Pantry Settings page lets staff configure a cart tare value and one max booking capacity used for all pantry times.
+- Admin navigation includes a Settings page with Pantry, Warehouse, and Volunteer tabs.
+- The Settings page's Pantry tab lets staff configure a cart tare value and one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
 - Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).

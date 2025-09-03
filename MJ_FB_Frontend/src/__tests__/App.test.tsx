@@ -116,10 +116,7 @@ describe('App authentication persistence', () => {
       screen.queryByRole('menuitem', { name: 'App Config' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: 'Warehouse Settings' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: 'Pantry Settings' }),
+      screen.getByRole('menuitem', { name: 'Settings' }),
     ).toBeInTheDocument();
   });
 });

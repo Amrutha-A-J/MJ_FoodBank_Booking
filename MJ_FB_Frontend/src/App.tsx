@@ -92,13 +92,7 @@ const DonorProfile = React.lazy(() =>
 const Exports = React.lazy(() => import('./pages/warehouse-management/Exports'));
 const AdminStaffForm = React.lazy(() => import('./pages/admin/AdminStaffForm'));
 const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
-const WarehouseSettings = React.lazy(() =>
-  import('./pages/admin/WarehouseSettings')
-);
-const PantrySettings = React.lazy(() => import('./pages/admin/PantrySettings'));
-const VolunteerSettings = React.lazy(() =>
-  import('./pages/admin/VolunteerSettings')
-);
+const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
 const Timesheets = React.lazy(() => import('./pages/staff/timesheets'));
@@ -217,9 +211,7 @@ export default function App() {
           { label: 'Staff', to: '/admin/staff' },
           { label: t('timesheets.title'), to: '/admin/timesheet' },
           { label: t('leave.title'), to: '/admin/leave-requests' },
-          { label: 'Warehouse Settings', to: '/admin/warehouse-settings' },
-          { label: 'Pantry Settings', to: '/admin/pantry-settings' },
-          { label: 'Volunteer Settings', to: '/admin/volunteer-settings' },
+          { label: 'Settings', to: '/admin/settings' },
         ],
       });
 
@@ -444,9 +436,9 @@ export default function App() {
                       element={<AdminLeaveRequests />}
                     />
                   )}
-                  {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
-                  {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
-                  {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
+                  {showAdmin && (
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                  )}
                   {showVolunteerManagement && (
                     <>
                       <Route
