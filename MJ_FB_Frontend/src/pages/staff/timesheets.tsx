@@ -25,8 +25,6 @@ import {
   useTimesheetDays,
   useUpdateTimesheetDay,
   useSubmitTimesheet,
-  useRejectTimesheet,
-  useProcessTimesheet,
 } from '../../api/timesheets';
 import {
   useCreateLeaveRequest,
@@ -81,8 +79,6 @@ export default function Timesheets() {
 
   const updateMutation = useUpdateTimesheetDay(current?.id ?? 0);
   const submitMutation = useSubmitTimesheet();
-  const rejectMutation = useRejectTimesheet();
-  const processMutation = useProcessTimesheet();
   const leaveMutation = useCreateLeaveRequest(current?.id ?? 0);
   const { requests } = useLeaveRequests(current?.id);
   const approveLeaveMutation = useApproveLeaveRequest();
@@ -297,22 +293,6 @@ export default function Timesheets() {
             >
               {t('timesheets.submit')}
             </Button>
-          )}
-          {current.submitted_at && !current.approved_at && (
-            <>
-              <Button
-                variant="contained"
-                onClick={() => rejectMutation.mutate(current.id)}
-              >
-                {t('timesheets.reject')}
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => processMutation.mutate(current.id)}
-              >
-                {t('timesheets.process')}
-              </Button>
-            </>
           )}
         </Box>
       )}

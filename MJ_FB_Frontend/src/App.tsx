@@ -96,6 +96,7 @@ const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
 const Timesheets = React.lazy(() => import('./pages/staff/timesheets'));
+const AdminTimesheets = React.lazy(() => import('./pages/admin/Timesheets'));
 const LeaveManagement = React.lazy(
   () => import('./pages/staff/LeaveManagement'),
 );
@@ -431,7 +432,7 @@ export default function App() {
                   {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
                   {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
                   {showAdmin && (
-                    <Route path="/admin/timesheet" element={<Timesheets />} />
+                    <Route path="/admin/timesheet" element={<AdminTimesheets />} />
                   )}
                   {showAdmin && (
                     <Route

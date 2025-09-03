@@ -1,6 +1,7 @@
 import { apiFetch, handleResponse } from '../client';
 import {
   listTimesheets,
+  listAllTimesheets,
   getTimesheetDays,
   updateTimesheetDay,
   submitTimesheet,
@@ -22,6 +23,11 @@ describe('timesheets api', () => {
 
   it('lists my timesheets', async () => {
     await listTimesheets();
+    expect(apiFetch).toHaveBeenCalledWith('/api/timesheets/mine');
+  });
+
+  it('lists all timesheets', async () => {
+    await listAllTimesheets();
     expect(apiFetch).toHaveBeenCalledWith('/api/timesheets');
   });
 
@@ -31,12 +37,24 @@ describe('timesheets api', () => {
   });
 
   it('updates timesheet day', async () => {
-    await updateTimesheetDay(3, '2024-01-02', 7.5);
+    await updateTimesheetDay(3, '2024-01-02', {
+      regHours: 7.5,
+      otHours: 0,
+      statHours: 0,
+      sickHours: 0,
+      vacHours: 0,
+    });
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/timesheets/3/days/2024-01-02',
       expect.objectContaining({
         method: 'PATCH',
-        body: JSON.stringify({ hours: 7.5 }),
+        body: JSON.stringify({
+          regHours: 7.5,
+          otHours: 0,
+          statHours: 0,
+          sickHours: 0,
+          vacHours: 0,
+        }),
       }),
     );
   });

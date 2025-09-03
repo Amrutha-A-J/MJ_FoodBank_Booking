@@ -394,8 +394,8 @@ export function getHelpContent(
         description: 'Approve or reject submitted timesheets.',
         steps: [
           'Go to Admin > Timesheets.',
-          'Open a period and review hours.',
-          'Approve or reject as needed.',
+          'Select a staff member and pay period.',
+          'Review hours, then approve or reject.',
         ],
       },
     },

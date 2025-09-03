@@ -15,6 +15,10 @@ export interface TimesheetSummary {
   ot_hours: number;
 }
 
+export interface AdminTimesheetSummary extends TimesheetSummary {
+  staff_name: string;
+}
+
 export interface TimesheetDay {
   id: number;
   timesheet_id: number;
@@ -32,6 +36,11 @@ export interface TimesheetDay {
 
 export async function listTimesheets(): Promise<TimesheetSummary[]> {
   const res = await apiFetch(`${API_BASE}/timesheets/mine`);
+  return handleResponse(res);
+}
+
+export async function listAllTimesheets(): Promise<AdminTimesheetSummary[]> {
+  const res = await apiFetch(`${API_BASE}/timesheets`);
   return handleResponse(res);
 }
 
@@ -85,6 +94,14 @@ export function useTimesheets() {
   const { data, isFetching, error } = useQuery<TimesheetSummary[]>({
     queryKey: ['timesheets'],
     queryFn: listTimesheets,
+  });
+  return { timesheets: data ?? [], isLoading: isFetching, error };
+}
+
+export function useAllTimesheets() {
+  const { data, isFetching, error } = useQuery<AdminTimesheetSummary[]>({
+    queryKey: ['timesheets', 'all'],
+    queryFn: listAllTimesheets,
   });
   return { timesheets: data ?? [], isLoading: isFetching, error };
 }

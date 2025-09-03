@@ -31,6 +31,10 @@ export interface TimesheetSummary extends Timesheet {
   ot_hours: number;
 }
 
+export interface AdminTimesheetSummary extends TimesheetSummary {
+  staff_name: string;
+}
+
 export async function getTimesheetsForStaff(staffId: number): Promise<TimesheetSummary[]> {
   const res = await pool.query(
     `SELECT t.id, t.staff_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
@@ -47,6 +51,45 @@ export async function getTimesheetsForStaff(staffId: number): Promise<TimesheetS
     [staffId],
   );
   return res.rows;
+}
+
+export async function getAllTimesheets(): Promise<AdminTimesheetSummary[]> {
+  const res = await pool.query(
+    `SELECT t.id, t.staff_id, s.first_name || ' ' || s.last_name AS staff_name,
+            t.start_date, t.end_date, t.submitted_at, t.approved_at,
+            COALESCE(tot.total_hours, 0) AS total_hours,
+            COALESCE(exp.expected_hours, 0) AS expected_hours,
+            COALESCE(bal.balance_hours, 0) AS balance_hours,
+            COALESCE(bal.ot_hours, 0) AS ot_hours
+       FROM timesheets t
+       JOIN staff s ON s.id = t.staff_id
+       LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
+       LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
+       LEFT JOIN v_timesheet_balance bal ON bal.timesheet_id = t.id
+      ORDER BY t.start_date DESC`,
+  );
+  return res.rows;
+}
+
+export async function getTimesheetSummary(
+  id: number,
+): Promise<AdminTimesheetSummary | undefined> {
+  const res = await pool.query(
+    `SELECT t.id, t.staff_id, s.first_name || ' ' || s.last_name AS staff_name,
+            t.start_date, t.end_date, t.submitted_at, t.approved_at,
+            COALESCE(tot.total_hours, 0) AS total_hours,
+            COALESCE(exp.expected_hours, 0) AS expected_hours,
+            COALESCE(bal.balance_hours, 0) AS balance_hours,
+            COALESCE(bal.ot_hours, 0) AS ot_hours
+       FROM timesheets t
+       JOIN staff s ON s.id = t.staff_id
+       LEFT JOIN v_timesheet_totals tot ON tot.timesheet_id = t.id
+       LEFT JOIN v_timesheet_expected exp ON exp.timesheet_id = t.id
+       LEFT JOIN v_timesheet_balance bal ON bal.timesheet_id = t.id
+      WHERE t.id = $1`,
+    [id],
+  );
+  return res.rows[0];
 }
 
 export async function getTimesheetById(id: number): Promise<Timesheet | undefined> {

@@ -1,6 +1,7 @@
 import '../setupTests';
 import {
   listMyTimesheets,
+  listTimesheets,
   getTimesheetDays,
   updateTimesheetDay,
   submitTimesheet,
@@ -19,6 +20,17 @@ describe('timesheet controller', () => {
     const res: any = { json: jest.fn() };
     await listMyTimesheets(req, res, () => {});
     expect(res.json).toHaveBeenCalledWith([{ id: 1 }]);
+  });
+
+  it('lists all timesheets for admin', async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ id: 2, staff_name: 'Alice A' }],
+      rowCount: 1,
+    });
+    const req: any = { user: { role: 'admin' } };
+    const res: any = { json: jest.fn() };
+    await listTimesheets(req, res, () => {});
+    expect(res.json).toHaveBeenCalledWith([{ id: 2, staff_name: 'Alice A' }]);
   });
 
   it('gets timesheet days', async () => {
@@ -53,6 +65,47 @@ describe('timesheet controller', () => {
         work_date: '2024-01-02',
         expected_hours: 3,
         reg_hours: 1,
+        ot_hours: 0,
+        stat_hours: 0,
+        sick_hours: 0,
+        vac_hours: 0,
+        note: null,
+        locked_by_rule: false,
+        locked_by_leave: false,
+      },
+    ]);
+  });
+
+  it('allows admin to get timesheet days', async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 3,
+          timesheet_id: 5,
+          work_date: '2024-02-01',
+          expected_hours: 8,
+          reg_hours: 8,
+          ot_hours: 0,
+          stat_hours: 0,
+          sick_hours: 0,
+          vac_hours: 0,
+          note: null,
+          locked_by_rule: false,
+          locked_by_leave: false,
+        },
+      ],
+      rowCount: 1,
+    });
+    const req: any = { user: { role: 'admin' }, params: { id: '5' } };
+    const res: any = { json: jest.fn() };
+    await getTimesheetDays(req, res, () => {});
+    expect(res.json).toHaveBeenCalledWith([
+      {
+        id: 3,
+        timesheet_id: 5,
+        work_date: '2024-02-01',
+        expected_hours: 8,
+        reg_hours: 8,
         ot_hours: 0,
         stat_hours: 0,
         sick_hours: 0,
