@@ -117,6 +117,15 @@ describe('Timesheets', () => {
     expect(screen.getByText('OT')).toBeInTheDocument();
   });
 
+  it('handles empty timesheet days without crashing', () => {
+    mockUseTimesheetDays.mockReturnValueOnce({
+      days: [],
+      isLoading: false,
+      error: null,
+    });
+    expect(() => render()).not.toThrow();
+  });
+
   it('shows stat day lock icon and tooltip', () => {
     render();
     const rows = screen.getAllByRole('row');

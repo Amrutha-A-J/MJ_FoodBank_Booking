@@ -91,6 +91,7 @@ export default function Timesheets() {
   const { days: rawDays, error: daysError } = useTimesheetDays(current?.id);
   const [days, setDays] = useState<Day[]>([]);
   useEffect(() => {
+    if (!rawDays.length) return;
     setDays(
       rawDays.map(d => ({
         date: d.work_date,
