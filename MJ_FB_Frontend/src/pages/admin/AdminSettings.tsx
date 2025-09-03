@@ -1,8 +1,8 @@
 import Page from '../../components/Page';
 import StyledTabs from '../../components/StyledTabs';
-import WarehouseSettings from './WarehouseSettings';
-import PantrySettings from './PantrySettings';
-import VolunteerSettings from './VolunteerSettings';
+import WarehouseSettings from './settings/WarehouseSettings';
+import PantrySettings from './settings/PantrySettings';
+import VolunteerSettings from './settings/VolunteerSettings';
 
 export default function AdminSettings() {
   return (

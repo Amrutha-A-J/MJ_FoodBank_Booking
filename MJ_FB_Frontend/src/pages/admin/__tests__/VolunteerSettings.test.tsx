@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import VolunteerSettings from '../VolunteerSettings';
+import VolunteerSettings from '../settings/VolunteerSettings';
 
 jest.mock('../../../api/volunteers', () => ({
   getVolunteerMasterRoles: jest.fn(),

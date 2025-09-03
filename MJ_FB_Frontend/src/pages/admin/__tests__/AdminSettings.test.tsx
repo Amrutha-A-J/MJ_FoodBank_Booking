@@ -4,9 +4,9 @@ import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
 import AdminSettings from '../AdminSettings';
 
-jest.mock('../WarehouseSettings', () => () => <div>Warehouse Content</div>);
-jest.mock('../PantrySettings', () => () => <div>Pantry Content</div>);
-jest.mock('../VolunteerSettings', () => () => <div>Volunteer Content</div>);
+jest.mock('../settings/WarehouseSettings', () => () => <div>Warehouse Content</div>);
+jest.mock('../settings/PantrySettings', () => () => <div>Pantry Content</div>);
+jest.mock('../settings/VolunteerSettings', () => () => <div>Volunteer Content</div>);
 
 describe('AdminSettings', () => {
   it('renders tabs and switches content', () => {
