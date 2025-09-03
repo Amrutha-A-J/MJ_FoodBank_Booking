@@ -2,6 +2,7 @@ import '../setupTests';
 import {
   listMyTimesheets,
   getTimesheetDays,
+  getTimesheetDaysAdmin,
   updateTimesheetDay,
   submitTimesheet,
   rejectTimesheet,
@@ -49,6 +50,62 @@ describe('timesheet controller', () => {
     expect(res.json).toHaveBeenCalledWith([
       {
         id: 2,
+        timesheet_id: 1,
+        work_date: '2024-01-02',
+        expected_hours: 3,
+        reg_hours: 1,
+        ot_hours: 0,
+        stat_hours: 0,
+        sick_hours: 0,
+        vac_hours: 0,
+        note: null,
+        locked_by_rule: false,
+        locked_by_leave: false,
+      },
+    ]);
+  });
+
+  it('prevents staff from viewing others timesheet days', async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ staff_id: 2 }], rowCount: 1 });
+    const req: any = { user: { id: '1', role: 'staff', type: 'staff' }, params: { id: '1' } };
+    const res: any = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    await getTimesheetDays(req, res, nextErr(req, res));
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: { code: 'TIMESHEET_NOT_FOUND', message: 'Timesheet not found' },
+      }),
+    );
+  });
+
+  it('allows admin to view other staff timesheet days', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ staff_id: 2 }], rowCount: 1 })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 3,
+            timesheet_id: 1,
+            work_date: '2024-01-02',
+            expected_hours: 3,
+            reg_hours: 1,
+            ot_hours: 0,
+            stat_hours: 0,
+            sick_hours: 0,
+            vac_hours: 0,
+            note: null,
+            locked_by_rule: false,
+            locked_by_leave: false,
+          },
+        ],
+        rowCount: 1,
+      });
+    const req: any = { user: { id: '99', role: 'admin', type: 'staff' }, params: { id: '1' } };
+    const res: any = { json: jest.fn() };
+    await getTimesheetDaysAdmin(req, res, () => {});
+    expect(res.json).toHaveBeenCalledWith([
+      {
+        id: 3,
         timesheet_id: 1,
         work_date: '2024-01-02',
         expected_hours: 3,

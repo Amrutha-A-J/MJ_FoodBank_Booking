@@ -66,6 +66,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 
 - `GET /timesheets/mine` – list pay periods for the logged in staff member.
 - `GET /timesheets/:id/days` – list daily entries for a timesheet.
+- `GET /admin/timesheets/:id/days` – admins can list daily entries for any staff timesheet.
 - `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
 - `POST /timesheets/:id/reject` – reject a submitted timesheet.
