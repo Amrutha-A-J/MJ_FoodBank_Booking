@@ -185,6 +185,11 @@ export default function AgencyDashboard() {
               )}
             </SectionCard>
 
+          </Stack>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack spacing={2}>
             <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
               <Stack spacing={2}>
                 <EventList events={[...events.today, ...events.upcoming]} limit={5} />
@@ -199,11 +204,7 @@ export default function AgencyDashboard() {
                 </List>
               </Stack>
             </SectionCard>
-          </Stack>
-        </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Stack spacing={2}>
             <SectionCard title="Next Available Slots" icon={<EventAvailable color="primary" />}>
               <List>
                 {nextSlots.length ? (
