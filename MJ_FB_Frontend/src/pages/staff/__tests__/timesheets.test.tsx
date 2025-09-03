@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '../../../testUtils/renderWithProviders';
+import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 import Timesheets from '../timesheets';
 
 const mockSubmit = jest.fn();
