@@ -167,6 +167,14 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       <Grid size={{ xs: 12, md: 6 }}>
         <Grid container spacing={2}>
           <Grid size={12}>
+            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
+              <EventList
+                events={[...events.today, ...events.upcoming]}
+                limit={5}
+              />
+            </SectionCard>
+          </Grid>
+          <Grid size={12}>
             <SectionCard title="Pantry Schedule (This Week)">
               <Grid container columns={7} spacing={2}>
                 {schedule.map((day, i) => (
@@ -224,14 +232,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                   </Button>
                 </Stack>
               </Stack>
-            </SectionCard>
-          </Grid>
-          <Grid size={12}>
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
-              <EventList
-                events={[...events.today, ...events.upcoming]}
-                limit={5}
-              />
             </SectionCard>
           </Grid>
           <Grid size={12}>
@@ -315,6 +315,14 @@ function UserDashboard() {
         </SectionCard>
       </Grid>
       <Grid size={{ xs: 12, md: 6 }}>
+        <SectionCard title={t('notices')} icon={<Announcement color="primary" />}>
+          <EventList
+            events={[...events.today, ...events.upcoming]}
+            limit={5}
+          />
+        </SectionCard>
+      </Grid>
+      <Grid size={{ xs: 12, md: 6 }}>
         <SectionCard title={t('next_available_slots')} icon={<EventAvailable color="primary" />}>
           <Stack direction="row" spacing={1} flexWrap="wrap">
             {slotOptions.map((s, i) => (
@@ -328,14 +336,6 @@ function UserDashboard() {
               </Button>
             ))}
           </Stack>
-        </SectionCard>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <SectionCard title={t('notices')} icon={<Announcement color="primary" />}> 
-          <EventList
-            events={[...events.today, ...events.upcoming]}
-            limit={5}
-          />
         </SectionCard>
       </Grid>
       <Grid size={12}>
