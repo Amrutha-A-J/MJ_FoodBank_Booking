@@ -190,14 +190,6 @@ export default function App() {
         ],
       });
 
-    navGroups.push({
-      label: 'Staff Tools',
-      links: [
-        { label: t('timesheets.title'), to: '/timesheet' },
-        { label: t('leave.title'), to: '/leave-requests' },
-      ],
-    });
-
     const warehouseLinks = [
       { label: 'Dashboard', to: '/warehouse-management' },
       { label: 'Donation Log', to: '/warehouse-management/donation-log' },
