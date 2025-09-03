@@ -420,6 +420,12 @@ export default function WarehouseDashboard() {
         gap={2}
         mb={2}
       >
+        <Card variant="outlined" sx={{ gridColumn: { lg: '4 / 5' } }}>
+          <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
+          <CardContent>
+            <EventList events={visibleEvents} limit={5} />
+          </CardContent>
+        </Card>
         <Card variant="outlined">
           <CardHeader
             title="Top Donors"
@@ -497,14 +503,6 @@ export default function WarehouseDashboard() {
         </Card>
         <VolunteerCoverageCard masterRoleFilter={['Warehouse']} />
       </Box>
-
-      <Card variant="outlined" sx={{ mb: 2 }}>
-        <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
-        <CardContent>
-          <EventList events={visibleEvents} limit={5} />
-        </CardContent>
-      </Card>
-
       <Typography variant="caption" color="text.secondary">
         Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
       </Typography>
