@@ -4,7 +4,8 @@ Staff can record daily hours and submit pay periods.
 
 ## Setup
 
-1. Run database migrations to create the timesheet and leave tables:
+1. Start the backend once so `setupDatabase` creates the timesheet and leave tables.
+   Future schema updates can still be applied via migrations:
 
 ```bash
 cd MJ_FB_Backend
