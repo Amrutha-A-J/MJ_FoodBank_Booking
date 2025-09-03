@@ -1,6 +1,7 @@
 import { apiFetch, handleResponse } from '../client';
 import {
   listTimesheets,
+  listAllTimesheets,
   getTimesheetDays,
   updateTimesheetDay,
   submitTimesheet,
@@ -22,7 +23,14 @@ describe('timesheets api', () => {
 
   it('lists my timesheets', async () => {
     await listTimesheets();
+    expect(apiFetch).toHaveBeenCalledWith('/api/timesheets/mine');
+  });
+
+  it('lists all timesheets with optional staff filter', async () => {
+    await listAllTimesheets();
     expect(apiFetch).toHaveBeenCalledWith('/api/timesheets');
+    await listAllTimesheets(7);
+    expect(apiFetch).toHaveBeenCalledWith('/api/timesheets?staffId=7');
   });
 
   it('gets timesheet days', async () => {
