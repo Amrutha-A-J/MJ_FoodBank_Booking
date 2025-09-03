@@ -46,3 +46,25 @@ describe('POST /staff (first staff member)', () => {
   });
 });
 
+describe('POST /staff with new access roles', () => {
+  it.each(['other', 'payroll_management'])('creates staff with %s access', async role => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ count: '0' }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 7 }] });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+
+    const res = await request(app)
+      .post('/staff')
+      .send({
+        firstName: 'A',
+        lastName: 'B',
+        email: `${role}@example.com`,
+        access: [role],
+        password: 'Secret123!',
+      });
+
+    expect(res.status).toBe(201);
+  });
+});
+

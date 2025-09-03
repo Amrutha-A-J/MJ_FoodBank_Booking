@@ -5,7 +5,9 @@ export type StaffAccess =
   | 'pantry'
   | 'volunteer_management'
   | 'warehouse'
-  | 'admin';
+  | 'admin'
+  | 'other'
+  | 'payroll_management';
 
 export interface Staff {
   id: number;

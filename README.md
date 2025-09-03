@@ -14,6 +14,17 @@ Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 retrieve any staff timesheet's day entries through the API at
 `GET /timesheets/:id/days` and list periods via `GET /timesheets`.
 
+## Staff Access Roles
+
+Staff accounts may include any of the following access roles:
+
+- `pantry`
+- `volunteer_management`
+- `warehouse`
+- `admin`
+- `other`
+- `payroll_management`
+
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 
 ## Node Version
