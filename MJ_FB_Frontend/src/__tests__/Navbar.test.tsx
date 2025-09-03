@@ -23,6 +23,27 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Logout/i)).toBeInTheDocument();
   });
 
+  it('shows staff profile links', () => {
+    render(
+      <MemoryRouter>
+        <Navbar
+          groups={[{ label: 'Home', links: [{ label: 'Home', to: '/' }] }]}
+          onLogout={() => {}}
+          name="Tester"
+          role="staff"
+          profileLinks={[
+            { label: 'Timesheets', to: '/pantry/timesheets' },
+            { label: 'Leave Management', to: '/pantry/leave-requests' },
+          ]}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText(/Hello, Tester/i));
+    expect(screen.getByText(/Timesheets/i)).toBeInTheDocument();
+    expect(screen.getByText(/Leave Management/i)).toBeInTheDocument();
+  });
+
   it('renders without greeting when name is absent', () => {
     render(
       <MemoryRouter>

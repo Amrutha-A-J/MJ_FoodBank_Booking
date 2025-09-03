@@ -7,6 +7,10 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - [docs](docs/) with setup notes and a [Timesheets guide](docs/timesheets.md).
 - Leave request API under `/api/leave/requests` for staff vacations.
 
+Staff can reach **Timesheets** and **Leave Management** from the profile menu
+once logged in. Admin users also see **Timesheets** and **Leave Requests** under
+the Admin menu for reviewing submissions.
+
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 
 ## Node Version
