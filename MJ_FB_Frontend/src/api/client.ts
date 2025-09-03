@@ -1,6 +1,8 @@
 import { fetchWithRetry } from './fetchWithRetry';
 
-const API_BASE = process.env.VITE_API_BASE ?? (globalThis as any).VITE_API_BASE;
+const API_BASE =
+  (typeof process !== 'undefined' ? process.env?.VITE_API_BASE : undefined) ??
+  (globalThis as any).VITE_API_BASE;
 
 if (!API_BASE) {
   const message =
