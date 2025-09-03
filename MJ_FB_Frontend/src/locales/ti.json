@@ -95,7 +95,7 @@
         "title": "Timesheets",
         "description": "Record hours and submit pay periods.",
         "steps": [
-          "Open the Timesheets page.",
+          "Open the Timesheets page from the profile menu.",
           "Fill in hours or request leave days.",
           "Submit the period for review.",
           "Export a CSV for payroll."
@@ -105,7 +105,7 @@
         "title": "Leave Management",
         "description": "Submit and track leave requests.",
         "steps": [
-          "Open the Leave Management page.",
+          "Open the Leave Management page from the profile menu.",
           "Submit new leave requests with date and hours.",
           "Review the status of your requests."
         ]
