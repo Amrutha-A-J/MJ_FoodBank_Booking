@@ -13,7 +13,8 @@ npm run migrate
 ```
 
 2. Insert biweekly records into the `pay_periods` table so each period has a
-   `start_date` and `end_date`.
+   `start_date` and `end_date`. If the table is missing, the backend logs a
+   warning and skips seeding.
 
 3. Seed current pay periods for active staff (optional):
 

@@ -10,6 +10,15 @@ import logger from './logger';
  */
 export async function seedTimesheets(staffId?: number): Promise<void> {
   try {
+    // Ensure the pay_periods table exists before querying it
+    const tableCheck = await pool.query(
+      "SELECT to_regclass('public.pay_periods') as table",
+    );
+    if (!tableCheck.rows[0] || !tableCheck.rows[0].table) {
+      logger.warn('Skipping timesheet seeding: pay_periods table not found');
+      return;
+    }
+
     // Determine current pay period
     const payPeriodRes = await pool.query(
       `SELECT id, start_date, end_date FROM pay_periods WHERE CURRENT_DATE BETWEEN start_date AND end_date`,
