@@ -2,9 +2,10 @@
 
 Staff can record daily hours and submit pay periods.
 
-Staff access timesheets and leave management from the **Hello** menu in the
-top-right corner. Admins can review periods and vacation requests from the
-**Admin → Timesheets** and **Admin → Leave Requests** menu items.
+Staff access timesheets at `/timesheet` and leave management at `/leave-requests`
+from the **Hello** menu in the top-right corner. Admins can review periods at
+`/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
+Admin menu.
 
 ## Setup
 

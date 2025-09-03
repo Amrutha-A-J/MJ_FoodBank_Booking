@@ -155,8 +155,8 @@ export default function App() {
   const profileLinks: NavLink[] | undefined = isStaff
     ? [
         { label: t('news_and_events'), to: '/events' },
-        { label: t('timesheets.title'), to: '/pantry/timesheets' },
-        { label: t('leave.title'), to: '/pantry/leave-requests' },
+        { label: t('timesheets.title'), to: '/timesheet' },
+        { label: t('leave.title'), to: '/leave-requests' },
       ]
     : undefined;
   if (!role) {
@@ -177,7 +177,7 @@ export default function App() {
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
-      { label: t('timesheets.title'), to: '/pantry/timesheets' },
+      { label: t('timesheets.title'), to: '/timesheet' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
     ];
@@ -215,7 +215,7 @@ export default function App() {
         label: 'Admin',
         links: [
           { label: 'Staff', to: '/admin/staff' },
-          { label: t('timesheets.title'), to: '/admin/timesheets' },
+          { label: t('timesheets.title'), to: '/admin/timesheet' },
           { label: t('leave.title'), to: '/admin/leave-requests' },
           { label: 'Warehouse Settings', to: '/admin/warehouse-settings' },
           { label: 'Pantry Settings', to: '/admin/pantry-settings' },
@@ -345,11 +345,11 @@ export default function App() {
                     <Route path="/pantry/visits" element={<PantryVisits />} />
                   )}
                   {showStaff && (
-                    <Route path="/pantry/timesheets" element={<Timesheets />} />
+                    <Route path="/timesheet" element={<Timesheets />} />
                   )}
                   {showStaff && (
                     <Route
-                      path="/pantry/leave-requests"
+                      path="/leave-requests"
                       element={<LeaveManagement />}
                     />
                   )}
@@ -436,7 +436,7 @@ export default function App() {
                   {showAdmin && <Route path="/admin/staff/create" element={<AdminStaffForm />} />}
                   {showAdmin && <Route path="/admin/staff/:id" element={<AdminStaffForm />} />}
                   {showAdmin && (
-                    <Route path="/admin/timesheets" element={<Timesheets />} />
+                    <Route path="/admin/timesheet" element={<Timesheets />} />
                   )}
                   {showAdmin && (
                     <Route
