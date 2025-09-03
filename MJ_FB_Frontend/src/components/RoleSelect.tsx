@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, ListSubheader } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { RoleOption } from '../types';
 import { getRoles } from '../api/volunteers';
@@ -13,6 +14,7 @@ export default function RoleSelect({ onChange }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState('');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchRoles = async () => {
@@ -22,7 +24,7 @@ export default function RoleSelect({ onChange }: Props) {
         setRoles(data);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error fetching roles');
+        setError(err instanceof Error ? err.message : null);
       } finally {
         setLoading(false);
       }
@@ -45,19 +47,19 @@ export default function RoleSelect({ onChange }: Props) {
     return acc;
   }, {} as Record<string, RoleOption[]>);
 
-  if (loading) return <p>Loading roles...</p>;
+  if (loading) return <p>{t('loading')}</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <FormControl size="small" fullWidth>
-      <InputLabel id="role-select-label">Role</InputLabel>
+      <InputLabel id="role-select-label">{t('role')}</InputLabel>
       <Select
         labelId="role-select-label"
         value={selected}
-        label="Role"
+        label={t('role')}
         onChange={handleChange}
       >
-        <MenuItem value="">Select a role</MenuItem>
+        <MenuItem value="">{t('role')}</MenuItem>
         {Object.entries(grouped).flatMap(([category, items]) => [
           <ListSubheader key={`${category}-header`}>{category}</ListSubheader>,
           ...items.map((r) => (
