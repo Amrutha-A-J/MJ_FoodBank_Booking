@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import Navbar from '../components/Navbar';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -23,27 +23,36 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Logout/i)).toBeInTheDocument();
   });
 
-  it('shows staff profile links only in the profile menu', () => {
+  it('shows staff tools links in a dedicated nav group', () => {
     render(
       <MemoryRouter>
         <Navbar
-          groups={[{ label: 'Home', links: [{ label: 'Home', to: '/' }] }]}
+          groups={[
+            { label: 'Home', links: [{ label: 'Home', to: '/' }] },
+            {
+              label: 'Staff Tools',
+              links: [
+                { label: 'Timesheets', to: '/timesheet' },
+                { label: 'Leave Management', to: '/leave-requests' },
+              ],
+            },
+          ]}
           onLogout={() => {}}
           name="Tester"
           role="staff"
-          profileLinks={[
-            { label: 'Timesheets', to: '/timesheet' },
-            { label: 'Leave Management', to: '/leave-requests' },
-          ]}
+          profileLinks={[{ label: 'News & Events', to: '/events' }]}
         />
       </MemoryRouter>,
     );
 
-    expect(screen.queryByText(/Timesheets/i)).toBeNull();
-    expect(screen.queryByText(/Leave Management/i)).toBeNull();
-    fireEvent.click(screen.getByText(/Hello, Tester/i));
+    expect(screen.getByText(/Staff Tools/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Staff Tools/i));
     expect(screen.getByText(/Timesheets/i)).toBeInTheDocument();
     expect(screen.getByText(/Leave Management/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByText(/Hello, Tester/i));
+    const profileMenu = document.getElementById('profile-menu') as HTMLElement;
+    expect(within(profileMenu).queryByText(/Timesheets/i)).toBeNull();
+    expect(within(profileMenu).queryByText(/Leave Management/i)).toBeNull();
   });
 
   it('renders without greeting when name is absent', () => {

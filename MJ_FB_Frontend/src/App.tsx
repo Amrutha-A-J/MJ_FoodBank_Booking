@@ -147,11 +147,7 @@ export default function App() {
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
-    ? [
-        { label: t('news_and_events'), to: '/events' },
-        { label: t('timesheets.title'), to: '/timesheet' },
-        { label: t('leave.title'), to: '/leave-requests' },
-      ]
+    ? [{ label: t('news_and_events'), to: '/events' }]
     : undefined;
   if (!role) {
     navGroups.push(
@@ -189,6 +185,14 @@ export default function App() {
           },
         ],
       });
+
+    navGroups.push({
+      label: 'Staff Tools',
+      links: [
+        { label: t('timesheets.title'), to: '/timesheet' },
+        { label: t('leave.title'), to: '/leave-requests' },
+      ],
+    });
 
     const warehouseLinks = [
       { label: 'Dashboard', to: '/warehouse-management' },
