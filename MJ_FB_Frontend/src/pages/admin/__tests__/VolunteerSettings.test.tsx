@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import VolunteerSettings from '../VolunteerSettings';
+import VolunteerSettingsTab from '../settings/VolunteerSettingsTab';
 
 jest.mock('../../../api/volunteers', () => ({
   getVolunteerMasterRoles: jest.fn(),
@@ -20,7 +20,7 @@ const {
   restoreVolunteerRoles,
 } = jest.requireMock('../../../api/volunteers');
 
-describe('VolunteerSettings page', () => {
+describe('VolunteerSettingsTab page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getVolunteerMasterRoles as jest.Mock).mockResolvedValue([
@@ -52,7 +52,7 @@ describe('VolunteerSettings page', () => {
   it('renders master role sections with buttons', async () => {
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -70,7 +70,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -94,7 +94,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -133,7 +133,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -165,7 +165,7 @@ describe('VolunteerSettings page', () => {
   it('shows validation errors for required fields', async () => {
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -189,7 +189,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -218,7 +218,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 
@@ -235,7 +235,7 @@ describe('VolunteerSettings page', () => {
 
     render(
       <MemoryRouter>
-        <VolunteerSettings />
+        <VolunteerSettingsTab />
       </MemoryRouter>
     );
 

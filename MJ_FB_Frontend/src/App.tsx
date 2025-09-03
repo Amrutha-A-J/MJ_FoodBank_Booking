@@ -8,6 +8,7 @@ const Dashboard = React.lazy(
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
+import Page from './components/Page';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 import { getVolunteerBookingsForReview } from './api/volunteers';
@@ -95,9 +96,11 @@ const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
 const WarehouseSettings = React.lazy(() =>
   import('./pages/admin/WarehouseSettings')
 );
-const PantrySettings = React.lazy(() => import('./pages/admin/PantrySettings'));
-const VolunteerSettings = React.lazy(() =>
-  import('./pages/admin/VolunteerSettings')
+const PantrySettingsTab = React.lazy(() =>
+  import('./pages/admin/settings/PantrySettingsTab')
+);
+const VolunteerSettingsTab = React.lazy(() =>
+  import('./pages/admin/settings/VolunteerSettingsTab')
 );
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
@@ -445,8 +448,26 @@ export default function App() {
                     />
                   )}
                   {showAdmin && <Route path="/admin/warehouse-settings" element={<WarehouseSettings />} />}
-                  {showAdmin && <Route path="/admin/pantry-settings" element={<PantrySettings />} />}
-                  {showAdmin && <Route path="/admin/volunteer-settings" element={<VolunteerSettings />} />}
+                  {showAdmin && (
+                    <Route
+                      path="/admin/pantry-settings"
+                      element={
+                        <Page title="Pantry Settings">
+                          <PantrySettingsTab />
+                        </Page>
+                      }
+                    />
+                  )}
+                  {showAdmin && (
+                    <Route
+                      path="/admin/volunteer-settings"
+                      element={
+                        <Page title="Volunteer Settings">
+                          <VolunteerSettingsTab />
+                        </Page>
+                      }
+                    />
+                  )}
                   {showVolunteerManagement && (
                     <>
                       <Route

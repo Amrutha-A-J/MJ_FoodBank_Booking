@@ -8,12 +8,11 @@ import {
   Button,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import Page from '../../components/Page';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { getAllSlots, updateSlotCapacity } from '../../api/slots';
-import { getAppConfig, updateAppConfig } from '../../api/appConfig';
+import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import { getAllSlots, updateSlotCapacity } from '../../../api/slots';
+import { getAppConfig, updateAppConfig } from '../../../api/appConfig';
 
-export default function PantrySettings() {
+export default function PantrySettingsTab() {
   const [capacity, setCapacity] = useState<number>(0);
   const [cartTare, setCartTare] = useState<number>(0);
   const [snackbar, setSnackbar] = useState<
@@ -66,7 +65,7 @@ export default function PantrySettings() {
   };
 
   return (
-    <Page title="Pantry Settings">
+    <>
       <Grid container spacing={2} p={2}>
         <Grid size={12}>
           <Card>
@@ -119,6 +118,6 @@ export default function PantrySettings() {
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
-    </Page>
+    </>
   );
 }
