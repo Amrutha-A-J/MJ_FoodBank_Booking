@@ -3,7 +3,8 @@ import { API_BASE, apiFetch, handleResponse } from './client';
 export interface Event {
   id: number;
   title: string;
-  date: string; // ISO string
+  startDate: string; // ISO string
+  endDate: string; // ISO string
   details?: string;
   category?: string;
   staffIds?: number[];
@@ -28,7 +29,8 @@ export async function createEvent(data: {
   title: string;
   details?: string;
   category: string;
-  date: string;
+  startDate: string;
+  endDate: string;
   staffIds: number[];
   visibleToVolunteers?: boolean;
   visibleToClients?: boolean;
