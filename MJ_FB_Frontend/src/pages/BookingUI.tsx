@@ -29,7 +29,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import type { Slot } from '../types';
+import type { Slot, Holiday } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
@@ -101,12 +101,19 @@ export default function BookingUI({
   useEffect(() => {
     refetchHolidays().finally(() => setHolidaysReady(true));
   }, [refetchHolidays]);
-  const holidaySet = useMemo(() => new Set(holidays.map(h => h.date)), [holidays]);
-  const isDisabled = (d: Dayjs) =>
-    d.day() === 0 ||
-    d.day() === 6 ||
-    d.isBefore(dayjs(), 'day') ||
-    holidaySet.has(d.format('YYYY-MM-DD'));
+  const holidaySet = useMemo(
+    () => new Set(holidays.map((h: Holiday) => h.date)),
+    [holidays],
+  );
+  const isDisabled = (d: Dayjs | Date) => {
+    const day = dayjs(d);
+    return (
+      day.day() === 0 ||
+      day.day() === 6 ||
+      day.isBefore(dayjs(), 'day') ||
+      holidaySet.has(day.format('YYYY-MM-DD'))
+    );
+  };
   const { slots, isLoading, refetch, error } = useSlots(date, !isDisabled(date));
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -333,7 +340,8 @@ export default function BookingUI({
                 shouldDisableDate={isDisabled}
                 onChange={newDate => {
                   if (newDate && !isDisabled(newDate)) {
-                    setDate(newDate);
+                    const d = dayjs(newDate);
+                    setDate(d);
                     setSelectedSlotId(null);
                     if (isMobile) {
                       setTimeout(() => {
