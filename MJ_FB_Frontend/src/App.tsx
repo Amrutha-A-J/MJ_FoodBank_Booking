@@ -385,7 +385,7 @@ export default function App() {
                       path="/booking-history"
                       element={
                         <UserHistory
-                          initialUser={{ id: 0, name, client_id: 0 }}
+                          initialUser={{ name, client_id: 0 }}
                         />
                       }
                     />
@@ -398,7 +398,7 @@ export default function App() {
                       path="/booking-history"
                       element={
                         <UserHistory
-                          initialUser={{ id: 0, name, client_id: 0 }}
+                          initialUser={{ name, client_id: 0 }}
                         />
                       }
                     />
