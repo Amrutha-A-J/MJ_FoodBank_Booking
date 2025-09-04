@@ -354,6 +354,68 @@ export default function VolunteerDashboard() {
                 ))}
               </Stack>
             </SectionCard>
+            <SectionCard
+              title={
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  My Stats
+                </Stack>
+              }
+            >
+              <Stack spacing={2}>
+                {badges.length > 0 ? (
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    {badges.map(b => (
+                      <Chip key={b} label={b} />
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography>No badges earned yet</Typography>
+                )}
+                {stats && stats.totalShifts > 0 && (
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 6 }}>
+                      <Stack>
+                        <Typography variant="body2" color="text.secondary">
+                          Lifetime Hours
+                        </Typography>
+                        <Typography variant="h6">{stats.lifetimeHours}</Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Stack>
+                        <Typography variant="body2" color="text.secondary">
+                          Hours This Month
+                        </Typography>
+                        <Typography variant="h6">{stats.monthHours}</Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Stack>
+                        <Typography variant="body2" color="text.secondary">
+                          Total Shifts
+                        </Typography>
+                        <Typography variant="h6">{stats.totalShifts}</Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid size={{ xs: 6 }}>
+                      <Stack>
+                        <Typography variant="body2" color="text.secondary">
+                          Current Streak
+                        </Typography>
+                        <Typography variant="h6">
+                          {stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                )}
+                {leaderboard && (
+                  <Typography variant="h6">
+                    {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
+                  </Typography>
+                )}
+              </Stack>
+            </SectionCard>
           </Stack>
         </Grid>
 
@@ -447,69 +509,6 @@ export default function VolunteerDashboard() {
                   <Typography>No available shifts</Typography>
                 )}
               </List>
-            </SectionCard>
-
-            <SectionCard
-              title={
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  My Stats
-                </Stack>
-              }
-            >
-              <Stack spacing={2}>
-                {badges.length > 0 ? (
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {badges.map(b => (
-                      <Chip key={b} label={b} />
-                    ))}
-                  </Stack>
-                ) : (
-                  <Typography>No badges earned yet</Typography>
-                )}
-                {stats && stats.totalShifts > 0 && (
-                  <Grid container spacing={2}>
-                    <Grid size={{ xs: 6 }}>
-                      <Stack>
-                        <Typography variant="body2" color="text.secondary">
-                          Lifetime Hours
-                        </Typography>
-                        <Typography variant="h6">{stats.lifetimeHours}</Typography>
-                      </Stack>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                      <Stack>
-                        <Typography variant="body2" color="text.secondary">
-                          Hours This Month
-                        </Typography>
-                        <Typography variant="h6">{stats.monthHours}</Typography>
-                      </Stack>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                      <Stack>
-                        <Typography variant="body2" color="text.secondary">
-                          Total Shifts
-                        </Typography>
-                        <Typography variant="h6">{stats.totalShifts}</Typography>
-                      </Stack>
-                    </Grid>
-                    <Grid size={{ xs: 6 }}>
-                      <Stack>
-                        <Typography variant="body2" color="text.secondary">
-                          Current Streak
-                        </Typography>
-                        <Typography variant="h6">
-                          {stats.currentStreak} week{stats.currentStreak === 1 ? '' : 's'}
-                        </Typography>
-                      </Stack>
-                    </Grid>
-                  </Grid>
-                )}
-                {leaderboard && (
-                  <Typography variant="h6">
-                    {`You're in the top ${Math.round(leaderboard.percentile)}%!`}
-                  </Typography>
-                )}
-              </Stack>
             </SectionCard>
           </Stack>
         </Grid>
