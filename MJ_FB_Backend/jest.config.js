@@ -1,13 +1,13 @@
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   testMatch: ['**/tests/**/*.test.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/setupTests.ts'],
   transform: {
     '^.+\\.ts$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        tsconfig: 'tsconfig.test.json',
+        jsc: { parser: { syntax: 'typescript' } },
+        module: { type: 'commonjs' },
       },
     ],
   },
