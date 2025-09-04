@@ -342,11 +342,11 @@ export default function WarehouseDashboard() {
 
       <Box
         display="grid"
-        gridTemplateColumns={{ xs: '1fr', lg: 'repeat(3, 1fr)' }}
+        gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
         gap={2}
         mb={2}
       >
-        <Card variant="outlined" sx={{ gridColumn: { lg: '1 / span 2' } }}>
+        <Card variant="outlined">
           <CardHeader title="Monthly Trend" />
           <CardContent sx={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -375,10 +375,45 @@ export default function WarehouseDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card
-          variant="outlined"
-          sx={{ gridColumn: { lg: '1 / span 2' } }}
-        >
+        <Card variant="outlined">
+          <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
+          <CardContent>
+            <EventList events={visibleEvents} limit={5} />
+          </CardContent>
+        </Card>
+      </Box>
+
+      <Box
+        display="grid"
+        gridTemplateColumns={{ xs: '1fr', lg: '1fr 2fr' }}
+        gap={2}
+        mb={2}
+      >
+        <Card variant="outlined">
+          <CardHeader title="Quick Actions" />
+          <CardContent>
+            <Stack spacing={1}>
+              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
+                Go to Donation Log
+              </Button>
+              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
+                Track Surplus
+              </Button>
+              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
+                Log Pig Pound
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                fullWidth
+                onClick={() => go('/warehouse-management/track-outgoing-donations')}
+              >
+                Track Outgoing Donations
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+        <Card variant="outlined">
           <CardHeader title="Composition (This Year)" />
           <CardContent sx={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -415,7 +450,15 @@ export default function WarehouseDashboard() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card variant="outlined" sx={{ gridColumn: { lg: '3 / 4' } }}>
+      </Box>
+
+      <Box
+        display="grid"
+        gridTemplateColumns={{ xs: '1fr', lg: 'repeat(3, 1fr)' }}
+        gap={2}
+        mb={2}
+      >
+        <Card variant="outlined">
           <CardHeader
             title="Top Donors"
             subheader="This year by total lbs"
@@ -443,7 +486,7 @@ export default function WarehouseDashboard() {
             )}
           </CardContent>
         </Card>
-        <Card variant="outlined" sx={{ gridColumn: { lg: '3 / 4' } }}>
+        <Card variant="outlined">
           <CardHeader
             title="Top Receivers"
             subheader="This year by total lbs"
@@ -469,44 +512,6 @@ export default function WarehouseDashboard() {
                 No data
               </Typography>
             )}
-          </CardContent>
-        </Card>
-        <Card variant="outlined" sx={{ gridColumn: { lg: '3 / 4' } }}>
-          <CardHeader title="Quick Actions" />
-          <CardContent>
-            <Stack spacing={1}>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
-                Go to Donation Log
-              </Button>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
-                Track Surplus
-              </Button>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
-                Log Pig Pound
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                fullWidth
-                onClick={() => go('/warehouse-management/track-outgoing-donations')}
-              >
-                Track Outgoing Donations
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Box>
-
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: '1fr', lg: '2fr 1fr' }}
-        gap={2}
-        mb={2}
-      >
-        <Card variant="outlined">
-          <CardHeader title="Notices & Events" avatar={<Announcement color="primary" />} />
-          <CardContent>
-            <EventList events={visibleEvents} limit={5} />
           </CardContent>
         </Card>
         <VolunteerCoverageCard masterRoleFilter={['Warehouse']} />
