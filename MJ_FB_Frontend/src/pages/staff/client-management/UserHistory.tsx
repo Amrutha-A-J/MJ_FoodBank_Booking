@@ -82,10 +82,10 @@ export default function UserHistory({
       past?: boolean;
       userId?: number;
       includeVisits?: boolean;
-      includeVisitNotes?: boolean;
+      includeStaffNotes?: boolean;
     } = { includeVisits: true };
     if (role === 'staff' || role === 'agency') {
-      opts.includeVisitNotes = true;
+      opts.includeStaffNotes = true;
     }
     if (!initialUser) opts.userId = selected.client_id;
     if (filter === 'past') opts.past = true;
@@ -116,7 +116,9 @@ export default function UserHistory({
   }, [searchParams, initialUser]);
 
   const filtered = notesOnly
-    ? bookings.filter(b => b.status === 'visited' && b.note)
+    ? bookings.filter(
+        b => b.status === 'visited' && (b.client_note || b.staff_note),
+      )
     : bookings;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -232,7 +234,7 @@ export default function UserHistory({
                   onChange={e => setNotesOnly(e.target.checked)}
                 />
               }
-              label="View visits with notes only"
+              label={t('visits_with_staff_notes_only')}
             />
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -271,7 +273,9 @@ export default function UserHistory({
                         </TableCell>
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                        <TableCell sx={cellSx}>{b.note || ''}</TableCell>
+                        <TableCell sx={cellSx}>
+                          {b.client_note || b.staff_note || ''}
+                        </TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
                             b.status.toLowerCase()

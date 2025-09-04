@@ -34,6 +34,7 @@
   "submit": "إرسال",
   "invalid_or_expired_token": "رمز غير صالح أو منتهي الصلاحية",
   "client_dashboard": "لوحة تحكم العميل",
+  "dashboard": "Dashboard",
   "book_appointment": "حجز موعد",
   "booking_history": "سجل الحجوزات",
   "booking": "حجز",
@@ -51,7 +52,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add extra info if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -257,5 +258,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note_label": "Client note (optional)",
+  "staff_note_label": "Staff note",
+  "visits_with_staff_notes_only": "View visits with staff notes only"
 }

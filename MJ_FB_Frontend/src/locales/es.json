@@ -36,6 +36,7 @@
   "submit": "Enviar",
   "invalid_or_expired_token": "Token inválido o expirado",
   "client_dashboard": "Panel del cliente",
+  "dashboard": "Dashboard",
   "book_appointment": "Reservar cita",
   "booking_history": "Historial de reservas",
   "booking": "Reserva",
@@ -53,7 +54,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add extra info if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -259,5 +260,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note_label": "Client note (optional)",
+  "staff_note_label": "Staff note",
+  "visits_with_staff_notes_only": "View visits with staff notes only"
 }

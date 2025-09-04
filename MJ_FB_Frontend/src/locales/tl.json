@@ -35,6 +35,7 @@
   "invalid_or_expired_token": "Di-wasto o paso na ang token",
   "dashboard": "Dashboard",
   "client_dashboard": "Dashboard ng kliyente",
+  "dashboard": "Dashboard",
   "book_appointment": "Magpa-book ng appointment",
   "booking_history": "Kasaysayan ng booking",
   "booking": "Booking",
@@ -52,7 +53,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add extra info if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -258,5 +259,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note_label": "Client note (optional)",
+  "staff_note_label": "Staff note",
+  "visits_with_staff_notes_only": "View visits with staff notes only"
 }

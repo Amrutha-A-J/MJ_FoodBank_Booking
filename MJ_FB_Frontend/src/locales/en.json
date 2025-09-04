@@ -37,6 +37,7 @@
   "invalid_or_expired_token": "Invalid or expired token",
   "dashboard": "Dashboard",
   "client_dashboard": "Client Dashboard",
+  "dashboard": "Dashboard",
   "book_appointment": "Book Appointment",
   "booking_history": "Booking History",
   "booking": "Booking",
@@ -54,7 +55,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add a note for staff if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -214,7 +215,6 @@
   "cancelled": "Cancelled",
   "confirm_booking": "Confirm booking",
   "booking_summary": "Date: {{date}} • Time: {{time}} • Visits this month: {{count}}",
-  "extra_info_label": "Extra info (optional)",
   "note_label": "Note",
   "note_prefix": "Note:",
   "other": "Other",
@@ -268,5 +268,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note_label": "Client note (optional)",
+  "staff_note_label": "Staff note",
+  "visits_with_staff_notes_only": "View visits with staff notes only"
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Dialog,
@@ -61,6 +62,7 @@ function formatDisplay(dateStr: string) {
 }
 
 export default function PantryVisits() {
+  const { t } = useTranslation();
   const [visits, setVisits] = useState<ClientVisit[]>([]);
   const [tab, setTab] = useState(() => {
     const week = startOfWeek(toDate());
@@ -375,7 +377,7 @@ export default function PantryVisits() {
               onChange={e => setForm({ ...form, petItem: e.target.value })}
             />
             <TextField
-              label="Note"
+              label={t('staff_note_label')}
               value={form.note}
               onChange={e => setForm({ ...form, note: e.target.value })}
               multiline

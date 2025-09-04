@@ -47,6 +47,10 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 Tests load these variables via `tests/setupTests.ts`, which imports `tests/setupEnv.ts`. Update `tests/setupEnv.ts` when adding new required environment settings.
 
+## Booking Notes
+
+Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. `GET /bookings/history` supports `includeStaffNotes=true` to return staff notes, and the `notes` query parameter filters history by note text.
+
 ## Password Policy
 
 Passwords must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. Requests with weak passwords are rejected before hashing.

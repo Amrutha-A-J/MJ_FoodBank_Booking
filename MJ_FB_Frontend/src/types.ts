@@ -234,19 +234,17 @@ export interface BookingResponse {
   endTime?: string | null;
   reason?: string;
   note?: string | null;
+  client_note?: string | null;
+  staff_note?: string | null;
 }
 
 export interface Booking
-  extends Omit<
-    BookingResponse,
-    'new_client_id' | 'startTime' | 'endTime' | 'note'
-  > {
+  extends Omit<BookingResponse, 'new_client_id' | 'startTime' | 'endTime'> {
   start_time: string | null;
   end_time: string | null;
   startTime: string | null;
   endTime: string | null;
   newClientId: number | null;
-  note?: string | null;
 }
 
 export interface VolunteerBookingInfo {

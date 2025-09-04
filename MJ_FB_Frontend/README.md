@@ -3,7 +3,7 @@
 This project is the React + Vite front end for the MJ Food Bank booking system. Volunteers can manage recurring bookings from `/volunteer/recurring`.
 Authenticated users can access a role-based help page at `/help`. Admins can view all help topics, including client and volunteer guidance.
 
-Client bookings now include a confirmation step summarizing the selected date, time, and current-month visit count, with an optional text box for extra information.
+Client bookings include a confirmation step summarizing the selected date, time, and current-month visit count, with an optional client note field for staff.
 
 ## Development
 

@@ -34,6 +34,7 @@
   "submit": "സമർപ്പിക്കുക",
   "invalid_or_expired_token": "അസാധുവായ അല്ലെങ്കിൽ കാലഹരണപ്പെട്ട ടോക്കൺ",
   "client_dashboard": "ക്ലയന്റ് ഡാഷ്ബോർഡ്",
+  "dashboard": "Dashboard",
   "book_appointment": "അപ്പോയിന്റ്മെന്റ് ബുക്ക് ചെയ്യുക",
   "booking_history": "ബുക്കിംഗ് ചരിത്രം",
   "booking": "ബുക്കിംഗ്",
@@ -51,7 +52,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add extra info if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, and confirm the booking."
         ]
       },
       "rescheduling_or_canceling": {
@@ -262,5 +263,8 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note_label": "Client note (optional)",
+  "staff_note_label": "Staff note",
+  "visits_with_staff_notes_only": "View visits with staff notes only"
 }
