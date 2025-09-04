@@ -156,7 +156,7 @@ describe('Booking confirmation', () => {
     await screen.findByText(/confirm booking/i);
   });
 
-  it.skip('submits note with booking', async () => {
+  it('submits note with booking', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
       { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
     ]);

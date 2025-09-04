@@ -31,7 +31,7 @@ interface SlotsByDateResponse {
 interface CreateBookingBody {
   slotId: number;
   date: string;
-  note?: string;
+  note: string;
   userId?: number;
 }
 
@@ -84,6 +84,7 @@ export async function createBooking(
   const body: CreateBookingBody = {
     slotId: Number(slotId),
     date,
+    note,
   };
   if (note) body.note = note;
   if (userId) body.userId = userId;

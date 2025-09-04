@@ -202,7 +202,7 @@ export async function fetchBookingHistory(
     `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.start_time END AS start_time,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.end_time END AS end_time,
-            b.created_at, b.is_staff_booking, b.reschedule_token
+            b.created_at, b.is_staff_booking, b.reschedule_token, b.note
        FROM bookings b
        LEFT JOIN slots s ON b.slot_id = s.id
        WHERE ${where}

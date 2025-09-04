@@ -743,7 +743,9 @@ export async function getBookingHistory(
     );
     if (!includeVisitNotes) {
       for (const row of rows as any[]) {
-        if ('note' in row) delete (row as any).note;
+        if ('note' in row && row.slot_id === null) {
+          delete (row as any).note;
+        }
       }
     }
     res.json(rows);
