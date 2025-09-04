@@ -34,6 +34,7 @@
   "submit": "إرسال",
   "invalid_or_expired_token": "رمز غير صالح أو منتهي الصلاحية",
   "client_dashboard": "لوحة تحكم العميل",
+  "dashboard": "Dashboard",
   "book_appointment": "حجز موعد",
   "booking_history": "سجل الحجوزات",
   "booking": "حجز",

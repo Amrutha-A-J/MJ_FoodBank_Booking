@@ -34,6 +34,7 @@
   "submit": "Isumite",
   "invalid_or_expired_token": "Di-wasto o paso na ang token",
   "client_dashboard": "Dashboard ng kliyente",
+  "dashboard": "Dashboard",
   "book_appointment": "Magpa-book ng appointment",
   "booking_history": "Kasaysayan ng booking",
   "booking": "Booking",

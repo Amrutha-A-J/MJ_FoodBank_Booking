@@ -36,6 +36,7 @@
   "submit": "Submit",
   "invalid_or_expired_token": "Invalid or expired token",
   "client_dashboard": "Client Dashboard",
+  "dashboard": "Dashboard",
   "book_appointment": "Book Appointment",
   "booking_history": "Booking History",
   "booking": "Booking",
