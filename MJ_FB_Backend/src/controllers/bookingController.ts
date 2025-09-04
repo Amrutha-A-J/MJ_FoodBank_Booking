@@ -711,16 +711,10 @@ export async function getBookingHistory(
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
-    const includeVisitNotes = req.query.includeVisitNotes === 'true';
-    if (
-      includeVisitNotes &&
-      requester.role !== 'staff' &&
-      requester.role !== 'agency'
-    ) {
-      return res
-        .status(403)
-        .json({ message: 'Not authorized to include visit notes' });
-    }
+    const includeStaffNotes = req.query.includeStaffNotes === 'true';
+    const canViewStaffNotes =
+      includeStaffNotes &&
+      (requester.role === 'staff' || requester.role === 'agency');
     const limitParam = req.query.limit as string | undefined;
     const offsetParam = req.query.offset as string | undefined;
     const limit = limitParam ? Number(limitParam) : undefined;
@@ -741,10 +735,10 @@ export async function getBookingHistory(
       limit,
       offset,
     );
-    if (!includeVisitNotes) {
+    if (!canViewStaffNotes) {
       for (const row of rows as any[]) {
-        if ('note' in row && row.slot_id === null) {
-          delete (row as any).note;
+        if ('staff_note' in row) {
+          delete (row as any).staff_note;
         }
       }
     }

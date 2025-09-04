@@ -132,7 +132,7 @@ export async function getBookingHistory(
     past?: boolean;
     userId?: number;
     includeVisits?: boolean;
-    includeVisitNotes?: boolean;
+    includeStaffNotes?: boolean;
     clientIds?: number[];
     limit?: number;
     offset?: number;
@@ -143,7 +143,7 @@ export async function getBookingHistory(
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
   if (opts.includeVisits) params.append('includeVisits', 'true');
-  if (opts.includeVisitNotes) params.append('includeVisitNotes', 'true');
+  if (opts.includeStaffNotes) params.append('includeStaffNotes', 'true');
   if (opts.clientIds && opts.clientIds.length)
     params.append('clientIds', opts.clientIds.join(','));
   if (typeof opts.limit === 'number')
