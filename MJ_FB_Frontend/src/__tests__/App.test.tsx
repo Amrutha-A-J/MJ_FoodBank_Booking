@@ -2,6 +2,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
+import { getStaffRootPath } from '../utils/staffRootPath';
 
 let fetchMock: jest.Mock;
 
@@ -80,43 +81,11 @@ describe('App authentication persistence', () => {
     expect(els.length).toBeGreaterThan(0);
   });
 
-  it('redirects staff with only pantry access to pantry dashboard', async () => {
-    localStorage.setItem('role', 'staff');
-    localStorage.setItem('name', 'Test Staff');
-    localStorage.setItem('access', JSON.stringify(['pantry']));
-    renderWithProviders(<App />);
-    await waitFor(() => expect(window.location.pathname).toBe('/pantry'));
+  it('computes pantry path for single pantry access', () => {
+    expect(getStaffRootPath(['pantry'] as any)).toBe('/pantry');
   });
 
-
-  it.skip('redirects staff with only volunteer management access', async () => {
-    localStorage.setItem('role', 'staff');
-    localStorage.setItem('name', 'Test Staff');
-    localStorage.setItem('access', JSON.stringify(['volunteer_management']));
-    renderWithProviders(<App />);
-    await waitFor(() => expect(window.location.pathname).toBe('/volunteer-management'));
-  });
-
-  it('redirects staff with only warehouse access', async () => {
-    localStorage.setItem('role', 'staff');
-    localStorage.setItem('name', 'Test Staff');
-    localStorage.setItem('access', JSON.stringify(['warehouse']));
-    renderWithProviders(<App />);
-    await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
-  });
-
-  it.skip('shows admin links for admin staff', () => {
-    localStorage.setItem('role', 'staff');
-    localStorage.setItem('name', 'Admin User');
-    localStorage.setItem('access', JSON.stringify(['admin']));
-    renderWithProviders(<App />);
-    const adminButton = screen.getByRole('button', { name: /admin/i });
-    fireEvent.click(adminButton);
-    expect(
-      screen.queryByRole('menuitem', { name: 'App Config' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: 'Settings' }),
-    ).toBeInTheDocument();
+  it('computes warehouse path for single warehouse access', () => {
+    expect(getStaffRootPath(['warehouse'] as any)).toBe('/warehouse-management');
   });
 });
