@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
@@ -47,7 +48,6 @@ import {
 } from '@mui/material';
 import { lighten } from '@mui/material/styles';
 import type { AlertColor } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 
 const reginaTimeZone = 'America/Regina';
 
@@ -73,7 +73,6 @@ export default function VolunteerSchedule() {
   const [endDate, setEndDate] = useState('');
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-  const { t } = useTranslation();
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
   const todayStr = formatDate();

@@ -1,4 +1,4 @@
-import { apiFetch, handleResponse } from '../client';
+import { apiFetch } from '../client';
 import {
   markBookingNoShow,
   markBookingVisited,

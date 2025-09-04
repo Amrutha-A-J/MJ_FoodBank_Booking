@@ -19,7 +19,6 @@ import {
 } from '../../api/agencies';
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 
 interface AgencyClient {
   id: number;
@@ -33,8 +32,6 @@ export default function ClientList() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
   >(null);
-  const { t } = useTranslation();
-
   useAuth(); // ensure auth context
 
   const load = async () => {

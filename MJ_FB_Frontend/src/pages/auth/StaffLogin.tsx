@@ -4,7 +4,6 @@ import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Typography, TextField, Link, Button } from '@mui/material';
 import Page from '../../components/Page';
-import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FeedbackModal from '../../components/FeedbackModal';
 import FormCard from '../../components/FormCard';

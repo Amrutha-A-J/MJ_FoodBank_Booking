@@ -39,8 +39,6 @@ import { toDate, formatDate } from '../../../utils/date';
 import Page from '../../../components/Page';
 import type { Booking } from '../../../types';
 
-const TIMEZONE = 'America/Regina';
-
 interface User {
   name: string;
   client_id: number;

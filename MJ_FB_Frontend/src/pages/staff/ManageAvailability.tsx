@@ -32,7 +32,6 @@ import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 import {
   getHolidays,
   addHoliday,
@@ -97,8 +96,6 @@ export default function ManageAvailability() {
     message: string;
     severity: AlertColor;
   }>({ open: false, message: '', severity: 'success' });
-  const { t } = useTranslation();
-
   const showSnackbar = (message: string, severity: AlertColor) => {
     setSnackbar({ open: true, message, severity });
   };
