@@ -8,6 +8,8 @@ Staff history views display both notes for visited bookings, reinforcing expecte
 
 Staff users automatically receive staff notes in booking history responses. Agency users can include staff notes by adding `includeStaffNotes=true` to `/bookings/history`. Both roles can filter visit history by note text using the `notes` query parameter. The notes-only filter matches visits that contain either client or staff notes.
 
+The "visits with notes only" filter appears only on staff booking history pages and is hidden from clients.
+
 ## Environment variables
 
 This feature does not require any additional environment variables.

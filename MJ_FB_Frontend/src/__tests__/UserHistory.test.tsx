@@ -79,6 +79,22 @@ describe('UserHistory', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('hides notes filter for non-staff users', async () => {
+    mockUseAuth.mockReturnValue({ role: 'shopper' } as any);
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(
+      screen.queryByLabelText('View visits with notes only')
+    ).not.toBeInTheDocument();
+  });
+
   it('filters visits with notes only', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {
