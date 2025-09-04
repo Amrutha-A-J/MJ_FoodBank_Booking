@@ -10,7 +10,7 @@
 - Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
-- A GitHub Actions workflow in `.github/workflows/release.yml` builds, tests, and deploys container images to Azure Container Apps. Configure repository secrets `AZURE_CREDENTIALS`, `REGISTRY_LOGIN_SERVER`, `REGISTRY_USERNAME`, `REGISTRY_PASSWORD` and variables `AZURE_RESOURCE_GROUP`, `BACKEND_APP_NAME`, and `FRONTEND_APP_NAME`; see `docs/release.md` for details.
+- Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.

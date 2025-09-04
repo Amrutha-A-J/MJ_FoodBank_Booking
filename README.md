@@ -37,7 +37,7 @@ nvm install   # installs the version listed in .nvmrc
 nvm use
 ```
 
-GitHub Actions reads the same `.nvmrc` to run CI on Node 22. Run all backend and frontend tests on this runtime to match CI results.
+Run all backend and frontend tests on this runtime to match production behavior.
 
 ## Timesheet and Leave Setup
 
@@ -410,21 +410,3 @@ docker push <registry>.azurecr.io/mjfb-frontend
 
 This setup prepares the project so it can be hosted on Azure with containerized services.
 
-## Release Workflow
-
-An automated workflow in `.github/workflows/release.yml` builds, tests, and deploys the backend and frontend Docker images to Azure Container Apps. It runs on pushes to `main` and on tags beginning with `v`.
-
-Set the following repository **secrets**:
-
-- `AZURE_CREDENTIALS` – Azure service principal credentials in JSON format
-- `REGISTRY_LOGIN_SERVER` – Azure Container Registry login server
-- `REGISTRY_USERNAME` – Azure Container Registry username
-- `REGISTRY_PASSWORD` – Azure Container Registry password
-
-Define these repository **variables**:
-
-- `AZURE_RESOURCE_GROUP` – Resource group containing the container apps
-- `BACKEND_APP_NAME` – Backend container app name
-- `FRONTEND_APP_NAME` – Frontend container app name
-
-See [docs/release.md](docs/release.md) for full details.
