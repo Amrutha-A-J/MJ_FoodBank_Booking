@@ -12,13 +12,14 @@ import {
   Checkbox,
 } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { formatReginaDate } from '../utils/date';
+import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent } from '../api/events';
 import { searchStaff, type StaffOption } from '../api/staff';
 import DialogCloseButton from './DialogCloseButton';
-import { formatReginaDate } from '../utils/date';
 
 interface EventFormProps {
   open: boolean;
@@ -41,8 +42,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [category, setCategory] = useState('');
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([tagAllOption]);
   const [selectedStaff, setSelectedStaff] = useState<StaffOption[]>([]);
@@ -87,7 +88,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
       setError('Please fill in title, category, start date, and end date');
       return;
     }
-    if (endDate < startDate) {
+    if (endDate.isBefore(startDate)) {
       setError('End date cannot be before start date');
       return;
     }
@@ -154,7 +155,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
               </MenuItem>
             ))}
           </TextField>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
             <DatePicker
               label={t('start_date')}
               value={startDate}
