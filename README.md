@@ -90,15 +90,16 @@ All schema changes must be implemented via migrations in `MJ_FB_Backend/src/migr
 
 - Use Node.js 22 or later for development; the backend relies on the native `fetch` API.
 - The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
-- Run the relevant backend or frontend test suites using `npm run test:backend` or `npm run test:frontend` after making changes. These scripts call each submodule's `npm test` so `jest.setup.ts` loads required polyfills and provides a default `VITE_API_BASE`.
+- Run the relevant backend and frontend test suites via `npm test` after making changes. Tests must be executed with `npm test` so `.env.test` files and `jest.setup.ts` load required environment variables and polyfills.
 
 ```bash
 npm run test:backend   # backend tests
 npm run test:frontend  # frontend tests
 ```
+
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
-- Backend tests use `tests/setupTests.ts` to load required environment variables, polyfill `global.fetch` with `undici`, and mock the database. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
+- Backend tests use `tests/setupTests.ts` to polyfill `global.fetch` with `undici` and mock the database. Environment variables come from `.env.test`, which Jest loads automatically. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
 
 ## Help Page Updates
 

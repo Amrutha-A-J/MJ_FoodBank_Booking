@@ -12,7 +12,7 @@
 - Run `npm test` from the `MJ_FB_Frontend` directory for frontend changes.
 - Always run tests through `npm test` so `jest.setup.ts` applies required polyfills and sets a default `VITE_API_BASE`; invoking Jest directly can skip this setup.
 - Tests polyfill `global.fetch` with `undici` via top-level assignments in `tests/setupFetch.ts`. Ensure this file remains configured in Jest's setup files.
-- Tests load required environment variables from `tests/setupEnv.ts`, which is listed in Jest's `setupFilesAfterEnv`. When running a test file directly, import `'../setupEnv'` so these variables are set, or run the test through Jest.
+- Environment variables for tests reside in `.env.test`, which Jest loads via `loadEnv.ts`. Run tests with `npm test` so these variables are applied.
 
 ## Project Layout
 - React app built with Vite.
