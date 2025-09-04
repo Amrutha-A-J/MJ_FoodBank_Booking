@@ -17,8 +17,9 @@ cd MJ_FB_Backend
 npm run migrate
 ```
 
-2. Upcoming pay periods are seeded automatically when the backend starts.
-   Adjust the range in `src/server.ts` or run the seeder manually if you
+2. Pay periods are seeded automatically on backend startup via the
+   `seedPayPeriods` utility. A cron job runs every **Nov 30** to generate
+   pay periods for the upcoming year. Seed a custom range manually if you
    need additional periods:
 
 ```bash
