@@ -27,8 +27,7 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      # If your frontend (Vite) needs API base at build time:
-      # Add a repo Variable BACKEND_API_BASE and uncomment below.
+      # Optional: if your frontend build needs to know backend URL
       - name: Ensure VITE_API_BASE (optional)
         if: ${{ vars.BACKEND_API_BASE != '' }}
         working-directory: MJ_FB_Frontend
@@ -36,7 +35,7 @@ jobs:
           echo "VITE_API_BASE=${{ vars.BACKEND_API_BASE }}" > .env
           echo "Using VITE_API_BASE=${{ vars.BACKEND_API_BASE }}"
 
-      # ---- Build images on GitHub runner (no tests) ----
+      # ---- Build images on GitHub runner ----
       - name: Build backend image
         run: docker build -t mjfb-backend:${{ env.IMAGE_TAG }} MJ_FB_Backend
 
@@ -58,22 +57,16 @@ jobs:
           docker push $REGISTRY/mjfb-frontend:${{ env.IMAGE_TAG }}
           docker push $REGISTRY/mjfb-frontend:latest
 
-      # ---- Deploy to Azure Container Apps (assumes apps already created once) ----
+      # ---- Deploy to Azure Container Apps (update existing apps) ----
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy backend (latest)
-        uses: azure/container-apps-deploy@v2
+      - name: Update Container Apps
+        uses: azure/CLI@v2
         with:
-          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
-          containerAppName: ${{ vars.BACKEND_APP_NAME }}
-          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-backend:latest
-
-      - name: Deploy frontend (latest)
-        uses: azure/container-apps-deploy@v2
-        with:
-          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
-          containerAppName: ${{ vars.FRONTEND_APP_NAME }}
-          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-frontend:latest
+          inlineScript: |
+            az extension add --name containerapp --upgrade
+            az containerapp update -g ${{ vars.AZURE_RESOURCE_GROUP }} -n ${{ vars.BACKEND_APP_NAME }}  --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-backend:latest
+            az containerapp update -g ${{ vars.AZURE_RESOURCE_GROUP }} -n ${{ vars.FRONTEND_APP_NAME }} --image ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-frontend:latest
