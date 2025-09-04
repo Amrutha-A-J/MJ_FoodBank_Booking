@@ -13,7 +13,7 @@ import {
 const router = express.Router();
 
 // list pay periods for the logged in staff member
-router.get('/mine', authMiddleware, authorizeRoles('staff'), listMyTimesheets);
+router.get('/mine', authMiddleware, authorizeRoles('staff', 'admin'), listMyTimesheets);
 // admin can list timesheets for any staff
 router.get('/', authMiddleware, authorizeRoles('admin'), listTimesheets);
 router.get(
@@ -22,8 +22,8 @@ router.get(
   authorizeRoles('staff', 'admin'),
   getTimesheetDays,
 );
-router.patch('/:id/days/:date', authMiddleware, authorizeRoles('staff'), updateTimesheetDay);
-router.post('/:id/submit', authMiddleware, authorizeRoles('staff'), submitTimesheet);
+router.patch('/:id/days/:date', authMiddleware, authorizeRoles('staff', 'admin'), updateTimesheetDay);
+router.post('/:id/submit', authMiddleware, authorizeRoles('staff', 'admin'), submitTimesheet);
 router.post('/:id/reject', authMiddleware, authorizeRoles('admin'), rejectTimesheet);
 router.post('/:id/process', authMiddleware, authorizeRoles('admin'), processTimesheet);
 
