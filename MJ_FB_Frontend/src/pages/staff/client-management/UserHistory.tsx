@@ -72,6 +72,7 @@ export default function UserHistory({
   });
   const { t } = useTranslation();
   const { role } = useAuth();
+  const showNotes = role === 'staff' || role === 'agency';
 
   const pageSize = 10;
 
@@ -246,14 +247,16 @@ export default function UserHistory({
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                    <TableCell sx={cellSx}>{t('notes')}</TableCell>
+                    {showNotes && (
+                      <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
+                    )}
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      <TableCell colSpan={showNotes ? 6 : 5} sx={{ textAlign: 'center' }}>
                         {t('no_bookings')}
                       </TableCell>
                     </TableRow>
@@ -275,18 +278,13 @@ export default function UserHistory({
                         </TableCell>
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {b.client_note && (
-                            <Typography variant="body2">
-                              {t('client_note_label')}: {b.client_note}
-                            </Typography>
-                          )}
-                          {b.staff_note && (
-                            <Typography variant="body2">
-                              {t('staff_note_label')}: {b.staff_note}
-                            </Typography>
-                          )}
-                        </TableCell>
+                        {showNotes && (
+                          <TableCell sx={cellSx}>
+                            {b.staff_note && (
+                              <Typography variant="body2">{b.staff_note}</Typography>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
                             b.status.toLowerCase()

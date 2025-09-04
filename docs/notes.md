@@ -4,7 +4,7 @@ Clients can enter a **client note** when booking an appointment. The client note
 
 Staff can add a **staff note** when recording client visits in the pantry schedule. Staff notes are stored with the visit.
 
-Staff history views display both notes for visited bookings, reinforcing expected behaviour.
+Staff and agency history views display only staff notes for visited bookings; client notes remain hidden.
 
 Staff users automatically receive staff notes in booking history responses. Agency users can include staff notes by adding `includeStaffNotes=true` to `/bookings/history`. Both roles can filter visit history by note text using the `notes` query parameter. The notes-only filter matches visits that contain either client or staff notes.
 
@@ -22,7 +22,6 @@ Add the following translation strings to locale files:
 - `dashboard`
 - `client_note_label`
 - `staff_note_label`
-- `notes`
 - `visits_with_notes_only`
 
 Document any new translation keys here when extending note functionality.

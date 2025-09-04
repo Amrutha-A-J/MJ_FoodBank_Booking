@@ -147,10 +147,10 @@ describe('UserHistory', () => {
 
     expect(screen.getAllByText(/visited/i)).toHaveLength(2);
     expect(screen.getByText(/has staff note/i)).toBeInTheDocument();
-    expect(screen.getByText(/client note here/i)).toBeInTheDocument();
+    expect(screen.queryByText(/client note here/i)).not.toBeInTheDocument();
   });
 
-  it('shows both client and staff note labels for visited bookings', async () => {
+  it('shows staff note for visited bookings', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -162,7 +162,6 @@ describe('UserHistory', () => {
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
-        client_note: 'client note',
         staff_note: 'staff note',
       },
     ]);
@@ -174,8 +173,8 @@ describe('UserHistory', () => {
     );
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
-    expect(screen.getByText(/Client note/i)).toBeInTheDocument();
-    expect(screen.getByText(/Staff note/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Client note/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/staff note/i, { selector: 'p' })).toBeInTheDocument();
   });
 });
 

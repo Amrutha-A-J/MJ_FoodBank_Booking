@@ -85,7 +85,7 @@ describe('Agency ClientHistory', () => {
         includeStaffNotes: true,
       }),
     );
-    expect(await screen.findByText(/client note/i)).toBeInTheDocument();
-    expect(screen.getByText(/staff note/i)).toBeInTheDocument();
+    expect(screen.queryByText(/client note/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/staff note/i, { selector: 'p' })).toBeInTheDocument();
   });
 });
