@@ -7,6 +7,9 @@ from the **Hello** menu in the top-right corner. Admins can review periods at
 `/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
 Admin menu. Admins select a staff member before viewing their periods.
 
+Staff see up to seven pay period tabs: the current period, the next period (if
+generated), and up to five previous periods.
+
 Hours entered on the page are stored locally until you submit the period. No
 API requests are made while editing, preventing the page from refreshing after
 each change.
