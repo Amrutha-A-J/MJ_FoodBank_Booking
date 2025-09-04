@@ -14,6 +14,7 @@ import {
   startVolunteerNoShowCleanupJob,
   stopVolunteerNoShowCleanupJob,
 } from './utils/volunteerNoShowCleanupJob';
+import { startPayPeriodCronJob, stopPayPeriodCronJob } from './utils/payPeriodCronJob';
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
 import seedTimesheets from './utils/timesheetSeeder';
 
@@ -37,6 +38,7 @@ async function init() {
     startVolunteerShiftReminderJob();
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
+    startPayPeriodCronJob();
     await seedTimesheets();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
@@ -50,6 +52,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopVolunteerShiftReminderJob();
   stopNoShowCleanupJob();
   stopVolunteerNoShowCleanupJob();
+  stopPayPeriodCronJob();
   shutdownQueue();
   if (server) {
     server.close();
