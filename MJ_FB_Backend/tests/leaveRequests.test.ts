@@ -4,6 +4,17 @@ import {
   approveLeaveRequest,
 } from "../src/controllers/leaveRequestController";
 import mockPool from "./utils/mockDb";
+import seedTimesheets from "../src/utils/timesheetSeeder";
+import { insertEvent } from "../src/models/event";
+
+jest.mock("../src/utils/timesheetSeeder", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock("../src/models/event", () => ({
+  insertEvent: jest.fn(),
+}));
 
 const makeRes = () => ({
   status: jest.fn().mockReturnThis(),
@@ -13,6 +24,8 @@ const makeRes = () => ({
 describe("leave requests controller", () => {
   afterEach(() => {
     (mockPool.query as jest.Mock).mockReset();
+    (seedTimesheets as jest.Mock).mockReset();
+    (insertEvent as jest.Mock).mockReset();
   });
 
   it("creates a leave request", async () => {
@@ -91,5 +104,16 @@ describe("leave requests controller", () => {
       created_at: "now",
       updated_at: "now",
     });
+    expect(seedTimesheets).toHaveBeenCalledWith(1);
+    expect(insertEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: "staff_leave",
+        startDate: "2024-01-02",
+        endDate: "2024-01-03",
+        createdBy: 1,
+        visibleToClients: true,
+        visibleToVolunteers: true,
+      }),
+    );
   });
 });

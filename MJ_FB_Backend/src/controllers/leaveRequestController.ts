@@ -4,6 +4,8 @@ import {
   selectLeaveRequests,
   updateLeaveRequestStatus,
 } from "../models/leaveRequest";
+import seedTimesheets from "../utils/timesheetSeeder";
+import { insertEvent } from "../models/event";
 
 export async function createLeaveRequest(
   req: Request,
@@ -48,6 +50,16 @@ export async function approveLeaveRequest(
       Number(req.params.id),
       "approved",
     );
+    await seedTimesheets(record.staff_id);
+    await insertEvent({
+      title: "Staff Leave",
+      category: "staff_leave",
+      startDate: record.start_date,
+      endDate: record.end_date,
+      createdBy: record.staff_id,
+      visibleToClients: true,
+      visibleToVolunteers: true,
+    });
     res.json(record);
   } catch (err) {
     next(err);
