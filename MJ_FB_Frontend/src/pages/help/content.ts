@@ -410,6 +410,7 @@ export function getHelpContent(
           'Navigate to Admin > Leave Requests.',
           'Review pending requests.',
           'Approve requests to apply vacation hours.',
+          'Reject requests to remove them.',
         ],
       },
     },

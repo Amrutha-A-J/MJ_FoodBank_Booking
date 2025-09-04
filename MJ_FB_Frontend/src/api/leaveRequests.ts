@@ -8,6 +8,7 @@ export interface LeaveRequest {
   work_date: string;
   hours: number;
   status: 'pending' | 'approved' | 'rejected';
+  staff_name?: string;
 }
 
 export async function createLeaveRequest(
@@ -39,6 +40,14 @@ export async function listAllLeaveRequests(): Promise<LeaveRequest[]> {
 export async function approveLeaveRequest(requestId: number): Promise<void> {
   const res = await apiFetch(
     `${API_BASE}/timesheets/leave-requests/${requestId}/approve`,
+    { method: 'POST' },
+  );
+  await handleResponse(res);
+}
+
+export async function rejectLeaveRequest(requestId: number): Promise<void> {
+  const res = await apiFetch(
+    `${API_BASE}/timesheets/leave-requests/${requestId}/reject`,
     { method: 'POST' },
   );
   await handleResponse(res);
@@ -76,6 +85,17 @@ export function useApproveLeaveRequest() {
   const qc = useQueryClient();
   return useMutation<void, ApiError, { requestId: number; timesheetId: number }>({
     mutationFn: ({ requestId }) => approveLeaveRequest(requestId),
+    onSuccess: (_, { timesheetId }) => {
+      qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
+      qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+    },
+  });
+}
+
+export function useRejectLeaveRequest() {
+  const qc = useQueryClient();
+  return useMutation<void, ApiError, { requestId: number; timesheetId: number }>({
+    mutationFn: ({ requestId }) => rejectLeaveRequest(requestId),
     onSuccess: (_, { timesheetId }) => {
       qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
       qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });

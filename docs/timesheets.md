@@ -82,6 +82,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 - `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
 - `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
 - `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.
+- `POST /timesheets/leave-requests/:requestId/reject` – reject a leave request.
 - `GET /api/leave/requests` – list all leave requests (admin only).
 - `POST /api/leave/requests` – submit a leave request for the logged in staff member.
 

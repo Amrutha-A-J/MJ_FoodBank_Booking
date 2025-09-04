@@ -9,6 +9,7 @@ export interface LeaveRequest {
   reason: string | null;
   created_at: string;
   updated_at: string;
+  staff_name?: string;
 }
 
 export async function insertLeaveRequest(
@@ -27,7 +28,10 @@ export async function insertLeaveRequest(
 
 export async function selectLeaveRequests(): Promise<LeaveRequest[]> {
   const res = await pool.query(
-    `SELECT * FROM leave_requests ORDER BY start_date`,
+    `SELECT lr.*, s.first_name || ' ' || s.last_name AS staff_name
+     FROM leave_requests lr
+     JOIN staff s ON lr.staff_id = s.id
+     ORDER BY lr.start_date`,
   );
   return res.rows;
 }
