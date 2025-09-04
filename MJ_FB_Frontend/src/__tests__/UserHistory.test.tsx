@@ -133,5 +133,33 @@ describe('UserHistory', () => {
     expect(screen.getByText(/has staff note/i)).toBeInTheDocument();
     expect(screen.getByText(/client note here/i)).toBeInTheDocument();
   });
+
+  it('shows both client and staff note labels for visited bookings', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-01',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-01',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+        client_note: 'client note',
+        staff_note: 'staff note',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getByText(/Client note/i)).toBeInTheDocument();
+    expect(screen.getByText(/Staff note/i)).toBeInTheDocument();
+  });
 });
 
