@@ -1,7 +1,7 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
-COPY package*.json tsconfig*.json vite.config.ts ./
+COPY package*.json tsconfig*.json vite.config.ts index.html ./
 COPY public ./public
 COPY src ./src
 RUN npm ci && npm run build
