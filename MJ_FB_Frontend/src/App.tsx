@@ -11,6 +11,7 @@ import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 import { getVolunteerBookingsForReview } from './api/volunteers';
+import { getStaffRootPath } from './utils/staffRootPath';
 import dayjs, { formatDate } from './utils/date';
 import LanguageSelector from './components/LanguageSelector';
 
@@ -123,17 +124,8 @@ export default function App() {
   const showWarehouse = isStaff && hasAccess('warehouse');
   const showAdmin = isStaff && access.includes('admin');
 
-  const singleAccessOnly =
-    isStaff && access.length === 1 && access[0] !== 'admin';
-  const staffRootPath = singleAccessOnly
-    ? access[0] === 'pantry'
-      ? '/pantry'
-      : access[0] === 'volunteer_management'
-        ? '/volunteer-management'
-        : access[0] === 'warehouse'
-          ? '/warehouse-management'
-          : '/'
-    : '/';
+  const staffRootPath = getStaffRootPath(access as StaffAccess[]);
+  const singleAccessOnly = isStaff && staffRootPath !== '/';
 
   useEffect(() => {
     if (showVolunteerManagement) {
