@@ -9,6 +9,13 @@ jest.mock('../src/models/bookingRepository', () => ({
 }));
 const { fetchBookingHistory } = require('../src/models/bookingRepository');
 
+jest.mock('../src/models/agency', () => ({
+  __esModule: true,
+  ...jest.requireActual('../src/models/agency'),
+  getAgencyClientSet: jest.fn().mockResolvedValue(new Set([1])),
+  isAgencyClient: jest.fn().mockResolvedValue(true),
+}));
+
 let currentUser: any = { id: 1, role: 'shopper' };
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -86,21 +93,23 @@ describe('includeStaffNotes handling', () => {
 
   it('requires includeStaffNotes for agencies', async () => {
     currentUser = { id: 3, role: 'agency' };
-    (fetchBookingHistory as jest.Mock).mockResolvedValue([
-      {
-        id: 1,
-        status: 'visited',
-        date: '2024-01-01',
-        slot_id: null,
-        reason: null,
-        start_time: null,
-        end_time: null,
-        created_at: '2024-01-01',
-        is_staff_booking: false,
-        reschedule_token: null,
-        staff_note: 'visit note',
-      },
-    ]);
+    (fetchBookingHistory as jest.Mock).mockImplementation(() =>
+      Promise.resolve([
+        {
+          id: 1,
+          status: 'visited',
+          date: '2024-01-01',
+          slot_id: null,
+          reason: null,
+          start_time: null,
+          end_time: null,
+          created_at: '2024-01-01',
+          is_staff_booking: false,
+          reschedule_token: null,
+          staff_note: 'visit note',
+        },
+      ]),
+    );
     const res1 = await request(app).get('/bookings/history?userId=1');
     expect(res1.status).toBe(200);
     expect(res1.body[0].staff_note).toBeUndefined();
@@ -145,5 +154,35 @@ describe('includeStaffNotes handling', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].client_note).toBe('bring ID');
     expect(res.body[1].staff_note).toBeUndefined();
+  });
+
+  it('shows both notes to staff but hides staff notes from shoppers', async () => {
+    (fetchBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-01',
+        slot_id: 1,
+        reason: null,
+        start_time: '09:00:00',
+        end_time: '09:30:00',
+        created_at: '2024-01-01',
+        is_staff_booking: false,
+        reschedule_token: 'tok',
+        client_note: 'client note',
+        staff_note: 'staff note',
+      },
+    ]);
+    currentUser = { id: 2, role: 'staff' };
+    const staffRes = await request(app).get('/bookings/history?userId=1');
+    expect(staffRes.status).toBe(200);
+    expect(staffRes.body[0].client_note).toBe('client note');
+    expect(staffRes.body[0].staff_note).toBe('staff note');
+
+    currentUser = { id: 1, role: 'shopper' };
+    const shopperRes = await request(app).get('/bookings/history');
+    expect(shopperRes.status).toBe(200);
+    expect(shopperRes.body[0].client_note).toBe('client note');
+    expect(shopperRes.body[0].staff_note).toBeUndefined();
   });
 });
