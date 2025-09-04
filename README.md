@@ -231,7 +231,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BREVO_FROM_NAME`                            | Optional sender name displayed in emails                                                                                                  |
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
 | `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |
-| `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails                                                                                |
+| `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 1478167)                                                                                |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                                                                                         |
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                                                                                             |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                                                                                     |
