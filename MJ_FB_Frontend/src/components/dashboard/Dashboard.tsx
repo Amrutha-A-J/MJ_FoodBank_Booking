@@ -80,7 +80,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getBookings().then(setBookings).catch(() => {});
+    getBookings()
+      .then(b => setBookings(Array.isArray(b) ? b : [b]))
+      .catch(() => {});
     getEvents().then(setEvents).catch(() => {});
 
     const today = new Date();
@@ -265,7 +267,9 @@ function UserDashboard() {
   });
 
   useEffect(() => {
-    getBookings().then(setBookings).catch(() => {});
+    getBookings()
+      .then(b => setBookings(Array.isArray(b) ? b : [b]))
+      .catch(() => {});
 
     const todayStr = formatLocalDate(new Date());
     getSlotsRange(todayStr, 5)
