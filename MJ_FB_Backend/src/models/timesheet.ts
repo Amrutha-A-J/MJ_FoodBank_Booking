@@ -99,6 +99,52 @@ export async function getTimesheetDays(timesheetId: number): Promise<TimesheetDa
   return res.rows;
 }
 
+export async function ensureTimesheetDay(
+  staffId: number,
+  workDate: string,
+): Promise<void> {
+  const periodRes = await pool.query(
+    'SELECT start_date, end_date FROM pay_periods WHERE $1 BETWEEN start_date AND end_date',
+    [workDate],
+  );
+  if (periodRes.rowCount === 0) {
+    return;
+  }
+  const { start_date, end_date } = periodRes.rows[0];
+
+  let timesheetId: number;
+  const tsRes = await pool.query(
+    'SELECT id FROM timesheets WHERE staff_id = $1 AND start_date = $2 AND end_date = $3',
+    [staffId, start_date, end_date],
+  );
+  if (tsRes.rowCount && tsRes.rowCount > 0) {
+    timesheetId = tsRes.rows[0].id;
+  } else {
+    const insertRes = await pool.query(
+      'INSERT INTO timesheets (staff_id, start_date, end_date) VALUES ($1, $2, $3) RETURNING id',
+      [staffId, start_date, end_date],
+    );
+    timesheetId = insertRes.rows[0].id;
+  }
+
+  await pool.query(
+    `INSERT INTO timesheet_days (
+        timesheet_id,
+        work_date,
+        expected_hours,
+        reg_hours,
+        ot_hours,
+        stat_hours,
+        sick_hours,
+        vac_hours,
+        note
+     )
+     VALUES ($1, $2, 0, 0, 0, 0, 0, 0, NULL)
+     ON CONFLICT (timesheet_id, work_date) DO NOTHING`,
+    [timesheetId, workDate],
+  );
+}
+
 export interface TimesheetDayUpdate {
   regHours: number;
   otHours: number;
