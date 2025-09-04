@@ -7,6 +7,10 @@ from the **Hello** menu in the top-right corner. Admins can review periods at
 `/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
 Admin menu. Admins select a staff member before viewing their periods.
 
+Hours entered on the page are stored locally until you submit the period. No
+API requests are made while editing, preventing the page from refreshing after
+each change.
+
 ## Setup
 
 1. Start the backend once so `setupDatabase` creates the pay period, timesheet, and leave tables. All future schema changes must be implemented via migrations instead of editing `setupDatabase`:

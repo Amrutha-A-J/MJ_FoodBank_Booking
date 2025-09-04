@@ -79,8 +79,8 @@ jest.mock('../../../api/timesheets', () => ({
   }),
   useAllTimesheets: (...args: any[]) => mockUseAllTimesheets(...args),
   useTimesheetDays: (...args: any[]) => mockUseTimesheetDays(...args),
-  useUpdateTimesheetDay: () => ({ mutate: mockUpdate }),
-  useSubmitTimesheet: () => ({ mutate: mockSubmit }),
+  updateTimesheetDay: (...args: any[]) => mockUpdate(...args),
+  useSubmitTimesheet: () => ({ mutateAsync: mockSubmit, isPending: false }),
   useRejectTimesheet: () => ({ mutate: jest.fn() }),
   useProcessTimesheet: () => ({ mutate: jest.fn() }),
 }));
@@ -101,6 +101,7 @@ jest.mock('../../../api/leaveRequests', () => ({
 beforeEach(() => {
   mockSubmit.mockClear();
   mockUpdate.mockClear();
+  mockUpdate.mockResolvedValue(undefined);
   mockUseTimesheetDays.mockClear();
   mockUseAllTimesheets.mockClear();
   mockSearchStaff.mockClear();
@@ -172,6 +173,7 @@ describe('Timesheets', () => {
     const user = userEvent.setup();
     render();
     await user.click(screen.getByRole('button', { name: /submit/i }));
+    expect(mockUpdate).toHaveBeenCalledTimes(3);
     expect(mockSubmit).toHaveBeenCalledWith(1);
   });
 
