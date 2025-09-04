@@ -100,6 +100,11 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             setMessage('Please select date and time');
             return;
           }
+          if (!booking.reschedule_token) {
+            setSeverity('error');
+            setMessage('No reschedule token');
+            return;
+          }
           await rescheduleBookingByToken(booking.reschedule_token, slotId, date);
           onUpdated('Booking rescheduled', 'success');
           onClose();
