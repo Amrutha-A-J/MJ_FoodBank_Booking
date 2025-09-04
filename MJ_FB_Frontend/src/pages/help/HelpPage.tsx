@@ -53,7 +53,7 @@ export default function HelpPage() {
     const query = search.toLowerCase();
     return roles.map(r => {
       const sections: HelpSection[] =
-        helpContent[r]?.filter(s => {
+        helpContent[r as keyof typeof helpContent]?.filter((s: HelpSection) => {
           const text = [
             s.title,
             s.body.description,

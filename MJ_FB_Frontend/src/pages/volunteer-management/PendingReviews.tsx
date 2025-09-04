@@ -15,8 +15,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  AlertColor,
 } from '@mui/material';
+import type { AlertColor } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import Page from '../../components/Page';
 import PageCard from '../../components/layout/PageCard';
@@ -47,7 +47,7 @@ export default function PendingReviews() {
     const startStr = weekStart.format('YYYY-MM-DD');
     const endStr = weekStart.add(6, 'day').format('YYYY-MM-DD');
     getVolunteerBookingsForReview(startStr, endStr)
-      .then(setBookings)
+      .then(data => setBookings(data as unknown as VolunteerBookingDetail[]))
       .catch(() => {});
   }, [weekStart]);
 

@@ -175,7 +175,7 @@ export default function ManageVolunteerShiftDialog({
             select
             label="Status"
             value={status}
-            onChange={e => setStatus(e.target.value)}
+            onChange={e => setStatus(e.target.value as ManageStatus)}
             fullWidth
           >
             <MenuItem value="completed">Completed</MenuItem>

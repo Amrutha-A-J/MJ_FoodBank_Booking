@@ -1,14 +1,14 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig(async ({ mode }) => {
-  const plugins = [react()]
+  const plugins: PluginOption[] = [react()]
   if (mode === 'production') {
     try {
       const { visualizer } = await import('rollup-plugin-visualizer')
       plugins.push(
-        visualizer({ filename: 'stats.html', open: false })
+        visualizer({ filename: 'stats.html', open: false }) as PluginOption
       )
     } catch (err) {
       console.warn('rollup-plugin-visualizer is not installed', err)

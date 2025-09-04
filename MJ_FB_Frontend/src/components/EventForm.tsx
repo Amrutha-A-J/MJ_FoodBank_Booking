@@ -159,13 +159,13 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
             <DatePicker
               label={t('start_date')}
               value={startDate}
-              onChange={newDate => setStartDate(newDate)}
+              onChange={value => setStartDate(value as Dayjs | null)}
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
             />
             <DatePicker
               label={t('end_date')}
               value={endDate}
-              onChange={newDate => setEndDate(newDate)}
+              onChange={value => setEndDate(value as Dayjs | null)}
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
             />
           </LocalizationProvider>

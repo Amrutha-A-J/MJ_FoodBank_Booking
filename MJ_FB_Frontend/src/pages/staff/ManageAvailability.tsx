@@ -128,7 +128,7 @@ export default function ManageAvailability() {
             reason: b.reason ?? '',
           })),
           ...blockedOnce.map(b => ({
-            id: Date.parse(b.date) + b.slotId,
+            id: Date.parse(b.date!) + b.slotId,
             date: toDate(b.date),
             slotId: b.slotId,
             reason: b.reason ?? '',
@@ -288,7 +288,7 @@ export default function ManageAvailability() {
                 <DatePicker
                   label="Date"
                   value={holidayDate}
-                  onChange={setHolidayDate}
+                  onChange={val => setHolidayDate(val as Date | null)}
                   slotProps={{ textField: { fullWidth: true, size: 'medium' } }}
                 />
               </Grid>
@@ -401,7 +401,7 @@ export default function ManageAvailability() {
                 <DatePicker
                   label="Date"
                   value={blockedDate}
-                  onChange={setBlockedDate}
+                  onChange={val => setBlockedDate(val as Date | null)}
                   slotProps={{ textField: { fullWidth: true } }}
                 />
               )}

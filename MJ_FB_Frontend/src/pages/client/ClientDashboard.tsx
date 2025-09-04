@@ -118,7 +118,7 @@ export default function ClientDashboard() {
   async function confirmCancel() {
     if (cancelId === null) return;
     try {
-      await cancelBooking(cancelId);
+      await cancelBooking(String(cancelId));
       setMessage(t('booking_cancelled'));
       setSnackbarSeverity('success');
       setBookings(prev => prev.filter(b => b.id !== cancelId));

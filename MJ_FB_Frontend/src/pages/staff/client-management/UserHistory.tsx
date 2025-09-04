@@ -91,9 +91,9 @@ export default function UserHistory({
     else if (filter !== 'all') opts.status = filter;
     return getBookingHistory(opts)
       .then(data => {
-        const sorted = [...data].sort(
-          (a, b) =>
-            toDate(b.created_at).getTime() - toDate(a.created_at).getTime(),
+        const arr = Array.isArray(data) ? data : [data];
+        const sorted = arr.sort(
+          (a, b) => toDate(b.date).getTime() - toDate(a.date).getTime(),
         );
         setBookings(sorted);
         setPage(1);
@@ -175,7 +175,6 @@ export default function UserHistory({
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        password: form.password || undefined,
       });
       setSelected(s =>
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
@@ -267,7 +266,7 @@ export default function UserHistory({
                         ? formatDate(b.date, 'MMM D, YYYY')
                         : 'N/A';
                     return (
-                      <TableRow key={`${b.id}-${b.created_at}`}>
+                      <TableRow key={`${b.id}-${b.date}`}>
                         <TableCell sx={cellSx}>{formattedDate}</TableCell>
                         <TableCell sx={cellSx}>
                           {startTime !== 'N/A' && endTime !== 'N/A'
@@ -347,7 +346,7 @@ export default function UserHistory({
         {rescheduleBooking && (
           <RescheduleDialog
             open={!!rescheduleBooking}
-            rescheduleToken={rescheduleBooking.reschedule_token}
+            rescheduleToken={rescheduleBooking.reschedule_token!}
             onClose={() => setRescheduleBooking(null)}
             onRescheduled={() => {
               loadBookings();

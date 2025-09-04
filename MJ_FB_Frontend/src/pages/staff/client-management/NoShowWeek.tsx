@@ -136,7 +136,9 @@ export default function NoShowWeek() {
                       sx={{ cursor: 'pointer' }}
                       onClick={() => setManageBooking(b)}
                     >
-                      <TableCell>{formatTime(b.start_time)}</TableCell>
+                      <TableCell>
+                        {b.start_time ? formatTime(b.start_time) : ''}
+                      </TableCell>
                       <TableCell>{b.user_name}</TableCell>
                       <TableCell sx={{ textTransform: 'capitalize' }}>
                         {b.status.replace('_', ' ')}

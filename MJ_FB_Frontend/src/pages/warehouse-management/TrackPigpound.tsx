@@ -246,7 +246,7 @@ export default function TrackPigpound() {
                       setSnackbar({ open: true, message: 'Entry deleted' });
                       setDeleteOpen(false);
                       setToDelete(null);
-                      load();
+                      load(selectedDate);
                     })
                     .catch(err =>
                       setSnackbar({

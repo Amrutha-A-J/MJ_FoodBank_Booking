@@ -118,7 +118,7 @@ export default function VolunteerRecurringBookings() {
     }
   }
 
-  const groupedRoles = roles.reduce((acc: any, r) => {
+  const groupedRoles = roles.reduce((acc: Map<number, { category: string; roles: VolunteerRole[] }>, r) => {
     const group = acc.get(r.category_id) || { category: r.category_name, roles: [] };
     group.roles.push(r);
     acc.set(r.category_id, group);
@@ -137,9 +137,13 @@ export default function VolunteerRecurringBookings() {
             <InputLabel id="role-label">Role</InputLabel>
             <Select labelId="role-label" value={selectedRole} label="Role" onChange={e => setSelectedRole(e.target.value as string)}>
               <MenuItem value="">Select role</MenuItem>
-              {Array.from(groupedRoles.values()).flatMap(g => [
+              {(
+                Array.from(
+                  groupedRoles.values(),
+                ) as Array<{ category: string; roles: VolunteerRole[] }>
+              ).flatMap(g => [
                 <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
-                ...g.roles.map(r => (
+                ...g.roles.map((r: VolunteerRole) => (
                   <MenuItem key={r.id} value={r.id}>
                     {r.name} ({formatTime(r.start_time)}–{formatTime(r.end_time)})
                   </MenuItem>

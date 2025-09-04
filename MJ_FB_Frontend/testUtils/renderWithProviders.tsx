@@ -22,7 +22,7 @@ export function renderWithProviders(
     defaultOptions: { queries: { retry: false } },
   });
 
-  function Wrapper({ children }: ProvidersProps): JSX.Element {
+  function Wrapper({ children }: ProvidersProps): ReactElement {
     return (
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
