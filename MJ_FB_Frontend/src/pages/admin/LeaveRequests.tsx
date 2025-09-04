@@ -27,9 +27,10 @@ export default function AdminLeaveRequests() {
           <Button
             variant="contained"
             size="small"
-            onClick={() =>
-              approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id })
-            }
+            onClick={() => {
+              if (!r.timesheet_id) return;
+              approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id });
+            }}
           >
             {t('timesheets.approve_leave')}
           </Button>
@@ -37,9 +38,10 @@ export default function AdminLeaveRequests() {
             variant="contained"
             color="error"
             size="small"
-            onClick={() =>
-              reject.mutate({ requestId: r.id, timesheetId: r.timesheet_id })
-            }
+            onClick={() => {
+              if (!r.timesheet_id) return;
+              reject.mutate({ requestId: r.id, timesheetId: r.timesheet_id });
+            }}
           >
             {t('timesheets.reject_leave')}
           </Button>

@@ -251,6 +251,7 @@ export default function VolunteerDashboard() {
 
   async function resolveConflict(choice: 'existing' | 'new') {
     if (!conflict) return;
+    if (!conflict.existing.id) return;
     try {
       const booking = await resolveVolunteerBookingConflict(
         conflict.existing.id,

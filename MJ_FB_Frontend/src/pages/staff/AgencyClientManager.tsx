@@ -80,6 +80,7 @@ export default function AgencyClientManager() {
       setSnackbar({ message: 'Select an agency first', severity: 'error' });
       return;
     }
+    if (!user.client_id) return;
     try {
       await addAgencyClient(agency.id, user.client_id);
       setSnackbar({ message: 'Client added', severity: 'success' });
