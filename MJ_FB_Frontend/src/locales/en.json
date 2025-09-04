@@ -251,6 +251,7 @@
     "process": "Process",
     "lock_leave_tooltip": "Leave day is locked",
     "approve_leave": "Approve",
+    "reject_leave": "Reject",
     "staff": "Staff",
     "select_staff": "Select Staff"
   },

@@ -414,13 +414,13 @@ export function getHelpContent(
       },
     },
     {
-      title: 'Approve leave requests',
+      title: 'Review leave requests',
       body: {
         description: 'Review staff vacation requests.',
         steps: [
           'Navigate to Admin > Leave Requests.',
           'Review pending requests.',
-          'Approve requests to apply vacation hours.',
+          'Approve or reject requests as needed.',
         ],
       },
     },
