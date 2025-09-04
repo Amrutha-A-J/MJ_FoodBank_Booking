@@ -86,6 +86,7 @@ export async function createBooking(
     date,
     note,
   };
+  if (note) body.note = note;
   if (userId) body.userId = userId;
   const res = await apiFetch(`${API_BASE}/bookings`, {
     method: 'POST',

@@ -132,7 +132,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     return res.status(400).json({ message: 'Client ID and role required' });
   }
 
-  if (onlineAccess && (!firstName || !lastName)) {
+  if (onlineAccess && (!firstName || !lastName || !email)) {
     return res.status(400).json({ message: 'Missing fields for online account' });
   }
 

@@ -188,7 +188,34 @@ export default function ClientDashboard() {
                 </Typography>
               )}
             </SectionCard>
-
+            <SectionCard
+              title={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <span>{t('booking_history')}</span>
+                </Stack>
+              }
+              icon={<History color="primary" />}
+            >
+              <List>
+                {history.slice(0, 3).map(b => {
+                  const time = b.start_time ? formatTime(b.start_time) : '';
+                  return (
+                    <ListItem
+                      key={`${b.id}-${b.date}`}
+                      secondaryAction={
+                        <Chip label={t(b.status)} color={statusColor(b.status)} />
+                      }
+                    >
+                      <ListItemText
+                        primary={
+                          time ? `${formatDate(b.date)} ${time}` : formatDate(b.date)
+                        }
+                      />
+                    </ListItem>
+                  );
+                })}
+              </List>
+            </SectionCard>
           </Stack>
         </Grid>
 
@@ -280,37 +307,6 @@ export default function ClientDashboard() {
               </Stack>
             </SectionCard>
           </Stack>
-        </Grid>
-
-        <Grid size={12}>
-          <SectionCard
-            title={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <span>{t('booking_history')}</span>
-              </Stack>
-            }
-            icon={<History color="primary" />}
-          >
-            <List>
-              {history.slice(0, 3).map(b => {
-                const time = b.start_time ? formatTime(b.start_time) : '';
-                return (
-                  <ListItem
-                    key={`${b.id}-${b.date}`}
-                    secondaryAction={
-                      <Chip label={t(b.status)} color={statusColor(b.status)} />
-                    }
-                  >
-                    <ListItemText
-                      primary={
-                        time ? `${formatDate(b.date)} ${time}` : formatDate(b.date)
-                      }
-                    />
-                  </ListItem>
-                );
-              })}
-            </List>
-          </SectionCard>
         </Grid>
       </Grid>
         <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
