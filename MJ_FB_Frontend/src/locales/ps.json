@@ -244,7 +244,9 @@
     "approve_leave": "Approve",
     "reject_leave": "Reject",
     "staff": "Staff",
-    "select_staff": "Select Staff"
+    "select_staff": "Select Staff",
+    "year": "Year",
+    "month": "Month"
   },
   "leave": {
     "title": "Leave Requests",

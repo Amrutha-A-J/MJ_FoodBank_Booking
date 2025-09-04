@@ -37,7 +37,9 @@ export async function listTimesheets(
     const staffId = req.query.staffId
       ? Number(req.query.staffId)
       : undefined;
-    const rows = await getTimesheets(staffId);
+    const year = req.query.year ? Number(req.query.year) : undefined;
+    const month = req.query.month ? Number(req.query.month) : undefined;
+    const rows = await getTimesheets(staffId, year, month);
     res.json(rows);
   } catch (err) {
     next(err);

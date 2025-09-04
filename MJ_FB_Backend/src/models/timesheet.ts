@@ -33,13 +33,24 @@ export interface TimesheetSummary extends Timesheet {
 
 export async function getTimesheets(
   staffId?: number,
+  year?: number,
+  month?: number,
 ): Promise<TimesheetSummary[]> {
   const params: any[] = [];
-  let where = '';
+  const clauses: string[] = [];
   if (staffId !== undefined) {
     params.push(staffId);
-    where = 'WHERE t.staff_id = $1';
+    clauses.push(`t.staff_id = $${params.length}`);
   }
+  if (year !== undefined) {
+    params.push(year);
+    clauses.push(`EXTRACT(YEAR FROM t.start_date) = $${params.length}`);
+  }
+  if (month !== undefined) {
+    params.push(month);
+    clauses.push(`EXTRACT(MONTH FROM t.start_date) = $${params.length}`);
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const res = await pool.query(
     `SELECT t.id, t.staff_id, t.start_date, t.end_date, t.submitted_at, t.approved_at,
             COALESCE(tot.total_hours, 0) AS total_hours,

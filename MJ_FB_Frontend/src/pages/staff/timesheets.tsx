@@ -13,10 +13,13 @@ import {
   CircularProgress,
   Button,
   Autocomplete,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Page from '../../components/Page';
-import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -55,6 +58,8 @@ export default function Timesheets() {
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [staff, setStaff] = useState<StaffOption | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+  const [month, setMonth] = useState<number | null>(null);
   useEffect(() => {
     let active = true;
     if (staffInput.length < 3) {
@@ -80,17 +85,17 @@ export default function Timesheets() {
     };
   }, [staffInput, inAdmin]);
   const { timesheets, isLoading: loadingSheets, error: sheetsError } = inAdmin
-    ? useAllTimesheets(staff?.id)
+    ? useAllTimesheets(staff?.id, year ?? undefined, month ?? undefined)
     : useTimesheets();
-  const [tab, setTab] = useState(0);
+  const [expanded, setExpanded] = useState<number | false>(false);
 
   useEffect(() => {
     if (!timesheets.length) return;
-    const idx = timesheets.findIndex(p => !p.approved_at);
-    setTab(idx === -1 ? timesheets.length - 1 : idx);
-  }, [timesheets.length]);
+    const ts = timesheets.find(p => !p.approved_at) ?? timesheets[0];
+    setExpanded(ts.id);
+  }, [timesheets]);
 
-  const current = timesheets[tab];
+  const current = timesheets.find(p => p.id === expanded);
   const { days: rawDays, error: daysError } = useTimesheetDays(current?.id);
   const [days, setDays] = useState<Day[]>([]);
   useEffect(() => {
@@ -293,64 +298,95 @@ export default function Timesheets() {
       setMessage((e as ApiError).message || 'Failed to submit timesheet');
     }
   };
-
-  const tabs: TabItem[] = timesheets.map(p => ({
-    label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
-    content: p.id === current?.id ? renderTable() : null,
-  }));
-
   return (
     <Page title={t('timesheets.title')}>
       {inAdmin && (
-        <Autocomplete
-          options={staffOptions}
-          getOptionLabel={o => o.name}
-          value={staff}
-          onChange={(_, val) => setStaff(val)}
-          onInputChange={(_, val) => setStaffInput(val)}
-          renderInput={params => (
-            <TextField {...params} label={t('timesheets.staff')} margin="normal" />
-          )}
-          sx={{ mb: 2, maxWidth: 400 }}
-        />
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
+          <Autocomplete
+            options={staffOptions}
+            getOptionLabel={o => o.name}
+            value={staff}
+            onChange={(_, val) => setStaff(val)}
+            onInputChange={(_, val) => setStaffInput(val)}
+            renderInput={params => (
+              <TextField {...params} label={t('timesheets.staff')} margin="normal" />
+            )}
+            sx={{ minWidth: 200 }}
+          />
+          <TextField
+            label={t('timesheets.year')}
+            type="number"
+            value={year ?? ''}
+            onChange={e => setYear(e.target.value ? Number(e.target.value) : null)}
+            margin="normal"
+            sx={{ width: 120 }}
+          />
+            <TextField
+            label={t('timesheets.month')}
+            type="number"
+            inputProps={{ min: 1, max: 12 }}
+            value={month ?? ''}
+            onChange={e => setMonth(e.target.value ? Number(e.target.value) : null)}
+            margin="normal"
+            sx={{ width: 120 }}
+          />
+        </Box>
       )}
       {!inAdmin || staff ? (
         loadingSheets ? (
           <CircularProgress />
         ) : (
-          <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+          timesheets.map(p => (
+            <Accordion
+              key={p.id}
+              expanded={expanded === p.id}
+              onChange={(_, isExp) => setExpanded(isExp ? p.id : false)}
+              sx={{ mb: 2 }}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>
+                  {`${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                {expanded === p.id && (
+                  <>
+                    {renderTable()}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                      {!p.submitted_at && (
+                        <Button
+                          variant="contained"
+                          disabled={submitMutation.isPending}
+                          onClick={handleSubmitTimesheet}
+                        >
+                          {t('timesheets.submit')}
+                        </Button>
+                      )}
+                      {p.submitted_at && !p.approved_at && inAdmin && (
+                        <>
+                          <Button
+                            variant="contained"
+                            onClick={() => rejectMutation.mutate(p.id)}
+                          >
+                            {t('timesheets.reject')}
+                          </Button>
+                          <Button
+                            variant="contained"
+                            onClick={() => processMutation.mutate(p.id)}
+                          >
+                            {t('timesheets.process')}
+                          </Button>
+                        </>
+                      )}
+                    </Box>
+                  </>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          ))
         )
       ) : (
         <Typography sx={{ mt: 2 }}>{t('timesheets.select_staff')}</Typography>
-      )}
-      {current && (!inAdmin || staff) && (
-        <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-          {!current.submitted_at && (
-            <Button
-              variant="contained"
-              disabled={submitMutation.isPending}
-              onClick={handleSubmitTimesheet}
-            >
-              {t('timesheets.submit')}
-            </Button>
-          )}
-          {current.submitted_at && !current.approved_at && inAdmin && (
-            <>
-              <Button
-                variant="contained"
-                onClick={() => rejectMutation.mutate(current.id)}
-              >
-                {t('timesheets.reject')}
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => processMutation.mutate(current.id)}
-              >
-                {t('timesheets.process')}
-              </Button>
-            </>
-          )}
-        </Box>
       )}
       <FeedbackSnackbar
         open={!!message}

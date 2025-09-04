@@ -81,7 +81,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ## API usage
 
 - `GET /timesheets/mine` – list pay periods for the logged in staff member.
-- `GET /timesheets` – admins can list pay periods for all staff and may filter with `?staffId=`.
+- `GET /timesheets` – admins can list pay periods for all staff and may filter with `?staffId=`, `?year=`, and `?month=`.
 - `GET /timesheets/:id/days` – list daily entries for a timesheet. Admins may retrieve any staff timesheet.
 - `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
@@ -147,6 +147,8 @@ Add the following translation strings to locale files:
 - `timesheets.payroll_export`
 - `timesheets.staff`
 - `timesheets.select_staff`
+- `timesheets.year`
+- `timesheets.month`
 - `help.pantry.timesheets.title`
 - `help.pantry.timesheets.description`
 - `help.pantry.timesheets.steps.0`

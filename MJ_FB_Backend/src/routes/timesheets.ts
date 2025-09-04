@@ -14,7 +14,7 @@ const router = express.Router();
 
 // list pay periods for the logged in staff member
 router.get('/mine', authMiddleware, authorizeRoles('staff'), listMyTimesheets);
-// admin can list timesheets for any staff
+// admin can list timesheets; optional query params: staffId, year, month
 router.get('/', authMiddleware, authorizeRoles('admin'), listTimesheets);
 router.get(
   '/:id/days',
