@@ -555,7 +555,7 @@ CREATE TABLE IF NOT EXISTS email_queue (
     `CREATE INDEX IF NOT EXISTS client_visits_client_id_idx ON client_visits (client_id);`
   );
   await client.query(
-    `CREATE INDEX IF NOT EXISTS events_date_idx ON events (date);`
+    `CREATE INDEX IF NOT EXISTS events_start_date_idx ON events (start_date);`
   );
   await client.query(
     `CREATE INDEX IF NOT EXISTS surplus_log_date_idx ON surplus_log (date);`
