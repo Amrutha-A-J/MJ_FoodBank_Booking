@@ -3,6 +3,7 @@
 ## Pull Request Guidelines
 
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
+- Use Node.js 22+; run `nvm use` to switch to the pinned version in `.nvmrc`.
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Document translation strings for localization in `docs/` and update `MJ_FB_Frontend/src/locales` when user-facing text is added.

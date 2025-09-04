@@ -5,6 +5,10 @@ Authenticated users can access a role-based help page at `/help`. Admins can vie
 
 Client bookings include a confirmation step summarizing the selected date, time, and current-month visit count, with an optional client note field for staff.
 
+## Node Version
+
+Use **Node.js 22+**. Run `nvm use` to switch to the version pinned in the repository’s `.nvmrc`.
+
 ## Development
 
 Install dependencies and run the dev server:

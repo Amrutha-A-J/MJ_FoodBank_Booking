@@ -14,6 +14,9 @@
 - Tests polyfill `global.fetch` with `undici` via top-level assignments in `tests/setupFetch.ts`. Ensure this file remains configured in Jest's setup files.
 - Tests load required environment variables from `tests/setupEnv.ts`, which is listed in Jest's `setupFilesAfterEnv`. When running a test file directly, import `'../setupEnv'` so these variables are set, or run the test through Jest.
 
+## Environment
+- Requires Node.js 22+; run `nvm use` to match the version in `.nvmrc`.
+
 ## Project Layout
 - React app built with Vite.
 - Build requires `VITE_API_BASE` to be set in `MJ_FB_Frontend/.env`.
