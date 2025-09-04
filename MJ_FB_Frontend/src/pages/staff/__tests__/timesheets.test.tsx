@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 const mockSubmit = jest.fn();
 const mockUpdate = jest.fn();
+const mockUseTimesheets = jest.fn();
 const mockUseTimesheetDays = jest.fn(() => ({
   days: [
     {
@@ -59,24 +60,7 @@ const mockSearchStaff = jest.fn();
 const mockAdminSearchStaff = jest.fn();
 
 jest.mock('../../../api/timesheets', () => ({
-  useTimesheets: () => ({
-    timesheets: [
-      {
-        id: 1,
-        staff_id: 1,
-        start_date: '2024-01-01',
-        end_date: '2024-01-07',
-        submitted_at: null,
-        approved_at: null,
-        total_hours: 0,
-        expected_hours: 0,
-        balance_hours: 0,
-        ot_hours: 0,
-      },
-    ],
-    isLoading: false,
-    error: null,
-  }),
+  useTimesheets: (...args: any[]) => mockUseTimesheets(...args),
   useAllTimesheets: (...args: any[]) => mockUseAllTimesheets(...args),
   useTimesheetDays: (...args: any[]) => mockUseTimesheetDays(...args),
   updateTimesheetDay: (...args: any[]) => mockUpdate(...args),
@@ -102,6 +86,25 @@ beforeEach(() => {
   mockSubmit.mockClear();
   mockUpdate.mockClear();
   mockUpdate.mockResolvedValue(undefined);
+  mockUseTimesheets.mockReset();
+  mockUseTimesheets.mockReturnValue({
+    timesheets: [
+      {
+        id: 1,
+        staff_id: 1,
+        start_date: '2024-01-01',
+        end_date: '2024-01-07',
+        submitted_at: null,
+        approved_at: null,
+        total_hours: 0,
+        expected_hours: 0,
+        balance_hours: 0,
+        ot_hours: 0,
+      },
+    ],
+    isLoading: false,
+    error: null,
+  });
   mockUseTimesheetDays.mockClear();
   mockUseAllTimesheets.mockClear();
   mockSearchStaff.mockClear();
@@ -122,15 +125,6 @@ describe('Timesheets', () => {
     expect(screen.getByText('Date')).toBeInTheDocument();
     expect(screen.getByText('Reg')).toBeInTheDocument();
     expect(screen.getByText('OT')).toBeInTheDocument();
-  });
-
-  it('handles empty timesheet days without crashing', () => {
-    mockUseTimesheetDays.mockReturnValueOnce({
-      days: [],
-      isLoading: false,
-      error: null,
-    });
-    expect(() => render()).not.toThrow();
   });
 
   it('prefills stat day and allows editing', () => {
@@ -175,6 +169,31 @@ describe('Timesheets', () => {
     await user.click(screen.getByRole('button', { name: /submit/i }));
     expect(mockUpdate).toHaveBeenCalledTimes(3);
     expect(mockSubmit).toHaveBeenCalledWith(1);
+  });
+
+  it('shows at most seven timesheet tabs with next period last', () => {
+    const timesheets = Array.from({ length: 9 }).map((_, i) => ({
+      id: i + 1,
+      staff_id: 1,
+      start_date: `2024-0${i + 1}-01`,
+      end_date: `2024-0${i + 1}-07`,
+      submitted_at: null,
+      approved_at: i < 7 ? '2024-01-01' : null,
+      total_hours: 0,
+      expected_hours: 0,
+      balance_hours: 0,
+      ot_hours: 0,
+    }));
+    mockUseTimesheets.mockReturnValueOnce({
+      timesheets,
+      isLoading: false,
+      error: null,
+    });
+    render();
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(7);
+    expect(tabs[0]).toHaveTextContent('2024-03-01 - 2024-03-07');
+    expect(tabs[6]).toHaveTextContent('2024-09-01 - 2024-09-07');
   });
 
   it('locks day when leave approved', () => {

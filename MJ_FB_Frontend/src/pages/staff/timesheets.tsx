@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Table,
@@ -82,15 +82,25 @@ export default function Timesheets() {
   const { timesheets, isLoading: loadingSheets, error: sheetsError } = inAdmin
     ? useAllTimesheets(staff?.id)
     : useTimesheets();
+
+  const visibleTimesheets = useMemo(() => {
+    if (inAdmin) return timesheets;
+    const idx = timesheets.findIndex(p => !p.approved_at);
+    const currentIdx = idx === -1 ? timesheets.length - 1 : idx;
+    const start = Math.max(0, currentIdx - 5);
+    const end = Math.min(timesheets.length, currentIdx + 2);
+    return timesheets.slice(start, end);
+  }, [timesheets, inAdmin]);
+
   const [tab, setTab] = useState(0);
 
   useEffect(() => {
-    if (!timesheets.length) return;
-    const idx = timesheets.findIndex(p => !p.approved_at);
-    setTab(idx === -1 ? timesheets.length - 1 : idx);
-  }, [timesheets.length]);
+    if (!visibleTimesheets.length) return;
+    const idx = visibleTimesheets.findIndex(p => !p.approved_at);
+    setTab(idx === -1 ? visibleTimesheets.length - 1 : idx);
+  }, [visibleTimesheets]);
 
-  const current = timesheets[tab];
+  const current = visibleTimesheets[tab];
   const { days: rawDays, error: daysError } = useTimesheetDays(current?.id);
   const [days, setDays] = useState<Day[]>([]);
   useEffect(() => {
@@ -294,7 +304,7 @@ export default function Timesheets() {
     }
   };
 
-  const tabs: TabItem[] = timesheets.map(p => ({
+  const tabs: TabItem[] = visibleTimesheets.map(p => ({
     label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
     content: p.id === current?.id ? renderTable() : null,
   }));
