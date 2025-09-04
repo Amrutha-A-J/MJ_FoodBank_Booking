@@ -2,11 +2,14 @@ import pool from '../db';
 import logger from './logger';
 
 /**
- * Seed timesheets for active staff in the current pay period. For each active staff member,
- * ensure a timesheet exists for the current pay period and insert weekday rows with zeroed
- * hours. Stat holiday rows are handled via database triggers.
+ * Seed timesheets for staff in the current pay period. When the `staff` table
+ * includes an `active` column, only active staff are processed; otherwise all
+ * staff are seeded. For each staff member, ensure a timesheet exists for the
+ * current pay period and insert weekday rows with zeroed hours. Stat holiday
+ * rows are handled via database triggers.
  *
- * @param staffId Optional staff ID to seed for a specific staff member. If omitted, seeds for all active staff.
+ * @param staffId Optional staff ID to seed for a specific staff member. If
+ * omitted, seeds for all staff (or only active staff when supported).
  */
 export async function seedTimesheets(staffId?: number): Promise<void> {
   try {
@@ -30,19 +33,25 @@ export async function seedTimesheets(staffId?: number): Promise<void> {
 
     const period = payPeriodRes.rows[0];
 
-    // Check if the staff table has a starts_on column to avoid errors on older schemas
+    // Check if the staff table has starts_on and active columns to avoid errors on older schemas
     const colCheck = await pool.query(
-      `SELECT column_name FROM information_schema.columns WHERE table_name = 'staff' AND column_name = 'starts_on'`,
+      `SELECT column_name FROM information_schema.columns WHERE table_name = 'staff' AND column_name IN ('starts_on', 'active')`,
     );
-    const hasStartsOn = (colCheck.rowCount ?? 0) > 0;
+    const columns = colCheck.rows.map((r) => r.column_name);
+    const hasStartsOn = columns.includes('starts_on');
+    const hasActive = columns.includes('active');
 
-    // Fetch active staff
-    const staffRes = staffId
-      ? await pool.query(
-          `SELECT id${hasStartsOn ? ', starts_on' : ''} FROM staff WHERE active = true AND id = $1`,
-          [staffId],
-        )
-      : await pool.query(`SELECT id${hasStartsOn ? ', starts_on' : ''} FROM staff WHERE active = true`);
+    // Build staff query based on available columns
+    const selectCols = `id${hasStartsOn ? ', starts_on' : ''}`;
+    let staffSql = `SELECT ${selectCols} FROM staff`;
+    const staffParams: any[] = [];
+    if (staffId) {
+      staffSql += hasActive ? ' WHERE active = true AND id = $1' : ' WHERE id = $1';
+      staffParams.push(staffId);
+    } else if (hasActive) {
+      staffSql += ' WHERE active = true';
+    }
+    const staffRes = await pool.query(staffSql, staffParams);
 
     for (const staff of staffRes.rows) {
       // Check for existing timesheet

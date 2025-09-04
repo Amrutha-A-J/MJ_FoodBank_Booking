@@ -26,8 +26,9 @@ npm run migrate
 node src/utils/payPeriodSeeder.ts START_DATE END_DATE
 ```
 
-3. Timesheets for active staff are created on startup and refreshed daily
-   by a cron job. You can seed them manually for the current pay period if
+3. Timesheets for staff are created on startup and refreshed daily by a cron
+   job. If the `staff` table includes an `active` column, only active staff are
+   processed. You can seed them manually for the current pay period if
    necessary:
 
 ```bash
