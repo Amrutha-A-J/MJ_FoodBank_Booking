@@ -41,6 +41,7 @@
   "hello_name": "नमस्ते, {{name}}",
   "profile": "प्रोफ़ाइल",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "सहायता",
     "search": "Search",
     "print": "Print",

@@ -41,6 +41,7 @@
   "hello_name": "سلام، {{name}}",
   "profile": "پروفایل",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "کمک",
     "search": "Search",
     "print": "Print",

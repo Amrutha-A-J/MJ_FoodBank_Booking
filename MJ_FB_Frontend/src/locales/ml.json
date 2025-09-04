@@ -41,6 +41,7 @@
   "hello_name": "നമസ്കാരം, {{name}}",
   "profile": "പ്രൊഫൈൽ",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "സഹായം",
     "search": "Search",
     "print": "Print",

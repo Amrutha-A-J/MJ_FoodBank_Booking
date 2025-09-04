@@ -7,3 +7,4 @@ Clients can access the dashboard from the navigation menu.
 Add the following translation strings to locale files:
 
 - `dashboard`
+- `help.dashboard_nav_step`
