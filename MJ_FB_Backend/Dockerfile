@@ -3,6 +3,7 @@ FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json tsconfig.json ./
 COPY src ./src
+COPY types ./types
 RUN npm ci && npm run build
 
 # Production stage
