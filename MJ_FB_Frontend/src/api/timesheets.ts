@@ -149,7 +149,7 @@ export function useUpdateTimesheetDay(timesheetId: number) {
                   stat_hours: statHours,
                   sick_hours: sickHours,
                   vac_hours: vacHours,
-                  note,
+                  note: note ?? null,
                 }
               : d,
           ),
