@@ -22,6 +22,8 @@
     "zod": "^4"
   },
   "devDependencies": {
+    "@swc/core": "^1.13.5",
+    "@swc/jest": "^0.2.39",
     "@types/bcrypt": "^6",
     "@types/cors": "^2",
     "@types/express": "^5",
@@ -38,7 +40,6 @@
     "node-pg-migrate": "^7",
     "pg-mem": "^3",
     "supertest": "^7",
-    "ts-jest": "^29",
     "tsx": "^4",
     "typescript": "^5",
     "undici": "^6"

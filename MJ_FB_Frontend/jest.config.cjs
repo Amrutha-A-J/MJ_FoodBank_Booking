@@ -1,5 +1,4 @@
 module.exports = {
-  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'jsdom',
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   testMatch: [
@@ -16,11 +15,13 @@ module.exports = {
   },
   transform: {
     '^.+\\.(ts|tsx)$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        tsconfig: '<rootDir>/tsconfig.test.json',
-        useESM: true,
-        diagnostics: false,
+        jsc: {
+          parser: { syntax: 'typescript', tsx: true },
+          transform: { react: { runtime: 'automatic' } },
+        },
+        module: { type: 'es6' },
       },
     ],
   },
