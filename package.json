@@ -1,0 +1,8 @@
+{
+  "name": "mj_foodbank_booking",
+  "private": true,
+  "scripts": {
+    "test:backend": "npm --prefix MJ_FB_Backend test",
+    "test:frontend": "npm --prefix MJ_FB_Frontend test"
+  }
+}
