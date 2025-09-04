@@ -48,7 +48,7 @@ router.get(
 );
 
 // Booking history for user or staff lookup
-// Optional query params: status, past=true, userId (staff/agency), includeVisits=true, includeStaffNotes=true
+// Optional query params: status, past=true, userId (staff/agency), includeVisits=true, includeStaffNotes=true (agency only)
 router.get('/history', authMiddleware, getBookingHistory);
 
 // Cancel booking (staff or user)

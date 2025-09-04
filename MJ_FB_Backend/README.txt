@@ -49,7 +49,7 @@ Tests load these variables via `tests/setupTests.ts`, which imports `tests/setup
 
 ## Booking Notes
 
-Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. `GET /bookings/history` supports `includeStaffNotes=true` to return staff notes, and the `notes` query parameter filters history by note text.
+Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. Staff users automatically receive staff notes from `/bookings/history`; agency users can append `includeStaffNotes=true` to retrieve them. The `notes` query parameter filters history by note text.
 
 ## Password Policy
 

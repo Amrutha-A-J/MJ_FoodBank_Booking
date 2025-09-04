@@ -711,7 +711,9 @@ export async function getBookingHistory(
     const status = (req.query.status as string)?.toLowerCase();
     const past = req.query.past === 'true';
     const includeVisits = req.query.includeVisits === 'true';
-    const includeStaffNotes = req.query.includeStaffNotes === 'true';
+    const includeStaffNotesParam = req.query.includeStaffNotes === 'true';
+    const includeStaffNotes =
+      requester.role === 'staff' || includeStaffNotesParam;
     const canViewStaffNotes =
       includeStaffNotes &&
       (requester.role === 'staff' || requester.role === 'agency');

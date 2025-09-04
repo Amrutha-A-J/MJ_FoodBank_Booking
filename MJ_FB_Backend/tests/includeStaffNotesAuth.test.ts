@@ -48,7 +48,7 @@ describe('includeStaffNotes handling', () => {
     (fetchBookingHistory as jest.Mock).mockReset();
   });
 
-  it('returns staff notes for staff when requested', async () => {
+  it('returns staff notes for staff by default', async () => {
     currentUser = { id: 2, role: 'staff' };
     (fetchBookingHistory as jest.Mock).mockResolvedValue([
       {
@@ -78,10 +78,37 @@ describe('includeStaffNotes handling', () => {
         staff_note: 'visit note',
       },
     ]);
-    const res = await request(app).get('/bookings/history?userId=1&includeStaffNotes=true');
+    const res = await request(app).get('/bookings/history?userId=1');
     expect(res.status).toBe(200);
     expect(res.body[0].client_note).toBe('bring ID');
     expect(res.body[1].staff_note).toBe('visit note');
+  });
+
+  it('requires includeStaffNotes for agencies', async () => {
+    currentUser = { id: 3, role: 'agency' };
+    (fetchBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-01',
+        slot_id: null,
+        reason: null,
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-01',
+        is_staff_booking: false,
+        reschedule_token: null,
+        staff_note: 'visit note',
+      },
+    ]);
+    const res1 = await request(app).get('/bookings/history?userId=1');
+    expect(res1.status).toBe(200);
+    expect(res1.body[0].staff_note).toBeUndefined();
+    const res2 = await request(app).get(
+      '/bookings/history?userId=1&includeStaffNotes=true',
+    );
+    expect(res2.status).toBe(200);
+    expect(res2.body[0].staff_note).toBe('visit note');
   });
 
   it('omits staff notes for shoppers even when requested', async () => {
