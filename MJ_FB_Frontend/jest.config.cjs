@@ -8,6 +8,7 @@ module.exports = {
     '<rootDir>/src/__tests__/**/*.test.tsx',
     '<rootDir>/src/api/__tests__/**/*.test.ts',
   ],
+  setupFiles: ['<rootDir>/loadEnv.ts'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '\\.css\\?url$': '<rootDir>/testUtils/fileMock.ts',

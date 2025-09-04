@@ -3,7 +3,7 @@
 ## Testing
 
 - Run `npm test` from the `MJ_FB_Backend` directory for backend changes.
-- Always run tests through `npm test` so `tests/setupTests.ts` loads environment variables, polyfills `global.fetch` with `undici`, and mocks the database.
+- Always run tests through `npm test` so `.env.test` and `tests/setupTests.ts` load environment variables, polyfill `global.fetch` with `undici`, and mock the database.
 - Tests for invitation and password setup flows live in `tests/passwordResetFlow.test.ts`; run `npm test tests/passwordResetFlow.test.ts` when working on these features.
 - To customize the mocked database in backend tests, import `../tests/utils/mockDb`, which mocks `../src/db` and exports the mocked `pool` for custom query behavior.
 

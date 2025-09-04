@@ -20,7 +20,8 @@ Run the test suite:
 npm test
 ```
 
-`jest.setup.ts` provides global test configuration and must remain referenced in `jest.config.cjs` via `setupFilesAfterEnv`.
+Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing required environment variables and polyfills.
+`jest.setup.ts` provides global test configuration and remains referenced in `jest.config.cjs` via `setupFilesAfterEnv`.
 
 ## Environment Variables
 

@@ -45,7 +45,7 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
 
-Tests load these variables via `tests/setupTests.ts`, which imports `tests/setupEnv.ts`. Update `tests/setupEnv.ts` when adding new required environment settings.
+Tests load required environment variables from `.env.test`, which Jest reads via `tests/loadEnv.ts`. Run `npm test` so this setup executes, and update `.env.test` when adding new environment settings.
 
 ## Booking Notes
 
