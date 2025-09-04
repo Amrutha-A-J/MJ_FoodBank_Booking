@@ -36,7 +36,11 @@ import {
   useApproveLeaveRequest,
 } from '../../api/leaveRequests';
 import { useMatch } from 'react-router-dom';
-import { searchStaff, type StaffOption } from '../../api/staff';
+import {
+  searchStaff as searchStaffApi,
+  type StaffOption,
+} from '../../api/staff';
+import { searchStaff as searchAdminStaff } from '../../api/adminStaff';
 
 interface Day {
   date: string;
@@ -65,9 +69,14 @@ export default function Timesheets() {
         active = false;
       };
     }
-    searchStaff(staffInput)
+    const search = inAdmin ? searchAdminStaff : searchStaffApi;
+    search(staffInput)
       .then(data => {
-        if (active) setStaffOptions(data);
+        if (!active) return;
+        const options = inAdmin
+          ? data.map(d => ({ id: d.id, name: `${d.firstName} ${d.lastName}` }))
+          : data;
+        setStaffOptions(options);
       })
       .catch(() => {
         if (active) setStaffOptions([]);
@@ -75,7 +84,7 @@ export default function Timesheets() {
     return () => {
       active = false;
     };
-  }, [staffInput]);
+  }, [staffInput, inAdmin]);
   const { timesheets, isLoading: loadingSheets, error: sheetsError } = inAdmin
     ? useAllTimesheets(staff?.id)
     : useTimesheets();

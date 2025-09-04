@@ -56,6 +56,7 @@ const mockUseTimesheetDays = jest.fn(() => ({
 }));
 const mockUseAllTimesheets = jest.fn();
 const mockSearchStaff = jest.fn();
+const mockAdminSearchStaff = jest.fn();
 
 jest.mock('../../../api/timesheets', () => ({
   useTimesheets: () => ({
@@ -87,6 +88,9 @@ jest.mock('../../../api/timesheets', () => ({
 jest.mock('../../../api/staff', () => ({
   searchStaff: (...args: any[]) => mockSearchStaff(...args),
 }));
+jest.mock('../../../api/adminStaff', () => ({
+  searchStaff: (...args: any[]) => mockAdminSearchStaff(...args),
+}));
 jest.mock('../../../api/leaveRequests', () => ({
   useCreateLeaveRequest: () => ({ mutate: jest.fn() }),
   useLeaveRequests: () => ({ requests: [], isLoading: false, error: null }),
@@ -99,6 +103,7 @@ beforeEach(() => {
   mockUseTimesheetDays.mockClear();
   mockUseAllTimesheets.mockClear();
   mockSearchStaff.mockClear();
+  mockAdminSearchStaff.mockClear();
 });
 
 function render(path = '/timesheet') {
@@ -212,7 +217,9 @@ describe('Timesheets', () => {
   });
 
   it('loads timesheets after selecting staff in admin', async () => {
-    mockSearchStaff.mockResolvedValueOnce([{ id: 2, name: 'Alice' }]);
+    mockAdminSearchStaff.mockResolvedValueOnce([
+      { id: 2, firstName: 'Alice', lastName: 'Smith', email: '', access: [] },
+    ]);
     mockUseAllTimesheets.mockImplementation((id?: number) =>
       id === 2
         ? {
@@ -239,7 +246,7 @@ describe('Timesheets', () => {
     render('/admin/timesheet');
     const input = screen.getByLabelText('Staff');
     await user.type(input, 'Ali');
-    const option = await screen.findByText('Alice');
+    const option = await screen.findByText('Alice Smith');
     await user.click(option);
     expect(mockUseAllTimesheets).toHaveBeenLastCalledWith(2);
     await screen.findByText('Reject');
