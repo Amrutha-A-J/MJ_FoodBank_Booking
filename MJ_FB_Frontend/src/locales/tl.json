@@ -33,6 +33,7 @@
   "reset_password": "I-reset ang password",
   "submit": "Isumite",
   "invalid_or_expired_token": "Di-wasto o paso na ang token",
+  "dashboard": "Dashboard",
   "client_dashboard": "Dashboard ng kliyente",
   "dashboard": "Dashboard",
   "book_appointment": "Magpa-book ng appointment",

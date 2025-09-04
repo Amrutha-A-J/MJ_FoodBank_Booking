@@ -167,7 +167,7 @@ export default function App() {
     );
   } else if (isStaff) {
     const staffLinks = [
-      { label: 'Dashboard', to: '/pantry' },
+      { label: t('dashboard'), to: '/pantry' },
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
@@ -179,7 +179,7 @@ export default function App() {
       navGroups.push({
         label: 'Volunteer Management',
         links: [
-          { label: 'Dashboard', to: '/volunteer-management' },
+          { label: t('dashboard'), to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
           { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
           {
@@ -191,7 +191,7 @@ export default function App() {
       });
 
     const warehouseLinks = [
-      { label: 'Dashboard', to: '/warehouse-management' },
+      { label: t('dashboard'), to: '/warehouse-management' },
       { label: 'Donation Log', to: '/warehouse-management/donation-log' },
       { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
       {
@@ -218,7 +218,7 @@ export default function App() {
     navGroups.push({
       label: 'Agency',
       links: [
-        { label: 'Dashboard', to: '/' },
+        { label: t('dashboard'), to: '/' },
         { label: t('book_appointment'), to: '/agency/book' },
         { label: t('booking_history'), to: '/agency/history' },
       ],
@@ -236,7 +236,7 @@ export default function App() {
     navGroups.push({
       label: 'Volunteer',
       links: [
-        { label: 'Dashboard', to: '/' },
+        { label: t('dashboard'), to: '/' },
         { label: 'Schedule', to: '/volunteer/schedule' },
         { label: 'Recurring Bookings', to: '/volunteer/recurring' },
         { label: t('booking_history'), to: '/volunteer/history' },
