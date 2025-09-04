@@ -234,7 +234,7 @@ export default function UserHistory({
                   onChange={e => setNotesOnly(e.target.checked)}
                 />
               }
-              label={t('visits_with_staff_notes_only')}
+              label={t('visits_with_notes_only')}
             />
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -244,7 +244,7 @@ export default function UserHistory({
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                    <TableCell sx={cellSx}>Note</TableCell>
+                    <TableCell sx={cellSx}>{t('notes')}</TableCell>
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -274,7 +274,16 @@ export default function UserHistory({
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
-                          {b.client_note || b.staff_note || ''}
+                          {b.client_note && (
+                            <Typography variant="body2">
+                              {t('client_note_label')}: {b.client_note}
+                            </Typography>
+                          )}
+                          {b.staff_note && (
+                            <Typography variant="body2">
+                              {t('staff_note_label')}: {b.staff_note}
+                            </Typography>
+                          )}
                         </TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(

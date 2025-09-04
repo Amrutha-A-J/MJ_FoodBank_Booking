@@ -39,7 +39,7 @@ describe('ClientDashboard', () => {
     );
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
-    expect(screen.getByText(/Client Event/)).toBeInTheDocument();
+    expect(await screen.findByText(/Client Event/)).toBeInTheDocument();
   });
 
   it('displays visited bookings with success chip', async () => {
@@ -60,7 +60,31 @@ describe('ClientDashboard', () => {
       </MemoryRouter>,
     );
 
-    const chipLabel = await screen.findByText('visited');
+    const chipLabel = await screen.findByText(/visited/i);
     expect(chipLabel.closest('.MuiChip-colorSuccess')).toBeTruthy();
+  });
+
+  it('shows client note in booking history', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        client_note: 'bring bag',
+      },
+    ]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(await screen.findByText('bring bag')).toBeInTheDocument();
   });
 });

@@ -62,7 +62,7 @@ describe('UserHistory', () => {
     });
     expect(await screen.findByText(/approved/i)).toBeInTheDocument();
     expect(await screen.findByText(/visited/i)).toBeInTheDocument();
-    expect(screen.getByText('bring ID')).toBeInTheDocument();
+    expect(screen.getByText(/bring ID/i)).toBeInTheDocument();
   });
 
   it('hides edit client button when initialUser is provided', async () => {
@@ -91,7 +91,7 @@ describe('UserHistory', () => {
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
-        staff_note: 'has note',
+        staff_note: 'has staff note',
       },
       {
         id: 2,
@@ -100,6 +100,18 @@ describe('UserHistory', () => {
         start_time: null,
         end_time: null,
         created_at: '2024-01-02',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+        client_note: 'client note here',
+      },
+      {
+        id: 3,
+        status: 'visited',
+        date: '2024-01-03',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-03',
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
@@ -113,12 +125,13 @@ describe('UserHistory', () => {
     );
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getAllByText(/visited/i)).toHaveLength(3);
+
+    fireEvent.click(screen.getByLabelText('View visits with notes only'));
+
     expect(screen.getAllByText(/visited/i)).toHaveLength(2);
-
-    fireEvent.click(screen.getByLabelText('View visits with staff notes only'));
-
-    expect(screen.getAllByText(/visited/i)).toHaveLength(1);
-    expect(screen.getByText('has note')).toBeInTheDocument();
+    expect(screen.getByText(/has staff note/i)).toBeInTheDocument();
+    expect(screen.getByText(/client note here/i)).toBeInTheDocument();
   });
 });
 

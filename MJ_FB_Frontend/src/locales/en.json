@@ -37,7 +37,6 @@
   "invalid_or_expired_token": "Invalid or expired token",
   "dashboard": "Dashboard",
   "client_dashboard": "Client Dashboard",
-  "dashboard": "Dashboard",
   "book_appointment": "Book Appointment",
   "booking_history": "Booking History",
   "booking": "Booking",
@@ -271,5 +270,6 @@
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
-  "visits_with_staff_notes_only": "View visits with staff notes only"
+  "visits_with_notes_only": "View visits with notes only",
+  "notes": "Notes"
 }

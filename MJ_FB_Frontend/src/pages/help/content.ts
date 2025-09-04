@@ -228,12 +228,12 @@ export function getHelpContent(
       },
     },
     {
-      title: 'Filter visits by staff notes',
+      title: 'Filter visits by notes',
       body: {
-        description: 'Show only visits that contain staff notes.',
+        description: 'Show only visits that contain client or staff notes.',
         steps: [
           'Open Booking History.',
-          'Enable the staff notes-only filter.',
+          'Enable the notes-only filter.',
           'Review the matching visits.',
         ],
       },
