@@ -3,8 +3,7 @@ import '@testing-library/jest-dom';
 import PantrySettingsTab from '../settings/PantrySettingsTab';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
-
-type Slot = { maxCapacity: number };
+import type { Slot } from '../../../types';
 
 jest.mock('../../../api/slots', () => ({
   getAllSlots: jest.fn(),
@@ -21,7 +20,10 @@ const { getAppConfig, updateAppConfig } = jest.requireMock('../../../api/appConf
 
 describe('PantrySettingsTab', () => {
   it('updates capacity and cart tare', async () => {
-    (getAllSlots as jest.Mock).mockResolvedValue<Slot[]>([{ maxCapacity: 5 }]);
+    const slots: Slot[] = [
+      { id: '1', startTime: '09:00', endTime: '10:00', maxCapacity: 5 },
+    ];
+    (getAllSlots as jest.Mock).mockResolvedValue(slots);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
 
     render(
