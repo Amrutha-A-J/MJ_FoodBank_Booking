@@ -270,7 +270,7 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
       [bookingId],
     );
 
-    await updateBooking(bookingId, { status: 'no_show', request_data: reason });
+    await updateBooking(bookingId, { status: 'no_show', request_data: reason, note: null });
 
     const booking = result.rows[0];
     if (booking?.email && booking?.reschedule_token) {
@@ -302,7 +302,7 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
        RETURNING client_id`,
       [weightWithCart ?? null, weightWithoutCart ?? null, petItem ?? 0, note ?? null, bookingId],
     );
-    await updateBooking(bookingId, { status: 'visited', request_data: requestData });
+    await updateBooking(bookingId, { status: 'visited', request_data: requestData, note: null });
     const clientId: number | null = insertRes.rows[0]?.client_id ?? null;
     if (clientId) await refreshClientVisitCount(clientId);
     res.json({ message: 'Booking marked as visited' });

@@ -49,6 +49,7 @@ describe('booking status updates', () => {
     expect(bookingRepo.updateBooking).toHaveBeenCalledWith(1, {
       status: 'no_show',
       request_data: 'missed',
+      note: null,
     });
   });
 
@@ -69,6 +70,7 @@ describe('booking status updates', () => {
     expect(bookingRepo.updateBooking).toHaveBeenCalledWith(2, {
       status: 'visited',
       request_data: 'note',
+      note: null,
     });
   });
 
