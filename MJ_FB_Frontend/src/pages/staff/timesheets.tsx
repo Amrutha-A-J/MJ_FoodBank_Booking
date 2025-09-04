@@ -13,7 +13,12 @@ import {
   CircularProgress,
   Button,
   Autocomplete,
+  MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
 import Page from '../../components/Page';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
@@ -55,6 +60,8 @@ export default function Timesheets() {
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [staff, setStaff] = useState<StaffOption | null>(null);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
   useEffect(() => {
     let active = true;
     if (staffInput.length < 3) {
@@ -80,7 +87,7 @@ export default function Timesheets() {
     };
   }, [staffInput, inAdmin]);
   const { timesheets, isLoading: loadingSheets, error: sheetsError } = inAdmin
-    ? useAllTimesheets(staff?.id)
+    ? useAllTimesheets(staff?.id, year, month)
     : useTimesheets();
 
   const visibleTimesheets = useMemo(() => {
@@ -93,18 +100,28 @@ export default function Timesheets() {
   }, [timesheets, inAdmin]);
 
   const [tab, setTab] = useState(0);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!visibleTimesheets.length) return;
+    if (!visibleTimesheets.length || inAdmin) return;
     const idx = visibleTimesheets.findIndex(p => !p.approved_at);
     setTab(idx === -1 ? visibleTimesheets.length - 1 : idx);
-  }, [visibleTimesheets]);
+  }, [visibleTimesheets, inAdmin]);
 
-  const current = visibleTimesheets[tab];
+  useEffect(() => {
+    setExpanded(null);
+  }, [staff, year, month]);
+
+  const current = inAdmin
+    ? timesheets.find(p => p.id === expanded)
+    : visibleTimesheets[tab];
   const { days: rawDays, error: daysError } = useTimesheetDays(current?.id);
   const [days, setDays] = useState<Day[]>([]);
   useEffect(() => {
-    if (!rawDays.length) return;
+    if (!rawDays.length) {
+      setDays([]);
+      return;
+    }
     setDays(
       rawDays.map(d => ({
         date: d.work_date,
@@ -304,36 +321,110 @@ export default function Timesheets() {
     }
   };
 
-  const tabs: TabItem[] = visibleTimesheets.map(p => ({
-    label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
-    content: p.id === current?.id ? renderTable() : null,
-  }));
+  const tabs: TabItem[] = !inAdmin
+    ? visibleTimesheets.map(p => ({
+        label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
+        content: p.id === current?.id ? renderTable() : null,
+      }))
+    : [];
 
   return (
     <Page title={t('timesheets.title')}>
       {inAdmin && (
-        <Autocomplete
-          options={staffOptions}
-          getOptionLabel={o => o.name}
-          value={staff}
-          onChange={(_, val) => setStaff(val)}
-          onInputChange={(_, val) => setStaffInput(val)}
-          renderInput={params => (
-            <TextField {...params} label={t('timesheets.staff')} margin="normal" />
-          )}
-          sx={{ mb: 2, maxWidth: 400 }}
-        />
+        <>
+          <Autocomplete
+            options={staffOptions}
+            getOptionLabel={o => o.name}
+            value={staff}
+            onChange={(_, val) => setStaff(val)}
+            onInputChange={(_, val) => setStaffInput(val)}
+            renderInput={params => (
+              <TextField {...params} label={t('timesheets.staff')} margin="normal" />
+            )}
+            sx={{ mb: 2, maxWidth: 400 }}
+          />
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <TextField
+              label={t('timesheets.year')}
+              type="number"
+              value={year}
+              onChange={e => setYear(Number(e.target.value))}
+              sx={{ maxWidth: 120 }}
+            />
+            <TextField
+              select
+              label={t('timesheets.month')}
+              value={month}
+              onChange={e => setMonth(Number(e.target.value))}
+              sx={{ maxWidth: 160 }}
+            >
+              {Array.from({ length: 12 }, (_, i) => (
+                <MenuItem key={i + 1} value={i + 1}>
+                  {new Date(0, i).toLocaleString(undefined, { month: 'long' })}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+        </>
       )}
       {!inAdmin || staff ? (
         loadingSheets ? (
           <CircularProgress />
+        ) : inAdmin ? (
+          timesheets.map(p => (
+            <Accordion
+              key={p.id}
+              expanded={expanded === p.id}
+              onChange={(_, isExpanded) =>
+                setExpanded(isExpanded ? p.id : null)
+              }
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                {`${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`}
+              </AccordionSummary>
+              <AccordionDetails>
+                {expanded === p.id && (
+                  <>
+                    {renderTable()}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                      {!current?.submitted_at && (
+                        <Button
+                          variant="contained"
+                          disabled={submitMutation.isPending}
+                          onClick={handleSubmitTimesheet}
+                        >
+                          {t('timesheets.submit')}
+                        </Button>
+                      )}
+                      {current?.submitted_at && !current?.approved_at && (
+                        <>
+                          <Button
+                            variant="contained"
+                            onClick={() => rejectMutation.mutate(current.id)}
+                          >
+                            {t('timesheets.reject')}
+                          </Button>
+                          <Button
+                            variant="contained"
+                            onClick={() => processMutation.mutate(current.id)}
+                          >
+                            {t('timesheets.process')}
+                          </Button>
+                        </>
+                      )}
+                    </Box>
+                  </>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          ))
         ) : (
           <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
         )
       ) : (
         <Typography sx={{ mt: 2 }}>{t('timesheets.select_staff')}</Typography>
       )}
-      {current && (!inAdmin || staff) && (
+      {current && !inAdmin && (
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
           {!current.submitted_at && (
             <Button
@@ -343,22 +434,6 @@ export default function Timesheets() {
             >
               {t('timesheets.submit')}
             </Button>
-          )}
-          {current.submitted_at && !current.approved_at && inAdmin && (
-            <>
-              <Button
-                variant="contained"
-                onClick={() => rejectMutation.mutate(current.id)}
-              >
-                {t('timesheets.reject')}
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => processMutation.mutate(current.id)}
-              >
-                {t('timesheets.process')}
-              </Button>
-            </>
           )}
         </Box>
       )}

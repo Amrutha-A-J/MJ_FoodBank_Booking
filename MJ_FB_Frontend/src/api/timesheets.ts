@@ -37,9 +37,13 @@ export async function listTimesheets(): Promise<TimesheetSummary[]> {
 
 export async function listAllTimesheets(
   staffId?: number,
+  year?: number,
+  month?: number,
 ): Promise<TimesheetSummary[]> {
   const url = new URL(`${API_BASE}/timesheets`);
   if (staffId) url.searchParams.set('staffId', String(staffId));
+  if (year) url.searchParams.set('year', String(year));
+  if (month) url.searchParams.set('month', String(month));
   const res = await apiFetch(url.toString());
   return handleResponse(res);
 }
@@ -98,10 +102,10 @@ export function useTimesheets() {
   return { timesheets: data ?? [], isLoading: isFetching, error };
 }
 
-export function useAllTimesheets(staffId?: number) {
+export function useAllTimesheets(staffId?: number, year?: number, month?: number) {
   const { data, isFetching, error } = useQuery<TimesheetSummary[]>({
-    queryKey: ['allTimesheets', staffId],
-    queryFn: () => listAllTimesheets(staffId),
+    queryKey: ['allTimesheets', staffId, year, month],
+    queryFn: () => listAllTimesheets(staffId, year, month),
     enabled: staffId !== undefined,
   });
   return { timesheets: data ?? [], isLoading: isFetching, error };
