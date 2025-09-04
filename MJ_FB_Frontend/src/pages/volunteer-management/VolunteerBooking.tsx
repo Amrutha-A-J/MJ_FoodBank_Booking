@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import type { VolunteerRole } from '../../types';
+import type { VolunteerRole, Holiday } from '../../types';
 import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
@@ -57,11 +57,15 @@ export default function VolunteerBooking() {
   });
   const [selected, setSelected] = useState<VolunteerRole | null>(null);
   const { holidays } = useHolidays();
-  const holidaySet = new Set(holidays.map(h => h.date));
-  const isDisabled = (d: Dayjs) =>
-    d.day() === 0 ||
-    d.day() === 6 ||
-    holidaySet.has(d.format('YYYY-MM-DD'));
+  const holidaySet = new Set(holidays.map((h: Holiday) => h.date));
+  const isDisabled = (d: Dayjs | Date) => {
+    const day = dayjs(d);
+    return (
+      day.day() === 0 ||
+      day.day() === 6 ||
+      holidaySet.has(day.format('YYYY-MM-DD'))
+    );
+  };
   const { slots, isLoading, refetch, error } = useVolunteerSlots(
     date,
     !isDisabled(date),
@@ -173,7 +177,7 @@ export default function VolunteerBooking() {
           >
             <DateCalendar
               value={date}
-              onChange={newDate => newDate && setDate(newDate)}
+              onChange={newDate => newDate && setDate(dayjs(newDate))}
               shouldDisableDate={isDisabled}
               sx={{ width: '100%', '& .MuiPickersSlideTransition-root': { minWidth: 0 } }}
             />
