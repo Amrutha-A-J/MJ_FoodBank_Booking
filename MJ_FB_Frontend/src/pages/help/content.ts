@@ -18,7 +18,7 @@ export function getHelpContent(
         body: {
           description: t('help.client.booking_appointments.description'),
           steps: [
-            t('help.client.booking_appointments.steps.0'),
+            'Click Dashboard in the navigation bar.',
             t('help.client.booking_appointments.steps.1'),
             t('help.client.booking_appointments.steps.2'),
           ],
@@ -74,6 +74,7 @@ export function getHelpContent(
       body: {
         description: 'The volunteer schedule shows available shifts for your trained roles.',
         steps: [
+          'Click Dashboard in the navigation bar.',
           'Open the Volunteer Schedule.',
           'Select a role from the dropdown.',
           'Review open shifts.',
@@ -125,12 +126,13 @@ export function getHelpContent(
       },
     },
   ],
-  agency: [
+    agency: [
     {
       title: 'Search and link clients',
       body: {
         description: 'Find clients by name and link them to your agency.',
         steps: [
+          'Click Dashboard in the navigation bar.',
           'Go to Agency Clients.',
           'Search for the client.',
           'Click Link to add them.',

@@ -105,6 +105,33 @@ describe('App authentication persistence', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
+  it('shows dashboard link for clients', async () => {
+    localStorage.setItem('role', 'shopper');
+    localStorage.setItem('name', 'Test Client');
+    renderWithProviders(<App />);
+    expect(
+      await screen.findByRole('link', { name: /Dashboard/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows dashboard link for volunteers', async () => {
+    localStorage.setItem('role', 'volunteer');
+    localStorage.setItem('name', 'Test Volunteer');
+    renderWithProviders(<App />);
+    expect(
+      await screen.findByRole('link', { name: /Dashboard/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows dashboard link for agencies', async () => {
+    localStorage.setItem('role', 'agency');
+    localStorage.setItem('name', 'Agency User');
+    renderWithProviders(<App />);
+    expect(
+      await screen.findByRole('link', { name: /Dashboard/i }),
+    ).toBeInTheDocument();
+  });
+
   it.skip('shows admin links for admin staff', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Admin User');

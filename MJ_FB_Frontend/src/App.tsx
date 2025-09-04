@@ -227,6 +227,7 @@ export default function App() {
     navGroups.push({
       label: t('booking'),
       links: [
+        { label: 'Dashboard', to: '/' },
         { label: t('book_appointment'), to: '/book-appointment' },
         { label: t('booking_history'), to: '/booking-history' },
       ],
