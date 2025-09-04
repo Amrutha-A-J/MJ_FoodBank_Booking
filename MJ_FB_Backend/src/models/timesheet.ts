@@ -99,6 +99,48 @@ export async function getTimesheetDays(timesheetId: number): Promise<TimesheetDa
   return res.rows;
 }
 
+export async function insertTimesheetLeaveDay(
+  staffId: number,
+  workDate: string,
+  type: string,
+): Promise<void> {
+  const tsRes = await pool.query(
+    `SELECT id FROM timesheets WHERE staff_id = $1 AND $2::date BETWEEN start_date AND end_date`,
+    [staffId, workDate],
+  );
+  if (tsRes.rowCount === 0) {
+    return;
+  }
+  const timesheetId = tsRes.rows[0].id;
+  const defaultHours = 8;
+  const isSick = type === 'sick';
+  await pool.query(
+    `INSERT INTO timesheet_days (
+         timesheet_id,
+         work_date,
+         expected_hours,
+         reg_hours,
+         ot_hours,
+         stat_hours,
+         sick_hours,
+         vac_hours,
+         note,
+         locked_by_rule,
+         locked_by_leave
+       )
+       VALUES ($1, $2, $3, 0, 0, 0, $4, $5, NULL, FALSE, FALSE)
+       ON CONFLICT (timesheet_id, work_date)
+       DO UPDATE SET expected_hours = EXCLUDED.expected_hours,
+                     reg_hours = EXCLUDED.reg_hours,
+                     ot_hours = EXCLUDED.ot_hours,
+                     stat_hours = EXCLUDED.stat_hours,
+                     sick_hours = EXCLUDED.sick_hours,
+                     vac_hours = EXCLUDED.vac_hours,
+                     locked_by_leave = FALSE`,
+    [timesheetId, workDate, defaultHours, isSick ? defaultHours : 0, isSick ? 0 : defaultHours],
+  );
+}
+
 export interface TimesheetDayUpdate {
   regHours: number;
   otHours: number;

@@ -6,6 +6,7 @@ import {
 } from "../models/leaveRequest";
 import seedTimesheets from "../utils/timesheetSeeder";
 import { insertEvent } from "../models/event";
+import { insertTimesheetLeaveDay } from "../models/timesheet";
 
 export async function createLeaveRequest(
   req: Request,
@@ -51,6 +52,14 @@ export async function approveLeaveRequest(
       "approved",
     );
     await seedTimesheets(record.staff_id);
+    if (record.type !== "personal") {
+      const start = new Date(record.start_date);
+      const end = new Date(record.end_date);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split("T")[0];
+        await insertTimesheetLeaveDay(record.staff_id, dateStr, record.type);
+      }
+    }
     await insertEvent({
       title: "Staff Leave",
       category: "staff_leave",

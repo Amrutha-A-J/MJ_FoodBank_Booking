@@ -6,6 +6,7 @@ import {
 import mockPool from "./utils/mockDb";
 import seedTimesheets from "../src/utils/timesheetSeeder";
 import { insertEvent } from "../src/models/event";
+import { insertTimesheetLeaveDay } from "../src/models/timesheet";
 
 jest.mock("../src/utils/timesheetSeeder", () => ({
   __esModule: true,
@@ -14,6 +15,10 @@ jest.mock("../src/utils/timesheetSeeder", () => ({
 
 jest.mock("../src/models/event", () => ({
   insertEvent: jest.fn(),
+}));
+
+jest.mock("../src/models/timesheet", () => ({
+  insertTimesheetLeaveDay: jest.fn(),
 }));
 
 const makeRes = () => ({
@@ -26,6 +31,7 @@ describe("leave requests controller", () => {
     (mockPool.query as jest.Mock).mockReset();
     (seedTimesheets as jest.Mock).mockReset();
     (insertEvent as jest.Mock).mockReset();
+    (insertTimesheetLeaveDay as jest.Mock).mockReset();
   });
 
   it("creates a leave request", async () => {
@@ -105,6 +111,8 @@ describe("leave requests controller", () => {
       updated_at: "now",
     });
     expect(seedTimesheets).toHaveBeenCalledWith(1);
+    expect(insertTimesheetLeaveDay).toHaveBeenNthCalledWith(1, 1, "2024-01-02", "vacation");
+    expect(insertTimesheetLeaveDay).toHaveBeenNthCalledWith(2, 1, "2024-01-03", "vacation");
     expect(insertEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         category: "staff_leave",

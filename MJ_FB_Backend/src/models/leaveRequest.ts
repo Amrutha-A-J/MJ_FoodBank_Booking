@@ -3,6 +3,7 @@ import pool from "../db";
 export enum LeaveType {
   Vacation = "vacation",
   Sick = "sick",
+  Personal = "personal",
 }
 
 export interface LeaveRequest {
