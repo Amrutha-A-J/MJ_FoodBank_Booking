@@ -102,7 +102,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         [clientId, formatReginaDate(date)]
       );
       if ((sameDayRes.rowCount ?? 0) > 0) {
-        await updateBooking(sameDayRes.rows[0].id, { status: 'visited' }, client);
+        await updateBooking(sameDayRes.rows[0].id, { status: 'visited', note: null }, client);
       }
 
       // Handle other approved bookings in the month
@@ -122,11 +122,11 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         if (bookingDate > visitDate) {
           await updateBooking(
             row.id,
-            { status: 'visited', slot_id: null, date: formatReginaDate(date) },
+            { status: 'visited', slot_id: null, date: formatReginaDate(date), note: null },
             client,
           );
         } else {
-          await updateBooking(row.id, { status: 'no_show' }, client);
+          await updateBooking(row.id, { status: 'no_show', note: null }, client);
         }
       }
     }

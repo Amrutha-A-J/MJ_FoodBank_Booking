@@ -126,7 +126,7 @@ describe('client visit booking integration', () => {
 
     expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
       55,
-      { status: 'visited' },
+      { status: 'visited', note: null },
       expect.anything(),
     );
 
@@ -166,7 +166,7 @@ describe('client visit booking integration', () => {
     expect(res.status).toBe(201);
     expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
       77,
-      { status: 'visited', slot_id: null, date: '2024-01-02' },
+      { status: 'visited', slot_id: null, date: '2024-01-02', note: null },
       expect.anything(),
     );
   });
@@ -199,7 +199,7 @@ describe('client visit booking integration', () => {
     expect(res.status).toBe(201);
     expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
       88,
-      { status: 'no_show' },
+      { status: 'no_show', note: null },
       expect.anything(),
     );
   });

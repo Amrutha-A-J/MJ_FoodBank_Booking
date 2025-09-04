@@ -207,7 +207,7 @@ describe('markBookingNoShow', () => {
 
     await markBookingNoShow(req, res, next);
 
-    expect(updateBooking).toHaveBeenCalledWith(1, { status: 'no_show', request_data: '' });
+    expect(updateBooking).toHaveBeenCalledWith(1, { status: 'no_show', request_data: '', note: null });
     expect(enqueueEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'client@example.com',

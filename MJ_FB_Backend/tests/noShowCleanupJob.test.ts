@@ -23,7 +23,7 @@ describe('cleanupNoShows', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
     await cleanupNoShows();
     expect(pool.query).toHaveBeenCalledWith(
-      "UPDATE bookings SET status='no_show' WHERE status='approved' AND date < CURRENT_DATE",
+      "UPDATE bookings SET status='no_show', note=NULL WHERE status='approved' AND date < CURRENT_DATE",
     );
   });
 });

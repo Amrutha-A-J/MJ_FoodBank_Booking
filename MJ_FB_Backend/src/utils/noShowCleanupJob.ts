@@ -8,7 +8,7 @@ import scheduleDailyJob from './scheduleDailyJob';
 export async function cleanupNoShows(): Promise<void> {
   try {
     await pool.query(
-      "UPDATE bookings SET status='no_show' WHERE status='approved' AND date < CURRENT_DATE",
+      "UPDATE bookings SET status='no_show', note=NULL WHERE status='approved' AND date < CURRENT_DATE",
     );
   } catch (err) {
     logger.error('Failed to clean up no-shows', err);
