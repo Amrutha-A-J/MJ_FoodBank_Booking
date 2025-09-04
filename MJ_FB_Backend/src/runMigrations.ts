@@ -15,7 +15,6 @@ export async function runMigrations() {
       dir: 'src/migrations',
       direction: 'up',
       migrationsTable: 'pgmigrations',
-      tsconfig: 'tsconfig.json',
       logger: {
         info: msg => logger.info(msg),
         warn: msg => logger.warn(msg),
