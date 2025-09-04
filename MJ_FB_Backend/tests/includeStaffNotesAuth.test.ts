@@ -60,7 +60,7 @@ describe('includeStaffNotes handling', () => {
     (fetchBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        status: 'visited',
+        status: 'approved',
         date: '2024-01-01',
         slot_id: 1,
         reason: null,
@@ -82,6 +82,7 @@ describe('includeStaffNotes handling', () => {
         created_at: '2024-01-02',
         is_staff_booking: false,
         reschedule_token: null,
+        client_note: null,
         staff_note: 'visit note',
       },
     ]);
@@ -125,7 +126,7 @@ describe('includeStaffNotes handling', () => {
     (fetchBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        status: 'visited',
+        status: 'approved',
         date: '2024-01-01',
         slot_id: 1,
         reason: null,
@@ -147,6 +148,7 @@ describe('includeStaffNotes handling', () => {
         created_at: '2024-01-02',
         is_staff_booking: false,
         reschedule_token: null,
+        client_note: null,
         staff_note: 'visit note',
       },
     ]);
@@ -156,11 +158,11 @@ describe('includeStaffNotes handling', () => {
     expect(res.body[1].staff_note).toBeUndefined();
   });
 
-  it('shows both notes to staff but hides staff notes from shoppers', async () => {
+  it('shows staff notes only to staff while shoppers see client notes', async () => {
     (fetchBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        status: 'visited',
+        status: 'approved',
         date: '2024-01-01',
         slot_id: 1,
         reason: null,
@@ -170,6 +172,19 @@ describe('includeStaffNotes handling', () => {
         is_staff_booking: false,
         reschedule_token: 'tok',
         client_note: 'client note',
+      },
+      {
+        id: 2,
+        status: 'visited',
+        date: '2024-01-02',
+        slot_id: null,
+        reason: null,
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-02',
+        is_staff_booking: false,
+        reschedule_token: null,
+        client_note: null,
         staff_note: 'staff note',
       },
     ]);
@@ -177,12 +192,12 @@ describe('includeStaffNotes handling', () => {
     const staffRes = await request(app).get('/bookings/history?userId=1');
     expect(staffRes.status).toBe(200);
     expect(staffRes.body[0].client_note).toBe('client note');
-    expect(staffRes.body[0].staff_note).toBe('staff note');
+    expect(staffRes.body[1].staff_note).toBe('staff note');
 
     currentUser = { id: 1, role: 'shopper' };
     const shopperRes = await request(app).get('/bookings/history');
     expect(shopperRes.status).toBe(200);
     expect(shopperRes.body[0].client_note).toBe('client note');
-    expect(shopperRes.body[0].staff_note).toBeUndefined();
+    expect(shopperRes.body[1].staff_note).toBeUndefined();
   });
 });

@@ -47,7 +47,7 @@ describe('booking history notes', () => {
     (bookingRepository.fetchBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        status: 'visited',
+        status: 'approved',
         date: '2024-01-01',
         slot_id: 1,
         reason: null,
@@ -69,6 +69,7 @@ describe('booking history notes', () => {
         created_at: '2024-01-02',
         is_staff_booking: false,
         reschedule_token: null,
+        client_note: null,
         staff_note: 'visit note',
       },
     ]);
@@ -77,7 +78,7 @@ describe('booking history notes', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].client_note).toBe('bring ID');
     expect(res.body[0].staff_note).toBeUndefined();
-    expect(res.body[1].client_note).toBeUndefined();
+    expect(res.body[1].client_note).toBeNull();
     expect(res.body[1].staff_note).toBeUndefined();
   });
 });
