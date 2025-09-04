@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import { Paper, Tabs, Tab, Box, type SxProps, type Theme } from '@mui/material';
 
 export interface TabItem {
   label: ReactNode;
-  icon?: ReactNode;
+  icon?: ReactElement;
   content: ReactNode;
 }
 
