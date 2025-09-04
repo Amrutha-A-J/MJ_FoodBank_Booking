@@ -7,7 +7,7 @@ describe('seedTimesheets', () => {
     jest.clearAllMocks();
   });
 
-  it('creates timesheet rows when staff start dates are not tracked', async () => {
+  it('creates timesheet rows when staff start and active columns are not tracked', async () => {
     const calls: any[] = [];
     (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
       calls.push({ sql, params });
@@ -15,7 +15,7 @@ describe('seedTimesheets', () => {
         return { rows: [{ table: 'pay_periods' }], rowCount: 1 };
       }
       if (sql.includes("FROM information_schema.columns")) {
-        return { rows: [], rowCount: 0 }; // no starts_on column
+        return { rows: [], rowCount: 0 }; // no starts_on or active columns
       }
       if (sql.includes('FROM pay_periods')) {
         return { rows: [{ id: 1, start_date: '2024-06-01', end_date: '2024-06-15' }], rowCount: 1 };
@@ -34,6 +34,8 @@ describe('seedTimesheets', () => {
 
     await seedTimesheets();
 
+    const staffCall = calls.find((c) => c.sql.includes('FROM staff'));
+    expect(staffCall.sql).not.toMatch(/active/);
     const insertTs = calls.find((c) => c.sql.startsWith('INSERT INTO timesheets'));
     expect(insertTs).toBeDefined();
     const insertDays = calls.find((c) => c.sql.startsWith('INSERT INTO timesheet_days'));
@@ -42,7 +44,7 @@ describe('seedTimesheets', () => {
     expect(insertDays.params).toEqual([99, '2024-06-01', '2024-06-15']);
   });
 
-  it('uses staff start date when column is present', async () => {
+  it('uses staff start date and filters active staff when columns are present', async () => {
     const calls: any[] = [];
     (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
       calls.push({ sql, params });
@@ -50,7 +52,7 @@ describe('seedTimesheets', () => {
         return { rows: [{ table: 'pay_periods' }], rowCount: 1 };
       }
       if (sql.includes("FROM information_schema.columns")) {
-        return { rows: [{ column_name: 'starts_on' }], rowCount: 1 };
+        return { rows: [{ column_name: 'starts_on' }, { column_name: 'active' }], rowCount: 2 };
       }
       if (sql.includes('FROM pay_periods')) {
         return { rows: [{ id: 2, start_date: '2024-06-01', end_date: '2024-06-15' }], rowCount: 1 };
@@ -66,6 +68,8 @@ describe('seedTimesheets', () => {
 
     await seedTimesheets();
 
+    const staffCall = calls.find((c) => c.sql.includes('FROM staff'));
+    expect(staffCall.sql).toMatch(/WHERE active = true/);
     const insertTs = calls.find((c) => c.sql.startsWith('INSERT INTO timesheets'));
     expect(insertTs).toBeUndefined();
     const insertDays = calls.find((c) => c.sql.startsWith('INSERT INTO timesheet_days'));
