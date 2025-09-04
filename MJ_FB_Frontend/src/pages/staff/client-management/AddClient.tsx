@@ -20,8 +20,8 @@ export default function AddClient() {
 
   async function submitUser() {
     if (onlineAccess) {
-      if (!firstName || !lastName || !clientId) {
-        setError('First name, last name and client ID required');
+      if (!firstName || !lastName || !clientId || !email) {
+        setError('First name, last name, client ID and email required');
         return;
       }
     } else if (!clientId) {
@@ -70,7 +70,13 @@ export default function AddClient() {
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
           <TextField label="Client ID" value={clientId} onChange={e => setClientId(e.target.value)} />
-          <TextField label="Email (optional)" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+          <TextField
+            label={onlineAccess ? 'Email' : 'Email (optional)'}
+            type="email"
+            required={onlineAccess}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
           <TextField
             label="Phone (optional)"
             type="tel"
