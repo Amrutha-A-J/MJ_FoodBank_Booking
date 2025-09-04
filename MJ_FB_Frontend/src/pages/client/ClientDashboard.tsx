@@ -78,7 +78,7 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     getBookingHistory({ includeVisits: true })
-      .then(setBookings)
+      .then(b => setBookings(Array.isArray(b) ? b : [b]))
       .catch(() => {});
   }, []);
 
