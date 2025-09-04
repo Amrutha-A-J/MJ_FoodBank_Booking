@@ -408,6 +408,7 @@ export function getHelpContent(
         steps: [
           'Go to Admin > Timesheets.',
           'Select a staff member.',
+          'Choose a year and month.',
           'Open a period and review hours.',
           'Approve or reject as needed.',
         ],
