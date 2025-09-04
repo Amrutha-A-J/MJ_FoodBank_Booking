@@ -7,18 +7,21 @@ describe('seedTimesheets', () => {
     jest.clearAllMocks();
   });
 
-  it('creates timesheet and weekday rows for active staff', async () => {
+  it('creates timesheet rows when staff start dates are not tracked', async () => {
     const calls: any[] = [];
     (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
       calls.push({ sql, params });
       if (sql.includes("to_regclass('public.pay_periods')")) {
         return { rows: [{ table: 'pay_periods' }], rowCount: 1 };
       }
+      if (sql.includes("FROM information_schema.columns")) {
+        return { rows: [], rowCount: 0 }; // no starts_on column
+      }
       if (sql.includes('FROM pay_periods')) {
         return { rows: [{ id: 1, start_date: '2024-06-01', end_date: '2024-06-15' }], rowCount: 1 };
       }
       if (sql.includes('FROM staff')) {
-        return { rows: [{ id: 7, starts_on: '2024-05-20' }], rowCount: 1 };
+        return { rows: [{ id: 7 }], rowCount: 1 };
       }
       if (sql.startsWith('SELECT id FROM timesheets')) {
         return { rows: [], rowCount: 0 };
@@ -35,16 +38,19 @@ describe('seedTimesheets', () => {
     expect(insertTs).toBeDefined();
     const insertDays = calls.find((c) => c.sql.startsWith('INSERT INTO timesheet_days'));
     expect(insertDays).toBeDefined();
-    expect(insertDays.sql).toContain('GREATEST($2::date, $3::date)');
-    expect(insertDays.params).toEqual([99, '2024-06-01', '2024-05-20', '2024-06-15']);
+    expect(insertDays.sql).not.toContain('GREATEST');
+    expect(insertDays.params).toEqual([99, '2024-06-01', '2024-06-15']);
   });
 
-  it('uses staff start date when later than period start', async () => {
+  it('uses staff start date when column is present', async () => {
     const calls: any[] = [];
     (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
       calls.push({ sql, params });
       if (sql.includes("to_regclass('public.pay_periods')")) {
         return { rows: [{ table: 'pay_periods' }], rowCount: 1 };
+      }
+      if (sql.includes("FROM information_schema.columns")) {
+        return { rows: [{ column_name: 'starts_on' }], rowCount: 1 };
       }
       if (sql.includes('FROM pay_periods')) {
         return { rows: [{ id: 2, start_date: '2024-06-01', end_date: '2024-06-15' }], rowCount: 1 };
@@ -64,6 +70,7 @@ describe('seedTimesheets', () => {
     expect(insertTs).toBeUndefined();
     const insertDays = calls.find((c) => c.sql.startsWith('INSERT INTO timesheet_days'));
     expect(insertDays).toBeDefined();
+    expect(insertDays.sql).toContain('GREATEST($2::date, $3::date)');
     expect(insertDays.params).toEqual([50, '2024-06-01', '2024-06-05', '2024-06-15']);
   });
 

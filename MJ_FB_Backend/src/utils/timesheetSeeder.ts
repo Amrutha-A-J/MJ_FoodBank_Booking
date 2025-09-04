@@ -30,10 +30,19 @@ export async function seedTimesheets(staffId?: number): Promise<void> {
 
     const period = payPeriodRes.rows[0];
 
+    // Check if the staff table has a starts_on column to avoid errors on older schemas
+    const colCheck = await pool.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_name = 'staff' AND column_name = 'starts_on'`,
+    );
+    const hasStartsOn = (colCheck.rowCount ?? 0) > 0;
+
     // Fetch active staff
     const staffRes = staffId
-      ? await pool.query('SELECT id, starts_on FROM staff WHERE active = true AND id = $1', [staffId])
-      : await pool.query('SELECT id, starts_on FROM staff WHERE active = true');
+      ? await pool.query(
+          `SELECT id${hasStartsOn ? ', starts_on' : ''} FROM staff WHERE active = true AND id = $1`,
+          [staffId],
+        )
+      : await pool.query(`SELECT id${hasStartsOn ? ', starts_on' : ''} FROM staff WHERE active = true`);
 
     for (const staff of staffRes.rows) {
       // Check for existing timesheet
@@ -54,6 +63,11 @@ export async function seedTimesheets(staffId?: number): Promise<void> {
       }
 
       // Insert weekday rows with zeroed hours
+      const seriesStart = hasStartsOn ? 'GREATEST($2::date, $3::date)' : '$2::date';
+      const params = hasStartsOn
+        ? [timesheetId, period.start_date, staff.starts_on, period.end_date]
+        : [timesheetId, period.start_date, period.end_date];
+
       await pool.query(
         `INSERT INTO timesheet_days (
             timesheet_id,
@@ -67,10 +81,10 @@ export async function seedTimesheets(staffId?: number): Promise<void> {
             note
          )
          SELECT $1, gs.day, 0, 0, 0, 0, 0, 0, NULL
-           FROM generate_series(GREATEST($2::date, $3::date), $4::date, '1 day') AS gs(day)
+           FROM generate_series(${seriesStart}, $${hasStartsOn ? 4 : 3}::date, '1 day') AS gs(day)
           WHERE EXTRACT(ISODOW FROM gs.day) < 6
           ON CONFLICT (timesheet_id, work_date) DO NOTHING`,
-        [timesheetId, period.start_date, staff.starts_on, period.end_date],
+        params,
       );
     }
   } catch (err) {
