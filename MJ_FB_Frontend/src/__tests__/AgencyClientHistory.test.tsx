@@ -51,4 +51,41 @@ describe('Agency ClientHistory', () => {
     await waitFor(() => expect(cancelBooking).toHaveBeenCalledWith('10'));
     expect(getBookingHistory).toHaveBeenCalledTimes(2);
   });
+
+  it('shows both client and staff notes', async () => {
+    const { getMyAgencyClients } = require('../api/agencies');
+    const { getBookingHistory } = require('../api/bookings');
+    (getMyAgencyClients as jest.Mock).mockResolvedValue([
+      { client_id: 1, name: 'Client One' },
+    ]);
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-01',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-01',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+        client_note: 'client note',
+        staff_note: 'staff note',
+      },
+    ]);
+
+    render(<ClientHistory />);
+
+    fireEvent.click(screen.getByText('select client'));
+
+    await waitFor(() =>
+      expect(getBookingHistory).toHaveBeenCalledWith({
+        userId: 1,
+        includeVisits: true,
+        includeStaffNotes: true,
+      }),
+    );
+    expect(await screen.findByText(/client note/i)).toBeInTheDocument();
+    expect(screen.getByText(/staff note/i)).toBeInTheDocument();
+  });
 });

@@ -35,7 +35,6 @@
   "invalid_or_expired_token": "Di-wasto o paso na ang token",
   "dashboard": "Dashboard",
   "client_dashboard": "Dashboard ng kliyente",
-  "dashboard": "Dashboard",
   "book_appointment": "Magpa-book ng appointment",
   "booking_history": "Kasaysayan ng booking",
   "booking": "Booking",
@@ -262,5 +261,6 @@
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
-  "visits_with_staff_notes_only": "View visits with staff notes only"
+  "visits_with_notes_only": "View visits with notes only",
+  "notes": "Notes"
 }

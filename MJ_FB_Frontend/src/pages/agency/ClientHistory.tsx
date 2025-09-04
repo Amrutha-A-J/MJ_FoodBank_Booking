@@ -18,6 +18,7 @@ import {
   useMediaQuery,
   useTheme,
   Stack,
+  Typography,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
@@ -82,14 +83,16 @@ export default function ClientHistory() {
 
   const loadBookings = useCallback(() => {
     if (!selected) return Promise.resolve();
-      const opts: {
+    const opts: {
       status?: string;
       past?: boolean;
       userId?: number;
       includeVisits?: boolean;
+      includeStaffNotes?: boolean;
     } = {
       userId: selected.client_id,
       includeVisits: true,
+      includeStaffNotes: true,
     };
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;
@@ -171,13 +174,14 @@ export default function ClientHistory() {
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                    <TableCell sx={cellSx}>{t('notes')}</TableCell>
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} sx={{ textAlign: 'center' }}>
+                      <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
                         {t('no_bookings')}
                       </TableCell>
                     </TableRow>
@@ -199,6 +203,18 @@ export default function ClientHistory() {
                         </TableCell>
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
+                        <TableCell sx={cellSx}>
+                          {b.client_note && (
+                            <Typography variant="body2">
+                              {t('client_note_label')}: {b.client_note}
+                            </Typography>
+                          )}
+                          {b.staff_note && (
+                            <Typography variant="body2">
+                              {t('staff_note_label')}: {b.staff_note}
+                            </Typography>
+                          )}
+                        </TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(b.status.toLowerCase()) && (
                             <Stack direction="row" spacing={1}>

@@ -233,7 +233,6 @@ export interface BookingResponse {
   startTime?: string | null;
   endTime?: string | null;
   reason?: string;
-  note?: string | null;
   client_note?: string | null;
   staff_note?: string | null;
 }
