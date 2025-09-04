@@ -6,7 +6,7 @@ import {
   countApprovedPersonalDaysThisQuarter,
   LeaveType,
 } from "../models/leaveRequest";
-import seedTimesheets from "../utils/timesheetSeeder";
+import { ensureTimesheetDay } from "../models/timesheet";
 import { insertEvent } from "../models/event";
 
 export async function createLeaveRequest(
@@ -63,7 +63,18 @@ export async function approveLeaveRequest(
       "approved",
     );
     if (record.type !== LeaveType.Personal) {
-      await seedTimesheets(record.staff_id);
+      const start = new Date(record.start_date);
+      const end = new Date(record.end_date);
+      for (
+        let d = new Date(start);
+        d <= end;
+        d.setDate(d.getDate() + 1)
+      ) {
+        await ensureTimesheetDay(
+          record.staff_id,
+          d.toISOString().slice(0, 10),
+        );
+      }
     }
     await insertEvent({
       title: "Staff Leave",

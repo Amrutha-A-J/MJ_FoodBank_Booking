@@ -4,12 +4,11 @@ import {
   approveLeaveRequest,
 } from "../src/controllers/leaveRequestController";
 import mockPool from "./utils/mockDb";
-import seedTimesheets from "../src/utils/timesheetSeeder";
+import { ensureTimesheetDay } from "../src/models/timesheet";
 import { insertEvent } from "../src/models/event";
 
-jest.mock("../src/utils/timesheetSeeder", () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock("../src/models/timesheet", () => ({
+  ensureTimesheetDay: jest.fn(),
 }));
 
 jest.mock("../src/models/event", () => ({
@@ -24,7 +23,7 @@ const makeRes = () => ({
 describe("leave requests controller", () => {
   afterEach(() => {
     (mockPool.query as jest.Mock).mockReset();
-    (seedTimesheets as jest.Mock).mockReset();
+    (ensureTimesheetDay as jest.Mock).mockReset();
     (insertEvent as jest.Mock).mockReset();
   });
 
@@ -126,7 +125,9 @@ describe("leave requests controller", () => {
       created_at: "now",
       updated_at: "now",
     });
-    expect(seedTimesheets).toHaveBeenCalledWith(1);
+    expect(ensureTimesheetDay).toHaveBeenCalledTimes(2);
+    expect(ensureTimesheetDay).toHaveBeenCalledWith(1, "2024-01-02");
+    expect(ensureTimesheetDay).toHaveBeenCalledWith(1, "2024-01-03");
     expect(insertEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         category: "staff_leave",
@@ -172,7 +173,7 @@ describe("leave requests controller", () => {
       created_at: "now",
       updated_at: "now",
     });
-    expect(seedTimesheets).not.toHaveBeenCalled();
+    expect(ensureTimesheetDay).not.toHaveBeenCalled();
     expect(insertEvent).toHaveBeenCalled();
   });
 });
