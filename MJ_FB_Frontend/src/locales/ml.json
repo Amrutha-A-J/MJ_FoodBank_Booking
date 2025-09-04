@@ -108,7 +108,7 @@
         "description": "Submit and track leave requests.",
         "steps": [
           "Open the Leave Management page from the profile menu.",
-          "Submit new leave requests with date and hours.",
+          "Submit new leave requests with type and dates.",
           "Review the status of your requests."
         ]
       }
@@ -265,8 +265,10 @@
     "status_label": "Status",
     "type": {
       "paid": "Paid",
-      "unpaid": "Unpaid"
-    }
+      "personal": "Personal",
+      "sick": "Sick"
+    },
+    "request_vacation": "Request Vacation"
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",

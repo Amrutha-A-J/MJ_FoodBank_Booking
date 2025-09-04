@@ -158,3 +158,6 @@ Add the following translation strings to locale files:
 - `leave.status.pending`
 - `leave.status.approved`
 - `leave.status.rejected`
+- `leave.request_vacation`
+- `leave.type.personal`
+- `leave.type.sick`

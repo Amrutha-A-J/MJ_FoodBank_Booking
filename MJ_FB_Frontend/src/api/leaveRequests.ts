@@ -14,10 +14,9 @@ export interface LeaveRequest {
 }
 
 export async function createLeaveRequest(
-  timesheetId: number,
-  data: { date: string; hours: number },
+  data: { type: string; startDate: string; endDate: string },
 ): Promise<LeaveRequest> {
-  const res = await apiFetch(`${API_BASE}/timesheets/${timesheetId}/leave-requests`, {
+  const res = await apiFetch(`${API_BASE}/leave/requests`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -64,13 +63,19 @@ export function useAllLeaveRequests() {
   return { requests: data ?? [], isLoading: isFetching, error };
 }
 
-export function useCreateLeaveRequest(timesheetId: number) {
+export function useCreateLeaveRequest(timesheetId?: number) {
   const qc = useQueryClient();
-  return useMutation<LeaveRequest, ApiError, { date: string; hours: number }>({
-    mutationFn: data => createLeaveRequest(timesheetId, data),
+  return useMutation<
+    LeaveRequest,
+    ApiError,
+    { type: string; startDate: string; endDate: string }
+  >({
+    mutationFn: data => createLeaveRequest(data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
-      qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      if (timesheetId) {
+        qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
+        qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      }
     },
   });
 }
