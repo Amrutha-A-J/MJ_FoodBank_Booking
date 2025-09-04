@@ -1,6 +1,7 @@
 import { List, ListItem, Typography, ListItemText, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { Event } from '../api/events';
+import { formatLocaleDate } from '../utils/date';
 
 interface EventListProps {
   events: Event[];
@@ -12,6 +13,12 @@ export default function EventList({ events, limit, onDelete }: EventListProps) {
   const items = limit ? events.slice(0, limit) : events;
   if (!items.length)
     return <Typography variant="body2">No events</Typography>;
+
+  function formatDateRange(start: string, end: string) {
+    const startText = formatLocaleDate(start);
+    const endText = formatLocaleDate(end);
+    return startText === endText ? startText : `${startText} - ${endText}`;
+  }
   return (
     <List>
       {items.map(ev => (
@@ -27,7 +34,7 @@ export default function EventList({ events, limit, onDelete }: EventListProps) {
           }
         >
           <ListItemText
-            primary={`${new Date(ev.date).toLocaleDateString()} - ${ev.title}`}
+            primary={`${formatDateRange(ev.startDate, ev.endDate)} - ${ev.title}`}
             secondary={
               <>
                 {ev.details && (

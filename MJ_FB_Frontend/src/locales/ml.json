@@ -260,6 +260,12 @@
       "pending": "Pending",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "type_label": "Type",
+    "status_label": "Status",
+    "type": {
+      "paid": "Paid",
+      "unpaid": "Unpaid"
     }
   },
   "client_note_label": "Client note (optional)",

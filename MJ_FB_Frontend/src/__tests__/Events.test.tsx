@@ -25,7 +25,8 @@ describe('Events page', () => {
         {
           id: 1,
           title: 'Today Event',
-          date: new Date().toISOString(),
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Details today',
@@ -35,7 +36,8 @@ describe('Events page', () => {
         {
           id: 2,
           title: 'Future Event',
-          date: new Date(Date.now() + 86400000).toISOString(),
+          startDate: new Date(Date.now() + 86400000).toISOString(),
+          endDate: new Date(Date.now() + 86400000).toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Future details',
@@ -45,7 +47,8 @@ describe('Events page', () => {
         {
           id: 3,
           title: 'Past Event',
-          date: new Date(Date.now() - 86400000).toISOString(),
+          startDate: new Date(Date.now() - 86400000).toISOString(),
+          endDate: new Date(Date.now() - 86400000).toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Past details',
@@ -72,7 +75,8 @@ describe('Events page', () => {
         {
           id: 1,
           title: 'Delete Me',
-          date: new Date().toISOString(),
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
         },

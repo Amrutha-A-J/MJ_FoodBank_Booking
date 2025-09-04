@@ -7,6 +7,10 @@ from the **Hello** menu in the top-right corner. Admins can review periods at
 `/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
 Admin menu. Admins select a staff member before viewing their periods.
 
+Hours entered on the page are stored locally until you submit the period. No
+API requests are made while editing, preventing the page from refreshing after
+each change.
+
 ## Setup
 
 1. Start the backend once so `setupDatabase` creates the pay period, timesheet, and leave tables. All future schema changes must be implemented via migrations instead of editing `setupDatabase`:
@@ -59,6 +63,7 @@ vacation hours to that day and locks it from editing; an approved request also
 creates a `staff_leave` event visible to clients and volunteers. Rejection
 simply removes the request.
 
+
 ## Email settings
 
 Timesheet submissions and leave approvals send notifications through the Brevo
@@ -80,11 +85,13 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 - `POST /timesheets/:id/submit` – submit a pay period.
 - `POST /timesheets/:id/reject` – reject a submitted timesheet (admin only).
 - `POST /timesheets/:id/process` – mark a timesheet as processed and exportable (admin only).
-- `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
+- `POST /timesheets/:id/leave-requests` – request leave for a day with `date`,
+  `hours`, and `type` (`vacation` or `sick`).
 - `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
 - `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.
 - `GET /api/leave/requests` – list all leave requests (admin only).
-- `POST /api/leave/requests` – submit a leave request for the logged in staff member.
+- `POST /api/leave/requests` – submit a leave request for the logged in staff
+  member with `startDate`, `endDate`, `type`, and optional `reason`.
 
 ## UI walkthrough
 

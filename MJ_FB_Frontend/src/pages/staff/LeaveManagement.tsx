@@ -1,4 +1,15 @@
-import { Box, Button, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import Page from '../../components/Page';
 import { useTimesheets } from '../../api/timesheets';
@@ -50,16 +61,36 @@ export default function LeaveManagement() {
             </Button>
           </Box>
 
-          {requests.map(r => (
-            <Box key={r.id} sx={{ mb: 1 }}>
-              <Typography component="span" sx={{ mr: 1 }}>
-                {formatLocaleDate(r.work_date)} - {r.hours}h
-              </Typography>
-              <Typography component="span">
-                {t(`leave.status.${r.status}`)}
-              </Typography>
-            </Box>
-          ))}
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('leave.start_date')}</TableCell>
+                  <TableCell>{t('leave.end_date')}</TableCell>
+                  <TableCell>{t('leave.type_label')}</TableCell>
+                  <TableCell>{t('leave.status_label')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {requests.map(r => (
+                  <TableRow key={r.id}>
+                    <TableCell>
+                      {formatLocaleDate(r.start_date ?? r.work_date)}
+                    </TableCell>
+                    <TableCell>
+                      {formatLocaleDate(r.end_date ?? r.work_date)}
+                    </TableCell>
+                    <TableCell>
+                      {r.type ? t(`leave.type.${r.type}`) : ''}
+                    </TableCell>
+                    <TableCell>
+                      {t(`leave.status.${r.status}`)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       )}
     </Page>
