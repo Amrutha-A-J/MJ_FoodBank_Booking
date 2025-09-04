@@ -176,7 +176,7 @@ describe('Booking confirmation', () => {
     fireEvent.click(screen.getByText(/book selected slot/i));
 
     await screen.findByText(/confirm booking/i);
-    fireEvent.change(screen.getByLabelText(/extra info/i), {
+    fireEvent.change(screen.getByLabelText(/client note/i), {
       target: { value: 'bring ID' },
     });
     fireEvent.click(screen.getByText(/confirm$/i));

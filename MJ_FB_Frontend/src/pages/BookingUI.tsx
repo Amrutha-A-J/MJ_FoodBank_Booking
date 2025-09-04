@@ -469,7 +469,7 @@ export default function BookingUI({
             fullWidth
             multiline
             margin="normal"
-            label={t('extra_info_label')}
+            label={t('client_note_label')}
             value={note}
             onChange={e => setNote(e.target.value)}
           />

@@ -115,7 +115,7 @@ describe('UserHistory', () => {
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.getAllByText(/visited/i)).toHaveLength(2);
 
-    fireEvent.click(screen.getByLabelText('View visits with notes only'));
+    fireEvent.click(screen.getByLabelText('View visits with staff notes only'));
 
     expect(screen.getAllByText(/visited/i)).toHaveLength(1);
     expect(screen.getByText('has note')).toBeInTheDocument();
