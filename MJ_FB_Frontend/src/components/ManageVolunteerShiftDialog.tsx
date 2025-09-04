@@ -84,6 +84,7 @@ export default function ManageVolunteerShiftDialog({
   }, [status, booking?.role_id]);
 
   if (!booking) return null;
+  const b = booking;
 
   function timesOverlap(
     startA: string,
@@ -97,19 +98,19 @@ export default function ManageVolunteerShiftDialog({
   function isShiftDisabled(shift: Shift): boolean {
     if (!date) return true;
     const bookingsForShift = bookings.filter(
-      b =>
-        b.role_id === shift.shiftId &&
-        b.date === date &&
-        b.id !== booking.id &&
-        b.status !== 'cancelled',
+      bk =>
+        bk.role_id === shift.shiftId &&
+        bk.date === date &&
+        bk.id !== b.id &&
+        bk.status !== 'cancelled',
     );
     const isFull = bookingsForShift.length >= shift.maxVolunteers;
     const volunteerConflict = bookings.some(
-      b =>
-        b.volunteer_id === booking.volunteer_id &&
-        b.id !== booking.id &&
-        b.date === date &&
-        timesOverlap(b.start_time, b.end_time, shift.startTime, shift.endTime),
+      bk =>
+        bk.volunteer_id === b.volunteer_id &&
+        bk.id !== b.id &&
+        bk.date === date &&
+        timesOverlap(bk.start_time, bk.end_time, shift.startTime, shift.endTime),
     );
     return isFull || volunteerConflict;
   }
@@ -124,7 +125,7 @@ export default function ManageVolunteerShiftDialog({
             return;
           }
           await rescheduleVolunteerBookingByToken(
-            booking.reschedule_token || '',
+            b.reschedule_token || '',
             Number(shiftId),
             date,
           );
@@ -137,13 +138,13 @@ export default function ManageVolunteerShiftDialog({
             setMessage('Reason required');
             return;
           }
-          await updateVolunteerBookingStatus(booking.id, 'cancelled', reason);
+          await updateVolunteerBookingStatus(b.id, 'cancelled', reason);
           onUpdated('Booking cancelled', 'success');
           onClose();
           return;
         case 'completed':
         case 'no_show':
-          await updateVolunteerBookingStatus(booking.id, status);
+          await updateVolunteerBookingStatus(b.id, status);
           onUpdated('Status updated', 'success');
           onClose();
           return;
@@ -165,11 +166,11 @@ export default function ManageVolunteerShiftDialog({
       <DialogTitle>Manage Shift</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
         <Stack spacing={2}>
-          <Typography>Volunteer: {booking.volunteer_name}</Typography>
+          <Typography>Volunteer: {b.volunteer_name}</Typography>
           <Typography>
-            {booking.role_name} on {booking.date} {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+            {b.role_name} on {b.date} {formatTime(b.start_time)} - {formatTime(b.end_time)}
           </Typography>
-          {booking.note && <Typography>Note: {booking.note}</Typography>}
+          {b.note && <Typography>Note: {b.note}</Typography>}
           <TextField
             select
             label="Status"
