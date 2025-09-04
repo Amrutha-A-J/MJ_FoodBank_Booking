@@ -25,7 +25,7 @@ import {
   useTimesheets,
   useAllTimesheets,
   useTimesheetDays,
-  useUpdateTimesheetDay,
+  updateTimesheetDay,
   useSubmitTimesheet,
   useRejectTimesheet,
   useProcessTimesheet,
@@ -110,7 +110,6 @@ export default function Timesheets() {
     );
   }, [rawDays]);
 
-  const updateMutation = useUpdateTimesheetDay(current?.id ?? 0);
   const submitMutation = useSubmitTimesheet();
   const rejectMutation = useRejectTimesheet();
   const processMutation = useProcessTimesheet();
@@ -134,26 +133,6 @@ export default function Timesheets() {
         };
         return copy;
       });
-    };
-
-    const handleBlur = (index: number) => {
-      const d = days[index];
-      if (!current) return;
-      updateMutation.mutate(
-        {
-          date: d.date,
-          regHours: d.reg,
-          otHours: d.ot,
-          statHours: d.stat,
-          sickHours: d.sick,
-          vacHours: d.vac,
-          note: d.note,
-        },
-        {
-          onError: e =>
-            setMessage((e as ApiError).message || 'Failed to update day'),
-        },
-      );
     };
 
     const totals = days.reduce(
@@ -211,7 +190,6 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'reg', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -222,7 +200,6 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'ot', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -233,7 +210,6 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'stat', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -244,7 +220,6 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'sick', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -255,7 +230,6 @@ export default function Timesheets() {
                       disabled={disabled}
                       error={over}
                       onChange={e => handleChange(i, 'vac', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -264,7 +238,6 @@ export default function Timesheets() {
                       size="small"
                       disabled={disabled}
                       onChange={e => handleChange(i, 'note', e.target.value)}
-                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell sx={{ color: over ? 'error.main' : undefined }}>
@@ -300,6 +273,27 @@ export default function Timesheets() {
     );
   }
 
+  const handleSubmitTimesheet = async () => {
+    if (!current) return;
+    try {
+      await Promise.all(
+        days.map(d =>
+          updateTimesheetDay(current.id, d.date, {
+            regHours: d.reg,
+            otHours: d.ot,
+            statHours: d.stat,
+            sickHours: d.sick,
+            vacHours: d.vac,
+            note: d.note,
+          }),
+        ),
+      );
+      await submitMutation.mutateAsync(current.id);
+    } catch (e) {
+      setMessage((e as ApiError).message || 'Failed to submit timesheet');
+    }
+  };
+
   const tabs: TabItem[] = timesheets.map(p => ({
     label: `${formatLocaleDate(p.start_date)} - ${formatLocaleDate(p.end_date)}`,
     content: p.id === current?.id ? renderTable() : null,
@@ -334,7 +328,8 @@ export default function Timesheets() {
           {!current.submitted_at && (
             <Button
               variant="contained"
-              onClick={() => submitMutation.mutate(current.id)}
+              disabled={submitMutation.isPending}
+              onClick={handleSubmitTimesheet}
             >
               {t('timesheets.submit')}
             </Button>
