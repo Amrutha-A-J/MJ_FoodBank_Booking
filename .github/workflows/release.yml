@@ -4,19 +4,22 @@ on:
   push:
     branches: [main]
     tags:
-      - 'v*'
+      - 'v*'   # keep tag builds if you like
+  workflow_dispatch:
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
     env:
-      IMAGE_TAG: ${{ github.ref_name }}
+      IMAGE_TAG: ${{ github.ref_name }}   # 'main' or the tag name like v1.0.0
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
+      # --- Backend tests ---
       - name: Install backend dependencies
         working-directory: MJ_FB_Backend
         run: npm ci
@@ -25,6 +28,7 @@ jobs:
         working-directory: MJ_FB_Backend
         run: npm test
 
+      # --- Frontend tests ---
       - name: Install frontend dependencies
         working-directory: MJ_FB_Frontend
         run: npm ci
@@ -33,11 +37,18 @@ jobs:
         working-directory: MJ_FB_Frontend
         run: npm test
 
+      # (Optional) If your frontend bundle needs VITE_API_BASE at build time,
+      # you can write it to .env here from a repo variable/secret:
+      # - name: Set VITE_API_BASE
+      #   working-directory: MJ_FB_Frontend
+      #   run: echo "VITE_API_BASE=${{ vars.BACKEND_API_BASE }}" > .env
+
+      # --- Build images locally on the runner (Docker is available on GitHub-hosted runners) ---
       - name: Build backend image
-        run: docker build -t backend:${{ env.IMAGE_TAG }} MJ_FB_Backend
+        run: docker build -t mjfb-backend:${{ env.IMAGE_TAG }} MJ_FB_Backend
 
       - name: Build frontend image
-        run: docker build -t frontend:${{ env.IMAGE_TAG }} MJ_FB_Frontend
+        run: docker build -t mjfb-frontend:${{ env.IMAGE_TAG }} MJ_FB_Frontend
 
   publish-deploy:
     needs: build-test
@@ -49,7 +60,7 @@ jobs:
       FRONTEND_APP_NAME: ${{ vars.FRONTEND_APP_NAME }}
     steps:
       - name: Azure login
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -57,23 +68,44 @@ jobs:
         run: |
           echo ${{ secrets.REGISTRY_PASSWORD }} | docker login ${{ secrets.REGISTRY_LOGIN_SERVER }} -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
 
-      - name: Push images
-        run: |
-          docker tag backend:${{ env.IMAGE_TAG }} ${{ secrets.REGISTRY_LOGIN_SERVER }}/backend:${{ env.IMAGE_TAG }}
-          docker tag frontend:${{ env.IMAGE_TAG }} ${{ secrets.REGISTRY_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
-          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/backend:${{ env.IMAGE_TAG }}
-          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+      # Pull the images built in the previous job? Not needed: jobs share no Docker layer cache.
+      # We'll rebuild quickly to get the same tag names in this job OR push from artifacts (advanced).
+      # For simplicity, rebuild here:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Rebuild backend image (quick)
+        run: docker build -t mjfb-backend:${{ env.IMAGE_TAG }} MJ_FB_Backend
+
+      - name: Rebuild frontend image (quick)
+        run: docker build -t mjfb-frontend:${{ env.IMAGE_TAG }} MJ_FB_Frontend
+
+      - name: Tag & Push images to ACR (also push :latest)
+        env:
+          REGISTRY: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+        run: |
+          # Tag both with the git ref (branch/tag) and 'latest'
+          docker tag mjfb-backend:${{ env.IMAGE_TAG }}  $REGISTRY/mjfb-backend:${{ env.IMAGE_TAG }}
+          docker tag mjfb-backend:${{ env.IMAGE_TAG }}  $REGISTRY/mjfb-backend:latest
+          docker tag mjfb-frontend:${{ env.IMAGE_TAG }} $REGISTRY/mjfb-frontend:${{ env.IMAGE_TAG }}
+          docker tag mjfb-frontend:${{ env.IMAGE_TAG }} $REGISTRY/mjfb-frontend:latest
+
+          docker push $REGISTRY/mjfb-backend:${{ env.IMAGE_TAG }}
+          docker push $REGISTRY/mjfb-backend:latest
+          docker push $REGISTRY/mjfb-frontend:${{ env.IMAGE_TAG }}
+          docker push $REGISTRY/mjfb-frontend:latest
+
+      # Deploy/update Container Apps to use the freshly pushed images
       - name: Deploy backend
         uses: azure/container-apps-deploy@v2
         with:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.BACKEND_APP_NAME }}
-          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/backend:${{ env.IMAGE_TAG }}
+          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-backend:latest
 
       - name: Deploy frontend
         uses: azure/container-apps-deploy@v2
         with:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.FRONTEND_APP_NAME }}
-          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+          imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-frontend:latest
