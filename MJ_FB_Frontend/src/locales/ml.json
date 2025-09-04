@@ -98,7 +98,7 @@
         "description": "Record hours and submit pay periods.",
         "steps": [
           "Open the Timesheets page from the profile menu.",
-          "Fill in hours or request leave days.",
+          "Fill in hours for each day.",
           "Submit the period for review.",
           "Export a CSV for payroll."
         ]
@@ -232,7 +232,6 @@
     "vac": "Vac",
     "note": "Note",
     "paid_total": "Paid Total",
-    "lock_stat_tooltip": "Stat holiday is locked at 8h",
     "summary": {
       "totals": "Totals",
       "expected": "Expected Hours",
@@ -247,8 +246,6 @@
     "reject": "Reject",
     "process": "Process",
     "lock_leave_tooltip": "Leave day is locked",
-    "request_leave": "Request Leave",
-    "review_leave": "Review Leave Requests",
     "approve_leave": "Approve",
     "staff": "Staff",
     "select_staff": "Select Staff"

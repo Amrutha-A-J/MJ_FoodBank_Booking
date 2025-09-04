@@ -30,11 +30,6 @@ import {
   useRejectTimesheet,
   useProcessTimesheet,
 } from '../../api/timesheets';
-import {
-  useCreateLeaveRequest,
-  useLeaveRequests,
-  useApproveLeaveRequest,
-} from '../../api/leaveRequests';
 import { useMatch } from 'react-router-dom';
 import {
   searchStaff as searchStaffApi,
@@ -51,7 +46,6 @@ interface Day {
   vac: number;
   note: string;
   expected: number;
-  lockedRule: boolean;
   lockedLeave: boolean;
 }
 
@@ -111,7 +105,6 @@ export default function Timesheets() {
         vac: d.vac_hours,
         note: d.note ?? '',
         expected: d.expected_hours,
-        lockedRule: d.locked_by_rule,
         lockedLeave: d.locked_by_leave,
       })),
     );
@@ -121,9 +114,6 @@ export default function Timesheets() {
   const submitMutation = useSubmitTimesheet();
   const rejectMutation = useRejectTimesheet();
   const processMutation = useProcessTimesheet();
-  const leaveMutation = useCreateLeaveRequest(current?.id ?? 0);
-  const { requests } = useLeaveRequests(current?.id);
-  const approveLeaveMutation = useApproveLeaveRequest();
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -202,20 +192,13 @@ export default function Timesheets() {
             {days.map((d, i) => {
               const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
               const over = paid > 8;
-              const disabled =
-                inputsDisabled || d.lockedRule || d.lockedLeave;
+              const disabled = inputsDisabled || d.lockedLeave;
               return (
                 <TableRow key={d.date}>
                   <TableCell>
                     {formatLocaleDate(d.date)}
-                    {(d.lockedRule || d.lockedLeave) && (
-                      <Tooltip
-                        title={
-                          d.lockedRule
-                            ? t('timesheets.lock_stat_tooltip')
-                            : t('timesheets.lock_leave_tooltip')
-                        }
-                      >
+                    {d.lockedLeave && (
+                      <Tooltip title={t('timesheets.lock_leave_tooltip')}>
                         <LockIcon sx={{ ml: 1, fontSize: 16 }} />
                       </Tooltip>
                     )}
@@ -247,7 +230,10 @@ export default function Timesheets() {
                       type="number"
                       value={d.stat}
                       size="small"
-                      disabled
+                      disabled={disabled}
+                      error={over}
+                      onChange={e => handleChange(i, 'stat', e.target.value)}
+                      onBlur={() => handleBlur(i)}
                     />
                   </TableCell>
                   <TableCell>
@@ -368,73 +354,6 @@ export default function Timesheets() {
                 {t('timesheets.process')}
               </Button>
             </>
-          )}
-        </Box>
-      )}
-      {current && (!inAdmin || staff) && (
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6">
-            {t('timesheets.request_leave')}
-          </Typography>
-          <Box
-            component="form"
-            sx={{ display: 'flex', gap: 1, mt: 1 }}
-            onSubmit={e => {
-              e.preventDefault();
-              const form = e.currentTarget as typeof e.currentTarget & {
-                date: { value: string };
-                hours: { value: string };
-              };
-              leaveMutation.mutate({
-                date: form.date.value,
-                hours: Number(form.hours.value),
-              });
-              form.reset();
-            }}
-          >
-            <TextField
-              name="date"
-              type="date"
-              size="small"
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              name="hours"
-              type="number"
-              size="small"
-              defaultValue={8}
-            />
-            <Button type="submit" variant="contained">
-              {t('timesheets.submit')}
-            </Button>
-          </Box>
-          {requests.length > 0 && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1">
-                {t('timesheets.review_leave')}
-              </Typography>
-              {requests.map(r => (
-                <Box
-                  key={r.id}
-                  sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}
-                >
-                  <span>
-                    {formatLocaleDate(r.work_date)} - {r.hours}
-                  </span>
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      approveLeaveMutation.mutate({
-                        requestId: r.id,
-                        timesheetId: current.id,
-                      })
-                    }
-                  >
-                    {t('timesheets.approve_leave')}
-                  </Button>
-                </Box>
-              ))}
-            </Box>
           )}
         </Box>
       )}
