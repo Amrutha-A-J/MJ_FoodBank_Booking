@@ -132,8 +132,24 @@ export function useUpdateTimesheetDay(timesheetId: number) {
     }
   >({
     mutationFn: ({ date, ...rest }) => updateTimesheetDay(timesheetId, date, rest),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+    onSuccess: (_, { date, regHours, otHours, statHours, sickHours, vacHours, note }) => {
+      qc.setQueryData<TimesheetDay[]>(
+        ['timesheets', timesheetId, 'days'],
+        old =>
+          old?.map(d =>
+            d.work_date === date
+              ? {
+                  ...d,
+                  reg_hours: regHours,
+                  ot_hours: otHours,
+                  stat_hours: statHours,
+                  sick_hours: sickHours,
+                  vac_hours: vacHours,
+                  note,
+                }
+              : d,
+          ),
+      );
       qc.invalidateQueries({ queryKey: ['timesheets'] });
       qc.invalidateQueries({ queryKey: ['allTimesheets'] });
     },

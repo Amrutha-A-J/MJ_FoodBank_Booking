@@ -87,11 +87,6 @@ jest.mock('../../../api/timesheets', () => ({
 jest.mock('../../../api/staff', () => ({
   searchStaff: (...args: any[]) => mockSearchStaff(...args),
 }));
-jest.mock('../../../api/leaveRequests', () => ({
-  useCreateLeaveRequest: () => ({ mutate: jest.fn() }),
-  useLeaveRequests: () => ({ requests: [], isLoading: false, error: null }),
-  useApproveLeaveRequest: () => ({ mutate: jest.fn() }),
-}));
 
 beforeEach(() => {
   mockSubmit.mockClear();
@@ -126,14 +121,13 @@ describe('Timesheets', () => {
     expect(() => render()).not.toThrow();
   });
 
-  it('shows stat day lock icon and tooltip', () => {
+  it('prefills stat day and allows editing', () => {
     render();
     const rows = screen.getAllByRole('row');
     const statRow = rows[1];
-    expect(within(statRow).getByTestId('LockIcon')).toBeInTheDocument();
-    expect(screen.getByText('Stat holiday is locked at 8h')).toBeInTheDocument();
-    const regInput = within(statRow).getAllByRole('spinbutton')[0];
-    expect(regInput).toBeDisabled();
+    const statInput = within(statRow).getAllByRole('spinbutton')[2];
+    expect(statInput).toHaveValue(8);
+    expect(statInput).not.toBeDisabled();
   });
 
   it('shows hint when day total exceeds cap', async () => {

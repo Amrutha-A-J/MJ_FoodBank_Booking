@@ -92,7 +92,7 @@ describe('HelpPage', () => {
     } as any);
     renderPage();
     expect(
-      screen.getByText(/Fill in hours or request leave days./i),
+      screen.getByText(/Fill in hours for each day\./i),
     ).toBeInTheDocument();
   });
 });

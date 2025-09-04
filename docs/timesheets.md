@@ -43,9 +43,9 @@ the current period.
 
 ## Stat holidays and OT banking
 
-A database trigger auto-fills stat holidays with the day's expected hours and
-locks them from editing. The same trigger validates that paid hours do not
-exceed eight per day.
+A database trigger auto-fills stat holidays with the day's expected hours.
+Staff can adjust these hours if needed. The same trigger validates that paid
+hours do not exceed eight per day.
 
 Overtime is banked via the `ot_hours` field. When a period is submitted, any
 shortfall is covered by available OT bank and the remaining balance is reported
@@ -107,7 +107,7 @@ After a timesheet is processed, staff can download the period as a CSV using the
 | `note`       | Free-form note               |
 | `paid_total` | Total paid hours for the day |
 
-Stat holidays are auto-filled with the day's expected hours and locked from editing. Days may also be locked when leave is approved.
+Stat holidays are auto-filled with the day's expected hours. Days may also be locked when leave is approved.
 
 ## Localization
 
@@ -122,13 +122,10 @@ Add the following translation strings to locale files:
 - `timesheets.vac`
 - `timesheets.note`
 - `timesheets.paid_total`
-- `timesheets.lock_stat_tooltip`
 - `timesheets.lock_leave_tooltip`
 - `timesheets.submit`
 - `timesheets.reject`
 - `timesheets.process`
-- `timesheets.request_leave`
-- `timesheets.review_leave`
 - `timesheets.approve_leave`
 - `timesheets.summary.totals`
 - `timesheets.summary.expected`
