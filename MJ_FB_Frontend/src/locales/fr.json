@@ -255,6 +255,13 @@
       "pending": "Pending",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "request_vacation": "Request Vacation",
+    "type": "Type",
+    "types": {
+      "paid": "Paid",
+      "personal": "Personal",
+      "sick": "Sick"
     }
   },
   "client_note_label": "Client note (optional)",

@@ -12,13 +12,19 @@ export default function AdminLeaveRequests() {
   return (
     <Page title={t('leave.title')}>
       {requests.map(r => (
-        <Box key={r.id} sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+        <Box
+          key={r.id}
+          sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}
+        >
           <Typography component="span" sx={{ flexGrow: 1 }}>
-            {formatLocaleDate(r.work_date)} - {r.hours}h
+            {formatLocaleDate(r.start_date)} - {formatLocaleDate(r.end_date)} {' '}
+            {t(`leave.types.${r.type}`)}
           </Typography>
           <Button
             size="small"
-            onClick={() => approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id })}
+            onClick={() =>
+              approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id })
+            }
           >
             {t('timesheets.approve_leave')}
           </Button>

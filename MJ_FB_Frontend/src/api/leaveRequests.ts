@@ -5,14 +5,15 @@ import type { ApiError } from './client';
 export interface LeaveRequest {
   id: number;
   timesheet_id: number;
-  work_date: string;
-  hours: number;
+  start_date: string;
+  end_date: string;
+  type: 'paid' | 'personal' | 'sick';
   status: 'pending' | 'approved' | 'rejected';
 }
 
 export async function createLeaveRequest(
   timesheetId: number,
-  data: { date: string; hours: number },
+  data: { type: string; start: string; end: string },
 ): Promise<LeaveRequest> {
   const res = await apiFetch(`${API_BASE}/timesheets/${timesheetId}/leave-requests`, {
     method: 'POST',
@@ -63,7 +64,11 @@ export function useAllLeaveRequests() {
 
 export function useCreateLeaveRequest(timesheetId: number) {
   const qc = useQueryClient();
-  return useMutation<LeaveRequest, ApiError, { date: string; hours: number }>({
+  return useMutation<
+    LeaveRequest,
+    ApiError,
+    { type: string; start: string; end: string }
+  >({
     mutationFn: data => createLeaveRequest(timesheetId, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
