@@ -56,12 +56,13 @@ in `summary.ot_bank_remaining`.
 
 ## Leave approval workflow
 
-Staff can request vacation leave by posting to
-`/timesheets/:id/leave-requests`. Pending requests appear under the same path
-and globally via `/api/leave/requests` for admins. Approving a request applies
-vacation hours to that day and locks it from editing; an approved request also
-creates a `staff_leave` event visible to clients and volunteers. Rejection
-simply removes the request.
+Staff can request vacation, sick, or personal leave by posting to
+`/timesheets/:id/leave-requests`. Personal days are limited to one per calendar
+quarter and approved requests do **not** prefill timesheets. Pending requests
+appear under the same path and globally via `/api/leave/requests` for admins.
+Approving a vacation or sick request applies hours to that day and locks it
+from editing; an approved request also creates a `staff_leave` event visible to
+clients and volunteers. Rejection simply removes the request.
 
 
 ## Email settings
@@ -162,3 +163,4 @@ Add the following translation strings to locale files:
 - `leave.request_vacation`
 - `leave.type.personal`
 - `leave.type.sick`
+- `leave.error.personal_limit`

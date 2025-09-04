@@ -266,7 +266,10 @@
       "personal": "Personal",
       "sick": "Sick"
     },
-    "request_vacation": "Request Vacation"
+    "request_vacation": "Request Vacation",
+    "error": {
+      "personal_limit": "Only one personal day per quarter is allowed"
+    }
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
