@@ -2,6 +2,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
+import * as volunteerApi from '../api/volunteers';
 
 let fetchMock: jest.Mock;
 
@@ -26,14 +27,16 @@ jest.mock('../pages/help/HelpPage', () => {
   return mod;
 });
 
-jest.mock('../api/bookings', () => ({
+jest.mock('../api/bookings.ts', () => ({
+  __esModule: true,
   getBookingHistory: jest.fn().mockResolvedValue([]),
   getSlots: jest.fn().mockResolvedValue([]),
   getHolidays: jest.fn().mockResolvedValue([]),
+  getBookings: jest.fn().mockResolvedValue([]),
+  getEvents: jest.fn().mockResolvedValue([]),
+  getSlotsRange: jest.fn().mockResolvedValue([]),
 }));
-jest.mock('../api/volunteers', () => ({
-  getVolunteerBookingsForReview: jest.fn().mockResolvedValue([]),
-}));
+jest.spyOn(volunteerApi, 'getVolunteerBookingsForReview').mockResolvedValue([]);
 
 describe('App authentication persistence', () => {
   beforeEach(() => {
@@ -44,6 +47,7 @@ describe('App authentication persistence', () => {
       json: async () => ({}),
       headers: new Headers(),
     });
+    jest.spyOn(volunteerApi, 'getVolunteerBookingsForReview').mockResolvedValue([]);
     localStorage.clear();
     window.history.pushState({}, '', '/');
   });
@@ -89,7 +93,7 @@ describe('App authentication persistence', () => {
   });
 
 
-  it.skip('redirects staff with only volunteer management access', async () => {
+  it('redirects staff with only volunteer management access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['volunteer_management']));
@@ -105,12 +109,12 @@ describe('App authentication persistence', () => {
     await waitFor(() => expect(window.location.pathname).toBe('/warehouse-management'));
   });
 
-  it.skip('shows admin links for admin staff', () => {
+  it('shows admin links for admin staff', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Admin User');
     localStorage.setItem('access', JSON.stringify(['admin']));
     renderWithProviders(<App />);
-    const adminButton = screen.getByRole('button', { name: /admin/i });
+    const adminButton = await screen.findByRole('button', { name: /^admin$/i });
     fireEvent.click(adminButton);
     expect(
       screen.queryByRole('menuitem', { name: 'App Config' }),
