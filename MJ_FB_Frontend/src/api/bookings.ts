@@ -99,11 +99,16 @@ export async function createBooking(
 }
 
 function normalizeBooking(b: BookingResponse): Booking {
-  const { new_client_id, note, ...rest } = b;
+  const { new_client_id, client_note, clientNote, staff_note, staffNote, ...rest } = b;
   const newClientId = b.newClientId ?? new_client_id ?? null;
+  const clientNoteVal = client_note ?? clientNote ?? null;
+  const staffNoteVal = staff_note ?? staffNote ?? null;
   return {
     ...rest,
-    note: note ?? null,
+    client_note: clientNoteVal,
+    clientNote: clientNoteVal,
+    staff_note: staffNoteVal,
+    staffNote: staffNoteVal,
     start_time: b.start_time ?? b.startTime ?? null,
     end_time: b.end_time ?? b.endTime ?? null,
     startTime: b.startTime ?? b.start_time ?? null,
@@ -132,7 +137,7 @@ export async function getBookingHistory(
     past?: boolean;
     userId?: number;
     includeVisits?: boolean;
-    includeVisitNotes?: boolean;
+    includeStaffNotes?: boolean;
     clientIds?: number[];
     limit?: number;
     offset?: number;
@@ -143,7 +148,7 @@ export async function getBookingHistory(
   if (opts.past) params.append('past', 'true');
   if (opts.userId) params.append('userId', String(opts.userId));
   if (opts.includeVisits) params.append('includeVisits', 'true');
-  if (opts.includeVisitNotes) params.append('includeVisitNotes', 'true');
+  if (opts.includeStaffNotes) params.append('includeStaffNotes', 'true');
   if (opts.clientIds && opts.clientIds.length)
     params.append('clientIds', opts.clientIds.join(','));
   if (typeof opts.limit === 'number')

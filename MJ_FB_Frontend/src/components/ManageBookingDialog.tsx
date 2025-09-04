@@ -170,7 +170,12 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
               {Number(booking.approved_bookings_this_month)}
             </Typography>
           </Stack>
-          {booking.note && <Typography>Note: {booking.note}</Typography>}
+          {booking.client_note && (
+            <Typography>Client note: {booking.client_note}</Typography>
+          )}
+          {booking.staff_note && (
+            <Typography>Staff note: {booking.staff_note}</Typography>
+          )}
           <TextField
             select
             label="Status"

@@ -57,7 +57,6 @@ describe('ManageBookingDialog', () => {
     );
 
     fireEvent.change(screen.getByLabelText(/pet item/i), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText(/note/i), { target: { value: 'bring ID' } });
 
     fireEvent.click(screen.getByText(/submit/i));
 
@@ -79,7 +78,7 @@ describe('ManageBookingDialog', () => {
       <MemoryRouter>
         <ManageBookingDialog
           open
-          booking={{ id: 1, client_id: 5, user_id: 1, visits_this_month: 3, approved_bookings_this_month: 1, date: '2024-02-01', reschedule_token: '', user_name: 'Client', profile_link: 'https://portal.link2feed.ca/org/1605/intake/5', note: 'remember ID' }}
+          booking={{ id: 1, client_id: 5, user_id: 1, visits_this_month: 3, approved_bookings_this_month: 1, date: '2024-02-01', reschedule_token: '', user_name: 'Client', profile_link: 'https://portal.link2feed.ca/org/1605/intake/5', client_note: 'remember ID' }}
           onClose={() => {}}
           onUpdated={() => {}}
         />
@@ -93,20 +92,20 @@ describe('ManageBookingDialog', () => {
     expect(
       screen.getByText('Visits: 3, Approved bookings: 1'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Note: remember ID')).toBeInTheDocument();
+    expect(screen.getByText('Client note: remember ID')).toBeInTheDocument();
   });
   it('renders note when provided', () => {
     render(
       <MemoryRouter>
         <ManageBookingDialog
           open
-          booking={{ id: 2, client_id: 6, user_id: 1, visits_this_month: 0, approved_bookings_this_month: 0, date: '2024-02-02', reschedule_token: '', user_name: 'Another', profile_link: 'https://portal.link2feed.ca/org/1605/intake/6', note: 'bring cart' }}
+          booking={{ id: 2, client_id: 6, user_id: 1, visits_this_month: 0, approved_bookings_this_month: 0, date: '2024-02-02', reschedule_token: '', user_name: 'Another', profile_link: 'https://portal.link2feed.ca/org/1605/intake/6', client_note: 'bring cart' }}
           onClose={() => {}}
           onUpdated={() => {}}
         />
       </MemoryRouter>
     );
-    expect(screen.getByText('Note: bring cart')).toBeInTheDocument();
+    expect(screen.getByText('Client note: bring cart')).toBeInTheDocument();
   });
 
   it('omits note when not provided', () => {
@@ -120,7 +119,7 @@ describe('ManageBookingDialog', () => {
         />
       </MemoryRouter>
     );
-    expect(screen.queryByText(/Note:/)).toBeNull();
+    expect(screen.queryByText(/Client note:/)).toBeNull();
   });
   it('calculates monthly usage when counts are strings', () => {
     render(

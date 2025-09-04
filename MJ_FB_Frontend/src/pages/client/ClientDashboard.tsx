@@ -210,6 +210,7 @@ export default function ClientDashboard() {
                         primary={
                           time ? `${formatDate(b.date)} ${time}` : formatDate(b.date)
                         }
+                        secondary={b.client_note || undefined}
                       />
                     </ListItem>
                   );

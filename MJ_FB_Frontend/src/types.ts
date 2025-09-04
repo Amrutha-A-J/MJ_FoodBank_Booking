@@ -233,20 +233,26 @@ export interface BookingResponse {
   startTime?: string | null;
   endTime?: string | null;
   reason?: string;
-  note?: string | null;
+  client_note?: string | null;
+  clientNote?: string | null;
+  staff_note?: string | null;
+  staffNote?: string | null;
 }
 
 export interface Booking
   extends Omit<
     BookingResponse,
-    'new_client_id' | 'startTime' | 'endTime' | 'note'
+    'new_client_id' | 'startTime' | 'endTime' | 'clientNote' | 'staffNote'
   > {
   start_time: string | null;
   end_time: string | null;
   startTime: string | null;
   endTime: string | null;
   newClientId: number | null;
-  note?: string | null;
+  client_note?: string | null;
+  clientNote?: string | null;
+  staff_note?: string | null;
+  staffNote?: string | null;
 }
 
 export interface VolunteerBookingInfo {

@@ -259,5 +259,7 @@
       "approved": "Approved",
       "rejected": "Rejected"
     }
-  }
+  },
+  "client_note": "Client note",
+  "staff_note": "Staff note"
 }

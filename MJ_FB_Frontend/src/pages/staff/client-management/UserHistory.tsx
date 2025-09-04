@@ -82,10 +82,10 @@ export default function UserHistory({
       past?: boolean;
       userId?: number;
       includeVisits?: boolean;
-      includeVisitNotes?: boolean;
+      includeStaffNotes?: boolean;
     } = { includeVisits: true };
     if (role === 'staff' || role === 'agency') {
-      opts.includeVisitNotes = true;
+      opts.includeStaffNotes = true;
     }
     if (!initialUser) opts.userId = selected.client_id;
     if (filter === 'past') opts.past = true;
@@ -116,7 +116,9 @@ export default function UserHistory({
   }, [searchParams, initialUser]);
 
   const filtered = notesOnly
-    ? bookings.filter(b => b.status === 'visited' && b.note)
+    ? bookings.filter(
+        b => b.status === 'visited' && (b.client_note || b.staff_note),
+      )
     : bookings;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -242,14 +244,24 @@ export default function UserHistory({
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                    <TableCell sx={cellSx}>Note</TableCell>
+                    {role === 'staff' || role === 'agency' ? (
+                      <>
+                        <TableCell sx={cellSx}>{t('client_note')}</TableCell>
+                        <TableCell sx={cellSx}>{t('staff_note')}</TableCell>
+                      </>
+                    ) : (
+                      <TableCell sx={cellSx}>{t('client_note')}</TableCell>
+                    )}
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginated.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
+                      <TableCell
+                        colSpan={role === 'staff' || role === 'agency' ? 7 : 6}
+                        sx={{ textAlign: 'center' }}
+                      >
                         {t('no_bookings')}
                       </TableCell>
                     </TableRow>
@@ -271,7 +283,14 @@ export default function UserHistory({
                         </TableCell>
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                        <TableCell sx={cellSx}>{b.note || ''}</TableCell>
+                        {role === 'staff' || role === 'agency' ? (
+                          <>
+                            <TableCell sx={cellSx}>{b.client_note || ''}</TableCell>
+                            <TableCell sx={cellSx}>{b.staff_note || ''}</TableCell>
+                          </>
+                        ) : (
+                          <TableCell sx={cellSx}>{b.client_note || ''}</TableCell>
+                        )}
                         <TableCell sx={cellSx}>
                           {['approved'].includes(
                             b.status.toLowerCase()
