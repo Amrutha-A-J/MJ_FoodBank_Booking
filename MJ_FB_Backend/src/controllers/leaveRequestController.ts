@@ -3,6 +3,8 @@ import {
   insertLeaveRequest,
   selectLeaveRequests,
   updateLeaveRequestStatus,
+  countApprovedPersonalDaysThisQuarter,
+  LeaveType,
 } from "../models/leaveRequest";
 import seedTimesheets from "../utils/timesheetSeeder";
 import { insertEvent } from "../models/event";
@@ -14,6 +16,16 @@ export async function createLeaveRequest(
 ): Promise<void> {
   try {
     const { startDate, endDate, type, reason } = req.body;
+    if (type === LeaveType.Personal) {
+      const count = await countApprovedPersonalDaysThisQuarter(
+        Number(req.user!.id),
+      );
+      if (count >= 1) {
+        return void res
+          .status(400)
+          .json({ message: "Only one personal day per quarter is allowed" });
+      }
+    }
     const record = await insertLeaveRequest(
       Number(req.user!.id),
       startDate,
@@ -50,7 +62,9 @@ export async function approveLeaveRequest(
       Number(req.params.id),
       "approved",
     );
-    await seedTimesheets(record.staff_id);
+    if (record.type !== LeaveType.Personal) {
+      await seedTimesheets(record.staff_id);
+    }
     await insertEvent({
       title: "Staff Leave",
       category: "staff_leave",

@@ -3,6 +3,7 @@ import pool from "../db";
 export enum LeaveType {
   Vacation = "vacation",
   Sick = "sick",
+  Personal = "personal",
 }
 
 export interface LeaveRequest {
@@ -66,4 +67,20 @@ export async function updateLeaveRequestStatus(
     [status, id],
   );
   return res.rows[0];
+}
+
+export async function countApprovedPersonalDaysThisQuarter(
+  staffId: number,
+): Promise<number> {
+  const res = await pool.query(
+    `SELECT COUNT(*)::int AS count
+     FROM leave_requests
+     WHERE staff_id = $1
+       AND type = $2
+       AND status = 'approved'
+       AND start_date >= date_trunc('quarter', CURRENT_DATE)::date
+       AND start_date < (date_trunc('quarter', CURRENT_DATE) + INTERVAL '3 months')::date`,
+    [staffId, LeaveType.Personal],
+  );
+  return res.rows[0]?.count ?? 0;
 }
