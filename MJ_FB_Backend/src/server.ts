@@ -15,6 +15,7 @@ import {
   stopVolunteerNoShowCleanupJob,
 } from './utils/volunteerNoShowCleanupJob';
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
+import seedPayPeriods from './utils/payPeriodSeeder';
 import seedTimesheets from './utils/timesheetSeeder';
 
 const PORT = config.port;
@@ -37,6 +38,7 @@ async function init() {
     startVolunteerShiftReminderJob();
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
+    await seedPayPeriods('2024-08-03', '2024-12-31');
     await seedTimesheets();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
