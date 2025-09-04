@@ -7,6 +7,7 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "engineStrict": true,
   "dependencies": {
     "bcrypt": "^6",
     "cookie": "^0.7",
@@ -48,6 +49,7 @@
     "test-exclude": "^7"
   },
   "scripts": {
+    "preinstall": "node -e \"if(!process.version.startsWith('v22')){console.error('Node v22+ required');process.exit(1);}\"",
     "dev": "tsx --env-file=.env src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
