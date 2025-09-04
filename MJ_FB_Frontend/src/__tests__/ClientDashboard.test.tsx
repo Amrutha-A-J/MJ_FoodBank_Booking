@@ -64,7 +64,7 @@ describe('ClientDashboard', () => {
     expect(chipLabel.closest('.MuiChip-colorSuccess')).toBeTruthy();
   });
 
-  it('shows client note in booking history', async () => {
+  it('hides client note in booking history', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -85,6 +85,6 @@ describe('ClientDashboard', () => {
     );
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
-    expect(await screen.findByText('bring bag')).toBeInTheDocument();
+    expect(screen.queryByText('bring bag')).not.toBeInTheDocument();
   });
 });

@@ -174,7 +174,7 @@ export default function ClientHistory() {
                     <TableCell sx={cellSx}>{t('time')}</TableCell>
                     <TableCell sx={cellSx}>{t('status')}</TableCell>
                     <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                    <TableCell sx={cellSx}>{t('notes')}</TableCell>
+                    <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
                     <TableCell sx={cellSx}>{t('actions')}</TableCell>
                   </TableRow>
                 </TableHead>
@@ -204,15 +204,8 @@ export default function ClientHistory() {
                         <TableCell sx={cellSx}>{t(b.status)}</TableCell>
                         <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
                         <TableCell sx={cellSx}>
-                          {b.client_note && (
-                            <Typography variant="body2">
-                              {t('client_note_label')}: {b.client_note}
-                            </Typography>
-                          )}
                           {b.staff_note && (
-                            <Typography variant="body2">
-                              {t('staff_note_label')}: {b.staff_note}
-                            </Typography>
+                            <Typography variant="body2">{b.staff_note}</Typography>
                           )}
                         </TableCell>
                         <TableCell sx={cellSx}>

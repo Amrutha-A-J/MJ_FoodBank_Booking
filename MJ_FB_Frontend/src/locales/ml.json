@@ -278,6 +278,5 @@
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
-  "visits_with_notes_only": "View visits with notes only",
-  "notes": "Notes"
+  "visits_with_notes_only": "View visits with notes only"
 }
