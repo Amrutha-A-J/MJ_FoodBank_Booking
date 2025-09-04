@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!newRole || !newName) {
         clearAuth();
+        void apiLogout();
         setSessionMessage('Session ended in another tab');
       } else {
         setRole(newRole as Role);
@@ -97,11 +98,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await apiFetch(`${API_BASE}/auth/refresh`, {
           method: 'POST',
         });
+        const hasRole = !!localStorage.getItem('role');
         if (res.ok) {
-          if (active) setToken('cookie');
+          if (active && hasRole) setToken('cookie');
         } else if (res.status === 409) {
           // Another tab already refreshed; token cookie is still valid
-          if (active) setToken('cookie');
+          if (active && hasRole) setToken('cookie');
         } else if (res.status === 401) {
           if (active) handleExpired();
         } else if (tries < 1) {

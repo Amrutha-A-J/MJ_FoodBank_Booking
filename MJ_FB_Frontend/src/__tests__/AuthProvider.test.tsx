@@ -57,6 +57,7 @@ describe('AuthProvider cardUrl cleanup', () => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, status: 200 })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
+    (apiLogout as jest.Mock).mockResolvedValue(undefined);
 
     renderWithProviders(<TestComponent />);
 
@@ -71,6 +72,7 @@ describe('AuthProvider cardUrl cleanup', () => {
     await waitFor(() =>
       expect(screen.getByTestId('card')).toHaveTextContent(''),
     );
+    expect(apiLogout).toHaveBeenCalled();
   });
 });
 
