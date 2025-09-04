@@ -5,7 +5,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - [MJ_FB_Backend](MJ_FB_Backend) – Node.js/Express API.
 - [MJ_FB_Frontend](MJ_FB_Frontend) – React single-page app.
 - [docs](docs/) with setup notes and a [Timesheets guide](docs/timesheets.md).
-- Leave request API under `/api/leave/requests` for staff vacations.
+- Leave request API under `/api/leave/requests` for staff vacations. Personal day requests are limited to one approved day per quarter.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see

@@ -206,3 +206,24 @@ export async function processTimesheet(id: number): Promise<void> {
   }
 }
 
+export async function applyVacationLeave(
+  staffId: number,
+  startDate: string,
+  endDate: string,
+): Promise<void> {
+  await pool.query(
+    `UPDATE timesheet_days td
+        SET reg_hours = 0,
+            ot_hours = 0,
+            stat_hours = 0,
+            sick_hours = 0,
+            vac_hours = expected_hours,
+            locked_by_leave = TRUE
+       FROM timesheets t
+      WHERE t.id = td.timesheet_id
+        AND t.staff_id = $1
+        AND td.work_date BETWEEN $2 AND $3`,
+    [staffId, startDate, endDate],
+  );
+}
+

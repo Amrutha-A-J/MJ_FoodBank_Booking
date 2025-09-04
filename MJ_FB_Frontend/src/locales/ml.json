@@ -222,6 +222,7 @@
   "timesheet_not_submitted": "Timesheet not submitted",
   "timesheet_already_processed": "Timesheet already processed",
   "timesheet_unbalanced": "Timesheet must balance",
+  "personal_day_limit": "Personal day already taken this quarter",
   "timesheets": {
     "title": "Timesheets",
     "date": "Date",

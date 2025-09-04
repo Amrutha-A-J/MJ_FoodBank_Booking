@@ -58,6 +58,11 @@ and globally via `/api/leave/requests` for admins. Approving a request applies
 vacation hours to that day and locks it from editing; rejection simply removes
 the request.
 
+Personal day requests are limited to **one approved day per quarter**. If a
+personal day has already been approved in the current quarter, additional
+personal requests are rejected. Approved personal days do not pre-fill or lock
+timesheet entries.
+
 ## Email settings
 
 Timesheet submissions and leave approvals send notifications through the Brevo
@@ -150,3 +155,4 @@ Add the following translation strings to locale files:
 - `leave.status.pending`
 - `leave.status.approved`
 - `leave.status.rejected`
+- `personal_day_limit`

@@ -4,6 +4,7 @@ import {
   selectLeaveRequests,
   updateLeaveRequestStatus,
 } from "../models/leaveRequest";
+import { applyVacationLeave } from "../models/timesheet";
 
 export async function createLeaveRequest(
   req: Request,
@@ -47,6 +48,13 @@ export async function approveLeaveRequest(
       Number(req.params.id),
       "approved",
     );
+    if (record.reason !== "personal") {
+      await applyVacationLeave(
+        record.staff_id,
+        record.start_date,
+        record.end_date,
+      );
+    }
     res.json(record);
   } catch (err) {
     next(err);

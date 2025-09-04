@@ -17,6 +17,26 @@ export async function insertLeaveRequest(
   endDate: string,
   reason?: string,
 ): Promise<LeaveRequest> {
+  if (reason === "personal") {
+    const countRes = await pool.query(
+      `SELECT COUNT(*)
+         FROM leave_requests
+        WHERE staff_id = $1
+          AND status = 'approved'
+          AND reason = 'personal'
+          AND start_date >= date_trunc('quarter', $2::date)
+          AND start_date < date_trunc('quarter', $2::date) + interval '3 months'`,
+      [staffId, startDate],
+    );
+    if (Number(countRes.rows[0].count) >= 1) {
+      const err: any = new Error(
+        "Personal day already taken this quarter",
+      );
+      err.status = 400;
+      err.code = "PERSONAL_DAY_LIMIT";
+      throw err;
+    }
+  }
   const res = await pool.query(
     `INSERT INTO leave_requests (staff_id, start_date, end_date, reason)
      VALUES ($1, $2, $3, $4) RETURNING *`,
