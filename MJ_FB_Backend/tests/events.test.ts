@@ -57,7 +57,8 @@ describe('POST /events', () => {
     title: 'Test',
     details: 'Details',
     category: 'General',
-    date: '2024-01-01',
+    startDate: '2024-01-01',
+    endDate: '2024-01-02',
     staffIds: [2],
   };
 
@@ -84,6 +85,11 @@ describe('POST /events', () => {
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ id: 42 });
     expect(client.query).toHaveBeenNthCalledWith(1, 'BEGIN');
+    expect(client.query).toHaveBeenNthCalledWith(
+      2,
+      'INSERT INTO events (title, details, category, start_date, end_date, created_by, visible_to_volunteers, visible_to_clients) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
+      ['Test', 'Details', 'General', '2024-01-01', '2024-01-02', 1, false, false]
+    );
     expect(client.query).toHaveBeenCalledWith('COMMIT');
     expect(client.release).toHaveBeenCalled();
   });
