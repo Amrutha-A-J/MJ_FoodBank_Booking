@@ -63,4 +63,22 @@ describe('POST /users/add-client', () => {
       expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
     );
   });
+
+  it('requires email when online access enabled', async () => {
+    const res = await request(app)
+      .post('/users/add-client')
+      .send({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        clientId: 123,
+        role: 'shopper',
+        onlineAccess: true,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.errors[0].message).toBe(
+      'firstName, lastName, and email required for online access',
+    );
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
 });

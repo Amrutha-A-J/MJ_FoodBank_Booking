@@ -33,9 +33,10 @@ export const createUserSchema = z
   })
   .refine(
     data =>
-      !data.onlineAccess || (!!data.firstName && !!data.lastName),
+      !data.onlineAccess ||
+      (!!data.firstName && !!data.lastName && !!data.email),
     {
-      message: 'firstName and lastName required for online access',
+      message: 'firstName, lastName, and email required for online access',
       path: ['onlineAccess'],
     },
   );
