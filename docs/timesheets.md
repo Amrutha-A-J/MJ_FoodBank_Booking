@@ -134,6 +134,7 @@ Add the following translation strings to locale files:
 - `timesheets.reject`
 - `timesheets.process`
 - `timesheets.approve_leave`
+- `timesheets.reject_leave`
 - `timesheets.summary.totals`
 - `timesheets.summary.expected`
 - `timesheets.summary.shortfall`

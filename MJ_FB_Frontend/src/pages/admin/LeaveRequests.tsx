@@ -1,6 +1,10 @@
 import { Box, Button, Typography } from '@mui/material';
 import Page from '../../components/Page';
-import { useAllLeaveRequests, useApproveLeaveRequest } from '../../api/leaveRequests';
+import {
+  useAllLeaveRequests,
+  useApproveLeaveRequest,
+  useRejectLeaveRequest,
+} from '../../api/leaveRequests';
 import { formatLocaleDate } from '../../utils/date';
 import { useTranslation } from 'react-i18next';
 
@@ -8,19 +12,36 @@ export default function AdminLeaveRequests() {
   const { t } = useTranslation();
   const { requests } = useAllLeaveRequests();
   const approve = useApproveLeaveRequest();
+  const reject = useRejectLeaveRequest();
 
   return (
     <Page title={t('leave.title')}>
       {requests.map(r => (
-        <Box key={r.id} sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+        <Box
+          key={r.id}
+          sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}
+        >
           <Typography component="span" sx={{ flexGrow: 1 }}>
-            {formatLocaleDate(r.work_date)} - {r.hours}h
+            {r.requester_name}: {formatLocaleDate(r.work_date)} - {r.hours}h
           </Typography>
           <Button
+            variant="contained"
             size="small"
-            onClick={() => approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id })}
+            onClick={() =>
+              approve.mutate({ requestId: r.id, timesheetId: r.timesheet_id })
+            }
           >
             {t('timesheets.approve_leave')}
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            onClick={() =>
+              reject.mutate({ requestId: r.id, timesheetId: r.timesheet_id })
+            }
+          >
+            {t('timesheets.reject_leave')}
           </Button>
         </Box>
       ))}
