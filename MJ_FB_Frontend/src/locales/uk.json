@@ -41,6 +41,7 @@
   "hello_name": "Привіт, {{name}}",
   "profile": "Профіль",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "Допомога",
     "search": "Search",
     "print": "Print",

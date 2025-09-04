@@ -41,6 +41,7 @@
   "hello_name": "مرحبًا، {{name}}",
   "profile": "الملف الشخصي",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "مساعدة",
     "search": "Search",
     "print": "Print",

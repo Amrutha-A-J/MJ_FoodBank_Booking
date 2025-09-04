@@ -43,6 +43,7 @@
   "hello_name": "Hola, {{name}}",
   "profile": "Perfil",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "Ayuda",
     "search": "Search",
     "print": "Print",

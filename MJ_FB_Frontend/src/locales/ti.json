@@ -41,6 +41,7 @@
   "hello_name": "ሰላም {{name}}",
   "profile": "ፕሮፋይል",
   "help": {
+    "dashboard_nav_step": "Click the Dashboard nav item.",
     "title": "ሓገዝ",
     "search": "Search",
     "print": "Print",
