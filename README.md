@@ -75,7 +75,9 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
 Staff submit leave through `/api/leave/requests`; admins approve or reject via
-`/api/leave/requests/:id/approve` and `/api/leave/requests/:id/reject`.
+`/api/leave/requests/:id/approve` and `/api/leave/requests/:id/reject`. When
+approved, default sick or vacation hours are applied to the timesheet but remain
+editable by staff.
 
 Individuals who use the food bank are referred to as clients throughout the application.
 

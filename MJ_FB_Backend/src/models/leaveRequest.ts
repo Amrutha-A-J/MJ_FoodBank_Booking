@@ -5,6 +5,7 @@ export interface LeaveRequest {
   staff_id: number;
   start_date: string;
   end_date: string;
+  type: string;
   status: string;
   reason: string | null;
   created_at: string;
@@ -15,12 +16,13 @@ export async function insertLeaveRequest(
   staffId: number,
   startDate: string,
   endDate: string,
+  type: string,
   reason?: string,
 ): Promise<LeaveRequest> {
   const res = await pool.query(
-    `INSERT INTO leave_requests (staff_id, start_date, end_date, reason)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [staffId, startDate, endDate, reason ?? null],
+    `INSERT INTO leave_requests (staff_id, start_date, end_date, type, reason)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [staffId, startDate, endDate, type, reason ?? null],
   );
   return res.rows[0];
 }

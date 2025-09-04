@@ -54,9 +54,9 @@ in `summary.ot_bank_remaining`.
 
 Staff can request vacation leave by posting to
 `/timesheets/:id/leave-requests`. Pending requests appear under the same path
-and globally via `/api/leave/requests` for admins. Approving a request applies
-vacation hours to that day and locks it from editing; rejection simply removes
-the request.
+and globally via `/api/leave/requests` for admins. Approving a request
+automatically fills the day with default sick or vacation hours but keeps it
+editable; rejection simply removes the request.
 
 ## Email settings
 

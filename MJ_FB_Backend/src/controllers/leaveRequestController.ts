@@ -4,6 +4,7 @@ import {
   selectLeaveRequests,
   updateLeaveRequestStatus,
 } from "../models/leaveRequest";
+import { insertLeaveTimesheetDay } from "../models/timesheet";
 
 export async function createLeaveRequest(
   req: Request,
@@ -11,11 +12,12 @@ export async function createLeaveRequest(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { startDate, endDate, reason } = req.body;
+    const { startDate, endDate, type, reason } = req.body;
     const record = await insertLeaveRequest(
       Number(req.user!.id),
       startDate,
       endDate,
+      type,
       reason,
     );
     res.status(201).json(record);
@@ -47,6 +49,17 @@ export async function approveLeaveRequest(
       Number(req.params.id),
       "approved",
     );
+    if (record.type !== "personal") {
+      const start = new Date(record.start_date);
+      const end = new Date(record.end_date);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        await insertLeaveTimesheetDay(
+          record.staff_id,
+          d.toISOString().slice(0, 10),
+          record.type,
+        );
+      }
+    }
     res.json(record);
   } catch (err) {
     next(err);
