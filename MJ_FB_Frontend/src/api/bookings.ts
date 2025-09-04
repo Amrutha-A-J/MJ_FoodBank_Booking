@@ -104,6 +104,7 @@ function normalizeBooking(b: BookingResponse): Booking {
   const newClientId = b.newClientId ?? new_client_id ?? null;
   return {
     ...rest,
+    note: client_note ?? undefined,
     client_note: client_note ?? null,
     staff_note: staff_note ?? null,
     start_time: b.start_time ?? b.startTime ?? null,

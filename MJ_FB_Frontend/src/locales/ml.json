@@ -278,5 +278,6 @@
   },
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
-  "visits_with_notes_only": "View visits with notes only"
+  "visits_with_notes_only": "View visits with notes only",
+  "no_reschedule_token": "No reschedule token"
 }

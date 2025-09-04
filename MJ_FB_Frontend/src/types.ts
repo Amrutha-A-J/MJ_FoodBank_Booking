@@ -244,6 +244,7 @@ export interface Booking
   startTime: string | null;
   endTime: string | null;
   newClientId: number | null;
+  note?: string;
 }
 
 export interface VolunteerBookingInfo {
