@@ -14,6 +14,7 @@ import {
   startVolunteerNoShowCleanupJob,
   stopVolunteerNoShowCleanupJob,
 } from './utils/volunteerNoShowCleanupJob';
+import { startPayPeriodCronJob, stopPayPeriodCronJob } from './utils/payPeriodCronJob';
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
 import seedPayPeriods from './utils/payPeriodSeeder';
 import seedTimesheets from './utils/timesheetSeeder';
@@ -42,6 +43,7 @@ async function init() {
     startVolunteerShiftReminderJob();
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
+    startPayPeriodCronJob();
     await seedPayPeriods('2024-08-03', '2024-12-31');
     await seedTimesheets();
     startTimesheetSeedJob();
@@ -58,6 +60,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopNoShowCleanupJob();
   stopVolunteerNoShowCleanupJob();
   stopTimesheetSeedJob();
+  stopPayPeriodCronJob();
   shutdownQueue();
   if (server) {
     server.close();
