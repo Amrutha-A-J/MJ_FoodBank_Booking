@@ -17,6 +17,10 @@ import {
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
 import seedPayPeriods from './utils/payPeriodSeeder';
 import seedTimesheets from './utils/timesheetSeeder';
+import {
+  startTimesheetSeedJob,
+  stopTimesheetSeedJob,
+} from './utils/timesheetSeedJob';
 
 const PORT = config.port;
 
@@ -40,6 +44,7 @@ async function init() {
     startVolunteerNoShowCleanupJob();
     await seedPayPeriods('2024-08-03', '2024-12-31');
     await seedTimesheets();
+    startTimesheetSeedJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
@@ -52,6 +57,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopVolunteerShiftReminderJob();
   stopNoShowCleanupJob();
   stopVolunteerNoShowCleanupJob();
+  stopTimesheetSeedJob();
   shutdownQueue();
   if (server) {
     server.close();
