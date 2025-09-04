@@ -44,7 +44,7 @@
 - Bookings accept optional notes; clients may include a message during booking, and staff see it in Manage Booking and Manage Volunteer Shift dialogs.
 - Creating a client visit will automatically mark the client's approved booking on that date as visited.
 - `/bookings/history?includeVisits=true` merges walk-in visits (`client_visits`) with booking history.
-- Staff and agency users may append `includeVisitNotes=true` to `/bookings/history` to retrieve notes recorded on client visits.
+ - Staff and agency users may append `includeStaffNotes=true` to `/bookings/history` to retrieve staff notes recorded on client visits.
 - Visit history can be filtered by note text using the `notes` query parameter on `/bookings/history`.
 - Agencies can filter booking history for multiple clients and paginate results via `/bookings/history?clientIds=1,2&limit=10&offset=0`.
 - Staff can create, update, or delete slots and adjust their capacities via `/slots` routes.

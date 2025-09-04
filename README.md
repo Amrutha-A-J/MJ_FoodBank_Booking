@@ -107,8 +107,8 @@ Before merging a pull request, confirm the following:
 ## Features
 
 - Appointment booking workflow for clients with automatic approval and rescheduling.
-- Bookings support an optional **note** field. Clients can add notes during booking, and staff see them in booking dialogs. Notes are stored and returned via `/bookings` endpoints.
-- Client visit records include an optional **note** field. Staff and agency users can record notes for each visit and retrieve them through `/bookings/history?includeVisitNotes=true`.
+- Bookings support an optional **client note** field. Clients can add a note during booking, and staff see it in booking dialogs. Client notes are stored and returned via `/bookings` endpoints.
+- Client visit records include an optional **staff note** field. Staff and agency users can record notes for each visit and retrieve them through `/bookings/history?includeStaffNotes=true`.
 - Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.

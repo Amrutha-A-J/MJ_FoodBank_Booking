@@ -232,7 +232,7 @@ export default function UserHistory({
                   onChange={e => setNotesOnly(e.target.checked)}
                 />
               }
-              label="View visits with notes only"
+              label={t('visits_with_staff_notes_only')}
             />
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>

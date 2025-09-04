@@ -219,33 +219,33 @@ export function getHelpContent(
     {
       title: 'Record visits and handle no-shows',
       body: {
-        description: 'Mark bookings as visited while logging weights and adding visit notes, or record no-shows.',
+        description: 'Mark bookings as visited while logging weights and adding staff notes, or record no-shows.',
         steps: [
           'Open the schedule.',
           'Select a booking.',
-          'Mark visited or no-show, enter weight, and add a visit note if needed.',
+          'Mark visited or no-show, enter weight, and add a staff note if needed.',
         ],
       },
     },
     {
-      title: 'Filter visits by notes',
+      title: 'Filter visits by staff notes',
       body: {
-        description: 'Show only visits that contain notes.',
+        description: 'Show only visits that contain staff notes.',
         steps: [
           'Open Booking History.',
-          'Enable the notes-only filter.',
+          'Enable the staff notes-only filter.',
           'Review the matching visits.',
         ],
       },
     },
     {
-      title: 'View booking notes',
+      title: 'View client notes',
       body: {
-        description: 'Staff dialogs display any note submitted with a booking.',
+        description: 'Staff dialogs display any client note submitted with a booking.',
         steps: [
           'Open the schedule.',
           'Select a booking.',
-          'Read the note in the dialog.',
+          'Read the client note in the dialog.',
         ],
       },
     },
