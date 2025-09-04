@@ -50,8 +50,13 @@ cd MJ_FB_Backend
 npm run migrate
 ```
 
-2. Seed upcoming pay periods in the `pay_periods` table (biweekly records with
-   `start_date` and `end_date`).
+2. Pay periods are seeded automatically on backend startup via the
+   `seedPayPeriods` utility. A cron job runs every **Nov 30** to generate pay
+   periods for the upcoming year. Seed a custom range manually if needed:
+
+```bash
+node src/utils/payPeriodSeeder.ts START_DATE END_DATE
+```
 
 3. Seed timesheets for active staff:
 
