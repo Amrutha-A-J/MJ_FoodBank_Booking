@@ -4,9 +4,12 @@ import type { ApiError } from './client';
 
 export interface LeaveRequest {
   id: number;
-  timesheet_id: number;
-  work_date: string;
-  hours: number;
+  timesheet_id?: number;
+  work_date?: string;
+  hours?: number;
+  start_date?: string;
+  end_date?: string;
+  type?: string;
   status: 'pending' | 'approved' | 'rejected';
 }
 
