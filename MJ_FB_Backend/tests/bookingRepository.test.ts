@@ -160,4 +160,32 @@ describe('bookingRepository', () => {
     );
     expect(call[0]).toMatch(/v.note AS staff_note/);
   });
+
+  it('fetchBookingHistory returns client and staff notes for booking when includeVisits is true', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 1,
+            status: 'visited',
+            date: '2024-01-01',
+            slot_id: 1,
+            reason: null,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            created_at: '2024-01-01',
+            is_staff_booking: false,
+            reschedule_token: null,
+            client_note: 'bring ID',
+            staff_note: 'visit note',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] });
+
+    const rows = await fetchBookingHistory([1], false, undefined, true);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].client_note).toBe('bring ID');
+    expect(rows[0].staff_note).toBe('visit note');
+  });
 });
