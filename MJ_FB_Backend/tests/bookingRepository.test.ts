@@ -8,6 +8,7 @@ import {
   fetchBookingsForReminder,
   fetchBookingHistory,
 } from '../src/models/bookingRepository';
+import { newDb } from 'pg-mem';
 
 
 describe('bookingRepository', () => {
@@ -130,7 +131,7 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(/WHERE/);
-    expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
+    expect(call[0]).toMatch(/b.user_id = ANY\(\$1::int\[\]\)/);
     expect(call[0]).toMatch(/ORDER BY b.created_at DESC/);
     expect(call[0]).toMatch(/LIMIT \$2/);
     expect(call[0]).toMatch(/OFFSET \$3/);
@@ -149,5 +150,58 @@ describe('bookingRepository', () => {
     await fetchBookingHistory([1], false, undefined, false);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/LEFT JOIN\s+slots\s+s\s+ON b.slot_id = s.id/);
+  });
+
+  it('fetchBookingHistory returns client and staff notes when a booking has a visit', async () => {
+    const db = newDb();
+    const pg = db.adapters.createPg();
+    const pool = new pg.Pool();
+    await pool.query(`CREATE TABLE clients (client_id int primary key);`);
+    await pool.query(
+      `CREATE TABLE slots (id int primary key, start_time time, end_time time);`,
+    );
+    await pool.query(`CREATE TABLE bookings (
+      id serial primary key,
+      user_id int,
+      status text,
+      date date,
+      slot_id int,
+      request_data text,
+      created_at timestamp,
+      is_staff_booking boolean,
+      reschedule_token text,
+      note text
+    );`);
+    await pool.query(`CREATE TABLE client_visits (
+      id serial primary key,
+      client_id int,
+      date date,
+      note text
+    );`);
+    await pool.query(`INSERT INTO clients(client_id) VALUES (1);`);
+    await pool.query(
+      `INSERT INTO slots(id, start_time, end_time) VALUES (1, '09:00', '10:00');`,
+    );
+    await pool.query(`INSERT INTO bookings(
+      user_id, status, date, slot_id, request_data, created_at, is_staff_booking, reschedule_token, note
+    ) VALUES (
+      1, 'visited', '2024-01-01', 1, NULL, '2024-01-01', false, NULL, 'client note'
+    );`);
+    await pool.query(
+      `INSERT INTO client_visits(client_id, date, note) VALUES (1, '2024-01-01', 'staff note');`,
+    );
+    const rows = await fetchBookingHistory(
+      [1],
+      false,
+      undefined,
+      true,
+      undefined,
+      undefined,
+      pool,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].client_note).toBe('client note');
+    expect(rows[0].staff_note).toBe('staff note');
+    await pool.end();
   });
 });
