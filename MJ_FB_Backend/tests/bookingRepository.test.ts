@@ -161,7 +161,7 @@ describe('bookingRepository', () => {
     expect(call[0]).toMatch(/v.note AS staff_note/);
   });
 
-  it('fetchBookingHistory returns client and staff notes for booking when includeVisits is true', async () => {
+  it('fetchBookingHistory returns staff notes and null client notes for visited bookings when includeVisits is true', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({
         rows: [
@@ -176,7 +176,7 @@ describe('bookingRepository', () => {
             created_at: '2024-01-01',
             is_staff_booking: false,
             reschedule_token: null,
-            client_note: 'bring ID',
+            client_note: null,
             staff_note: 'visit note',
           },
         ],
@@ -185,7 +185,14 @@ describe('bookingRepository', () => {
 
     const rows = await fetchBookingHistory([1], false, undefined, true);
     expect(rows).toHaveLength(1);
-    expect(rows[0].client_note).toBe('bring ID');
+    expect(rows[0].client_note).toBeNull();
     expect(rows[0].staff_note).toBe('visit note');
+  });
+
+  it('fetchBookingHistory can omit client notes when includeClientNotes is false', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookingHistory([1], false, undefined, false, undefined, undefined, false);
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/NULL AS client_note/);
   });
 });

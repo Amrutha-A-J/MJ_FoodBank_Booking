@@ -178,6 +178,7 @@ export async function fetchBookingHistory(
   includeVisits = false,
   limit?: number,
   offset?: number,
+  includeClientNotes = true,
   client: Queryable = pool,
 ) {
   const params: any[] = [userIds];
@@ -198,11 +199,14 @@ export async function fetchBookingHistory(
     params.push(offset);
     limitOffset += ` OFFSET $${params.length}`;
   }
+  const clientNoteSelect = includeClientNotes
+    ? `CASE WHEN b.status IN ('visited','no_show') THEN NULL ELSE b.note END AS client_note,`
+    : 'NULL AS client_note,';
   const res = await client.query(
     `SELECT b.id, b.status, b.date, b.slot_id, b.request_data AS reason,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.start_time END AS start_time,
             CASE WHEN b.slot_id IS NULL THEN NULL ELSE s.end_time END AS end_time,
-            b.created_at, b.is_staff_booking, b.reschedule_token, b.note AS client_note,
+            b.created_at, b.is_staff_booking, b.reschedule_token, ${clientNoteSelect}
             v.note AS staff_note
        FROM bookings b
        LEFT JOIN slots s ON b.slot_id = s.id
