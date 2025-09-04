@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     tags:
       - 'v*'   # keep tag builds if you like
   workflow_dispatch:
