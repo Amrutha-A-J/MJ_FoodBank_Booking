@@ -17,5 +17,6 @@ Add the following translation strings to locale files:
 - `help.client.booking_appointments.steps.2`
 - `note_label`
 - `note_prefix`
+- `dashboard`
 
 Document any new translation keys here when extending note functionality.

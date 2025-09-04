@@ -35,6 +35,7 @@
   "reset_password": "Reset Password",
   "submit": "Submit",
   "invalid_or_expired_token": "Invalid or expired token",
+  "dashboard": "Dashboard",
   "client_dashboard": "Client Dashboard",
   "book_appointment": "Book Appointment",
   "booking_history": "Booking History",

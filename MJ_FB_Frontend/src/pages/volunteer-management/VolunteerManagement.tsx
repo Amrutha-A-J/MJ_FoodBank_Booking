@@ -88,6 +88,7 @@ interface VolunteerManagementProps {
 export default function VolunteerManagement({ initialTab }: VolunteerManagementProps = {}) {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
   const tab: 'dashboard' | 'schedule' | 'search' | 'create' =
     initialTab ??
     (tabParam === 'schedule' ||
@@ -96,7 +97,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       ? (tabParam as 'schedule' | 'search' | 'create')
       : 'dashboard');
   const tabTitles: Record<typeof tab, string> = {
-    dashboard: 'Dashboard',
+    dashboard: t('dashboard'),
     schedule: 'Schedule',
     search: 'Search Volunteer',
     create: 'Create Volunteer',
@@ -124,7 +125,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     no_show: 'rgb(255, 200, 200)',
     completed: 'rgb(111,146,113)',
   };
-  const { t } = useTranslation();
 
   useEffect(() => {
     if (tab !== 'search') {
