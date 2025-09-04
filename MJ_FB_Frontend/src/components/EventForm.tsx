@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent } from '../api/events';
 import { searchStaff, type StaffOption } from '../api/staff';
@@ -36,10 +37,12 @@ const categories = [
 const tagAllOption: StaffOption = { id: -1, name: 'Tag All' };
 
 export default function EventForm({ open, onClose, onCreated }: EventFormProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [category, setCategory] = useState('');
-  const [date, setDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([tagAllOption]);
   const [selectedStaff, setSelectedStaff] = useState<StaffOption[]>([]);
@@ -80,8 +83,12 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   }
 
   async function submit() {
-    if (!title || !category || !date) {
-      setError('Please fill in title, category, and date');
+    if (!title || !category || !startDate || !endDate) {
+      setError('Please fill in title, category, start date, and end date');
+      return;
+    }
+    if (endDate < startDate) {
+      setError('End date cannot be before start date');
       return;
     }
     try {
@@ -89,7 +96,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
         title,
         details,
         category,
-        date: formatReginaDate(date),
+        startDate: formatReginaDate(startDate),
+        endDate: formatReginaDate(endDate),
         staffIds: selectedStaff.map(s => s.id),
         visibleToVolunteers,
         visibleToClients,
@@ -98,7 +106,8 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
       setTitle('');
       setDetails('');
       setCategory('');
-      setDate(null);
+      setStartDate(null);
+      setEndDate(null);
       setSelectedStaff([]);
       setVisibleToVolunteers(false);
       setVisibleToClients(false);
@@ -147,9 +156,15 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
           </TextField>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
-              label="Date"
-              value={date}
-              onChange={newDate => setDate(newDate)}
+              label={t('start_date')}
+              value={startDate}
+              onChange={newDate => setStartDate(newDate)}
+              slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
+            />
+            <DatePicker
+              label={t('end_date')}
+              value={endDate}
+              onChange={newDate => setEndDate(newDate)}
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
             />
           </LocalizationProvider>

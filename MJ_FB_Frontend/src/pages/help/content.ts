@@ -197,6 +197,17 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Manage events',
+      body: {
+        description: 'Create announcements or activities for staff and volunteers.',
+        steps: [
+          'Open the Events page.',
+          'Click Create Event.',
+          'Enter title, category, start and end dates, add details and staff if needed, then save.',
+        ],
+      },
+    },
+    {
       title: 'Manage volunteers',
       body: {
         description: 'Search, add, and review volunteers.',
