@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory, cancelBooking } from '../../../api/bookings';
 import { getUserByClientId, updateUserInfo } from '../../../api/users';
+import { useAuth } from '../../../hooks/useAuth';
 import { formatTime } from '../../../utils/time';
 import {
   Box,
@@ -70,6 +71,7 @@ export default function UserHistory({
     password: '',
   });
   const { t } = useTranslation();
+  const { role } = useAuth();
 
   const pageSize = 10;
 
@@ -81,7 +83,10 @@ export default function UserHistory({
       userId?: number;
       includeVisits?: boolean;
       includeVisitNotes?: boolean;
-    } = { includeVisits: true, includeVisitNotes: true };
+    } = { includeVisits: true };
+    if (role === 'staff' || role === 'agency') {
+      opts.includeVisitNotes = true;
+    }
     if (!initialUser) opts.userId = selected.client_id;
     if (filter === 'past') opts.past = true;
     else if (filter !== 'all') opts.status = filter;

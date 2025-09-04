@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
 import { getUserByClientId, updateUserInfo } from '../api/users';
+import { useAuth } from '../hooks/useAuth';
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn(),
@@ -14,7 +15,13 @@ jest.mock('../api/users', () => ({
   updateUserInfo: jest.fn(),
 }));
 
+jest.mock('../hooks/useAuth');
+const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+
 describe('UserHistory', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ role: 'staff' } as any);
+  });
   it('renders bookings and walk-in visits', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {

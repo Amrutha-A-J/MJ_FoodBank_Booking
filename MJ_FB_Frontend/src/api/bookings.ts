@@ -31,7 +31,7 @@ interface SlotsByDateResponse {
 interface CreateBookingBody {
   slotId: number;
   date: string;
-  requestData: string;
+  note: string;
   userId?: number;
 }
 
@@ -84,7 +84,7 @@ export async function createBooking(
   const body: CreateBookingBody = {
     slotId: Number(slotId),
     date,
-    requestData: note,
+    note,
   };
   if (userId) body.userId = userId;
   const res = await apiFetch(`${API_BASE}/bookings`, {
