@@ -150,4 +150,14 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/LEFT JOIN\s+slots\s+s\s+ON b.slot_id = s.id/);
   });
+
+  it('fetchBookingHistory LEFT JOINs client_visits for staff notes', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookingHistory([1], false, undefined, false);
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(
+      /LEFT JOIN\s+client_visits\s+v\s+ON v.client_id = b.user_id AND v.date = b.date/,
+    );
+    expect(call[0]).toMatch(/v.note AS staff_note/);
+  });
 });
