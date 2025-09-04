@@ -51,6 +51,8 @@ Tests load these variables via `tests/setupTests.ts`, which imports `tests/setup
 
 Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. Staff users automatically receive staff notes from `/bookings/history`; agency users can append `includeStaffNotes=true` to retrieve them. The `notes` query parameter filters history by note text.
 
+Booking history joins bookings with `client_visits` and only exposes `staff_note` when the requester is staff or `includeStaffNotes=true`.
+
 ## Password Policy
 
 Passwords must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. Requests with weak passwords are rejected before hashing.

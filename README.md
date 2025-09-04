@@ -168,6 +168,7 @@ Before merging a pull request, confirm the following:
 - Booking requests are automatically approved; the submitted state has been removed.
 - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
+- When `includeStaffNotes=true` or the requester is staff, `/bookings/history` returns both `client_note` and `staff_note` for each entry.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
 - Agencies can list bookings for their linked clients via `/bookings?clientIds=1,2`.
 - **Volunteer Recurring Bookings** let volunteers schedule repeating shifts with start and end dates, choose daily, weekly, or weekday patterns, and cancel individual occurrences or the remaining series.
