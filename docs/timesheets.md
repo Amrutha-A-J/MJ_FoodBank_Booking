@@ -56,11 +56,11 @@ in `summary.ot_bank_remaining`.
 
 ## Leave approval workflow
 
-Staff can request vacation leave by posting to
-`/timesheets/:id/leave-requests`. Pending requests appear under the same path
-and globally via `/api/leave/requests` for admins. Approving a request applies
-vacation hours to that day and locks it from editing; rejection simply removes
-the request.
+Staff can request vacation or sick leave by posting to
+`/timesheets/:id/leave-requests` with a leave `type`. Pending requests appear
+under the same path and globally via `/api/leave/requests` for admins.
+Approving a request applies the chosen leave hours to that day and locks it
+from editing; rejection simply removes the request.
 
 ## Email settings
 
@@ -83,11 +83,13 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 - `POST /timesheets/:id/submit` – submit a pay period.
 - `POST /timesheets/:id/reject` – reject a submitted timesheet (admin only).
 - `POST /timesheets/:id/process` – mark a timesheet as processed and exportable (admin only).
-- `POST /timesheets/:id/leave-requests` – request vacation leave for a day.
+- `POST /timesheets/:id/leave-requests` – request leave for a day with `date`,
+  `hours`, and `type` (`vacation` or `sick`).
 - `GET /timesheets/:id/leave-requests` – list leave requests awaiting review.
 - `POST /timesheets/leave-requests/:requestId/approve` – approve a leave request, applying vacation hours and locking the day.
 - `GET /api/leave/requests` – list all leave requests (admin only).
-- `POST /api/leave/requests` – submit a leave request for the logged in staff member.
+- `POST /api/leave/requests` – submit a leave request for the logged in staff
+  member with `startDate`, `endDate`, `type`, and optional `reason`.
 
 ## UI walkthrough
 

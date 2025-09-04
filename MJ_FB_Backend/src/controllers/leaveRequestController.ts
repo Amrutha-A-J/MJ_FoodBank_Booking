@@ -11,11 +11,12 @@ export async function createLeaveRequest(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const { startDate, endDate, reason } = req.body;
+    const { startDate, endDate, type, reason } = req.body;
     const record = await insertLeaveRequest(
       Number(req.user!.id),
       startDate,
       endDate,
+      type,
       reason,
     );
     res.status(201).json(record);
