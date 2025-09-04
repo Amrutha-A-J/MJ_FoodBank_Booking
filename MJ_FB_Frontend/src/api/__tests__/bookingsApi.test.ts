@@ -37,7 +37,7 @@ describe('bookings api', () => {
     await createBooking('3', '2024-05-01', 'note');
     expect(apiFetch).toHaveBeenCalledWith('/api/bookings', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ slotId: 3, date: '2024-05-01', requestData: 'note' }),
+      body: JSON.stringify({ slotId: 3, date: '2024-05-01', note: 'note' }),
     }));
   });
 });
