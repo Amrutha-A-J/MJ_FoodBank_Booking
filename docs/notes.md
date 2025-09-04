@@ -4,6 +4,8 @@ Clients can enter a **client note** when booking an appointment. The client note
 
 Staff can add a **staff note** when recording client visits in the pantry schedule. Staff notes are stored with the visit.
 
+Staff history views display both notes for visited bookings, reinforcing expected behaviour.
+
 Staff users automatically receive staff notes in booking history responses. Agency users can include staff notes by adding `includeStaffNotes=true` to `/bookings/history`. Both roles can filter visit history by note text using the `notes` query parameter. The notes-only filter matches visits that contain either client or staff notes.
 
 ## Environment variables
