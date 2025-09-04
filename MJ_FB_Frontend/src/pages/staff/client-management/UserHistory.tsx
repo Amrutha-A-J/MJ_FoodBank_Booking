@@ -227,15 +227,17 @@ export default function UserHistory({
                 <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={notesOnly}
-                  onChange={e => setNotesOnly(e.target.checked)}
-                />
-              }
-              label={t('visits_with_notes_only')}
-            />
+            {role === 'staff' && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={notesOnly}
+                    onChange={e => setNotesOnly(e.target.checked)}
+                  />
+                }
+                label={t('visits_with_notes_only')}
+              />
+            )}
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
                 <TableHead>
