@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.get("/", authMiddleware, authorizeRoles("admin"), listLeaveRequests);
-router.post("/", authMiddleware, authorizeRoles("staff"), createLeaveRequest);
+router.post("/", authMiddleware, authorizeRoles("staff", "admin"), createLeaveRequest);
 router.post(
   "/:id/approve",
   authMiddleware,
