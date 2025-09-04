@@ -34,4 +34,41 @@ describe('seedPayPeriods', () => {
 
     expect(calls).toHaveLength(3);
   });
+
+  it('skips duplicates when seeding the same range twice', async () => {
+    const calls: any[] = [];
+    const results = [
+      { rowCount: 1 },
+      { rowCount: 1 },
+      { rowCount: 1 },
+      { rowCount: 0 },
+      { rowCount: 0 },
+      { rowCount: 0 },
+    ];
+    (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
+      calls.push({ sql, params });
+      return results.shift();
+    });
+
+    await seedPayPeriods('2024-08-03', '2024-09-13');
+    await seedPayPeriods('2024-08-03', '2024-09-13');
+
+    expect(calls).toHaveLength(6);
+    expect(calls[0].sql).toContain('ON CONFLICT DO NOTHING');
+    expect(calls[3].sql).toContain('ON CONFLICT DO NOTHING');
+  });
+
+  it('handles cross-year boundaries', async () => {
+    const calls: any[] = [];
+    (pool.query as jest.Mock).mockImplementation(async (sql: string, params?: any[]) => {
+      calls.push({ sql, params });
+      return { rowCount: 1 };
+    });
+
+    await seedPayPeriods('2024-12-28', '2025-01-24');
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0].params).toEqual(['2024-12-28', '2025-01-10']);
+    expect(calls[1].params).toEqual(['2025-01-11', '2025-01-24']);
+  });
 });

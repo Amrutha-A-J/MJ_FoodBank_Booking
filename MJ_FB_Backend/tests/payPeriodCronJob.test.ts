@@ -45,8 +45,13 @@ describe('startPayPeriodCronJob/stopPayPeriodCronJob', () => {
     expect(seedPayPeriods).toHaveBeenCalledWith('2025-01-01', '2025-12-31');
   });
 
-  it('stops the cron job', () => {
+  it('schedules and stops the cron job', () => {
     startPayPeriodCronJob();
+    expect(scheduleMock).toHaveBeenCalledWith(
+      '0 0 30 11 *',
+      expect.any(Function),
+      { timezone: 'America/Regina' },
+    );
     stopPayPeriodCronJob();
     expect(stopMock).toHaveBeenCalled();
   });
