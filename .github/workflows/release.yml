@@ -1,4 +1,4 @@
-name: Release
+name: Release (build & deploy only)
 
 on:
   workflow_dispatch:
@@ -6,52 +6,16 @@ on:
     branches: [ master, main ]
     tags: ['v*']
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-test:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
-      NODE_ENV: test
-      # === Test-time env to satisfy config validation ===
-      JWT_SECRET: testsecret
-      JWT_REFRESH_SECRET: testrefresh
-      BOOKING_CONFIRMATION_TEMPLATE_ID: "1"
-      BOOKING_REMINDER_TEMPLATE_ID: "2"
-      VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID: "3"
-      VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID: "4"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Use Node 22.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.x'
-
-      # ---- BACKEND TESTS ----
-      - name: Install backend dependencies
-        working-directory: MJ_FB_Backend
-        run: npm ci
-
-      - name: Run backend tests (non-blocking for now)
-        working-directory: MJ_FB_Backend
-        run: npm test
-        continue-on-error: true   # <-- set to false later when you're ready
-
-      # ---- FRONTEND TESTS (optional) ----
-      - name: Install frontend dependencies
-        working-directory: MJ_FB_Frontend
-        run: npm ci
-
-      - name: Run frontend tests (non-blocking for now)
-        working-directory: MJ_FB_Frontend
-        run: npm test
-        continue-on-error: true   # <-- set to false later when you're ready
-
-  build-and-push:
-    needs: build-test
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_TAG: ${{ github.ref_name }}   # 'main', 'master', or a tag like v1.0.0
+      IMAGE_TAG: ${{ github.ref_name }}   # e.g. 'main' or 'v1.0.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -63,8 +27,8 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      # If your frontend needs VITE_API_BASE at build time (Vite typical):
-      # Create a repo variable BACKEND_API_BASE (or commit MJ_FB_Frontend/.env)
+      # If your frontend (Vite) needs API base at build time:
+      # Add a repo Variable BACKEND_API_BASE and uncomment below.
       - name: Ensure VITE_API_BASE (optional)
         if: ${{ vars.BACKEND_API_BASE != '' }}
         working-directory: MJ_FB_Frontend
@@ -72,7 +36,7 @@ jobs:
           echo "VITE_API_BASE=${{ vars.BACKEND_API_BASE }}" > .env
           echo "Using VITE_API_BASE=${{ vars.BACKEND_API_BASE }}"
 
-      # ---- Build images on GitHub runner ----
+      # ---- Build images on GitHub runner (no tests) ----
       - name: Build backend image
         run: docker build -t mjfb-backend:${{ env.IMAGE_TAG }} MJ_FB_Backend
 
@@ -94,31 +58,22 @@ jobs:
           docker push $REGISTRY/mjfb-frontend:${{ env.IMAGE_TAG }}
           docker push $REGISTRY/mjfb-frontend:latest
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    env:
-      RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-      BACKEND_APP_NAME: ${{ vars.BACKEND_APP_NAME }}
-      FRONTEND_APP_NAME: ${{ vars.FRONTEND_APP_NAME }}
-    steps:
+      # ---- Deploy to Azure Container Apps (assumes apps already created once) ----
       - name: Azure login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # If apps already exist, this updates them to :latest.
-      # If they don't exist yet, create them once from Azure CLI (as we did in PowerShell).
       - name: Deploy backend (latest)
         uses: azure/container-apps-deploy@v2
         with:
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          containerAppName: ${{ env.BACKEND_APP_NAME }}
+          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
+          containerAppName: ${{ vars.BACKEND_APP_NAME }}
           imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-backend:latest
 
       - name: Deploy frontend (latest)
         uses: azure/container-apps-deploy@v2
         with:
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          containerAppName: ${{ env.FRONTEND_APP_NAME }}
+          resourceGroup: ${{ vars.AZURE_RESOURCE_GROUP }}
+          containerAppName: ${{ vars.FRONTEND_APP_NAME }}
           imageToDeploy: ${{ secrets.REGISTRY_LOGIN_SERVER }}/mjfb-frontend:latest
