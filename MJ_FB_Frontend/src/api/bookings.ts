@@ -42,7 +42,8 @@ const mapSlot = (s: SlotResponse): Slot => ({
   available: s.available,
   maxCapacity: s.maxCapacity ?? s.max_capacity,
   reason: s.reason,
-  status: s.status,
+  status:
+    s.status === 'blocked' || s.status === 'break' ? s.status : undefined,
 });
 
 export async function getSlots(date?: string, includePast = false) {
