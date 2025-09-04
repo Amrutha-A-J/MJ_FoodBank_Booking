@@ -44,7 +44,7 @@ async function init() {
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
     startPayPeriodCronJob();
-    await seedPayPeriods('2024-08-03', '2024-12-31');
+    await seedPayPeriods('2025-08-03', '2025-12-31');
     await seedTimesheets();
     startTimesheetSeedJob();
   } catch (err) {
