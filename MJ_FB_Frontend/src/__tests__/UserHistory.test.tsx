@@ -45,7 +45,7 @@ describe('UserHistory', () => {
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
-        note: 'bring ID',
+        staff_note: 'bring ID',
       },
     ]);
 
@@ -58,7 +58,7 @@ describe('UserHistory', () => {
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(getBookingHistory).toHaveBeenCalledWith({
       includeVisits: true,
-      includeVisitNotes: true,
+      includeStaffNotes: true,
     });
     expect(await screen.findByText(/approved/i)).toBeInTheDocument();
     expect(await screen.findByText(/visited/i)).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe('UserHistory', () => {
         slot_id: null,
         is_staff_booking: false,
         reschedule_token: null,
-        note: 'has note',
+        staff_note: 'has note',
       },
       {
         id: 2,
