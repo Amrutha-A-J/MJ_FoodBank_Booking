@@ -86,8 +86,8 @@ export default function VolunteerDashboard() {
         const monthly: Record<string, { total: number; roles: Record<string, number> }> = {};
         const roleTotals: Record<string, number> = {};
         data
-          .filter(b => b.status === 'completed')
-          .forEach(b => {
+          .filter((b: VolunteerBooking) => b.status === 'completed')
+          .forEach((b: VolunteerBooking) => {
             const d = toDate(b.date);
             const key = formatRegina(d, 'yyyy-MM');
             const role = b.role_name;

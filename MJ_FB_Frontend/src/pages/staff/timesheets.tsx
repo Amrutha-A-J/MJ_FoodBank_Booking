@@ -41,6 +41,7 @@ import {
   type StaffOption,
 } from '../../api/staff';
 import { searchStaff as searchAdminStaff } from '../../api/adminStaff';
+import type { Staff } from '../../types';
 
 interface Day {
   date: string;
@@ -74,9 +75,12 @@ export default function Timesheets() {
     search(staffInput)
       .then(data => {
         if (!active) return;
-        const options = inAdmin
-          ? data.map(d => ({ id: d.id, name: `${d.firstName} ${d.lastName}` }))
-          : data;
+        const options: StaffOption[] = inAdmin
+          ? (data as Staff[]).map(d => ({
+              id: d.id,
+              name: `${(d as Staff).firstName} ${(d as Staff).lastName}`,
+            }))
+          : (data as StaffOption[]);
         setStaffOptions(options);
       })
       .catch(() => {

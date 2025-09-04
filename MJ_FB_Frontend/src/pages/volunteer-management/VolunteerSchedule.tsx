@@ -186,7 +186,7 @@ export default function VolunteerSchedule() {
     if (!conflict) return;
     try {
       await resolveVolunteerBookingConflict(
-        conflict.existing.id,
+        conflict.existing.id!,
         conflict.attempted.role_id,
         conflict.attempted.date,
         choice,

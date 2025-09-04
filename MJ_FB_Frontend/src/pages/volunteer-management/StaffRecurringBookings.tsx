@@ -83,7 +83,7 @@ export default function StaffRecurringBookings() {
       setRoles(flattened);
       setSeries(seriesData);
       const upcoming = bookingData.filter(
-        b => b.status !== 'cancelled' && b.date >= today,
+        (b: VolunteerBooking) => b.status !== 'cancelled' && b.date >= today,
       );
       setBookings(upcoming);
     } catch (err) {
@@ -182,11 +182,15 @@ export default function StaffRecurringBookings() {
                   onChange={e => setSelectedRole(e.target.value as string)}
                 >
                   <MenuItem value="">Select role</MenuItem>
-                  {Array.from(groupedRoles.values()).flatMap(g => [
+                  {(
+                    Array.from(
+                      groupedRoles.values(),
+                    ) as Array<{ category: string; roles: VolunteerRole[] }>
+                  ).flatMap(g => [
                     <ListSubheader key={`${g.category}-header`}>
                       {g.category}
                     </ListSubheader>,
-                    ...g.roles.map(r => (
+                    ...g.roles.map((r: VolunteerRole) => (
                       <MenuItem key={r.id} value={r.id}>
                         {r.name} ({formatTime(r.start_time)}–{formatTime(r.end_time)})
                       </MenuItem>

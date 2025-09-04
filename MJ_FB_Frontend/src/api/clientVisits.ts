@@ -1,5 +1,6 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 import type { ClientVisit } from '../types';
+export type { ClientVisit } from '../types';
 
 export async function getClientVisits(date: string): Promise<ClientVisit[]> {
   const res = await apiFetch(

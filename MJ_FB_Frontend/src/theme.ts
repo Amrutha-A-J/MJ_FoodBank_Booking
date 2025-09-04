@@ -1,5 +1,6 @@
 // theme.ts
 import { createTheme, responsiveFontSizes, alpha, darken } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 // ---- Brand tokens (sampled from mjfoodbank.org’s vibe) ----
 const BRAND_PRIMARY = '#1F6F3D';   // deep green accents
@@ -77,7 +78,7 @@ let theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         // Load font via <link> in index.html; this ensures consistent rendering
-        body: ({ theme }) => ({
+        body: ({ theme }: { theme: Theme }) => ({
           backgroundImage: 'none',
           backgroundColor: theme.palette.background.default,
           color: '#111',
@@ -113,11 +114,11 @@ let theme = createTheme({
 
     MuiCard: {
       styleOverrides: {
-        root: {
+        root: ({ theme }: { theme: Theme }) => ({
           border: `1px solid ${DIVIDER}`,
-          boxShadow: (t) => t.shadows[1],
+          boxShadow: theme.shadows[1],
           borderRadius: 10,
-        },
+        }),
       },
     },
 

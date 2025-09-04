@@ -78,7 +78,10 @@ export default function PantrySchedule({
         getBookings({ date: dateStr, clientIds }),
       ]);
       setSlots(slotsData);
-      const filtered = bookingsData.filter(
+      const bookingsArray = Array.isArray(bookingsData)
+        ? bookingsData
+        : [bookingsData];
+      const filtered = bookingsArray.filter(
         (b: Booking) => b.status.toLowerCase() !== 'cancelled',
       );
       setBookings(filtered);

@@ -186,7 +186,7 @@ export default function PantryVisits() {
   async function handleCreateClient() {
     if (!form.clientId) return;
     try {
-      await addUser('', '', form.clientId, 'shopper', undefined, false);
+      await addUser('', '', form.clientId, 'shopper', false);
       setClientFound(true);
       setSnackbar({ open: true, message: 'Client created', severity: 'success' });
     } catch (err: unknown) {

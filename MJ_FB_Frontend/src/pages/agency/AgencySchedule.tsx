@@ -3,7 +3,6 @@ import PantrySchedule from '../staff/PantrySchedule';
 import Page from '../../components/Page';
 import { getMyAgencyClients } from '../../api/agencies';
 import { Stack, Typography } from '@mui/material';
-import { useAuth } from '../../hooks/useAuth';
 
 interface AgencyClient {
   id: number;
@@ -12,7 +11,6 @@ interface AgencyClient {
 }
 
 export default function AgencySchedule() {
-  const { token } = useAuth();
   const [clients, setClients] = useState<AgencyClient[]>([]);
 
   useEffect(() => {
@@ -36,7 +34,7 @@ export default function AgencySchedule() {
   const clientIds = clients.map(c => c.id);
 
   const searchAgencyUsers = useCallback(
-    async (_token: string, term: string) => {
+    async (term: string) => {
       const lower = term.toLowerCase();
       return clients
         .filter(
@@ -44,7 +42,8 @@ export default function AgencySchedule() {
             c.name.toLowerCase().includes(lower) ||
             c.id.toString().includes(term),
         )
-        .slice(0, 5);
+        .slice(0, 5)
+        .map(c => ({ client_id: c.id, name: c.name, email: c.email || '' }));
     },
     [clients],
   );
@@ -55,7 +54,6 @@ export default function AgencySchedule() {
         <Typography variant="body2">Select a green slot to book; gray slots are full.</Typography>
       </Stack>
       <PantrySchedule
-        token={token}
         clientIds={clientIds}
         searchUsersFn={searchAgencyUsers}
       />

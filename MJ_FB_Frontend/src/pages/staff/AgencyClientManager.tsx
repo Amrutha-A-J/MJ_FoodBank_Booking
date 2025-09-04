@@ -125,7 +125,7 @@ export default function AgencyClientManager() {
           <EntitySearch
             type="agency"
             placeholder="Search agencies"
-            onSelect={ag => setAgency({ id: ag.id, name: ag.name })}
+            onSelect={ag => setAgency({ id: Number(ag.id), name: ag.name })}
           />
         </CardContent>
       </Card>
