@@ -15,7 +15,11 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const PageTitleContext = createContext<(title: string) => void>(() => {});
+const setDocumentTitle = (title: string) => {
+  document.title = title ? `MJ Foodbank - ${title}` : 'MJ Foodbank';
+};
+
+const PageTitleContext = createContext<(title: string) => void>(setDocumentTitle);
 
 export function usePageTitle(title: string) {
   const setTitle = useContext(PageTitleContext);
