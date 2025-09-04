@@ -62,4 +62,18 @@ describe('AuthProvider with no prior session', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     expect(screen.queryByText('Session expired')).toBeNull();
   });
+
+  it('does not set token when refresh succeeds without auth', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 200 });
+
+    function Child() {
+      const { token, ready } = useAuth();
+      return <div>{ready ? token : ''}</div>;
+    }
+
+    renderWithProviders(<Child />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByText('cookie')).toBeNull();
+  });
 });
