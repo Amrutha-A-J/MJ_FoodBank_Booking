@@ -2,6 +2,11 @@ import { Client } from 'pg';
 import config from './config';
 import logger from './utils/logger';
 
+/**
+ * Initializes the database if it does not exist.
+ * All schema changes must be implemented via migrations in src/migrations.
+ * Do not modify this file for schema updates.
+ */
 export async function setupDatabase() {
   const dbName = config.pgDatabase;
   const dbConfig = {

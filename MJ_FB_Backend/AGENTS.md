@@ -38,6 +38,7 @@
 - `middleware/` – shared Express middleware (authentication, validation, etc.).
 - `schemas/`, `types/`, and `utils/` – validation, shared types, and helpers.
 - The database schema is managed via TypeScript migrations in `src/migrations`. The backend runs pending migrations automatically on startup and logs each applied migration name. You can also run them manually with `npm run migrate`.
+- Do not modify `src/setupDatabase.ts` for schema changes; create migrations instead.
 - Booking statuses include `'visited'`; staff can mark bookings as `no_show` or `visited` via `/bookings/:id/no-show` and `/bookings/:id/visited`.
 - The pantry schedule's booking dialog allows staff to mark a booking as visited while recording cart weights and notes to create a client visit.
 - The Manage Booking dialog shows the client's name, profile link, and current-month visit count.
