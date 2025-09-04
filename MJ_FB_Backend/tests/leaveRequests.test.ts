@@ -23,8 +23,10 @@ describe("leave requests controller", () => {
           staff_id: 1,
           start_date: "2024-01-02",
           end_date: "2024-01-03",
+          type: "vacation",
           status: "pending",
           reason: null,
+          requester_name: "Test User",
           created_at: "now",
           updated_at: "now",
         },
@@ -33,7 +35,11 @@ describe("leave requests controller", () => {
     });
     const req: any = {
       user: { id: "1", role: "staff", type: "staff" },
-      body: { startDate: "2024-01-02", endDate: "2024-01-03" },
+      body: {
+        startDate: "2024-01-02",
+        endDate: "2024-01-03",
+        type: "vacation",
+      },
     };
     const res = makeRes();
     await createLeaveRequest(req, res as any, () => {});
@@ -43,8 +49,10 @@ describe("leave requests controller", () => {
       staff_id: 1,
       start_date: "2024-01-02",
       end_date: "2024-01-03",
+      type: "vacation",
       status: "pending",
       reason: null,
+      requester_name: "Test User",
       created_at: "now",
       updated_at: "now",
     });
@@ -58,8 +66,10 @@ describe("leave requests controller", () => {
           staff_id: 1,
           start_date: "2024-01-02",
           end_date: "2024-01-03",
+          type: "vacation",
           status: "approved",
           reason: null,
+          requester_name: "Test User",
           created_at: "now",
           updated_at: "now",
         },
@@ -74,8 +84,10 @@ describe("leave requests controller", () => {
       staff_id: 1,
       start_date: "2024-01-02",
       end_date: "2024-01-03",
+      type: "vacation",
       status: "approved",
       reason: null,
+      requester_name: "Test User",
       created_at: "now",
       updated_at: "now",
     });
