@@ -36,7 +36,7 @@ function useVolunteerSlots(
   date: Dayjs,
   enabled: boolean,
   staleTime = 5 * 60 * 1000,
-  cacheTime = 30 * 60 * 1000,
+  gcTime = 30 * 60 * 1000,
 ) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<VolunteerRole[]>({
@@ -44,7 +44,7 @@ function useVolunteerSlots(
     queryFn: () => getVolunteerRolesForVolunteer(dateStr),
     enabled,
     staleTime,
-    cacheTime,
+    gcTime,
   });
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
