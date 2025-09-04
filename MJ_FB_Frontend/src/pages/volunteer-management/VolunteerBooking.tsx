@@ -14,7 +14,6 @@ import {
   Button,
   Skeleton,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
@@ -74,8 +73,6 @@ export default function VolunteerBooking() {
   }>({ open: false, message: '', severity: 'success' });
   const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
   const slotsRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
-
   useEffect(() => {
     if (!isDisabled(date)) return;
     let next = date;

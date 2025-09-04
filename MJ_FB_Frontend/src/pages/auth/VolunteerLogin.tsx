@@ -3,7 +3,6 @@ import { loginVolunteer } from '../../api/volunteers';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { TextField, Link, Button } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';

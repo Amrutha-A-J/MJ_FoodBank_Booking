@@ -29,8 +29,6 @@ import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import type { Booking } from '../../types';
 
-const TIMEZONE = 'America/Regina';
-
 interface User {
   name: string;
   client_id: number;

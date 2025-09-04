@@ -15,15 +15,12 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   Button,
-  Link,
   type AlertColor,
   useTheme,
   Checkbox,
   FormControlLabel,
   TextField,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
-import RescheduleDialog from '../../components/RescheduleDialog';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import Page from '../../components/Page';
 
@@ -57,7 +54,6 @@ export default function PantrySchedule({
   const [assignMessage, setAssignMessage] = useState('');
   const [isNewClient, setIsNewClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
-  const { t } = useTranslation();
 
   const theme = useTheme();
   const statusColors: Record<string, string> = {

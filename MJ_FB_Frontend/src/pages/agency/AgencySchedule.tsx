@@ -4,7 +4,6 @@ import Page from '../../components/Page';
 import { getMyAgencyClients } from '../../api/agencies';
 import { Stack, Typography } from '@mui/material';
 import { useAuth } from '../../hooks/useAuth';
-import { useTranslation } from 'react-i18next';
 
 interface AgencyClient {
   id: number;
@@ -35,7 +34,6 @@ export default function AgencySchedule() {
   }, []);
 
   const clientIds = clients.map(c => c.id);
-  const { t } = useTranslation();
 
   const searchAgencyUsers = useCallback(
     async (_token: string, term: string) => {

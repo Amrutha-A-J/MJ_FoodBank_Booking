@@ -28,7 +28,7 @@ import {
 } from '../../api/volunteers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
-import dayjs, { formatDate } from '../../utils/date';
+import dayjs from '../../utils/date';
 
 export default function PendingReviews() {
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);

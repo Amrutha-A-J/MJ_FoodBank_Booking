@@ -592,8 +592,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         const slotBookings = bookingsForDate.filter(
           b => b.role_id === role.id
         );
-        const approvedCount = slotBookings.length;
-        const canBook = approvedCount < role.max_volunteers;
         return {
           time: `${formatTime(role.start_time || '')} - ${formatTime(role.end_time || '')}`,
           cells: Array.from({ length: role.max_volunteers }).map((_, i) => {
