@@ -64,7 +64,6 @@ export default function VolunteerGroupStatsCard() {
                   dataKey="value"
                   cornerRadius={5}
                   background
-                  clockWise
                   fill={theme.palette.primary.main}
                 />
               </RadialBarChart>
