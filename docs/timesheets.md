@@ -9,8 +9,7 @@ Admin menu. Admins select a staff member before viewing their periods.
 
 ## Setup
 
-1. Start the backend once so `setupDatabase` creates the pay period, timesheet, and leave tables.
-   Future schema updates can still be applied via migrations:
+1. Start the backend once so `setupDatabase` creates the pay period, timesheet, and leave tables. All future schema changes must be implemented via migrations instead of editing `setupDatabase`:
 
 ```bash
 cd MJ_FB_Backend
