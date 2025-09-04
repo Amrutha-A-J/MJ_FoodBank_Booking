@@ -36,6 +36,7 @@
   "submit": "Enviar",
   "invalid_or_expired_token": "Token inválido o expirado",
   "client_dashboard": "Panel del cliente",
+  "dashboard": "Dashboard",
   "book_appointment": "Reservar cita",
   "booking_history": "Historial de reservas",
   "booking": "Reserva",
