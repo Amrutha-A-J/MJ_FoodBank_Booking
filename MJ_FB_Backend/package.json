@@ -51,7 +51,7 @@
   "scripts": {
     "preinstall": "node -e \"if(!process.version.startsWith('v22')){console.error('Node v22+ required');process.exit(1);}\"",
     "dev": "tsx --env-file=.env src/server.ts",
-    "build": "tsc",
+    "build": "tsc && echo 'Backend build complete'",
     "start": "node dist/server.js",
     "pretest": "node -e \"if (!process.version.startsWith('v22')) { console.error('Node v22 is required'); process.exit(1); }\"",
     "test": "jest",

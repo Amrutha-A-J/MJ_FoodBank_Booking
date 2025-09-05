@@ -39,6 +39,15 @@ nvm use
 
 Run all backend and frontend tests on this runtime to match production behavior.
 
+To compile the backend for production, run:
+
+```bash
+cd MJ_FB_Backend
+npm run build
+```
+
+The generated JavaScript lands in `MJ_FB_Backend/dist/` and the script prints a confirmation when complete.
+
 ## Timesheet and Leave Setup
 
 Timesheet features require backend migrations, seeded pay periods, and email
