@@ -1,32 +1,53 @@
+// src/db.ts
 import { Pool } from 'pg';
 import fs from 'fs';
 import config from './config';
 import logger from './utils/logger';
 
-// Absolute path to the CA file (regional bundle works best for Lightsail in ca-central-1)
-const caPath =
-  process.env.PGSSLROOTCERT ||
-  '/home/ubuntu/apps/MJ_FoodBank_Booking/MJ_FB_Backend/certs/rds-ca-central-1-bundle.pem';
+// --- Absolute CA path (use your region's bundle; this is ca-central-1) ---
+const CA_PATH = process.env.PGSSLROOTCERT
+  || '/home/ubuntu/apps/MJ_FoodBank_Booking/MJ_FB_Backend/certs/rds-ca-central-1-bundle.pem';
 
-// 👇 Toggle between secure + insecure TLS by env
+// Toggle to temporarily skip verification: PG_INSECURE_SSL=true pm2 restart mjfb-api --update-env
 const INSECURE = process.env.PG_INSECURE_SSL === 'true';
 
+// Build ssl config
 const ssl = INSECURE
-  ? { rejectUnauthorized: false } // ⚠️ insecure mode — skips cert verification
+  ? { rejectUnauthorized: false }
   : {
-      ca: fs.readFileSync(caPath, 'utf8'),
+      ca: fs.readFileSync(CA_PATH, 'utf8'),
       rejectUnauthorized: true,
-      servername: config.pgHost, // must match your Lightsail endpoint DNS
+      // SNI hostname must match the Lightsail endpoint DNS
+      servername: config.pgHost,
     };
 
+// Helpful startup log so we can see exactly what runtime is using
+try {
+  logger.info(
+    `[PG TLS] host=${config.pgHost} port=${config.pgPort} caPath=${CA_PATH} ` +
+    `exists=${fs.existsSync(CA_PATH)} insecure=${INSECURE}`
+  );
+} catch (e) {
+  logger.error('[PG TLS] failed to stat CA_PATH', e);
+}
+
+// If you prefer a DATABASE_URL, uncomment and use the alt constructor below
 const pool = new Pool({
   user: config.pgUser,
   password: config.pgPassword,
-  host: config.pgHost,
+  host: config.pgHost,      // EXACT Lightsail endpoint DNS (no IP/CNAME)
   port: config.pgPort,
   database: config.pgDatabase,
-  ssl, // <- use the toggle
+  ssl,
 });
+
+/*
+// Alternative if you have DATABASE_URL in .env
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl,
+});
+*/
 
 pool.on('error', (err) => logger.error('Unexpected PG pool error', err));
 
