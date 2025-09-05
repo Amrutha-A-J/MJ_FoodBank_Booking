@@ -52,7 +52,7 @@ The generated JavaScript lands in `MJ_FB_Backend/dist/` and the script prints a 
 
 The backend trusts the AWS RDS certificate chain stored at
 `MJ_FB_Backend/certs/rds-global-bundle.pem`. Override this path with the
-`PGSSLROOTCERT` environment variable if the bundle is located elsewhere.
+`PG_CA_CERT` environment variable if the bundle is located elsewhere.
 `PG_HOST` should reference the Lightsail endpoint DNS name rather than an IP
 address so hostname verification succeeds.
 
