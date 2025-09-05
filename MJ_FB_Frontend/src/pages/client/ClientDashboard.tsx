@@ -103,7 +103,13 @@ export default function ClientDashboard() {
   }, []);
 
   useEffect(() => {
-    getEvents().then(setEvents).catch(() => {});
+    getEvents()
+      .then(data =>
+        setEvents(data ?? { today: [], upcoming: [], past: [] }),
+      )
+      .catch(() =>
+        setEvents({ today: [], upcoming: [], past: [] }),
+      );
   }, []);
 
   const today = toDate();

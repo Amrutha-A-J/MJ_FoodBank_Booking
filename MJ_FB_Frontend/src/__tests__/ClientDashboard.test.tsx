@@ -42,6 +42,22 @@ describe('ClientDashboard', () => {
     expect(await screen.findByText(/Client Event/)).toBeInTheDocument();
   });
 
+  it('handles undefined events response', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getEvents).toHaveBeenCalled());
+    expect(await screen.findByText(/No events/i)).toBeInTheDocument();
+  });
+
   it('displays visited bookings with success chip', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {

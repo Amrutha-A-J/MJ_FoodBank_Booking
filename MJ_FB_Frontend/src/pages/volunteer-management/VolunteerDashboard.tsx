@@ -125,9 +125,12 @@ export default function VolunteerDashboard() {
 
   useEffect(() => {
     getEvents()
-      .then(setEvents)
+      .then(data =>
+        setEvents(data ?? { today: [], upcoming: [], past: [] }),
+      )
       .catch(err => {
         console.error('Failed to load events', err);
+        setEvents({ today: [], upcoming: [], past: [] });
         setSnackbarSeverity('error');
         setMessage('Failed to load events');
       });

@@ -139,7 +139,13 @@ export default function WarehouseDashboard() {
   }, [search]);
 
   useEffect(() => {
-    getEvents().then(setEvents).catch(() => {});
+    getEvents()
+      .then(data =>
+        setEvents(data ?? { today: [], upcoming: [], past: [] }),
+      )
+      .catch(() =>
+        setEvents({ today: [], upcoming: [], past: [] }),
+      );
   }, []);
 
   async function loadData(selectedYear: number) {
