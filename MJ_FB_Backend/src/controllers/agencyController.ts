@@ -41,7 +41,10 @@ export async function createAgency(
       await sendTemplatedEmail({
         to: email,
         templateId: config.passwordSetupTemplateId,
-        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
       });
     res.status(201).json({ id: agency.id });
   } catch (err) {

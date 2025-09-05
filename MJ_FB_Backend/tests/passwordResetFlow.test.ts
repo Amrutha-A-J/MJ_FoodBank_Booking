@@ -40,7 +40,13 @@ describe('requestPasswordReset', () => {
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/UNION ALL/);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 7);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
+          token: 'tok',
+        },
+      }),
     );
   });
 
@@ -56,7 +62,13 @@ describe('requestPasswordReset', () => {
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
+          token: 'tok',
+        },
+      }),
     );
   });
 
@@ -72,7 +84,13 @@ describe('requestPasswordReset', () => {
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 3);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
+          token: 'tok',
+        },
+      }),
     );
   });
 });
@@ -129,7 +147,13 @@ describe('resendPasswordSetup', () => {
     expect(res.status).toBe(204);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 9);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok2`,
+          token: 'tok2',
+        },
+      }),
     );
   });
 

@@ -80,6 +80,7 @@ export async function requestPasswordReset(
           templateId: config.passwordSetupTemplateId,
           params: {
             link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+            token,
           },
         });
       logger.info(`Password reset requested for ${user.email}`);
@@ -152,6 +153,7 @@ export async function resendPasswordSetup(
           templateId: config.passwordSetupTemplateId,
           params: {
             link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+            token,
           },
         });
       logger.info(`Password setup link resent for ${user.email}`);

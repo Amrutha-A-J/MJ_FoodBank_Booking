@@ -14,4 +14,5 @@ This document catalogs Brevo email templates used by the backend and the paramet
   - `MJ_FB_Backend/src/controllers/userController.ts` (`createUser`)
 - **Params:**
   - `link` (string) – one-time URL to the `/set-password` page that lets the recipient create or reset their password.
+  - `token` (string) – raw token value for templates that build the link internally.
 

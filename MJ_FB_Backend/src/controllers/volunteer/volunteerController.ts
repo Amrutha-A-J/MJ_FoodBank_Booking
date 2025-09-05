@@ -217,7 +217,10 @@ export async function createVolunteer(
         await sendTemplatedEmail({
           to: email,
           templateId: config.passwordSetupTemplateId,
-          params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+          params: {
+            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+            token,
+          },
         });
     }
     res.status(201).json({ id: volunteerId });
@@ -277,7 +280,10 @@ export async function createVolunteerShopperProfile(
         await sendTemplatedEmail({
           to: volRes.rows[0].email,
           templateId: config.passwordSetupTemplateId,
-          params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+          params: {
+            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+            token,
+          },
         });
     }
     res.status(201).json({ userId });
