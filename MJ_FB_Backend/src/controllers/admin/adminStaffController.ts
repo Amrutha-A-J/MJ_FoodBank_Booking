@@ -91,17 +91,23 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
   const { firstName, lastName, email, password, access } = parsed.data;
   const role = 'staff';
   try {
-    let query =
-      'UPDATE staff SET first_name=$1, last_name=$2, email=$3, access=$4, role=$5';
+    const setClauses = [
+      'first_name=$1',
+      'last_name=$2',
+      'email=$3',
+      'access=$4',
+      'role=$5',
+    ];
     const values: any[] = [firstName, lastName, email, access, role];
+    let paramIndex = setClauses.length + 1;
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
-      query += ', password=$6 WHERE id=$7';
-      values.push(hashed, id);
-    } else {
-      query += ' WHERE id=$6';
-      values.push(id);
+      setClauses.push(`password=$${paramIndex}`);
+      values.push(hashed);
+      paramIndex++;
     }
+    const query = `UPDATE staff SET ${setClauses.join(', ')} WHERE id=$${paramIndex}`;
+    values.push(id);
     const result = await pool.query(query, values);
     if ((result.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Staff not found' });
