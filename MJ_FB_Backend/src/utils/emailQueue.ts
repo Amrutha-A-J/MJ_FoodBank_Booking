@@ -24,6 +24,11 @@ let scheduled = false;
 const timers = new Set<NodeJS.Timeout>();
 
 export function enqueueEmail({ to, templateId, params = {}, retries = 0 }: EnqueueOptions): void {
+  if (process.env.EMAIL_ENABLED !== 'true') {
+    logger.info('Email enqueue skipped via EMAIL_ENABLED=false', { to, templateId });
+    return;
+  }
+
   pool
     .query(
       'INSERT INTO email_queue (recipient, template_id, params, retries, next_attempt) VALUES ($1,$2,$3,$4, now())',
@@ -84,6 +89,11 @@ async function processQueue(): Promise<void> {
 }
 
 export function initEmailQueue(): void {
+  if (process.env.EMAIL_ENABLED !== 'true') {
+    logger.info('Email sending disabled via EMAIL_ENABLED=false');
+    return;
+  }
+
   processQueue().catch((err) => logger.error('Email queue processing error:', err));
 }
 
@@ -96,5 +106,9 @@ export function shutdownQueue(): void {
 }
 
 // Kick off the queue on module load so any pending jobs are scheduled
-scheduleNextRun().catch((err) => logger.error('Email queue scheduling error:', err));
+if (process.env.EMAIL_ENABLED === 'true') {
+  scheduleNextRun().catch((err) => logger.error('Email scheduling error (non-fatal):', err));
+} else {
+  logger.info('Email sending disabled via EMAIL_ENABLED=false');
+}
 

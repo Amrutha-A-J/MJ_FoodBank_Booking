@@ -89,6 +89,7 @@ node src/utils/timesheetSeeder.ts
 BREVO_API_KEY=your_api_key
 BREVO_FROM_EMAIL=noreply@example.com
 BREVO_FROM_NAME="MJ Food Bank"
+EMAIL_ENABLED=true # set to 'true' to send emails
 TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
@@ -253,6 +254,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BREVO_API_KEY`                              | Brevo API key for transactional emails                                                                                                    |
 | `BREVO_FROM_EMAIL`                           | Email address used as the sender                                                                                                          |
 | `BREVO_FROM_NAME`                            | Optional sender name displayed in emails                                                                                                  |
+| `EMAIL_ENABLED`                              | Set to 'true' to enable email sending (default false)                                                |
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
 | `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |
 | `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 1478167)                                                                                |
