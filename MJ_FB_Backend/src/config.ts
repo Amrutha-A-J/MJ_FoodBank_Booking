@@ -21,7 +21,7 @@ const envSchema = z.object({
   BREVO_FROM_NAME: z.string().optional(),
   EMAIL_QUEUE_MAX_RETRIES: z.coerce.number().default(5),
   EMAIL_QUEUE_BACKOFF_MS: z.coerce.number().default(1000),
-  PASSWORD_SETUP_TEMPLATE_ID: z.coerce.number().default(1478167),
+  PASSWORD_SETUP_TEMPLATE_ID: z.coerce.number().default(6),
   BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
   BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
