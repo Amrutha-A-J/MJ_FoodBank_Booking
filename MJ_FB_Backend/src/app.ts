@@ -1,9 +1,15 @@
-import express from 'express';
+import express, { Router, Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import path from 'path';
 import morgan from 'morgan';
+
 import config from './config';
+import { initializeSlots } from './data';
+import csrfMiddleware from './middleware/csrf';
+import errorHandler from './middleware/errorHandler';
+
+// ---- Route modules ----
 import usersRoutes from './routes/users';
 import slotsRoutes from './routes/slots';
 import bookingsRoutes from './routes/bookings';
@@ -20,6 +26,7 @@ import volunteerRolesRoutes from './routes/volunteer/volunteerRoles';
 import volunteersRoutes from './routes/volunteer/volunteers';
 import volunteerBookingsRoutes from './routes/volunteer/volunteerBookings';
 import volunteerMasterRolesRoutes from './routes/volunteer/volunteerMasterRoles';
+import volunteerStatsRoutes from './routes/volunteerStats';
 import authRoutes from './routes/auth';
 import rolesRoutes from './routes/roles';
 import donorsRoutes from './routes/donors';
@@ -34,85 +41,90 @@ import eventsRoutes from './routes/events';
 import agenciesRoutes from './routes/agencies';
 import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
-import volunteerStatsRoutes from './routes/volunteerStats';
 import timesheetsRoutes from './routes/timesheets';
 import leaveRequestsRoutes from './routes/leaveRequests';
-import { initializeSlots } from './data';
-import csrfMiddleware from './middleware/csrf';
-import errorHandler from './middleware/errorHandler';
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 
-// ⭐ Add CORS middleware before routes
-// Origins are parsed from FRONTEND_ORIGIN env variable as a comma-separated list.
-app.use(cors({
-  origin: config.frontendOrigins,
-  credentials: true,
-}));
+// CORS before routes (origins parsed from FRONTEND_ORIGIN env as comma-separated list)
+app.use(
+  cors({
+    origin: config.frontendOrigins,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(csrfMiddleware);
 app.use(morgan(':method :url :status :response-time ms'));
 
+// Any app-level bootstrapping
 initializeSlots();
 
-app.use('/users', usersRoutes);
-app.use('/agencies', agenciesRoutes);
-app.use('/slots', slotsRoutes);
-app.use('/bookings', bookingsRoutes);
-app.use('/new-clients', newClientsRoutes);
-app.use('/holidays', holidaysRoutes);
-app.use('/blocked-slots', blockedSlotsRoutes);
-app.use('/breaks', breaksRoutes);
-app.use('/recurring-blocked-slots', recurringBlockedSlotsRoutes);
-app.use('/staff', staffRoutes);
-app.use('/admin-staff', adminStaffRoutes);
-app.use('/app-config', appConfigRoutes);
-app.use('/warehouse-settings', warehouseSettingsRoutes);
-app.use('/volunteer-roles', volunteerRolesRoutes);
-app.use('/volunteer-master-roles', volunteerMasterRolesRoutes);
-app.use('/volunteers', volunteersRoutes);
-app.use('/volunteer-bookings', volunteerBookingsRoutes);
-app.use('/volunteer-stats', volunteerStatsRoutes);
-app.use('/auth', authRoutes);
-app.use('/api/roles', rolesRoutes);
-app.use('/donors', donorsRoutes);
-app.use('/donations', donationsRoutes);
-app.use('/client-visits', clientVisitsRoutes);
-app.use('/surplus', surplusRoutes);
-app.use('/pig-pounds', pigPoundsRoutes);
-app.use('/outgoing-receivers', outgoingReceiversRoutes);
-app.use('/outgoing-donations', outgoingDonationsRoutes);
-app.use('/warehouse-overall', warehouseOverallRoutes);
-app.use('/events', eventsRoutes);
-app.use('/badges', badgesRoutes);
-app.use('/stats', statsRoutes);
-app.use('/timesheets', timesheetsRoutes);
-app.use('/api/leave/requests', leaveRequestsRoutes);
+/* =========================================
+ * API (everything under /api)
+ * ========================================= */
+const api = Router();
 
-// Serve the frontend in production
+// Health FIRST (JSON response so it won't be mistaken for SPA)
+api.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
+
+// Mount feature routers (all relative to /api)
+api.use('/users', usersRoutes);
+api.use('/agencies', agenciesRoutes);
+api.use('/slots', slotsRoutes);
+api.use('/bookings', bookingsRoutes);
+api.use('/new-clients', newClientsRoutes);
+api.use('/holidays', holidaysRoutes);
+api.use('/blocked-slots', blockedSlotsRoutes);
+api.use('/breaks', breaksRoutes);
+api.use('/recurring-blocked-slots', recurringBlockedSlotsRoutes);
+api.use('/staff', staffRoutes);
+api.use('/admin-staff', adminStaffRoutes);
+api.use('/app-config', appConfigRoutes);
+api.use('/warehouse-settings', warehouseSettingsRoutes);
+api.use('/volunteer-roles', volunteerRolesRoutes);
+api.use('/volunteers', volunteersRoutes);
+api.use('/volunteer-bookings', volunteerBookingsRoutes);
+api.use('/volunteer-master-roles', volunteerMasterRolesRoutes);
+api.use('/volunteer-stats', volunteerStatsRoutes);
+api.use('/auth', authRoutes);
+api.use('/roles', rolesRoutes);
+api.use('/donors', donorsRoutes);
+api.use('/donations', donationsRoutes);
+api.use('/client-visits', clientVisitsRoutes);
+api.use('/surplus', surplusRoutes);
+api.use('/pig-pounds', pigPoundsRoutes);
+api.use('/outgoing-receivers', outgoingReceiversRoutes);
+api.use('/outgoing-donations', outgoingDonationsRoutes);
+api.use('/warehouse-overall', warehouseOverallRoutes);
+api.use('/events', eventsRoutes);
+api.use('/badges', badgesRoutes);
+api.use('/stats', statsRoutes);
+api.use('/timesheets', timesheetsRoutes);
+api.use('/leave/requests', leaveRequestsRoutes);
+
+// Mount /api
+app.use('/api', api);
+
+/* =========================================
+ * SPA (served only for non-/api paths)
+ * ========================================= */
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(
-    __dirname,
-    '..',
-    '..',
-    'MJ_FB_Frontend',
-    'dist'
-  );
+  const frontendPath = path.join(__dirname, '..', '..', 'MJ_FB_Frontend', 'dist');
   app.use(express.static(frontendPath));
-  app.get('/', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-  app.get('/*path', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
-  });
 
+  // Serve index.html for any non-file path that does NOT start with /api
+  app.get(/^\/(?!api\/).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
 }
 
-// Handle unknown routes
-app.use((req, res) => res.status(404).json({ message: 'Not found' }));
+// Unknown routes (outside of SPA) → JSON 404
+app.use((_req, res) => res.status(404).json({ message: 'Not found' }));
 
 // Global error handler
 app.use(errorHandler);
