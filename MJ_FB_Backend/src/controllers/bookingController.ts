@@ -13,6 +13,7 @@ import {
 import { enqueueEmail } from '../utils/emailQueue';
 import { buildCancelRescheduleLinks } from '../utils/emailUtils';
 import logger from '../utils/logger';
+import { parseIdParam } from '../utils/parseIdParam';
 import {
   SlotCapacityError,
   checkSlotCapacity,
@@ -258,7 +259,10 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
 }
 
 export async function markBookingNoShow(req: Request, res: Response, next: NextFunction) {
-  const bookingId = Number(req.params.id);
+  const bookingId = parseIdParam(req.params.id);
+  if (bookingId === null) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
   const reason = (req.body?.reason as string) || '';
   try {
     const result = await pool.query(
@@ -287,7 +291,10 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
 }
 
 export async function markBookingVisited(req: Request, res: Response, next: NextFunction) {
-  const bookingId = Number(req.params.id);
+  const bookingId = parseIdParam(req.params.id);
+  if (bookingId === null) {
+    return res.status(400).json({ message: 'Invalid ID' });
+  }
   const requestData = (req.body?.requestData as string) || '';
   const weightWithCart = req.body?.weightWithCart as number | undefined;
   const weightWithoutCart = req.body?.weightWithoutCart as number | undefined;
