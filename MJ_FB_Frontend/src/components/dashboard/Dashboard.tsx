@@ -83,7 +83,13 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     getBookings()
       .then(b => setBookings(Array.isArray(b) ? b : [b]))
       .catch(() => {});
-    getEvents().then(setEvents).catch(() => {});
+    getEvents()
+      .then(data =>
+        setEvents(data ?? { today: [], upcoming: [], past: [] }),
+      )
+      .catch(() =>
+        setEvents({ today: [], upcoming: [], past: [] }),
+      );
 
     const today = new Date();
     const start = new Date(today);
@@ -285,7 +291,13 @@ function UserDashboard() {
       })
       .catch(() => {});
 
-    getEvents().then(setEvents).catch(() => {});
+    getEvents()
+      .then(data =>
+        setEvents(data ?? { today: [], upcoming: [], past: [] }),
+      )
+      .catch(() =>
+        setEvents({ today: [], upcoming: [], past: [] }),
+      );
   }, []);
 
   const appointments = bookings.filter(b => b.status === 'approved');
