@@ -1,7 +1,15 @@
 import config from '../config';
 import logger from './logger';
 
-export async function sendEmail(to: string, subject: string, body: string): Promise<void> {
+export async function sendEmail(
+  to: string,
+  subject: string,
+  body: string,
+): Promise<void | { skipped: true }> {
+  if (process.env.EMAIL_ENABLED !== 'true') {
+    return { skipped: true };
+  }
+
   if (!config.brevoApiKey || !config.brevoFromEmail) {
     logger.warn('Brevo email configuration is missing. Email not sent.', { to, subject, body });
     return;
@@ -55,7 +63,11 @@ export async function sendTemplatedEmail({
   to,
   templateId,
   params,
-}: TemplatedEmailOptions): Promise<void> {
+}: TemplatedEmailOptions): Promise<void | { skipped: true }> {
+  if (process.env.EMAIL_ENABLED !== 'true') {
+    return { skipped: true };
+  }
+
   if (!config.brevoApiKey || !config.brevoFromEmail) {
     logger.warn('Brevo email configuration is missing. Template email not sent.', {
       to,
