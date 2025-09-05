@@ -56,6 +56,7 @@ export default function PantrySchedule({
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
 
   const theme = useTheme();
+  const neutralCellBg = theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
   const statusColors: Record<string, string> = {
     approved: 'rgb(228,241,228)',
     no_show: 'rgb(255, 200, 200)',
@@ -204,7 +205,7 @@ export default function PantrySchedule({
           {
             content: `Break${slot.reason ? ` - ${slot.reason}` : ''}`,
             colSpan: maxSlots,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: neutralCellBg,
           },
         ],
       };
@@ -216,7 +217,7 @@ export default function PantrySchedule({
           {
             content: `Blocked${slot.reason ? ` - ${slot.reason}` : ''}`,
             colSpan: maxSlots,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: neutralCellBg,
           },
         ],
       };
