@@ -5,62 +5,56 @@ import path from 'path';
 import config from './config';
 import logger from './utils/logger';
 
-// Toggle: TEMPORARY ONLY. If true, skips cert verification.
+// --- TLS controls ------------------------------------------------------------
+// PG_INSECURE_SSL=true  -> temporarily skip verification (ONLY for emergency debug)
+// PGSSLROOTCERT=<abs path to a PEM> -> optional custom CA; if missing, falls back to system roots
 const INSECURE = process.env.PG_INSECURE_SSL === 'true';
+const PGSSLROOTCERT = process.env.PGSSLROOTCERT;
 
-// Where we’ll look for a CA bundle (in order)
-const projectRoot = path.join(__dirname, '..'); // src -> project root
-const certDir = path.join(projectRoot, 'certs');
+// Try to load a custom CA if PGSSLROOTCERT is set; otherwise use system roots.
+function buildTls() {
+  if (INSECURE) {
+    logger.warn('[PG TLS] INSECURE mode enabled: rejectUnauthorized=false');
+    return { rejectUnauthorized: false as const };
+  }
 
-const CANDIDATE_CA_PATHS = [
-  process.env.PGSSLROOTCERT,                                        // explicit env override
-  path.join(certDir, 'rds-global-bundle.pem'),                      // your downloaded global bundle
-  path.join(certDir, 'rds-ca-central-1-bundle.pem'),                // regional fallback
-  // As a last resort, many distros bundle roots here (not ideal for RDS pinning, but better than crashing):
-  '/etc/ssl/certs/ca-certificates.crt',
-].filter(Boolean) as string[];
-
-function loadCA(): { ca?: string; usedPath?: string } {
-  for (const p of CANDIDATE_CA_PATHS) {
+  if (PGSSLROOTCERT) {
     try {
-      if (fs.existsSync(p)) {
-        const ca = fs.readFileSync(p, 'utf8');
-        return { ca, usedPath: p };
+      const resolved = path.resolve(PGSSLROOTCERT);
+      if (fs.existsSync(resolved)) {
+        const ca = fs.readFileSync(resolved, 'utf8');
+        logger.info(`[PG TLS] Using custom CA at ${resolved}`);
+        // No explicit 'servername'—node-postgres will set SNI to host automatically.
+        return { ca, rejectUnauthorized: true as const };
+      } else {
+        logger.warn(`[PG TLS] PGSSLROOTCERT set but file not found: ${resolved}. Falling back to system CAs.`);
       }
     } catch (e) {
-      logger.warn(`[PG TLS] Could not read CA at ${p}: ${(e as Error).message}`);
+      logger.warn(`[PG TLS] Failed to read PGSSLROOTCERT (${PGSSLROOTCERT}): ${(e as Error).message}. Falling back to system CAs.`);
     }
   }
-  return {};
+
+  logger.info('[PG TLS] Using system trust store (recommended for AWS RDS/Lightsail).');
+  return { rejectUnauthorized: true as const };
 }
 
-const { ca, usedPath } = loadCA();
+const ssl = buildTls();
 
-// Build SSL config
-const ssl = INSECURE
-  ? ({ rejectUnauthorized: false as const })
-  : ({
-      ...(ca ? { ca } : {}),
-      rejectUnauthorized: true as const,
-      // IMPORTANT: this must be your **database hostname** (e.g., RDS endpoint), not an IP.
-      servername: config.pgHost,
-    });
-
-// Helpful startup logs
-logger.info(
-  `[PG TLS] host=${config.pgHost} port=${config.pgPort} insecure=${INSECURE} ` +
-  `caPath=${usedPath ?? 'none'}`
-);
-
-// Create the pool using explicit fields (avoid connectionString/env sslmode surprises)
+// --- Pool --------------------------------------------------------------------
 const pool = new Pool({
-  host: config.pgHost,                 // Use your RDS/DB hostname here
+  host: config.pgHost,                 // e.g., *.rds.amazonaws.com (hostname, not IP)
   port: Number(config.pgPort),
   user: config.pgUser,
   password: config.pgPassword,
   database: config.pgDatabase,
-  ssl,
+  ssl,                                 // Built above; no connectionString to avoid sslmode surprises
 });
+
+// Helpful startup log
+logger.info(
+  `[PG] Connecting host=${config.pgHost} port=${config.pgPort} db=${config.pgDatabase} ` +
+  `insecure=${INSECURE} customCA=${Boolean(PGSSLROOTCERT)}`
+);
 
 pool.on('error', (err) => logger.error('Unexpected PG pool error', err));
 
