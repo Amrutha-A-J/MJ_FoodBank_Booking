@@ -7,6 +7,8 @@ import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
 
+type StaffUpdateValues = [string, string, string, string[], string, ...(string | number)[]];
+
 export async function listStaff(_req: Request, res: Response, next: NextFunction) {
   try {
     const result = await pool.query(
@@ -93,7 +95,7 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
   try {
     let query =
       'UPDATE staff SET first_name=$1, last_name=$2, email=$3, access=$4, role=$5';
-    const values: any[] = [firstName, lastName, email, access, role];
+    const values: StaffUpdateValues = [firstName, lastName, email, access, role];
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
       query += ', password=$6 WHERE id=$7';
