@@ -48,6 +48,14 @@ npm run build
 
 The generated JavaScript lands in `MJ_FB_Backend/dist/` and the script prints a confirmation when complete.
 
+## Database SSL
+
+The backend trusts the AWS RDS certificate chain stored at
+`MJ_FB_Backend/certs/rds-global-bundle.pem`. Override this path with the
+`PGSSLROOTCERT` environment variable if the bundle is located elsewhere.
+`PG_HOST` should reference the Lightsail endpoint DNS name rather than an IP
+address so hostname verification succeeds.
+
 ## Timesheet and Leave Setup
 
 Timesheet features require backend migrations, seeded pay periods, and email

@@ -4,7 +4,15 @@ import { Pool } from 'pg';
 import config from './config';
 import logger from './utils/logger';
 
-const caPath = path.join(__dirname, '../certs/rds-global-bundle.pem');
+const defaultCA = path.resolve(process.cwd(), 'certs/rds-global-bundle.pem');
+const caPath = process.env.PGSSLROOTCERT || defaultCA;
+const ssl = fs.existsSync(caPath)
+  ? {
+      ca: fs.readFileSync(caPath, 'utf8'),
+      rejectUnauthorized: true,
+      servername: process.env.PGHOST,
+    }
+  : undefined;
 
 const pool = new Pool({
   user: config.pgUser,
@@ -12,10 +20,7 @@ const pool = new Pool({
   host: config.pgHost,
   port: config.pgPort,
   database: config.pgDatabase,
-  ssl: {
-    ca: fs.readFileSync(caPath, 'utf8'),
-    rejectUnauthorized: true,
-  },
+  ssl,
 });
 
 pool.on('error', (err) => logger.error('Unexpected PG pool error', err));
