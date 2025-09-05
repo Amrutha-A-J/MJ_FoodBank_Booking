@@ -75,7 +75,10 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
       await sendTemplatedEmail({
         to: email,
         templateId: config.passwordSetupTemplateId,
-        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
       });
     res.status(201).json({ message: 'Staff created' });
   } catch (error) {

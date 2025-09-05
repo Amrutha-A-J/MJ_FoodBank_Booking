@@ -60,7 +60,10 @@ export async function createStaff(
       await sendTemplatedEmail({
         to: email,
         templateId: config.passwordSetupTemplateId,
-        params: { link: `${config.frontendOrigins[0]}/set-password?token=${token}` },
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
       });
     await seedTimesheets(staffId);
 
