@@ -68,10 +68,10 @@ describe('config', () => {
     expect(() => require('../src/config')).toThrow(/JWT_REFRESH_SECRET/);
   });
 
-  it('defaults PASSWORD_SETUP_TEMPLATE_ID to 1478167 when missing', () => {
+  it('defaults PASSWORD_SETUP_TEMPLATE_ID to 6 when missing', () => {
     delete process.env.PASSWORD_SETUP_TEMPLATE_ID;
     jest.resetModules();
     const config = require('../src/config').default;
-    expect(config.passwordSetupTemplateId).toBe(1478167);
+    expect(config.passwordSetupTemplateId).toBe(6);
   });
 });
