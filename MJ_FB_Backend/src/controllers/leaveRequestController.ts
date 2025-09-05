@@ -8,6 +8,7 @@ import {
 } from "../models/leaveRequest";
 import { ensureTimesheetDay } from "../models/timesheet";
 import { insertEvent } from "../models/event";
+import { parseIdParam } from "../utils/parseIdParam";
 
 export async function createLeaveRequest(
   req: Request,
@@ -58,10 +59,11 @@ export async function approveLeaveRequest(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const record = await updateLeaveRequestStatus(
-      Number(req.params.id),
-      "approved",
-    );
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      return void res.status(400).json({ message: "Invalid ID" });
+    }
+    const record = await updateLeaveRequestStatus(id, "approved");
     if (record.type !== LeaveType.Personal) {
       const start = new Date(record.start_date);
       const end = new Date(record.end_date);
@@ -97,10 +99,11 @@ export async function rejectLeaveRequest(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const record = await updateLeaveRequestStatus(
-      Number(req.params.id),
-      "rejected",
-    );
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
+      return void res.status(400).json({ message: "Invalid ID" });
+    }
+    const record = await updateLeaveRequestStatus(id, "rejected");
     res.json(record);
   } catch (err) {
     next(err);

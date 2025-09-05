@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { fetchNewClients, deleteNewClient as removeNewClient } from '../models/newClient';
+import { parseIdParam } from '../utils/parseIdParam';
 
 export async function getNewClients(
   _req: Request,
@@ -20,8 +21,8 @@ export async function deleteNewClient(
   next: NextFunction,
 ) {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       return res.status(400).json({ message: 'Invalid id' });
     }
     await removeNewClient(id);

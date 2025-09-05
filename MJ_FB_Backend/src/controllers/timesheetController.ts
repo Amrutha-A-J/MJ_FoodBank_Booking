@@ -10,6 +10,7 @@ import {
   processTimesheet as modelProcessTimesheet,
 } from '../models/timesheet';
 import pool from '../db';
+import { parseIdParam } from '../utils/parseIdParam';
 
 export async function listMyTimesheets(
   req: Request,
@@ -54,7 +55,10 @@ export async function getTimesheetDays(
   try {
     if (!req.user || req.user.type !== 'staff')
       return res.status(401).json({ message: 'Unauthorized' });
-    const timesheetId = Number(req.params.id);
+    const timesheetId = parseIdParam(req.params.id);
+    if (timesheetId === null) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
     const ts = await getTimesheetById(timesheetId);
     if (!ts || (ts.staff_id !== Number(req.user.id) && req.user.role !== 'admin')) {
       return next({
@@ -74,7 +78,10 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
   try {
     if (!req.user || req.user.type !== 'staff')
       return res.status(401).json({ message: 'Unauthorized' });
-    const timesheetId = Number(req.params.id);
+    const timesheetId = parseIdParam(req.params.id);
+    if (timesheetId === null) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
     const workDate = req.params.date;
     const {
       regHours = 0,
@@ -110,7 +117,10 @@ export async function submitTimesheet(req: Request, res: Response, next: NextFun
   try {
     if (!req.user || req.user.type !== 'staff')
       return res.status(401).json({ message: 'Unauthorized' });
-    const timesheetId = Number(req.params.id);
+    const timesheetId = parseIdParam(req.params.id);
+    if (timesheetId === null) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
     const ts = await getTimesheetById(timesheetId);
     if (!ts || ts.staff_id !== Number(req.user.id)) {
       return next({
@@ -133,7 +143,10 @@ export async function submitTimesheet(req: Request, res: Response, next: NextFun
 
 export async function rejectTimesheet(req: Request, res: Response, next: NextFunction) {
   try {
-    const timesheetId = Number(req.params.id);
+    const timesheetId = parseIdParam(req.params.id);
+    if (timesheetId === null) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
     await modelRejectTimesheet(timesheetId);
     res.json({ message: 'Rejected' });
   } catch (err) {
@@ -143,7 +156,10 @@ export async function rejectTimesheet(req: Request, res: Response, next: NextFun
 
 export async function processTimesheet(req: Request, res: Response, next: NextFunction) {
   try {
-    const timesheetId = Number(req.params.id);
+    const timesheetId = parseIdParam(req.params.id);
+    if (timesheetId === null) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
     await modelProcessTimesheet(timesheetId);
     res.json({ message: 'Processed' });
   } catch (err) {

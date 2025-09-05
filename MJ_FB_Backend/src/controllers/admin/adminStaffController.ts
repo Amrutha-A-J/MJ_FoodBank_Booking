@@ -6,6 +6,7 @@ import { createStaffSchema, updateStaffSchema } from '../../schemas/admin/staffS
 import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
+import { parseIdParam } from '../../utils/parseIdParam';
 
 export async function listStaff(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -27,8 +28,8 @@ export async function listStaff(_req: Request, res: Response, next: NextFunction
 }
 
 export async function getStaff(req: Request, res: Response, next: NextFunction) {
-  const id = Number(req.params.id);
-  if (!id) return res.status(400).json({ message: 'Invalid ID' });
+  const id = parseIdParam(req.params.id);
+  if (id === null) return res.status(400).json({ message: 'Invalid ID' });
   try {
     const result = await pool.query(
       'SELECT id, first_name, last_name, email, access FROM staff WHERE id = $1',
@@ -82,8 +83,8 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
 }
 
 export async function updateStaff(req: Request, res: Response, next: NextFunction) {
-  const id = Number(req.params.id);
-  if (!id) return res.status(400).json({ message: 'Invalid ID' });
+  const id = parseIdParam(req.params.id);
+  if (id === null) return res.status(400).json({ message: 'Invalid ID' });
   const parsed = updateStaffSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ errors: parsed.error.issues });
@@ -114,8 +115,8 @@ export async function updateStaff(req: Request, res: Response, next: NextFunctio
 }
 
 export async function deleteStaff(req: Request, res: Response, next: NextFunction) {
-  const id = Number(req.params.id);
-  if (!id) return res.status(400).json({ message: 'Invalid ID' });
+  const id = parseIdParam(req.params.id);
+  if (id === null) return res.status(400).json({ message: 'Invalid ID' });
   try {
     const result = await pool.query('DELETE FROM staff WHERE id = $1', [id]);
     if ((result.rowCount ?? 0) === 0) {

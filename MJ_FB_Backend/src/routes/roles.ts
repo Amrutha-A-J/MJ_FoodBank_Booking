@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
+import { parseIdParam } from '../utils/parseIdParam';
 
 const router = Router();
 
@@ -39,8 +40,8 @@ router.get('/', async (req: Request, res: Response) => {
 
 // GET /api/roles/:roleId/shifts - returns all shifts for a role
 router.get('/:roleId/shifts', async (req: Request, res: Response) => {
-  const roleId = Number(req.params.roleId);
-  if (!Number.isInteger(roleId) || roleId <= 0) {
+  const roleId = parseIdParam(req.params.roleId);
+  if (roleId === null) {
     return res.status(400).json({ message: 'Invalid roleId' });
   }
   try {

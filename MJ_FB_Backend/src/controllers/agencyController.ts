@@ -16,6 +16,7 @@ import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import { enqueueEmail } from '../utils/emailQueue';
 import config from '../config';
+import { parseIdParam } from '../utils/parseIdParam';
 
 export async function createAgency(
   req: Request,
@@ -127,10 +128,10 @@ export async function removeClientFromAgency(
     }
     const requestedId = req.params.id;
     const paramId =
-      requestedId === 'me' ? Number(req.user?.id) : Number(requestedId);
+      requestedId === 'me' ? Number(req.user?.id) : parseIdParam(requestedId);
     const agencyId = req.user.role === 'agency' ? Number(req.user.id) : paramId;
-    const clientId = Number(req.params.clientId);
-    if (!agencyId || !clientId) {
+    const clientId = parseIdParam(req.params.clientId);
+    if (agencyId == null || clientId == null) {
       return res.status(400).json({ message: 'Missing fields' });
     }
     if (req.user.role === 'agency' && requestedId !== 'me' && agencyId !== paramId) {
@@ -162,9 +163,10 @@ export async function getAgencyClients(
       return res.status(403).json({ message: 'Forbidden' });
     }
     const requestedId = req.params.id;
-    const paramId = requestedId === 'me' ? Number(req.user?.id) : Number(requestedId);
+    const paramId =
+      requestedId === 'me' ? Number(req.user?.id) : parseIdParam(requestedId);
     const agencyId = req.user.role === 'agency' ? Number(req.user.id) : paramId;
-    if (!agencyId) {
+    if (agencyId == null) {
       return res.status(400).json({ message: 'Missing fields' });
     }
     if (

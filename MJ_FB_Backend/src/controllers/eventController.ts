@@ -4,6 +4,7 @@ import logger from '../utils/logger';
 import { createEventSchema } from '../schemas/eventSchemas';
 import { formatReginaDate } from '../utils/dateUtils';
 import type { PoolClient } from 'pg';
+import { parseIdParam } from '../utils/parseIdParam';
 
 export async function listEvents(req: Request, res: Response, next: NextFunction) {
   try {
@@ -107,8 +108,8 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
 }
 
 export async function deleteEvent(req: Request, res: Response, next: NextFunction) {
-  const id = Number(req.params.id);
-  if (Number.isNaN(id)) {
+  const id = parseIdParam(req.params.id);
+  if (id === null) {
     return res.status(400).json({ message: 'Invalid id' });
   }
   try {
