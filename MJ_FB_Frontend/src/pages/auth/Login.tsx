@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
@@ -23,8 +24,19 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [noticeOpen, setNoticeOpen] = useState(true);
+  const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
+    setNoticeOpen(count < 3);
+  }, []);
+
+  function handleNoticeClose() {
+    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0') + 1;
+    localStorage.setItem('clientLoginNoticeCount', String(count));
+    setNoticeOpen(false);
+  }
 
   const clientIdError = submitted && clientId === '';
   const passwordError = submitted && password === '';
@@ -97,11 +109,11 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <Dialog open={noticeOpen} onClose={() => setNoticeOpen(false)}>
+      <Dialog open={noticeOpen} onClose={handleNoticeClose}>
         <DialogContent sx={{ position: 'relative', pt: 4 }}>
           <IconButton
             aria-label="close"
-            onClick={() => setNoticeOpen(false)}
+            onClick={handleNoticeClose}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <CloseIcon />
