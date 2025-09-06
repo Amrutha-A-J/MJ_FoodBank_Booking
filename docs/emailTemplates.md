@@ -28,3 +28,11 @@ This document catalogs Brevo email templates used by the backend and the paramet
 
 Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
 
+## Agency client update email
+
+- **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID` (exposed as `config.agencyClientUpdateTemplateId`)
+- **Used in:**
+  - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
+- **Params:**
+  - `body` (string) – message body describing the client update.
+
