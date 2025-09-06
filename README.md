@@ -288,6 +288,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
@@ -300,6 +302,8 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                         |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Brevo template ID for client reschedule emails                        |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Brevo template ID for volunteer reschedule emails                     |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
 
