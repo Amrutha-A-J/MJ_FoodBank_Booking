@@ -241,8 +241,33 @@ describe('client visit stats', () => {
     expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([7]);
   });
 
+  it('aggregates stats by month', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        { month: new Date('2024-01-01'), clients: 2, adults: 3, children: 1 },
+        { month: new Date('2024-02-01'), clients: 3, adults: 4, children: 2 },
+      ],
+      rowCount: 2,
+    });
+
+    const res = await request(app).get('/client-visits/stats?group=month&months=2');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      { month: '2024-01', clients: 2, adults: 3, children: 1 },
+      { month: '2024-02', clients: 3, adults: 4, children: 2 },
+    ]);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([2]);
+  });
+
   it('validates days param', async () => {
     const res = await request(app).get('/client-visits/stats?days=abc');
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/invalid/i);
+  });
+
+  it('validates months param', async () => {
+    const res = await request(app).get('/client-visits/stats?group=month&months=abc');
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/invalid/i);
   });
