@@ -35,7 +35,6 @@ describe('Volunteer routes role ID validation', () => {
 
   it('creates a volunteer when role IDs are valid', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // usernameCheck
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
       .mockResolvedValueOnce({ rowCount: 2, rows: [{ id: 1 }, { id: 2 }] }) // validRoles
       .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // insert volunteer
@@ -45,7 +44,6 @@ describe('Volunteer routes role ID validation', () => {
     const res = await request(app).post('/volunteers').send({
       firstName: 'John',
       lastName: 'Doe',
-      username: 'johndoe',
       email: 'john@example.com',
       phone: '123',
       roleIds: [1, 2],
@@ -54,7 +52,7 @@ describe('Volunteer routes role ID validation', () => {
 
     expect(res.status).toBe(201);
     expect(res.body).toEqual({ id: 5 });
-    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/SELECT id FROM volunteer_roles/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/SELECT id FROM volunteer_roles/);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
@@ -78,12 +76,10 @@ describe('Volunteer routes role ID validation', () => {
 
   it('returns invalid role IDs when creating volunteer', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // usernameCheck
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }); // validRoles
     const res = await request(app).post('/volunteers').send({
       firstName: 'John',
       lastName: 'Doe',
-      username: 'johndoe',
       roleIds: [1, 2],
       onlineAccess: false,
     });
@@ -95,7 +91,6 @@ describe('Volunteer routes role ID validation', () => {
     const res = await request(app).post('/volunteers').send({
       firstName: 'Jane',
       lastName: 'Doe',
-      username: 'janedoe',
       roleIds: [1],
       onlineAccess: true,
     });
@@ -167,7 +162,7 @@ describe('Volunteer login with shopper profile', () => {
           id: 1,
           first_name: 'John',
           last_name: 'Doe',
-          username: 'john',
+          email: 'john@example.com',
           password: 'hashed',
           user_id: 9,
           user_role: 'shopper',
@@ -179,7 +174,7 @@ describe('Volunteer login with shopper profile', () => {
 
     const res = await request(app)
       .post('/volunteers/login')
-      .send({ username: 'john', password: 'Secret1!' });
+      .send({ email: 'john@example.com', password: 'Secret1!' });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({

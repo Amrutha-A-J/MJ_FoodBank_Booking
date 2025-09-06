@@ -24,14 +24,14 @@ describe('donation entry volunteer login', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ id: 1, first_name: 'Jane', last_name: 'Doe', username: 'jane', password: 'hashed', user_id: null, user_role: null }],
+        rows: [{ id: 1, first_name: 'Jane', last_name: 'Doe', password: 'hashed', user_id: null, user_role: null }],
       })
       .mockResolvedValueOnce({ rows: [{ name: 'Donation Entry' }] });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     const res = await request(app)
       .post('/volunteers/login')
-      .send({ username: 'jane', password: 'pw' });
+      .send({ email: 'jane@example.com', password: 'pw' });
 
     expect(res.status).toBe(200);
     expect(res.body.access).toEqual(['donation_entry']);

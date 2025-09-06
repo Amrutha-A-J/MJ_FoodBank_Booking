@@ -45,20 +45,20 @@ export async function updateTrainedArea(
 }
 
 export async function loginVolunteer(req: Request, res: Response, next: NextFunction) {
-  const { username, password } = req.body as {
-    username?: string;
+  const { email, password } = req.body as {
+    email?: string;
     password?: string;
   };
-  if (!username || !password) {
-    return res.status(400).json({ message: 'Username and password required' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password required' });
   }
   try {
     const result = await pool.query(
-        `SELECT v.id, v.first_name, v.last_name, v.username, v.password, v.user_id, u.role AS user_role
+        `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
-         WHERE v.username = $1`,
-      [username]
+         WHERE v.email = $1`,
+      [email]
     );
     if ((result.rowCount ?? 0) === 0) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -122,7 +122,7 @@ export async function getVolunteerProfile(
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
     const profileRes = await pool.query(
-      `SELECT id, first_name, last_name, email, phone, username FROM volunteers WHERE id = $1`,
+      `SELECT id, first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
       [user.id],
     );
     if ((profileRes.rowCount ?? 0) === 0) {
@@ -143,7 +143,6 @@ export async function getVolunteerProfile(
       email: row.email,
       phone: row.phone,
       role: 'volunteer',
-      username: row.username,
       trainedAreas: trainedRes.rows.map(r => r.name),
     });
   } catch (error) {
@@ -160,7 +159,6 @@ export async function createVolunteer(
   const {
     firstName,
     lastName,
-    username,
     email,
     phone,
     roleIds,
@@ -168,7 +166,6 @@ export async function createVolunteer(
   } = req.body as {
     firstName?: string;
     lastName?: string;
-    username?: string;
     email?: string;
     phone?: string;
     roleIds?: number[];
@@ -178,13 +175,12 @@ export async function createVolunteer(
   if (
     !firstName ||
     !lastName ||
-    !username ||
     !Array.isArray(roleIds) ||
     roleIds.length === 0 ||
     roleIds.some(r => typeof r !== 'number')
   ) {
     return res.status(400).json({
-      message: 'First name, last name, username and roles required',
+      message: 'First name, last name, and roles required',
     });
   }
 
@@ -195,13 +191,6 @@ export async function createVolunteer(
   }
 
   try {
-    const usernameCheck = await pool.query('SELECT id FROM volunteers WHERE username=$1', [
-      username,
-    ]);
-    if ((usernameCheck.rowCount ?? 0) > 0) {
-      return res.status(400).json({ message: 'Username already exists' });
-    }
-
     if (email) {
       const emailCheck = await pool.query('SELECT id FROM volunteers WHERE email=$1', [
         email,
@@ -222,10 +211,10 @@ export async function createVolunteer(
     }
 
     const result = await pool.query(
-      `INSERT INTO volunteers (first_name, last_name, email, phone, username, password)
-       VALUES ($1,$2,$3,$4,$5,NULL)
+      `INSERT INTO volunteers (first_name, last_name, email, phone, password)
+       VALUES ($1,$2,$3,$4,NULL)
        RETURNING id`,
-      [firstName, lastName, email, phone, username]
+      [firstName, lastName, email, phone]
     );
     const volunteerId = result.rows[0].id;
     await pool.query(
@@ -355,7 +344,6 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
        WHERE (v.first_name || ' ' || v.last_name) ILIKE $1
           OR v.email ILIKE $1
           OR v.phone ILIKE $1
-          OR v.username ILIKE $1
        GROUP BY v.id
        ORDER BY v.first_name, v.last_name
        LIMIT 5`,

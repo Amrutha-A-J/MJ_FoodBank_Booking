@@ -50,27 +50,6 @@ describe('requestPasswordReset', () => {
     );
   });
 
-  it('handles username lookup for volunteers', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [{ id: 5, email: 'vol@example.com' }],
-    });
-    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
-    const res = await request(app)
-      .post('/auth/request-password-reset')
-      .send({ username: 'vol' });
-    expect(res.status).toBe(204);
-    expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 5);
-    expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        templateId: config.passwordSetupTemplateId,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
-          token: 'tok',
-        },
-      }),
-    );
-  });
 
   it('handles clientId lookup for clients', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
