@@ -154,7 +154,7 @@ Before merging a pull request, confirm the following:
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
-- A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours and emails coordinators about the changes.
+- A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours and emails coordinators using `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` with an `ids` parameter listing the affected booking IDs.
 - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
@@ -410,7 +410,7 @@ and cached on the server:
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
 
-The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show`.
+The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show` and sends coordinator alerts using the `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` template with an `ids` parameter.
 
 ### Frontend features
 
