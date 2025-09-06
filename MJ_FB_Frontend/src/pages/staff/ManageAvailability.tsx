@@ -32,6 +32,7 @@ import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
+import PantryQuickLinks from '../../components/PantryQuickLinks';
 import {
   getHolidays,
   addHoliday,
@@ -571,7 +572,7 @@ export default function ManageAvailability() {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Page title="Manage Availability">
+      <Page title="Manage Availability" header={<PantryQuickLinks />}>
         <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 6 }}>
           <StyledTabs tabs={tabs} />
           <FeedbackSnackbar
