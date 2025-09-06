@@ -7,7 +7,6 @@ export interface Event {
   endDate: string; // ISO string
   details?: string;
   category?: string;
-  staffIds?: number[];
   createdBy: number;
   createdByName: string;
   visibleToVolunteers?: boolean;
@@ -31,7 +30,6 @@ export async function createEvent(data: {
   category: string;
   startDate: string;
   endDate: string;
-  staffIds: number[];
   visibleToVolunteers?: boolean;
   visibleToClients?: boolean;
 }) {

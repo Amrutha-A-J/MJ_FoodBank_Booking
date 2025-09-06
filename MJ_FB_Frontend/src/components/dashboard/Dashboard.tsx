@@ -24,6 +24,8 @@ import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
 import { useTranslation } from 'react-i18next';
+import PantryQuickLinks from '../PantryQuickLinks';
+import { useBreadcrumbActions } from '../layout/MainLayout';
 
 export interface DashboardProps {
   role: Role;
@@ -374,6 +376,7 @@ function UserDashboard() {
 }
 
 export default function Dashboard({ role, masterRoleFilter }: DashboardProps) {
+  useBreadcrumbActions(role === 'staff' ? <PantryQuickLinks /> : null);
   if (role === 'staff')
     return <StaffDashboard masterRoleFilter={masterRoleFilter} />;
   return <UserDashboard />;

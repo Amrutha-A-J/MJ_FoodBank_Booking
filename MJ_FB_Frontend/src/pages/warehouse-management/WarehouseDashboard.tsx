@@ -33,7 +33,6 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { formatLocaleDate, toDate } from '../../utils/date';
-import { useAuth } from '../../hooks/useAuth';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import VolunteerCoverageCard from '../../components/dashboard/VolunteerCoverageCard';
 import EventList from '../../components/EventList';
@@ -76,7 +75,6 @@ function kpiDelta(curr: number, prev?: number) {
 export default function WarehouseDashboard() {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { id } = useAuth();
   const searchRef = useRef<HTMLInputElement>(null);
   const [years, setYears] = useState<number[]>([]);
   const [year, setYear] = useState<number>();
@@ -233,11 +231,8 @@ export default function WarehouseDashboard() {
   );
 
   const visibleEvents = useMemo(
-    () =>
-      [...events.today, ...events.upcoming].filter(
-        ev => !ev.staffIds || ev.staffIds.includes(id ?? -1),
-      ),
-    [events, id],
+    () => [...events.today, ...events.upcoming],
+    [events],
   );
 
   function go(path: string) {

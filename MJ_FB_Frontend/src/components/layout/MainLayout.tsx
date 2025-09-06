@@ -3,7 +3,13 @@ import { useTheme } from '@mui/material/styles';
 import Navbar, { type NavGroup, type NavLink } from '../Navbar';
 import Breadcrumbs from '../Breadcrumbs';
 import PageContainer from './PageContainer';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 
 interface MainLayoutProps {
   groups: NavGroup[];
@@ -20,6 +26,9 @@ const setDocumentTitle = (title: string) => {
 };
 
 const PageTitleContext = createContext<(title: string) => void>(setDocumentTitle);
+const BreadcrumbActionsContext = createContext<
+  (actions: ReactNode | null) => void
+>(() => {});
 
 export function usePageTitle(title: string) {
   const setTitle = useContext(PageTitleContext);
@@ -28,8 +37,17 @@ export function usePageTitle(title: string) {
   }, [setTitle, title]);
 }
 
+export function useBreadcrumbActions(actions: ReactNode | null) {
+  const setActions = useContext(BreadcrumbActionsContext);
+  useEffect(() => {
+    setActions(actions);
+    return () => setActions(null);
+  }, [actions, setActions]);
+}
+
 export default function MainLayout({ children, ...navbarProps }: MainLayoutProps) {
   const [title, setTitle] = useState('');
+  const [actions, setActions] = useState<ReactNode | null>(null);
   const theme = useTheme();
 
   useEffect(() => {
@@ -46,13 +64,25 @@ export default function MainLayout({ children, ...navbarProps }: MainLayoutProps
 
   return (
     <PageTitleContext.Provider value={setTitle}>
-      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Navbar {...navbarProps} />
-        <PageContainer component="main">
-          <Breadcrumbs />
-          {children}
-        </PageContainer>
-      </Box>
+      <BreadcrumbActionsContext.Provider value={setActions}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+          <Navbar {...navbarProps} />
+          <PageContainer component="main">
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+              }}
+            >
+              <Breadcrumbs />
+              {actions}
+            </Box>
+            {children}
+          </PageContainer>
+        </Box>
+      </BreadcrumbActionsContext.Provider>
     </PageTitleContext.Provider>
   );
 }

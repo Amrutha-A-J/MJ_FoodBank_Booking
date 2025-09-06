@@ -59,7 +59,6 @@ describe('POST /events', () => {
     category: 'General',
     startDate: '2024-01-01',
     endDate: '2024-01-02',
-    staffIds: [2],
   };
 
   it('creates an event and commits the transaction', async () => {
@@ -73,7 +72,6 @@ describe('POST /events', () => {
         .fn()
         .mockResolvedValueOnce(undefined) // BEGIN
         .mockResolvedValueOnce({ rows: [{ id: 42 }] }) // insert event
-        .mockResolvedValueOnce(undefined) // insert event_staff
         .mockResolvedValueOnce(undefined), // COMMIT
       release: jest.fn(),
     };
@@ -94,7 +92,7 @@ describe('POST /events', () => {
     expect(client.release).toHaveBeenCalled();
   });
 
-  it('rolls back if inserting staff fails', async () => {
+  it('rolls back if inserting event fails', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
@@ -104,8 +102,7 @@ describe('POST /events', () => {
       query: jest
         .fn()
         .mockResolvedValueOnce(undefined) // BEGIN
-        .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // insert event
-        .mockRejectedValueOnce(new Error('fail')) // insert event_staff fails
+        .mockRejectedValueOnce(new Error('fail')) // insert event fails
         .mockResolvedValueOnce(undefined), // ROLLBACK
       release: jest.fn(),
     };
