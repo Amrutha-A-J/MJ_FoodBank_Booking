@@ -1,15 +1,18 @@
 import { fetchWithRetry } from './fetchWithRetry';
 
-const API_BASE =
+let API_BASE =
   (typeof process !== 'undefined' ? process.env?.VITE_API_BASE : undefined) ??
   (globalThis as any).VITE_API_BASE;
 
 if (!API_BASE) {
   const message =
-    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000)';
+    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000/api)';
   console.error(message);
   throw new Error(message);
 }
+
+API_BASE = API_BASE.replace(/\/$/, '');
+if (!API_BASE.endsWith('/api')) API_BASE += '/api';
 
 function getCsrfToken() {
   return document.cookie

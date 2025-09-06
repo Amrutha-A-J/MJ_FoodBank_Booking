@@ -13,7 +13,7 @@ import './src/i18n';
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');
 (Element.prototype as any).scrollIntoView = jest.fn();
 if (!process.env.VITE_API_BASE) {
-  process.env.VITE_API_BASE = 'http://localhost:4000';
+  process.env.VITE_API_BASE = 'http://localhost:4000/api';
 }
 (globalThis as any).VITE_API_BASE = process.env.VITE_API_BASE;
 

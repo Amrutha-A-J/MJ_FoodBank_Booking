@@ -32,7 +32,7 @@ Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing 
 The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with:
 
 ```
-VITE_API_BASE=http://localhost:4000
+VITE_API_BASE=http://localhost:4000/api
 ```
 
 The build will fail if this variable is missing.

@@ -277,7 +277,7 @@ After setting a password, users are redirected to the login page for their role.
 1. **Create an agency** – as staff, call `POST /agencies` with the agency details:
 
    ```bash
-   curl -X POST http://localhost:4000/agencies \
+   curl -X POST http://localhost:4000/api/agencies \
      -H "Authorization: Bearer <staff-token>" \
     -H "Content-Type: application/json" \
     -d '{"name":"Sample Agency","email":"agency@example.com","contactInfo":"123-4567"}'
@@ -302,14 +302,14 @@ After setting a password, users are redirected to the login page for their role.
 
 # As staff assigning client 42 to agency 1
 
-curl -X POST http://localhost:4000/agencies/add-client \
+curl -X POST http://localhost:4000/api/agencies/add-client \
  -H "Authorization: Bearer <token>" \
  -H "Content-Type: application/json" \
  -d '{"agencyId":1,"clientId":42}'
 
 # As the agency itself
 
-curl -X POST http://localhost:4000/agencies/add-client \
+curl -X POST http://localhost:4000/api/agencies/add-client \
  -H "Authorization: Bearer <agency-token>" \
  -H "Content-Type: application/json" \
  -d '{"agencyId":1,"clientId":42}'
@@ -364,7 +364,7 @@ npm start   # or npm run dev
 The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with:
 
 ```
-VITE_API_BASE=http://localhost:4000
+VITE_API_BASE=http://localhost:4000/api
 ```
 
 The build will fail if this variable is missing.
