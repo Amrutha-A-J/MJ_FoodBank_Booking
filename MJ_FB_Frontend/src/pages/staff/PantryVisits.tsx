@@ -111,6 +111,7 @@ export default function PantryVisits() {
     anonymous: false,
     sunshineBag: false,
     sunshineWeight: '',
+    sunshineClients: '',
     clientId: '',
     weightWithCart: '',
     weightWithoutCart: '',
@@ -122,6 +123,7 @@ export default function PantryVisits() {
   const [autoWeight, setAutoWeight] = useState(true);
   const [clientFound, setClientFound] = useState<boolean | null>(null);
   const [sunshineBagWeight, setSunshineBagWeight] = useState(0);
+  const [sunshineBagClients, setSunshineBagClients] = useState(0);
 
   const filteredVisits = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -138,8 +140,14 @@ export default function PantryVisits() {
       .then(setVisits)
       .catch(() => setVisits([]));
     getSunshineBag(format(selectedDate))
-      .then(sb => setSunshineBagWeight(sb?.weight ?? 0))
-      .catch(() => setSunshineBagWeight(0));
+      .then(sb => {
+        setSunshineBagWeight(sb?.weight ?? 0);
+        setSunshineBagClients(sb?.clientCount ?? 0);
+      })
+      .catch(() => {
+        setSunshineBagWeight(0);
+        setSunshineBagClients(0);
+      });
   }, [selectedDate]);
 
   useEffect(() => {
@@ -176,9 +184,17 @@ export default function PantryVisits() {
     if (form.sunshineBag) {
       getSunshineBag(form.date)
         .then(sb =>
-          setForm(f => ({ ...f, sunshineWeight: sb?.weight ? String(sb.weight) : '' })),
+          setForm(f => ({
+            ...f,
+            sunshineWeight: sb?.weight ? String(sb.weight) : '',
+            sunshineClients: sb?.clientCount
+              ? String(sb.clientCount)
+              : '',
+          })),
         )
-        .catch(() => setForm(f => ({ ...f, sunshineWeight: '' })));
+        .catch(() =>
+          setForm(f => ({ ...f, sunshineWeight: '', sunshineClients: '' })),
+        );
     }
   }, [form.sunshineBag, form.date]);
 
@@ -242,11 +258,15 @@ export default function PantryVisits() {
 
   function handleSaveVisit() {
     if (form.sunshineBag) {
-      if (!form.sunshineWeight) {
-        setSnackbar({ open: true, message: 'Weight required', severity: 'error' });
+      if (!form.sunshineWeight || !form.sunshineClients) {
+        setSnackbar({ open: true, message: 'Weight and clients required', severity: 'error' });
         return;
       }
-      saveSunshineBag({ date: form.date, weight: Number(form.sunshineWeight) })
+      saveSunshineBag({
+        date: form.date,
+        weight: Number(form.sunshineWeight),
+        clientCount: Number(form.sunshineClients),
+      })
         .then(() => {
           setRecordOpen(false);
           setEditing(null);
@@ -255,6 +275,7 @@ export default function PantryVisits() {
             anonymous: false,
             sunshineBag: false,
             sunshineWeight: '',
+            sunshineClients: '',
             clientId: '',
             weightWithCart: '',
             weightWithoutCart: '',
@@ -301,6 +322,7 @@ export default function PantryVisits() {
           anonymous: false,
           sunshineBag: false,
           sunshineWeight: '',
+          sunshineClients: '',
           clientId: '',
           weightWithCart: '',
           weightWithoutCart: '',
@@ -558,12 +580,20 @@ export default function PantryVisits() {
               <FormControlLabel value="sunshine" control={<Radio />} label={t('sunshine_bag_label')} />
             </RadioGroup>
             {form.sunshineBag ? (
-              <TextField
-                label={t('sunshine_bag_weight_label')}
-                type="number"
-                value={form.sunshineWeight}
-                onChange={e => setForm({ ...form, sunshineWeight: e.target.value })}
-              />
+              <>
+                <TextField
+                  label={t('sunshine_bag_weight_label')}
+                  type="number"
+                  value={form.sunshineWeight}
+                  onChange={e => setForm({ ...form, sunshineWeight: e.target.value })}
+                />
+                <TextField
+                  label={t('sunshine_bag_clients_label')}
+                  type="number"
+                  value={form.sunshineClients}
+                  onChange={e => setForm({ ...form, sunshineClients: e.target.value })}
+                />
+              </>
             ) : (
               <>
                 <TextField
@@ -633,7 +663,7 @@ export default function PantryVisits() {
             onClick={handleSaveVisit}
             disabled={
               form.sunshineBag
-                ? !form.sunshineWeight
+                ? !form.sunshineWeight || !form.sunshineClients
                 : !form.weightWithCart || !form.weightWithoutCart || !form.clientId
             }
           >

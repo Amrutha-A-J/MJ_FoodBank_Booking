@@ -281,6 +281,26 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
       const rows = await readXlsxFile(req.file.buffer, { sheet: name });
       for (const [index, row] of rows.slice(1).entries()) {
         const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+        if (String(clientId).toUpperCase() === 'SUNSHINE') {
+          const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(String(familySize ?? ''));
+          const adults = parseInt(match?.groups?.adults ?? '0', 10);
+          const children = parseInt(match?.groups?.children || '0', 10);
+          let weight = weightWithoutCart == null ? undefined : Number(weightWithoutCart);
+          if (weight == null && weightWithCart != null) {
+            weight = Number(weightWithCart) - cartTare;
+          }
+          if (weight == null || Number.isNaN(weight)) {
+            addError(name, `Row ${index + 2}: Invalid weight`);
+            continue;
+          }
+          await client.query(
+            `INSERT INTO sunshine_bag_log (date, weight, client_count)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (date) DO UPDATE SET weight = EXCLUDED.weight, client_count = EXCLUDED.client_count`,
+            [formatReginaDate(name), weight, adults + children],
+          );
+          continue;
+        }
         let parsed;
         try {
           parsed = importClientVisitsSchema.parse({
@@ -389,6 +409,29 @@ export async function importVisitsFromXlsx(
         rowIndex++;
         const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
         try {
+          if (String(clientId).toUpperCase() === 'SUNSHINE') {
+            const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(
+              String(familySize ?? ''),
+            );
+            const adults = parseInt(match?.groups?.adults ?? '0', 10);
+            const children = parseInt(match?.groups?.children || '0', 10);
+            let weight =
+              weightWithoutCart == null ? undefined : Number(weightWithoutCart);
+            if (weight == null && weightWithCart != null) {
+              weight = Number(weightWithCart) - cartTare;
+            }
+            if (weight == null || Number.isNaN(weight)) {
+              throw new Error('Invalid weight');
+            }
+            if (isDryRun) continue;
+            await client!.query(
+              `INSERT INTO sunshine_bag_log (date, weight, client_count)
+               VALUES ($1, $2, $3)
+               ON CONFLICT (date) DO UPDATE SET weight = EXCLUDED.weight, client_count = EXCLUDED.client_count`,
+              [formattedDate, weight, adults + children],
+            );
+            continue;
+          }
           const parsed = importClientVisitsSchema.parse({
             familySize: String(familySize ?? ''),
             weightWithCart:
@@ -423,14 +466,14 @@ export async function importVisitsFromXlsx(
             );
           }
 
-            const existingVisit = await client!.query(
-              'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
-              [cid, formattedDate],
-            );
+          const existingVisit = await client!.query(
+            'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
+            [cid, formattedDate],
+          );
 
-            if ((existingVisit.rowCount ?? 0) > 0) {
-              await client!.query(
-                `UPDATE client_visits
+          if ((existingVisit.rowCount ?? 0) > 0) {
+            await client!.query(
+              `UPDATE client_visits
                  SET weight_with_cart = $1,
                      weight_without_cart = $2,
                      pet_item = COALESCE($3,0),
@@ -438,32 +481,32 @@ export async function importVisitsFromXlsx(
                      children = $5,
                      is_anonymous = false
                  WHERE id = $6`,
-                [
-                  weightWithCartVal,
-                  weightWithoutCartVal,
-                  parsed.petItem ?? 0,
-                  adults,
-                  children,
-                  existingVisit.rows[0].id,
-                ],
-              );
-              await refreshClientVisitCount(cid, client!);
-            } else {
-              await client!.query(
-                `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+              [
+                weightWithCartVal,
+                weightWithoutCartVal,
+                parsed.petItem ?? 0,
+                adults,
+                children,
+                existingVisit.rows[0].id,
+              ],
+            );
+            await refreshClientVisitCount(cid, client!);
+          } else {
+            await client!.query(
+              `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
                  VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
-                [
-                  formattedDate,
-                  cid,
-                  weightWithCartVal,
-                  weightWithoutCartVal,
-                  parsed.petItem ?? 0,
-                  adults,
-                  children,
-                ],
-              );
-              await refreshClientVisitCount(cid, client!);
-            }
+              [
+                formattedDate,
+                cid,
+                weightWithCartVal,
+                weightWithoutCartVal,
+                parsed.petItem ?? 0,
+                adults,
+                children,
+              ],
+            );
+            await refreshClientVisitCount(cid, client!);
+          }
         } catch (err: any) {
           errors.push(
             `Row ${rowIndex}: ${err.errors?.[0]?.message || err.message}`,

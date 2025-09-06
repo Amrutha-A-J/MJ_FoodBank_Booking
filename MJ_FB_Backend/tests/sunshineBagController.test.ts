@@ -22,18 +22,26 @@ describe('sunshine bag log', () => {
     (pool.query as jest.Mock).mockReset();
   });
 
-  it('upserts sunshine bag weight', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ date: '2024-01-01', weight: 5 }], rowCount: 1 });
-    const res = await request(app).post('/sunshine-bags').send({ date: '2024-01-01', weight: 5 });
+  it('upserts sunshine bag weight and client count', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ date: '2024-01-01', weight: 5, clientCount: 3 }],
+      rowCount: 1,
+    });
+    const res = await request(app)
+      .post('/sunshine-bags')
+      .send({ date: '2024-01-01', weight: 5, clientCount: 3 });
     expect(res.status).toBe(201);
     expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('ON CONFLICT');
-    expect(res.body.weight).toBe(5);
+    expect(res.body).toEqual({ date: '2024-01-01', weight: 5, clientCount: 3 });
   });
 
-  it('gets sunshine bag weight by date', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ date: '2024-01-01', weight: 7 }], rowCount: 1 });
+  it('gets sunshine bag by date', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [{ date: '2024-01-01', weight: 7, clientCount: 2 }],
+      rowCount: 1,
+    });
     const res = await request(app).get('/sunshine-bags?date=2024-01-01');
     expect(res.status).toBe(200);
-    expect(res.body.weight).toBe(7);
+    expect(res.body).toEqual({ date: '2024-01-01', weight: 7, clientCount: 2 });
   });
 });
