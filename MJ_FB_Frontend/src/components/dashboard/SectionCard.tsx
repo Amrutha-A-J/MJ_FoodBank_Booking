@@ -12,7 +12,7 @@ interface SectionCardProps {
 export default function SectionCard({ title, icon, children, sx }: SectionCardProps) {
   return (
     <PageCard
-      sx={{ width: 1, ...sx }}
+      sx={{ width: '100%', ...sx }}
       header={<CardHeader title={title} avatar={icon} />}
     >
       {children}
