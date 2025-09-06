@@ -63,10 +63,10 @@ export async function importVisitsXlsx(
   formData: FormData,
   dryRun?: boolean,
 ): Promise<VisitImportPreview | void> {
-  const url = new URL(`${API_BASE}/visits/import/xlsx`);
-  if (dryRun) url.searchParams.set('dryRun', 'true');
+  let url = `${API_BASE}/visits/import/xlsx`;
+  if (dryRun) url += '?dryRun=true';
 
-  const res = await apiFetch(url.toString(), {
+  const res = await apiFetch(url, {
     method: 'POST',
     body: formData,
   });

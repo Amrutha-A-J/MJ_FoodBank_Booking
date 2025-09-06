@@ -40,11 +40,13 @@ export async function listAllTimesheets(
   year?: number,
   month?: number,
 ): Promise<TimesheetSummary[]> {
-  const url = new URL(`${API_BASE}/timesheets`);
-  if (staffId) url.searchParams.set('staffId', String(staffId));
-  if (year) url.searchParams.set('year', String(year));
-  if (month) url.searchParams.set('month', String(month));
-  const res = await apiFetch(url.toString());
+  const params = new URLSearchParams();
+  if (staffId) params.set('staffId', String(staffId));
+  if (year) params.set('year', String(year));
+  if (month) params.set('month', String(month));
+  const query = params.toString();
+  const url = `${API_BASE}/timesheets${query ? `?${query}` : ''}`;
+  const res = await apiFetch(url);
   return handleResponse(res);
 }
 
