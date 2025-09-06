@@ -8,6 +8,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Box,
 } from '@mui/material';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import People from '@mui/icons-material/People';
@@ -125,146 +126,127 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   };
 
   return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, md: 6 }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+        gridAutoFlow: 'row dense',
+        gap: 2,
+      }}
+    >
+      <SectionCard title="Today at a Glance" sx={{ order: 0 }}>
         <Grid container spacing={2}>
-          <Grid size={12}>
-            <SectionCard title="Today at a Glance">
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Stat
-                    icon={<CalendarToday color="primary" />}
-                    label="Appointments Today"
-                    value={stats.appointments}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Stat
-                    icon={<People color="primary" />}
-                    label="Volunteers Scheduled"
-                    value={stats.volunteers}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Stat
-                    icon={<CancelIcon color="error" />}
-                    label="Cancellations"
-                    value={stats.cancellations}
-                  />
-                </Grid>
-              </Grid>
-            </SectionCard>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stat
+              icon={<CalendarToday color="primary" />}
+              label="Appointments Today"
+              value={stats.appointments}
+            />
           </Grid>
-          <Grid size={12}>
-            <VolunteerCoverageCard
-              masterRoleFilter={masterRoleFilter}
-              onCoverageLoaded={data =>
-                setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stat
+              icon={<People color="primary" />}
+              label="Volunteers Scheduled"
+              value={stats.volunteers}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stat
+              icon={<CancelIcon color="error" />}
+              label="Cancellations"
+              value={stats.cancellations}
+            />
+          </Grid>
+        </Grid>
+      </SectionCard>
+      <VolunteerCoverageCard
+        masterRoleFilter={masterRoleFilter}
+        onCoverageLoaded={data =>
+          setVolunteerCount(data.reduce((sum, c) => sum + c.filled, 0))
+        }
+        sx={{ order: 0 }}
+      />
+      <SectionCard
+        title="News & Events"
+        icon={<Announcement color="primary" />}
+        sx={{ order: 0 }}
+      >
+        <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+      </SectionCard>
+      <SectionCard title="Total Clients" sx={{ order: 1 }}>
+        <ClientVisitTrendChart data={visitStats} />
+      </SectionCard>
+      <SectionCard title="Adults vs Children" sx={{ order: 1 }}>
+        <ClientVisitBreakdownChart data={visitStats} />
+      </SectionCard>
+      <SectionCard title="Quick Search" sx={{ order: 2 }}>
+        <Stack spacing={2}>
+          <EntitySearch
+            type={searchType}
+            placeholder="Search"
+            onSelect={res => {
+              if (searchType === 'user') {
+                navigate(
+                  `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
+                    res.name,
+                  )}&clientId=${res.client_id}`,
+                );
+              } else {
+                navigate(
+                  `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
+                    res.name,
+                  )}`,
+                );
               }
-            />
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Grid container spacing={2}>
-          <Grid size={12}>
-            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
-              <EventList
-                events={[...events.today, ...events.upcoming]}
-                limit={5}
-              />
-            </SectionCard>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid size={12}>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <SectionCard title="Total Clients">
-              <ClientVisitTrendChart data={visitStats} />
-            </SectionCard>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <SectionCard title="Adults vs Children">
-              <ClientVisitBreakdownChart data={visitStats} />
-            </SectionCard>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid size={12}>
-        <SectionCard title="Quick Search">
-          <Stack spacing={2}>
-            <EntitySearch
-              type={searchType}
-              placeholder="Search"
-              onSelect={res => {
-                if (searchType === 'user') {
-                  navigate(
-                    `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
-                      res.name,
-                    )}&clientId=${res.client_id}`,
-                  );
-                } else {
-                  navigate(
-                    `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
-                      res.name,
-                    )}`,
-                  );
-                }
-              }}
-            />
-            <Stack direction="row" spacing={1}>
-              <Button
-                size="small"
-                variant={searchType === 'user' ? 'contained' : 'outlined'}
-                sx={{ textTransform: 'none' }}
-                onClick={() => setSearchType('user')}
-              >
-                Find Client
-              </Button>
-              <Button
-                size="small"
-                variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
-                sx={{ textTransform: 'none' }}
-                onClick={() => setSearchType('volunteer')}
-              >
-                Find Volunteer
-              </Button>
-            </Stack>
+            }}
+          />
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant={searchType === 'user' ? 'contained' : 'outlined'}
+              sx={{ textTransform: 'none' }}
+              onClick={() => setSearchType('user')}
+            >
+              Find Client
+            </Button>
+            <Button
+              size="small"
+              variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
+              sx={{ textTransform: 'none' }}
+              onClick={() => setSearchType('volunteer')}
+            >
+              Find Volunteer
+            </Button>
           </Stack>
-        </SectionCard>
-      </Grid>
-      <Grid size={12}>
-        <SectionCard title="Recent Cancellations">
-          <List>
-            {cancellations.slice(0, 5).map(c => (
-              <ListItem key={c.id}>
-                <ListItemText
-                  primary={`${c.user_name || 'Unknown'} - ${formatTime(
-                    c.start_time || '',
-                  )}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-      <Grid size={12}>
-        <SectionCard title="Volunteer Shift Changes">
-          <List>
-            {volCancellations.slice(0, 5).map(c => (
-              <ListItem key={c.id}>
-                <ListItemText
-                  primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(
-                    c.start_time || '',
-                  )}`}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </SectionCard>
-      </Grid>
-    </Grid>
+        </Stack>
+      </SectionCard>
+      <SectionCard title="Recent Cancellations" sx={{ order: 3 }}>
+        <List>
+          {cancellations.slice(0, 5).map(c => (
+            <ListItem key={c.id}>
+              <ListItemText
+                primary={`${c.user_name || 'Unknown'} - ${formatTime(
+                  c.start_time || '',
+                )}`}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </SectionCard>
+      <SectionCard title="Volunteer Shift Changes" sx={{ order: 4 }}>
+        <List>
+          {volCancellations.slice(0, 5).map(c => (
+            <ListItem key={c.id}>
+              <ListItemText
+                primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(
+                  c.start_time || '',
+                )}`}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </SectionCard>
+    </Box>
   );
 }
 
