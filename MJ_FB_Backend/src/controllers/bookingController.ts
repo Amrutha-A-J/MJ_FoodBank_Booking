@@ -41,7 +41,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-  const { slotId, date, isStaffBooking, note } = req.body;
+  const { slotId, date, isStaffBooking, note, type } = req.body;
+  const emailType = type || 'shopping appointment';
   if (slotId === undefined || slotId === null) {
     return res.status(400).json({ message: 'Please select a time slot' });
   }
@@ -134,7 +135,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       enqueueEmail({
         to: user.email,
         templateId: 1,
-        params: { body, cancelLink, rescheduleLink, googleCalendarLink, outlookCalendarLink },
+        params: { body, cancelLink, rescheduleLink, googleCalendarLink, outlookCalendarLink, type: emailType },
       });
     } else {
       logger.warn(
@@ -201,6 +202,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
   const reason =
     requester.role === 'staff' ? (req.body.reason as string) || '' : 'user cancelled';
+  const type = (req.body?.type as string) || 'shopping appointment';
 
   try {
     const booking = await fetchBookingById(Number(bookingId));
@@ -253,7 +255,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
     }
     if (email) {
       const body = `Booking ${bookingId} was cancelled`;
-      enqueueEmail({ to: email, templateId: 1, params: { body } });
+      enqueueEmail({ to: email, templateId: 1, params: { body, type } });
     } else {
       logger.warn(
         'Booking cancellation email not sent. Booking %s has no associated email.',
@@ -274,6 +276,7 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
     return res.status(400).json({ message: 'Invalid ID' });
   }
   const reason = (req.body?.reason as string) || '';
+  const type = (req.body?.type as string) || 'shopping appointment';
   try {
     const result = await pool.query(
       `SELECT COALESCE(c.email, nc.email) AS email, b.reschedule_token, b.date
@@ -290,7 +293,7 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
     if (booking?.email && booking?.reschedule_token) {
       const link = `${config.frontendOrigins[0]}/reschedule/${booking.reschedule_token}`;
       const body = `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`;
-      enqueueEmail({ to: booking.email, templateId: 1, params: { body } });
+      enqueueEmail({ to: booking.email, templateId: 1, params: { body, type } });
     }
 
     res.json({ message: 'Booking marked as no-show' });
@@ -351,7 +354,12 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
 // --- Reschedule booking using token ---
 export async function rescheduleBooking(req: Request, res: Response, next: NextFunction) {
   const { token } = req.params;
-  const { slotId, date } = req.body as { slotId?: number; date?: string };
+  const { slotId, date, type } = req.body as {
+    slotId?: number;
+    date?: string;
+    type?: string;
+  };
+  const emailType = type || 'shopping appointment';
   if (!slotId || !date) {
     return res.status(400).json({ message: 'Please select a time slot and date' });
   }
@@ -418,7 +426,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     }
     if (email) {
       const body = `Booking ${booking.id} was rescheduled`;
-      enqueueEmail({ to: email, templateId: 1, params: { body } });
+      enqueueEmail({ to: email, templateId: 1, params: { body, type: emailType } });
     } else {
       logger.warn(
         'Booking rescheduled email not sent. Booking %s has no associated email.',
@@ -524,7 +532,8 @@ export async function createBookingForUser(
   if (!req.user || (req.user.role !== 'staff' && req.user.role !== 'agency'))
     return res.status(403).json({ message: 'Forbidden' });
 
-  const { userId, slotId, date, note } = req.body;
+  const { userId, slotId, date, note, type } = req.body;
+  const emailType = type || 'shopping appointment';
   const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
     return res
@@ -606,7 +615,7 @@ export async function createBookingForUser(
       enqueueEmail({
         to: clientEmail,
         templateId: 1,
-        params: { body, googleCalendarLink, outlookCalendarLink },
+        params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
       });
     } else {
       logger.warn(

@@ -31,7 +31,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       enqueueEmail({
         to: row.email,
         templateId: 1,
-        params: { body, cancelLink, rescheduleLink },
+        params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
       });
     }
   } catch (err) {

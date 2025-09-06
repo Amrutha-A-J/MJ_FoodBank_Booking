@@ -33,6 +33,7 @@ interface CreateBookingBody {
   date: string;
   note: string;
   userId?: number;
+  type: string;
 }
 
 const mapSlot = (s: SlotResponse): Slot => ({
@@ -86,6 +87,7 @@ export async function createBooking(
     slotId: Number(slotId),
     date,
     note,
+    type: 'shopping appointment',
   };
   if (note) body.note = note;
   if (userId) body.userId = userId;
@@ -277,7 +279,7 @@ export async function cancelBooking(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(reason ? { reason } : {}),
+    body: JSON.stringify(reason ? { reason, type: 'shopping appointment' } : { type: 'shopping appointment' }),
   });
   await handleResponse<void>(res);
 }
@@ -289,7 +291,7 @@ export async function markBookingNoShow(
   const res = await apiFetch(`${API_BASE}/bookings/${bookingId}/no-show`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(reason ? { reason } : {}),
+    body: JSON.stringify(reason ? { reason, type: 'shopping appointment' } : { type: 'shopping appointment' }),
   });
   await handleResponse<void>(res);
 }
@@ -321,7 +323,7 @@ export async function createBookingForUser(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ userId, slotId, date, isStaffBooking }),
+    body: JSON.stringify({ userId, slotId, date, isStaffBooking, type: 'shopping appointment' }),
   });
   await handleResponse<void>(res);
 }
@@ -336,7 +338,7 @@ export async function createBookingForNewClient(
   const res = await apiFetch(`${API_BASE}/bookings/new-client`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, phone, slotId, date }),
+    body: JSON.stringify({ name, email, phone, slotId, date, type: 'shopping appointment' }),
   });
   await handleResponse<void>(res);
 }
@@ -350,7 +352,7 @@ export async function rescheduleBookingByToken(
   const res = await apiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ slotId, date }),
+    body: JSON.stringify({ slotId, date, type: 'shopping appointment' }),
   });
   await handleResponse<void>(res);
 }
