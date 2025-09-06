@@ -103,4 +103,24 @@ describe('ClientDashboard', () => {
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.queryByText('bring bag')).not.toBeInTheDocument();
   });
+
+  it('renders quick actions card first', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    const quick = await screen.findByText(/quick actions/i);
+    const news = await screen.findByText(/news & events/i);
+    const next = await screen.findByText(/next available slots/i);
+
+    expect(quick.compareDocumentPosition(news) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(quick.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { List, ListItem, ListItemText, Chip } from '@mui/material';
+import { List, ListItem, ListItemText, Chip, type SxProps, type Theme } from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import { formatReginaDate } from '../../utils/time';
@@ -15,11 +15,13 @@ interface CoverageItem {
 interface VolunteerCoverageCardProps {
   masterRoleFilter?: string[];
   onCoverageLoaded?: (data: CoverageItem[]) => void;
+  sx?: SxProps<Theme>;
 }
 
 export default function VolunteerCoverageCard({
   masterRoleFilter,
   onCoverageLoaded,
+  sx,
 }: VolunteerCoverageCardProps) {
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
   const [error, setError] = useState('');
@@ -63,7 +65,7 @@ export default function VolunteerCoverageCard({
 
   return (
     <>
-      <SectionCard title="Volunteer Coverage">
+      <SectionCard title="Volunteer Coverage" sx={sx}>
         <List>
           {coverage.map(c => {
             const ratio = c.filled / c.total;
