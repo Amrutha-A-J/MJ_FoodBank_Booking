@@ -42,8 +42,8 @@ describe('client visit notes', () => {
             petItem: 0,
             anonymous: false,
             note: 'bring ID',
-            adults: 0,
-            children: 0,
+            adults: 1,
+            children: 2,
           },
         ],
         rowCount: 1,
@@ -64,16 +64,18 @@ describe('client visit notes', () => {
         weightWithCart: 10,
         weightWithoutCart: 9,
         note: 'bring ID',
-        adults: 0,
-        children: 0,
+        adults: 1,
+        children: 2,
       });
 
     expect(res.status).toBe(201);
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      ['2024-01-02', 123, 10, 9, 0, false, 'bring ID', 0, 0],
+      ['2024-01-02', 123, 10, 9, 0, false, 'bring ID', 1, 2],
     );
     expect(res.body.note).toBe('bring ID');
+    expect(res.body.adults).toBe(1);
+    expect(res.body.children).toBe(2);
   });
 
   it('persists note on update', async () => {
@@ -90,8 +92,8 @@ describe('client visit notes', () => {
             petItem: 0,
             anonymous: false,
             note: 'updated note',
-            adults: 0,
-            children: 0,
+            adults: 1,
+            children: 2,
           },
         ],
         rowCount: 1,
@@ -107,16 +109,18 @@ describe('client visit notes', () => {
         weightWithCart: 10,
         weightWithoutCart: 9,
         note: 'updated note',
-        adults: 0,
-        children: 0,
+        adults: 1,
+        children: 2,
       });
 
     expect(res.status).toBe(200);
     expect((pool.query as jest.Mock).mock.calls[1]).toEqual([
       expect.stringContaining('UPDATE client_visits'),
-      ['2024-01-02', 123, 10, 9, 0, false, 'updated note', 0, 0, '7'],
+      ['2024-01-02', 123, 10, 9, 0, false, 'updated note', 1, 2, '7'],
     ]);
     expect(res.body.note).toBe('updated note');
+    expect(res.body.adults).toBe(1);
+    expect(res.body.children).toBe(2);
   });
 
   it('lists notes', async () => {
@@ -131,8 +135,8 @@ describe('client visit notes', () => {
           petItem: 0,
           anonymous: false,
           note: 'listed note',
-          adults: 0,
-          children: 0,
+          adults: 1,
+          children: 2,
           clientName: 'Ann Client',
         },
       ],
@@ -142,5 +146,7 @@ describe('client visit notes', () => {
     const res = await request(app).get('/client-visits?date=2024-01-02');
     expect(res.status).toBe(200);
     expect(res.body[0].note).toBe('listed note');
+    expect(res.body[0].adults).toBe(1);
+    expect(res.body[0].children).toBe(2);
   });
 });
