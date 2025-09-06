@@ -624,7 +624,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     <Page title={title}>
       {tab === 'dashboard' && (
         <Suspense fallback={<CircularProgress />}>
-          <Dashboard role="staff" masterRoleFilter={undefined} />
+          <Dashboard
+            role="staff"
+            masterRoleFilter={undefined}
+            showPantryQuickLinks={false}
+          />
         </Suspense>
       )}
       {tab === 'schedule' && (
