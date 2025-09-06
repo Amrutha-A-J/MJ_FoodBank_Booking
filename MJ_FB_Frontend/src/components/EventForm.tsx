@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,7 +7,6 @@ import {
   TextField,
   MenuItem,
   Button,
-  Autocomplete,
   FormControlLabel,
   Checkbox,
 } from '@mui/material';
@@ -18,7 +17,6 @@ import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent } from '../api/events';
-import { searchStaff, type StaffOption } from '../api/staff';
 import DialogCloseButton from './DialogCloseButton';
 
 interface EventFormProps {
@@ -42,35 +40,10 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   const [category, setCategory] = useState('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [staffInput, setStaffInput] = useState('');
-  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
-  const [selectedStaff, setSelectedStaff] = useState<StaffOption[]>([]);
   const [visibleToVolunteers, setVisibleToVolunteers] = useState(false);
   const [visibleToClients, setVisibleToClients] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    if (!staffInput) {
-      setStaffOptions([]);
-      return undefined;
-    }
-    searchStaff(staffInput)
-      .then(data => {
-        if (active) setStaffOptions(data);
-      })
-      .catch(() => {
-        if (active) setStaffOptions([]);
-      });
-    return () => {
-      active = false;
-    };
-  }, [staffInput]);
-
-  function handleStaffChange(_: any, value: StaffOption[]) {
-    setSelectedStaff(value);
-  }
 
   async function submit() {
     if (!title || !category || !startDate || !endDate) {
@@ -88,7 +61,6 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
         category,
         startDate: formatReginaDate(startDate),
         endDate: formatReginaDate(endDate),
-        staffIds: selectedStaff.map(s => s.id),
         visibleToVolunteers,
         visibleToClients,
       });
@@ -98,7 +70,6 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
       setCategory('');
       setStartDate(null);
       setEndDate(null);
-      setSelectedStaff([]);
       setVisibleToVolunteers(false);
       setVisibleToClients(false);
       onCreated();
@@ -158,17 +129,6 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
             />
           </LocalizationProvider>
-          <Autocomplete
-            multiple
-            options={staffOptions}
-            value={selectedStaff}
-            onChange={handleStaffChange}
-            onInputChange={(_, val) => setStaffInput(val)}
-            getOptionLabel={option => option.name}
-            renderInput={params => (
-              <TextField {...params} label="Staff Involved" margin="normal" />
-            )}
-          />
           <FormControlLabel
             control={
               <Checkbox

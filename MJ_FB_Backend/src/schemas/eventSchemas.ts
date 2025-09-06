@@ -6,7 +6,6 @@ export const createEventSchema = z.object({
   category: z.string().min(1),
   startDate: z.string().min(1),
   endDate: z.string().min(1),
-  staffIds: z.array(z.number().int()).optional(),
   visibleToVolunteers: z.boolean().optional(),
   visibleToClients: z.boolean().optional(),
 }).refine((data) => data.endDate >= data.startDate, {
