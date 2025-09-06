@@ -12,6 +12,7 @@ import {
 } from '../utils/bookingUtils';
 import { enqueueEmail } from '../utils/emailQueue';
 import { buildCancelRescheduleLinks, buildCalendarLinks } from '../utils/emailUtils';
+import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
 import { parseIdParam } from '../utils/parseIdParam';
 import {
@@ -458,6 +459,33 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       const newTime = newSlotRes.rows[0]
         ? `${newSlotRes.rows[0].start_time} to ${newSlotRes.rows[0].end_time}`
         : '';
+      const title = 'Moose Jaw Food Bank Booking';
+      const description = 'Your booking at the Moose Jaw Food Bank';
+      const location = 'Moose Jaw Food Bank';
+      const uid = String(booking.id);
+      const cancelIcs = buildIcsFile({
+        title,
+        start: new Date(`${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`),
+        end: new Date(`${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`),
+        description,
+        location,
+        uid,
+        method: 'CANCEL',
+        sequence: 0,
+      });
+      const requestIcs = buildIcsFile({
+        title,
+        start: new Date(`${date}T${newSlotRes.rows[0].start_time}-06:00`),
+        end: new Date(`${date}T${newSlotRes.rows[0].end_time}-06:00`),
+        description,
+        location,
+        uid,
+        sequence: 1,
+      });
+      const attachments = [
+        { name: 'cancel.ics', content: Buffer.from(cancelIcs).toString('base64') },
+        { name: 'event.ics', content: Buffer.from(requestIcs).toString('base64') },
+      ];
       enqueueEmail({
         to: email,
         templateId:
@@ -471,6 +499,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           rescheduleLink,
           type: emailType,
         },
+        attachments,
       });
     } else {
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);

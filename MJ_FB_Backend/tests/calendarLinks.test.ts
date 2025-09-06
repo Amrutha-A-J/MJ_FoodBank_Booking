@@ -22,15 +22,35 @@ describe('calendar link utilities', () => {
       end: new Date('2024-09-01T11:00:00Z'),
       description: 'Bring snacks & drinks',
       location: '123 Main St',
+      uid: 'abc123',
+      sequence: 0,
     });
 
     expect(ics).toContain('BEGIN:VCALENDAR');
+    expect(ics).toContain('METHOD:REQUEST');
+    expect(ics).toContain('UID:abc123');
+    expect(ics).toContain('SEQUENCE:0');
     expect(ics).toContain('SUMMARY:Food & Fun');
     expect(ics).toContain('DTSTART:20240901T100000Z');
     expect(ics).toContain('DTEND:20240901T110000Z');
     expect(ics).toContain('DESCRIPTION:Bring snacks & drinks');
     expect(ics).toContain('LOCATION:123 Main St');
     expect(ics).toContain('END:VCALENDAR');
+  });
+
+  it('creates a cancellation ICS referencing the same UID', () => {
+    const ics = buildIcsFile({
+      title: 'Food & Fun',
+      start: new Date('2024-09-01T10:00:00Z'),
+      end: new Date('2024-09-01T11:00:00Z'),
+      uid: 'abc123',
+      method: 'CANCEL',
+      sequence: 0,
+    });
+
+    expect(ics).toContain('METHOD:CANCEL');
+    expect(ics).toContain('UID:abc123');
+    expect(ics).toContain('SEQUENCE:0');
   });
 
   it('builds links from a booking object', () => {

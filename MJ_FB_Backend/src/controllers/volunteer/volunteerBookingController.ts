@@ -6,6 +6,7 @@ import {
   buildCancelRescheduleLinks,
   buildCalendarLinks,
 } from '../../utils/emailUtils';
+import { buildIcsFile } from '../../utils/calendarLinks';
 import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
 import {
@@ -949,6 +950,33 @@ export async function rescheduleVolunteerBooking(
       const oldTime = oldSlotRes.rows[0]
         ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
         : '';
+      const title = 'Volunteer Shift';
+      const description = 'Your volunteer shift at the Moose Jaw Food Bank';
+      const location = 'Moose Jaw Food Bank';
+      const uid = String(booking.id);
+      const cancelIcs = buildIcsFile({
+        title,
+        start: new Date(`${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`),
+        end: new Date(`${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`),
+        description,
+        location,
+        uid,
+        method: 'CANCEL',
+        sequence: 0,
+      });
+      const requestIcs = buildIcsFile({
+        title,
+        start: new Date(`${date}T${slot.start_time}-06:00`),
+        end: new Date(`${date}T${slot.end_time}-06:00`),
+        description,
+        location,
+        uid,
+        sequence: 1,
+      });
+      const attachments = [
+        { name: 'cancel.ics', content: Buffer.from(cancelIcs).toString('base64') },
+        { name: 'event.ics', content: Buffer.from(requestIcs).toString('base64') },
+      ];
       enqueueEmail({
         to: email,
         templateId:
@@ -963,6 +991,7 @@ export async function rescheduleVolunteerBooking(
           rescheduleLink,
           type: 'Volunteer Shift',
         },
+        attachments,
       });
     } else {
       logger.warn(

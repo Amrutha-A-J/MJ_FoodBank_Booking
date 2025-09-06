@@ -54,16 +54,23 @@ export async function sendEmail(
   }
 }
 
+interface Attachment {
+  name: string;
+  content: string;
+}
+
 interface TemplatedEmailOptions {
   to: string;
   templateId: number;
   params?: Record<string, unknown>;
+  attachments?: Attachment[];
 }
 
 export async function sendTemplatedEmail({
   to,
   templateId,
   params,
+  attachments,
 }: TemplatedEmailOptions): Promise<void | { skipped: true }> {
   if (process.env.EMAIL_ENABLED !== 'true') {
     return { skipped: true };
@@ -93,6 +100,7 @@ export async function sendTemplatedEmail({
         to: [{ email: to }],
         templateId,
         params: params || undefined,
+        attachment: attachments && attachments.length > 0 ? attachments : undefined,
       }),
     });
 

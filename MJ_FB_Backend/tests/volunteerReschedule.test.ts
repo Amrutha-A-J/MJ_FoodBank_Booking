@@ -62,5 +62,14 @@ describe('rescheduleVolunteerBooking', () => {
     expect(params.oldTime).toBe('08:00 to 09:00');
     expect(params.newDate).toBe('Thu, Sep 5, 2030');
     expect(params.newTime).toBe('09:00 to 12:00');
+    const attachments = enqueueEmailMock.mock.calls[0][0].attachments;
+    expect(Array.isArray(attachments)).toBe(true);
+    expect(attachments).toHaveLength(2);
+    const cancel = Buffer.from(attachments[0].content, 'base64').toString('utf-8');
+    const updated = Buffer.from(attachments[1].content, 'base64').toString('utf-8');
+    expect(cancel).toContain('METHOD:CANCEL');
+    expect(cancel).toContain('UID:1');
+    expect(updated).toContain('METHOD:REQUEST');
+    expect(updated).toContain('SEQUENCE:1');
   });
 });

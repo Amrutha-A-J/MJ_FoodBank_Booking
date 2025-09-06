@@ -16,6 +16,7 @@ interface EnqueueOptions {
   to: string;
   templateId: number;
   params?: Record<string, unknown>;
+  attachments?: { name: string; content: string }[];
   retries?: number;
 }
 
@@ -23,7 +24,13 @@ let processing = false;
 let scheduled = false;
 const timers = new Set<NodeJS.Timeout>();
 
-export function enqueueEmail({ to, templateId, params = {}, retries = 0 }: EnqueueOptions): void {
+export function enqueueEmail({
+  to,
+  templateId,
+  params = {},
+  attachments,
+  retries = 0,
+}: EnqueueOptions): void {
   if (process.env.EMAIL_ENABLED !== 'true') {
     logger.info('Email enqueue skipped via EMAIL_ENABLED=false', { to, templateId });
     return;
@@ -32,7 +39,7 @@ export function enqueueEmail({ to, templateId, params = {}, retries = 0 }: Enque
   pool
     .query(
       'INSERT INTO email_queue (recipient, template_id, params, retries, next_attempt) VALUES ($1,$2,$3,$4, now())',
-      [to, templateId, params, retries],
+      [to, templateId, { ...params, __attachments: attachments }, retries],
     )
     .then(() => processQueue().catch((err) => logger.error('Email queue processing error:', err)))
     .catch((err) => logger.error('Failed to enqueue email', err));
@@ -65,7 +72,15 @@ async function processQueue(): Promise<void> {
       if (res.rowCount === 0) break;
       for (const job of res.rows) {
         try {
-          await sendTemplatedEmail({ to: job.to, templateId: job.templateId, params: job.params });
+          const { __attachments, ...params } = job.params as any;
+          await sendTemplatedEmail({
+            to: job.to,
+            templateId: job.templateId,
+            params,
+            ...(Array.isArray(__attachments) && __attachments.length
+              ? { attachments: __attachments }
+              : {}),
+          });
           await pool.query('DELETE FROM email_queue WHERE id=$1', [job.id]);
         } catch (err) {
           if (job.retries < config.emailQueueMaxRetries) {

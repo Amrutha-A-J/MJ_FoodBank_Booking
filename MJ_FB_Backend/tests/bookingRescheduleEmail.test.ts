@@ -81,5 +81,14 @@ describe('rescheduleBooking', () => {
     expect(params.newTime).toBe('11:00 to 12:00');
     expect(params.cancelLink).toBe('#cancel');
     expect(params.rescheduleLink).toBe('#resched');
+    const attachments = enqueueEmailMock.mock.calls[0][0].attachments;
+    expect(Array.isArray(attachments)).toBe(true);
+    expect(attachments).toHaveLength(2);
+    const cancel = Buffer.from(attachments[0].content, 'base64').toString('utf-8');
+    const updated = Buffer.from(attachments[1].content, 'base64').toString('utf-8');
+    expect(cancel).toContain('METHOD:CANCEL');
+    expect(cancel).toContain('UID:1');
+    expect(updated).toContain('METHOD:REQUEST');
+    expect(updated).toContain('SEQUENCE:1');
   });
 });
