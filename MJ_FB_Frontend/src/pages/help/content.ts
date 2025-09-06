@@ -208,6 +208,17 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Record sunshine bag weight',
+      body: {
+        description: 'Log daily sunshine bag weight.',
+        steps: [
+          'Open the Pantry Visits page.',
+          'Click Record Visit.',
+          'Check Sunshine bag?, enter the date and weight, then save.',
+        ],
+      },
+    },
+    {
       title: 'Manage volunteers',
       body: {
         description: 'Search, add, and review volunteers.',

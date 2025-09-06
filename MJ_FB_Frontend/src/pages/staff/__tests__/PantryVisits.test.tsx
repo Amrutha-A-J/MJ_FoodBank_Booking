@@ -20,8 +20,14 @@ jest.mock('../../../api/appConfig', () => ({
   getAppConfig: jest.fn(),
 }));
 
+jest.mock('../../../api/sunshineBags', () => ({
+  getSunshineBag: jest.fn(),
+  saveSunshineBag: jest.fn(),
+}));
+
 const { getClientVisits } = jest.requireMock('../../../api/clientVisits');
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
+const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
 describe('PantryVisits', () => {
   beforeAll(() => {
@@ -43,6 +49,7 @@ describe('PantryVisits', () => {
   it('uses cart tare from config when calculating weight', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
     render(
       <ThemeProvider theme={theme}>
@@ -85,6 +92,7 @@ describe('PantryVisits', () => {
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
     render(
       <ThemeProvider theme={theme}>
@@ -129,6 +137,7 @@ describe('PantryVisits', () => {
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue({ date: '2024-01-01', weight: 12 });
 
     render(
       <ThemeProvider theme={theme}>
@@ -138,12 +147,13 @@ describe('PantryVisits', () => {
 
     expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
     expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
-    expect(screen.getByText('Sunshine Bags: 3')).toBeInTheDocument();
+    expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
   it('shows "No records" when there are no visits', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
     render(
       <ThemeProvider theme={theme}>
