@@ -132,3 +132,22 @@ export function buildCancelRescheduleLinks(
     rescheduleLink: `${base}/reschedule/${token}`,
   };
 }
+
+export function buildCalendarLinks(
+  date: string,
+  startTime?: string | null,
+  endTime?: string | null,
+): { googleCalendarLink: string; outlookCalendarLink: string } {
+  const start = new Date(`${date}T${startTime ?? '00:00:00'}Z`);
+  const end = new Date(`${date}T${endTime ?? '23:59:59'}Z`);
+  const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const googleDates = `${fmt(start)}/${fmt(end)}`;
+  const text = encodeURIComponent('Harvest Pantry Booking');
+  const googleCalendarLink =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE&dates=${googleDates}&text=${text}`;
+  const outlookCalendarLink =
+    `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=${encodeURIComponent(
+      start.toISOString(),
+    )}&enddt=${encodeURIComponent(end.toISOString())}&subject=${text}`;
+  return { googleCalendarLink, outlookCalendarLink };
+}

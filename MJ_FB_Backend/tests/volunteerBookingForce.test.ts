@@ -6,6 +6,10 @@ import pool from '../src/db';
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '',
+    outlookCalendarLink: '',
+  }),
 }));
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/middleware/authMiddleware', () => ({

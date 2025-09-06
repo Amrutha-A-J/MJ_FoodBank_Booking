@@ -8,6 +8,10 @@ import logger from '../src/utils/logger';
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '',
+    outlookCalendarLink: '',
+  }),
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({

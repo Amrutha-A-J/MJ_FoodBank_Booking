@@ -15,6 +15,10 @@ describe('volunteer booking date validation', () => {
       jest.doMock('../src/utils/emailUtils', () => ({
         sendTemplatedEmail,
         buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+        buildCalendarLinks: () => ({
+          googleCalendarLink: '',
+          outlookCalendarLink: '',
+        }),
       }));
       jest.doMock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
       jest.doMock('../src/middleware/authMiddleware', () => ({
