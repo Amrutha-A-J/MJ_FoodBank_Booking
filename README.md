@@ -97,6 +97,10 @@ EMAIL_ENABLED=true # set to 'true' to send emails
 TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
+Booking confirmation and reminder templates can surface "Add to Calendar" buttons by referencing
+`{{ params.googleCalendarLink }}` and `{{ params.outlookCalendarLink }}` in the Brevo templates.
+The backend supplies these URLs automatically; no extra environment variables are required.
+
 Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
 `type` (`vacation`, `sick`, or `personal` – limited to one personal day per quarter), and optional `reason`; admins approve or reject
 via `/api/leave/requests/:id/approve` and `/api/leave/requests/:id/reject`.
