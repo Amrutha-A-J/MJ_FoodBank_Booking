@@ -190,4 +190,36 @@ describe('Booking confirmation', () => {
       ),
     );
   });
+
+  it('shows calendar links after booking', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
+    ]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
+    (createBooking as jest.Mock).mockResolvedValue({
+      googleCalendarUrl: 'https://calendar.test',
+      icsUrl: '/test.ics',
+    });
+
+    renderUI();
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
+    await waitFor(() => expect(getSlots).toHaveBeenCalled());
+    const slot = await screen.findByLabelText(/select .* time slot/i);
+    fireEvent.click(slot);
+    fireEvent.click(screen.getByText(/book selected slot/i));
+
+    await screen.findByText(/confirm booking/i);
+    fireEvent.click(screen.getByText(/confirm$/i));
+
+    await waitFor(() => expect(createBooking).toHaveBeenCalled());
+    const gcal = await screen.findByRole('link', { name: /add to google calendar/i });
+    expect(gcal).toHaveAttribute('href', 'https://calendar.test');
+    const ics = screen.getByRole('link', { name: /download ics/i });
+    expect(ics).toHaveAttribute('href', '/test.ics');
+  });
 });

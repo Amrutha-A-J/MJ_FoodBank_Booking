@@ -64,7 +64,7 @@ function bookSlot(payload: {
   slotId: string;
   note: string;
   userId?: number;
-}): Promise<void> {
+}): Promise<any> {
   return createBooking(payload.slotId, payload.date, payload.note, payload.userId);
 }
 
@@ -119,6 +119,7 @@ export default function BookingUI({
     open: boolean;
     message: string;
     severity: 'success' | 'error';
+    action?: ReactNode;
   }>({ open: false, message: '', severity: 'success' });
   const [modal, setModal] = useState<{ open: boolean; message: ReactNode }>({
     open: false,
@@ -183,7 +184,7 @@ export default function BookingUI({
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
     setBooking(true);
     try {
-      await bookSlot({
+      const res = await bookSlot({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
         note,
@@ -193,6 +194,33 @@ export default function BookingUI({
         open: true,
         message: t('slot_booked_success'),
         severity: 'success',
+        action:
+          res?.googleCalendarUrl || res?.icsUrl ? (
+            <Stack direction="row" spacing={1}>
+              {res?.googleCalendarUrl && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  component="a"
+                  href={res.googleCalendarUrl}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {t('add_to_google_calendar')}
+                </Button>
+              )}
+              {res?.icsUrl && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  component="a"
+                  href={res.icsUrl}
+                >
+                  {t('download_ics')}
+                </Button>
+              )}
+            </Stack>
+          ) : undefined,
       });
       setSelectedSlotId(null);
       setNote('');
@@ -495,6 +523,7 @@ export default function BookingUI({
         message={snackbar.message}
         severity={snackbar.severity}
         duration={4000}
+        action={snackbar.action}
       />
       <FeedbackModal
         open={modal.open}
