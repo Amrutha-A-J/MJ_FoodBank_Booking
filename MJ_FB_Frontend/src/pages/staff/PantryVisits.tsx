@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -30,6 +30,7 @@ import {
   createClientVisit,
   updateClientVisit,
   deleteClientVisit,
+  importClientVisits,
   type ClientVisit,
 } from '../../api/clientVisits';
 import { getSunshineBag, saveSunshineBag, type SunshineBag } from '../../api/sunshineBags';
@@ -75,6 +76,7 @@ export default function PantryVisits() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ClientVisit | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [cartTare, setCartTare] = useState(0);
   const [search, setSearch] = useState('');
@@ -161,6 +163,32 @@ export default function PantryVisits() {
         .catch(() => setForm(f => ({ ...f, sunshineWeight: '' })));
     }
   }, [form.sunshineBag, form.date]);
+
+  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    importClientVisits(formData)
+      .then(() => {
+        setSnackbar({
+          open: true,
+          message: t('pantry_visits.bulk_import_success'),
+          severity: 'success',
+        });
+        loadVisits();
+      })
+      .catch(err =>
+        setSnackbar({
+          open: true,
+          message: err.message || t('pantry_visits.bulk_import_error'),
+          severity: 'error',
+        }),
+      )
+      .finally(() => {
+        e.target.value = '';
+      });
+  }
 
   const summary = useMemo(() => {
     const clients = visits.length;
@@ -406,6 +434,21 @@ export default function PantryVisits() {
           >
             Record Visit
           </Button>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {t('pantry_visits.bulk_import')}
+          </Button>
+          <input
+            type="file"
+            accept=".xlsx"
+            ref={fileInputRef}
+            data-testid="bulk-import-input"
+            style={{ display: 'none' }}
+            onChange={handleImport}
+          />
           <TextField
             size="small"
             label="Search"

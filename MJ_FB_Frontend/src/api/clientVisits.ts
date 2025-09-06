@@ -49,3 +49,11 @@ export async function deleteClientVisit(id: number): Promise<void> {
   await handleResponse(res);
 }
 
+export async function importClientVisits(formData: FormData): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/client-visits/import`, {
+    method: 'POST',
+    body: formData,
+  });
+  await handleResponse(res);
+}
+

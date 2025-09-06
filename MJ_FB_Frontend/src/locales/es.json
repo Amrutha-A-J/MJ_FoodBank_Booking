@@ -286,7 +286,10 @@
       "sunshine_bag_weight": "Sunshine Bag Weight",
       "adults": "Adults",
       "children": "Children"
-    }
+    },
+    "bulk_import": "Bulk Import",
+    "bulk_import_success": "Visits imported",
+    "bulk_import_error": "Import failed"
   },
   "sunshine_bag_label": "Sunshine bag?",
   "sunshine_bag_weight_label": "Sunshine Bag Weight",

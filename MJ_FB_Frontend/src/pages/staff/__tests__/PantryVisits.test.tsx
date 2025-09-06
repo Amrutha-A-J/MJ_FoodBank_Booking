@@ -9,6 +9,7 @@ jest.mock('../../../api/clientVisits', () => ({
   createClientVisit: jest.fn(),
   updateClientVisit: jest.fn(),
   deleteClientVisit: jest.fn(),
+  importClientVisits: jest.fn(),
 }));
 
 jest.mock('../../../api/users', () => ({
@@ -25,7 +26,7 @@ jest.mock('../../../api/sunshineBags', () => ({
   saveSunshineBag: jest.fn(),
 }));
 
-const { getClientVisits } = jest.requireMock('../../../api/clientVisits');
+const { getClientVisits, importClientVisits } = jest.requireMock('../../../api/clientVisits');
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
@@ -162,5 +163,32 @@ describe('PantryVisits', () => {
     );
 
     expect(await screen.findByText('No records')).toBeInTheDocument();
+  });
+
+  it('imports visits from spreadsheet', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+    (importClientVisits as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>,
+    );
+
+    await screen.findByText('Record Visit');
+
+    const file = new File(['1'], 'visits.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    fireEvent.click(screen.getByText('Bulk Import'));
+    const input = screen.getByTestId('bulk-import-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => expect(importClientVisits).toHaveBeenCalled());
+    await waitFor(() => expect(getClientVisits).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('Visits imported')).toBeInTheDocument();
   });
 });
