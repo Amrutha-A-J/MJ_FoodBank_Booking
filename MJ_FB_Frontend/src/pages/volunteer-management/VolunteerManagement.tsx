@@ -144,6 +144,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [onlineAccess, setOnlineAccess] = useState(false);
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<string[]>([]);
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
@@ -528,6 +529,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       );
       return;
     }
+    if (onlineAccess && !email) {
+      setCreateSeverity('error');
+      setCreateMsg('Email required for online access');
+      return;
+    }
     try {
       const ids = Array.from(
         new Set(
@@ -539,6 +545,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         lastName,
         username,
         ids,
+        onlineAccess,
         email || undefined,
         phone || undefined
       );
@@ -549,6 +556,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setUsername('');
       setEmail('');
       setPhone('');
+      setOnlineAccess(false);
       setSelectedCreateRoles([]);
     } catch (e) {
       setCreateSeverity('error');
@@ -852,9 +860,24 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               size="small"
               fullWidth
             />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={onlineAccess}
+                  onChange={e => setOnlineAccess(e.target.checked)}
+                />
+              }
+              label="Online Access"
+            />
+            {onlineAccess && (
+              <Typography variant="body2" color="text.secondary">
+                An email invitation will be sent.
+              </Typography>
+            )}
             <TextField
-              label="Email (optional)"
+              label={onlineAccess ? 'Email' : 'Email (optional)'}
               type="email"
+              required={onlineAccess}
               value={email}
               onChange={e => setEmail(e.target.value)}
               size="small"
@@ -868,9 +891,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               size="small"
               fullWidth
             />
-            <Typography variant="body2" color="text.secondary">
-              An email invitation will be sent.
-            </Typography>
             <div ref={dropdownRef} style={{ position: 'relative' }}>
               <label>Role: </label>
               <Button type="button" onClick={() => setRoleDropdownOpen(o => !o)} variant="outlined" color="primary">

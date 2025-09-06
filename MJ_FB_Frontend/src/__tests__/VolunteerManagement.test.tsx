@@ -14,6 +14,7 @@ import {
   createVolunteerBookingForVolunteer,
   getVolunteerBookingsByRole,
   resolveVolunteerBookingConflict,
+  createVolunteer,
 } from '../api/volunteers';
 
 jest.mock('../api/volunteers', () => ({
@@ -26,6 +27,7 @@ jest.mock('../api/volunteers', () => ({
   createVolunteerBookingForVolunteer: jest.fn(),
   getVolunteerBookingsByRole: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
+  createVolunteer: jest.fn(),
 }));
 
 let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
@@ -44,6 +46,47 @@ beforeEach(() => {
   (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+  (createVolunteer as jest.Mock).mockResolvedValue(undefined);
+});
+
+describe('VolunteerManagement create volunteer', () => {
+  it('requires email when online access enabled', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 1,
+        category_name: 'Front',
+        shifts: [],
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/create']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('First Name'), {
+      target: { value: 'John' },
+    });
+    fireEvent.change(screen.getByLabelText('Last Name'), {
+      target: { value: 'Doe' },
+    });
+    fireEvent.change(screen.getByLabelText('Username'), {
+      target: { value: 'jdoe' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
+    fireEvent.click(await screen.findByLabelText('Greeter'));
+    fireEvent.click(screen.getByLabelText(/online access/i));
+    fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+    expect(await screen.findByText(/email required for online access/i)).toBeInTheDocument();
+    expect(createVolunteer).not.toHaveBeenCalled();
+  });
 });
 
 describe('VolunteerManagement shopper profile', () => {

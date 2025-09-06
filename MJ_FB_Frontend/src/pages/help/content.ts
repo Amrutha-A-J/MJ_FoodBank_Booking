@@ -269,6 +269,7 @@ export function getHelpContent(
           'Go to the Volunteers page.',
           'Search by name.',
           'View or edit volunteer information.',
+          'Check Online Access to email login details when creating a volunteer.',
         ],
       },
     },

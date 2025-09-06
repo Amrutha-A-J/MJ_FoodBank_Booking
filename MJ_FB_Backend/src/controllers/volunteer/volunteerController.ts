@@ -164,6 +164,7 @@ export async function createVolunteer(
     email,
     phone,
     roleIds,
+    onlineAccess,
   } = req.body as {
     firstName?: string;
     lastName?: string;
@@ -171,6 +172,7 @@ export async function createVolunteer(
     email?: string;
     phone?: string;
     roleIds?: number[];
+    onlineAccess?: boolean;
   };
 
   if (
@@ -184,6 +186,12 @@ export async function createVolunteer(
     return res.status(400).json({
       message: 'First name, last name, username and roles required',
     });
+  }
+
+  if (onlineAccess && !email) {
+    return res
+      .status(400)
+      .json({ message: 'Email required for online account' });
   }
 
   try {
