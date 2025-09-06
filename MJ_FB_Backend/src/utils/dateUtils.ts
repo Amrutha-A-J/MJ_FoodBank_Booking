@@ -17,6 +17,17 @@ export function formatReginaDate(date: string | Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: REGINA_TZ }).format(d);
 }
 
+export function formatReginaDateWithDay(date: string | Date): string {
+  const d = toReginaDate(date);
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: REGINA_TZ,
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(d);
+}
+
 export function formatReginaDateTime(date: string | Date): string {
   const d = toReginaDate(date);
   const options: Intl.DateTimeFormatOptions = {

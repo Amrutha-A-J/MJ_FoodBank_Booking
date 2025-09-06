@@ -289,6 +289,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
+
+Booking confirmation and reminder email bodies include the weekday and time for clarity.
  
 | `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 6) |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                     |

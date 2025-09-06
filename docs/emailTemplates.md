@@ -12,7 +12,7 @@ parameters supplied to each template.
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
 
 Brevo templates can reference these `params.*` values to display links and other
-dynamic content.
+dynamic content. The `body` parameter includes the booking date with the weekday and time range.
 
 Cancellation, no-show, volunteer notification, and agency client update emails have been discontinued.
 

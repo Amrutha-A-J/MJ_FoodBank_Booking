@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 describe('createBookingForUser', () => {
   let createBookingForUser: any;
@@ -57,7 +58,7 @@ describe('createBookingForUser', () => {
         to: 'client@example.com',
         templateId: expect.any(Number),
         params: expect.objectContaining({
-          body: expect.stringContaining('2024-01-15'),
+          body: expect.stringContaining('Mon, Jan 15, 2024'),
           googleCalendarLink: expect.any(String),
           outlookCalendarLink: expect.any(String),
         }),

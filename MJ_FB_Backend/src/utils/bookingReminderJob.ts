@@ -1,6 +1,6 @@
 import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
-import { formatReginaDate } from './dateUtils';
+import { formatReginaDate, formatReginaDateWithDay } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
@@ -13,6 +13,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const nextDate = formatReginaDate(tomorrow);
+  const formattedDate = formatReginaDateWithDay(nextDate);
   try {
     const bookings = await fetchBookingsForReminder(nextDate);
     for (const b of bookings) {
@@ -24,7 +25,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         b.reschedule_token,
       );
-      const body = `Date: ${nextDate}${time}`;
+      const body = `Date: ${formattedDate}${time}`;
       await enqueueEmail({
         to: b.user_email,
         templateId: config.bookingReminderTemplateId,
