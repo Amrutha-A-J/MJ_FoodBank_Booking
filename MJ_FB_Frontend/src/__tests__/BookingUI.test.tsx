@@ -191,6 +191,30 @@ describe('Booking confirmation', () => {
     );
   });
 
+  it('shows summary fields on separate lines', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
+    ]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 3 });
+
+    renderUI();
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
+    await waitFor(() => expect(getSlots).toHaveBeenCalled());
+    const slot = await screen.findByLabelText(/select .* time slot/i);
+    fireEvent.click(slot);
+    fireEvent.click(screen.getByText(/book selected slot/i));
+
+    await screen.findByText(/confirm booking/i);
+    screen.getByText(/^Date:/i);
+    screen.getByText(/^Time:/i);
+    screen.getByText(/^Visits this month:/i);
+  });
+
   it('shows calendar links after booking', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
       { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
