@@ -10,9 +10,8 @@ parameters supplied to each template.
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` | `bookingReminderJob.ts` |
 | `templateId: 1` | Booking cancellations and reschedules | `body`, `type` | `bookingController.ts` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `volunteerBookingController.ts` |
-| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts`, `volunteerBookingController.ts` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices) | `subject`, `body` | `volunteerBookingController.ts` |
-| `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
+| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
+| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` 
 
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
@@ -45,12 +44,6 @@ Recurring volunteer bookings also reuse the reminder template so volunteers rece
 - **Params:**
   - `subject` (string) – email subject.
   - `body` (string) – message body describing the update.
-
-## Volunteer no-show notification emails
-
-- **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID`
-- **Params:**
-  - `ids` (string) – comma-separated volunteer booking IDs marked as no-show.
 
 ## Agency client update emails
 

@@ -14,7 +14,6 @@ const {
 } = job;
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
-import config from '../src/config';
 jest.mock('../src/utils/emailUtils');
 
 describe('cleanupVolunteerNoShows', () => {
@@ -28,24 +27,14 @@ describe('cleanupVolunteerNoShows', () => {
     jest.clearAllMocks();
   });
 
-  it('marks past approved volunteer bookings as no_show and notifies coordinators', async () => {
+  it('marks past approved volunteer bookings as no_show without notifying coordinators', async () => {
     await cleanupVolunteerNoShows();
     const [query, params] = (pool.query as jest.Mock).mock.calls[0];
     expect(query).toContain("NOW() - $1::int * INTERVAL '1 hour'");
     expect(params).toEqual([24]);
     expect(query).toContain('FROM volunteer_slots');
     expect(query).toContain('vb.date + vs.end_time');
-    expect(sendTemplatedEmail).toHaveBeenCalledTimes(2);
-    expect(sendTemplatedEmail).toHaveBeenCalledWith({
-      to: 'coordinator1@example.com',
-      templateId: config.volunteerNoShowNotificationTemplateId,
-      params: { ids: '1' },
-    });
-    expect(sendTemplatedEmail).toHaveBeenCalledWith({
-      to: 'coordinator2@example.com',
-      templateId: config.volunteerNoShowNotificationTemplateId,
-      params: { ids: '1' },
-    });
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 });
 

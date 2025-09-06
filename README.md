@@ -158,7 +158,7 @@ Before merging a pull request, confirm the following:
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
-- A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours and emails coordinators using `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` with an `ids` parameter listing the affected booking IDs.
+- A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
 - Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
@@ -281,7 +281,6 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
-| `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` |
 | `templateId: 1` | Agency membership additions or removals | `body` |
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
@@ -413,7 +412,7 @@ and cached on the server:
 - `BREAD_WEIGHT_MULTIPLIER` (default `10`)
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
 
-The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show` and sends coordinator alerts using the `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` template with an `ids` parameter.
+The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show`.
 
 ### Frontend features
 
