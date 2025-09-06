@@ -420,6 +420,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Profile pages provide a button to email a password reset link instead of changing passwords directly.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
+- Staff dashboard includes a pantry visit trend line chart showing daily totals for adults, children, and overall visits.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
@@ -445,6 +446,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (also `/visits/import`) and overwrite existing visits on client/date conflicts (see `docs/pantryVisits.md`).
 - Pantry Visits reject attempts to record more than one visit per client on the same day.
 - Pantry Visits allow selecting any date to view visits beyond the current week.
+- `GET /client-visits/stats?days=n` aggregates daily visit totals for the past `n` days (default 30) returning `{ date, total, adults, children }`.
 
 ## Deploying to Azure
 

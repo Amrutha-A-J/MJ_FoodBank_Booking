@@ -8,21 +8,22 @@ import {
   List,
   ListItem,
   ListItemText,
-  Chip,
 } from '@mui/material';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import People from '@mui/icons-material/People';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
-import { getBookings, getSlotsRange } from '../../api/bookings';
+import { getBookings } from '../../api/bookings';
 import type { Role, Booking } from '../../types';
+import { getVisitStats, type VisitStat } from '../../api/clientVisits';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
 import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
+import ClientVisitTrendChart from './ClientVisitTrendChart';
 import { useTranslation } from 'react-i18next';
 import PantryQuickLinks from '../PantryQuickLinks';
 import { useBreadcrumbActions } from '../layout/MainLayout';
@@ -72,7 +73,7 @@ function formatLocalDate(date: Date) {
 function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [volunteerCount, setVolunteerCount] = useState(0);
-  const [schedule, setSchedule] = useState<{ day: string; open: number }[]>([]);
+  const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [events, setEvents] = useState<EventGroups>({
     today: [],
     upcoming: [],
@@ -93,30 +94,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         setEvents({ today: [], upcoming: [], past: [] }),
       );
 
-    const today = new Date();
-    const start = new Date(today);
-    start.setDate(today.getDate() - today.getDay());
-    const startStr = formatLocalDate(start);
-
-    getSlotsRange(startStr, 7)
-      .then(days =>
-        days.map(d => {
-          const date = parseLocalDate(d.date);
-          const dayOfWeek = date.getDay();
-          const open =
-            dayOfWeek === 0 || dayOfWeek === 6
-              ? 0
-              : d.slots.reduce((sum, s) => sum + (s.available ?? 0), 0);
-          return {
-            day: date.toLocaleDateString(undefined, {
-              weekday: 'short',
-            }),
-            open,
-          };
-        }),
-      )
-      .then(setSchedule)
-      .catch(() => {});
+    getVisitStats()
+      .then(data => setVisitStats(data ?? []))
+      .catch(() => setVisitStats([]));
   }, []);
 
   const todayStr = formatLocalDate(new Date());
@@ -185,20 +165,8 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
             </SectionCard>
           </Grid>
           <Grid size={12}>
-            <SectionCard title="Pantry Schedule (This Week)">
-              <Grid container columns={{ xs: 3, sm: 7 }} spacing={2}>
-                {schedule.map((day, i) => (
-                  <Grid size={1} key={i}>
-                    <Stack alignItems="center" spacing={1}>
-                      <Typography variant="body2">{day.day}</Typography>
-                      <Chip
-                        label={day.open > 0 ? `Open: ${day.open}` : 'Closed'}
-                        color={day.open > 0 ? 'success' : 'default'}
-                      />
-                    </Stack>
-                  </Grid>
-                ))}
-              </Grid>
+            <SectionCard title="Pantry Visit Trend">
+              <ClientVisitTrendChart data={visitStats} />
             </SectionCard>
           </Grid>
           <Grid size={12}>

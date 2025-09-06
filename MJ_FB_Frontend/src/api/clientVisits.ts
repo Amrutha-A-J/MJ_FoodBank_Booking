@@ -59,6 +59,20 @@ export interface VisitImportPreview {
   sheets: VisitImportSheet[];
 }
 
+export interface VisitStat {
+  date: string;
+  total: number;
+  adults: number;
+  children: number;
+}
+
+export async function getVisitStats(days?: number): Promise<VisitStat[]> {
+  const url = new URL(`${API_BASE}/client-visits/stats`);
+  if (days != null) url.searchParams.set('days', String(days));
+  const res = await apiFetch(url.toString());
+  return handleResponse(res);
+}
+
 export async function importVisitsXlsx(
   formData: FormData,
   dryRun?: boolean,
