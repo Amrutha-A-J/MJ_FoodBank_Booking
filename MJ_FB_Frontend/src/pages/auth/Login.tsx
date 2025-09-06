@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Alert } from '@mui/material';
+import { Link, TextField, Button, Alert, Box, Stack } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -49,55 +49,61 @@ export default function Login({
 
   return (
     <Page title={t('client_login')}>
-      <FormCard
-        onSubmit={handleSubmit}
-        title={t('client_login')}
-        actions={
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="80vh" px={2}>
+        <Stack spacing={2} width="100%" maxWidth={400} mb={2}>
+          <Alert severity="info">
+            {t('client_login_notice_id')}
+          </Alert>
+          <Alert severity="warning">
+            {t('client_login_notice_password')}
+          </Alert>
+          <Alert severity="info">
+            {t('client_login_notice_volunteer')}
+          </Alert>
+        </Stack>
+        <FormCard
+          onSubmit={handleSubmit}
+          title={t('client_login')}
+          actions={
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+            >
+              {t('login')}
+            </Button>
+          }
+          centered={false}
+          boxProps={{ minHeight: 0, px: 0, py: 0 }}
+        >
+          <TextField
+            value={clientId}
+            onChange={e => setClientId(e.target.value)}
+            label={t('client_id')}
+            name="clientId"
+            autoComplete="username"
             fullWidth
-          >
-            {t('login')}
-          </Button>
-        }
-      >
-        <Alert severity="info">
-          {t('client_login_notice_id')}
-        </Alert>
-        <Alert severity="warning">
-          {t('client_login_notice_password')}
-        </Alert>
-        <Alert severity="info">
-          {t('client_login_notice_volunteer')}
-        </Alert>
-        <TextField
-          value={clientId}
-          onChange={e => setClientId(e.target.value)}
-          label={t('client_id')}
-          name="clientId"
-          autoComplete="username"
-          fullWidth
-          required
-          error={clientIdError}
-          helperText={clientIdError ? t('client_id_required') : ''}
-        />
-        <PasswordField
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          label={t('password')}
-          name="password"
-          autoComplete="current-password"
-          fullWidth
-          required
-          error={passwordError}
-          helperText={passwordError ? t('password_required') : ''}
-        />
-        <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
-          {t('forgot_password')}
-        </Link>
-      </FormCard>
+            required
+            error={clientIdError}
+            helperText={clientIdError ? t('client_id_required') : ''}
+          />
+          <PasswordField
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            label={t('password')}
+            name="password"
+            autoComplete="current-password"
+            fullWidth
+            required
+            error={passwordError}
+            helperText={passwordError ? t('password_required') : ''}
+          />
+          <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
+            {t('forgot_password')}
+          </Link>
+        </FormCard>
+      </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
