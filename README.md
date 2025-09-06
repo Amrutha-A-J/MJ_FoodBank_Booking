@@ -35,7 +35,7 @@ This repository uses Git submodules for the backend and frontend components. Aft
 ## Volunteer Creation
 
 Create volunteers from the Volunteers page. Check **Online Access** to send an email invitation; the email field becomes required when enabled.
-Volunteer usernames have been removed and email addresses must be unique, though providing an email remains optional.
+Volunteers sign in with their email address instead of a username, and volunteer emails must be unique, though providing an email remains optional for volunteers without online access.
 
 ## Node Version
 
