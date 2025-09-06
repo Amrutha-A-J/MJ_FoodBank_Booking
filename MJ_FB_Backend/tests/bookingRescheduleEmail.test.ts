@@ -18,9 +18,9 @@ jest.mock('../src/utils/emailQueue', () => ({
 jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '#cancel', rescheduleLink: '#resched' }),
   buildCalendarLinks: () => ({
-    googleCalendarLink: '',
-    outlookCalendarLink: '',
-    appleCalendarLink: '',
+    googleCalendarLink: '#google',
+    outlookCalendarLink: '#outlook',
+    appleCalendarLink: '#apple',
   }),
 }));
 jest.mock('../src/models/bookingRepository');
@@ -81,5 +81,8 @@ describe('rescheduleBooking', () => {
     expect(params.newTime).toBe('11:00 to 12:00');
     expect(params.cancelLink).toBe('#cancel');
     expect(params.rescheduleLink).toBe('#resched');
+    expect(params.googleCalendarLink).toBe('#google');
+    expect(params.outlookCalendarLink).toBe('#outlook');
+    expect(params.appleCalendarLink).toBe('#apple');
   });
 });

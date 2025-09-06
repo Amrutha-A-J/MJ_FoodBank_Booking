@@ -458,6 +458,15 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       const newTime = newSlotRes.rows[0]
         ? `${newSlotRes.rows[0].start_time} to ${newSlotRes.rows[0].end_time}`
         : '';
+      const {
+        googleCalendarLink,
+        outlookCalendarLink,
+        appleCalendarLink,
+      } = buildCalendarLinks(
+        date,
+        newSlotRes.rows[0]?.start_time,
+        newSlotRes.rows[0]?.end_time,
+      );
       enqueueEmail({
         to: email,
         templateId:
@@ -469,6 +478,9 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           newTime,
           cancelLink,
           rescheduleLink,
+          googleCalendarLink,
+          outlookCalendarLink,
+          appleCalendarLink,
           type: emailType,
         },
       });

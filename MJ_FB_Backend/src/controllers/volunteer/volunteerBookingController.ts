@@ -949,6 +949,11 @@ export async function rescheduleVolunteerBooking(
       const oldTime = oldSlotRes.rows[0]
         ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
         : '';
+      const {
+        googleCalendarLink,
+        outlookCalendarLink,
+        appleCalendarLink,
+      } = buildCalendarLinks(date, slot.start_time, slot.end_time);
       enqueueEmail({
         to: email,
         templateId:
@@ -961,6 +966,9 @@ export async function rescheduleVolunteerBooking(
           newTime: `${slot.start_time} to ${slot.end_time}`,
           cancelLink,
           rescheduleLink,
+          googleCalendarLink,
+          outlookCalendarLink,
+          appleCalendarLink,
           type: 'Volunteer Shift',
         },
       });
