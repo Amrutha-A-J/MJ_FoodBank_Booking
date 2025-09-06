@@ -35,3 +35,11 @@ Brevo templates can reference these `params.*` values to display actionable link
   - `body` (string) – message body describing the booking status update.
   - `type` (string) – booking type, e.g., `shopping appointment`.
 
+## Volunteer no-show notification emails
+
+- **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` (exposed as `config.volunteerNoShowNotificationTemplateId`)
+- **Used in:**
+  - `MJ_FB_Backend/src/utils/volunteerNoShowCleanupJob.ts`
+- **Params:**
+  - `ids` (string) – comma-separated list of volunteer booking IDs marked as no-show.
+
