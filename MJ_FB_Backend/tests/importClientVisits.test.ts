@@ -3,6 +3,8 @@ import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
 import pool from '../src/db';
 import readXlsxFile from 'read-excel-file/node';
+import { bulkImportVisits } from '../src/controllers/clientVisitController';
+import fs from 'fs/promises';
 
 jest.mock('read-excel-file/node');
 
@@ -81,6 +83,36 @@ describe('bulk client visit import', () => {
       expect.stringContaining('INSERT INTO client_visits'),
       ['2024-04-30', 555, 30, 20, 0, 1, 0],
     );
+  });
+
+  it('deletes uploaded file after import', async () => {
+    const rows = [
+      ['date', 'family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+      [new Date('2024-05-01'), '2A1C', 30, 20, 1, 123],
+    ];
+    (readXlsxFile as jest.Mock).mockResolvedValueOnce(rows);
+    const buffer = Buffer.from('xlsx');
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}) // insert visit
+      .mockResolvedValueOnce({}) // refresh count
+      .mockResolvedValueOnce({}); // COMMIT
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const unlinkMock = jest.spyOn(fs, 'unlink').mockResolvedValueOnce();
+
+    const req: any = { file: { buffer, path: '/tmp/upload.xlsx' } };
+    const res: any = { json: jest.fn(), status: jest.fn(() => res) };
+    const next = jest.fn();
+
+    await bulkImportVisits(req, res, next);
+
+    expect(unlinkMock).toHaveBeenCalledWith('/tmp/upload.xlsx');
+    expect(res.json).toHaveBeenCalledWith({ imported: 1, newClients: [] });
+
+    unlinkMock.mockRestore();
   });
 });
 

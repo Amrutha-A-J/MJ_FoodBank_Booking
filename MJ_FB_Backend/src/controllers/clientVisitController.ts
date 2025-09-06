@@ -5,6 +5,7 @@ import { formatReginaDate } from '../utils/dateUtils';
 import { Queryable } from '../utils/bookingUtils';
 import { updateBooking } from '../models/bookingRepository';
 import readXlsxFile from 'read-excel-file/node';
+import fs from 'fs/promises';
 import { importClientVisitsSchema } from '../schemas/clientVisitSchemas';
 
 export async function refreshClientVisitCount(
@@ -288,5 +289,12 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     next(error);
   } finally {
     client.release();
+    if (req.file?.path) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (err) {
+        logger.warn('Failed to delete uploaded file:', err);
+      }
+    }
   }
 }
