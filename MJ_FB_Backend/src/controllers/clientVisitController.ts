@@ -323,16 +323,12 @@ export async function importVisitsFromXlsx(
   res: Response,
   next: NextFunction,
 ) {
-  const { duplicateStrategy, dryRun } = req.query as {
-    duplicateStrategy?: string;
+  const { dryRun } = req.query as {
     dryRun?: string;
   };
 
   if (!req.file) {
     return res.status(400).json({ message: 'File required' });
-  }
-  if (duplicateStrategy !== 'skip' && duplicateStrategy !== 'update') {
-    return res.status(400).json({ message: 'Invalid duplicate strategy' });
   }
 
   const isDryRun = dryRun === 'true';
@@ -385,13 +381,12 @@ export async function importVisitsFromXlsx(
             );
           }
 
-          const existingVisit = await client!.query(
-            'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
-            [cid, formattedDate],
-          );
+            const existingVisit = await client!.query(
+              'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
+              [cid, formattedDate],
+            );
 
-          if ((existingVisit.rowCount ?? 0) > 0) {
-            if (duplicateStrategy === 'update') {
+            if ((existingVisit.rowCount ?? 0) > 0) {
               await client!.query(
                 `UPDATE client_visits
                  SET weight_with_cart = $1,
@@ -411,23 +406,22 @@ export async function importVisitsFromXlsx(
                 ],
               );
               await refreshClientVisitCount(cid, client!);
+            } else {
+              await client!.query(
+                `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+                 VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+                [
+                  formattedDate,
+                  cid,
+                  parsed.weightWithCart,
+                  parsed.weightWithoutCart,
+                  parsed.petItem ?? 0,
+                  adults,
+                  children,
+                ],
+              );
+              await refreshClientVisitCount(cid, client!);
             }
-          } else {
-            await client!.query(
-              `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-               VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
-              [
-                formattedDate,
-                cid,
-                parsed.weightWithCart,
-                parsed.weightWithoutCart,
-                parsed.petItem ?? 0,
-                adults,
-                children,
-              ],
-            );
-            await refreshClientVisitCount(cid, client!);
-          }
         } catch (err: any) {
           errors.push(
             `Row ${rowIndex}: ${err.errors?.[0]?.message || err.message}`,

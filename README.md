@@ -409,7 +409,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
-- Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (see `docs/pantryVisits.md`).
+- Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (also `/visits/import`) and overwrite existing visits on client/date conflicts (see `docs/pantryVisits.md`).
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 
 ## Deploying to Azure

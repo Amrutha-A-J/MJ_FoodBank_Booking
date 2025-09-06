@@ -16,16 +16,13 @@ Add the following translation strings to locale files:
 - `pantry_visits.import_success`
 - `pantry_visits.import_error`
 - `pantry_visits.dry_run`
-- `pantry_visits.duplicate_strategy`
-- `pantry_visits.skip`
-- `pantry_visits.update`
 - `pantry_visits.sheet_date`
 - `pantry_visits.sheet_rows`
 - `pantry_visits.sheet_errors`
 
 ## Bulk import format
  
-Pantry visits support bulk importing from an `.xlsx` spreadsheet. Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.
+Pantry visits support bulk importing from an `.xlsx` spreadsheet. Upload the file via `POST /client-visits/import` (also available at `/visits/import`). Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.
 
 Include a header row on every sheet and use the following column order:
 
@@ -39,13 +36,10 @@ Include a header row on every sheet and use the following column order:
 
 ### Duplicate handling
 
-The importer checks for an existing visit for the same client on a given date. Control how duplicates are processed with the `duplicateStrategy` query parameter:
-
-- `skip` (default) – keep the existing visit and ignore the row.
-- `overwrite` – replace the existing visit with the new data.
+If a visit already exists for the same client on a given date, the importer overwrites it with the new data.
 
 ### Dry run
 
 Append `dryRun=true` to validate the spreadsheet and preview counts without creating any visits. After reviewing the response, rerun the request without `dryRun` to perform the import.
 
-Save the file as `.xlsx` and upload it using the **Import Visits** button on the Pantry Visits page. Use **Dry-run** to preview sheets and choose how to handle duplicates before finalizing the import.
+Save the file as `.xlsx` and upload it using the **Import Visits** button on the Pantry Visits page. Use **Dry-run** to preview sheets before finalizing the import.

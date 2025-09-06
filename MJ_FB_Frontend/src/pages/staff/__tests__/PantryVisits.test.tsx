@@ -216,7 +216,6 @@ describe('PantryVisits', () => {
     await waitFor(() =>
       expect(importVisitsXlsx).toHaveBeenCalledWith(
         expect.any(FormData),
-        'skip',
         true,
       ),
     );
