@@ -1,10 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import type { AlertColor } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -24,15 +23,19 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [noticeOpen, setNoticeOpen] = useState(true);
+  const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
-  const notices: { message: ReactNode; severity: AlertColor }[] = [
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>, severity: 'info' },
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_internal')}</span>, severity: 'info' },
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>, severity: 'warning' },
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>, severity: 'info' },
-  ];
-  const [noticeIndex, setNoticeIndex] = useState(0);
+
+  useEffect(() => {
+    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
+    setNoticeOpen(count < 3);
+  }, []);
+
+  function handleNoticeClose() {
+    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0') + 1;
+    localStorage.setItem('clientLoginNoticeCount', String(count));
+    setNoticeOpen(false);
+  }
 
   const clientIdError = submitted && clientId === '';
   const passwordError = submitted && password === '';
@@ -105,11 +108,11 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <Dialog open={noticeOpen} onClose={() => setNoticeOpen(false)}>
+      <Dialog open={noticeOpen} onClose={handleNoticeClose}>
         <DialogContent sx={{ position: 'relative', pt: 4 }}>
           <IconButton
             aria-label="close"
-            onClick={() => setNoticeOpen(false)}
+            onClick={handleNoticeClose}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <CloseIcon />
