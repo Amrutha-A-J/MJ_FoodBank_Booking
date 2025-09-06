@@ -23,9 +23,8 @@ export async function requestPasswordReset(
   res: Response,
   next: NextFunction,
 ) {
-  const { email, username, clientId } = req.body as {
+  const { email, clientId } = req.body as {
     email?: string;
-    username?: string;
     clientId?: number;
   };
   try {
@@ -51,15 +50,6 @@ export async function requestPasswordReset(
           id: result.rows[0].id,
           email: result.rows[0].email,
           table: result.rows[0].user_type,
-        };
-      }
-    } else if (username) {
-      const volRes = await pool.query('SELECT id, email FROM volunteers WHERE username=$1', [username]);
-      if ((volRes.rowCount ?? 0) > 0) {
-        user = {
-          id: volRes.rows[0].id,
-          email: volRes.rows[0].email,
-          table: 'volunteers',
         };
       }
     } else if (clientId) {

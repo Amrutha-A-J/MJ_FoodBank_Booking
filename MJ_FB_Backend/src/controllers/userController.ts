@@ -280,7 +280,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
 
     if (user.type === 'volunteer') {
       const profileRes = await pool.query(
-        `SELECT id, first_name, last_name, email, phone, username FROM volunteers WHERE id = $1`,
+        `SELECT id, first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
         [user.id],
       );
       if ((profileRes.rowCount ?? 0) === 0) {
@@ -301,7 +301,6 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         email: row.email,
         phone: row.phone,
         role: 'volunteer',
-        username: row.username,
         trainedAreas: trainedRes.rows.map(r => r.name),
       });
     }
@@ -383,7 +382,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
          SET email = COALESCE($1, email),
              phone = COALESCE($2, phone)
          WHERE id = $3
-         RETURNING id, first_name, last_name, email, phone, username`,
+         RETURNING id, first_name, last_name, email, phone`,
         [email, phone, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -404,7 +403,6 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         email: row.email,
         phone: row.phone,
         role: 'volunteer',
-        username: row.username,
         trainedAreas: trainedRes.rows.map(r => r.name),
       });
     }
