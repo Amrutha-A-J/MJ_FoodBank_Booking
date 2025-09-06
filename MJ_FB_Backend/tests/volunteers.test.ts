@@ -186,6 +186,7 @@ describe('Volunteer login with shopper profile', () => {
       refreshToken: 'token',
       access: [],
     });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
       id: 1,
       role: 'volunteer',
