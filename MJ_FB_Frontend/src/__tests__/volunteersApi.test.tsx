@@ -10,6 +10,7 @@ import {
   cancelVolunteerBooking,
   getUnmarkedVolunteerBookings,
   createVolunteer,
+  loginVolunteer,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -72,6 +73,14 @@ describe('volunteers api', () => {
   it('fetches recurring volunteer bookings', async () => {
     await getMyRecurringVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
+  });
+
+  it('logs in volunteer with email', async () => {
+    await loginVolunteer('user@example.com', 'pass');
+    expect(apiFetch).toHaveBeenCalledWith('/api/volunteers/login', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ email: 'user@example.com', password: 'pass' }),
+    }));
   });
 
   it('creates a volunteer', async () => {
@@ -168,7 +177,7 @@ describe('volunteers api', () => {
       '/api/volunteer-bookings/10/cancel',
       expect.objectContaining({
         method: 'PATCH',
-        body: JSON.stringify({ reason: 'sick' }),
+        body: JSON.stringify({ reason: 'sick', type: 'volunteer shift' }),
       }),
     );
   });

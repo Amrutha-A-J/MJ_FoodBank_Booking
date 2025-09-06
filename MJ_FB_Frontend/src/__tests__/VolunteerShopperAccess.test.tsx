@@ -26,7 +26,7 @@ describe('Volunteer with shopper profile', () => {
 
     renderWithProviders(<App />);
 
-    fireEvent.click(screen.getByText(/volunteer login/i));
+    fireEvent.click(await screen.findByText(/volunteer login/i));
 
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'vol@example.com' } });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
@@ -35,6 +35,7 @@ describe('Volunteer with shopper profile', () => {
     await waitFor(() =>
       expect(screen.getByRole('link', { name: /Book Appointment/i })).toBeInTheDocument(),
     );
+    expect(loginVolunteer).toHaveBeenCalledWith('vol@example.com', 'pass');
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('link', { name: /Book Appointment/i }));
