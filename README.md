@@ -48,6 +48,12 @@ nvm use
 
 Run all backend and frontend tests on this runtime to match production behavior.
 
+To verify both backend and frontend compile successfully, run the root build script:
+
+```bash
+npm run build
+```
+
 To compile the backend for production, run:
 
 ```bash
