@@ -20,9 +20,14 @@ Add the following translation strings to locale files:
 - `pantry_visits.sheet_rows`
 - `pantry_visits.sheet_errors`
 
+## Visit limits
+
+Staff can record only one visit per client per day. Attempts to add a second visit for the same client and date are rejected as duplicates.
+
 ## Anonymous visits
 
 Anonymous visits display `(ANONYMOUS)` after the client ID in the Pantry Visits table, and their adults and children counts are excluded from summary totals.
+
 
 ## Bulk import format
  

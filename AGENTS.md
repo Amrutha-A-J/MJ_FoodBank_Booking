@@ -10,6 +10,7 @@
 - Pantry visits track daily sunshine bag weights via the `sunshine_bag_log` table.
 - Anonymous pantry visits display "(ANONYMOUS)" after the client ID and their family size is excluded from the summary counts.
 - Bulk pantry visit imports use the `POST /client-visits/import` endpoint (also available at `/visits/import`) and overwrite existing visits when client/date duplicates are found; see `docs/pantryVisits.md` for sheet naming and dry-run options.
+- Client visits enforce a unique client/date combination; attempts to record a second visit for the same client and day return a 409 error.
 - Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.

@@ -88,6 +88,16 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       children,
     } = req.body;
     await client.query('BEGIN');
+    if (clientId) {
+      const dup = await client.query(
+        'SELECT 1 FROM client_visits WHERE client_id = $1 AND date = $2',
+        [clientId, date],
+      );
+      if ((dup.rowCount ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ message: 'Duplicate visit' });
+      }
+    }
     const insertRes = await client.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
        VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9)
@@ -180,6 +190,15 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     } = req.body;
     const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
     const prevClientId: number | null = existing.rows[0]?.client_id ?? null;
+    if (clientId) {
+      const dup = await pool.query(
+        'SELECT 1 FROM client_visits WHERE client_id = $1 AND date = $2 AND id <> $3',
+        [clientId, date, id],
+      );
+      if ((dup.rowCount ?? 0) > 0) {
+        return res.status(409).json({ message: 'Duplicate visit' });
+      }
+    }
     const result = await pool.query(
       `UPDATE client_visits
        SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7, adults = $8, children = $9

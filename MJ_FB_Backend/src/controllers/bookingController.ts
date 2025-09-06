@@ -303,6 +303,15 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
   const adults = req.body?.adults as number | undefined;
   const children = req.body?.children as number | undefined;
   try {
+    const dup = await pool.query(
+      `SELECT 1 FROM client_visits v
+       JOIN bookings b ON v.client_id = b.user_id AND v.date = b.date
+       WHERE b.id = $1`,
+      [bookingId],
+    );
+    if ((dup.rowCount ?? 0) > 0) {
+      return res.status(409).json({ message: 'Duplicate visit' });
+    }
     const insertRes = await pool.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
        SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4, COALESCE($5,0), COALESCE($6,0)

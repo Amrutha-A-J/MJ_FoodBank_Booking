@@ -412,6 +412,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
 - Anonymous Pantry Visits show "(ANONYMOUS)" after the client ID and their family size is excluded from summary counts.
 - Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (also `/visits/import`) and overwrite existing visits on client/date conflicts (see `docs/pantryVisits.md`).
+- Pantry Visits reject attempts to record more than one visit per client on the same day.
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 
 ## Deploying to Azure

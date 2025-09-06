@@ -62,6 +62,7 @@ describe('client visit booking integration', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
       .mockResolvedValueOnce({
         rows: [
           {
@@ -146,6 +147,7 @@ describe('client visit booking integration', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
       .mockResolvedValueOnce({
         rows: [
           {
