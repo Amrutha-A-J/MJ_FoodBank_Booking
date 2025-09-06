@@ -162,7 +162,7 @@ describe('PantryVisits', () => {
         date: '2024-01-01',
         clientId: 222,
         clientName: 'Bob',
-        anonymous: false,
+        anonymous: true,
         weightWithCart: 20,
         weightWithoutCart: 15,
         petItem: 1,
@@ -175,10 +175,12 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
-    expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
-    expect(screen.getByText('Adults: 4')).toBeInTheDocument();
-    expect(screen.getByText('Children: 6')).toBeInTheDocument();
+    expect(await screen.findByText('111')).toBeInTheDocument();
+    expect(screen.getByText('222 (ANONYMOUS)')).toBeInTheDocument();
+    expect(screen.getByText('Clients: 1')).toBeInTheDocument();
+    expect(screen.getByText('Total Weight: 32')).toBeInTheDocument();
+    expect(screen.getByText('Adults: 1')).toBeInTheDocument();
+    expect(screen.getByText('Children: 2')).toBeInTheDocument();
     expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 

@@ -8,13 +8,18 @@ export default function PantryQuickLinks() {
   };
 
   return (
-    <Stack direction="row" spacing={2}>
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={{ xs: 1, sm: 2 }}
+      sx={{ width: '100%' }}
+    >
       <Button
         size="small"
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
         to="/pantry/schedule"
+        fullWidth
       >
         Pantry Schedule
       </Button>
@@ -24,6 +29,7 @@ export default function PantryQuickLinks() {
         sx={buttonSx}
         component={RouterLink}
         to="/pantry/visits"
+        fullWidth
       >
         Record a Visit
       </Button>
@@ -33,6 +39,7 @@ export default function PantryQuickLinks() {
         sx={buttonSx}
         component={RouterLink}
         to="/pantry/client-management?tab=history"
+        fullWidth
       >
         Search Client
       </Button>

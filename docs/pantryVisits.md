@@ -24,6 +24,11 @@ Add the following translation strings to locale files:
 
 Staff can record only one visit per client per day. Attempts to add a second visit for the same client and date are rejected as duplicates.
 
+## Anonymous visits
+
+Anonymous visits display `(ANONYMOUS)` after the client ID in the Pantry Visits table, and their adults and children counts are excluded from summary totals.
+
+
 ## Bulk import format
  
 Pantry visits support bulk importing from an `.xlsx` spreadsheet. Upload the file via `POST /client-visits/import` (also available at `/visits/import`). Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.

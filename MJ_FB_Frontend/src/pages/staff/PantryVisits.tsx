@@ -231,8 +231,11 @@ export default function PantryVisits() {
     const clients = visits.filter(v => !v.anonymous).length;
     const totalWeight =
       visits.reduce((sum, v) => sum + v.weightWithoutCart, 0) + sunshineBagWeight;
-    const adults = visits.reduce((sum, v) => sum + v.adults, 0);
-    const children = visits.reduce((sum, v) => sum + v.children, 0);
+    const adults = visits.reduce((sum, v) => sum + (v.anonymous ? 0 : v.adults), 0);
+    const children = visits.reduce(
+      (sum, v) => sum + (v.anonymous ? 0 : v.children),
+      0,
+    );
     return { clients, totalWeight, adults, children };
   }, [visits, sunshineBagWeight]);
 
@@ -352,7 +355,10 @@ export default function PantryVisits() {
             filteredVisits.map(v => (
               <TableRow key={v.id}>
                 <TableCell>{formatDisplay(v.date)}</TableCell>
-                <TableCell>{v.clientId ?? 'N/A'}</TableCell>
+                <TableCell>
+                  {v.clientId ?? 'N/A'}
+                  {v.anonymous ? ' (ANONYMOUS)' : ''}
+                </TableCell>
                 <TableCell>{v.clientName ?? ''}</TableCell>
                 <TableCell>
                   {v.clientId ? (
@@ -454,7 +460,12 @@ export default function PantryVisits() {
 
   return (
     <Page title="Pantry Visits" header={<PantryQuickLinks />}>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        sx={{ mb: 2 }}
+      >
         <Button
           size="small"
           variant="contained"
@@ -476,6 +487,7 @@ export default function PantryVisits() {
             setEditing(null);
             setRecordOpen(true);
           }}
+          fullWidth
         >
           Record Visit
         </Button>
@@ -483,6 +495,7 @@ export default function PantryVisits() {
           size="small"
           variant="contained"
           onClick={() => setImportOpen(true)}
+          fullWidth
         >
           {t('pantry_visits.import_visits')}
         </Button>
@@ -491,6 +504,7 @@ export default function PantryVisits() {
           label="Search"
           value={search}
           onChange={e => setSearch(e.target.value)}
+          fullWidth
         />
         <TextField
           size="small"
@@ -499,12 +513,14 @@ export default function PantryVisits() {
           value={lookupDate}
           onChange={e => setLookupDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
+          fullWidth
         />
         <Button
           size="small"
           variant="contained"
           onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
           disabled={!lookupDate}
+          fullWidth
         >
           Go
         </Button>
