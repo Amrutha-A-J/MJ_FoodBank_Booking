@@ -50,6 +50,7 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` – Brevo template ID for volunteer booking confirmations.
 
 `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` – Brevo template ID for volunteer shift reminder emails.
+`VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` – Brevo template ID for volunteer no-show notification emails.
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
 

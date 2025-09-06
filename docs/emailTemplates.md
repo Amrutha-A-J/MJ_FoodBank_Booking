@@ -28,3 +28,9 @@ This document catalogs Brevo email templates used by the backend and the paramet
 
 Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
 
+## Volunteer no-show notification email
+
+- **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` (exposed as `config.volunteerNoShowNotificationTemplateId`)
+- **Params:**
+  - `ids` (string) – comma-separated list of volunteer booking IDs that were marked as no-show.
+

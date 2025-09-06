@@ -4,7 +4,6 @@ import scheduleDailyJob from './scheduleDailyJob';
 import config from '../config';
 import coordinatorEmailsConfig from '../config/coordinatorEmails.json';
 import { sendTemplatedEmail } from './emailUtils';
-import { VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID } from '../config/emailTemplates';
 
 const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
 
@@ -32,7 +31,7 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
         coordinatorEmails.map(email =>
           sendTemplatedEmail({
             to: email,
-            templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+            templateId: config.volunteerNoShowNotificationTemplateId,
             params,
           }),
         ),
