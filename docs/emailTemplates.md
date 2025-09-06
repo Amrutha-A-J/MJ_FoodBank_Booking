@@ -44,6 +44,12 @@ dynamic content.
   - `subject` (string) – email subject.
   - `body` (string) – message body describing the update.
 
+## Volunteer no-show notification emails
+
+- **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID`
+- **Params:**
+  - `ids` (string) – comma-separated volunteer booking IDs marked as no-show.
+
 ## Agency client update emails
 
 - **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID`
