@@ -15,17 +15,17 @@ import {
   Link,
   FormControlLabel,
   Checkbox,
-  Typography,
 } from "@mui/material";
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
-import {
+import { 
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
+import PasswordField from "../../../components/PasswordField";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
@@ -36,6 +36,7 @@ export default function UpdateClientData() {
     email: "",
     phone: "",
     onlineAccess: false,
+    password: "",
   });
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -61,6 +62,7 @@ export default function UpdateClientData() {
       email: client.email || "",
       phone: client.phone || "",
       onlineAccess: false,
+      password: "",
     });
   }
 
@@ -73,6 +75,7 @@ export default function UpdateClientData() {
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
+        ...(form.onlineAccess ? { password: form.password } : {}),
       });
       setSnackbar({
         open: true,
@@ -157,11 +160,6 @@ export default function UpdateClientData() {
               }
               label="Online Access"
             />
-            {form.onlineAccess && (
-              <Typography variant="body2" color="text.secondary">
-                An email invitation will be sent.
-              </Typography>
-            )}
             <TextField
               label="First Name"
               value={form.firstName}
@@ -186,6 +184,15 @@ export default function UpdateClientData() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
+            {form.onlineAccess && (
+              <PasswordField
+                label="Password"
+                value={form.password}
+                onChange={(e) =>
+                  setForm({ ...form, password: e.target.value })
+                }
+              />
+            )}
           </Stack>
         </DialogContent>
           <DialogActions>
@@ -193,7 +200,8 @@ export default function UpdateClientData() {
               onClick={handleSave}
               disabled={
                 !form.firstName ||
-                !form.lastName
+                !form.lastName ||
+                (form.onlineAccess && !form.password)
               }
             >
               Save

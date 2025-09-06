@@ -176,6 +176,7 @@ export default function UserHistory({
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
+        ...(form.onlineAccess ? { password: form.password } : {}),
       });
       setSelected(s =>
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
@@ -404,17 +405,21 @@ export default function UserHistory({
                 )}
               </Stack>
             </DialogContent>
-              <DialogActions>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSaveClient}
-                  disabled={!form.firstName || !form.lastName}
-                >
-                  Save
-                </Button>
-              </DialogActions>
-            </Dialog>
+                <DialogActions>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSaveClient}
+                    disabled={
+                      !form.firstName ||
+                      !form.lastName ||
+                      (form.onlineAccess && !form.password)
+                    }
+                  >
+                    Save
+                  </Button>
+                </DialogActions>
+              </Dialog>
           )}
           <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
             <DialogCloseButton onClose={() => setCancelId(null)} />
