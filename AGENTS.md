@@ -6,7 +6,7 @@
 - Use Node.js 22+; run `nvm use` to switch to the pinned version in `.nvmrc`.
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
-- Document translation strings for localization in `docs/` and update `MJ_FB_Frontend/src/locales` when user-facing text is added.
+- Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/src/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights via the `sunshine_bag_log` table.
 - Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
