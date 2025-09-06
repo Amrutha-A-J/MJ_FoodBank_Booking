@@ -15,7 +15,7 @@ export const cookieOptions: CookieOptions = {
   sameSite: isProduction ? 'none' : 'lax',
   secure: isProduction,
   path: '/',
-  ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
+  ...(isProduction && config.cookieDomain ? { domain: config.cookieDomain } : {}),
 };
 
 export type AuthPayload = {
