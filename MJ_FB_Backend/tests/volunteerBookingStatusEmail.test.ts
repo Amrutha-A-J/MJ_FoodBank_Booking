@@ -4,7 +4,6 @@ import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
-import config from '../src/config';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),
@@ -132,11 +131,9 @@ describe('cancelVolunteerBookingOccurrence', () => {
       .set('x-staff', '1')
       .send({ reason: 'sick' });
     expect(res.status).toBe(200);
-    const calls = sendTemplatedEmailMock.mock.calls.filter(
-      c => c[0].to === 'vol@example.com',
-    );
-    expect(calls).toHaveLength(1);
-    expect(calls[0][0].params.body).toContain('sick');
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
+    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
   });
 
   it('does not send email when volunteer cancels', async () => {
@@ -145,10 +142,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
       .patch('/volunteer-bookings/1/cancel')
       .send({ reason: 'sick' });
     expect(res.status).toBe(200);
-    const calls = sendTemplatedEmailMock.mock.calls.filter(
-      c => c[0].to === 'vol@example.com',
-    );
-    expect(calls).toHaveLength(0);
+    expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 });
 
@@ -174,11 +168,9 @@ describe('cancelRecurringVolunteerBooking', () => {
       .set('x-staff', '1')
       .send({ reason: 'sick' });
     expect(res.status).toBe(200);
-    const calls = sendTemplatedEmailMock.mock.calls.filter(
-      c => c[0].to === 'vol@example.com',
-    );
-    expect(calls).toHaveLength(1);
-    expect(calls[0][0].params.body).toContain('sick');
+    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
+    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
   });
 
   it('does not send email when volunteer cancels recurring booking', async () => {
@@ -187,10 +179,7 @@ describe('cancelRecurringVolunteerBooking', () => {
       .delete('/volunteer-bookings/recurring/1')
       .send({ reason: 'sick' });
     expect(res.status).toBe(200);
-    const calls = sendTemplatedEmailMock.mock.calls.filter(
-      c => c[0].to === 'vol@example.com',
-    );
-    expect(calls).toHaveLength(0);
+    expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 });
 
