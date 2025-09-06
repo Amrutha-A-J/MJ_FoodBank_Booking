@@ -5,6 +5,8 @@ describe('config', () => {
   const originalJwt = process.env.JWT_SECRET;
   const originalRefresh = process.env.JWT_REFRESH_SECRET;
   const originalPasswordTemplate = process.env.PASSWORD_SETUP_TEMPLATE_ID;
+  const originalClientRescheduleTemplate = process.env.CLIENT_RESCHEDULE_TEMPLATE_ID;
+  const originalVolunteerRescheduleTemplate = process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID;
 
   afterEach(() => {
     if (originalFrontend === undefined) {
@@ -26,6 +28,16 @@ describe('config', () => {
       delete process.env.PASSWORD_SETUP_TEMPLATE_ID;
     } else {
       process.env.PASSWORD_SETUP_TEMPLATE_ID = originalPasswordTemplate;
+    }
+    if (originalClientRescheduleTemplate === undefined) {
+      delete process.env.CLIENT_RESCHEDULE_TEMPLATE_ID;
+    } else {
+      process.env.CLIENT_RESCHEDULE_TEMPLATE_ID = originalClientRescheduleTemplate;
+    }
+    if (originalVolunteerRescheduleTemplate === undefined) {
+      delete process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID;
+    } else {
+      process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID = originalVolunteerRescheduleTemplate;
     }
     jest.resetModules();
   });
@@ -73,5 +85,19 @@ describe('config', () => {
     jest.resetModules();
     const config = require('../src/config').default;
     expect(config.passwordSetupTemplateId).toBe(6);
+  });
+
+  it('defaults CLIENT_RESCHEDULE_TEMPLATE_ID to 10 when missing', () => {
+    delete process.env.CLIENT_RESCHEDULE_TEMPLATE_ID;
+    jest.resetModules();
+    const config = require('../src/config').default;
+    expect(config.clientRescheduleTemplateId).toBe(10);
+  });
+
+  it('defaults VOLUNTEER_RESCHEDULE_TEMPLATE_ID to 10 when missing', () => {
+    delete process.env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID;
+    jest.resetModules();
+    const config = require('../src/config').default;
+    expect(config.volunteerRescheduleTemplateId).toBe(10);
   });
 });

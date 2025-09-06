@@ -302,8 +302,8 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                         |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
-| `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Brevo template ID for client reschedule emails                        |
-| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Brevo template ID for volunteer reschedule emails                     |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Brevo template ID for client reschedule emails (default 10)           |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Brevo template ID for volunteer reschedule emails (default 10)        |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
 

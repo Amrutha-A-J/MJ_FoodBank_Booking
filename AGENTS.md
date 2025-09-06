@@ -35,6 +35,8 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
 
+Client and volunteer reschedule emails currently use Brevo template ID **10**.
+
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
 Cancel and reschedule links in booking emails point to public pages at `/cancel/:token` and `/reschedule/:token`.
