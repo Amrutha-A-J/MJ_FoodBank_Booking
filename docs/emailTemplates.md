@@ -11,7 +11,7 @@ parameters supplied to each template.
 | `templateId: 1` | Booking cancellations, reschedules, and no-show notices | `body`, `type` | `bookingController.ts` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `volunteerBookingController.ts` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
+| `templateId: 0` | Volunteer booking notifications (cancellations, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
 | `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
 | `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |

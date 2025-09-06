@@ -14,7 +14,6 @@ import {
 } from '../../types/volunteerBooking';
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 import config from '../../config';
-import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -34,34 +33,13 @@ function statusColor(status: string) {
   return STATUS_COLORS[status] || null;
 }
 
+
 function mapBookingRow(b: any) {
   return {
     ...b,
     date: b.date instanceof Date ? formatReginaDate(b.date) : b.date,
     status_color: statusColor(b.status),
   };
-}
-
-const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails || [];
-
-async function notifyCoordinators(subject: string, body: string) {
-  const results = await Promise.allSettled(
-    coordinatorEmails.map(email =>
-      sendTemplatedEmail({
-        to: email,
-        templateId: config.volunteerBookingNotificationTemplateId,
-        params: { subject, body },
-      }),
-    ),
-  );
-  results.forEach((result, idx) => {
-    if (result.status === 'rejected') {
-      logger.error('Failed to send coordinator email', {
-        email: coordinatorEmails[idx],
-        error: result.reason,
-      });
-    }
-  });
 }
 
 export async function createVolunteerBooking(
@@ -853,10 +831,6 @@ export async function updateVolunteerBookingStatus(
       updated.date instanceof Date
         ? formatReginaDate(updated.date)
         : updated.date;
-    await notifyCoordinators(
-      `Volunteer booking ${status}`,
-      `Volunteer booking ${id} ${status}.`,
-    );
     res.json(updated);
   } catch (error) {
     logger.error('Error updating volunteer booking:', error);
@@ -950,10 +924,6 @@ export async function rescheduleVolunteerBooking(
     await pool.query(
       "UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status='approved', reason=NULL WHERE id=$4",
       [roleId, date, newToken, booking.id],
-    );
-    await notifyCoordinators(
-      'Volunteer booking rescheduled',
-      `Volunteer booking ${booking.id} was rescheduled`,
     );
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
@@ -1097,10 +1067,6 @@ export async function createRecurringVolunteerBooking(
           user.id,
         );
       }
-      await notifyCoordinators(
-        subject,
-        `Volunteer ${user.id} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
-      );
     }
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
@@ -1266,10 +1232,6 @@ export async function createRecurringVolunteerBookingForVolunteer(
           volunteerId,
         );
       }
-      await notifyCoordinators(
-        subject,
-        `Volunteer ${volunteerId} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
-      );
     }
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
@@ -1381,10 +1343,6 @@ export async function cancelVolunteerBookingOccurrence(
         booking.volunteer_id,
       );
     }
-    await notifyCoordinators(
-      subject,
-      `Volunteer ${booking.volunteer_id} booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}.`,
-    );
     booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
@@ -1445,10 +1403,6 @@ export async function cancelRecurringVolunteerBooking(
         info.volunteer_id,
       );
     }
-    await notifyCoordinators(
-      subject,
-      `Volunteer ${info.volunteer_id} recurring bookings cancelled starting ${from} for ${info.start_time}-${info.end_time}.`,
-    );
     res.json({ message: 'Recurring bookings cancelled' });
   } catch (error) {
     logger.error('Error cancelling recurring volunteer bookings:', error);
