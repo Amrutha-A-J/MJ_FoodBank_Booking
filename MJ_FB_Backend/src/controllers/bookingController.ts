@@ -11,7 +11,7 @@ import {
   findUpcomingBooking,
 } from '../utils/bookingUtils';
 import { enqueueEmail } from '../utils/emailQueue';
-import { buildCancelRescheduleLinks } from '../utils/emailUtils';
+import { buildCancelRescheduleLinks, buildCalendarLinks } from '../utils/emailUtils';
 import logger from '../utils/logger';
 import { parseIdParam } from '../utils/parseIdParam';
 import {
@@ -120,11 +120,21 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+      const slotRes = await pool.query(
+        'SELECT start_time, end_time FROM slots WHERE id=$1',
+        [slotIdNum],
+      );
+      const { start_time, end_time } = slotRes.rows[0] || {};
+      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
+        date,
+        start_time,
+        end_time,
+      );
       const body = `Your booking for ${date} has been automatically approved.`;
       enqueueEmail({
         to: user.email,
         templateId: 1,
-        params: { body, cancelLink, rescheduleLink },
+        params: { body, cancelLink, rescheduleLink, googleCalendarLink, outlookCalendarLink },
       });
     } else {
       logger.warn(
@@ -581,9 +591,23 @@ export async function createBookingForUser(
     );
     const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
     const clientEmail = emailRes.rows[0]?.email;
+    const slotRes = await pool.query(
+      'SELECT start_time, end_time FROM slots WHERE id=$1',
+      [slotIdNum],
+    );
+    const { start_time, end_time } = slotRes.rows[0] || {};
     if (clientEmail) {
+      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
+        date,
+        start_time,
+        end_time,
+      );
       const body = `Your booking for ${date} has been automatically approved`;
-      enqueueEmail({ to: clientEmail, templateId: 1, params: { body } });
+      enqueueEmail({
+        to: clientEmail,
+        templateId: 1,
+        params: { body, googleCalendarLink, outlookCalendarLink },
+      });
     } else {
       logger.warn(
         'Booking approved email not sent. User %s has no email.',

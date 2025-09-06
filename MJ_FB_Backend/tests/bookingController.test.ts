@@ -41,7 +41,8 @@ describe('createBookingForUser', () => {
   it('enqueues confirmation email after booking creation', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-01-15' },
@@ -55,7 +56,11 @@ describe('createBookingForUser', () => {
       expect.objectContaining({
         to: 'client@example.com',
         templateId: expect.any(Number),
-        params: expect.objectContaining({ body: expect.stringContaining('2024-01-15') }),
+        params: expect.objectContaining({
+          body: expect.stringContaining('2024-01-15'),
+          googleCalendarLink: expect.any(String),
+          outlookCalendarLink: expect.any(String),
+        }),
       }),
     );
   });

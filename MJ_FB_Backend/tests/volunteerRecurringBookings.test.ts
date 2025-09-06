@@ -7,6 +7,10 @@ import { sendTemplatedEmail } from '../src/utils/emailUtils';
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '',
+    outlookCalendarLink: '',
+  }),
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({

@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import pool from '../../db';
-import { sendTemplatedEmail, buildCancelRescheduleLinks } from '../../utils/emailUtils';
+import {
+  sendTemplatedEmail,
+  buildCancelRescheduleLinks,
+  buildCalendarLinks,
+} from '../../utils/emailUtils';
 import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
 import {
@@ -197,6 +201,11 @@ export async function createVolunteerBooking(
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
           token,
         );
+        const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
+          date,
+          slot.start_time,
+          slot.end_time,
+        );
         enqueueEmail({
           to: user.email,
           templateId: 1,
@@ -204,6 +213,8 @@ export async function createVolunteerBooking(
             body: `Volunteer booking for role ${roleId} on ${date} has been confirmed.`,
             cancelLink,
             rescheduleLink,
+            googleCalendarLink,
+            outlookCalendarLink,
           },
         });
       } else {
@@ -551,6 +562,11 @@ export async function resolveVolunteerBookingConflict(
 
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
+        date!,
+        slot.start_time,
+        slot.end_time,
+      );
       enqueueEmail({
         to: user.email,
         templateId: 1,
@@ -558,6 +574,8 @@ export async function resolveVolunteerBookingConflict(
           body: `Volunteer booking for role ${roleId} on ${date!} has been confirmed.`,
           cancelLink,
           rescheduleLink,
+          googleCalendarLink,
+          outlookCalendarLink,
         },
       });
     } else {
