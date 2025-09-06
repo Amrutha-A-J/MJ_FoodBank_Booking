@@ -454,7 +454,12 @@ export default function PantryVisits() {
 
   return (
     <Page title="Pantry Visits" header={<PantryQuickLinks />}>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        sx={{ mb: 2 }}
+      >
         <Button
           size="small"
           variant="contained"
@@ -476,6 +481,7 @@ export default function PantryVisits() {
             setEditing(null);
             setRecordOpen(true);
           }}
+          fullWidth
         >
           Record Visit
         </Button>
@@ -483,6 +489,7 @@ export default function PantryVisits() {
           size="small"
           variant="contained"
           onClick={() => setImportOpen(true)}
+          fullWidth
         >
           {t('pantry_visits.import_visits')}
         </Button>
@@ -491,6 +498,7 @@ export default function PantryVisits() {
           label="Search"
           value={search}
           onChange={e => setSearch(e.target.value)}
+          fullWidth
         />
         <TextField
           size="small"
@@ -499,12 +507,14 @@ export default function PantryVisits() {
           value={lookupDate}
           onChange={e => setLookupDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
+          fullWidth
         />
         <Button
           size="small"
           variant="contained"
           onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
           disabled={!lookupDate}
+          fullWidth
         >
           Go
         </Button>
