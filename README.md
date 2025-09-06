@@ -366,7 +366,13 @@ npm start   # or npm run dev
 
 ### Environment variables
 
-The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with:
+The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with either a relative or absolute URL:
+
+```
+VITE_API_BASE=/api
+```
+
+or
 
 ```
 VITE_API_BASE=http://localhost:4000/api
