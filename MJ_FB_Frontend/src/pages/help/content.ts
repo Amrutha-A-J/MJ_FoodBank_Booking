@@ -231,6 +231,18 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Import visits from spreadsheet',
+      body: {
+        description: 'Upload an .xlsx file to add multiple visits.',
+        steps: [
+          'Open the Pantry Visits page.',
+          'Click Import Visits.',
+          'Choose a file and run Dry-run to preview.',
+          'Select a duplicate strategy and click Import.',
+        ],
+      },
+    },
+    {
       title: 'Manage volunteers',
       body: {
         description: 'Search, add, and review volunteers.',
