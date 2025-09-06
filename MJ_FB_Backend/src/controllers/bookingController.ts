@@ -253,14 +253,16 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       );
       email = emailRes.rows[0]?.email;
     }
-    if (email) {
-        const body = `Booking ${bookingId} was cancelled`;
+    if (requester.role === 'staff') {
+      if (email) {
+        const body = `Booking ${bookingId} was cancelled. Reason: ${reason}`;
         enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type } });
-    } else {
-      logger.warn(
-        'Booking cancellation email not sent. Booking %s has no associated email.',
-        bookingId,
-      );
+      } else {
+        logger.warn(
+          'Booking cancellation email not sent. Booking %s has no associated email.',
+          bookingId,
+        );
+      }
     }
 
     res.json({ message: 'Booking cancelled' });
@@ -276,25 +278,8 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
     return res.status(400).json({ message: 'Invalid ID' });
   }
   const reason = (req.body?.reason as string) || '';
-  const type = (req.body?.type as string) || 'shopping appointment';
   try {
-    const result = await pool.query(
-      `SELECT COALESCE(c.email, nc.email) AS email, b.reschedule_token, b.date
-       FROM bookings b
-       LEFT JOIN clients c ON b.user_id = c.client_id
-       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
-       WHERE b.id = $1`,
-      [bookingId],
-    );
-
     await updateBooking(bookingId, { status: 'no_show', request_data: reason, note: null });
-
-    const booking = result.rows[0];
-    if (booking?.email && booking?.reschedule_token) {
-      const link = `${config.frontendOrigins[0]}/reschedule/${booking.reschedule_token}`;
-        const body = `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`;
-        enqueueEmail({ to: booking.email, templateId: config.bookingStatusTemplateId, params: { body, type } });
-    }
 
     res.json({ message: 'Booking marked as no-show' });
   } catch (error) {

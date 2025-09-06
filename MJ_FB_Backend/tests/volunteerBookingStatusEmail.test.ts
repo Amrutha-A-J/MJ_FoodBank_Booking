@@ -3,6 +3,8 @@ import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import logger from '../src/utils/logger';
+import config from '../src/config';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),

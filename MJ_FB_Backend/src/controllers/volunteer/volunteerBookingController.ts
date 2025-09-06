@@ -1082,10 +1082,16 @@ export async function createRecurringVolunteerBooking(
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
       const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
       if (user.email) {
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
           to: user.email,
-          templateId: config.volunteerBookingNotificationTemplateId,
-          params: { subject, body },
+          templateId: config.volunteerBookingReminderTemplateId,
+          params: {
+            body,
+            cancelLink,
+            rescheduleLink,
+            type: 'volunteer shift',
+          },
         });
       } else {
         logger.warn(
@@ -1251,10 +1257,16 @@ export async function createRecurringVolunteerBookingForVolunteer(
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
       const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
       if (volunteerEmail) {
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
           to: volunteerEmail,
-          templateId: config.volunteerBookingNotificationTemplateId,
-          params: { subject, body },
+          templateId: config.volunteerBookingReminderTemplateId,
+          params: {
+            body,
+            cancelLink,
+            rescheduleLink,
+            type: 'volunteer shift',
+          },
         });
       } else {
         logger.warn(
@@ -1330,7 +1342,7 @@ export async function cancelVolunteerBookingOccurrence(
   const cancelReason = reason || 'volunteer_cancelled';
   try {
     const bookingRes = await pool.query(
-      `SELECT id, slot_id, volunteer_id, date, status, recurring_id
+      `SELECT id, slot_id, volunteer_id, date, status, recurring_id, reschedule_token
        FROM volunteer_bookings WHERE id=$1`,
       [id],
     );
@@ -1366,10 +1378,13 @@ export async function cancelVolunteerBookingOccurrence(
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
     const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
     if (volunteerEmail) {
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
+        booking.reschedule_token,
+      );
       await sendTemplatedEmail({
         to: volunteerEmail,
-        templateId: config.volunteerBookingNotificationTemplateId,
-        params: { subject, body },
+        templateId: config.volunteerBookingReminderTemplateId,
+        params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
       });
     } else {
       logger.warn(
