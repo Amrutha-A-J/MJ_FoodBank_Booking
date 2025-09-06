@@ -6,6 +6,11 @@ import { getEvents } from '../api/events';
 import { getVisitStats } from '../api/clientVisits';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
 
+const mockUseBreadcrumbActions = jest.fn();
+jest.mock('../components/layout/MainLayout', () => ({
+  useBreadcrumbActions: (actions: unknown) => mockUseBreadcrumbActions(actions),
+}));
+
 jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
 }));
@@ -22,6 +27,10 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerBookings: jest.fn(),
   getVolunteerRoles: jest.fn(),
 }));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('StaffDashboard', () => {
   it('does not display no-show rankings card', async () => {
@@ -40,7 +49,7 @@ describe('StaffDashboard', () => {
       </MemoryRouter>,
     );
 
-    await screen.findByText('Pantry Visit Trend');
+    await screen.findByText('Total Clients');
     expect(getVisitStats).toHaveBeenCalled();
     expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
   });
@@ -72,5 +81,15 @@ describe('StaffDashboard', () => {
     );
 
     expect(await screen.findByText(/Staff Meeting/)).toBeInTheDocument();
+  });
+
+  it('hides pantry quick links when disabled', () => {
+    render(
+      <MemoryRouter>
+        <Dashboard role="staff" showPantryQuickLinks={false} />
+      </MemoryRouter>,
+    );
+
+    expect(mockUseBreadcrumbActions).toHaveBeenCalledWith(null);
   });
 });

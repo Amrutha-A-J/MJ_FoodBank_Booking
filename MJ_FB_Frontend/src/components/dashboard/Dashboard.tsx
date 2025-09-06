@@ -34,6 +34,7 @@ import { useBreadcrumbActions } from '../layout/MainLayout';
 export interface DashboardProps {
   role: Role;
   masterRoleFilter?: string[];
+  showPantryQuickLinks?: boolean;
 }
 
 interface StatProps {
@@ -363,8 +364,14 @@ function UserDashboard() {
   );
 }
 
-export default function Dashboard({ role, masterRoleFilter }: DashboardProps) {
-  useBreadcrumbActions(role === 'staff' ? <PantryQuickLinks /> : null);
+export default function Dashboard({
+  role,
+  masterRoleFilter,
+  showPantryQuickLinks = true,
+}: DashboardProps) {
+  useBreadcrumbActions(
+    role === 'staff' && showPantryQuickLinks ? <PantryQuickLinks /> : null,
+  );
   if (role === 'staff')
     return <StaffDashboard masterRoleFilter={masterRoleFilter} />;
   return <UserDashboard />;
