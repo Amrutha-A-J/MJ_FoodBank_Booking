@@ -22,7 +22,7 @@ git push origin main
 ## 2) Server Pull & Build (SSH into Lightsail instance)
 ```bash
 cd ~/apps/MJ_FoodBank_Booking
-git pull origin main
+git pull origin master
 ```
 
 ### 2A) Backend (API)
