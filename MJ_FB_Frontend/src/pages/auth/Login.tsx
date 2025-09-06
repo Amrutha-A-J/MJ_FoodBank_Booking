@@ -50,7 +50,13 @@ export default function Login({
   return (
     <Page title={t('client_login')}>
       <Alert severity="info" sx={{ mb: 2 }}>
-        {t('client_login_notice')}
+        {t('client_login_notice_id')}
+      </Alert>
+      <Alert severity="warning" sx={{ mb: 2 }}>
+        {t('client_login_notice_password')}
+      </Alert>
+      <Alert severity="info" sx={{ mb: 2 }}>
+        {t('client_login_notice_volunteer')}
       </Alert>
       <FormCard
         onSubmit={handleSubmit}
