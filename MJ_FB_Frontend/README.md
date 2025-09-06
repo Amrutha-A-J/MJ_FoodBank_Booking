@@ -29,7 +29,13 @@ Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing 
 
 ## Environment Variables
 
-The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with:
+The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with either an absolute or relative URL:
+
+```
+VITE_API_BASE=/api
+```
+
+or
 
 ```
 VITE_API_BASE=http://localhost:4000/api
