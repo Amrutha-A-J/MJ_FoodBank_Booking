@@ -151,8 +151,19 @@ export default function ClientDashboard() {
             >
               {next ? (
                 <List>
-                  <ListItem
-                    secondaryAction={
+                  <ListItem disableGutters>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1}
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      justifyContent="space-between"
+                      sx={{ width: '100%' }}
+                    >
+                      <Typography>
+                        {`${formatDate(next.date)} ${formatTime(
+                          next.start_time || '',
+                        )}`}
+                      </Typography>
                       <Stack direction="row" spacing={1}>
                         <Button
                           size="small"
@@ -171,13 +182,7 @@ export default function ClientDashboard() {
                           {t('reschedule')}
                         </Button>
                       </Stack>
-                    }
-                  >
-                    <ListItemText
-                      primary={`${formatDate(next.date)} ${formatTime(
-                        next.start_time || '',
-                      )}`}
-                    />
+                    </Stack>
                   </ListItem>
                 </List>
               ) : (
