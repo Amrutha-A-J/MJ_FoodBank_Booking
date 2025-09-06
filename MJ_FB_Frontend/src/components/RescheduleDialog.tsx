@@ -47,6 +47,12 @@ export default function RescheduleDialog({
               slot => new Date(`${date}T${slot.startTime}`) > now,
             );
           }
+          s = s.filter(
+            slot =>
+              (slot.available ?? 0) > 0 &&
+              slot.status !== 'blocked' &&
+              slot.status !== 'break',
+          );
           setSlots(s);
         })
         .catch(() => setSlots([]));
