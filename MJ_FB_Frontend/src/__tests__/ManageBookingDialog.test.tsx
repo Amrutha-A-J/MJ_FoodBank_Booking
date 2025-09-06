@@ -16,6 +16,7 @@ jest.mock('../api/clientVisits', () => ({
 }));
 
 const { createClientVisit } = jest.requireMock('../api/clientVisits');
+const { getSlots } = jest.requireMock('../api/bookings');
 
 describe('ManageBookingDialog', () => {
   beforeAll(() => {
@@ -30,6 +31,7 @@ describe('ManageBookingDialog', () => {
 
   beforeEach(() => {
     (createClientVisit as jest.Mock).mockReset();
+    (getSlots as jest.Mock).mockReset();
   });
 
   it('records visit when marking booking visited', async () => {
@@ -153,6 +155,61 @@ describe('ManageBookingDialog', () => {
     );
 
     expect(screen.getByText('Monthly usage: 2')).toBeInTheDocument();
+  });
+
+  it('shows only slots with capacity when rescheduling', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '10:00:00', endTime: '10:30:00', available: 0 },
+      {
+        id: '2',
+        startTime: '11:00:00',
+        endTime: '11:30:00',
+        available: 1,
+        status: 'blocked',
+      },
+      { id: '3', startTime: '12:00:00', endTime: '12:30:00', available: 1 },
+      {
+        id: '4',
+        startTime: '13:00:00',
+        endTime: '13:30:00',
+        available: 1,
+        status: 'break',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <ManageBookingDialog
+          open
+          booking={{
+            id: 1,
+            client_id: 5,
+            user_id: 1,
+            visits_this_month: 1,
+            approved_bookings_this_month: 1,
+            date: '2099-01-01',
+            reschedule_token: 'abc',
+            user_name: 'Client',
+            profile_link: 'https://portal.link2feed.ca/org/1605/intake/5',
+          }}
+          onClose={() => {}}
+          onUpdated={() => {}}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText(/status/i));
+    fireEvent.click(await screen.findByRole('option', { name: /reschedule/i }));
+    const dateInput = await screen.findByLabelText(/date/i);
+    fireEvent.change(dateInput, { target: { value: '2099-01-02' } });
+    await waitFor(() =>
+      expect(screen.getByLabelText(/time/i)).not.toBeDisabled(),
+    );
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: /time/i }));
+    await screen.findByRole('option', { name: /12:00 pm/i });
+    expect(screen.queryByRole('option', { name: /10:00 am/i })).toBeNull();
+    expect(screen.queryByRole('option', { name: /11:00 am/i })).toBeNull();
+    expect(screen.queryByRole('option', { name: /1:00 pm/i })).toBeNull();
   });
 });
 

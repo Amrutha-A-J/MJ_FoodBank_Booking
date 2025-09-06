@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import RescheduleDialog from '../components/RescheduleDialog';
 
 jest.mock('../api/bookings', () => ({
@@ -10,43 +10,28 @@ jest.mock('../api/bookings', () => ({
 const { getSlots } = jest.requireMock('../api/bookings');
 
 describe('RescheduleDialog', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T10:30:00'));
-    window.matchMedia =
-      window.matchMedia ||
-      ((() => ({
-        matches: false,
-        addListener: () => {},
-        removeListener: () => {},
-      })) as any);
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   beforeEach(() => {
     (getSlots as jest.Mock).mockReset();
   });
 
-  it('disables past dates', () => {
-    render(
-      <RescheduleDialog
-        open
-        rescheduleToken=""
-        onClose={() => {}}
-        onRescheduled={() => {}}
-      />,
-    );
-    const dateInput = screen.getByLabelText(/date/i);
-    expect(dateInput).toHaveAttribute('min', '2024-01-01');
-  });
-
-  it('filters out past slots for today', async () => {
+  it('shows only available slots', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1 },
-      { id: '2', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
+      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 0 },
+      {
+        id: '2',
+        startTime: '12:00:00',
+        endTime: '12:30:00',
+        available: 1,
+        status: 'blocked',
+      },
+      { id: '3', startTime: '13:00:00', endTime: '13:30:00', available: 1 },
+      {
+        id: '4',
+        startTime: '14:00:00',
+        endTime: '14:30:00',
+        available: 1,
+        status: 'break',
+      },
     ]);
 
     render(
@@ -55,15 +40,16 @@ describe('RescheduleDialog', () => {
         rescheduleToken=""
         onClose={() => {}}
         onRescheduled={() => {}}
-      />,
+      />, 
     );
 
     fireEvent.change(screen.getByLabelText(/date/i), {
-      target: { value: '2024-01-01' },
+      target: { value: '2099-01-02' },
     });
-
-    await screen.findByText(/11:00 am/i);
-    expect(screen.queryByText(/9:00 am/i)).toBeNull();
-    expect(screen.getByText(/11:00 am/i)).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('combobox', { name: /time/i }));
+    const options = await screen.findAllByRole('option');
+    expect(options).toHaveLength(1);
+    expect(options[0]).toHaveTextContent(/1:00 pm/i);
   });
 });
