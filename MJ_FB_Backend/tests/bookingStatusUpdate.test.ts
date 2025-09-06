@@ -65,7 +65,7 @@ describe('booking status updates', () => {
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      [null, null, 0, 'remember ID', 2],
+      [null, null, 0, 'remember ID', 0, 0, 2],
     );
     expect(bookingRepo.updateBooking).toHaveBeenCalledWith(2, {
       status: 'visited',

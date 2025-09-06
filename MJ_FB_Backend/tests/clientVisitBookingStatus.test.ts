@@ -70,9 +70,11 @@ describe('client visit booking integration', () => {
             clientId: 123,
             weightWithCart: 10,
             weightWithoutCart: 8,
-            petItem: 0,
-            anonymous: false,
-          },
+        petItem: 0,
+        anonymous: false,
+        adults: 0,
+        children: 0,
+      },
         ],
         rowCount: 1,
       }) // insert visit
@@ -121,6 +123,8 @@ describe('client visit booking integration', () => {
         weightWithoutCart: 8,
         petItem: 0,
         anonymous: false,
+        adults: 0,
+        children: 0,
       });
     expect(visitRes.status).toBe(201);
 
@@ -144,7 +148,17 @@ describe('client visit booking integration', () => {
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({
         rows: [
-          { id: 7, date: '2024-01-02', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, petItem: 0, anonymous: false },
+          {
+            id: 7,
+            date: '2024-01-02',
+            clientId: 123,
+            weightWithCart: 0,
+            weightWithoutCart: 0,
+            petItem: 0,
+            anonymous: false,
+            adults: 0,
+            children: 0,
+          },
         ],
         rowCount: 1,
       }) // insert visit
@@ -161,7 +175,7 @@ describe('client visit booking integration', () => {
 
     const res = await request(app)
       .post('/client-visits')
-      .send({ date: '2024-01-02', clientId: 123 });
+      .send({ date: '2024-01-02', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, adults: 0, children: 0 });
 
     expect(res.status).toBe(201);
     expect(bookingRepository.updateBooking).toHaveBeenCalledWith(
@@ -177,7 +191,17 @@ describe('client visit booking integration', () => {
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({
         rows: [
-          { id: 7, date: '2024-01-15', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, petItem: 0, anonymous: false },
+          {
+            id: 7,
+            date: '2024-01-15',
+            clientId: 123,
+            weightWithCart: 0,
+            weightWithoutCart: 0,
+            petItem: 0,
+            anonymous: false,
+            adults: 0,
+            children: 0,
+          },
         ],
         rowCount: 1,
       }) // insert visit
@@ -194,7 +218,7 @@ describe('client visit booking integration', () => {
 
     const res = await request(app)
       .post('/client-visits')
-      .send({ date: '2024-01-15', clientId: 123 });
+      .send({ date: '2024-01-15', clientId: 123, weightWithCart: 0, weightWithoutCart: 0, adults: 0, children: 0 });
 
     expect(res.status).toBe(201);
     expect(bookingRepository.updateBooking).toHaveBeenCalledWith(

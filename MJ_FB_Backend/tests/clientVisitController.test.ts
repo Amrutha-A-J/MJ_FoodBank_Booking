@@ -42,6 +42,8 @@ describe('client visit notes', () => {
             petItem: 0,
             anonymous: false,
             note: 'bring ID',
+            adults: 0,
+            children: 0,
           },
         ],
         rowCount: 1,
@@ -56,12 +58,20 @@ describe('client visit notes', () => {
 
     const res = await request(app)
       .post('/client-visits')
-      .send({ date: '2024-01-02', clientId: 123, weightWithCart: 10, weightWithoutCart: 9, note: 'bring ID' });
+      .send({
+        date: '2024-01-02',
+        clientId: 123,
+        weightWithCart: 10,
+        weightWithoutCart: 9,
+        note: 'bring ID',
+        adults: 0,
+        children: 0,
+      });
 
     expect(res.status).toBe(201);
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      ['2024-01-02', 123, 10, 9, 0, false, 'bring ID'],
+      ['2024-01-02', 123, 10, 9, 0, false, 'bring ID', 0, 0],
     );
     expect(res.body.note).toBe('bring ID');
   });
@@ -80,6 +90,8 @@ describe('client visit notes', () => {
             petItem: 0,
             anonymous: false,
             note: 'updated note',
+            adults: 0,
+            children: 0,
           },
         ],
         rowCount: 1,
@@ -89,12 +101,20 @@ describe('client visit notes', () => {
 
     const res = await request(app)
       .put('/client-visits/7')
-      .send({ date: '2024-01-02', clientId: 123, weightWithCart: 10, weightWithoutCart: 9, note: 'updated note' });
+      .send({
+        date: '2024-01-02',
+        clientId: 123,
+        weightWithCart: 10,
+        weightWithoutCart: 9,
+        note: 'updated note',
+        adults: 0,
+        children: 0,
+      });
 
     expect(res.status).toBe(200);
     expect((pool.query as jest.Mock).mock.calls[1]).toEqual([
       expect.stringContaining('UPDATE client_visits'),
-      ['2024-01-02', 123, 10, 9, 0, false, 'updated note', '7'],
+      ['2024-01-02', 123, 10, 9, 0, false, 'updated note', 0, 0, '7'],
     ]);
     expect(res.body.note).toBe('updated note');
   });
@@ -111,6 +131,8 @@ describe('client visit notes', () => {
           petItem: 0,
           anonymous: false,
           note: 'listed note',
+          adults: 0,
+          children: 0,
           clientName: 'Ann Client',
         },
       ],

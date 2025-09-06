@@ -6,6 +6,8 @@ export const clientVisitSchema = z.object({
   anonymous: z.boolean().optional(),
   weightWithCart: z.number().int(),
   weightWithoutCart: z.number().int(),
+  adults: z.number().int().min(0),
+  children: z.number().int().min(0),
   petItem: z.number().int().optional(),
   note: z.string().optional(),
 });

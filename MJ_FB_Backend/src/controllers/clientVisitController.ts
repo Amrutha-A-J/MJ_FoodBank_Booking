@@ -55,7 +55,7 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
     const result = await pool.query(
       `SELECT v.id, v.date, v.client_id as "clientId", v.weight_with_cart as "weightWithCart",
               v.weight_without_cart as "weightWithoutCart", v.pet_item as "petItem", v.is_anonymous as "anonymous",
-              v.note as "note",
+              v.note as "note", v.adults, v.children,
               COALESCE(c.first_name || ' ' || c.last_name, '') as "clientName"
        FROM client_visits v
        LEFT JOIN clients c ON v.client_id = c.client_id
@@ -73,14 +73,34 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
 export async function addVisit(req: Request, res: Response, next: NextFunction) {
   const client = await pool.connect();
   try {
-    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous, note } = req.body;
+    const {
+      date,
+      clientId,
+      weightWithCart,
+      weightWithoutCart,
+      petItem,
+      anonymous,
+      note,
+      adults,
+      children,
+    } = req.body;
     await client.query('BEGIN');
     const insertRes = await client.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note)
-       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7)
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
+       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9)
        RETURNING id, date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note`,
-      [date, clientId ?? null, weightWithCart, weightWithoutCart, petItem ?? 0, anonymous ?? false, note ?? null]
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children`,
+      [
+        date,
+        clientId ?? null,
+        weightWithCart,
+        weightWithoutCart,
+        petItem ?? 0,
+        anonymous ?? false,
+        note ?? null,
+        adults,
+        children,
+      ]
     );
     let clientName: string | null = null;
     if (clientId) {
@@ -144,15 +164,25 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
 export async function updateVisit(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const { date, clientId, weightWithCart, weightWithoutCart, petItem, anonymous, note } = req.body;
+    const {
+      date,
+      clientId,
+      weightWithCart,
+      weightWithoutCart,
+      petItem,
+      anonymous,
+      note,
+      adults,
+      children,
+    } = req.body;
     const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
     const prevClientId: number | null = existing.rows[0]?.client_id ?? null;
     const result = await pool.query(
       `UPDATE client_visits
-       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7
-       WHERE id = $8
+       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7, adults = $8, children = $9
+       WHERE id = $10
        RETURNING id, date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note`,
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children`,
       [
         date,
         clientId ?? null,
@@ -161,6 +191,8 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         petItem ?? 0,
         anonymous ?? false,
         note ?? null,
+        adults,
+        children,
         id,
       ]
     );

@@ -300,14 +300,24 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
   const weightWithoutCart = req.body?.weightWithoutCart as number | undefined;
   const petItem = req.body?.petItem as number | undefined;
   const note = req.body?.note as string | undefined;
+  const adults = req.body?.adults as number | undefined;
+  const children = req.body?.children as number | undefined;
   try {
     const insertRes = await pool.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note)
-       SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
+       SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4, COALESCE($5,0), COALESCE($6,0)
        FROM bookings b
-       WHERE b.id = $5
+       WHERE b.id = $7
        RETURNING client_id`,
-      [weightWithCart ?? null, weightWithoutCart ?? null, petItem ?? 0, note ?? null, bookingId],
+      [
+        weightWithCart ?? null,
+        weightWithoutCart ?? null,
+        petItem ?? 0,
+        note ?? null,
+        adults ?? 0,
+        children ?? 0,
+        bookingId,
+      ],
     );
     await updateBooking(bookingId, { status: 'visited', request_data: requestData, note: null });
     const clientId: number | null = insertRes.rows[0]?.client_id ?? null;
