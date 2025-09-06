@@ -100,6 +100,42 @@ describe('ManageVolunteerShiftDialog', () => {
     expect(onUpdated).toHaveBeenCalledWith('Booking rescheduled', 'success');
   });
 
+  it('does not show unavailable shifts', async () => {
+    (getRoleShifts as jest.Mock).mockResolvedValue([
+      { shiftId: 10, startTime: '09:00:00', endTime: '12:00:00', maxVolunteers: 1 },
+      { shiftId: 11, startTime: '12:00:00', endTime: '15:00:00', maxVolunteers: 2 },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock)
+      .mockResolvedValueOnce([
+        {
+          id: 2,
+          role_id: 10,
+          volunteer_id: 3,
+          date: '2024-02-02',
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          status: 'approved',
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    render(
+      <ManageVolunteerShiftDialog open booking={booking} onClose={() => {}} onUpdated={() => {}} />,
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText(/status/i));
+    fireEvent.click(await screen.findByRole('option', { name: /reschedule/i }));
+
+    fireEvent.change(screen.getByLabelText(/date/i), {
+      target: { value: '2024-02-02' },
+    });
+
+    fireEvent.mouseDown(await screen.findByLabelText('Shift'));
+
+    expect(screen.queryByRole('option', { name: /9:00/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: /12:00/i })).toBeInTheDocument();
+  });
+
   it('renders nothing when booking is null', () => {
     const { container } = render(
       <ManageVolunteerShiftDialog open booking={null} onClose={() => {}} onUpdated={() => {}} />,

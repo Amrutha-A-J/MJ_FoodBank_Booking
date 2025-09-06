@@ -160,6 +160,8 @@ export default function ManageVolunteerShiftDialog({
     }
   }
 
+  const availableShifts = shifts.filter(s => !isShiftDisabled(s));
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogCloseButton onClose={onClose} />
@@ -212,15 +214,15 @@ export default function ManageVolunteerShiftDialog({
                 margin="normal"
                 disabled={!date}
               >
-                {shifts.map(s => (
-                  <MenuItem
-                    key={s.shiftId}
-                    value={s.shiftId.toString()}
-                    disabled={isShiftDisabled(s)}
-                  >
-                    {`${formatTime(s.startTime)} - ${formatTime(s.endTime)}`}
-                  </MenuItem>
-                ))}
+                {availableShifts.length > 0 ? (
+                  availableShifts.map(s => (
+                    <MenuItem key={s.shiftId} value={s.shiftId.toString()}>
+                      {`${formatTime(s.startTime)} - ${formatTime(s.endTime)}`}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No shifts available</MenuItem>
+                )}
               </TextField>
             </>
           )}
