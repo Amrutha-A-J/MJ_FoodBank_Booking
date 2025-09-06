@@ -4,6 +4,7 @@ import Dashboard from '../components/dashboard/Dashboard';
 import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getVisitStats } from '../api/clientVisits';
+import { getVolunteerBookings } from '../api/volunteers';
 
 jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
@@ -17,9 +18,14 @@ jest.mock('../api/clientVisits', () => ({
   getVisitStats: jest.fn(),
 }));
 
+jest.mock('../api/volunteers', () => ({
+  getVolunteerBookings: jest.fn(),
+}));
+
 describe('StaffDashboard', () => {
   it('does not display no-show rankings card', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVisitStats as jest.Mock).mockResolvedValue([
       { date: '2024-01-01', total: 2, adults: 1, children: 1 },
       { date: '2024-01-02', total: 3, adults: 2, children: 1 },
@@ -40,6 +46,7 @@ describe('StaffDashboard', () => {
 
   it('shows events returned by the API', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVisitStats as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [

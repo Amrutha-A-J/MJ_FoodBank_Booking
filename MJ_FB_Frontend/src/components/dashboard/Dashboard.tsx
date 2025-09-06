@@ -15,7 +15,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
 import { getBookings } from '../../api/bookings';
-import type { Role, Booking } from '../../types';
+import { getVolunteerBookings } from '../../api/volunteers';
+import type { Role, Booking, VolunteerBooking } from '../../types';
 import { getVisitStats, type VisitStat } from '../../api/clientVisits';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
@@ -72,6 +73,7 @@ function formatLocalDate(date: Date) {
 
 function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [volBookings, setVolBookings] = useState<VolunteerBooking[]>([]);
   const [volunteerCount, setVolunteerCount] = useState(0);
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [events, setEvents] = useState<EventGroups>({
@@ -86,6 +88,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     getBookings()
       .then(b => setBookings(Array.isArray(b) ? b : [b]))
       .catch(() => {});
+    getVolunteerBookings()
+      .then(b => setVolBookings(Array.isArray(b) ? b : [b]))
+      .catch(() => setVolBookings([]));
     getEvents()
       .then(data =>
         setEvents(data ?? { today: [], upcoming: [], past: [] }),
@@ -101,6 +106,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
 
   const todayStr = formatLocalDate(new Date());
   const cancellations = bookings.filter(b => b.status === 'cancelled');
+  const volCancellations = volBookings.filter(b => b.status === 'cancelled');
   const stats = {
     appointments: bookings.filter(
       b =>
@@ -108,9 +114,13 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         formatLocalDate(parseLocalDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
-    cancellations: cancellations.filter(
-      b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
-    ).length,
+    cancellations:
+      cancellations.filter(
+        b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
+      ).length +
+      volCancellations.filter(
+        b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
+      ).length,
   };
 
   return (
@@ -219,6 +229,21 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                   <ListItem key={c.id}>
                     <ListItemText
                       primary={`${c.user_name || 'Unknown'} - ${formatTime(
+                        c.start_time || '',
+                      )}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </SectionCard>
+          </Grid>
+          <Grid size={12}>
+            <SectionCard title="Volunteer Shift Changes">
+              <List>
+                {volCancellations.slice(0, 5).map(c => (
+                  <ListItem key={c.id}>
+                    <ListItemText
+                      primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(
                         c.start_time || '',
                       )}`}
                     />
