@@ -19,7 +19,7 @@
   "tamil": "Tamil",
   "login": "Mag-login",
   "client_login": "Pag-login ng kliyente",
-  "client_login_notice": "Please use your client ID to login. If you don't know your client ID, please email harvestpantry@mjfoodbank.org. If your password is not working, please use the forgot password link below to set a new password.",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created. If your password is not working, please use the forgot password link below to set a new password.",
   "client_id": "ID ng kliyente",
   "password": "Password",
   "forgot_password": "Nakalimutan ang password?",
