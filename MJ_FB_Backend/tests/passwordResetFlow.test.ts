@@ -88,10 +88,10 @@ describe('setPassword', () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
     const res = await request(app)
       .post('/auth/set-password')
-      .send({ token: 'tok', password: 'Abcd1234!' });
+      .send({ token: 'tok', password: 'TammyM@MJFB' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ loginPath: '/login/staff' });
-    expect(bcrypt.hash).toHaveBeenCalledWith('Abcd1234!', 10);
+    expect(bcrypt.hash).toHaveBeenCalledWith('TammyM@MJFB', 10);
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
       'UPDATE staff SET password=$1 WHERE id=$2',
@@ -104,7 +104,7 @@ describe('setPassword', () => {
     (verifyPasswordSetupToken as jest.Mock).mockResolvedValue(null);
     const res = await request(app)
       .post('/auth/set-password')
-      .send({ token: 'bad', password: 'Abcd1234!' });
+      .send({ token: 'bad', password: 'TammyM@MJFB' });
     expect(res.status).toBe(400);
   });
 });

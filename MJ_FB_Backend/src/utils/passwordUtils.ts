@@ -8,11 +8,9 @@ export const passwordSchema = z
     p =>
       /[a-z]/.test(p) &&
       /[A-Z]/.test(p) &&
-      /\d/.test(p) &&
       /[^A-Za-z0-9]/.test(p),
     {
-      message:
-        'Password must include uppercase, lowercase, number, and special character',
+      message: 'Password must include uppercase, lowercase, and special character',
     },
   );
 

@@ -374,7 +374,7 @@ exist results in a `404 Not Found` error.
 
 All API endpoints that create or change passwords enforce the following rules:
 - Minimum length of 8 characters
-- Must include uppercase, lowercase, numeric, and special characters
+- Must include uppercase, lowercase, and special characters
 Requests with passwords that do not meet these requirements are rejected before hashing.
 
 You can generate a secure `JWT_SECRET` with:
