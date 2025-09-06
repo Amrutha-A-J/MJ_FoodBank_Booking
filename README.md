@@ -26,6 +26,7 @@ Staff accounts may include any of the following access roles:
 - `admin`
 - `other`
 - `payroll_management`
+- `donation_entry` – volunteer-only access for the warehouse donation log
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 

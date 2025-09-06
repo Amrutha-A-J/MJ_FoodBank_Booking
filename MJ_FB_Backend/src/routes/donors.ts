@@ -14,9 +14,9 @@ const router = Router();
 
 // Public endpoint to list top donors
 router.get('/top', topDonors);
-router.get('/', authMiddleware, authorizeAccess('warehouse'), listDonors);
-router.post('/', authMiddleware, authorizeAccess('warehouse'), validate(addDonorSchema), addDonor);
-router.get('/:id', authMiddleware, authorizeAccess('warehouse'), getDonor);
-router.get('/:id/donations', authMiddleware, authorizeAccess('warehouse'), donorDonations);
+router.get('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), listDonors);
+router.post('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(addDonorSchema), addDonor);
+router.get('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), getDonor);
+router.get('/:id/donations', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), donorDonations);
 
 export default router;

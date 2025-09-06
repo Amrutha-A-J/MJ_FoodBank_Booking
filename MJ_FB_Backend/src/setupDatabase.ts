@@ -646,7 +646,8 @@ INSERT INTO volunteer_roles (id, name, category_id) VALUES
 (12, 'Volunteer Marketing Associate', 4),
 (13, 'Client Resource Associate', 4),
 (14, 'Assistant Volunteer Coordinator', 4),
-(15, 'Volunteer Office Administrator', 4)
+(15, 'Volunteer Office Administrator', 4),
+(16, 'Donation Entry', 2)
 ON CONFLICT (id) DO NOTHING;
 
 -- Align sequence for volunteer_roles as well to avoid duplicate key errors

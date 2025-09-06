@@ -13,11 +13,11 @@ import { addDonationSchema, updateDonationSchema } from '../../schemas/warehouse
 
 const router = Router();
 
-router.get('/', authMiddleware, authorizeAccess('warehouse'), listDonations);
-router.get('/aggregations', authMiddleware, authorizeAccess('warehouse'), donorAggregations);
+router.get('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), listDonations);
+router.get('/aggregations', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), donorAggregations);
 router.get('/aggregations/export', exportDonorAggregations);
-router.post('/', authMiddleware, authorizeAccess('warehouse'), validate(addDonationSchema), addDonation);
-router.put('/:id', authMiddleware, authorizeAccess('warehouse'), validate(updateDonationSchema), updateDonation);
-router.delete('/:id', authMiddleware, authorizeAccess('warehouse'), deleteDonation);
+router.post('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(addDonationSchema), addDonation);
+router.put('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(updateDonationSchema), updateDonation);
+router.delete('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), deleteDonation);
 
 export default router;

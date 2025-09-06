@@ -125,6 +125,17 @@ export function getHelpContent(
         ],
       },
     },
+    {
+      title: 'Record donations',
+      body: {
+        description: 'Log warehouse donations on the Donation Log page.',
+        steps: [
+          t('help.dashboard_nav_step'),
+          'Open the Donation Log.',
+          'Enter the donor and weight, then save.',
+        ],
+      },
+    },
   ],
   agency: [
     {

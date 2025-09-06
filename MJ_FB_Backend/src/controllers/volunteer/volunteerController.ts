@@ -71,10 +71,22 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+    const rolesRes = await pool.query(
+      `SELECT vr.name
+         FROM volunteer_trained_roles vtr
+         JOIN volunteer_roles vr ON vtr.role_id = vr.id
+         WHERE vtr.volunteer_id = $1`,
+      [volunteer.id],
+    );
+    const access: string[] = [];
+    if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+      access.push('donation_entry');
+    }
     const payload: AuthPayload = {
       id: volunteer.id,
       role: 'volunteer',
       type: 'volunteer',
+      ...(access.length && { access }),
       ...(volunteer.user_id && {
         userId: volunteer.user_id,
         userRole: volunteer.user_role || 'shopper',
@@ -92,6 +104,7 @@ export async function loginVolunteer(req: Request, res: Response, next: NextFunc
         userId: volunteer.user_id,
         userRole: volunteer.user_role || 'shopper',
       }),
+      access,
       ...tokens,
     });
   } catch (error) {
