@@ -42,6 +42,7 @@ describe('createBookingForUser', () => {
   it('enqueues confirmation email after booking creation', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
       .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] })
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
@@ -88,7 +89,9 @@ describe('createBookingForUser', () => {
   it('passes note to insertBooking', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rows: [] });
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-01-15', note: 'bring ID' },
