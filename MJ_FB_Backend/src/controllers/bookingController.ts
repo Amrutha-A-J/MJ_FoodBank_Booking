@@ -272,6 +272,40 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
   }
 }
 
+// --- Cancel booking using reschedule token ---
+export async function cancelBookingByToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { token } = req.params;
+  try {
+    const booking = await fetchBookingByToken(token);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    if (booking.status !== 'approved') {
+      return res
+        .status(400)
+        .json({ message: "This booking can't be cancelled" });
+    }
+    const todayStr = formatReginaDate(new Date());
+    if (booking.date < todayStr) {
+      return res
+        .status(400)
+        .json({ message: "You can't cancel past bookings" });
+    }
+    await updateBooking(booking.id, {
+      status: 'cancelled',
+      request_data: 'user cancelled',
+    });
+    res.json({ message: 'Booking cancelled' });
+  } catch (error) {
+    logger.error('Error cancelling booking by token:', error);
+    next(error);
+  }
+}
+
 export async function markBookingNoShow(req: Request, res: Response, next: NextFunction) {
   const bookingId = parseIdParam(req.params.id);
   if (bookingId === null) {

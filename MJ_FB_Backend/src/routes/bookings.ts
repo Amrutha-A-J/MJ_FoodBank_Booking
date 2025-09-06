@@ -12,6 +12,7 @@ import {
   createBookingForNewClient,
   getBookingHistory,
   cancelBooking,
+  cancelBookingByToken,
   rescheduleBooking,
   markBookingNoShow,
   markBookingVisited
@@ -71,6 +72,9 @@ router.post(
 
 // Reschedule booking by token
 router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
+
+// Cancel booking by token
+router.post('/cancel/:token', optionalAuthMiddleware, cancelBookingByToken);
 
 // Staff create walk-in booking (auto-approved)
 router.post(

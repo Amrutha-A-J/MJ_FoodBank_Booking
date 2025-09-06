@@ -357,3 +357,13 @@ export async function rescheduleBookingByToken(
   await handleResponse<void>(res);
 }
 
+export async function cancelBookingByToken(token: string): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const res = await apiFetch(`${API_BASE}/bookings/cancel/${token}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ type: 'shopping appointment' }),
+  });
+  await handleResponse<void>(res);
+}
+

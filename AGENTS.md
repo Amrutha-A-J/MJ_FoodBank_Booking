@@ -34,3 +34,5 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
+
+Cancel and reschedule links in booking emails point to public pages at `/cancel/:token` and `/reschedule/:token`.

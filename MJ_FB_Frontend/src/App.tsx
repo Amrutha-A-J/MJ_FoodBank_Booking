@@ -108,6 +108,8 @@ const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
 );
 const HelpPage = React.lazy(() => import('./pages/help/HelpPage'));
+const CancelBooking = React.lazy(() => import('./pages/CancelBooking'));
+const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
 
 const Spinner = () => <CircularProgress />;
 
@@ -268,6 +270,8 @@ export default function App() {
       path.startsWith('/login') ||
       path.startsWith('/forgot-password') ||
       path.startsWith('/set-password') ||
+      path.startsWith('/cancel') ||
+      path.startsWith('/reschedule') ||
       path.startsWith('/book-appointment') ||
       path.startsWith('/booking-history') ||
       path.startsWith('/profile') ||
@@ -289,7 +293,14 @@ export default function App() {
             severity="error"
           />
 
-          {token ? (
+          {path.startsWith('/cancel') || path.startsWith('/reschedule') ? (
+            <Suspense fallback={<Spinner />}>
+              <Routes>
+                <Route path="/cancel/:token" element={<CancelBooking />} />
+                <Route path="/reschedule/:token" element={<RescheduleBooking />} />
+              </Routes>
+            </Suspense>
+          ) : token ? (
             <MainLayout {...navbarProps}>
               <Suspense fallback={<Spinner />}>
                 <Routes>

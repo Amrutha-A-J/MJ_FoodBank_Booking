@@ -9,3 +9,7 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `no_reschedule_token`
 - `add_to_google_calendar`
 - `download_ics`
+- `booking_rescheduled`
+- `reschedule_failed`
+- `select_date_time`
+- `help.client.rescheduling_or_canceling.steps.3`

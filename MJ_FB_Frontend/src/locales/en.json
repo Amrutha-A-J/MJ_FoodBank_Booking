@@ -67,7 +67,8 @@
         "steps": [
           "Go to Booking History.",
           "Find the upcoming visit.",
-          "Click Reschedule or Cancel and follow prompts."
+          "Click Reschedule or Cancel and follow prompts.",
+          "Use the email link to reschedule or cancel."
         ]
       },
       "view_booking_history": {
@@ -308,5 +309,8 @@
     "sheet_date": "Date",
     "sheet_rows": "Rows",
     "sheet_errors": "Errors"
-  }
+  },
+  "booking_rescheduled": "Booking rescheduled",
+  "reschedule_failed": "Failed to reschedule booking",
+  "select_date_time": "Please select date and time"
 }
