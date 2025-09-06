@@ -118,6 +118,7 @@ npm run test:frontend  # frontend tests
 
 - Update `AGENTS.md` with new repository instructions.
 - Reflect user-facing or setup changes in this `README.md`.
+- Document new environment variables in this `README.md` and the relevant `.env.example` files when introducing them.
 - Backend tests use `tests/setupTests.ts` to polyfill `global.fetch` with `undici` and mock the database. Environment variables come from `.env.test`, which Jest loads automatically. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
 
 ## Help Page Updates
@@ -406,7 +407,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Staff can enter pay period timesheets with daily hour categories, request vacation leave, and submit periods for approval with admin review and processing.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
-- Pantry Visits support bulk importing visits from spreadsheets.
+- Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (see `docs/pantryVisits.md`).
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 
 ## Deploying to Azure

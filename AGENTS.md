@@ -8,11 +8,12 @@
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/src/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights via the `sunshine_bag_log` table.
+- Bulk pantry visit imports use the `POST /client-visits/import` endpoint; see `docs/pantryVisits.md` for sheet naming, duplicate handling, and dry-run options.
 - Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
-- Document new environment variables in the repository README and `.env.example` files.
+- Always document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - Use the shared `PasswordField` component for any password input so users can toggle visibility.
