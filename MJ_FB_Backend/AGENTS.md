@@ -23,13 +23,12 @@
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
 - `POST /auth/resend-password-setup` regenerates password setup links using `generatePasswordSetupToken`; requests are rate limited per email or client ID.
 - Profile pages send a password reset link without requiring current or new password fields.
-- Coordinator notification addresses for volunteer booking updates live in `src/config/coordinatorEmails.json`.
 - Staff or agency users can create bookings for unregistered individuals via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The `new_clients.email` field is nullable; `POST /bookings/new-client` accepts requests without an email address.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It uses `node-cron` with schedule `0 9 * * *` Regina time and exposes `startBookingReminderJob`/`stopBookingReminderJob`.
 - A volunteer shift reminder job (`src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also uses `node-cron` with the same schedule and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob`.
 - A nightly no-show cleanup job (`src/utils/noShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved bookings as `no_show`. It exposes `startNoShowCleanupJob`/`stopNoShowCleanupJob`.
-- A nightly volunteer no-show cleanup job (`src/utils/volunteerNoShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show`. It logs results, emails coordinators, and waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) after each shift before auto-marking.
+- A nightly volunteer no-show cleanup job (`src/utils/volunteerNoShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show`. It logs results and waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) after each shift before auto-marking.
 
 ## Project Layout
 

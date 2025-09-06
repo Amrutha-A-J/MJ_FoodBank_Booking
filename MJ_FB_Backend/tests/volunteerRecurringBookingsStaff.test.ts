@@ -51,7 +51,7 @@ describe('staff recurring volunteer bookings', () => {
     expect(res.body.recurringId).toBe(30);
     expect(res.body.successes).toEqual(['2025-01-01', '2025-01-02', '2025-01-03']);
     expect(res.body.skipped).toEqual([]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(9);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
     expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
       to: 'vol@example.com',
       templateId: 0,
@@ -107,6 +107,6 @@ describe('staff recurring volunteer bookings', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(1);
   });
 });

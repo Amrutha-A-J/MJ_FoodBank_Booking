@@ -159,7 +159,6 @@ Before merging a pull request, confirm the following:
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
-- Coordinator notification emails for volunteer booking changes are configured via `MJ_FB_Backend/src/config/coordinatorEmails.json`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Backend email queue retries failed sends with exponential backoff and persists jobs in an `email_queue` table so retries survive restarts. The maximum retries and initial delay are configurable.
@@ -280,7 +279,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `templateId: 1` | Booking cancellations, reschedules, and no-show notices | `body`, `type` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
+| `templateId: 0` | Volunteer booking notifications (cancellations, recurring bookings) | `subject`, `body` |
 | `templateId: 1` | Agency membership additions or removals | `body` |
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
@@ -291,7 +290,7 @@ See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
 | `BOOKING_STATUS_TEMPLATE_ID`                | Brevo template ID for booking status emails (cancellations, reschedules, no-shows) |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
-| `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` | Brevo template ID for volunteer booking notifications (cancellations, coordinator alerts) |
+| `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` | Brevo template ID for volunteer booking notifications (cancellations) |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
 

@@ -54,7 +54,7 @@ describe('recurring volunteer bookings', () => {
       '2025-01-03',
     ]);
     expect(res.body.skipped).toEqual([]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(9);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
     expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
       to: 'test@example.com',
       templateId: 0,
@@ -88,7 +88,7 @@ describe('recurring volunteer bookings', () => {
       { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
       { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
     ]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(1);
   });
 
   it('cancels future recurring bookings', async () => {
@@ -110,7 +110,7 @@ describe('recurring volunteer bookings', () => {
       '/volunteer-bookings/recurring/10?from=2025-01-02',
     );
     expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(1);
   });
 
   it('lists recurring bookings', async () => {
