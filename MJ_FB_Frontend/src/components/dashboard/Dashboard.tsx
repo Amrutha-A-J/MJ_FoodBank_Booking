@@ -25,6 +25,7 @@ import EventList from '../EventList';
 import SectionCard from './SectionCard';
 import VolunteerCoverageCard from './VolunteerCoverageCard';
 import ClientVisitTrendChart from './ClientVisitTrendChart';
+import ClientVisitBreakdownChart from './ClientVisitBreakdownChart';
 import { useTranslation } from 'react-i18next';
 import PantryQuickLinks from '../PantryQuickLinks';
 import { useBreadcrumbActions } from '../layout/MainLayout';
@@ -174,9 +175,14 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
               />
             </SectionCard>
           </Grid>
-          <Grid size={12}>
-            <SectionCard title="Pantry Visit Trend">
+          <Grid size={{ xs: 12, md: 6 }}>
+            <SectionCard title="Total Pantry Visits">
               <ClientVisitTrendChart data={visitStats} />
+            </SectionCard>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <SectionCard title="Adults vs Children">
+              <ClientVisitBreakdownChart data={visitStats} />
             </SectionCard>
           </Grid>
           <Grid size={12}>
