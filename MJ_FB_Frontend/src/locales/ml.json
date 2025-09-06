@@ -64,7 +64,8 @@
         "steps": [
           "Go to Booking History.",
           "Find the upcoming visit.",
-          "Click Reschedule or Cancel and follow prompts."
+          "Click Reschedule or Cancel and follow prompts.",
+          "Use the email link to reschedule or cancel."
         ]
       },
       "view_booking_history": {
@@ -303,5 +304,8 @@
   "sunshine_bag_weight_label": "Sunshine Bag Weight",
   "sunshine_bag_clients_label": "Sunshine Bag Clients",
   "adults_label": "Adults",
-  "children_label": "Children"
+  "children_label": "Children",
+  "booking_rescheduled": "Booking rescheduled",
+  "reschedule_failed": "Failed to reschedule booking",
+  "select_date_time": "Please select date and time"
 }

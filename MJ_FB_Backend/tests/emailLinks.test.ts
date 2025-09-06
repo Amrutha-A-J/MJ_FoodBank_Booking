@@ -11,10 +11,11 @@ describe('buildCancelRescheduleLinks', () => {
     shutdownQueue();
   });
   it('returns cancel and reschedule links', () => {
-    const links = buildCancelRescheduleLinks('tok');
+    const token = 'tok';
+    const links = buildCancelRescheduleLinks(token);
     expect(links).toEqual({
-      cancelLink: 'http://localhost:5173/cancel/tok',
-      rescheduleLink: 'http://localhost:5173/reschedule/tok',
+      cancelLink: `http://localhost:5173/cancel/${token}`,
+      rescheduleLink: `http://localhost:5173/reschedule/${token}`,
     });
   });
 

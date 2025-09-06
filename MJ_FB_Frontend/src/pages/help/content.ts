@@ -32,6 +32,7 @@ export function getHelpContent(
             t('help.client.rescheduling_or_canceling.steps.0'),
             t('help.client.rescheduling_or_canceling.steps.1'),
             t('help.client.rescheduling_or_canceling.steps.2'),
+            t('help.client.rescheduling_or_canceling.steps.3'),
           ],
         },
       },
