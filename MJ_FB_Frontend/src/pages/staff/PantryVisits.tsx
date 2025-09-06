@@ -231,8 +231,11 @@ export default function PantryVisits() {
     const clients = visits.filter(v => !v.anonymous).length;
     const totalWeight =
       visits.reduce((sum, v) => sum + v.weightWithoutCart, 0) + sunshineBagWeight;
-    const adults = visits.reduce((sum, v) => sum + v.adults, 0);
-    const children = visits.reduce((sum, v) => sum + v.children, 0);
+    const adults = visits.reduce((sum, v) => sum + (v.anonymous ? 0 : v.adults), 0);
+    const children = visits.reduce(
+      (sum, v) => sum + (v.anonymous ? 0 : v.children),
+      0,
+    );
     return { clients, totalWeight, adults, children };
   }, [visits, sunshineBagWeight]);
 
@@ -352,7 +355,10 @@ export default function PantryVisits() {
             filteredVisits.map(v => (
               <TableRow key={v.id}>
                 <TableCell>{formatDisplay(v.date)}</TableCell>
-                <TableCell>{v.clientId ?? 'N/A'}</TableCell>
+                <TableCell>
+                  {v.clientId ?? 'N/A'}
+                  {v.anonymous ? ' (ANONYMOUS)' : ''}
+                </TableCell>
                 <TableCell>{v.clientName ?? ''}</TableCell>
                 <TableCell>
                   {v.clientId ? (
