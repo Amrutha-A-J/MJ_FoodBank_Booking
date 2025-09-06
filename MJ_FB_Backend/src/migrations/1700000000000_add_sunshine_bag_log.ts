@@ -1,14 +1,12 @@
-import { PoolClient } from 'pg';
+import type { MigrationBuilder } from 'node-pg-migrate';
 
-export async function up(client: PoolClient): Promise<void> {
-  await client.query(`
-    CREATE TABLE sunshine_bag_log (
-      date DATE PRIMARY KEY,
-      weight INTEGER NOT NULL
-    );
-  `);
+export async function up(pgm: MigrationBuilder): Promise<void> {
+  pgm.createTable('sunshine_bag_log', {
+    date: { type: 'date', primaryKey: true },
+    weight: { type: 'integer', notNull: true },
+  });
 }
 
-export async function down(client: PoolClient): Promise<void> {
-  await client.query('DROP TABLE IF EXISTS sunshine_bag_log');
+export async function down(pgm: MigrationBuilder): Promise<void> {
+  pgm.dropTable('sunshine_bag_log');
 }
