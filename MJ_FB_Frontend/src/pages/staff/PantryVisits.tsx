@@ -453,67 +453,62 @@ export default function PantryVisits() {
   }));
 
   return (
-    <Page
-      title="Pantry Visits"
-      header={
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({
-                date: format(selectedDate),
-                anonymous: false,
-                sunshineBag: false,
-                sunshineWeight: '',
-                clientId: '',
-                weightWithCart: '',
-                weightWithoutCart: '',
-                adults: '',
-                children: '',
-                petItem: '0',
-                note: '',
-              });
-              setAutoWeight(true);
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Visit
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => setImportOpen(true)}
-          >
-            {t('pantry_visits.import_visits')}
-          </Button>
-          <TextField
-            size="small"
-            label="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <TextField
-            size="small"
-            label="Lookup Date"
-            type="date"
-            value={lookupDate}
-            onChange={e => setLookupDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
-            disabled={!lookupDate}
-          >
-            Go
-          </Button>
-          <PantryQuickLinks />
-        </Stack>
-      }
-    >
+    <Page title="Pantry Visits" header={<PantryQuickLinks />}>
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({
+              date: format(selectedDate),
+              anonymous: false,
+              sunshineBag: false,
+              sunshineWeight: '',
+              clientId: '',
+              weightWithCart: '',
+              weightWithoutCart: '',
+              adults: '',
+              children: '',
+              petItem: '0',
+              note: '',
+            });
+            setAutoWeight(true);
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+        >
+          Record Visit
+        </Button>
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => setImportOpen(true)}
+        >
+          {t('pantry_visits.import_visits')}
+        </Button>
+        <TextField
+          size="small"
+          label="Search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <TextField
+          size="small"
+          label="Lookup Date"
+          type="date"
+          value={lookupDate}
+          onChange={e => setLookupDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+        />
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
+          disabled={!lookupDate}
+        >
+          Go
+        </Button>
+      </Stack>
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>

@@ -35,4 +35,15 @@ describe('AgencyManagement', () => {
       screen.getByRole('tab', { name: /add client to agency/i }),
     ).toBeInTheDocument();
   });
+
+  it('shows pantry quick links', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['pantry']));
+    window.history.pushState({}, '', '/pantry/agency-management');
+    renderWithProviders(<App />);
+    expect(
+      await screen.findByRole('link', { name: /record a visit/i }),
+    ).toBeInTheDocument();
+  });
 });

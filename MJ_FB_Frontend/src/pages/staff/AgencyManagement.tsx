@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StyledTabs from '../../components/StyledTabs';
 import Page from '../../components/Page';
+import PantryQuickLinks from '../../components/PantryQuickLinks';
 import AddAgency from './AddAgency';
 import AgencyClientManager from './AgencyClientManager';
 
@@ -12,7 +13,7 @@ export default function AgencyManagement() {
   ];
 
   return (
-    <Page title="Agency Management">
+    <Page title="Agency Management" header={<PantryQuickLinks />}>
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
     </Page>
   );
