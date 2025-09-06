@@ -4,8 +4,8 @@ export const clientVisitSchema = z.object({
   date: z.string().min(1),
   clientId: z.number().int().optional(),
   anonymous: z.boolean().optional(),
-  weightWithCart: z.number().int(),
-  weightWithoutCart: z.number().int(),
+  weightWithCart: z.number().int().min(0).nullable().optional(),
+  weightWithoutCart: z.number().int().min(0).nullable().optional(),
   adults: z.number().int().min(0),
   children: z.number().int().min(0),
   petItem: z.number().int().optional(),
@@ -19,8 +19,8 @@ export type ClientVisitSchema = z.infer<typeof clientVisitSchema>;
 
 export const importClientVisitsSchema = z.object({
   familySize: z.string().regex(/^\d+A\d*C?$/),
-  weightWithCart: z.number().int().min(0),
-  weightWithoutCart: z.number().int().min(0),
+  weightWithCart: z.number().int().min(0).nullable().optional(),
+  weightWithoutCart: z.number().int().min(0).nullable().optional(),
   petItem: z.number().int().min(0).optional(),
   clientId: z.number().int().min(1),
 });

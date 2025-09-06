@@ -149,4 +149,44 @@ describe('client visit notes', () => {
     expect(res.body[0].adults).toBe(1);
     expect(res.body[0].children).toBe(2);
   });
+
+  it('allows null weights on create', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 8,
+            date: '2024-01-03',
+            clientId: 123,
+            weightWithCart: null,
+            weightWithoutCart: null,
+            petItem: 0,
+            anonymous: false,
+            note: null,
+            adults: 1,
+            children: 2,
+          },
+        ],
+        rowCount: 1,
+      }) // insert
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}) // refresh count
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // same-day booking
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app)
+      .post('/client-visits')
+      .send({ date: '2024-01-03', clientId: 123, adults: 1, children: 2 });
+
+    expect(res.status).toBe(201);
+    expect(queryMock).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      ['2024-01-03', 123, null, null, 0, false, null, 1, 2],
+    );
+  });
 });
