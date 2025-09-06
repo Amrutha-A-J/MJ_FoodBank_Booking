@@ -39,17 +39,20 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
           size="small"
           stickyHeader={false}
           sx={{
-          tableLayout: 'fixed',
-          width: '100%',
-          '& .MuiTableCell-root': {
-            p: isSmall ? 0.5 : 1,
-            fontSize: isSmall ? '0.75rem' : 'inherit',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          },
-        }}
-      >
+            tableLayout: 'fixed',
+            width: '100%',
+            '& .MuiTableCell-root': {
+              p: isSmall ? 0.5 : 1,
+              fontSize: isSmall ? '0.75rem' : 'inherit',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            },
+            '& tbody tr:hover td, & tbody tr:hover th': {
+              backgroundColor: 'inherit',
+            },
+          }}
+        >
         <colgroup>
           <col style={{ width: 160 }} />
           {Array.from({ length: safeMaxSlots }).map((_, i) => (
@@ -87,6 +90,9 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                       textAlign: 'center',
                       cursor: cell.onClick ? 'pointer' : 'default',
                       backgroundColor: cell.backgroundColor,
+                      ...(cell.backgroundColor && {
+                        '&:hover': { backgroundColor: cell.backgroundColor },
+                      }),
                     }}
                   >
                     {cell.content}
