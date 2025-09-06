@@ -229,7 +229,6 @@ describe('PantryVisits', () => {
     await waitFor(() =>
       expect(importVisitsXlsx).toHaveBeenCalledWith(
         expect.any(FormData),
-        'skip',
         true,
       ),
     );
@@ -238,37 +237,6 @@ describe('PantryVisits', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('passes duplicate strategy to API', async () => {
-    (getClientVisits as jest.Mock).mockResolvedValue([]);
-    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
-    (getSunshineBag as jest.Mock).mockResolvedValue(null);
-    (importVisitsXlsx as jest.Mock).mockResolvedValue(undefined);
-
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
-
-    await screen.findByText('Record Visit');
-
-    fireEvent.click(screen.getByText('Import Visits'));
-    const input = screen.getByTestId('import-input') as HTMLInputElement;
-    const file = new File(['1'], 'visits.xlsx', {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    fireEvent.change(input, { target: { files: [file] } });
-
-    fireEvent.click(screen.getByLabelText('Update'));
-    fireEvent.click(screen.getByText('Import'));
-
-    await waitFor(() =>
-      expect(importVisitsXlsx).toHaveBeenCalledWith(
-        expect.any(FormData),
-        'update',
-      ),
-    );
-  });
 
   it('navigates to selected date', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);

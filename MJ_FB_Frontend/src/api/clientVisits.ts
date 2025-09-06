@@ -61,11 +61,9 @@ export interface VisitImportPreview {
 
 export async function importVisitsXlsx(
   formData: FormData,
-  duplicateStrategy: 'skip' | 'update',
   dryRun?: boolean,
 ): Promise<VisitImportPreview | void> {
   const url = new URL(`${API_BASE}/visits/import/xlsx`);
-  url.searchParams.set('duplicateStrategy', duplicateStrategy);
   if (dryRun) url.searchParams.set('dryRun', 'true');
 
   const res = await apiFetch(url.toString(), {

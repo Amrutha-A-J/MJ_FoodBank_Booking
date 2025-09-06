@@ -292,9 +292,6 @@
     "import_success": "Visits imported",
     "import_error": "Import failed",
     "dry_run": "Dry-run",
-    "duplicate_strategy": "Duplicates",
-    "skip": "Skip",
-    "update": "Update",
     "sheet_date": "Date",
     "sheet_rows": "Rows",
     "sheet_errors": "Errors"

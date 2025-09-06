@@ -18,10 +18,6 @@ import {
   IconButton,
   FormControlLabel,
   Checkbox,
-  RadioGroup,
-  Radio,
-  FormControl,
-  FormLabel,
   Typography,
 } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
@@ -89,7 +85,6 @@ export default function PantryVisits() {
   const [importOpen, setImportOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<VisitImportSheet[]>([]);
-  const [duplicateStrategy, setDuplicateStrategy] = useState<'skip' | 'update'>('skip');
 
   const [cartTare, setCartTare] = useState(0);
   const [search, setSearch] = useState('');
@@ -195,7 +190,7 @@ export default function PantryVisits() {
     if (!importFile) return;
     const formData = new FormData();
     formData.append('file', importFile);
-    importVisitsXlsx(formData, duplicateStrategy, true)
+    importVisitsXlsx(formData, true)
       .then(res => setPreview(res?.sheets || []))
       .catch(err =>
         setSnackbar({
@@ -210,7 +205,7 @@ export default function PantryVisits() {
     if (!importFile) return;
     const formData = new FormData();
     formData.append('file', importFile);
-    importVisitsXlsx(formData, duplicateStrategy)
+    importVisitsXlsx(formData)
       .then(() => {
         setSnackbar({
           open: true,
@@ -649,25 +644,6 @@ export default function PantryVisits() {
               data-testid="import-input"
               onChange={handleFileChange}
             />
-            <FormControl component="fieldset">
-              <FormLabel>{t('pantry_visits.duplicate_strategy')}</FormLabel>
-              <RadioGroup
-                row
-                value={duplicateStrategy}
-                onChange={e => setDuplicateStrategy(e.target.value as 'skip' | 'update')}
-              >
-                <FormControlLabel
-                  value="skip"
-                  control={<Radio />}
-                  label={t('pantry_visits.skip')}
-                />
-                <FormControlLabel
-                  value="update"
-                  control={<Radio />}
-                  label={t('pantry_visits.update')}
-                />
-              </RadioGroup>
-            </FormControl>
             {preview.length > 0 && (
               <Table size="small">
                 <TableHead>
