@@ -2,12 +2,17 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
+import { deleteClientVisit } from '../api/clientVisits';
 import { getUserByClientId, updateUserInfo } from '../api/users';
 import { useAuth } from '../hooks/useAuth';
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn(),
   cancelBooking: jest.fn(),
+}));
+
+jest.mock('../api/clientVisits', () => ({
+  deleteClientVisit: jest.fn(),
 }));
 
 jest.mock('../api/users', () => ({
@@ -175,6 +180,66 @@ describe('UserHistory', () => {
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.queryByText(/Client note/i)).not.toBeInTheDocument();
     expect(screen.getByText(/staff note/i, { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('allows staff to delete visits', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 2,
+        status: 'visited',
+        date: '2024-01-02',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-02',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    const rowButton = await screen.findByRole('button', { name: /delete visit/i });
+    fireEvent.click(rowButton);
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: /delete visit/i }).length).toBe(2),
+    );
+    const confirmButton = screen.getAllByRole('button', { name: /delete visit/i })[1];
+    fireEvent.click(confirmButton);
+    await waitFor(() => expect(deleteClientVisit).toHaveBeenCalledWith(2));
+  });
+
+  it('does not show delete button to clients', async () => {
+    mockUseAuth.mockReturnValue({ role: 'shopper' } as any);
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 3,
+        status: 'visited',
+        date: '2024-01-03',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-03',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(
+      screen.queryByRole('button', { name: /delete visit/i })
+    ).not.toBeInTheDocument();
   });
 });
 

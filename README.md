@@ -211,6 +211,7 @@ Before merging a pull request, confirm the following:
 - Adding a client visit automatically updates any approved booking for that client on the same date to `visited`.
 - The Manage Booking dialog now displays the client's name, a link to their profile, and their visit count for the current month to assist staff decisions.
 - Client booking history tables can filter bookings by `visited` and `no_show` statuses.
+- Staff can delete visit records from booking history if they were recorded in error; clients cannot remove visits.
 - Booking requests are automatically approved; the submitted state has been removed.
 - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
