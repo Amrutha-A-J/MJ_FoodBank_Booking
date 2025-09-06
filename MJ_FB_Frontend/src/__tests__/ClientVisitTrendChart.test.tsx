@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ClientVisitTrendChart from '../components/dashboard/ClientVisitTrendChart';
+import ClientVisitBreakdownChart from '../components/dashboard/ClientVisitBreakdownChart';
 
 jest.mock('recharts', () => {
   const Recharts = jest.requireActual('recharts');
@@ -15,15 +16,25 @@ jest.mock('recharts', () => {
   };
 });
 
-test('renders three lines for clients, adults, and children', () => {
-  const data = [
-    { month: '2024-01', clients: 5, adults: 3, children: 2 },
-    { month: '2024-02', clients: 6, adults: 4, children: 2 },
-  ];
+const data = [
+  { month: '2024-01', clients: 5, adults: 3, children: 2 },
+  { month: '2024-02', clients: 6, adults: 4, children: 2 },
+];
+
+test('renders one line for total clients', () => {
   const { container } = render(
     <ThemeProvider theme={createTheme()}>
       <ClientVisitTrendChart data={data} />
     </ThemeProvider>,
   );
-  expect(container.querySelectorAll('path.recharts-line-curve').length).toBe(3);
+  expect(container.querySelectorAll('path.recharts-line-curve').length).toBe(1);
+});
+
+test('renders two lines for adults and children', () => {
+  const { container } = render(
+    <ThemeProvider theme={createTheme()}>
+      <ClientVisitBreakdownChart data={data} />
+    </ThemeProvider>,
+  );
+  expect(container.querySelectorAll('path.recharts-line-curve').length).toBe(2);
 });

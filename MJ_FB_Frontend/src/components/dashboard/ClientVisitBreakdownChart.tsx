@@ -15,10 +15,10 @@ interface Props {
   data: VisitStat[];
 }
 
-export default function ClientVisitTrendChart({ data }: Props) {
+export default function ClientVisitBreakdownChart({ data }: Props) {
   const theme = useTheme();
   return (
-    <ResponsiveContainer width="100%" height={300} data-testid="visit-trend-chart">
+    <ResponsiveContainer width="100%" height={300} data-testid="visit-breakdown-chart">
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
@@ -27,11 +27,19 @@ export default function ClientVisitTrendChart({ data }: Props) {
         <Legend />
         <Line
           type="monotone"
-          dataKey="clients"
-          stroke={theme.palette.error.main}
+          dataKey="adults"
+          stroke={theme.palette.success.main}
           strokeWidth={2}
           dot={{ r: 4, cursor: 'pointer' }}
-          name="Total"
+          name="Adults"
+        />
+        <Line
+          type="monotone"
+          dataKey="children"
+          stroke={theme.palette.info.main}
+          strokeWidth={2}
+          dot={{ r: 4, cursor: 'pointer' }}
+          name="Children"
         />
       </LineChart>
     </ResponsiveContainer>
