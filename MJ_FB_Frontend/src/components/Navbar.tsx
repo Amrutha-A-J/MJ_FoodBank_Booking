@@ -7,10 +7,16 @@ import {
   Menu,
   MenuItem,
   Badge,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
+import ChevronLeft from '@mui/icons-material/ChevronLeft';
+import ChevronRight from '@mui/icons-material/ChevronRight';
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -41,7 +47,8 @@ export default function Navbar({
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
-  const [mobileAnchorEl, setMobileAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSubmenu, setMobileSubmenu] = useState<NavGroup | null>(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const location = useLocation();
   const { t } = useTranslation();
@@ -61,7 +68,6 @@ export default function Navbar({
     setProfileAnchorEl(null);
   }
 
-  const mobileMenuOpen = Boolean(mobileAnchorEl);
   const profileMenuOpen = Boolean(profileAnchorEl);
 
   // ====== STYLE TOKENS to match mjfoodbank.org ======
@@ -136,111 +142,172 @@ export default function Navbar({
               <IconButton
                 color="inherit"
                 aria-label="open navigation menu"
-                onClick={(e) => setMobileAnchorEl(e.currentTarget)}
+                onClick={() => setMobileOpen(true)}
               >
                 <MenuIcon />
               </IconButton>
-              <Menu
-                anchorEl={mobileAnchorEl}
-                open={mobileMenuOpen}
-                onClose={() => setMobileAnchorEl(null)}
-                PaperProps={menuPaperProps}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                MenuListProps={{ disablePadding: true }}
+              <Drawer
+                anchor="left"
+                open={mobileOpen}
+                onClose={() => {
+                  setMobileOpen(false);
+                  setMobileSubmenu(null);
+                }}
               >
-                {groups.map((group) => (
-                  <Box key={group.label} sx={{ px: 1, py: 0.5 }}>
-                    {!(group.links.length === 1 && group.links[0].label === group.label) && (
-                      <MenuItem disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
-                        {group.label}
-                      </MenuItem>
-                    )}
-                    {group.links.map(({ label, to, badge }) => (
-                      <MenuItem
-                        key={to}
-                        component={RouterLink}
-                        to={to}
-                        selected={location.pathname === to}
-                        onClick={() => setMobileAnchorEl(null)}
-                        disabled={loading}
-                        sx={DROPDOWN_ITEM_SX}
-                      >
-                        {badge ? (
-                          <Badge color="error" badgeContent={badge}>
-                            {label}
-                          </Badge>
+                <Box sx={{ width: 260, position: 'relative', overflow: 'hidden' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      width: '100%',
+                      transform: mobileSubmenu ? 'translateX(-100%)' : 'translateX(0)',
+                      transition: 'transform 300ms',
+                    }}
+                  >
+                    <List sx={{ width: '100%', p: 1 }}>
+                      {groups.map((group) =>
+                        group.links.length === 1 ? (
+                          <ListItemButton
+                            key={group.links[0].to}
+                            component={RouterLink}
+                            to={group.links[0].to}
+                            selected={location.pathname === group.links[0].to}
+                            onClick={() => setMobileOpen(false)}
+                            disabled={loading}
+                            sx={DROPDOWN_ITEM_SX}
+                          >
+                            {group.links[0].badge ? (
+                              <Badge color="error" badgeContent={group.links[0].badge}>
+                                {group.links[0].label}
+                              </Badge>
+                            ) : (
+                              group.links[0].label
+                            )}
+                          </ListItemButton>
                         ) : (
-                          label
-                        )}
-                      </MenuItem>
-                    ))}
-                  </Box>
-                ))}
+                          <ListItemButton
+                            key={group.label}
+                            onClick={() => setMobileSubmenu(group)}
+                            sx={{
+                              ...DROPDOWN_ITEM_SX,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            {group.label}
+                            <ChevronLeft fontSize="small" />
+                          </ListItemButton>
+                        )
+                      )}
 
-                {onLogout &&
-                  (name
-                    ? (
-                      <>
-                        <MenuItem disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
-                          {t('hello_name', { name })}
-                        </MenuItem>
-                        {role === 'staff' &&
-                          (profileLinks ?? []).map(({ label, to }) => (
-                            <MenuItem
-                              key={to}
+                      {onLogout &&
+                        (name ? (
+                          <>
+                            <ListItemButton disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
+                              {t('hello_name', { name })}
+                            </ListItemButton>
+                            {role === 'staff' &&
+                              (profileLinks ?? []).map(({ label, to }) => (
+                                <ListItemButton
+                                  key={to}
+                                  component={RouterLink}
+                                  to={to}
+                                  onClick={() => setMobileOpen(false)}
+                                  disabled={loading}
+                                  sx={DROPDOWN_ITEM_SX}
+                                >
+                                  {label}
+                                </ListItemButton>
+                              ))}
+                            <ListItemButton
                               component={RouterLink}
-                              to={to}
-                              onClick={() => setMobileAnchorEl(null)}
+                              to="/profile"
+                              onClick={() => setMobileOpen(false)}
                               disabled={loading}
                               sx={DROPDOWN_ITEM_SX}
                             >
-                              {label}
-                            </MenuItem>
-                          ))}
-                        <MenuItem
-                          component={RouterLink}
-                          to="/profile"
-                          onClick={() => setMobileAnchorEl(null)}
-                          disabled={loading}
-                          sx={DROPDOWN_ITEM_SX}
+                              {t('profile')}
+                            </ListItemButton>
+                            <ListItemButton
+                              component={RouterLink}
+                              to="/help"
+                              onClick={() => setMobileOpen(false)}
+                              disabled={loading}
+                              sx={DROPDOWN_ITEM_SX}
+                            >
+                              {t('help.title')}
+                            </ListItemButton>
+                            <ListItemButton
+                              onClick={() => {
+                                setMobileOpen(false);
+                                onLogout?.();
+                              }}
+                              disabled={loading}
+                              sx={DROPDOWN_ITEM_SX}
+                            >
+                              {t('logout')}
+                            </ListItemButton>
+                          </>
+                        ) : (
+                          <ListItemButton
+                            onClick={() => {
+                              setMobileOpen(false);
+                              onLogout?.();
+                            }}
+                            disabled={loading}
+                            sx={DROPDOWN_ITEM_SX}
+                          >
+                            {t('logout')}
+                          </ListItemButton>
+                        ))}
+                    </List>
+                  </Box>
+
+                  {mobileSubmenu && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: mobileSubmenu ? 'translateX(0)' : 'translateX(100%)',
+                        transition: 'transform 300ms',
+                      }}
+                    >
+                      <List sx={{ width: '100%', p: 1 }}>
+                        <ListItemButton
+                          onClick={() => setMobileSubmenu(null)}
+                          sx={{ ...DROPDOWN_ITEM_SX, justifyContent: 'flex-start' }}
                         >
-                          {t('profile')}
-                        </MenuItem>
-                        <MenuItem
-                          component={RouterLink}
-                          to="/help"
-                          onClick={() => setMobileAnchorEl(null)}
-                          disabled={loading}
-                          sx={DROPDOWN_ITEM_SX}
-                        >
-                          {t('help.title')}
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => {
-                            setMobileAnchorEl(null);
-                            onLogout?.();
-                          }}
-                          disabled={loading}
-                          sx={DROPDOWN_ITEM_SX}
-                        >
-                          {t('logout')}
-                        </MenuItem>
-                      </>
-                    )
-                    : (
-                      <MenuItem
-                        onClick={() => {
-                          setMobileAnchorEl(null);
-                          onLogout?.();
-                        }}
-                        disabled={loading}
-                        sx={DROPDOWN_ITEM_SX}
-                      >
-                        {t('logout')}
-                      </MenuItem>
-                    ))}
-              </Menu>
+                          <ChevronRight fontSize="small" sx={{ mr: 1 }} />
+                          <ListItemText primary={mobileSubmenu.label} />
+                        </ListItemButton>
+                        {mobileSubmenu.links.map(({ label, to, badge }) => (
+                          <ListItemButton
+                            key={to}
+                            component={RouterLink}
+                            to={to}
+                            selected={location.pathname === to}
+                            onClick={() => {
+                              setMobileOpen(false);
+                              setMobileSubmenu(null);
+                            }}
+                            disabled={loading}
+                            sx={DROPDOWN_ITEM_SX}
+                          >
+                            {badge ? (
+                              <Badge color="error" badgeContent={badge}>
+                                {label}
+                              </Badge>
+                            ) : (
+                              label
+                            )}
+                          </ListItemButton>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+                </Box>
+              </Drawer>
             </>
           ) : (
             // Desktop links
