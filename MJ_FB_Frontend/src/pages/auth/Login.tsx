@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box } from '@mui/material';
+import type { AlertColor } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -22,10 +23,13 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [idNoticeOpen, setIdNoticeOpen] = useState(true);
-  const [passwordNoticeOpen, setPasswordNoticeOpen] = useState(true);
-  const [volunteerNoticeOpen, setVolunteerNoticeOpen] = useState(true);
   const { t } = useTranslation();
+  const notices: { message: ReactNode; severity: AlertColor }[] = [
+    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>, severity: 'info' },
+    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>, severity: 'warning' },
+    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>, severity: 'info' },
+  ];
+  const [noticeIndex, setNoticeIndex] = useState(0);
 
   const clientIdError = submitted && clientId === '';
   const passwordError = submitted && password === '';
@@ -98,24 +102,15 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <FeedbackSnackbar
-        open={idNoticeOpen}
-        onClose={() => setIdNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>}
-        severity="info"
-      />
-      <FeedbackSnackbar
-        open={passwordNoticeOpen}
-        onClose={() => setPasswordNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>}
-        severity="warning"
-      />
-      <FeedbackSnackbar
-        open={volunteerNoticeOpen}
-        onClose={() => setVolunteerNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>}
-        severity="info"
-      />
+      {noticeIndex < notices.length && (
+        <FeedbackSnackbar
+          key={noticeIndex}
+          open
+          onClose={() => setNoticeIndex(i => i + 1)}
+          message={notices[noticeIndex].message}
+          severity={notices[noticeIndex].severity}
+        />
+      )}
       <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
