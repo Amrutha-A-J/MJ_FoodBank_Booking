@@ -341,10 +341,11 @@ export function getHelpContent(
     {
       title: 'Review volunteer performance and pending bookings',
       body: {
-        description: 'Staff dashboards show volunteer hours, outstanding requests, and no-show rates for follow-up.',
+        description:
+          'Staff dashboards show pantry visit trends, volunteer hours, outstanding requests, and no-show rates for follow-up.',
         steps: [
           'Open the staff dashboard.',
-          'Review hours, requests, and no-show rates.',
+          'Review visit trends, hours, requests, and no-show rates.',
           'Follow up with volunteers as required.',
         ],
       },

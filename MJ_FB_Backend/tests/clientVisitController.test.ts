@@ -216,3 +216,34 @@ describe('client visit notes', () => {
     );
   });
 });
+
+describe('client visit stats', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('aggregates stats by day', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        { date: '2024-01-01', total: 3, adults: 5, children: 2 },
+        { date: '2024-01-02', total: 1, adults: 2, children: 0 },
+      ],
+      rowCount: 2,
+    });
+
+    const res = await request(app).get('/client-visits/stats?days=7');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      { date: '2024-01-01', total: 3, adults: 5, children: 2 },
+      { date: '2024-01-02', total: 1, adults: 2, children: 0 },
+    ]);
+    expect((pool.query as jest.Mock).mock.calls[0][1]).toEqual([7]);
+  });
+
+  it('validates days param', async () => {
+    const res = await request(app).get('/client-visits/stats?days=abc');
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/invalid/i);
+  });
+});

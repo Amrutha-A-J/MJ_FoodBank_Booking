@@ -1,22 +1,29 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
-import { getBookings, getSlotsRange } from '../api/bookings';
+import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
+import { getVisitStats } from '../api/clientVisits';
 
 jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
-  getSlotsRange: jest.fn(),
 }));
 
 jest.mock('../api/events', () => ({
   getEvents: jest.fn(),
 }));
 
+jest.mock('../api/clientVisits', () => ({
+  getVisitStats: jest.fn(),
+}));
+
 describe('StaffDashboard', () => {
   it('does not display no-show rankings card', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
-    (getSlotsRange as jest.Mock).mockResolvedValue([]);
+    (getVisitStats as jest.Mock).mockResolvedValue([
+      { date: '2024-01-01', total: 2, adults: 1, children: 1 },
+      { date: '2024-01-02', total: 3, adults: 2, children: 1 },
+    ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
     render(
@@ -25,14 +32,15 @@ describe('StaffDashboard', () => {
       </MemoryRouter>,
     );
 
-    await screen.findByText('Today at a Glance');
-    expect(screen.getByText('News & Events')).toBeInTheDocument();
-    expect(screen.queryByText('No-Show Rankings')).toBeNull();
+    await screen.findByText('Pantry Visit Trend');
+    const chart = screen.getByTestId('visit-trend-chart');
+    expect(chart.querySelectorAll('path.recharts-line-curve').length).toBe(3);
+    expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
   });
 
   it('shows events returned by the API', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
-    (getSlotsRange as jest.Mock).mockResolvedValue([]);
+    (getVisitStats as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [
         {

@@ -50,3 +50,11 @@ dynamic content.
 - **Params:**
   - `ids` (string) – comma-separated volunteer booking IDs marked as no-show.
 
+## Agency client update emails
+
+- **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID`
+- **Used in:**
+  - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
+- **Params:**
+  - `body` (string) – message describing the client added to or removed from the agency.
+
