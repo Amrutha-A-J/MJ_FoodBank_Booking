@@ -19,7 +19,7 @@
   "tamil": "Tamoul",
   "login": "Connexion",
   "client_login": "Connexion client",
-  "client_login_notice": "Please use your client ID to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created. If your password is not working, please use the forgot password link below to set a new password.",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created. If your password is not working, please use the forgot password link below to set a new password. Are you a volunteer looking to shop? Please contact harvestpantry@mjfoodbank.org to enable booking shopping in your volunteer account. After that please login to your volunteer account to book your shopping appointments.",
   "client_id": "Identifiant client",
   "password": "Mot de passe",
   "forgot_password": "Mot de passe oublié ?",
