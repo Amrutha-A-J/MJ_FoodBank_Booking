@@ -1,10 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import type { AlertColor } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -26,12 +25,6 @@ export default function Login({
   const [submitted, setSubmitted] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(true);
   const { t } = useTranslation();
-  const notices: { message: ReactNode; severity: AlertColor }[] = [
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>, severity: 'info' },
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>, severity: 'warning' },
-    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>, severity: 'info' },
-  ];
-  const [noticeIndex, setNoticeIndex] = useState(0);
 
   const clientIdError = submitted && clientId === '';
   const passwordError = submitted && password === '';
