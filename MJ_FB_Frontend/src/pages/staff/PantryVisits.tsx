@@ -37,7 +37,7 @@ import {
   type ClientVisit,
   type VisitImportSheet,
 } from '../../api/clientVisits';
-import { getSunshineBag, saveSunshineBag, type SunshineBag } from '../../api/sunshineBags';
+import { getSunshineBag, saveSunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
 import { getAppConfig } from '../../api/appConfig';
 import type { AlertColor } from '@mui/material';
@@ -245,7 +245,8 @@ export default function PantryVisits() {
   }
 
   const summary = useMemo(() => {
-    const clients = visits.filter(v => !v.anonymous).length;
+    const clients =
+      visits.filter(v => !v.anonymous).length + sunshineBagClients;
     const totalWeight =
       visits.reduce((sum, v) => sum + v.weightWithoutCart, 0) + sunshineBagWeight;
     const adults = visits.reduce((sum, v) => sum + (v.anonymous ? 0 : v.adults), 0);
@@ -254,7 +255,7 @@ export default function PantryVisits() {
       0,
     );
     return { clients, totalWeight, adults, children };
-  }, [visits, sunshineBagWeight]);
+  }, [visits, sunshineBagWeight, sunshineBagClients]);
 
   function handleSaveVisit() {
     if (form.sunshineBag) {
@@ -412,6 +413,7 @@ export default function PantryVisits() {
                         anonymous: v.anonymous,
                         sunshineBag: false,
                         sunshineWeight: '',
+                        sunshineClients: '',
                         clientId: v.clientId ? String(v.clientId) : '',
                         weightWithCart: String(v.weightWithCart),
                         weightWithoutCart: String(v.weightWithoutCart),
@@ -498,6 +500,7 @@ export default function PantryVisits() {
               anonymous: false,
               sunshineBag: false,
               sunshineWeight: '',
+              sunshineClients: '',
               clientId: '',
               weightWithCart: '',
               weightWithoutCart: '',
