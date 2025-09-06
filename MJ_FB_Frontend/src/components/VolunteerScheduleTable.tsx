@@ -35,9 +35,10 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-      <Table
-        size="small"
-        sx={{
+        <Table
+          size="small"
+          stickyHeader={false}
+          sx={{
           tableLayout: 'fixed',
           width: '100%',
           '& .MuiTableCell-root': {
@@ -55,7 +56,15 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
             <col key={i} style={{ width: slotWidth }} />
           ))}
         </colgroup>
-        <TableHead>
+        <TableHead
+          sx={{
+            '& .MuiTableCell-head': {
+              position: 'static',
+              top: 'auto',
+              zIndex: 'auto',
+            },
+          }}
+        >
           <TableRow>
             <TableCell>Time</TableCell>
             {Array.from({ length: safeMaxSlots }).map((_, i) => (
