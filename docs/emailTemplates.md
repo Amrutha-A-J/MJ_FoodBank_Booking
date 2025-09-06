@@ -28,3 +28,19 @@ This document catalogs Brevo email templates used by the backend and the paramet
 
 Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
 
+## Volunteer booking emails
+
+- **Template ID variables:**
+  - `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID`
+  - `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`
+  - `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the shift.
+  - `cancelLink` (string) – link for the recipient to cancel their shift.
+  - `rescheduleLink` (string) – link allowing rescheduling.
+  - `googleCalendarLink` (string) – URL to add the shift to Google Calendar.
+  - `outlookCalendarLink` (string) – URL to add the shift to Outlook Calendar.
+  - `type` (string) – label for the type of shift.
+  - `subject` (string) – email subject for notification templates (cancellations, coordinator alerts, recurring actions).
+
+
