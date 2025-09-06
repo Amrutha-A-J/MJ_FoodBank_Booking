@@ -13,7 +13,6 @@ parameters supplied to each template.
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
-| `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
 | `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |
 
 Brevo templates can reference these `params.*` values to display links and other
@@ -49,14 +48,6 @@ dynamic content.
 - **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID`
 - **Params:**
   - `ids` (string) – comma-separated volunteer booking IDs marked as no-show.
-
-## Agency client update emails
-
-- **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID`
-- **Used in:**
-  - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
-- **Params:**
-  - `body` (string) – message describing the client added to or removed from the agency.
 
 ## Milestone badge emails
 
