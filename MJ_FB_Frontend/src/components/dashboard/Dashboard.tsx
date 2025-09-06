@@ -99,7 +99,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         setEvents({ today: [], upcoming: [], past: [] }),
       );
 
-    getVisitStats()
+    getVisitStats({ group: 'month', months: 12 })
       .then(data => setVisitStats(data ?? []))
       .catch(() => setVisitStats([]));
   }, []);

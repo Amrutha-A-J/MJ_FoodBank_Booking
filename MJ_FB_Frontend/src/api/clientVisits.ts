@@ -60,15 +60,23 @@ export interface VisitImportPreview {
 }
 
 export interface VisitStat {
-  date: string;
-  total: number;
+  month: string;
+  clients: number;
   adults: number;
   children: number;
 }
 
-export async function getVisitStats(days?: number): Promise<VisitStat[]> {
+interface VisitStatParams {
+  months?: number;
+  group?: string;
+}
+
+export async function getVisitStats(
+  params: VisitStatParams = {},
+): Promise<VisitStat[]> {
   const url = new URL(`${API_BASE}/client-visits/stats`);
-  if (days != null) url.searchParams.set('days', String(days));
+  if (params.months != null) url.searchParams.set('months', String(params.months));
+  if (params.group != null) url.searchParams.set('group', params.group);
   const res = await apiFetch(url.toString());
   return handleResponse(res);
 }
