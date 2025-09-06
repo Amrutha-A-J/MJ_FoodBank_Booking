@@ -215,7 +215,7 @@ describe('cancelBooking', () => {
     const req = {
       params: { id: '1' },
       user: { role: 'staff', id: '99' },
-      body: { reason: 'scheduling conflict', type: 'shopping appointment' },
+      body: { reason: 'scheduling conflict', type: 'Shopping Appointment' },
     } as unknown as Request;
     const res = { json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;

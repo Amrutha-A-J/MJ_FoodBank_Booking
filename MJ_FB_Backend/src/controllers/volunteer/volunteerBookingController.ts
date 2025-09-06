@@ -53,7 +53,7 @@ export async function createVolunteerBooking(
     date?: string;
     type?: string;
   };
-  const emailType = type || 'volunteer shift';
+  const emailType = type || 'Volunteer Shift';
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (!roleId || !date) {
     return res.status(400).json({ message: 'roleId and date are required' });
@@ -427,7 +427,7 @@ export async function resolveVolunteerBookingConflict(
     keep?: 'existing' | 'new';
     type?: string;
   };
-  const emailType = type || 'volunteer shift';
+  const emailType = type || 'Volunteer Shift';
 
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (
@@ -1066,7 +1066,7 @@ export async function createRecurringVolunteerBooking(
             body,
             cancelLink,
             rescheduleLink,
-            type: 'volunteer shift',
+            type: 'Volunteer Shift',
           },
         });
       } else {
@@ -1237,7 +1237,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
             body,
             cancelLink,
             rescheduleLink,
-            type: 'volunteer shift',
+            type: 'Volunteer Shift',
           },
         });
       } else {
@@ -1352,7 +1352,7 @@ export async function cancelVolunteerBookingOccurrence(
       await sendTemplatedEmail({
         to: volunteerEmail,
         templateId: config.volunteerBookingReminderTemplateId,
-        params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
+        params: { body, cancelLink, rescheduleLink, type: 'Volunteer Shift' },
       });
     } else if (!volunteerEmail && req.user?.role === 'staff') {
       logger.warn(

@@ -42,7 +42,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
   const { slotId, date, isStaffBooking, note, type } = req.body;
-  const emailType = type || 'shopping appointment';
+  const emailType = type || 'Shopping Appointment';
   if (slotId === undefined || slotId === null) {
     return res.status(400).json({ message: 'Please select a time slot' });
   }
@@ -213,7 +213,7 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
   if (!requester) return res.status(401).json({ message: 'Unauthorized' });
   const reason =
     requester.role === 'staff' ? (req.body.reason as string) || '' : 'user cancelled';
-  const type = (req.body?.type as string) || 'shopping appointment';
+  const type = (req.body?.type as string) || 'Shopping Appointment';
 
   try {
     const booking = await fetchBookingById(Number(bookingId));
@@ -343,7 +343,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     date?: string;
     type?: string;
   };
-  const emailType = type || 'shopping appointment';
+  const emailType = type || 'Shopping Appointment';
   if (!slotId || !date) {
     return res.status(400).json({ message: 'Please select a time slot and date' });
   }
@@ -493,7 +493,7 @@ export async function createBookingForUser(
     return res.status(403).json({ message: 'Forbidden' });
 
   const { userId, slotId, date, note, type } = req.body;
-  const emailType = type || 'shopping appointment';
+  const emailType = type || 'Shopping Appointment';
   const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
     return res

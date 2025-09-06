@@ -200,3 +200,65 @@ sudo systemctl reload nginx
   ```bash
   pm2 restart mjfb-api --update-env
   ```
+
+---
+
+## 10) CA Bundle / SSL Fixes
+
+**Symptom:**  
+`SELF_SIGNED_CERT_IN_CHAIN` or  
+`[PG TLS] CA bundle not found at .../certs/rds-ca-central-1-bundle.pem`
+
+**Fix – 60 seconds:**
+```bash
+cd ~/apps/MJ_FoodBank_Booking/MJ_FB_Backend
+mkdir -p certs
+curl -fL "https://truststore.pki.rds.amazonaws.com/ca-central-1/ca-central-1-bundle.pem" \
+  -o certs/rds-ca-central-1-bundle.pem
+
+ls -l certs/rds-ca-central-1-bundle.pem
+head -n3 certs/rds-ca-central-1-bundle.pem   # should start with -----BEGIN CERTIFICATE-----
+
+pm2 restart mjfb-api --update-env
+pm2 logs mjfb-api --lines 80 | egrep "\\[PG TLS\\]|SELF_SIGNED|Error"
+```
+
+**If regional URL fails (403):**
+```bash
+curl -fL "https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem" \
+  -o certs/rds-global-bundle.pem
+
+export PG_CA_CERT=/home/ubuntu/apps/MJ_FoodBank_Booking/MJ_FB_Backend/certs/rds-global-bundle.pem
+pm2 restart mjfb-api --update-env
+```
+
+**Permissions (ensure readable by PM2 user):**
+```bash
+sudo chown ubuntu:ubuntu certs/*.pem
+sudo chmod 644 certs/*.pem
+```
+
+**Verify DB certificate chain:**
+```bash
+openssl s_client -starttls postgres \
+  -connect <DB_HOST>:5432 -servername <DB_HOST> -showcerts </dev/null 2>/dev/null \
+  | openssl verify -CAfile certs/rds-ca-central-1-bundle.pem
+# Expect: OK
+```
+
+**Tip:** Add a `scripts/prestart_fetch_rds_ca.sh` to auto-fetch the bundle before each deploy.
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+mkdir -p certs
+CA_LOCAL="certs/rds-ca-central-1-bundle.pem"
+if ! [ -s "$CA_LOCAL" ]; then
+  curl -fL "https://truststore.pki.rds.amazonaws.com/ca-central-1/ca-central-1-bundle.pem" -o "$CA_LOCAL"
+fi
+```
+Run before restart:
+```bash
+bash scripts/prestart_fetch_rds_ca.sh && pm2 restart mjfb-api --update-env
+```
+
