@@ -12,7 +12,6 @@ parameters supplied to each template.
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `volunteerBookingController.ts` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
-| `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
 | `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
 | `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |
 
@@ -43,12 +42,6 @@ dynamic content.
 - **Params:**
   - `subject` (string) – email subject.
   - `body` (string) – message body describing the update.
-
-## Volunteer no-show notification emails
-
-- **Template ID variable:** `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID`
-- **Params:**
-  - `ids` (string) – comma-separated volunteer booking IDs marked as no-show.
 
 ## Agency client update emails
 
