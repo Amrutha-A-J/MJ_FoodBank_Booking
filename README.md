@@ -272,6 +272,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                                                                                             |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                                                                                     |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                                                                                     |
+| `BADGE_MILESTONE_TEMPLATE_ID`                | Brevo template ID for badge milestone emails
+                                                           |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                                                                                     |
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for a list of email templates and parameters.

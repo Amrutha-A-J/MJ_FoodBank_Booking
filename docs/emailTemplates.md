@@ -28,3 +28,12 @@ This document catalogs Brevo email templates used by the backend and the paramet
 
 Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
 
+## Badge milestone email
+
+- **Template ID variable:** `BADGE_MILESTONE_TEMPLATE_ID` (exposed as `config.badgeMilestoneTemplateId`)
+- **Used in:**
+  - `MJ_FB_Backend/src/utils/badgeUtils.ts` (`awardMilestoneBadge`)
+- **Params:**
+  - `body` (string) – message body describing the milestone.
+  - `cardUrl` (string) – URL to download the thank-you card.
+
