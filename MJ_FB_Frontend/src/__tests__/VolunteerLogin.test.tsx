@@ -32,6 +32,7 @@ describe('VolunteerLogin component', () => {
     expect(
       await screen.findByText('Incorrect email or password')
     ).toBeInTheDocument();
+    expect(loginVolunteer).toHaveBeenCalledWith('user@example.com', 'pass');
     expect(onLogin).not.toHaveBeenCalled();
   });
 });
