@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button,
   Dialog,
@@ -65,12 +66,16 @@ function formatDisplay(dateStr: string) {
 
 export default function PantryVisits() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const paramDate = searchParams.get('date');
+  const initialDate = paramDate ? toDate(paramDate) : toDate();
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(initialDate));
+  const [tab, setTab] = useState(() =>
+    Math.floor((initialDate.getTime() - weekStart.getTime()) / (24 * 60 * 60 * 1000)),
+  );
+  const [lookupDate, setLookupDate] = useState(formatDate(initialDate));
   const [visits, setVisits] = useState<ClientVisit[]>([]);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
-  });
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<ClientVisit | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -81,15 +86,23 @@ export default function PantryVisits() {
   const [cartTare, setCartTare] = useState(0);
   const [search, setSearch] = useState('');
 
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
+  useEffect(() => {
+    const d = paramDate ? toDate(paramDate) : toDate();
+    const start = startOfWeek(d);
+    setWeekStart(start);
+    setTab(Math.floor((d.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)));
+    setLookupDate(formatDate(d));
+  }, [paramDate]);
+
+  const weekDates = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    [weekStart],
+  );
 
   const selectedDate = weekDates[tab];
 
   const [form, setForm] = useState({
-    date: formatDate(),
+    date: formatDate(initialDate),
     anonymous: false,
     sunshineBag: false,
     sunshineWeight: '',
@@ -455,6 +468,22 @@ export default function PantryVisits() {
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          <TextField
+            size="small"
+            label="Lookup Date"
+            type="date"
+            value={lookupDate}
+            onChange={e => setLookupDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
+            disabled={!lookupDate}
+          >
+            Go
+          </Button>
         </Stack>
       }
     >
