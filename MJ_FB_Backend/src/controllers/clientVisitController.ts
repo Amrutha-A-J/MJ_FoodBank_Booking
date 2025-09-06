@@ -361,7 +361,7 @@ export async function importVisitsFromXlsx(
     for (const sheet of sheets) {
       const rows = await readXlsxFile(req.file.buffer, { sheet: sheet.name });
       const sheetDate = sheet.name;
-      const formattedDate = formatReginaDate(new Date(sheetDate));
+      const formattedDate = formatReginaDate(sheetDate);
       const errors: string[] = [];
 
       const dataRows = rows.slice(1);
@@ -371,7 +371,6 @@ export async function importVisitsFromXlsx(
         const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
         try {
           const parsed = importClientVisitsSchema.parse({
-            date: new Date(sheetDate),
             familySize: String(familySize ?? ''),
             weightWithCart:
               weightWithCart == null ? undefined : Number(weightWithCart),
