@@ -52,6 +52,41 @@ export async function getClientBookingsThisMonth(
   return count ?? 0;
 }
 
+export async function getVisitStats(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const daysParam = req.query.days as string | undefined;
+    const days = daysParam ? parseInt(daysParam, 10) : 30;
+    if (Number.isNaN(days) || days <= 0) {
+      return res.status(400).json({ message: 'Invalid days' });
+    }
+    const result = await pool.query(
+      `SELECT date,
+              COUNT(*)::int AS total,
+              COALESCE(SUM(adults),0)::int AS adults,
+              COALESCE(SUM(children),0)::int AS children
+         FROM client_visits
+        WHERE date >= CURRENT_DATE - ($1::int - 1)
+        GROUP BY date
+        ORDER BY date`,
+      [days],
+    );
+    const rows = result.rows.map(r => ({
+      date: formatReginaDate(r.date),
+      total: Number(r.total),
+      adults: Number(r.adults),
+      children: Number(r.children),
+    }));
+    res.json(rows);
+  } catch (error) {
+    logger.error('Error fetching visit stats:', error);
+    next(error);
+  }
+}
+
 export async function listVisits(req: Request, res: Response, next: NextFunction) {
   try {
     const date = req.query.date as string;
