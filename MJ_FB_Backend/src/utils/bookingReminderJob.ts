@@ -4,6 +4,7 @@ import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
+import config from '../config';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -23,7 +24,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       const body = `This is a reminder for your booking on ${nextDate}${time}.`;
       await enqueueEmail({
         to: b.user_email,
-        templateId: 1,
+        templateId: config.bookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'shopping appointment' },
       });
     }

@@ -134,7 +134,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       const body = `Your booking for ${date} has been automatically approved.`;
       enqueueEmail({
         to: user.email,
-        templateId: 1,
+        templateId: config.bookingConfirmationTemplateId,
         params: { body, cancelLink, rescheduleLink, googleCalendarLink, outlookCalendarLink, type: emailType },
       });
     } else {
@@ -254,8 +254,8 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       email = emailRes.rows[0]?.email;
     }
     if (email) {
-      const body = `Booking ${bookingId} was cancelled`;
-      enqueueEmail({ to: email, templateId: 1, params: { body, type } });
+        const body = `Booking ${bookingId} was cancelled`;
+        enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type } });
     } else {
       logger.warn(
         'Booking cancellation email not sent. Booking %s has no associated email.',
@@ -292,8 +292,8 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
     const booking = result.rows[0];
     if (booking?.email && booking?.reschedule_token) {
       const link = `${config.frontendOrigins[0]}/reschedule/${booking.reschedule_token}`;
-      const body = `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`;
-      enqueueEmail({ to: booking.email, templateId: 1, params: { body, type } });
+        const body = `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`;
+        enqueueEmail({ to: booking.email, templateId: config.bookingStatusTemplateId, params: { body, type } });
     }
 
     res.json({ message: 'Booking marked as no-show' });
@@ -425,8 +425,8 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       email = emailRes.rows[0]?.email;
     }
     if (email) {
-      const body = `Booking ${booking.id} was rescheduled`;
-      enqueueEmail({ to: email, templateId: 1, params: { body, type: emailType } });
+        const body = `Booking ${booking.id} was rescheduled`;
+        enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type: emailType } });
     } else {
       logger.warn(
         'Booking rescheduled email not sent. Booking %s has no associated email.',
@@ -612,11 +612,11 @@ export async function createBookingForUser(
         end_time,
       );
       const body = `Your booking for ${date} has been automatically approved`;
-      enqueueEmail({
-        to: clientEmail,
-        templateId: 1,
-        params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
-      });
+        enqueueEmail({
+          to: clientEmail,
+          templateId: config.bookingConfirmationTemplateId,
+          params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
+        });
     } else {
       logger.warn(
         'Booking approved email not sent. User %s has no email.',
