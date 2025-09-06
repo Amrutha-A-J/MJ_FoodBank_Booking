@@ -495,11 +495,13 @@ export default function BookingUI({
         <DialogTitle>{t('confirm_booking')}</DialogTitle>
         <DialogContent>
           <Typography>
-            {t('booking_summary', {
-              date: date.format('ddd, MMM D, YYYY'),
-              time: selectedLabel,
-              count: usage ?? 0,
-            })}
+            {t('date')}: {date.format('ddd, MMM D, YYYY')}
+          </Typography>
+          <Typography>
+            {t('time')}: {selectedLabel}
+          </Typography>
+          <Typography>
+            {t('visits_this_month')} {usage ?? 0}
           </Typography>
           <TextField
             fullWidth
