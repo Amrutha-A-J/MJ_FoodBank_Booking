@@ -264,35 +264,6 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       );
       email = emailRes.rows[0]?.email;
     }
-    if (requester.role === 'staff') {
-      if (email) {
-        const slotRes = await pool.query(
-          'SELECT start_time, end_time FROM slots WHERE id=$1',
-          [booking.slot_id],
-        );
-        const { start_time, end_time } = slotRes.rows[0] || {};
-        const time =
-          start_time && end_time
-            ? ` from ${start_time} to ${end_time}`
-            : '';
-        const dateStr =
-          booking.date instanceof Date
-            ? formatReginaDate(booking.date)
-            : booking.date;
-        const body = `Date: ${dateStr}${time}. Reason: ${reason}`;
-        enqueueEmail({
-          to: email,
-          templateId: config.bookingStatusTemplateId,
-          params: { body, type },
-        });
-      } else {
-        logger.warn(
-          'Booking cancellation email not sent. Booking %s has no associated email.',
-          bookingId,
-        );
-      }
-    }
-
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
     logger.error('Error cancelling booking:', error);
@@ -422,43 +393,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       status: newStatus,
     };
     await updateBooking(booking.id, updateFields);
-
-    let email: string | undefined;
-    if (bookingUserId !== undefined) {
-      const emailRes = await pool.query(
-        'SELECT email FROM clients WHERE client_id=$1',
-        [bookingUserId],
-      );
-      email = emailRes.rows[0]?.email;
-    } else if (booking.new_client_id) {
-      const emailRes = await pool.query(
-        'SELECT email FROM new_clients WHERE id=$1',
-        [booking.new_client_id],
-      );
-      email = emailRes.rows[0]?.email;
-    }
-    if (email) {
-        const slotRes = await pool.query(
-          'SELECT start_time, end_time FROM slots WHERE id=$1',
-          [slotId],
-        );
-        const { start_time, end_time } = slotRes.rows[0] || {};
-        const time =
-          start_time && end_time
-            ? ` from ${start_time} to ${end_time}`
-            : '';
-        const body = `Date: ${date}${time}`;
-        enqueueEmail({
-          to: email,
-          templateId: config.bookingStatusTemplateId,
-          params: { body, type: emailType },
-        });
-    } else {
-      logger.warn(
-        'Booking rescheduled email not sent. Booking %s has no associated email.',
-        booking.id,
-      );
-    }
 
     res.json({
       message: 'Booking rescheduled',

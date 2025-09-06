@@ -8,22 +8,13 @@ parameters supplied to each template.
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` | `authController.ts`, `agencyController.ts`, `admin/staffController.ts`, `admin/adminStaffController.ts`, `volunteerController.ts`, `userController.ts` |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `bookingController.ts` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` | `bookingReminderJob.ts` |
-| `templateId: 1` | Booking cancellations and reschedules | `body`, `type` | `bookingController.ts` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `volunteerBookingController.ts` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, recurring bookings) | `subject`, `body`
 
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
 
-## Booking status emails
-
-- **Template ID variable:** `BOOKING_STATUS_TEMPLATE_ID`
-- **Params:**
-  - `body` (string) – message body describing the booking status update.
-  - `type` (string) – booking type, e.g., `shopping appointment`.
-
-No-show emails are no longer sent.
+Cancellation, no-show, volunteer notification, and agency client update emails have been discontinued.
 
 ## Volunteer booking confirmation and reminder emails
 
@@ -37,20 +28,5 @@ No-show emails are no longer sent.
   - `type` (string) – booking type, e.g., `volunteer shift`.
 
 Recurring volunteer bookings also reuse the reminder template so volunteers receive cancel and reschedule links.
-
-## Volunteer booking notification emails
-
-- **Template ID variable:** `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID`
-- **Params:**
-  - `subject` (string) – email subject.
-  - `body` (string) – message body describing the update.
-
-## Agency client update emails
-
-- **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID`
-- **Used in:**
-  - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
-- **Params:**
-  - `body` (string) – message describing the client added to or removed from the agency.
 
 

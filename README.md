@@ -276,21 +276,18 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `templateId: 1` | Booking cancellations, reschedules, and no-show notices | `body`, `type` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, recurring bookings) | `subject`, `body` |
-| `templateId: 1` | Agency membership additions or removals | `body` |
+
+Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
-=======
+ 
 | `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 6) |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                     |
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                         |
-| `BOOKING_STATUS_TEMPLATE_ID`                | Brevo template ID for booking status emails (cancellations, reschedules, no-shows) |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
-| `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` | Brevo template ID for volunteer booking notifications (cancellations, recurring bookings) |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
 

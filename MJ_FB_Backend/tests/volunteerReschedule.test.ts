@@ -50,16 +50,8 @@ describe('rescheduleVolunteerBooking', () => {
       .send({ roleId: 4, date: '2025-09-01' });
 
     expect(res.status).toBe(200);
-    const updateCall = (pool.query as jest.Mock).mock.calls[6];
-    expect(updateCall[0]).toContain("status='approved'");
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(2);
-    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
-      to: 'coordinator1@example.com',
-      templateId: 0,
-    });
-    expect(sendTemplatedEmailMock.mock.calls[1][0]).toMatchObject({
-      to: 'coordinator2@example.com',
-      templateId: 0,
+      const updateCall = (pool.query as jest.Mock).mock.calls[6];
+      expect(updateCall[0]).toContain("status='approved'");
+      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
     });
   });
-});
