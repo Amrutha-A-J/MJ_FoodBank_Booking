@@ -105,6 +105,42 @@ describe('PantryVisits', () => {
     expect(screen.queryByText('Bob')).not.toBeInTheDocument();
   });
 
+  it('shows summary for visits', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 2,
+      },
+      {
+        id: 2,
+        date: '2024-01-01',
+        clientId: 222,
+        clientName: 'Bob',
+        anonymous: false,
+        weightWithCart: 20,
+        weightWithoutCart: 15,
+        petItem: 1,
+      },
+    ]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+
+    render(
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>,
+    );
+
+    expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
+    expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
+    expect(screen.getByText('Sunshine Bags: 3')).toBeInTheDocument();
+  });
+
   it('shows "No records" when there are no visits', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });

@@ -142,6 +142,13 @@ export default function PantryVisits() {
       .catch(() => setClientFound(false));
   }, [form.clientId]);
 
+  const summary = useMemo(() => {
+    const clients = visits.length;
+    const totalWeight = visits.reduce((sum, v) => sum + v.weightWithoutCart, 0);
+    const sunshineBags = visits.reduce((sum, v) => sum + v.petItem, 0);
+    return { clients, totalWeight, sunshineBags };
+  }, [visits]);
+
   function handleSaveVisit() {
     if (!form.date || !form.weightWithCart || !form.weightWithoutCart) {
       setSnackbar({ open: true, message: 'Date and weights required', severity: 'error' });
@@ -282,7 +289,22 @@ export default function PantryVisits() {
 
   const tabs = weekDates.map(d => ({
     label: formatLocaleDate(d, { weekday: 'short' }),
-    content: table,
+    content: (
+      <>
+        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            {t('pantry_visits.summary.clients')}: {summary.clients}
+          </Typography>
+          <Typography variant="body2">
+            {t('pantry_visits.summary.total_weight')}: {summary.totalWeight}
+          </Typography>
+          <Typography variant="body2">
+            {t('pantry_visits.summary.sunshine_bags')}: {summary.sunshineBags}
+          </Typography>
+        </Stack>
+        {table}
+      </>
+    ),
   }));
 
   return (
