@@ -9,10 +9,11 @@ import {
   MenuItem,
 } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { getRoles } from '../api/volunteers';
-import type { RoleOption } from '../types';
+import { getVolunteerRolesForVolunteer } from '../api/volunteers';
+import type { VolunteerRole } from '../types';
 import DialogCloseButton from './DialogCloseButton';
 import { formatReginaDate } from '../utils/date';
+import { formatTime } from '../utils/time';
 
 interface RescheduleDialogProps {
   open: boolean;
@@ -26,25 +27,30 @@ export default function RescheduleDialog({
   onSubmit,
 }: RescheduleDialogProps) {
   const [date, setDate] = useState('');
-  const [roleId, setRoleId] = useState('');
-  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [slotId, setSlotId] = useState('');
+  const [slots, setSlots] = useState<VolunteerRole[]>([]);
   const [message, setMessage] = useState('');
   const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
     if (!open) {
       setDate('');
-      setRoleId('');
+      setSlotId('');
+      setSlots([]);
       setMessage('');
-      return;
     }
-    getRoles()
-      .then(setRoles)
-      .catch(() => setRoles([]));
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !date) return;
+    setSlotId('');
+    getVolunteerRolesForVolunteer(date)
+      .then(setSlots)
+      .catch(() => setSlots([]));
+  }, [date, open]);
+
   function handleSubmit() {
-    if (!date || !roleId) {
+    if (!date || !slotId) {
       setMessage('Please select date and role');
       return;
     }
@@ -52,7 +58,7 @@ export default function RescheduleDialog({
       setMessage('Date must be YYYY-MM-DD');
       return;
     }
-    onSubmit(date, Number(roleId));
+    onSubmit(date, Number(slotId));
   }
 
   return (
@@ -73,16 +79,19 @@ export default function RescheduleDialog({
         <TextField
           select
           label="Role"
-          value={roleId}
-          onChange={e => setRoleId(e.target.value)}
+          value={slotId}
+          onChange={e => setSlotId(e.target.value)}
           fullWidth
           margin="normal"
+          disabled={!date || slots.length === 0}
         >
-          {roles.map(r => (
-            <MenuItem key={r.roleId} value={r.roleId.toString()}>
-              {r.roleName} ({r.categoryName})
-            </MenuItem>
-          ))}
+          {slots
+            .filter(s => s.available > 0)
+            .map(s => (
+              <MenuItem key={s.id} value={s.id.toString()}>
+                {`${s.name} ${formatTime(s.start_time)}–${formatTime(s.end_time)}`}
+              </MenuItem>
+            ))}
         </TextField>
         <FeedbackSnackbar
           open={!!message}
