@@ -7,9 +7,9 @@ import logger from './utils/logger';
 
 const isLocal = ['localhost', '127.0.0.1'].includes(config.pgHost);
 
-// Default CA path inside the repo
+// Default CA path (regional bundle for ca-central-1)
 const DEFAULT_CA = path.join(__dirname, '../certs/rds-ca-central-1-bundle.pem');
-// Allow overriding via env PG_CA_CERT=/path/to/your.pem
+// Allow override via env PG_CA_CERT
 const CA_PATH = process.env.PG_CA_CERT || DEFAULT_CA;
 
 let ssl: any | undefined;
@@ -18,12 +18,13 @@ if (!isLocal) {
   if (!fs.existsSync(CA_PATH)) {
     throw new Error(`[PG TLS] CA bundle not found at ${CA_PATH}. Set PG_CA_CERT to override.`);
   }
+
   const ca = fs.readFileSync(CA_PATH, 'utf8');
 
   ssl = {
-    ca,                          // <- custom CA bundle from your repo
+    ca,                          // use the custom CA bundle
     rejectUnauthorized: true as const,
-    servername: config.pgHost,   // must exactly match your RDS endpoint DNS
+    servername: config.pgHost,   // must match your RDS endpoint DNS
   };
 
   logger.info(`[PG TLS] Using custom CA at ${CA_PATH}, host=${config.pgHost}, port=${config.pgPort}`);
@@ -37,8 +38,8 @@ const pool = new Pool({
   user: config.pgUser,
   password: config.pgPassword,
   database: config.pgDatabase,
-  ssl, // only custom CA in non-local environments
-  // Avoid connectionString so PG* env vars can’t override sslmode.
+  ssl, // always require SSL with the CA bundle in non-local env
+  // Avoid connectionString so PG* env vars can’t override sslmode
 });
 
 pool.on('error', (err) => logger.error('Unexpected PG pool error', err));
