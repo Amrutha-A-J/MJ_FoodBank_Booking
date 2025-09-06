@@ -19,12 +19,13 @@ import {
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
-import { 
+import {
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
+import type { ApiError } from "../../../api/client";
 import PasswordField from "../../../components/PasswordField";
 
 export default function UpdateClientData() {
@@ -85,9 +86,17 @@ export default function UpdateClientData() {
       setSelected(null);
       loadClients();
     } catch (err: unknown) {
+      let message = "Update failed";
+      const apiErr = err as ApiError;
+      const details = apiErr?.details as any;
+      if (details?.errors?.[0]?.message) {
+        message = details.errors[0].message as string;
+      } else if (err instanceof Error && err.message) {
+        message = err.message;
+      }
       setSnackbar({
         open: true,
-        message: err instanceof Error ? err.message : "Update failed",
+        message,
         severity: "error",
       });
     }
