@@ -19,6 +19,7 @@
   "tamil": "泰米尔语",
   "login": "登录",
   "client_login": "客户登录",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID, please email harvestpantry@mjfoodbank.org. If your password is not working, please use the forgot password link below to set a new password.",
   "client_id": "客户ID",
   "password": "密码",
   "forgot_password": "忘记密码？",
