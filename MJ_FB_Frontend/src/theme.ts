@@ -252,11 +252,26 @@ let theme = createTheme({
     },
 
     // Tables/lists
+    MuiTable: {
+      defaultProps: { stickyHeader: true },
+    },
     MuiListItem: {
-      styleOverrides: { root: { borderRadius: 5, '&:hover': { background: 'rgba(0,0,0,0.03)' } } },
+      styleOverrides: {
+        root: { borderRadius: 5, '&:hover': { background: 'rgba(0,0,0,0.03)' } },
+      },
     },
     MuiTableHead: {
-      styleOverrides: { root: { '& .MuiTableCell-head': { fontWeight: 700, background: '#fafafa' } } },
+      styleOverrides: {
+        root: {
+          '& .MuiTableCell-head': {
+            fontWeight: 700,
+            background: '#fafafa',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+          },
+        },
+      },
     },
     MuiTableCell: { styleOverrides: { root: { borderBottomColor: '#eee' } } },
 
