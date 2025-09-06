@@ -4,6 +4,7 @@ import PantrySchedule from '../../staff/PantrySchedule';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../../../api/bookings', () => ({
   getSlots: jest.fn(),
@@ -62,11 +63,13 @@ describe('PantrySchedule status colors', () => {
 
     const queryClient = new QueryClient();
     render(
-      <ThemeProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
-          <PantrySchedule />
-        </QueryClientProvider>
-      </ThemeProvider>
+      <MemoryRouter>
+        <ThemeProvider theme={theme}>
+          <QueryClientProvider client={queryClient}>
+            <PantrySchedule />
+          </QueryClientProvider>
+        </ThemeProvider>
+      </MemoryRouter>
     );
 
     const approved = await screen.findByText('App (1)');
@@ -117,11 +120,13 @@ describe('PantrySchedule status colors', () => {
 
     const queryClient = new QueryClient();
     render(
-      <ThemeProvider theme={theme}>
-        <QueryClientProvider client={queryClient}>
-          <PantrySchedule />
-        </QueryClientProvider>
-      </ThemeProvider>,
+      <MemoryRouter>
+        <ThemeProvider theme={theme}>
+          <QueryClientProvider client={queryClient}>
+            <PantrySchedule />
+          </QueryClientProvider>
+        </ThemeProvider>
+      </MemoryRouter>,
     );
 
     const over = await screen.findByText('Over (2)');

@@ -22,6 +22,7 @@ import {
   TextField,
 } from '@mui/material';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
+import PantryQuickLinks from '../../components/PantryQuickLinks';
 import Page from '../../components/Page';
 
 interface User {
@@ -272,7 +273,7 @@ export default function PantrySchedule({
   });
 
   return (
-    <Page title="Pantry Schedule">
+    <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
         <h3>
