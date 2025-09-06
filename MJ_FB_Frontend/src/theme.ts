@@ -198,8 +198,12 @@ let theme = createTheme({
         root: ({ theme }) => ({
           '& .MuiOutlinedInput-root': {
             borderRadius: theme.shape.borderRadius,
-            '&.MuiInputBase-sizeSmall': { height: theme.spacing(5) },
-            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(BRAND_PRIMARY, 0.4) },
+            '&.MuiInputBase-sizeSmall:not(.MuiInputBase-multiline)': {
+              height: theme.spacing(5),
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(BRAND_PRIMARY, 0.4),
+            },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: BRAND_PRIMARY,
               boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.12)}`,
