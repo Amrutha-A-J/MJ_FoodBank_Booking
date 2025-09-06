@@ -98,6 +98,39 @@ describe('PantryVisits', () => {
     expect(withoutCart).toHaveValue(40);
   });
 
+  it('selects only one visit type and can return to regular', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    renderVisits();
+
+    await screen.findByText('Record Visit');
+    fireEvent.click(screen.getByText('Record Visit'));
+
+    const regular = screen.getByLabelText('Regular visit');
+    const anonymous = screen.getByLabelText('Anonymous visit');
+    const sunshine = screen.getByLabelText('Sunshine bag?');
+
+    expect(regular).toBeChecked();
+
+    fireEvent.click(anonymous);
+    expect(anonymous).toBeChecked();
+    expect(sunshine).not.toBeChecked();
+    expect(screen.getByLabelText('Client ID')).toBeInTheDocument();
+
+    fireEvent.click(sunshine);
+    await waitFor(() => expect(screen.getByLabelText('Sunshine bag?')).toBeChecked());
+    expect(anonymous).not.toBeChecked();
+    expect(screen.queryByLabelText('Client ID')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Sunshine Bag Weight')).toBeInTheDocument();
+
+    fireEvent.click(regular);
+    await waitFor(() => expect(screen.getByLabelText('Regular visit')).toBeChecked());
+    expect(screen.queryByLabelText('Sunshine Bag Weight')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Client ID')).toBeInTheDocument();
+  });
+
   it('filters visits by search input', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([
       {
@@ -226,7 +259,7 @@ describe('PantryVisits', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('passes duplicate strategy to API', async () => {
+  it('imports visits after selecting file', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
@@ -243,14 +276,10 @@ describe('PantryVisits', () => {
     });
     fireEvent.change(input, { target: { files: [file] } });
 
-    fireEvent.click(screen.getByLabelText('Update'));
     fireEvent.click(screen.getByText('Import'));
 
     await waitFor(() =>
-      expect(importVisitsXlsx).toHaveBeenCalledWith(
-        expect.any(FormData),
-        'update',
-      ),
+      expect(importVisitsXlsx).toHaveBeenCalledWith(expect.any(FormData)),
     );
   });
 
