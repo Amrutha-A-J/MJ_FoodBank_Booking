@@ -49,15 +49,6 @@ export default function Login({
 
   return (
     <Page title={t('client_login')}>
-      <Alert severity="info" sx={{ mb: 2 }}>
-        {t('client_login_notice_id')}
-      </Alert>
-      <Alert severity="warning" sx={{ mb: 2 }}>
-        {t('client_login_notice_password')}
-      </Alert>
-      <Alert severity="info" sx={{ mb: 2 }}>
-        {t('client_login_notice_volunteer')}
-      </Alert>
       <FormCard
         onSubmit={handleSubmit}
         title={t('client_login')}
@@ -72,6 +63,15 @@ export default function Login({
           </Button>
         }
       >
+        <Alert severity="info">
+          {t('client_login_notice_id')}
+        </Alert>
+        <Alert severity="warning">
+          {t('client_login_notice_password')}
+        </Alert>
+        <Alert severity="info">
+          {t('client_login_notice_volunteer')}
+        </Alert>
         <TextField
           value={clientId}
           onChange={e => setClientId(e.target.value)}
