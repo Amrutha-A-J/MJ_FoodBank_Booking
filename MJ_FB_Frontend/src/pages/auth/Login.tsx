@@ -28,6 +28,7 @@ export default function Login({
   const { t } = useTranslation();
   const notices: { message: ReactNode; severity: AlertColor }[] = [
     { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>, severity: 'info' },
+    { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_internal')}</span>, severity: 'info' },
     { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>, severity: 'warning' },
     { message: <span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>, severity: 'info' },
   ];
@@ -115,6 +116,9 @@ export default function Login({
           </IconButton>
           <Typography variant="body2" paragraph>
             {t('client_login_notice_id')}
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {t('client_login_notice_internal')}
           </Typography>
           <Typography variant="body2" paragraph>
             {t('client_login_notice_password')}
