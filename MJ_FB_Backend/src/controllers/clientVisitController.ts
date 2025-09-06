@@ -58,6 +58,34 @@ export async function getVisitStats(
   next: NextFunction,
 ) {
   try {
+    const group = (req.query.group as string | undefined) ?? 'day';
+    if (group === 'month') {
+      const monthsParam = req.query.months as string | undefined;
+      const months = monthsParam ? parseInt(monthsParam, 10) : 12;
+      if (Number.isNaN(months) || months <= 0) {
+        return res.status(400).json({ message: 'Invalid months' });
+      }
+      const result = await pool.query(
+        `SELECT DATE_TRUNC('month', date) AS month,
+                COUNT(DISTINCT client_id)::int AS clients,
+                COALESCE(SUM(adults),0)::int AS adults,
+                COALESCE(SUM(children),0)::int AS children
+           FROM client_visits
+          WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - (($1::int - 1) * INTERVAL '1 month')
+          GROUP BY DATE_TRUNC('month', date)
+          ORDER BY DATE_TRUNC('month', date)`,
+        [months],
+      );
+      const rows = result.rows.map(r => ({
+        month: formatReginaDate(r.month).slice(0, 7),
+        clients: Number(r.clients),
+        adults: Number(r.adults),
+        children: Number(r.children),
+      }));
+      res.json(rows);
+      return;
+    }
+
     const daysParam = req.query.days as string | undefined;
     const days = daysParam ? parseInt(daysParam, 10) : 30;
     if (Number.isNaN(days) || days <= 0) {

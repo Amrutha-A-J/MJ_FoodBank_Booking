@@ -18,6 +18,8 @@ const upload = multer();
 const router = Router();
 
 router.get('/', authMiddleware, authorizeAccess('pantry'), listVisits);
+// GET /client-visits/stats?days=30
+// GET /client-visits/stats?group=month&months=12
 router.get('/stats', authMiddleware, authorizeAccess('pantry'), getVisitStats);
 router.post('/', authMiddleware, authorizeAccess('pantry'), validate(addVisitSchema), addVisit);
 router.put('/:id', authMiddleware, authorizeAccess('pantry'), validate(updateVisitSchema), updateVisit);
