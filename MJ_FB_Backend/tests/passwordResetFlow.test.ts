@@ -26,19 +26,19 @@ describe('requestPasswordReset', () => {
     jest.clearAllMocks();
   });
 
-  it('looks up by email across user tables', async () => {
+  it('looks up volunteer by email across user tables', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ id: 7, email: 'user@example.com', user_type: 'staff' }],
+      rows: [{ id: 7, email: 'vol@example.com', user_type: 'volunteers' }],
     });
     (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
     const res = await request(app)
       .post('/auth/request-password-reset')
-      .send({ email: 'user@example.com' });
+      .send({ email: 'vol@example.com' });
     expect(res.status).toBe(204);
     expect(pool.query).toHaveBeenCalledTimes(1);
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/UNION ALL/);
-    expect(generatePasswordSetupToken).toHaveBeenCalledWith('staff', 7);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 7);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,

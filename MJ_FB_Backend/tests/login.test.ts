@@ -32,7 +32,14 @@ describe('POST /api/users/login', () => {
   it('logs in staff with valid credentials', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ id: 1, first_name: 'John', last_name: 'Doe', password: 'hashed', role: 'staff' }],
+      rows: [{
+        id: 1,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        password: 'hashed',
+        role: 'staff',
+      }],
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     (jwt.sign as jest.Mock).mockReturnValue('token');
@@ -43,12 +50,13 @@ describe('POST /api/users/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('role', 'staff');
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE email = \$1/);
   });
 
   it('returns 401 with invalid credentials', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ password: 'hashed' }],
+      rows: [{ email: 'john@example.com', password: 'hashed' }],
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 

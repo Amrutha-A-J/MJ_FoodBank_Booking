@@ -24,7 +24,15 @@ describe('donation entry volunteer login', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ id: 1, first_name: 'Jane', last_name: 'Doe', password: 'hashed', user_id: null, user_role: null }],
+        rows: [{
+          id: 1,
+          first_name: 'Jane',
+          last_name: 'Doe',
+          email: 'jane@example.com',
+          password: 'hashed',
+          user_id: null,
+          user_role: null,
+        }],
       })
       .mockResolvedValueOnce({ rows: [{ name: 'Donation Entry' }] });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -35,5 +43,6 @@ describe('donation entry volunteer login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.access).toEqual(['donation_entry']);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
   });
 });
