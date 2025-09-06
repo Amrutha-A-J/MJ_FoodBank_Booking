@@ -14,7 +14,7 @@ parameters supplied to each template.
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
 | `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
-| `templateId: 1` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |
+| `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |
 
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
@@ -57,4 +57,11 @@ dynamic content.
   - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
 - **Params:**
   - `body` (string) – message describing the client added to or removed from the agency.
+
+## Milestone badge emails
+
+- **Template ID variable:** `BADGE_MILESTONE_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the milestone.
+  - `cardUrl` (string) – link to download the badge card.
 

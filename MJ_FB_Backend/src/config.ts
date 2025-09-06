@@ -29,6 +29,7 @@ const envSchema = z.object({
   VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID: z.coerce.number().default(0),
+  BADGE_MILESTONE_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID: z.coerce.number().default(1),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
 });
@@ -71,5 +72,6 @@ export default {
   volunteerBookingReminderTemplateId: env.VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID,
   volunteerBookingNotificationTemplateId: env.VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID,
   volunteerNoShowNotificationTemplateId: env.VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+  badgeMilestoneTemplateId: env.BADGE_MILESTONE_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
 };
