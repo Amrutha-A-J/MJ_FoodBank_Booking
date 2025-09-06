@@ -853,10 +853,6 @@ export async function updateVolunteerBookingStatus(
       updated.date instanceof Date
         ? formatReginaDate(updated.date)
         : updated.date;
-    await notifyCoordinators(
-      `Volunteer booking ${status}`,
-      `Volunteer booking ${id} ${status}.`,
-    );
     res.json(updated);
   } catch (error) {
     logger.error('Error updating volunteer booking:', error);
