@@ -13,7 +13,6 @@ parameters supplied to each template.
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` | `volunteerNoShowCleanupJob.ts` |
-| `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
 
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
@@ -56,4 +55,5 @@ dynamic content.
   - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
 - **Params:**
   - `body` (string) – message describing the client added to or removed from the agency.
+
 
