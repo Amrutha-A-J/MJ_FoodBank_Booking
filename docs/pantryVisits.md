@@ -20,6 +20,10 @@ Add the following translation strings to locale files:
 - `pantry_visits.sheet_rows`
 - `pantry_visits.sheet_errors`
 
+## Visit limits
+
+Staff can record only one visit per client per day. Attempts to add a second visit for the same client and date are rejected as duplicates.
+
 ## Bulk import format
  
 Pantry visits support bulk importing from an `.xlsx` spreadsheet. Upload the file via `POST /client-visits/import` (also available at `/visits/import`). Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.

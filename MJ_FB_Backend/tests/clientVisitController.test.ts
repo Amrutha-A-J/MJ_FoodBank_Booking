@@ -31,6 +31,7 @@ describe('client visit notes', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
       .mockResolvedValueOnce({
         rows: [
           {
@@ -78,9 +79,33 @@ describe('client visit notes', () => {
     expect(res.body.children).toBe(2);
   });
 
+  it('rejects duplicate visit on create', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 1 }) // duplicate check
+      .mockResolvedValueOnce({}); // ROLLBACK
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app)
+      .post('/client-visits')
+      .send({
+        date: '2024-01-02',
+        clientId: 123,
+        weightWithCart: 10,
+        weightWithoutCart: 9,
+        adults: 1,
+        children: 2,
+      });
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/duplicate/i);
+  });
+
   it('persists note on update', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // existing
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
       .mockResolvedValueOnce({
         rows: [
           {
@@ -154,6 +179,7 @@ describe('client visit notes', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
       .mockResolvedValueOnce({
         rows: [
           {
