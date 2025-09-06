@@ -214,6 +214,7 @@ export async function updateUserInfo(
     email?: string;
     phone?: string;
     onlineAccess: boolean;
+    password?: string;
   },
 ): Promise<IncompleteUser> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, {
