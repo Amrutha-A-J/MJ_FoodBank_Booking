@@ -1,6 +1,6 @@
 import pool from '../db';
 import { enqueueEmail } from './emailQueue';
-import { formatReginaDate } from './dateUtils';
+import { formatReginaDate, formatReginaDateWithDay } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
@@ -13,6 +13,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const nextDate = formatReginaDate(tomorrow);
+  const formattedDate = formatReginaDateWithDay(nextDate);
   try {
     const res = await pool.query(
       `SELECT v.email, vs.start_time, vs.end_time, vb.reschedule_token
@@ -31,7 +32,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         row.reschedule_token,
       );
-      const body = `Date: ${nextDate}${time}`;
+      const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
         to: row.email,
         templateId: config.volunteerBookingReminderTemplateId,

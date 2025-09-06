@@ -1,8 +1,18 @@
-import { formatReginaDate, reginaStartOfDayISO } from '../src/utils/dateUtils';
+import {
+  formatReginaDate,
+  formatReginaDateWithDay,
+  reginaStartOfDayISO,
+} from '../src/utils/dateUtils';
 
 describe('formatReginaDate', () => {
   it('interprets YYYY-MM-DD strings in Regina timezone', () => {
     expect(formatReginaDate('2024-08-26')).toBe('2024-08-26');
+  });
+});
+
+describe('formatReginaDateWithDay', () => {
+  it('returns weekday and date in Regina timezone', () => {
+    expect(formatReginaDateWithDay('2024-08-26')).toBe('Mon, Aug 26, 2024');
   });
 });
 

@@ -138,8 +138,8 @@ export function buildCalendarLinks(
   startTime?: string | null,
   endTime?: string | null,
 ): { googleCalendarLink: string; outlookCalendarLink: string } {
-  const start = new Date(`${date}T${startTime ?? '00:00:00'}Z`);
-  const end = new Date(`${date}T${endTime ?? '23:59:59'}Z`);
+  const start = new Date(`${date}T${startTime ?? '00:00:00'}-06:00`);
+  const end = new Date(`${date}T${endTime ?? '23:59:59'}-06:00`);
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const googleDates = `${fmt(start)}/${fmt(end)}`;
   const text = encodeURIComponent('Harvest Pantry Booking');

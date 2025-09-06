@@ -1,4 +1,7 @@
-import { buildCancelRescheduleLinks } from '../src/utils/emailUtils';
+import {
+  buildCancelRescheduleLinks,
+  buildCalendarLinks,
+} from '../src/utils/emailUtils';
 import config from '../src/config';
 import logger from '../src/utils/logger';
 import { shutdownQueue } from '../src/utils/emailQueue';
@@ -10,8 +13,8 @@ describe('buildCancelRescheduleLinks', () => {
   it('returns cancel and reschedule links', () => {
     const links = buildCancelRescheduleLinks('tok');
     expect(links).toEqual({
-      cancelLink: 'http://localhost:3000/cancel/tok',
-      rescheduleLink: 'http://localhost:3000/reschedule/tok',
+      cancelLink: 'http://localhost:5173/cancel/tok',
+      rescheduleLink: 'http://localhost:5173/reschedule/tok',
     });
   });
 
@@ -26,5 +29,19 @@ describe('buildCancelRescheduleLinks', () => {
 
     spy.mockRestore();
     config.frontendOrigins = original;
+  });
+
+  it('builds calendar links using Regina timezone', () => {
+    const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
+      '2024-09-11',
+      '09:30:00',
+      '10:00:00',
+    );
+    expect(googleCalendarLink).toContain(
+      'dates=20240911T153000Z/20240911T160000Z',
+    );
+    expect(outlookCalendarLink).toContain(
+      `startdt=${encodeURIComponent('2024-09-11T15:30:00.000Z')}`,
+    );
   });
 });

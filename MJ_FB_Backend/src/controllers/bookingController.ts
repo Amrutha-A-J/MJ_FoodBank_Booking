@@ -3,7 +3,7 @@ import type { AuthRequest } from '../types/AuthRequest';
 import { randomUUID } from 'crypto';
 import pool from '../db';
 import config from '../config';
-import { formatReginaDate } from '../utils/dateUtils';
+import { formatReginaDate, formatReginaDateWithDay } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
   countVisitsAndBookingsForMonth,
@@ -135,7 +135,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         start_time && end_time
           ? ` from ${start_time} to ${end_time}`
           : '';
-      const body = `Date: ${date}${time}`;
+      const formattedDate = formatReginaDateWithDay(date);
+      const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
         to: user.email,
         templateId: config.bookingConfirmationTemplateId,
@@ -576,7 +577,8 @@ export async function createBookingForUser(
         start_time && end_time
           ? ` from ${start_time} to ${end_time}`
           : '';
-      const body = `Date: ${date}${time}`;
+      const formattedDate = formatReginaDateWithDay(date);
+      const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
         to: clientEmail,
         templateId: config.bookingConfirmationTemplateId,

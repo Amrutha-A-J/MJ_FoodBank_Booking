@@ -61,7 +61,9 @@ describe('sendNextDayBookingReminders', () => {
       expect.objectContaining({
         to: 'user@example.com',
         templateId: expect.any(Number),
-        params: expect.objectContaining({ body: expect.stringContaining('2024-01-02') }),
+        params: expect.objectContaining({
+          body: expect.stringContaining('Tue, Jan 2, 2024'),
+        }),
       }),
     );
   });
