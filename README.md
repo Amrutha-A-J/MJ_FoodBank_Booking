@@ -267,6 +267,22 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `EMAIL_ENABLED`                              | Set to 'true' to enable email sending (default false)                                                |
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
 | `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |
+
+| Template reference | Purpose | Params |
+| ------------------- | ------- | ------ |
+| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
+| `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
+| `templateId: 1` | Booking cancellations, reschedules, and no-show notices | `body`, `type` |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
+| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
+| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
+| `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` |
+| `templateId: 1` | Agency membership additions or removals | `body` |
+| `templateId: 1` | Milestone badge emails with downloadable card | `body`, `cardUrl` |
+
+See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
+=======
 | `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 6) |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                     |
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                         |
@@ -275,7 +291,6 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
-See [docs/emailTemplates.md](docs/emailTemplates.md) for a list of email templates and parameters.
 
 ### Invitation flow
 
