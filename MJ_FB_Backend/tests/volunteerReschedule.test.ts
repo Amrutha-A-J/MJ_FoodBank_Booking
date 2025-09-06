@@ -14,6 +14,11 @@ afterAll(() => {
 
 jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '#g',
+    outlookCalendarLink: '#o',
+    appleCalendarLink: '#a',
+  }),
 }));
 const enqueueEmailMock = enqueueEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -62,5 +67,8 @@ describe('rescheduleVolunteerBooking', () => {
     expect(params.oldTime).toBe('08:00 to 09:00');
     expect(params.newDate).toBe('Thu, Sep 5, 2030');
     expect(params.newTime).toBe('09:00 to 12:00');
+    expect(params.googleCalendarLink).toBe('#g');
+    expect(params.outlookCalendarLink).toBe('#o');
+    expect(params.appleCalendarLink).toBe('#a');
   });
 });

@@ -111,7 +111,7 @@ EMAIL_ENABLED=true # set to 'true' to send emails
 TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
-Booking confirmation and reminder templates can surface "Add to Calendar" buttons by referencing
+Booking confirmation, reminder, and reschedule templates can surface "Add to Calendar" buttons by referencing
 `{{ params.googleCalendarLink }}`, `{{ params.outlookCalendarLink }}`, and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
 
