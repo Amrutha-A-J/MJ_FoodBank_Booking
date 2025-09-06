@@ -24,6 +24,8 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 
 ## Email templates
 
+Agency membership change and milestone badge emails have been discontinued under the revised email policy; only the templates below remain active.
+
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` |
@@ -34,5 +36,3 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` |
-| `templateId: 1` | Agency membership additions or removals | `body` |
-| `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` |

@@ -15,18 +15,9 @@ test('does not query database on import', () => {
 });
 
 describe('awardMilestoneBadge', () => {
-  it('queues a thank-you email and returns a card url', () => {
+  it('returns a card url without sending email', () => {
     const cardUrl = awardMilestoneBadge('user@example.com', 'gold');
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'user@example.com',
-        templateId: expect.any(Number),
-        params: expect.objectContaining({
-          body: expect.stringContaining('Download your card'),
-          cardUrl: expect.stringContaining('gold'),
-        }),
-      }),
-    );
+    expect(enqueueEmail).not.toHaveBeenCalled();
     expect(cardUrl).toContain('gold');
   });
 });

@@ -34,8 +34,6 @@ jest.doMock('../src/models/agency', () => ({
   removeAgencyClient: jest.fn(),
   clientExists: jest.fn(),
   getAgencyForClient: jest.fn(),
-  getAgencyEmail: jest.fn(),
-  getClientName: jest.fn(),
   getAgencyClientSet: jest.fn(),
 }));
 jest.doMock('../src/middleware/authMiddleware', () => ({
@@ -81,15 +79,12 @@ const {
   removeAgencyClient,
   clientExists,
   getAgencyForClient,
-  getAgencyEmail,
-  getClientName,
   getAgencyClientSet,
 } = require('../src/models/agency');
 const bookingUtils = require('../src/utils/bookingUtils');
 const pool = require('../src/db').default;
 const { enqueueEmail } = require('../src/utils/emailQueue');
 const { formatReginaDate } = require('../src/utils/dateUtils');
-const config = require('../src/config').default;
 
 test('does not query database on import', () => {
   expect(pool.query).not.toHaveBeenCalled();
@@ -309,42 +304,26 @@ describe('Agency client notifications', () => {
     jest.clearAllMocks();
   });
 
-  it('notifies agency when client added', async () => {
+  it('adds client without sending email', async () => {
     (clientExists as jest.Mock).mockResolvedValue(true);
     (getAgencyForClient as jest.Mock).mockResolvedValue(null);
     (addAgencyClient as jest.Mock).mockResolvedValue(undefined);
-    (getAgencyEmail as jest.Mock).mockResolvedValue('agency@example.com');
-    (getClientName as jest.Mock).mockResolvedValue({ first_name: 'John', last_name: 'Doe' });
 
     const res = await request(app)
       .post('/agencies/add-client')
       .send({ agencyId: 1, clientId: 5 });
 
     expect(res.status).toBe(204);
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'agency@example.com',
-        templateId: config.agencyClientUpdateTemplateId,
-        params: expect.objectContaining({ body: 'John Doe has been added to your agency.' }),
-      }),
-    );
+    expect(enqueueEmail).not.toHaveBeenCalled();
   });
 
-  it('notifies agency when client removed', async () => {
+  it('removes client without sending email', async () => {
     (removeAgencyClient as jest.Mock).mockResolvedValue(undefined);
-    (getAgencyEmail as jest.Mock).mockResolvedValue('agency@example.com');
-    (getClientName as jest.Mock).mockResolvedValue({ first_name: 'John', last_name: 'Doe' });
 
     const res = await request(app).delete('/agencies/1/clients/5');
 
     expect(res.status).toBe(204);
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'agency@example.com',
-        templateId: config.agencyClientUpdateTemplateId,
-        params: expect.objectContaining({ body: 'John Doe has been removed from your agency.' }),
-      }),
-    );
+    expect(enqueueEmail).not.toHaveBeenCalled();
   });
 });
 
