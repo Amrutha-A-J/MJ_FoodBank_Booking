@@ -255,6 +255,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         continue;
       }
       const rows = await readXlsxFile(req.file.buffer, { sheet: name });
+
       for (const [index, row] of rows.slice(1).entries()) {
         const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
         let parsed;
@@ -264,7 +265,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
             weightWithCart: Number(weightWithCart),
             weightWithoutCart: Number(weightWithoutCart),
             petItem: petItem == null ? undefined : Number(petItem),
-            clientId: Number(clientId),
+            clientId: clientId,
           });
         } catch (err: any) {
           addError(name, `Row ${index + 2}: ${err.message}`);
@@ -273,19 +274,34 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
         const adults = parseInt(match?.groups?.adults ?? '0', 10);
         const children = parseInt(match?.groups?.children || '0', 10);
-        const cid = parsed.clientId;
-        const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
-        if ((existing.rowCount ?? 0) === 0) {
-          const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+
+        if (parsed.clientId === 'SUNSHINE') {
+          const weight = parsed.weightWithCart || parsed.weightWithoutCart;
           await client.query(
-            `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
-            [cid, profileLink],
+            `INSERT INTO sunshine_bag_log (date, weight)
+             VALUES ($1, $2)
+             ON CONFLICT (date) DO UPDATE SET weight = sunshine_bag_log.weight + EXCLUDED.weight`,
+            [formatReginaDate(name), weight],
           );
-          createdClients.push(cid);
+          continue;
+        }
+
+        const isAnonymous = parsed.clientId === 'ANONYMOUS';
+        const cid = isAnonymous ? null : (parsed.clientId as number);
+        if (!isAnonymous) {
+          const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
+          if ((existing.rowCount ?? 0) === 0) {
+            const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+            await client.query(
+              `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+              [cid, profileLink],
+            );
+            createdClients.push(cid!);
+          }
         }
         await client.query(
           `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-           VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+           VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8)`,
           [
             formatReginaDate(name),
             cid,
@@ -294,11 +310,13 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
             parsed.petItem ?? 0,
             adults,
             children,
+            isAnonymous,
           ],
         );
-        await refreshClientVisitCount(cid, client);
+        if (!isAnonymous) await refreshClientVisitCount(cid!, client);
         imported++;
       }
+
     }
     await client.query('COMMIT');
     res.json({ imported, newClients: createdClients, errors });
@@ -360,68 +378,95 @@ export async function importVisitsFromXlsx(
             weightWithCart: Number(weightWithCart),
             weightWithoutCart: Number(weightWithoutCart),
             petItem: petItem == null ? 0 : Number(petItem),
-            clientId: Number(clientId),
+            clientId,
           });
-          const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+          const match = /(?<adults>\\d+)A(?<children>\\d*)C?/.exec(parsed.familySize);
           const adults = parseInt(match?.groups?.adults ?? '0', 10);
           const children = parseInt(match?.groups?.children || '0', 10);
 
-          if (isDryRun) continue;
-
-          const cid = parsed.clientId;
-          const existingClient = await client!.query(
-            'SELECT client_id FROM clients WHERE client_id = $1',
-            [cid],
-          );
-          if ((existingClient.rowCount ?? 0) === 0) {
-            const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
-            await client!.query(
-              `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
-              [cid, profileLink],
-            );
+          if (parsed.clientId === 'SUNSHINE') {
+            const weight = parsed.weightWithCart || parsed.weightWithoutCart;
+            if (!isDryRun) {
+              await client!.query(
+                `INSERT INTO sunshine_bag_log (date, weight)
+                 VALUES ($1, $2)
+                 ON CONFLICT (date) DO UPDATE SET weight = sunshine_bag_log.weight + EXCLUDED.weight`,
+                [formattedDate, weight],
+              );
+            }
+            continue;
           }
 
-            const existingVisit = await client!.query(
+          const isAnonymousRow = parsed.clientId === 'ANONYMOUS';
+
+          if (isDryRun) continue;
+
+          const cid = isAnonymousRow ? null : (parsed.clientId as number);
+          if (!isAnonymousRow) {
+            const existingClient = await client!.query(
+              'SELECT client_id FROM clients WHERE client_id = $1',
+              [cid],
+            );
+            if ((existingClient.rowCount ?? 0) === 0) {
+              const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+              await client!.query(
+                `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+                [cid, profileLink],
+              );
+            }
+          }
+
+          let existingVisit;
+          if (isAnonymousRow) {
+            existingVisit = await client!.query(
+              'SELECT id FROM client_visits WHERE client_id IS NULL AND is_anonymous = true AND date = $1',
+              [formattedDate],
+            );
+          } else {
+            existingVisit = await client!.query(
               'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
               [cid, formattedDate],
             );
+          }
 
-            if ((existingVisit.rowCount ?? 0) > 0) {
-              await client!.query(
-                `UPDATE client_visits
-                 SET weight_with_cart = $1,
-                     weight_without_cart = $2,
-                     pet_item = COALESCE($3,0),
-                     adults = $4,
-                     children = $5,
-                     is_anonymous = false
-                 WHERE id = $6`,
-                [
-                  parsed.weightWithCart,
-                  parsed.weightWithoutCart,
-                  parsed.petItem ?? 0,
-                  adults,
-                  children,
-                  existingVisit.rows[0].id,
-                ],
-              );
-              await refreshClientVisitCount(cid, client!);
-            } else {
-              await client!.query(
-                `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-                 VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
-                [
-                  formattedDate,
-                  cid,
-                  parsed.weightWithCart,
-                  parsed.weightWithoutCart,
-                  parsed.petItem ?? 0,
-                  adults,
-                  children,
-                ],
-              );
-              await refreshClientVisitCount(cid, client!);
-            }
+          if ((existingVisit.rowCount ?? 0) > 0) {
+            await client!.query(
+              `UPDATE client_visits
+               SET weight_with_cart = $1,
+                   weight_without_cart = $2,
+                   pet_item = COALESCE($3,0),
+                   adults = $4,
+                   children = $5,
+                   is_anonymous = $6
+               WHERE id = $7`,
+              [
+                parsed.weightWithCart,
+                parsed.weightWithoutCart,
+                parsed.petItem ?? 0,
+                adults,
+                children,
+                isAnonymousRow,
+                existingVisit.rows[0].id,
+              ],
+            );
+            if (!isAnonymousRow) await refreshClientVisitCount(cid!, client!);
+          } else {
+            await client!.query(
+              `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children,is_anonymous)
+               VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8)`,
+              [
+                formattedDate,
+                cid,
+                parsed.weightWithCart,
+                parsed.weightWithoutCart,
+                parsed.petItem ?? 0,
+                adults,
+                children,
+                isAnonymousRow,
+              ],
+            );
+            if (!isAnonymousRow) await refreshClientVisitCount(cid!, client!);
+          }
         } catch (err: any) {
           errors.push(
             `Row ${rowIndex}: ${err.errors?.[0]?.message || err.message}`,
