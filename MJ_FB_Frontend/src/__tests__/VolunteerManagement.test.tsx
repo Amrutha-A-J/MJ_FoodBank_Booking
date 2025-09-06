@@ -76,9 +76,6 @@ describe('VolunteerManagement create volunteer', () => {
     fireEvent.change(screen.getByLabelText('Last Name'), {
       target: { value: 'Doe' },
     });
-    fireEvent.change(screen.getByLabelText('Username'), {
-      target: { value: 'jdoe' },
-    });
     fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
     fireEvent.click(await screen.findByLabelText('Greeter'));
     fireEvent.click(screen.getByLabelText(/online access/i));

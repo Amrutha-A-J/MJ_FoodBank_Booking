@@ -176,7 +176,6 @@ export interface UserProfile {
   clientId?: number;
   bookingsThisMonth?: number;
   roles?: StaffAccess[];
-  username?: string;
   trainedAreas?: string[];
 }
 

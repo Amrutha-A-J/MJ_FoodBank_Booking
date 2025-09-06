@@ -22,15 +22,15 @@ describe('VolunteerLogin component', () => {
         <VolunteerLogin onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/username/i), {
-      target: { value: 'user' },
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'user@example.com' },
     });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     expect(
-      await screen.findByText('Incorrect username or password')
+      await screen.findByText('Incorrect email or password')
     ).toBeInTheDocument();
     expect(onLogin).not.toHaveBeenCalled();
   });

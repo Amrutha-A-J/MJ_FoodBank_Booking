@@ -56,7 +56,6 @@ export async function logout(): Promise<void> {
 
 export async function requestPasswordReset(data: {
   email?: string;
-  username?: string;
   clientId?: string;
 }): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/request-password-reset`, {

@@ -75,7 +75,7 @@ describe('volunteers api', () => {
   });
 
   it('creates a volunteer', async () => {
-    await createVolunteer('John', 'Doe', 'jdoe', [1, 2], true, 'a@b.com', '123');
+    await createVolunteer('John', 'Doe', [1, 2], true, 'a@b.com', '123');
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/volunteers',
       expect.objectContaining({
@@ -83,7 +83,6 @@ describe('volunteers api', () => {
         body: JSON.stringify({
           firstName: 'John',
           lastName: 'Doe',
-          username: 'jdoe',
           roleIds: [1, 2],
           onlineAccess: true,
           email: 'a@b.com',

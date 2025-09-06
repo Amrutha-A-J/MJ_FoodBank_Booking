@@ -60,9 +60,7 @@ export default function Profile({ role }: { role: Role }) {
     setSubmitting(true);
     try {
       const body =
-        profile.role === 'volunteer'
-          ? { username: profile.username ?? '' }
-          : profile.role === 'shopper' || profile.role === 'delivery'
+        profile.role === 'shopper' || profile.role === 'delivery'
           ? { clientId: String(profile.clientId) }
           : { email: profile.email ?? '' };
       await requestPasswordReset(body);
@@ -141,11 +139,6 @@ export default function Profile({ role }: { role: Role }) {
               {profile.roles && profile.roles.length > 0 && (
                 <Typography>
                   <strong>{t('profile_page.roles')}</strong> {profile.roles.join(', ')}
-                </Typography>
-              )}
-              {profile.username && (
-                <Typography>
-                  <strong>{t('profile_page.username')}</strong> {profile.username}
                 </Typography>
               )}
               {profile.trainedAreas && profile.trainedAreas.length > 0 && (

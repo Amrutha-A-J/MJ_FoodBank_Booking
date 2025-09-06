@@ -34,15 +34,14 @@ describe('Profile password reset', () => {
     (getVolunteerProfile as jest.Mock).mockResolvedValue({
       firstName: 'V',
       lastName: 'Olunteer',
-      email: null,
+      email: 'v@example.com',
       phone: null,
       role: 'volunteer',
-      username: 'vol1',
     } as UserProfile);
     render(<Profile role="volunteer" />);
     const btn = await screen.findByRole('button', { name: /Reset Password/i });
     fireEvent.click(btn);
     await screen.findByText(/reset link/i);
-    expect(requestPasswordReset).toHaveBeenCalledWith({ username: 'vol1' });
+    expect(requestPasswordReset).toHaveBeenCalledWith({ email: 'v@example.com' });
   });
 });

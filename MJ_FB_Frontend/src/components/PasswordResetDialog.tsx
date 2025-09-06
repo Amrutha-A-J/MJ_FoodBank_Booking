@@ -23,17 +23,15 @@ export default function PasswordResetDialog({
   const { t } = useTranslation();
 
   const label =
-    type === 'staff' ? t('email') : type === 'volunteer' ? t('username') : t('client_id');
+    type === 'staff' || type === 'volunteer' ? t('email') : t('client_id');
   const formTitle = t('reset_password');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       const body: any =
-        type === 'staff'
+        type === 'staff' || type === 'volunteer'
           ? { email: identifier }
-          : type === 'volunteer'
-          ? { username: identifier }
           : { clientId: identifier };
       await requestPasswordReset(body);
       setSnackbarSeverity('success');
@@ -62,20 +60,10 @@ export default function PasswordResetDialog({
               autoFocus
               margin="dense"
               label={label}
-              type={type === 'staff' ? 'email' : 'text'}
-              name={
-                type === 'staff'
-                  ? 'email'
-                  : type === 'volunteer'
-                  ? 'username'
-                  : 'clientId'
-              }
+              type={type === 'staff' || type === 'volunteer' ? 'email' : 'text'}
+              name={type === 'staff' || type === 'volunteer' ? 'email' : 'clientId'}
               autoComplete={
-                type === 'staff'
-                  ? 'email'
-                  : type === 'volunteer'
-                  ? 'username'
-                  : 'off'
+                type === 'staff' || type === 'volunteer' ? 'email' : 'off'
               }
               fullWidth
               value={identifier}
