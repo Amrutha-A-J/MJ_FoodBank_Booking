@@ -134,12 +134,10 @@ let theme = createTheme({
           fontWeight: 700,
           letterSpacing: '0.5px',
           padding: '0.7em 1.4em',
-          fontSize: '1rem',
+          fontSize: '0.875rem',
           border: '1px solid transparent',
           transition: 'border-color 0.25s, background-color 0.25s',
           '&:focus-visible': { boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.25)}` },
-          whiteSpace: 'normal',
-          overflowWrap: 'anywhere',
           lineHeight: 1.2,
         },
         containedPrimary: {
