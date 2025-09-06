@@ -926,11 +926,49 @@ export async function rescheduleVolunteerBooking(
       return res.status(400).json({ message: 'Role is full' });
     }
 
+    const oldSlotRes = await pool.query(
+      'SELECT start_time, end_time FROM volunteer_slots WHERE slot_id = $1',
+      [booking.slot_id],
+    );
+    const emailRes = await pool.query(
+      'SELECT email FROM volunteers WHERE id = $1',
+      [booking.volunteer_id],
+    );
+
     const newToken = randomUUID();
     await pool.query(
       "UPDATE volunteer_bookings SET slot_id=$1, date=$2, reschedule_token=$3, status='approved', reason=NULL WHERE id=$4",
       [roleId, date, newToken, booking.id],
     );
+
+    const email = emailRes.rows[0]?.email;
+    if (email) {
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
+      const oldTime = oldSlotRes.rows[0]
+        ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
+        : '';
+      enqueueEmail({
+        to: email,
+        templateId:
+          config.volunteerRescheduleTemplateId ||
+          config.volunteerBookingConfirmationTemplateId,
+        params: {
+          oldDate: formatReginaDateWithDay(booking.date),
+          oldTime,
+          newDate: formatReginaDateWithDay(date),
+          newTime: `${slot.start_time} to ${slot.end_time}`,
+          cancelLink,
+          rescheduleLink,
+          type: 'Volunteer Shift',
+        },
+      });
+    } else {
+      logger.warn(
+        'Volunteer booking %s has no email. Skipping reschedule email.',
+        booking.id,
+      );
+    }
+
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
     logger.error('Error rescheduling volunteer booking:', error);

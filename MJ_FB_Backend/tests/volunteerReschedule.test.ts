@@ -2,17 +2,20 @@ import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
-import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { enqueueEmail } from '../src/utils/emailQueue';
+
+jest.mock('../src/utils/emailQueue', () => ({
+  enqueueEmail: jest.fn(),
+}));
+
+afterAll(() => {
+  jest.resetModules();
+});
 
 jest.mock('../src/utils/emailUtils', () => ({
-  sendTemplatedEmail: jest.fn(),
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
-  buildCalendarLinks: () => ({
-    googleCalendarLink: '',
-    outlookCalendarLink: '',
-  }),
 }));
-const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
+const enqueueEmailMock = enqueueEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -34,24 +37,30 @@ describe('rescheduleVolunteerBooking', () => {
     jest.clearAllMocks();
   });
 
-  it('keeps status approved when volunteer reschedules an approved booking', async () => {
-    const booking = { id: 1, volunteer_id: 2, status: 'approved' };
+  it('queues a reschedule email with old and new times', async () => {
+    const booking = { id: 1, volunteer_id: 2, slot_id: 3, date: '2030-09-01', status: 'approved' };
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5, start_time: '09:00', end_time: '12:00' }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
-      .mockResolvedValueOnce({});
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] }) // booking
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 1, max_volunteers: 5, start_time: '09:00', end_time: '12:00' }] }) // new slot
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{}] }) // trained
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // existing
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // overlap
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] }) // count
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ start_time: '08:00', end_time: '09:00' }] }) // old slot
+      .mockResolvedValueOnce({ rows: [{ email: 'vol@example.com' }] }) // email
+      .mockResolvedValueOnce({}); // update
 
     const res = await request(app)
       .post('/volunteer-bookings/reschedule/token123')
-      .send({ roleId: 4, date: '2025-09-01' });
+      .send({ roleId: 4, date: '2030-09-05' });
 
     expect(res.status).toBe(200);
-      const updateCall = (pool.query as jest.Mock).mock.calls[6];
-      expect(updateCall[0]).toContain("status='approved'");
-      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
-    });
+    expect(enqueueEmailMock).toHaveBeenCalledTimes(1);
+    expect(enqueueEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
+    const params = enqueueEmailMock.mock.calls[0][0].params;
+    expect(params.oldDate).toBe('Sun, Sep 1, 2030');
+    expect(params.oldTime).toBe('08:00 to 09:00');
+    expect(params.newDate).toBe('Thu, Sep 5, 2030');
+    expect(params.newTime).toBe('09:00 to 12:00');
   });
+});

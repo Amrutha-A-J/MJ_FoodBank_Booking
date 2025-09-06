@@ -427,7 +427,52 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       reschedule_token: newToken,
       status: newStatus,
     };
+
+    const oldSlotRes = await pool.query(
+      'SELECT start_time, end_time FROM slots WHERE id=$1',
+      [booking.slot_id],
+    );
+    const newSlotRes = await pool.query(
+      'SELECT start_time, end_time FROM slots WHERE id=$1',
+      [slotId],
+    );
+    const emailRes = await pool.query(
+      `SELECT COALESCE(u.email, nc.email) AS email
+       FROM bookings b
+       LEFT JOIN users u ON b.user_id = u.user_id
+       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+       WHERE b.id=$1`,
+      [booking.id],
+    );
+
     await updateBooking(booking.id, updateFields);
+
+    const email = emailRes.rows[0]?.email;
+    if (email) {
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
+      const oldTime = oldSlotRes.rows[0]
+        ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
+        : '';
+      const newTime = newSlotRes.rows[0]
+        ? `${newSlotRes.rows[0].start_time} to ${newSlotRes.rows[0].end_time}`
+        : '';
+      enqueueEmail({
+        to: email,
+        templateId:
+          config.clientRescheduleTemplateId || config.bookingConfirmationTemplateId,
+        params: {
+          oldDate: formatReginaDateWithDay(booking.date),
+          oldTime,
+          newDate: formatReginaDateWithDay(date),
+          newTime,
+          cancelLink,
+          rescheduleLink,
+          type: emailType,
+        },
+      });
+    } else {
+      logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
+    }
 
     res.json({
       message: 'Booking rescheduled',
