@@ -70,5 +70,6 @@ describe('rescheduleVolunteerBooking', () => {
     expect(params.googleCalendarLink).toBe('#g');
     expect(params.outlookCalendarLink).toBe('#o');
     expect(params.appleCalendarLink).toBe('#a');
+    expect(params.appleCalendarCancelLink).toContain('METHOD%3ACANCEL');
   });
 });

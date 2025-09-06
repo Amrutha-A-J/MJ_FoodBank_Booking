@@ -11,7 +11,11 @@ import {
   findUpcomingBooking,
 } from '../utils/bookingUtils';
 import { enqueueEmail } from '../utils/emailQueue';
-import { buildCancelRescheduleLinks, buildCalendarLinks } from '../utils/emailUtils';
+import {
+  buildCancelRescheduleLinks,
+  buildCalendarLinks,
+} from '../utils/emailUtils';
+import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
 import { parseIdParam } from '../utils/parseIdParam';
 import {
@@ -123,12 +127,15 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotIdNum],
     );
+    const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
+    const bookingId = inserted.rows[0].id;
+    const uid = `booking-${bookingId}@mjfb`;
     const { start_time, end_time } = slotRes.rows[0] || {};
     const {
       googleCalendarLink,
       outlookCalendarLink,
       appleCalendarLink,
-    } = buildCalendarLinks(date, start_time, end_time);
+    } = buildCalendarLinks(date, start_time, end_time, uid, 0);
 
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
@@ -458,6 +465,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       const newTime = newSlotRes.rows[0]
         ? `${newSlotRes.rows[0].start_time} to ${newSlotRes.rows[0].end_time}`
         : '';
+      const uid = `booking-${booking.id}@mjfb`;
       const {
         googleCalendarLink,
         outlookCalendarLink,
@@ -466,7 +474,20 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         date,
         newSlotRes.rows[0]?.start_time,
         newSlotRes.rows[0]?.end_time,
+        uid,
+        1,
       );
+      const cancelIcs = buildIcsFile({
+        title: 'Harvest Pantry Booking',
+        start: `${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`,
+        end: `${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`,
+        description: 'Your booking at the Harvest Pantry',
+        location: 'Moose Jaw Food Bank',
+        uid,
+        method: 'CANCEL',
+        sequence: 1,
+      });
+      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(cancelIcs)}`;
       enqueueEmail({
         to: email,
         templateId:
@@ -481,6 +502,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           googleCalendarLink,
           outlookCalendarLink,
           appleCalendarLink,
+          appleCalendarCancelLink,
           type: emailType,
         },
       });
@@ -652,6 +674,9 @@ export async function createBookingForUser(
       null,
       note ?? null,
     );
+    const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
+    const bookingId = inserted.rows[0].id;
+    const uid = `booking-${bookingId}@mjfb`;
     const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
     const clientEmail = emailRes.rows[0]?.email;
     const slotRes = await pool.query(
@@ -665,7 +690,7 @@ export async function createBookingForUser(
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
-      } = buildCalendarLinks(date, start_time, end_time);
+      } = buildCalendarLinks(date, start_time, end_time, uid, 0);
       const time =
         start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
       const formattedDate = formatReginaDateWithDay(date);

@@ -1,9 +1,14 @@
+import { randomUUID } from 'crypto';
+
 interface CalendarEvent {
   title: string;
   start: Date | string;
   end: Date | string;
   description?: string;
   location?: string;
+  uid?: string;
+  method?: 'REQUEST' | 'CANCEL';
+  sequence?: number;
 }
 
 function formatDate(date: Date | string): string {
@@ -40,6 +45,9 @@ export function buildIcsFile({
   end,
   description,
   location,
+  uid = randomUUID(),
+  method = 'REQUEST',
+  sequence = 0,
 }: CalendarEvent): string {
   const startStr = formatDate(start);
   const endStr = formatDate(end);
@@ -47,7 +55,10 @@ export function buildIcsFile({
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
+    `METHOD:${method}`,
     'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `SEQUENCE:${sequence}`,
     `SUMMARY:${title}`,
     `DTSTART:${startStr}`,
     `DTEND:${endStr}`,

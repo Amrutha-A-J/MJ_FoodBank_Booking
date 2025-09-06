@@ -6,6 +6,7 @@ import {
   buildCancelRescheduleLinks,
   buildCalendarLinks,
 } from '../../utils/emailUtils';
+import { buildIcsFile } from '../../utils/calendarLinks';
 import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
 import {
@@ -193,11 +194,12 @@ export async function createVolunteerBooking(
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
           token,
         );
+        const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
         const {
           googleCalendarLink,
           outlookCalendarLink,
           appleCalendarLink,
-        } = buildCalendarLinks(date, slot.start_time, slot.end_time);
+        } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
         const body = `Date: ${formatReginaDateWithDay(date)} from ${slot.start_time} to ${slot.end_time}`;
         enqueueEmail({
           to: user.email,
@@ -559,11 +561,12 @@ export async function resolveVolunteerBookingConflict(
 
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+      const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
       const {
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
-      } = buildCalendarLinks(date!, slot.start_time, slot.end_time);
+      } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
       const body = `Date: ${formatReginaDateWithDay(date!)} from ${slot.start_time} to ${slot.end_time}`;
       enqueueEmail({
         to: user.email,
@@ -949,11 +952,23 @@ export async function rescheduleVolunteerBooking(
       const oldTime = oldSlotRes.rows[0]
         ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
         : '';
+      const uid = `volunteer-booking-${booking.id}@mjfb`;
       const {
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
-      } = buildCalendarLinks(date, slot.start_time, slot.end_time);
+      } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 1);
+      const cancelIcs = buildIcsFile({
+        title: 'Volunteer Shift',
+        start: `${booking.date}T${oldSlotRes.rows[0].start_time}-06:00`,
+        end: `${booking.date}T${oldSlotRes.rows[0].end_time}-06:00`,
+        description: 'Your volunteer shift at the Harvest Pantry',
+        location: 'Moose Jaw Food Bank',
+        uid,
+        method: 'CANCEL',
+        sequence: 1,
+      });
+      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(cancelIcs)}`;
       enqueueEmail({
         to: email,
         templateId:
@@ -969,6 +984,7 @@ export async function rescheduleVolunteerBooking(
           googleCalendarLink,
           outlookCalendarLink,
           appleCalendarLink,
+          appleCalendarCancelLink,
           type: 'Volunteer Shift',
         },
       });

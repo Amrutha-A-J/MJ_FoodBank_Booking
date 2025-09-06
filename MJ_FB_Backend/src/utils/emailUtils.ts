@@ -138,6 +138,8 @@ export function buildCalendarLinks(
   date: string,
   startTime?: string | null,
   endTime?: string | null,
+  uid?: string,
+  sequence = 0,
 ): {
   googleCalendarLink: string;
   outlookCalendarLink: string;
@@ -160,6 +162,9 @@ export function buildCalendarLinks(
     end,
     description: 'Your booking at the Harvest Pantry',
     location: 'Moose Jaw Food Bank',
+    uid,
+    method: 'REQUEST',
+    sequence,
   });
   const appleCalendarLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
   return { googleCalendarLink, outlookCalendarLink, appleCalendarLink };
