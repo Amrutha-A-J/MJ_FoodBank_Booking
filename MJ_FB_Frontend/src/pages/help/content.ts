@@ -240,7 +240,8 @@ export function getHelpContent(
     {
       title: 'Look up past visits',
       body: {
-        description: 'View client visits for a specific day.',
+        description:
+          'View client visits for a specific day. Anonymous visits show (ANONYMOUS) after the client ID and are excluded from family counts in the summary.',
         steps: [
           'Open the Pantry Visits page.',
           'Choose a date in the lookup field.',
