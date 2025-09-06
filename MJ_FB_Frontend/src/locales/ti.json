@@ -19,7 +19,7 @@
   "tamil": "ታሚልኛ",
   "login": "መእተዊ",
   "client_login": "መእተዊ ደንበኛ",
-  "client_login_notice": "Please use your client ID to login. If you don't know your client ID, please email harvestpantry@mjfoodbank.org. If your password is not working, please use the forgot password link below to set a new password.",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created. If your password is not working, please use the forgot password link below to set a new password.",
   "client_id": "መለያ ደንበኛ",
   "password": "መለለይ",
   "forgot_password": "መለለይካ ረሲዕካ?",
