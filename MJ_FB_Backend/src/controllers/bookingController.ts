@@ -131,7 +131,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         start_time,
         end_time,
       );
-      const body = `Your booking for ${date} has been automatically approved.`;
+      const time = start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
+      const body = `Date: ${date}${time}`;
       enqueueEmail({
         to: user.email,
         templateId: config.bookingConfirmationTemplateId,
@@ -254,8 +255,14 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       email = emailRes.rows[0]?.email;
     }
     if (email) {
-        const body = `Booking ${bookingId} was cancelled`;
-        enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type } });
+      const slotRes = await pool.query(
+        'SELECT start_time, end_time FROM slots WHERE id=$1',
+        [booking.slot_id],
+      );
+      const { start_time, end_time } = slotRes.rows[0] || {};
+      const time = start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
+      const body = `Date: ${booking.date}${time}`;
+      enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type } });
     } else {
       logger.warn(
         'Booking cancellation email not sent. Booking %s has no associated email.',
@@ -279,8 +286,10 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
   const type = (req.body?.type as string) || 'shopping appointment';
   try {
     const result = await pool.query(
-      `SELECT COALESCE(c.email, nc.email) AS email, b.reschedule_token, b.date
+      `SELECT COALESCE(c.email, nc.email) AS email, b.reschedule_token, b.date,
+              s.start_time, s.end_time
        FROM bookings b
+       JOIN slots s ON b.slot_id = s.id
        LEFT JOIN clients c ON b.user_id = c.client_id
        LEFT JOIN new_clients nc ON b.new_client_id = nc.id
        WHERE b.id = $1`,
@@ -290,10 +299,13 @@ export async function markBookingNoShow(req: Request, res: Response, next: NextF
     await updateBooking(bookingId, { status: 'no_show', request_data: reason, note: null });
 
     const booking = result.rows[0];
-    if (booking?.email && booking?.reschedule_token) {
-      const link = `${config.frontendOrigins[0]}/reschedule/${booking.reschedule_token}`;
-        const body = `You missed your Harvest Pantry booking on ${booking.date}. You can reschedule here: ${link}`;
-        enqueueEmail({ to: booking.email, templateId: config.bookingStatusTemplateId, params: { body, type } });
+    if (booking?.email) {
+      const time =
+        booking.start_time && booking.end_time
+          ? ` from ${booking.start_time} to ${booking.end_time}`
+          : '';
+      const body = `Date: ${booking.date}${time}`;
+      enqueueEmail({ to: booking.email, templateId: config.bookingStatusTemplateId, params: { body, type } });
     }
 
     res.json({ message: 'Booking marked as no-show' });
@@ -425,8 +437,14 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       email = emailRes.rows[0]?.email;
     }
     if (email) {
-        const body = `Booking ${booking.id} was rescheduled`;
-        enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type: emailType } });
+      const slotRes = await pool.query(
+        'SELECT start_time, end_time FROM slots WHERE id=$1',
+        [slotId],
+      );
+      const { start_time, end_time } = slotRes.rows[0] || {};
+      const time = start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
+      const body = `Date: ${date}${time}`;
+      enqueueEmail({ to: email, templateId: config.bookingStatusTemplateId, params: { body, type: emailType } });
     } else {
       logger.warn(
         'Booking rescheduled email not sent. Booking %s has no associated email.',
@@ -611,12 +629,13 @@ export async function createBookingForUser(
         start_time,
         end_time,
       );
-      const body = `Your booking for ${date} has been automatically approved`;
-        enqueueEmail({
-          to: clientEmail,
-          templateId: config.bookingConfirmationTemplateId,
-          params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
-        });
+      const time = start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
+      const body = `Date: ${date}${time}`;
+      enqueueEmail({
+        to: clientEmail,
+        templateId: config.bookingConfirmationTemplateId,
+        params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
+      });
     } else {
       logger.warn(
         'Booking approved email not sent. User %s has no email.',

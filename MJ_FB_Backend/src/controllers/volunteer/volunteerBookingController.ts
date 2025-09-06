@@ -1084,7 +1084,7 @@ export async function createRecurringVolunteerBooking(
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
-      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      const body = `Date: ${date} from ${slot.start_time} to ${slot.end_time}`;
       if (user.email) {
         await sendTemplatedEmail({
           to: user.email,
@@ -1253,7 +1253,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
-      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      const body = `Date: ${date} from ${slot.start_time} to ${slot.end_time}`;
       if (volunteerEmail) {
         await sendTemplatedEmail({
           to: volunteerEmail,
@@ -1368,7 +1368,7 @@ export async function cancelVolunteerBookingOccurrence(
         ? formatReginaDate(booking.date)
         : booking.date;
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
-    const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
+    const body = `Date: ${dateStr} from ${slot.start_time} to ${slot.end_time}`;
     if (volunteerEmail) {
       await sendTemplatedEmail({
         to: volunteerEmail,
@@ -1432,7 +1432,7 @@ export async function cancelRecurringVolunteerBooking(
       [id, from],
     );
     const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
-    const body = `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled.`;
+    const body = `Date: ${from} from ${info.start_time} to ${info.end_time}`;
     if (info.email) {
       await sendTemplatedEmail({
         to: info.email,
