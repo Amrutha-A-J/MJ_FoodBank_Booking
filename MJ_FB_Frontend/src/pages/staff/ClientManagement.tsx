@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import StyledTabs from '../../components/StyledTabs';
 import Page from '../../components/Page';
+import PantryQuickLinks from '../../components/PantryQuickLinks';
 import { useSearchParams } from 'react-router-dom';
 import AddClient from './client-management/AddClient';
 import UpdateClientData from './client-management/UpdateClientData';
@@ -43,7 +44,7 @@ export default function ClientManagement() {
   ];
 
   return (
-    <Page title="Client Management">
+    <Page title="Client Management" header={<PantryQuickLinks />}>
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
     </Page>
   );

@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import PantryVisits from '../PantryVisits';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -37,6 +38,16 @@ const { getClientVisits, importVisitsXlsx } = jest.requireMock('../../../api/cli
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
+function renderVisits() {
+  return render(
+    <MemoryRouter>
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>
+    </MemoryRouter>,
+  );
+}
+
 describe('PantryVisits', () => {
   beforeAll(() => {
     window.matchMedia =
@@ -61,11 +72,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     await screen.findByText('Record Visit');
     expect(screen.getByText('May 13')).toBeInTheDocument();
@@ -78,11 +85,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     await waitFor(() => expect(getAppConfig).toHaveBeenCalled());
 
@@ -125,11 +128,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     await screen.findByText('Alice');
     expect(screen.getByText('Bob')).toBeInTheDocument();
@@ -174,11 +173,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue({ date: '2024-01-01', weight: 12 });
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
     expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
@@ -192,11 +187,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     expect(await screen.findByText('No records')).toBeInTheDocument();
   });
@@ -209,11 +200,7 @@ describe('PantryVisits', () => {
       sheets: [{ date: '2024-02-01', rows: 2, errors: ['bad row'] }],
     });
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     await screen.findByText('Record Visit');
 
@@ -244,11 +231,7 @@ describe('PantryVisits', () => {
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
     (importVisitsXlsx as jest.Mock).mockResolvedValue(undefined);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderVisits();
 
     await screen.findByText('Record Visit');
 
