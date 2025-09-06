@@ -138,6 +138,9 @@ let theme = createTheme({
           border: '1px solid transparent',
           transition: 'border-color 0.25s, background-color 0.25s',
           '&:focus-visible': { boxShadow: `0 0 0 3px ${alpha(BRAND_PRIMARY, 0.25)}` },
+          whiteSpace: 'normal',
+          overflowWrap: 'anywhere',
+          lineHeight: 1.2,
         },
         containedPrimary: {
           '&:hover': { backgroundColor: darken(BRAND_PRIMARY, 0.08) },
