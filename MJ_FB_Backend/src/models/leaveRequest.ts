@@ -50,6 +50,20 @@ export async function selectLeaveRequests(): Promise<LeaveRequest[]> {
   return res.rows;
 }
 
+export async function selectLeaveRequestsByStaffId(
+  staffId: number,
+): Promise<LeaveRequest[]> {
+  const res = await pool.query(
+    `SELECT lr.*, s.first_name || ' ' || s.last_name AS requester_name
+     FROM leave_requests lr
+     JOIN staff s ON s.id = lr.staff_id
+     WHERE lr.staff_id = $1
+     ORDER BY lr.start_date`,
+    [staffId],
+  );
+  return res.rows;
+}
+
 export async function updateLeaveRequestStatus(
   id: number,
   status: string,

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import {
   insertLeaveRequest,
   selectLeaveRequests,
+  selectLeaveRequestsByStaffId,
   updateLeaveRequestStatus,
   countApprovedPersonalDaysThisQuarter,
   LeaveType,
@@ -47,6 +48,23 @@ export async function listLeaveRequests(
 ): Promise<void> {
   try {
     const rows = await selectLeaveRequests();
+    res.json(rows);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function listLeaveRequestsByStaff(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const staffId = parseIdParam(req.params.staffId);
+    if (staffId === null) {
+      return void res.status(400).json({ message: "Invalid staff ID" });
+    }
+    const rows = await selectLeaveRequestsByStaffId(staffId);
     res.json(rows);
   } catch (err) {
     next(err);
