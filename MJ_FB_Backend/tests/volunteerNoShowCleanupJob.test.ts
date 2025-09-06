@@ -14,7 +14,7 @@ const {
 } = job;
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
-import { VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID } from '../src/config/emailTemplates';
+import config from '../src/config';
 jest.mock('../src/utils/emailUtils');
 
 describe('cleanupVolunteerNoShows', () => {
@@ -38,12 +38,12 @@ describe('cleanupVolunteerNoShows', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(2);
     expect(sendTemplatedEmail).toHaveBeenCalledWith({
       to: 'coordinator1@example.com',
-      templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+      templateId: config.volunteerNoShowNotificationTemplateId,
       params: { ids: '1' },
     });
     expect(sendTemplatedEmail).toHaveBeenCalledWith({
       to: 'coordinator2@example.com',
-      templateId: VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID,
+      templateId: config.volunteerNoShowNotificationTemplateId,
       params: { ids: '1' },
     });
   });
