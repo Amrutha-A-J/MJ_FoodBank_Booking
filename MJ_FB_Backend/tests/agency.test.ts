@@ -89,6 +89,7 @@ const bookingUtils = require('../src/utils/bookingUtils');
 const pool = require('../src/db').default;
 const { enqueueEmail } = require('../src/utils/emailQueue');
 const { formatReginaDate } = require('../src/utils/dateUtils');
+const config = require('../src/config').default;
 
 test('does not query database on import', () => {
   expect(pool.query).not.toHaveBeenCalled();
@@ -323,7 +324,7 @@ describe('Agency client notifications', () => {
     expect(enqueueEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'agency@example.com',
-        templateId: expect.any(Number),
+        templateId: config.agencyClientUpdateTemplateId,
         params: expect.objectContaining({ body: 'John Doe has been added to your agency.' }),
       }),
     );
@@ -340,7 +341,7 @@ describe('Agency client notifications', () => {
     expect(enqueueEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'agency@example.com',
-        templateId: expect.any(Number),
+        templateId: config.agencyClientUpdateTemplateId,
         params: expect.objectContaining({ body: 'John Doe has been removed from your agency.' }),
       }),
     );
