@@ -55,6 +55,24 @@ describe('PantryVisits', () => {
     mockNavigate.mockReset();
   });
 
+  it('shows date in weekday tabs', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-05-13'));
+    (getClientVisits as jest.Mock).mockResolvedValue([]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    render(
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>,
+    );
+
+    await screen.findByText('Record Visit');
+    expect(screen.getByText('May 13')).toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
+
   it('uses cart tare from config when calculating weight', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
