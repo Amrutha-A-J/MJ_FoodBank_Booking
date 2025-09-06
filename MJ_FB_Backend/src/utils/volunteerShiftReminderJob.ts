@@ -28,7 +28,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         row.reschedule_token,
       );
-      const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.`;
+      const body = `Date: ${nextDate}${time}`;
       enqueueEmail({
         to: row.email,
         templateId: config.volunteerBookingReminderTemplateId,

@@ -21,7 +21,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         b.reschedule_token,
       );
-      const body = `This is a reminder for your booking on ${nextDate}${time}.`;
+      const body = `Date: ${nextDate}${time}`;
       await enqueueEmail({
         to: b.user_email,
         templateId: config.bookingReminderTemplateId,

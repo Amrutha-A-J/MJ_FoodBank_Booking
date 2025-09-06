@@ -949,7 +949,7 @@ export async function rescheduleVolunteerBooking(
     );
     await notifyCoordinators(
       'Volunteer booking rescheduled',
-      `Volunteer booking ${booking.id} was rescheduled`,
+      `Date: ${date} from ${slot.start_time} to ${slot.end_time}`,
     );
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
@@ -1080,7 +1080,7 @@ export async function createRecurringVolunteerBooking(
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
-      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      const body = `Date: ${date} from ${slot.start_time} to ${slot.end_time}`;
       if (user.email) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
@@ -1101,7 +1101,7 @@ export async function createRecurringVolunteerBooking(
       }
       await notifyCoordinators(
         subject,
-        `Volunteer ${user.id} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
+        `Date: ${date} from ${slot.start_time} to ${slot.end_time}`,
       );
     }
     res.status(201).json({ recurringId, successes, skipped });
@@ -1255,7 +1255,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
       successes.push(date);
 
       const subject = `Volunteer booking confirmed for ${date} ${slot.start_time}-${slot.end_time}`;
-      const body = `Your volunteer booking on ${date} from ${slot.start_time} to ${slot.end_time} has been confirmed.`;
+      const body = `Date: ${date} from ${slot.start_time} to ${slot.end_time}`;
       if (volunteerEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
@@ -1276,7 +1276,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
       }
       await notifyCoordinators(
         subject,
-        `Volunteer ${volunteerId} booking confirmed for ${date} ${slot.start_time}-${slot.end_time}.`,
+        `Date: ${date} from ${slot.start_time} to ${slot.end_time}`,
       );
     }
     res.status(201).json({ recurringId, successes, skipped });
@@ -1376,7 +1376,7 @@ export async function cancelVolunteerBookingOccurrence(
         ? formatReginaDate(booking.date)
         : booking.date;
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
-    const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
+    const body = `Date: ${dateStr} from ${slot.start_time} to ${slot.end_time}`;
     if (volunteerEmail) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         booking.reschedule_token,
@@ -1394,7 +1394,7 @@ export async function cancelVolunteerBookingOccurrence(
     }
     await notifyCoordinators(
       subject,
-      `Volunteer ${booking.volunteer_id} booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}.`,
+      `Date: ${dateStr} from ${slot.start_time} to ${slot.end_time}`,
     );
     booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
@@ -1443,7 +1443,7 @@ export async function cancelRecurringVolunteerBooking(
       [id, from],
     );
     const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
-    const body = `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled.`;
+    const body = `Date: ${from} from ${info.start_time} to ${info.end_time}`;
     if (info.email) {
       await sendTemplatedEmail({
         to: info.email,
@@ -1458,7 +1458,7 @@ export async function cancelRecurringVolunteerBooking(
     }
     await notifyCoordinators(
       subject,
-      `Volunteer ${info.volunteer_id} recurring bookings cancelled starting ${from} for ${info.start_time}-${info.end_time}.`,
+      `Date: ${from} from ${info.start_time} to ${info.end_time}`,
     );
     res.json({ message: 'Recurring bookings cancelled' });
   } catch (error) {
