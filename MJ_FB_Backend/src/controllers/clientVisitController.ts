@@ -238,51 +238,70 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     if (!req.file) {
       return res.status(400).json({ message: 'File required' });
     }
-    const rows = await readXlsxFile(req.file.buffer);
+    const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
     await client.query('BEGIN');
     const createdClients: number[] = [];
     let imported = 0;
-    for (const row of rows.slice(1)) {
-      const [date, familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
-      const parsed = importClientVisitsSchema.parse({
-        date: date instanceof Date ? date : new Date(date),
-        familySize: String(familySize ?? ''),
-        weightWithCart: Number(weightWithCart),
-        weightWithoutCart: Number(weightWithoutCart),
-        petItem: petItem == null ? 0 : Number(petItem),
-        clientId: Number(clientId),
-      });
-      const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
-      const adults = parseInt(match?.groups?.adults ?? '0', 10);
-      const children = parseInt(match?.groups?.children || '0', 10);
-      const cid = parsed.clientId;
-      const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
-      if ((existing.rowCount ?? 0) === 0) {
-        const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
-        await client.query(
-          `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
-          [cid, profileLink],
-        );
-        createdClients.push(cid);
+    const errors: Record<string, string[]> = {};
+
+    const addError = (sheet: string, message: string) => {
+      if (!errors[sheet]) errors[sheet] = [];
+      errors[sheet].push(message);
+    };
+
+    for (const { name } of sheets) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(name)) {
+        addError(name, 'Invalid sheet name');
+        continue;
       }
-      await client.query(
-        `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-         VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
-        [
-          formatReginaDate(parsed.date),
-          cid,
-          parsed.weightWithCart,
-          parsed.weightWithoutCart,
-          parsed.petItem ?? 0,
-          adults,
-          children,
-        ],
-      );
-      await refreshClientVisitCount(cid, client);
-      imported++;
+      const rows = await readXlsxFile(req.file.buffer, { sheet: name });
+      for (const [index, row] of rows.slice(1).entries()) {
+        const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+        let parsed;
+        try {
+          parsed = importClientVisitsSchema.parse({
+            familySize: String(familySize ?? ''),
+            weightWithCart: Number(weightWithCart),
+            weightWithoutCart: Number(weightWithoutCart),
+            petItem: petItem == null ? undefined : Number(petItem),
+            clientId: Number(clientId),
+          });
+        } catch (err: any) {
+          addError(name, `Row ${index + 2}: ${err.message}`);
+          continue;
+        }
+        const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+        const adults = parseInt(match?.groups?.adults ?? '0', 10);
+        const children = parseInt(match?.groups?.children || '0', 10);
+        const cid = parsed.clientId;
+        const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
+        if ((existing.rowCount ?? 0) === 0) {
+          const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+          await client.query(
+            `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+            [cid, profileLink],
+          );
+          createdClients.push(cid);
+        }
+        await client.query(
+          `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+           VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+          [
+            formatReginaDate(name),
+            cid,
+            parsed.weightWithCart,
+            parsed.weightWithoutCart,
+            parsed.petItem ?? 0,
+            adults,
+            children,
+          ],
+        );
+        await refreshClientVisitCount(cid, client);
+        imported++;
+      }
     }
     await client.query('COMMIT');
-    res.json({ imported, newClients: createdClients });
+    res.json({ imported, newClients: createdClients, errors });
   } catch (error) {
     await client.query('ROLLBACK');
     logger.error('Error bulk importing client visits:', error);

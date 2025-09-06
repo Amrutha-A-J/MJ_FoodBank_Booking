@@ -18,7 +18,6 @@ export const updateVisitSchema = clientVisitSchema;
 export type ClientVisitSchema = z.infer<typeof clientVisitSchema>;
 
 export const importClientVisitsSchema = z.object({
-  date: z.date(),
   familySize: z.string().regex(/^\d+A\d*C?$/),
   weightWithCart: z.number().int().min(0),
   weightWithoutCart: z.number().int().min(0),
