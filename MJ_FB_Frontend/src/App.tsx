@@ -123,6 +123,8 @@ export default function App() {
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
   const showAdmin = isStaff && access.includes('admin');
+  const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
+  const showDonationLog = showWarehouse || showDonationEntry;
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
@@ -205,6 +207,12 @@ export default function App() {
           { label: 'Settings', to: '/admin/settings' },
         ],
       });
+
+  } else if (showDonationEntry) {
+    navGroups.push({
+      label: 'Warehouse Management',
+      links: [{ label: 'Donation Log', to: '/warehouse-management/donation-log' }],
+    });
 
   } else if (role === 'agency') {
     navGroups.push({
@@ -289,7 +297,11 @@ export default function App() {
                     path="/"
                     element={
                       role === 'volunteer' ? (
-                        <VolunteerDashboard />
+                        showDonationEntry ? (
+                          <Navigate to="/warehouse-management/donation-log" replace />
+                        ) : (
+                          <VolunteerDashboard />
+                        )
                       ) : role === 'agency' ? (
                         <AgencyGuard>
                           <AgencyDashboard />
@@ -340,7 +352,7 @@ export default function App() {
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
                   )}
-                  {showWarehouse && (
+                  {showDonationLog && (
                     <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
                   )}
                   {showWarehouse && (
