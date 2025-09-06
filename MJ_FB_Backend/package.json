@@ -17,8 +17,10 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
     "node-cron": "^3",
     "pg": "^8",
+    "read-excel-file": "^5.8.8",
     "write-excel-file": "^2",
     "zod": "^4"
   },
@@ -31,6 +33,7 @@
     "@types/jest": "^29",
     "@types/jsonwebtoken": "^9",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22",
     "@types/pg": "^8",
     "@types/supertest": "^6",

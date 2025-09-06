@@ -4,6 +4,8 @@ import logger from '../utils/logger';
 import { formatReginaDate } from '../utils/dateUtils';
 import { Queryable } from '../utils/bookingUtils';
 import { updateBooking } from '../models/bookingRepository';
+import readXlsxFile from 'read-excel-file/node';
+import { importClientVisitsSchema } from '../schemas/clientVisitSchemas';
 
 export async function refreshClientVisitCount(
   clientId: number,
@@ -226,5 +228,65 @@ export async function deleteVisit(req: Request, res: Response, next: NextFunctio
   } catch (error) {
     logger.error('Error deleting client visit:', error);
     next(error);
+  }
+}
+
+export async function bulkImportVisits(req: Request, res: Response, next: NextFunction) {
+  const client = await pool.connect();
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'File required' });
+    }
+    const rows = await readXlsxFile(req.file.buffer);
+    await client.query('BEGIN');
+    const createdClients: number[] = [];
+    let imported = 0;
+    for (const row of rows.slice(1)) {
+      const [date, familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+      const parsed = importClientVisitsSchema.parse({
+        date: date instanceof Date ? date : new Date(date),
+        familySize: String(familySize ?? ''),
+        weightWithCart: Number(weightWithCart),
+        weightWithoutCart: Number(weightWithoutCart),
+        petItem: petItem == null ? 0 : Number(petItem),
+        clientId: Number(clientId),
+      });
+      const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+      const adults = parseInt(match?.groups?.adults ?? '0', 10);
+      const children = parseInt(match?.groups?.children || '0', 10);
+      const cid = parsed.clientId;
+      const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
+      if ((existing.rowCount ?? 0) === 0) {
+        const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+        await client.query(
+          `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+          [cid, profileLink],
+        );
+        createdClients.push(cid);
+      }
+      await client.query(
+        `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+         VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+        [
+          formatReginaDate(parsed.date),
+          cid,
+          parsed.weightWithCart,
+          parsed.weightWithoutCart,
+          parsed.petItem ?? 0,
+          adults,
+          children,
+        ],
+      );
+      await refreshClientVisitCount(cid, client);
+      imported++;
+    }
+    await client.query('COMMIT');
+    res.json({ imported, newClients: createdClients });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error('Error bulk importing client visits:', error);
+    next(error);
+  } finally {
+    client.release();
   }
 }
