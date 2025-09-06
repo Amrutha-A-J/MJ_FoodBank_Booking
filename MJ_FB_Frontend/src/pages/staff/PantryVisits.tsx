@@ -17,7 +17,8 @@ import {
   Stack,
   IconButton,
   FormControlLabel,
-  Checkbox,
+  Radio,
+  RadioGroup,
   Typography,
 } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
@@ -539,16 +540,23 @@ export default function PantryVisits() {
               onChange={e => setForm({ ...form, date: e.target.value })}
               InputLabelProps={{ shrink: true }}
             />
-            <Stack direction="row" spacing={2}>
-              <FormControlLabel
-                control={<Checkbox checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} />}
-                label="Anonymous"
-              />
-              <FormControlLabel
-                control={<Checkbox checked={form.sunshineBag} onChange={e => setForm({ ...form, sunshineBag: e.target.checked })} />}
-                label={t('sunshine_bag_label')}
-              />
-            </Stack>
+            <RadioGroup
+              row
+              value={form.sunshineBag ? 'sunshine' : form.anonymous ? 'anonymous' : 'regular'}
+              onChange={e => {
+                const v = e.target.value;
+                setForm({
+                  ...form,
+                  anonymous: v === 'anonymous',
+                  sunshineBag: v === 'sunshine',
+                });
+              }}
+              sx={{ gap: 2 }}
+            >
+              <FormControlLabel value="regular" control={<Radio />} label="Regular visit" />
+              <FormControlLabel value="anonymous" control={<Radio />} label="Anonymous visit" />
+              <FormControlLabel value="sunshine" control={<Radio />} label={t('sunshine_bag_label')} />
+            </RadioGroup>
             {form.sunshineBag ? (
               <TextField
                 label={t('sunshine_bag_weight_label')}
