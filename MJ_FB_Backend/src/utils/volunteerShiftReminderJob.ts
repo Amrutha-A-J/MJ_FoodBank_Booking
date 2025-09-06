@@ -4,6 +4,7 @@ import { formatReginaDate } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
+import config from '../config';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -30,7 +31,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.`;
       enqueueEmail({
         to: row.email,
-        templateId: 1,
+        templateId: config.volunteerBookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
       });
     }

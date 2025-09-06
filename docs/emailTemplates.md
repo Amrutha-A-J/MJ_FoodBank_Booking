@@ -19,3 +19,10 @@ parameters supplied to each template.
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
 
+## Booking status emails
+
+- **Template ID variable:** `BOOKING_STATUS_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the booking status update.
+  - `type` (string) – booking type, e.g., `shopping appointment`.
+

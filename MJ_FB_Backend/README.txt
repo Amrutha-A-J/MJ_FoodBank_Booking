@@ -47,6 +47,8 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `BOOKING_REMINDER_TEMPLATE_ID` – Brevo template ID for booking reminder emails.
 
+`BOOKING_STATUS_TEMPLATE_ID` – Brevo template ID for booking status emails (cancellations, reschedules, no-shows).
+
 `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` – Brevo template ID for volunteer booking confirmations.
 
 `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` – Brevo template ID for volunteer shift reminder emails.
