@@ -197,6 +197,13 @@ export function getHelpContent(
   ],
   pantry: [
     {
+      title: 'Pantry quick links',
+      body: {
+        description:
+          'Pantry pages include a quick-access bar with links to Pantry Schedule, Record a Visit, and Search Client.',
+      },
+    },
+    {
       title: 'Manage availability',
       body: {
         description: 'Open or block pantry slots and adjust capacities.',

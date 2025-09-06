@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../../../api/bookings', () => ({
   getSlots: jest.fn(),
@@ -36,13 +37,21 @@ describe('PantrySchedule new client workflow', () => {
         profile_link: '',
       },
     ]);
-    render(<PantrySchedule />);
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText('[NEW CLIENT] New Person')).toBeInTheDocument();
   });
 
   it('creates booking for new client', async () => {
     (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
-    render(<PantrySchedule searchUsersFn={jest.fn()} />);
+    render(
+      <MemoryRouter>
+        <PantrySchedule searchUsersFn={jest.fn()} />
+      </MemoryRouter>,
+    );
 
     const rows = await screen.findAllByRole('row');
     const cells = within(rows[1]).getAllByRole('cell');
@@ -115,7 +124,11 @@ describe('PantrySchedule status display', () => {
         profile_link: '',
       },
     ]);
-    render(<PantrySchedule />);
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
     expect(await screen.findByText('Done (1)')).toBeInTheDocument();
     expect(await screen.findByText('Flake (2)')).toBeInTheDocument();
     expect(screen.queryByText('Cancel (3)')).toBeNull();

@@ -30,6 +30,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import PantryQuickLinks from '../../components/PantryQuickLinks';
 import {
   getClientVisits,
   createClientVisit,
@@ -459,61 +460,64 @@ export default function PantryVisits() {
     <Page
       title="Pantry Visits"
       header={
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({
-                date: format(selectedDate),
-                anonymous: false,
-                sunshineBag: false,
-                sunshineWeight: '',
-                clientId: '',
-                weightWithCart: '',
-                weightWithoutCart: '',
-                adults: '',
-                children: '',
-                petItem: '0',
-                note: '',
-              });
-              setAutoWeight(true);
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Visit
-          </Button>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => setImportOpen(true)}
-          >
-            {t('pantry_visits.import_visits')}
-          </Button>
-          <TextField
-            size="small"
-            label="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <TextField
-            size="small"
-            label="Lookup Date"
-            type="date"
-            value={lookupDate}
-            onChange={e => setLookupDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
-            disabled={!lookupDate}
-          >
-            Go
-          </Button>
-        </Stack>
+        <>
+          <PantryQuickLinks />
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => {
+                setForm({
+                  date: format(selectedDate),
+                  anonymous: false,
+                  sunshineBag: false,
+                  sunshineWeight: '',
+                  clientId: '',
+                  weightWithCart: '',
+                  weightWithoutCart: '',
+                  adults: '',
+                  children: '',
+                  petItem: '0',
+                  note: '',
+                });
+                setAutoWeight(true);
+                setEditing(null);
+                setRecordOpen(true);
+              }}
+            >
+              Record Visit
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => setImportOpen(true)}
+            >
+              {t('pantry_visits.import_visits')}
+            </Button>
+            <TextField
+              size="small"
+              label="Search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <TextField
+              size="small"
+              label="Lookup Date"
+              type="date"
+              value={lookupDate}
+              onChange={e => setLookupDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
+              disabled={!lookupDate}
+            >
+              Go
+            </Button>
+          </Stack>
+        </>
       }
     >
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />

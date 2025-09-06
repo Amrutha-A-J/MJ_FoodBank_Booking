@@ -1,7 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientManagement from '../ClientManagement';
 import { getNewClients, deleteNewClient } from '../../../api/users';
+import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 
 jest.mock('../../../api/users', () => ({
   ...jest.requireActual('../../../api/users'),
@@ -26,7 +27,7 @@ describe('ClientManagement New Clients tab', () => {
   });
 
   it('displays new clients and handles deletion', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <ClientManagement />
       </MemoryRouter>,
