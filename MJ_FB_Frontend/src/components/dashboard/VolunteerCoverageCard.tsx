@@ -66,7 +66,7 @@ export default function VolunteerCoverageCard({
   return (
     <>
       <SectionCard title="Volunteer Coverage" sx={sx}>
-        <List>
+        <List sx={{ maxHeight: '200px', overflowY: 'auto' }}>
           {coverage.map(c => {
             const ratio = c.filled / c.total;
             let color: 'success' | 'warning' | 'error' | 'default' = 'default';
