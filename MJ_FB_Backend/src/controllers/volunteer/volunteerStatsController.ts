@@ -76,10 +76,10 @@ export async function getVolunteerGroupStats(
                    ELSE 0
                  END
                ), 0) AS month_lbs,
-               COALESCE(COUNT(DISTINCT CASE
-                   WHEN date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
-                   THEN client_id
-                 END), 0) AS month_families
+               COALESCE(COUNT(DISTINCT client_id) FILTER (
+                   WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
+                     AND is_anonymous = false
+               ), 0) AS month_families
         FROM client_visits
       ),
       goal AS (
