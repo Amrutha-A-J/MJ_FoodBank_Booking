@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { loginAgency, type LoginResponse } from '../../api/users';
 import { TextField, Button } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
@@ -68,8 +69,7 @@ export default function AgencyLogin({
           error={emailError}
           helperText={emailError ? 'Email is required' : ''}
         />
-        <TextField
-          type="password"
+        <PasswordField
           name="password"
           autoComplete="current-password"
           value={password}

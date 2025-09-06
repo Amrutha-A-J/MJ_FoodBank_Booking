@@ -34,6 +34,7 @@ import RescheduleDialog from '../../../components/RescheduleDialog';
 import EntitySearch from '../../../components/EntitySearch';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import PasswordField from '../../../components/PasswordField';
 import { useTranslation } from 'react-i18next';
 import { toDate, formatDate } from '../../../utils/date';
 import Page from '../../../components/Page';
@@ -393,9 +394,8 @@ export default function UserHistory({
                   onChange={e => setForm({ ...form, phone: e.target.value })}
                 />
                 {form.onlineAccess && (
-                  <TextField
+                  <PasswordField
                     label="Password"
-                    type="password"
                     value={form.password}
                     onChange={e =>
                       setForm({ ...form, password: e.target.value })

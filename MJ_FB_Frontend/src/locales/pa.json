@@ -24,6 +24,8 @@
   "forgot_password": "ਕੀ ਤੁਸੀਂ ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?",
   "client_id_required": "ਕਲਾਇੰਟ ID ਲਾਜ਼ਮੀ ਹੈ",
   "password_required": "ਪਾਸਵਰਡ ਲਾਜ਼ਮੀ ਹੈ",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "ਪਾਸਵਰਡ ਸੈੱਟ ਕਰੋ",
   "back_to_login": "ਲੌਗਿਨ ਤੇ ਵਾਪਸ ਜਾਓ",
   "resend_link": "ਲਿੰਕ ਮੁੜ ਭੇਜੋ",

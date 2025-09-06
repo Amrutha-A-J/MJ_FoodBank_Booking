@@ -24,6 +24,8 @@
   "forgot_password": "கடவுச்சொல்லை மறந்துவிட்டீர்களா?",
   "client_id_required": "வாடிக்கையாளர் ஐடி தேவையானது",
   "password_required": "கடவுச்சொல் தேவையானது",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "கடவுச்சொல்லை அமைக்க",
   "back_to_login": "உள்நுழைவுக்கு திரும்பு",
   "resend_link": "இணைப்பை மீண்டும் அனுப்பு",

@@ -21,7 +21,7 @@ describe('Login component', () => {
       </MemoryRouter>
     );
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
@@ -38,7 +38,7 @@ describe('Login component', () => {
     fireEvent.change(screen.getByLabelText(/client id/i), {
       target: { value: '123' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
@@ -61,7 +61,7 @@ describe('Login component', () => {
     fireEvent.change(screen.getByLabelText(/client id/i), {
       target: { value: '123' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));

@@ -24,6 +24,8 @@
   "forgot_password": "መለለይካ ረሲዕካ?",
   "client_id_required": "መለያ ደንበኛ ይፈልጋ",
   "password_required": "መለለይ ይፈልጋ",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "መለለይ ኣተኽ",
   "back_to_login": "ናብ መእተዊ ተመለስ",
   "resend_link": "እንደገና መርኣይ ሰዓሚ",

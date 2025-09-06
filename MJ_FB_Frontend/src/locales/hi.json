@@ -24,6 +24,8 @@
   "forgot_password": "पासवर्ड भूल गए?",
   "client_id_required": "क्लाइंट आईडी आवश्यक है",
   "password_required": "पासवर्ड आवश्यक है",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "पासवर्ड सेट करें",
   "back_to_login": "लॉगिन पर वापस जाएँ",
   "resend_link": "लिंक पुनः भेजें",

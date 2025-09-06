@@ -24,6 +24,8 @@
   "forgot_password": "Nakalimutan ang password?",
   "client_id_required": "Kinakailangan ang ID ng kliyente",
   "password_required": "Kinakailangan ang password",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "Itakda ang password",
   "back_to_login": "Bumalik sa pag-login",
   "resend_link": "Ipadala ulit ang link",
