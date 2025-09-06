@@ -25,7 +25,7 @@ describe('VolunteerLogin component', () => {
     fireEvent.change(screen.getByLabelText(/username/i), {
       target: { value: 'user' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));

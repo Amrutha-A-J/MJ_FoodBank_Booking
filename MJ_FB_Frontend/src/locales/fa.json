@@ -24,6 +24,8 @@
   "forgot_password": "گذرواژه را فراموش کرده‌اید؟",
   "client_id_required": "شناسه مشتری الزامی است",
   "password_required": "گذرواژه الزامی است",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "تنظیم گذرواژه",
   "back_to_login": "بازگشت به ورود",
   "resend_link": "ارسال دوباره لینک",

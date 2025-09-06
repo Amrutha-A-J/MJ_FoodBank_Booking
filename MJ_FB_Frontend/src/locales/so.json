@@ -24,6 +24,8 @@
   "forgot_password": "Ma hilmaantay erayga sirta ah?",
   "client_id_required": "Aqoonsiga macmiilka waa loo baahan yahay",
   "password_required": "Ereyga sirta ah waa loo baahan yahay",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "Deji erayga sirta ah",
   "back_to_login": "Ku noqo galitaanka",
   "resend_link": "Dib u dir xiriirka",

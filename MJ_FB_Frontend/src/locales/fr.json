@@ -24,6 +24,8 @@
   "forgot_password": "Mot de passe oublié ?",
   "client_id_required": "Identifiant client requis",
   "password_required": "Mot de passe requis",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "Définir le mot de passe",
   "back_to_login": "Retour à la connexion",
   "resend_link": "Renvoyer le lien",

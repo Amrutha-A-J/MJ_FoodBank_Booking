@@ -24,6 +24,8 @@
   "forgot_password": "پاسورډ مو هیر کړی؟",
   "client_id_required": "د پېرېدونکي پېژند اړینه ده",
   "password_required": "پاسورډ اړین دی",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "پاسورډ ټاکل",
   "back_to_login": "بېرته ننوتلو ته",
   "resend_link": "لینک بیا واستوئ",

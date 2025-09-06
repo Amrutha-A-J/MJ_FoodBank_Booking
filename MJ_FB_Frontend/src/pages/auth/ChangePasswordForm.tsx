@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { TextField, Button } from '@mui/material';
+import { Button } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -37,15 +38,13 @@ export default function ChangePasswordForm() {
           </Button>
         }
       >
-        <TextField
-          type="password"
+        <PasswordField
           label={t('current_password')}
           value={currentPassword}
           onChange={e => setCurrentPassword(e.target.value)}
           fullWidth
         />
-        <TextField
-          type="password"
+        <PasswordField
           label={t('new_password')}
           value={newPassword}
           onChange={e => setNewPassword(e.target.value)}

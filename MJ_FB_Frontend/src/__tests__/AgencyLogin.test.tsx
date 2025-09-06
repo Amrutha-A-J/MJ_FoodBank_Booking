@@ -21,7 +21,7 @@ describe('AgencyLogin component', () => {
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: 'test@example.com' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'pass' },
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));

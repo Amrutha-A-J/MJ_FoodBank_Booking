@@ -24,6 +24,8 @@
   "forgot_password": "Забули пароль?",
   "client_id_required": "Потрібен ID клієнта",
   "password_required": "Потрібен пароль",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "Встановити пароль",
   "back_to_login": "Назад до входу",
   "resend_link": "Надіслати посилання ще раз",

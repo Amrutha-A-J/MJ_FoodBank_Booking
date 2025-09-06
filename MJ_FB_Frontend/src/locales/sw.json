@@ -24,6 +24,8 @@
   "forgot_password": "Umesahau nenosiri?",
   "client_id_required": "Kitambulisho cha mteja kinahitajika",
   "password_required": "Nenosiri linahitajika",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "Weka nenosiri",
   "back_to_login": "Rudi kwenye kuingia",
   "resend_link": "Tuma kiungo tena",

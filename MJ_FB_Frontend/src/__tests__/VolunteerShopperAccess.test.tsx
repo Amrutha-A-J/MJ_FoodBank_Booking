@@ -29,7 +29,7 @@ describe('Volunteer with shopper profile', () => {
     fireEvent.click(screen.getByText(/volunteer login/i));
 
     fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'vol' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() =>

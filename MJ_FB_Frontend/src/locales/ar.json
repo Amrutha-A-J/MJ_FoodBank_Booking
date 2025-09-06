@@ -24,6 +24,8 @@
   "forgot_password": "هل نسيت كلمة المرور؟",
   "client_id_required": "معرف العميل مطلوب",
   "password_required": "كلمة المرور مطلوبة",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "تعيين كلمة المرور",
   "back_to_login": "العودة لتسجيل الدخول",
   "resend_link": "إعادة إرسال الرابط",

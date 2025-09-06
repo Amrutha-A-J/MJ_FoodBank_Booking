@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
-import { TextField, Button, Link } from '@mui/material';
+import { Button, Link } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -46,8 +47,7 @@ export default function PasswordSetup() {
           </Button>
         }
       >
-        <TextField
-          type="password"
+        <PasswordField
           label={t('password')}
           name="password"
           autoComplete="new-password"

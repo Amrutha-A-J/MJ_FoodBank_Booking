@@ -28,12 +28,28 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'Passw0rd!' },
     });
     fireEvent.click(screen.getByRole('button', { name: /set password/i }));
     await waitFor(() => expect(setPassword).toHaveBeenCalledWith('abc123', 'Passw0rd!'));
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login/user'));
+  });
+
+  it('toggles password visibility', () => {
+    render(
+      <MemoryRouter initialEntries={["/set-password?token=abc123"]}>
+        <Routes>
+          <Route path="/set-password" element={<PasswordSetup />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const input = screen.getByLabelText(/password/i, { selector: 'input' });
+    expect(input).toHaveAttribute('type', 'password');
+    fireEvent.click(screen.getByLabelText(/show password/i));
+    expect(input).toHaveAttribute('type', 'text');
+    fireEvent.click(screen.getByLabelText(/hide password/i));
+    expect(input).toHaveAttribute('type', 'password');
   });
 
   it('shows resend link dialog when token expired', async () => {
@@ -46,7 +62,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'Passw0rd!' },
     });
     fireEvent.click(screen.getByRole('button', { name: /set password/i }));

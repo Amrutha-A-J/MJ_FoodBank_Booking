@@ -3,6 +3,7 @@ import { loginStaff, staffExists, createStaff } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Typography, TextField, Link, Button } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FeedbackModal from '../../components/FeedbackModal';
@@ -118,8 +119,7 @@ function StaffLoginForm({
           error={emailError}
           helperText={emailError ? 'Email is required' : ''}
         />
-        <TextField
-          type="password"
+        <PasswordField
           value={password}
           onChange={e => setPassword(e.target.value)}
           label="Password"

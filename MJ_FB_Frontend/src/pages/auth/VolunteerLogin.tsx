@@ -3,6 +3,7 @@ import { loginVolunteer } from '../../api/volunteers';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { TextField, Link, Button } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
@@ -71,8 +72,7 @@ export default function VolunteerLogin({
           error={usernameError}
           helperText={usernameError ? 'Username is required' : ''}
         />
-        <TextField
-          type="password"
+        <PasswordField
           name="password"
           autoComplete="current-password"
           value={password}

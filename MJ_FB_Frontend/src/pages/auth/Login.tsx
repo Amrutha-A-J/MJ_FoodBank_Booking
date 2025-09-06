@@ -3,6 +3,7 @@ import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button } from '@mui/material';
+import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
@@ -73,8 +74,7 @@ export default function Login({
           error={clientIdError}
           helperText={clientIdError ? t('client_id_required') : ''}
         />
-        <TextField
-          type="password"
+        <PasswordField
           value={password}
           onChange={e => setPassword(e.target.value)}
           label={t('password')}

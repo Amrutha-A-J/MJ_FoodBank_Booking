@@ -14,5 +14,6 @@
 - Document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
+- Use the shared `PasswordField` component for any password input so users can toggle visibility.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.

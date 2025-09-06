@@ -24,6 +24,8 @@
   "forgot_password": "忘记密码？",
   "client_id_required": "需要客户ID",
   "password_required": "需要密码",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "set_password": "设置密码",
   "back_to_login": "返回登录",
   "resend_link": "重新发送链接",
