@@ -56,8 +56,12 @@ describe('ManageBookingDialog', () => {
       expect(screen.getByLabelText(/weight without cart/i)).toHaveValue(3)
     );
 
-    fireEvent.change(screen.getByLabelText(/adults/i), { target: { value: '1' } });
-    fireEvent.change(screen.getByLabelText(/children/i), { target: { value: '2' } });
+    const adultsInput = screen.getByLabelText(/adults/i);
+    const childrenInput = screen.getByLabelText(/children/i);
+    expect(adultsInput).toBeInTheDocument();
+    expect(childrenInput).toBeInTheDocument();
+    fireEvent.change(adultsInput, { target: { value: '1' } });
+    fireEvent.change(childrenInput, { target: { value: '2' } });
     fireEvent.change(screen.getByLabelText(/pet item/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/note/i), { target: { value: 'bring ID' } });
 

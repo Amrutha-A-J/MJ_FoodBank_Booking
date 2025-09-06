@@ -61,11 +61,11 @@ describe('booking status updates', () => {
     const res = await request(app)
       .post('/bookings/2/visited')
       .set('x-role', 'staff')
-      .send({ requestData: 'note', note: 'remember ID' });
+      .send({ requestData: 'note', note: 'remember ID', adults: 1, children: 2 });
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      [null, null, 0, 'remember ID', 0, 0, 2],
+      [null, null, 0, 'remember ID', 1, 2, 2],
     );
     expect(bookingRepo.updateBooking).toHaveBeenCalledWith(2, {
       status: 'visited',

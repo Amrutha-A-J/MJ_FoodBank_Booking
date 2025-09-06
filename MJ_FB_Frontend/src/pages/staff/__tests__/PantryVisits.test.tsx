@@ -80,6 +80,8 @@ describe('PantryVisits', () => {
         weightWithCart: 10,
         weightWithoutCart: 5,
         petItem: 0,
+        adults: 1,
+        children: 2,
       },
       {
         id: 2,
@@ -90,6 +92,8 @@ describe('PantryVisits', () => {
         weightWithCart: 20,
         weightWithoutCart: 15,
         petItem: 1,
+        adults: 3,
+        children: 4,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -125,6 +129,8 @@ describe('PantryVisits', () => {
         weightWithCart: 10,
         weightWithoutCart: 5,
         petItem: 2,
+        adults: 1,
+        children: 2,
       },
       {
         id: 2,
@@ -135,6 +141,8 @@ describe('PantryVisits', () => {
         weightWithCart: 20,
         weightWithoutCart: 15,
         petItem: 1,
+        adults: 3,
+        children: 4,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -148,6 +156,8 @@ describe('PantryVisits', () => {
 
     expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
     expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
+    expect(screen.getByText('Adults: 4')).toBeInTheDocument();
+    expect(screen.getByText('Children: 6')).toBeInTheDocument();
     expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
