@@ -4,6 +4,7 @@ import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
+import config from '../src/config';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),
@@ -144,6 +145,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
       date: '2025-09-01',
       status: 'approved',
       recurring_id: null,
+      reschedule_token: 'token',
     };
     const slot = { start_time: '09:00:00', end_time: '12:00:00' };
     (pool.query as jest.Mock)
@@ -158,7 +160,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
     expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
     expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
       to: 'vol@example.com',
-      templateId: 0,
+      templateId: config.volunteerBookingReminderTemplateId,
     });
   });
 });
