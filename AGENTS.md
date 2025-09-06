@@ -17,7 +17,7 @@
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Always document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
-- Volunteer usernames have been removed and volunteer emails must be unique (email remains optional).
+- Volunteers sign in with their email address instead of a username, and volunteer emails must be unique (email remains optional).
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - Use the shared `PasswordField` component for any password input so users can toggle visibility.
 
