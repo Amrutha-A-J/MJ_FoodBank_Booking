@@ -16,12 +16,21 @@ jest.mock('../src/utils/emailUtils', () => ({
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
-  authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    if (req.headers['x-staff']) {
+      (req as any).user = { role: 'staff' };
+    } else if (req.headers['x-volunteer']) {
+      (req as any).user = { role: 'volunteer' };
+    }
+    next();
+  },
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   optionalAuthMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
     if (req.headers['x-staff']) {
       (req as any).user = { role: 'staff' };
+    } else if (req.headers['x-volunteer']) {
+      (req as any).user = { role: 'volunteer' };
     }
     next();
   },
@@ -92,6 +101,96 @@ describe('updateVolunteerBookingStatus', () => {
       .send({ status: 'completed' });
 
     expect(res.status).toBe(200);
+  });
+});
+
+describe('cancelVolunteerBookingOccurrence', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function mockCommonQueries() {
+    const booking = {
+      id: 1,
+      slot_id: 2,
+      volunteer_id: 3,
+      date: '2030-09-01',
+      status: 'approved',
+      reschedule_token: 'token',
+    };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ email: 'vol@example.com' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] });
+  }
+
+  it('sends email when staff cancels with reason', async () => {
+    mockCommonQueries();
+    const res = await request(app)
+      .patch('/volunteer-bookings/1/cancel')
+      .set('x-staff', '1')
+      .send({ reason: 'sick' });
+    expect(res.status).toBe(200);
+    const calls = sendTemplatedEmailMock.mock.calls.filter(
+      c => c[0].to === 'vol@example.com',
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0].params.body).toContain('sick');
+  });
+
+  it('does not send email when volunteer cancels', async () => {
+    mockCommonQueries();
+    const res = await request(app)
+      .patch('/volunteer-bookings/1/cancel')
+      .send({ reason: 'sick' });
+    expect(res.status).toBe(200);
+    const calls = sendTemplatedEmailMock.mock.calls.filter(
+      c => c[0].to === 'vol@example.com',
+    );
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe('cancelRecurringVolunteerBooking', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function mockRecurringQueries() {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ volunteer_id: 3, slot_id: 2, email: 'vol@example.com', start_time: '09:00', end_time: '10:00' }],
+      })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+  }
+
+  it('sends email when staff cancels recurring booking', async () => {
+    mockRecurringQueries();
+    const res = await request(app)
+      .delete('/volunteer-bookings/recurring/1')
+      .set('x-staff', '1')
+      .send({ reason: 'sick' });
+    expect(res.status).toBe(200);
+    const calls = sendTemplatedEmailMock.mock.calls.filter(
+      c => c[0].to === 'vol@example.com',
+    );
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0].params.body).toContain('sick');
+  });
+
+  it('does not send email when volunteer cancels recurring booking', async () => {
+    mockRecurringQueries();
+    const res = await request(app)
+      .delete('/volunteer-bookings/recurring/1')
+      .send({ reason: 'sick' });
+    expect(res.status).toBe(200);
+    const calls = sendTemplatedEmailMock.mock.calls.filter(
+      c => c[0].to === 'vol@example.com',
+    );
+    expect(calls).toHaveLength(0);
   });
 });
 
