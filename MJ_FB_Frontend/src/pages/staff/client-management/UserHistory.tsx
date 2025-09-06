@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory, cancelBooking } from '../../../api/bookings';
+import { deleteClientVisit } from '../../../api/clientVisits';
 import { getUserByClientId, updateUserInfo } from '../../../api/users';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatTime } from '../../../utils/time';
@@ -57,6 +58,7 @@ export default function UserHistory({
   const [page, setPage] = useState(1);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
   const [cancelId, setCancelId] = useState<number | null>(null);
+  const [deleteVisitId, setDeleteVisitId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const [editOpen, setEditOpen] = useState(false);
@@ -145,6 +147,21 @@ export default function UserHistory({
       setMessage(t('cancel_booking_failed'));
     } finally {
       setCancelId(null);
+    }
+  }
+
+  async function confirmDeleteVisit() {
+    if (deleteVisitId == null) return;
+    try {
+      await deleteClientVisit(deleteVisitId);
+      setSeverity('success');
+      setMessage('Visit deleted');
+      loadBookings();
+    } catch {
+      setSeverity('error');
+      setMessage('Failed to delete visit');
+    } finally {
+      setDeleteVisitId(null);
     }
   }
 
@@ -285,9 +302,7 @@ export default function UserHistory({
                           </TableCell>
                         )}
                         <TableCell sx={cellSx}>
-                          {['approved'].includes(
-                            b.status.toLowerCase()
-                          ) && (
+                          {['approved'].includes(b.status.toLowerCase()) && (
                             <Stack direction="row" spacing={1}>
                               <Button
                                 onClick={() => setCancelId(b.id)}
@@ -304,6 +319,17 @@ export default function UserHistory({
                                 {t('reschedule')}
                               </Button>
                             </Stack>
+                          )}
+                          {role === 'staff' && b.status === 'visited' && !b.slot_id && (
+                            <Button
+                              onClick={() => setDeleteVisitId(b.id)}
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
+                            >
+                              Delete visit
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>
@@ -434,6 +460,25 @@ export default function UserHistory({
                 onClick={confirmCancel}
               >
                 {t('cancel_booking')}
+              </Button>
+            </DialogActions>
+          </Dialog>
+          <Dialog
+            open={deleteVisitId !== null}
+            onClose={() => setDeleteVisitId(null)}
+          >
+            <DialogCloseButton onClose={() => setDeleteVisitId(null)} />
+            <DialogTitle>Delete visit</DialogTitle>
+            <DialogContent>
+              <Typography>Delete this visit?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                color="error"
+                variant="contained"
+                onClick={confirmDeleteVisit}
+              >
+                Delete visit
               </Button>
             </DialogActions>
           </Dialog>

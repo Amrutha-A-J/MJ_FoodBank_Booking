@@ -304,10 +304,27 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
 export async function deleteVisit(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
+    const existing = await pool.query(
+      'SELECT client_id, date FROM client_visits WHERE id = $1',
+      [id],
+    );
     await pool.query('DELETE FROM client_visits WHERE id = $1', [id]);
     const clientId: number | null = existing.rows[0]?.client_id ?? null;
+    const date: string | null = existing.rows[0]?.date ?? null;
     if (clientId) await refreshClientVisitCount(clientId);
+    if (clientId && date) {
+      const bookingRes = await pool.query(
+        `SELECT id FROM bookings WHERE user_id = $1 AND date = $2 AND status = 'visited'`,
+        [clientId, formatReginaDate(date)],
+      );
+      if ((bookingRes.rowCount ?? 0) > 0) {
+        await updateBooking(
+          bookingRes.rows[0].id,
+          { status: 'approved', note: null },
+          pool,
+        );
+      }
+    }
     res.json({ message: 'Deleted' });
   } catch (error) {
     logger.error('Error deleting client visit:', error);

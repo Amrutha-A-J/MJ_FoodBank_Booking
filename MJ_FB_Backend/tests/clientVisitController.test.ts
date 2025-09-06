@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
 import pool from '../src/db';
+import { updateBooking } from '../src/models/bookingRepository';
 
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
@@ -214,6 +215,19 @@ describe('client visit notes', () => {
       expect.stringContaining('INSERT INTO client_visits'),
       ['2024-01-03', 123, null, null, 0, false, null, 1, 2],
     );
+  });
+
+  it('reverts booking when visit deleted', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ client_id: 123, date: '2024-01-02' }], rowCount: 1 }) // existing
+      .mockResolvedValueOnce({}) // delete
+      .mockResolvedValueOnce({}) // refresh count
+      .mockResolvedValueOnce({ rows: [{ id: 5 }], rowCount: 1 }); // booking
+
+    const res = await request(app).delete('/client-visits/7');
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Deleted');
+    expect(updateBooking).toHaveBeenCalledWith(5, { status: 'approved', note: null }, pool);
   });
 });
 
