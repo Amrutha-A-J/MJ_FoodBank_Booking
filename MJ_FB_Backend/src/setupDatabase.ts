@@ -601,7 +601,8 @@ INSERT INTO slots (start_time, end_time, max_capacity) VALUES
 ('16:30:00', '17:00:00', 4),
 ('17:00:00', '17:30:00', 4),
 ('17:30:00', '18:00:00', 4),
-('18:00:00', '18:30:00', 4)
+('18:00:00', '18:30:00', 4),
+('18:30:00', '19:00:00', 4)
 ON CONFLICT (start_time, end_time) DO NOTHING;
 
 INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
