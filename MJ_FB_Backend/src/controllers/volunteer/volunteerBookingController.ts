@@ -1332,6 +1332,7 @@ export async function cancelVolunteerBookingOccurrence(
   const { id } = req.params;
   const { reason } = req.body as { reason?: string };
   const cancelReason = reason || 'volunteer_cancelled';
+  const isStaff = req.user?.role === 'staff';
   try {
     const bookingRes = await pool.query(
       `SELECT id, slot_id, volunteer_id, date, status, recurring_id
@@ -1368,23 +1369,26 @@ export async function cancelVolunteerBookingOccurrence(
         ? formatReginaDate(booking.date)
         : booking.date;
     const subject = `Volunteer booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}`;
-    const body = `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled.`;
-    if (volunteerEmail) {
-      await sendTemplatedEmail({
-        to: volunteerEmail,
-        templateId: config.volunteerBookingNotificationTemplateId,
-        params: { subject, body },
-      });
-    } else {
-      logger.warn(
-        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
-        booking.volunteer_id,
+    const body =
+      `Your volunteer booking on ${dateStr} from ${slot.start_time} to ${slot.end_time} has been cancelled. Reason: ${cancelReason}.`;
+    if (isStaff) {
+      if (volunteerEmail) {
+        await sendTemplatedEmail({
+          to: volunteerEmail,
+          templateId: config.volunteerBookingNotificationTemplateId,
+          params: { subject, body },
+        });
+      } else {
+        logger.warn(
+          'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
+          booking.volunteer_id,
+        );
+      }
+      await notifyCoordinators(
+        subject,
+        `Volunteer ${booking.volunteer_id} booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}. Reason: ${cancelReason}.`,
       );
     }
-    await notifyCoordinators(
-      subject,
-      `Volunteer ${booking.volunteer_id} booking cancelled for ${dateStr} ${slot.start_time}-${slot.end_time}.`,
-    );
     booking.status = 'cancelled';
     booking.role_id = booking.slot_id;
     delete booking.slot_id;
@@ -1407,6 +1411,9 @@ export async function cancelRecurringVolunteerBooking(
   const from =
     (req.query.from as string) ||
     formatReginaDate(new Date());
+  const { reason } = req.body as { reason?: string };
+  const cancelReason = reason || 'volunteer_cancelled';
+  const isStaff = req.user?.role === 'staff';
   try {
     const infoRes = await pool.query(
       `SELECT vrb.volunteer_id, vrb.slot_id, v.email, vs.start_time, vs.end_time
@@ -1421,9 +1428,9 @@ export async function cancelRecurringVolunteerBooking(
     }
     const info = infoRes.rows[0];
     await pool.query(
-      `UPDATE volunteer_bookings SET status='cancelled'
+      `UPDATE volunteer_bookings SET status='cancelled', reason=$3
        WHERE recurring_id=$1 AND date >= $2`,
-      [id, from],
+      [id, from, cancelReason],
     );
     await pool.query(
       `UPDATE volunteer_recurring_bookings
@@ -1432,23 +1439,26 @@ export async function cancelRecurringVolunteerBooking(
       [id, from],
     );
     const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
-    const body = `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled.`;
-    if (info.email) {
-      await sendTemplatedEmail({
-        to: info.email,
-        templateId: config.volunteerBookingNotificationTemplateId,
-        params: { subject, body },
-      });
-    } else {
-      logger.warn(
-        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
-        info.volunteer_id,
+    const body =
+      `Your recurring volunteer bookings starting ${from} from ${info.start_time} to ${info.end_time} have been cancelled. Reason: ${cancelReason}.`;
+    if (isStaff) {
+      if (info.email) {
+        await sendTemplatedEmail({
+          to: info.email,
+          templateId: config.volunteerBookingNotificationTemplateId,
+          params: { subject, body },
+        });
+      } else {
+        logger.warn(
+          'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
+          info.volunteer_id,
+        );
+      }
+      await notifyCoordinators(
+        subject,
+        `Volunteer ${info.volunteer_id} recurring bookings cancelled starting ${from} for ${info.start_time}-${info.end_time}. Reason: ${cancelReason}.`,
       );
     }
-    await notifyCoordinators(
-      subject,
-      `Volunteer ${info.volunteer_id} recurring bookings cancelled starting ${from} for ${info.start_time}-${info.end_time}.`,
-    );
     res.json({ message: 'Recurring bookings cancelled' });
   } catch (error) {
     logger.error('Error cancelling recurring volunteer bookings:', error);

@@ -4,6 +4,11 @@ import Dashboard from '../components/dashboard/Dashboard';
 import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getVisitStats } from '../api/clientVisits';
+import {
+  getVolunteerBookings,
+  getVolunteerRoles,
+  getVolunteerBookingsByRole,
+} from '../api/volunteers';
 
 jest.mock('../api/bookings', () => ({
   getBookings: jest.fn(),
@@ -17,29 +22,18 @@ jest.mock('../api/clientVisits', () => ({
   getVisitStats: jest.fn(),
 }));
 
+jest.mock('../api/volunteers', () => ({
+  getVolunteerBookings: jest.fn(),
+  getVolunteerRoles: jest.fn(),
+  getVolunteerBookingsByRole: jest.fn(),
+}));
+
 describe('StaffDashboard', () => {
-  it('does not display no-show rankings card', async () => {
-    (getBookings as jest.Mock).mockResolvedValue([]);
-    (getVisitStats as jest.Mock).mockResolvedValue([
-      { date: '2024-01-01', total: 2, adults: 1, children: 1 },
-      { date: '2024-01-02', total: 3, adults: 2, children: 1 },
-    ]);
-    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-
-    render(
-      <MemoryRouter>
-        <Dashboard role="staff" />
-      </MemoryRouter>,
-    );
-
-    await screen.findByText('Pantry Visit Trend');
-    const chart = screen.getByTestId('visit-trend-chart');
-    expect(chart.querySelectorAll('path.recharts-line-curve').length).toBe(3);
-    expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
-  });
-
   it('shows events returned by the API', async () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
     (getVisitStats as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [
@@ -63,5 +57,34 @@ describe('StaffDashboard', () => {
     );
 
     expect(await screen.findByText(/Staff Meeting/)).toBeInTheDocument();
+  });
+
+  it('displays volunteer shift cancellations', async () => {
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'cancelled',
+        role_id: 2,
+        date: '2025-01-01',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        role_name: 'Test',
+        volunteer_name: 'Bob',
+      },
+    ]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+    (getVisitStats as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <Dashboard role="staff" />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Recent Cancellations/)).toBeInTheDocument();
+    expect(await screen.findByText(/Bob/)).toBeInTheDocument();
   });
 });

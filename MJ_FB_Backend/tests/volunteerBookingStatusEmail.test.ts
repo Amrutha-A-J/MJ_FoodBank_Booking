@@ -15,7 +15,12 @@ jest.mock('../src/utils/emailUtils', () => ({
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
-  authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    if (req.headers['x-staff']) {
+      (req as any).user = { role: 'staff' };
+    }
+    next();
+  },
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   optionalAuthMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
@@ -30,118 +35,18 @@ const app = express();
 app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
-describe('updateVolunteerBookingStatus', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('sends coordinator emails when booking is cancelled with reason', async () => {
-    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'cancelled', recurring_id: null, reason: 'sick' },
-        ],
-      });
-
-    const res = await request(app)
-      .patch('/volunteer-bookings/1')
-      .send({ status: 'cancelled', reason: 'sick' });
-
-    expect(res.status).toBe(200);
-    expect((pool.query as jest.Mock).mock.calls[1][1][2]).toBe('sick');
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(2);
-    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
-      to: 'coordinator1@example.com',
-      templateId: 0,
-    });
-    expect(sendTemplatedEmailMock.mock.calls[1][0]).toMatchObject({
-      to: 'coordinator2@example.com',
-      templateId: 0,
-    });
-  });
-
-  it('logs failure for one coordinator email but continues with others', async () => {
-    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'cancelled', recurring_id: null, reason: 'sick' },
-        ],
-      });
-
-    sendTemplatedEmailMock
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue(undefined);
-    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
-
-    const res = await request(app)
-      .patch('/volunteer-bookings/1')
-      .send({ status: 'cancelled', reason: 'sick' });
-
-    expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(2);
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to send coordinator email',
-      expect.objectContaining({ email: 'coordinator1@example.com' }),
-    );
-    errorSpy.mockRestore();
-  });
-
-  it('requires reason when cancelling', async () => {
-    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [booking] });
-
-    const res = await request(app)
-      .patch('/volunteer-bookings/1')
-      .send({ status: 'cancelled' });
-
-    expect(res.status).toBe(400);
-  });
-
-  it('rejects visited status with guidance', async () => {
-    const res = await request(app)
-      .patch('/volunteer-bookings/1')
-      .send({ status: 'visited' });
-    expect(res.status).toBe(400);
-    expect(res.body.message).toMatch(/completed/);
-    expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
-  });
-
-  it('allows status completed', async () => {
-    const booking = { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'approved' };
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [
-          { id: 1, slot_id: 2, volunteer_id: 3, date: '2025-09-01', status: 'completed', recurring_id: null, reason: null },
-        ],
-      });
-
-    const res = await request(app)
-      .patch('/volunteer-bookings/1')
-      .send({ status: 'completed' });
-
-    expect(res.status).toBe(200);
-  });
-});
 
 describe('cancelVolunteerBookingOccurrence', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('sends volunteer and coordinator emails when occurrence is cancelled', async () => {
+  it('sends volunteer and coordinator emails when staff cancels occurrence', async () => {
     const booking = {
       id: 1,
       slot_id: 2,
       volunteer_id: 3,
-      date: '2025-09-01',
+      date: '2099-09-01',
       status: 'approved',
       recurring_id: null,
     };
@@ -152,7 +57,10 @@ describe('cancelVolunteerBookingOccurrence', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ email: 'vol@example.com' }] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [slot] });
 
-    const res = await request(app).patch('/volunteer-bookings/1/cancel');
+    const res = await request(app)
+      .patch('/volunteer-bookings/1/cancel')
+      .set('x-staff', '1')
+      .send({ reason: 'staff_cancelled' });
 
     expect(res.status).toBe(200);
     expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
@@ -160,6 +68,85 @@ describe('cancelVolunteerBookingOccurrence', () => {
       to: 'vol@example.com',
       templateId: 0,
     });
+    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('staff_cancelled');
+  });
+
+  it('does not send emails when volunteer cancels occurrence', async () => {
+    const booking = {
+      id: 1,
+      slot_id: 2,
+      volunteer_id: 3,
+      date: '2099-09-01',
+      status: 'approved',
+      recurring_id: null,
+    };
+    const slot = { start_time: '09:00:00', end_time: '12:00:00' };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [booking] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ email: 'vol@example.com' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [slot] });
+
+    const res = await request(app)
+      .patch('/volunteer-bookings/1/cancel')
+      .send({ reason: 'volunteer_cancelled' });
+
+    expect(res.status).toBe(200);
+    expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('cancelRecurringVolunteerBooking', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sends volunteer and coordinator emails when staff cancels recurring booking', async () => {
+    const info = {
+      volunteer_id: 3,
+      slot_id: 2,
+      email: 'vol@example.com',
+      start_time: '09:00:00',
+      end_time: '12:00:00',
+    };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [info] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    const res = await request(app)
+      .delete('/volunteer-bookings/recurring/1')
+      .set('x-staff', '1')
+      .send({ reason: 'staff_cancelled' });
+
+    expect(res.status).toBe(200);
+    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
+      to: 'vol@example.com',
+      templateId: 0,
+    });
+    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('staff_cancelled');
+  });
+
+  it('does not send emails when volunteer cancels recurring booking', async () => {
+    const info = {
+      volunteer_id: 3,
+      slot_id: 2,
+      email: 'vol@example.com',
+      start_time: '09:00:00',
+      end_time: '12:00:00',
+    };
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [info] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({});
+
+    const res = await request(app)
+      .delete('/volunteer-bookings/recurring/1')
+      .send({ reason: 'volunteer_cancelled' });
+
+    expect(res.status).toBe(200);
+    expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 });
 

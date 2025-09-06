@@ -15,7 +15,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
 import { getBookings } from '../../api/bookings';
-import type { Role, Booking } from '../../types';
+import { getVolunteerBookings } from '../../api/volunteers';
+import type { Role, Booking, VolunteerBookingDetail } from '../../types';
 import { getVisitStats, type VisitStat } from '../../api/clientVisits';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
@@ -72,6 +73,8 @@ function formatLocalDate(date: Date) {
 
 function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [volunteerBookings, setVolunteerBookings] =
+    useState<VolunteerBookingDetail[]>([]);
   const [volunteerCount, setVolunteerCount] = useState(0);
   const [visitStats, setVisitStats] = useState<VisitStat[]>([]);
   const [events, setEvents] = useState<EventGroups>({
@@ -85,6 +88,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   useEffect(() => {
     getBookings()
       .then(b => setBookings(Array.isArray(b) ? b : [b]))
+      .catch(() => {});
+    getVolunteerBookings()
+      .then(b => setVolunteerBookings(Array.isArray(b) ? b : [b]))
       .catch(() => {});
     getEvents()
       .then(data =>
@@ -100,7 +106,10 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   }, []);
 
   const todayStr = formatLocalDate(new Date());
-  const cancellations = bookings.filter(b => b.status === 'cancelled');
+  const cancellations: any[] = [
+    ...bookings.filter(b => b.status === 'cancelled'),
+    ...volunteerBookings.filter(b => b.status === 'cancelled'),
+  ];
   const stats = {
     appointments: bookings.filter(
       b =>
@@ -109,7 +118,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
     ).length,
     volunteers: volunteerCount,
     cancellations: cancellations.filter(
-      b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
+      c => formatLocalDate(parseLocalDate(c.date)) === todayStr,
     ).length,
   };
 
@@ -218,9 +227,9 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                 {cancellations.slice(0, 5).map(c => (
                   <ListItem key={c.id}>
                     <ListItemText
-                      primary={`${c.user_name || 'Unknown'} - ${formatTime(
-                        c.start_time || '',
-                      )}`}
+                      primary={`${
+                        (c as any).user_name || (c as any).volunteer_name || 'Unknown'
+                      } - ${formatTime(c.start_time || '')}`}
                     />
                   </ListItem>
                 ))}

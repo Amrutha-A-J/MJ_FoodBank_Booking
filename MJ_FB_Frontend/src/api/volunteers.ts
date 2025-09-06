@@ -153,11 +153,14 @@ export async function cancelVolunteerBooking(
 
 export async function cancelRecurringVolunteerBooking(
   recurringId: number,
+  reason = 'volunteer_cancelled',
 ): Promise<void> {
   const res = await apiFetch(
     `${API_BASE}/volunteer-bookings/recurring/${recurringId}`,
     {
       method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
     },
   );
   await handleResponse(res);
@@ -320,6 +323,14 @@ export async function getVolunteerBookingsByRole(roleId: number) {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/${roleId}`);
   const data = await handleResponse(res);
   return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
+}
+
+export async function getVolunteerBookings() {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings`);
+  const data = await handleResponse(res);
+  return Array.isArray(data)
+    ? data.map(normalizeVolunteerBooking)
+    : [normalizeVolunteerBooking(data)];
 }
 
 export async function getUnmarkedVolunteerBookings(): Promise<VolunteerBooking[]> {

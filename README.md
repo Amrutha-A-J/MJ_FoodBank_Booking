@@ -193,6 +193,7 @@ Before merging a pull request, confirm the following:
 - Volunteer bookings are auto-approved with no submitted state and appear immediately on schedules.
 - Volunteer booking statuses include `completed`, and cancelling a booking now requires a reason.
 - Volunteer interfaces show `completed` or `no_show`; submitting `visited` for a volunteer shift now returns `Use completed instead of visited for volunteer shifts`.
+- Volunteer shift cancellations initiated by volunteers no longer send coordinator emails; coordinators can review cancelled or recurring shift changes on the dashboard. Emails are sent only when staff cancel a volunteer booking.
 - Admins can manage volunteer master roles, sub-roles, and their shifts from the Settings page's Volunteer tab. Deleting a master role also removes its sub-roles and shifts. Deleting sub-roles and shifts now requires confirmation to avoid accidental removal. Sub-roles are created via a dedicated dialog that captures the sub-role name and initial shift, while additional shifts use a separate dialog.
 - Staff can restore volunteer roles and shifts to their original defaults via `POST /volunteer-roles/restore` or the Settings page's Volunteer tab **Restore Original Roles & Shifts** button.
 - Walk-in visit tracking (`clientVisits`) via [clientVisitController](MJ_FB_Backend/src/controllers/clientVisitController.ts).

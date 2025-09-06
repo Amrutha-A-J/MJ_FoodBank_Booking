@@ -24,6 +24,7 @@
 - `POST /auth/resend-password-setup` regenerates password setup links using `generatePasswordSetupToken`; requests are rate limited per email or client ID.
 - Profile pages send a password reset link without requiring current or new password fields.
 - Coordinator notification addresses for volunteer booking updates live in `src/config/coordinatorEmails.json`.
+- Volunteer booking cancellation emails are sent to volunteers and coordinators only when staff cancel a shift; volunteers cancelling their own bookings are surfaced on the coordinator dashboard instead.
 - Staff or agency users can create bookings for unregistered individuals via `POST /bookings/new-client`; staff may review or delete these records through `/new-clients` routes.
 - The `new_clients.email` field is nullable; `POST /bookings/new-client` accepts requests without an email address.
 - A daily reminder job (`src/utils/bookingReminderJob.ts`) runs at server startup and emails clients about next-day bookings using the `enqueueEmail` queue. It uses `node-cron` with schedule `0 9 * * *` Regina time and exposes `startBookingReminderJob`/`stopBookingReminderJob`.
