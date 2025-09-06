@@ -199,11 +199,12 @@ export function getHelpContent(
     {
       title: 'Manage events',
       body: {
-        description: 'Create announcements or activities for staff and volunteers.',
+        description:
+          'Create announcements or activities. Staff see all events by default; use checkboxes to share with volunteers or clients.',
         steps: [
           'Open the Events page.',
           'Click Create Event.',
-          'Enter title, category, start and end dates, add details and staff if needed, then save.',
+          'Enter title, category, start and end dates, add details or staff if needed, select volunteer or client visibility, then save.',
         ],
       },
     },

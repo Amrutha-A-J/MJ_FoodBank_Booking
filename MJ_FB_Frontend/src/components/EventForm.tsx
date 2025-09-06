@@ -35,8 +35,6 @@ const categories = [
   'staff leave',
 ];
 
-const tagAllOption: StaffOption = { id: -1, name: 'Tag All' };
-
 export default function EventForm({ open, onClose, onCreated }: EventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
@@ -45,7 +43,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [staffInput, setStaffInput] = useState('');
-  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([tagAllOption]);
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [selectedStaff, setSelectedStaff] = useState<StaffOption[]>([]);
   const [visibleToVolunteers, setVisibleToVolunteers] = useState(false);
   const [visibleToClients, setVisibleToClients] = useState(false);
@@ -55,32 +53,23 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   useEffect(() => {
     let active = true;
     if (!staffInput) {
-      setStaffOptions([tagAllOption]);
+      setStaffOptions([]);
       return undefined;
     }
     searchStaff(staffInput)
       .then(data => {
-        if (active) setStaffOptions([tagAllOption, ...data]);
+        if (active) setStaffOptions(data);
       })
       .catch(() => {
-        if (active) setStaffOptions([tagAllOption]);
+        if (active) setStaffOptions([]);
       });
     return () => {
       active = false;
     };
   }, [staffInput]);
 
-  async function handleStaffChange(_: any, value: StaffOption[]) {
-    if (value.some(v => v.id === tagAllOption.id)) {
-      try {
-        const all = await searchStaff('%');
-        setSelectedStaff(all);
-      } catch {
-        setSelectedStaff([]);
-      }
-    } else {
-      setSelectedStaff(value);
-    }
+  function handleStaffChange(_: any, value: StaffOption[]) {
+    setSelectedStaff(value);
   }
 
   async function submit() {
