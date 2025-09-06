@@ -79,7 +79,7 @@ export async function requestVolunteerBooking(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ roleId, date }),
+    body: JSON.stringify({ roleId, date, type: 'volunteer shift' }),
   });
   const data = await handleResponse(res);
   return normalizeVolunteerBooking(data);
@@ -91,7 +91,7 @@ export async function resolveVolunteerBookingConflict(
   date: string,
   keep: 'existing' | 'new'
 ): Promise<VolunteerBooking> {
-  const body: any = { existingBookingId, keep };
+  const body: any = { existingBookingId, keep, type: 'volunteer shift' };
   if (roleId !== undefined) body.roleId = roleId;
   if (date !== undefined) body.date = date;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
@@ -121,6 +121,7 @@ export async function createRecurringVolunteerBooking(
       pattern: frequency,
       daysOfWeek: weekdays,
       endDate,
+      type: 'volunteer shift',
     }),
   });
   await handleResponse(res);
@@ -144,7 +145,7 @@ export async function cancelVolunteerBooking(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, type: 'volunteer shift' }),
     },
   );
   await handleResponse(res);

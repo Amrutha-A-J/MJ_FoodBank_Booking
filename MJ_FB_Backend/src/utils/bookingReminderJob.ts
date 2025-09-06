@@ -24,7 +24,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       await enqueueEmail({
         to: b.user_email,
         templateId: 1,
-        params: { body, cancelLink, rescheduleLink },
+        params: { body, cancelLink, rescheduleLink, type: 'shopping appointment' },
       });
     }
   } catch (err) {

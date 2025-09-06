@@ -21,7 +21,7 @@ describe('bookings api', () => {
     await markBookingNoShow(5, 'reason');
     expect(apiFetch).toHaveBeenCalledWith('/api/bookings/5/no-show', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ reason: 'reason' }),
+      body: JSON.stringify({ reason: 'reason', type: 'shopping appointment' }),
     }));
   });
 
@@ -37,7 +37,7 @@ describe('bookings api', () => {
     await createBooking('3', '2024-05-01', 'note');
     expect(apiFetch).toHaveBeenCalledWith('/api/bookings', expect.objectContaining({
       method: 'POST',
-      body: JSON.stringify({ slotId: 3, date: '2024-05-01', note: 'note' }),
+      body: JSON.stringify({ slotId: 3, date: '2024-05-01', note: 'note', type: 'shopping appointment' }),
     }));
   });
 });

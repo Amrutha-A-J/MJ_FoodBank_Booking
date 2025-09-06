@@ -65,7 +65,12 @@ export async function createVolunteerBooking(
   next: NextFunction,
 ) {
   const user = req.user;
-  const { roleId, date } = req.body as { roleId?: number; date?: string };
+  const { roleId, date, type } = req.body as {
+    roleId?: number;
+    date?: string;
+    type?: string;
+  };
+  const emailType = type || 'volunteer shift';
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (!roleId || !date) {
     return res.status(400).json({ message: 'roleId and date are required' });
@@ -215,6 +220,7 @@ export async function createVolunteerBooking(
             rescheduleLink,
             googleCalendarLink,
             outlookCalendarLink,
+            type: emailType,
           },
         });
       } else {
@@ -432,10 +438,12 @@ export async function resolveVolunteerBookingConflict(
     rawRoleId !== undefined && rawRoleId !== null
       ? Number(rawRoleId)
       : undefined;
-  const { date, keep } = req.body as {
+  const { date, keep, type } = req.body as {
     date?: string;
     keep?: 'existing' | 'new';
+    type?: string;
   };
+  const emailType = type || 'volunteer shift';
 
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   if (
@@ -576,6 +584,7 @@ export async function resolveVolunteerBookingConflict(
           rescheduleLink,
           googleCalendarLink,
           outlookCalendarLink,
+          type: emailType,
         },
       });
     } else {
