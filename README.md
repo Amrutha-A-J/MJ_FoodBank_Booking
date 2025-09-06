@@ -282,7 +282,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` |
-| `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` |
+| `templateId: 1` | Agency membership additions or removals | `body` |
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
 =======
@@ -293,7 +293,6 @@ See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
 | `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` | Brevo template ID for volunteer booking notifications (cancellations, coordinator alerts) |
-| `BADGE_MILESTONE_TEMPLATE_ID`              | Brevo template ID for milestone badge emails with downloadable card   |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
 
