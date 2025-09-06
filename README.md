@@ -399,6 +399,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
+- Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
 - Warehouse Aggregations page provides yearly totals and supports exporting them via `/warehouse-overall/export`.
 - Page and form titles render in uppercase with a lighter font weight for clarity.

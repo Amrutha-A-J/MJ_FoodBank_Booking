@@ -8,6 +8,7 @@ interface FeedbackSnackbarProps {
   message: ReactNode;
   severity?: AlertColor;
   duration?: number;
+  action?: ReactNode;
 }
 
 export default function FeedbackSnackbar({
@@ -16,6 +17,7 @@ export default function FeedbackSnackbar({
   message,
   severity = 'success',
   duration = 6000,
+  action,
 }: FeedbackSnackbarProps) {
   function handleClose(_?: SyntheticEvent | Event, reason?: string) {
     if (reason === 'clickaway') return;
@@ -29,7 +31,13 @@ export default function FeedbackSnackbar({
       onClose={handleClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
-      <Alert onClose={handleClose} severity={severity} variant="filled" sx={{ width: '100%' }}>
+      <Alert
+        onClose={handleClose}
+        severity={severity}
+        variant="filled"
+        action={action}
+        sx={{ width: '100%' }}
+      >
         {message}
       </Alert>
     </Snackbar>

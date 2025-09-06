@@ -55,7 +55,7 @@
         "steps": [
           "Open your dashboard.",
           "Choose an available date.",
-          "Select a time, add a client note for staff if needed, and confirm the booking."
+          "Select a time, add a client note for staff if needed, confirm the booking, and add it to your calendar."
         ]
       },
       "rescheduling_or_canceling": {
@@ -120,6 +120,8 @@
   "breadcrumb": "ردیف راهبری",
   "home": "خانه",
   "slot_booked_success": "Slot booked successfully",
+  "add_to_google_calendar": "Add to Google Calendar",
+  "download_ics": "Download ICS",
   "booking_failed": "Booking failed",
   "full": "Full",
   "choose_this_time": "Choose this time",
