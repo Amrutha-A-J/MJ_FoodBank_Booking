@@ -606,17 +606,25 @@ export async function createBookingForUser(
     );
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (clientEmail) {
+      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
       const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
         date,
         start_time,
         end_time,
       );
       const body = `Your booking for ${date} has been automatically approved`;
-        enqueueEmail({
-          to: clientEmail,
-          templateId: config.bookingConfirmationTemplateId,
-          params: { body, googleCalendarLink, outlookCalendarLink, type: emailType },
-        });
+      enqueueEmail({
+        to: clientEmail,
+        templateId: config.bookingConfirmationTemplateId,
+        params: {
+          body,
+          cancelLink,
+          rescheduleLink,
+          googleCalendarLink,
+          outlookCalendarLink,
+          type: emailType,
+        },
+      });
     } else {
       logger.warn(
         'Booking approved email not sent. User %s has no email.',
