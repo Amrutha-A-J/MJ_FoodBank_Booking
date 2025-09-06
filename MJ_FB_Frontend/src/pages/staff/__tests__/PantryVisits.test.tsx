@@ -4,6 +4,13 @@ import PantryVisits from '../PantryVisits';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
 
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...(jest.requireActual('react-router-dom') as any),
+  useNavigate: () => mockNavigate,
+  useSearchParams: () => [new URLSearchParams(), jest.fn()],
+}));
+
 jest.mock('../../../api/clientVisits', () => ({
   getClientVisits: jest.fn(),
   createClientVisit: jest.fn(),
@@ -45,6 +52,7 @@ describe('PantryVisits', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockReset();
   });
 
   it('uses cart tare from config when calculating weight', async () => {
@@ -188,7 +196,27 @@ describe('PantryVisits', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => expect(importClientVisits).toHaveBeenCalled());
-    await waitFor(() => expect(getClientVisits).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getClientVisits).toHaveBeenCalledTimes(3));
     expect(screen.getByText('Visits imported')).toBeInTheDocument();
+  });
+
+  it('navigates to selected date', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    render(
+      <ThemeProvider theme={theme}>
+        <PantryVisits />
+      </ThemeProvider>,
+    );
+
+    await screen.findByText('Record Visit');
+
+    const dateInput = screen.getByLabelText('Lookup Date');
+    fireEvent.change(dateInput, { target: { value: '2024-01-15' } });
+    fireEvent.click(screen.getByText('Go'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/pantry/visits?date=2024-01-15');
   });
 });

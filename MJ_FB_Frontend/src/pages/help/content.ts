@@ -220,6 +220,17 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Look up past visits',
+      body: {
+        description: 'View client visits for a specific day.',
+        steps: [
+          'Open the Pantry Visits page.',
+          'Choose a date in the lookup field.',
+          'Click Go to load visits for that day.',
+        ],
+      },
+    },
+    {
       title: 'Manage volunteers',
       body: {
         description: 'Search, add, and review volunteers.',
