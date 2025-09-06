@@ -1,4 +1,5 @@
 import pool from '../db';
+import config from '../config';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate } from './dateUtils';
 import logger from './logger';
@@ -28,11 +29,11 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
         row.reschedule_token,
       );
       const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.`;
-      enqueueEmail({
-        to: row.email,
-        templateId: 1,
-        params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
-      });
+        enqueueEmail({
+          to: row.email,
+          templateId: config.volunteerBookingReminderTemplateId,
+          params: { body, cancelLink, rescheduleLink, type: 'volunteer shift' },
+        });
     }
   } catch (err) {
     logger.error('Failed to send volunteer shift reminders', err);
