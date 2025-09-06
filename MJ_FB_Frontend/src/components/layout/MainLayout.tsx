@@ -71,13 +71,17 @@ export default function MainLayout({ children, ...navbarProps }: MainLayoutProps
             <Box
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                justifyContent: { xs: 'flex-start', sm: 'space-between' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+                flexWrap: 'wrap',
+                gap: 1,
                 mb: 2,
               }}
             >
               <Breadcrumbs />
-              {actions}
+              {actions && (
+                <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>{actions}</Box>
+              )}
             </Box>
             {children}
           </PageContainer>
