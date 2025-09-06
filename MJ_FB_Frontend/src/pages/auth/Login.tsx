@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { loginUser } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Box } from '@mui/material';
+import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -22,9 +23,7 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [idNoticeOpen, setIdNoticeOpen] = useState(true);
-  const [passwordNoticeOpen, setPasswordNoticeOpen] = useState(true);
-  const [volunteerNoticeOpen, setVolunteerNoticeOpen] = useState(true);
+  const [noticeOpen, setNoticeOpen] = useState(true);
   const { t } = useTranslation();
 
   const clientIdError = submitted && clientId === '';
@@ -98,24 +97,29 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <FeedbackSnackbar
-        open={idNoticeOpen}
-        onClose={() => setIdNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_id')}</span>}
-        severity="info"
-      />
-      <FeedbackSnackbar
-        open={passwordNoticeOpen}
-        onClose={() => setPasswordNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_password')}</span>}
-        severity="warning"
-      />
-      <FeedbackSnackbar
-        open={volunteerNoticeOpen}
-        onClose={() => setVolunteerNoticeOpen(false)}
-        message={<span style={{ fontSize: '0.75rem' }}>{t('client_login_notice_volunteer')}</span>}
-        severity="info"
-      />
+      <Dialog open={noticeOpen} onClose={() => setNoticeOpen(false)}>
+        <DialogContent sx={{ position: 'relative', pt: 4 }}>
+          <IconButton
+            aria-label="close"
+            onClick={() => setNoticeOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography variant="body2" paragraph>
+            {t('client_login_notice_id')}
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {t('client_login_notice_password')}
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {t('client_login_notice_volunteer')}
+          </Typography>
+          <Typography variant="body2" paragraph>
+            {t('client_login_notice_close')}
+          </Typography>
+        </DialogContent>
+      </Dialog>
       <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
