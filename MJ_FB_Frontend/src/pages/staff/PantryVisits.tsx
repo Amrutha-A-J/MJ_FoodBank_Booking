@@ -421,7 +421,16 @@ export default function PantryVisits() {
   );
 
   const tabs = weekDates.map(d => ({
-    label: formatLocaleDate(d, { weekday: 'short' }),
+    label: (
+      <Stack spacing={0} alignItems="center">
+        <Typography variant="body2">
+          {formatLocaleDate(d, { weekday: 'short' })}
+        </Typography>
+        <Typography variant="caption">
+          {formatLocaleDate(d, { month: 'short', day: 'numeric' })}
+        </Typography>
+      </Stack>
+    ),
     content: (
       <>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
