@@ -18,6 +18,7 @@ describe('volunteer booking date validation', () => {
         buildCalendarLinks: () => ({
           googleCalendarLink: '',
           outlookCalendarLink: '',
+          appleCalendarLink: '',
         }),
       }));
       jest.doMock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));

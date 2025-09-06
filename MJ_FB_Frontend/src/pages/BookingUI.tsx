@@ -216,7 +216,7 @@ export default function BookingUI({
                   component="a"
                   href={res.icsUrl}
                 >
-                  {t('download_ics')}
+                  {t('add_to_apple_calendar')}
                 </Button>
               )}
             </Stack>

@@ -12,6 +12,7 @@ jest.mock('../src/utils/emailUtils', () => ({
   buildCalendarLinks: () => ({
     googleCalendarLink: '',
     outlookCalendarLink: '',
+    appleCalendarLink: '',
   }),
 }));
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
