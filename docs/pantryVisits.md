@@ -16,16 +16,28 @@ Add the following translation strings to locale files:
 - `pantry_visits.bulk_import_error`
 
 ## Bulk import format
+ 
+Pantry visits support bulk importing from an `.xlsx` spreadsheet. Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.
 
-Pantry visits support bulk importing from an `.xlsx` spreadsheet. Include a header row and use the following column order:
+Include a header row on every sheet and use the following column order:
 
-1. Date (`YYYY-MM-DD`)
-2. Client ID
-3. Weight With Cart
-4. Weight Without Cart
-5. Adults
-6. Children
-7. Pet Item (`0` or `1`)
-8. Note (optional)
+1. Client ID
+2. Weight With Cart
+3. Weight Without Cart
+4. Adults
+5. Children
+6. Pet Item (`0` or `1`)
+7. Note (optional)
+
+### Duplicate handling
+
+The importer checks for an existing visit for the same client on a given date. Control how duplicates are processed with the `duplicateStrategy` query parameter:
+
+- `skip` (default) – keep the existing visit and ignore the row.
+- `overwrite` – replace the existing visit with the new data.
+
+### Dry run
+
+Append `dryRun=true` to validate the spreadsheet and preview counts without creating any visits. After reviewing the response, rerun the request without `dryRun` to perform the import.
 
 Save the file as `.xlsx` and upload it using the **Bulk Import** button on the Pantry Visits page.
