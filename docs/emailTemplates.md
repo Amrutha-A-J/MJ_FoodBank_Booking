@@ -35,3 +35,21 @@ Brevo templates can reference these `params.*` values to display actionable link
   - `body` (string) – message body describing the booking status update.
   - `type` (string) – booking type, e.g., `shopping appointment`.
 
+## Volunteer booking confirmation and reminder emails
+
+- **Template ID variables:** `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID`, `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the shift.
+  - `cancelLink` (string) – link for the recipient to cancel their shift.
+  - `rescheduleLink` (string) – link allowing rescheduling.
+  - `googleCalendarLink` (string) – URL to add the shift to Google Calendar.
+  - `outlookCalendarLink` (string) – URL to add the shift to Outlook Calendar.
+  - `type` (string) – booking type, e.g., `volunteer shift`.
+
+## Volunteer booking notification emails
+
+- **Template ID variable:** `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID`
+- **Params:**
+  - `subject` (string) – email subject.
+  - `body` (string) – message body describing the update.
+

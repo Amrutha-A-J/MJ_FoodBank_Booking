@@ -13,6 +13,7 @@ import {
   CreateRecurringVolunteerBookingForVolunteerRequest,
 } from '../../types/volunteerBooking';
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
+import config from '../../config';
 import coordinatorEmailsConfig from '../../config/coordinatorEmails.json';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -46,7 +47,11 @@ const coordinatorEmails: string[] = coordinatorEmailsConfig.coordinatorEmails ||
 async function notifyCoordinators(subject: string, body: string) {
   const results = await Promise.allSettled(
     coordinatorEmails.map(email =>
-      sendTemplatedEmail({ to: email, templateId: 0, params: { subject, body } }),
+      sendTemplatedEmail({
+        to: email,
+        templateId: config.volunteerBookingNotificationTemplateId,
+        params: { subject, body },
+      }),
     ),
   );
   results.forEach((result, idx) => {
@@ -213,7 +218,7 @@ export async function createVolunteerBooking(
         );
         enqueueEmail({
           to: user.email,
-          templateId: 1,
+          templateId: config.volunteerBookingConfirmationTemplateId,
           params: {
             body: `Volunteer booking for role ${roleId} on ${date} has been confirmed.`,
             cancelLink,
@@ -577,7 +582,7 @@ export async function resolveVolunteerBookingConflict(
       );
       enqueueEmail({
         to: user.email,
-        templateId: 1,
+        templateId: config.volunteerBookingConfirmationTemplateId,
         params: {
           body: `Volunteer booking for role ${roleId} on ${date!} has been confirmed.`,
           cancelLink,
@@ -1083,7 +1088,7 @@ export async function createRecurringVolunteerBooking(
       if (user.email) {
         await sendTemplatedEmail({
           to: user.email,
-          templateId: 0,
+          templateId: config.volunteerBookingNotificationTemplateId,
           params: { subject, body },
         });
       } else {
@@ -1252,7 +1257,7 @@ export async function createRecurringVolunteerBookingForVolunteer(
       if (volunteerEmail) {
         await sendTemplatedEmail({
           to: volunteerEmail,
-          templateId: 0,
+          templateId: config.volunteerBookingNotificationTemplateId,
           params: { subject, body },
         });
       } else {
@@ -1367,7 +1372,7 @@ export async function cancelVolunteerBookingOccurrence(
     if (volunteerEmail) {
       await sendTemplatedEmail({
         to: volunteerEmail,
-        templateId: 0,
+        templateId: config.volunteerBookingNotificationTemplateId,
         params: { subject, body },
       });
     } else {
@@ -1431,7 +1436,7 @@ export async function cancelRecurringVolunteerBooking(
     if (info.email) {
       await sendTemplatedEmail({
         to: info.email,
-        templateId: 0,
+        templateId: config.volunteerBookingNotificationTemplateId,
         params: { subject, body },
       });
     } else {
