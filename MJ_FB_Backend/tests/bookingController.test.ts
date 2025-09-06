@@ -172,9 +172,10 @@ describe('createBooking', () => {
   });
 });
 
-describe('markBookingNoShow', () => {
-  let markBookingNoShow: any;
+describe('cancelBooking', () => {
+  let cancelBooking: any;
   let enqueueEmail: jest.Mock;
+  let fetchBookingById: jest.Mock;
   let updateBooking: jest.Mock;
   let pool: any;
 
@@ -187,25 +188,98 @@ describe('markBookingNoShow', () => {
       }));
       jest.doMock('../src/models/bookingRepository', () => ({
         __esModule: true,
+        fetchBookingById: jest.fn(),
         updateBooking: jest.fn().mockResolvedValue(undefined),
       }));
       jest.doMock('../src/db', () => ({
         __esModule: true,
         default: { query: jest.fn() },
       }));
-      markBookingNoShow = require('../src/controllers/bookingController').markBookingNoShow;
+      cancelBooking = require('../src/controllers/bookingController').cancelBooking;
       enqueueEmail = require('../src/utils/emailQueue').enqueueEmail;
+      fetchBookingById = require('../src/models/bookingRepository').fetchBookingById;
       updateBooking = require('../src/models/bookingRepository').updateBooking;
       pool = require('../src/db').default;
     });
   });
 
-  it('queues a reschedule email', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [
-        { email: 'client@example.com', reschedule_token: 'tok', date: '2024-01-01' },
-      ],
+  it('sends cancellation email when staff provides reason', async () => {
+    const futureDate = formatReginaDate(new Date(Date.now() + 86400000));
+    (fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: '2',
+      status: 'approved',
+      date: futureDate,
     });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
+    const req = {
+      params: { id: '1' },
+      user: { role: 'staff', id: '99' },
+      body: { reason: 'scheduling conflict', type: 'shopping appointment' },
+    } as unknown as Request;
+    const res = { json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await cancelBooking(req, res, next);
+
+    expect(updateBooking).toHaveBeenCalledWith(1, { status: 'cancelled', request_data: 'scheduling conflict' });
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'client@example.com',
+        params: expect.objectContaining({ body: expect.stringContaining('scheduling conflict') }),
+      }),
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: 'Booking cancelled' });
+  });
+
+  it('does not send email when non-staff cancels', async () => {
+    const futureDate = formatReginaDate(new Date(Date.now() + 86400000));
+    (fetchBookingById as jest.Mock).mockResolvedValue({
+      id: 1,
+      user_id: '5',
+      status: 'approved',
+      date: futureDate,
+    });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
+    const req = {
+      params: { id: '1' },
+      user: { role: 'client', id: '5' },
+      body: {},
+    } as unknown as Request;
+    const res = { json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await cancelBooking(req, res, next);
+
+    expect(updateBooking).toHaveBeenCalledWith(1, { status: 'cancelled', request_data: 'user cancelled' });
+    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith({ message: 'Booking cancelled' });
+  });
+});
+
+describe('markBookingNoShow', () => {
+  let markBookingNoShow: any;
+  let enqueueEmail: jest.Mock;
+  let updateBooking: jest.Mock;
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.isolateModules(() => {
+      jest.doMock('../src/utils/emailQueue', () => ({
+        __esModule: true,
+        enqueueEmail: jest.fn(),
+      }));
+      jest.doMock('../src/models/bookingRepository', () => ({
+        __esModule: true,
+        updateBooking: jest.fn().mockResolvedValue(undefined),
+      }));
+      markBookingNoShow = require('../src/controllers/bookingController').markBookingNoShow;
+      enqueueEmail = require('../src/utils/emailQueue').enqueueEmail;
+      updateBooking = require('../src/models/bookingRepository').updateBooking;
+    });
+  });
+
+  it('does not queue a reschedule email', async () => {
     const req = { params: { id: '1' }, body: {} } as unknown as Request;
     const res = { json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -213,15 +287,7 @@ describe('markBookingNoShow', () => {
     await markBookingNoShow(req, res, next);
 
     expect(updateBooking).toHaveBeenCalledWith(1, { status: 'no_show', request_data: '', note: null });
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'client@example.com',
-        templateId: expect.any(Number),
-        params: expect.objectContaining({
-          body: expect.stringContaining('http://localhost:3000/reschedule/tok'),
-        }),
-      }),
-    );
+    expect(enqueueEmail).not.toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith({ message: 'Booking marked as no-show' });
   });
 });
