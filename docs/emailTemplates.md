@@ -8,12 +8,10 @@ parameters supplied to each template.
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` | `authController.ts`, `agencyController.ts`, `admin/staffController.ts`, `admin/adminStaffController.ts`, `volunteerController.ts`, `userController.ts` |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `bookingController.ts` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` | `bookingReminderJob.ts` |
-| `templateId: 1` | Booking cancellations, reschedules, and no-show notices | `body`, `type` | `bookingController.ts` |
+| `templateId: 1` | Booking cancellations and reschedules | `body`, `type` | `bookingController.ts` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` | `volunteerBookingController.ts` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
-| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` | `volunteerBookingController.ts` |
-| `templateId: 1` | Agency membership additions or removals | `body` | `agencyController.ts` |
-| `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` | `badgeUtils.ts` |
+| `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` 
 
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content.
@@ -25,6 +23,8 @@ dynamic content.
   - `body` (string) – message body describing the booking status update.
   - `type` (string) – booking type, e.g., `shopping appointment`.
 
+No-show emails are no longer sent.
+
 ## Volunteer booking confirmation and reminder emails
 
 - **Template ID variables:** `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID`, `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`
@@ -35,6 +35,8 @@ dynamic content.
   - `googleCalendarLink` (string) – URL to add the shift to Google Calendar.
   - `outlookCalendarLink` (string) – URL to add the shift to Outlook Calendar.
   - `type` (string) – booking type, e.g., `volunteer shift`.
+
+Recurring volunteer bookings also reuse the reminder template so volunteers receive cancel and reschedule links.
 
 ## Volunteer booking notification emails
 
@@ -51,10 +53,4 @@ dynamic content.
 - **Params:**
   - `body` (string) – message describing the client added to or removed from the agency.
 
-## Milestone badge emails
-
-- **Template ID variable:** `BADGE_MILESTONE_TEMPLATE_ID`
-- **Params:**
-  - `body` (string) – message body describing the milestone.
-  - `cardUrl` (string) – link to download the badge card.
 
