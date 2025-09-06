@@ -19,6 +19,7 @@
   "tamil": "تامیل",
   "login": "ورود",
   "client_login": "د پېرېدونکي ننوتل",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID, please email harvestpantry@mjfoodbank.org. If your password is not working, please use the forgot password link below to set a new password.",
   "client_id": "د پېرېدونکي پېژند",
   "password": "پاسورډ",
   "forgot_password": "پاسورډ مو هیر کړی؟",

@@ -19,6 +19,7 @@
   "tamil": "Taamili",
   "login": "Gal",
   "client_login": "Galitaanka macmiilka",
+  "client_login_notice": "Please use your client ID to login. If you don't know your client ID, please email harvestpantry@mjfoodbank.org. If your password is not working, please use the forgot password link below to set a new password.",
   "client_id": "Aqoonsiga macmiilka",
   "password": "Ereyga sirta ah",
   "forgot_password": "Ma hilmaantay erayga sirta ah?",
