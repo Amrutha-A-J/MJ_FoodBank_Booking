@@ -272,3 +272,8 @@ export interface ClientVisit {
   petItem: number;
   note?: string;
 }
+
+export interface SunshineBag {
+  date: string;
+  weight: number;
+}

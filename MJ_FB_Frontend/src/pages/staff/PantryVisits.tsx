@@ -32,6 +32,7 @@ import {
   deleteClientVisit,
   type ClientVisit,
 } from '../../api/clientVisits';
+import { getSunshineBag, saveSunshineBag, type SunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
 import { getAppConfig } from '../../api/appConfig';
 import type { AlertColor } from '@mui/material';
@@ -88,6 +89,8 @@ export default function PantryVisits() {
   const [form, setForm] = useState({
     date: formatDate(),
     anonymous: false,
+    sunshineBag: false,
+    sunshineWeight: '',
     clientId: '',
     weightWithCart: '',
     weightWithoutCart: '',
@@ -96,6 +99,7 @@ export default function PantryVisits() {
   });
   const [autoWeight, setAutoWeight] = useState(true);
   const [clientFound, setClientFound] = useState<boolean | null>(null);
+  const [sunshineBagWeight, setSunshineBagWeight] = useState(0);
 
   const filteredVisits = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -111,6 +115,9 @@ export default function PantryVisits() {
     getClientVisits(format(selectedDate))
       .then(setVisits)
       .catch(() => setVisits([]));
+    getSunshineBag(format(selectedDate))
+      .then(sb => setSunshineBagWeight(sb?.weight ?? 0))
+      .catch(() => setSunshineBagWeight(0));
   }, [selectedDate]);
 
   useEffect(() => {
@@ -124,15 +131,16 @@ export default function PantryVisits() {
   }, []);
 
   useEffect(() => {
-    if (recordOpen && autoWeight) {
+    if (recordOpen && autoWeight && !form.sunshineBag) {
       setForm(f => ({
         ...f,
         weightWithoutCart: f.weightWithCart ? String(Number(f.weightWithCart) - cartTare) : '',
       }));
     }
-  }, [form.weightWithCart, cartTare, autoWeight, recordOpen]);
+  }, [form.weightWithCart, cartTare, autoWeight, recordOpen, form.sunshineBag]);
 
   useEffect(() => {
+    if (form.sunshineBag) return;
     if (!form.clientId || form.clientId.length < 4) {
       setClientFound(null);
       return;
@@ -140,16 +148,52 @@ export default function PantryVisits() {
     getUserByClientId(form.clientId)
       .then(() => setClientFound(true))
       .catch(() => setClientFound(false));
-  }, [form.clientId]);
+  }, [form.clientId, form.sunshineBag]);
+
+  useEffect(() => {
+    if (form.sunshineBag) {
+      getSunshineBag(form.date)
+        .then(sb =>
+          setForm(f => ({ ...f, sunshineWeight: sb?.weight ? String(sb.weight) : '' })),
+        )
+        .catch(() => setForm(f => ({ ...f, sunshineWeight: '' })));
+    }
+  }, [form.sunshineBag, form.date]);
 
   const summary = useMemo(() => {
     const clients = visits.length;
     const totalWeight = visits.reduce((sum, v) => sum + v.weightWithoutCart, 0);
-    const sunshineBags = visits.reduce((sum, v) => sum + v.petItem, 0);
-    return { clients, totalWeight, sunshineBags };
+    return { clients, totalWeight };
   }, [visits]);
 
   function handleSaveVisit() {
+    if (form.sunshineBag) {
+      if (!form.sunshineWeight) {
+        setSnackbar({ open: true, message: 'Weight required', severity: 'error' });
+        return;
+      }
+      saveSunshineBag({ date: form.date, weight: Number(form.sunshineWeight) })
+        .then(() => {
+          setRecordOpen(false);
+          setEditing(null);
+          setForm({
+            date: format(selectedDate),
+            anonymous: false,
+            sunshineBag: false,
+            sunshineWeight: '',
+            clientId: '',
+            weightWithCart: '',
+            weightWithoutCart: '',
+            petItem: '0',
+            note: '',
+          });
+          setAutoWeight(true);
+          loadVisits();
+          setSnackbar({ open: true, message: 'Sunshine bag saved', severity: 'success' });
+        })
+        .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save sunshine bag', severity: 'error' }));
+      return;
+    }
     if (!form.date || !form.weightWithCart || !form.weightWithoutCart) {
       setSnackbar({ open: true, message: 'Date and weights required', severity: 'error' });
       return;
@@ -177,6 +221,8 @@ export default function PantryVisits() {
         setForm({
           date: format(selectedDate),
           anonymous: false,
+          sunshineBag: false,
+          sunshineWeight: '',
           clientId: '',
           weightWithCart: '',
           weightWithoutCart: '',
@@ -255,6 +301,8 @@ export default function PantryVisits() {
                       setForm({
                         date: formatDate(v.date),
                         anonymous: v.anonymous,
+                        sunshineBag: false,
+                        sunshineWeight: '',
                         clientId: v.clientId ? String(v.clientId) : '',
                         weightWithCart: String(v.weightWithCart),
                         weightWithoutCart: String(v.weightWithoutCart),
@@ -299,7 +347,7 @@ export default function PantryVisits() {
             {t('pantry_visits.summary.total_weight')}: {summary.totalWeight}
           </Typography>
           <Typography variant="body2">
-            {t('pantry_visits.summary.sunshine_bags')}: {summary.sunshineBags}
+            {t('pantry_visits.summary.sunshine_bag_weight')}: {sunshineBagWeight}
           </Typography>
         </Stack>
         {table}
@@ -319,6 +367,8 @@ export default function PantryVisits() {
               setForm({
                 date: format(selectedDate),
                 anonymous: false,
+                sunshineBag: false,
+                sunshineWeight: '',
                 clientId: '',
                 weightWithCart: '',
                 weightWithoutCart: '',
@@ -355,60 +405,84 @@ export default function PantryVisits() {
               onChange={e => setForm({ ...form, date: e.target.value })}
               InputLabelProps={{ shrink: true }}
             />
-            <FormControlLabel
-              control={<Checkbox checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} />}
-              label="Anonymous"
-            />
-            <TextField
-              label="Client ID"
-              value={form.clientId}
-              onChange={e => setForm({ ...form, clientId: e.target.value })}
-            />
-            {clientFound === false && (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
-                  Client not present in database
-                </Typography>
-                <Button size="small" variant="outlined" onClick={handleCreateClient}>
-                  Create
-                </Button>
-              </Stack>
+            <Stack direction="row" spacing={2}>
+              <FormControlLabel
+                control={<Checkbox checked={form.anonymous} onChange={e => setForm({ ...form, anonymous: e.target.checked })} />}
+                label="Anonymous"
+              />
+              <FormControlLabel
+                control={<Checkbox checked={form.sunshineBag} onChange={e => setForm({ ...form, sunshineBag: e.target.checked })} />}
+                label={t('sunshine_bag_label')}
+              />
+            </Stack>
+            {form.sunshineBag ? (
+              <TextField
+                label={t('sunshine_bag_weight_label')}
+                type="number"
+                value={form.sunshineWeight}
+                onChange={e => setForm({ ...form, sunshineWeight: e.target.value })}
+              />
+            ) : (
+              <>
+                <TextField
+                  label="Client ID"
+                  value={form.clientId}
+                  onChange={e => setForm({ ...form, clientId: e.target.value })}
+                />
+                {clientFound === false && (
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
+                      Client not present in database
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={handleCreateClient}>
+                      Create
+                    </Button>
+                  </Stack>
+                )}
+                <TextField
+                  label="Weight With Cart"
+                  type="number"
+                  value={form.weightWithCart}
+                  onChange={e => {
+                    setForm({ ...form, weightWithCart: e.target.value });
+                    setAutoWeight(true);
+                  }}
+                />
+                <TextField
+                  label="Weight Without Cart"
+                  type="number"
+                  value={form.weightWithoutCart}
+                  onChange={e => {
+                    setForm({ ...form, weightWithoutCart: e.target.value });
+                    setAutoWeight(false);
+                  }}
+                />
+                <TextField
+                  label="Pet Item"
+                  type="number"
+                  value={form.petItem}
+                  onChange={e => setForm({ ...form, petItem: e.target.value })}
+                />
+                <TextField
+                  label={t('staff_note_label')}
+                  value={form.note}
+                  onChange={e => setForm({ ...form, note: e.target.value })}
+                  multiline
+                  rows={2}
+                />
+              </>
             )}
-            <TextField
-              label="Weight With Cart"
-              type="number"
-              value={form.weightWithCart}
-              onChange={e => {
-                setForm({ ...form, weightWithCart: e.target.value });
-                setAutoWeight(true);
-              }}
-            />
-            <TextField
-              label="Weight Without Cart"
-              type="number"
-              value={form.weightWithoutCart}
-              onChange={e => {
-                setForm({ ...form, weightWithoutCart: e.target.value });
-                setAutoWeight(false);
-              }}
-            />
-            <TextField
-              label="Pet Item"
-              type="number"
-              value={form.petItem}
-              onChange={e => setForm({ ...form, petItem: e.target.value })}
-            />
-            <TextField
-              label={t('staff_note_label')}
-              value={form.note}
-              onChange={e => setForm({ ...form, note: e.target.value })}
-              multiline
-              rows={2}
-            />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleSaveVisit} disabled={!form.weightWithCart || !form.weightWithoutCart || !form.clientId}>
+          <Button
+            onClick={handleSaveVisit}
+            disabled={
+              form.sunshineBag
+                ? !form.sunshineWeight
+                : !form.weightWithCart || !form.weightWithoutCart || !form.clientId
+            }
+          >
             Save
           </Button>
         </DialogActions>

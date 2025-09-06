@@ -43,6 +43,7 @@ import badgesRoutes from './routes/badges';
 import statsRoutes from './routes/stats';
 import timesheetsRoutes from './routes/timesheets';
 import leaveRequestsRoutes from './routes/leaveRequests';
+import sunshineBagsRoutes from './routes/sunshineBags';
 
 const app = express();
 
@@ -106,6 +107,7 @@ api.use('/badges', badgesRoutes);
 api.use('/stats', statsRoutes);
 api.use('/timesheets', timesheetsRoutes);
 api.use('/leave/requests', leaveRequestsRoutes);
+api.use('/sunshine-bags', sunshineBagsRoutes);
 
 // Mount /api
 app.use('/api', api);
