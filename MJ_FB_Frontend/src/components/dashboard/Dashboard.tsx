@@ -14,9 +14,9 @@ import People from '@mui/icons-material/People';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EventAvailable from '@mui/icons-material/EventAvailable';
 import Announcement from '@mui/icons-material/Announcement';
-import { getBookings } from '../../api/bookings';
+import { getBookings, getSlotsRange } from '../../api/bookings';
 import { getVolunteerBookings } from '../../api/volunteers';
-import type { Role, Booking, VolunteerBooking } from '../../types';
+import type { Role, Booking, VolunteerBooking, SlotsByDate } from '../../types';
 import { getVisitStats, type VisitStat } from '../../api/clientVisits';
 import { formatTime } from '../../utils/time';
 import EntitySearch from '../EntitySearch';
@@ -274,12 +274,15 @@ function UserDashboard() {
 
     const todayStr = formatLocalDate(new Date());
     getSlotsRange(todayStr, 5)
-      .then(days => {
+      .then((days: SlotsByDate[]) => {
         const merged = days.flatMap(d =>
           d.slots
             .filter(s => (s.available ?? 0) > 0)
-            .map(s =>
-              `${formatDate(d.date)} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`,
+            .map(
+              s =>
+                `${formatDate(d.date)} ${formatTime(s.startTime)}-${formatTime(
+                  s.endTime,
+                )}`,
             ),
         );
         setSlotOptions(merged.slice(0, 3));
