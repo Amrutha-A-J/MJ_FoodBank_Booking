@@ -35,4 +35,3 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | `templateId: 0` | Volunteer booking notifications (cancellations, coordinator notices, recurring bookings) | `subject`, `body` |
 | `VOLUNTEER_NO_SHOW_NOTIFICATION_TEMPLATE_ID` | Nightly coordinator alerts for volunteer no-shows | `ids` |
 | `templateId: 1` | Agency membership additions or removals | `body` |
-| `BADGE_MILESTONE_TEMPLATE_ID` | Milestone badge emails with downloadable card | `body`, `cardUrl` |
