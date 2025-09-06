@@ -147,7 +147,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
             row.id,
             { status: 'visited', slot_id: null, date: formatReginaDate(date), note: null },
             client,
-          );
+            );
         } else {
           await updateBooking(row.id, { status: 'no_show', note: null }, client);
         }
@@ -259,58 +259,85 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         addError(name, 'Invalid sheet name');
         continue;
       }
-      const rows = await readXlsxFile(req.file.buffer, { sheet: name });
-      for (const [index, row] of rows.slice(1).entries()) {
-        const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
-        let parsed;
-        try {
-          parsed = importClientVisitsSchema.parse({
-            familySize: String(familySize ?? ''),
-            weightWithCart:
-              weightWithCart == null ? undefined : Number(weightWithCart),
-            weightWithoutCart:
-              weightWithoutCart == null ? undefined : Number(weightWithoutCart),
-            petItem: petItem == null ? undefined : Number(petItem),
-            clientId: Number(clientId),
-          });
-        } catch (err: any) {
-          addError(name, `Row ${index + 2}: ${err.message}`);
-          continue;
-        }
-        const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
-        const adults = parseInt(match?.groups?.adults ?? '0', 10);
-        const children = parseInt(match?.groups?.children || '0', 10);
-        let weightWithCartVal = parsed.weightWithCart ?? null;
-        const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
-        if (weightWithCartVal == null && weightWithoutCartVal != null) {
-          weightWithCartVal = weightWithoutCartVal + cartTare;
-        }
-        const cid = parsed.clientId;
-        const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
-        if ((existing.rowCount ?? 0) === 0) {
-          const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+        const rows = await readXlsxFile(req.file.buffer, { sheet: name });
+        for (const [index, row] of rows.slice(1).entries()) {
+          const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+          let parsed;
+          try {
+            const clientIdVal =
+              typeof clientId === 'string' &&
+              clientId !== 'SUNSHINE' &&
+              clientId !== 'ANONYMOUS'
+                ? Number(clientId)
+                : clientId;
+            parsed = importClientVisitsSchema.parse({
+              familySize: String(familySize ?? ''),
+              weightWithCart:
+                weightWithCart == null ? undefined : Number(weightWithCart),
+              weightWithoutCart:
+                weightWithoutCart == null ? undefined : Number(weightWithoutCart),
+              petItem: petItem == null ? undefined : Number(petItem),
+              clientId: clientIdVal,
+            });
+          } catch (err: any) {
+            addError(name, `Row ${index + 2}: ${err.message}`);
+            continue;
+          }
+          const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+          const adults = parseInt(match?.groups?.adults ?? '0', 10);
+          const children = parseInt(match?.groups?.children || '0', 10);
+          let weightWithCartVal = parsed.weightWithCart ?? null;
+          const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+          if (weightWithCartVal == null && weightWithoutCartVal != null) {
+            weightWithCartVal = weightWithoutCartVal + cartTare;
+          }
+          if (parsed.clientId === 'SUNSHINE') {
+            let bagWeight = weightWithoutCartVal;
+            if (bagWeight == null && weightWithCartVal != null) {
+              bagWeight = weightWithCartVal - cartTare;
+            }
+            bagWeight = bagWeight ?? 0;
+            await client.query(
+              `INSERT INTO sunshine_bag_log (date, weight)
+               VALUES ($1, $2)
+               ON CONFLICT (date) DO UPDATE SET weight = EXCLUDED.weight`,
+              [formatReginaDate(name), bagWeight],
+            );
+            continue;
+          }
+          const isAnonymous = parsed.clientId === 'ANONYMOUS';
+          const cid = isAnonymous ? null : (parsed.clientId as number);
+          if (!isAnonymous) {
+            const existing = await client.query(
+              'SELECT client_id FROM clients WHERE client_id = $1',
+              [cid],
+            );
+            if ((existing.rowCount ?? 0) === 0) {
+              const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+              await client.query(
+                `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+                [cid, profileLink],
+              );
+              createdClients.push(cid!);
+            }
+          }
           await client.query(
-            `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
-            [cid, profileLink],
-          );
-          createdClients.push(cid);
+            `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+             VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8)`,
+            [
+              formatReginaDate(name),
+              cid,
+              weightWithCartVal,
+              weightWithoutCartVal,
+              parsed.petItem ?? 0,
+              adults,
+              children,
+              isAnonymous,
+            ],
+            );
+          if (cid != null) await refreshClientVisitCount(cid, client);
+          imported++;
         }
-        await client.query(
-          `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-           VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
-          [
-            formatReginaDate(name),
-            cid,
-            weightWithCartVal,
-            weightWithoutCartVal,
-            parsed.petItem ?? 0,
-            adults,
-            children,
-          ],
-        );
-        await refreshClientVisitCount(cid, client);
-        imported++;
-      }
     }
     await client.query('COMMIT');
     res.json({ imported, newClients: createdClients, errors });
@@ -367,47 +394,75 @@ export async function importVisitsFromXlsx(
       const dataRows = rows.slice(1);
       let rowIndex = 1;
       for (const row of dataRows) {
-        rowIndex++;
-        const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
-        try {
-          const parsed = importClientVisitsSchema.parse({
-            date: new Date(sheetDate),
-            familySize: String(familySize ?? ''),
-            weightWithCart:
-              weightWithCart == null ? undefined : Number(weightWithCart),
-            weightWithoutCart:
-              weightWithoutCart == null ? undefined : Number(weightWithoutCart),
-            petItem: petItem == null ? 0 : Number(petItem),
-            clientId: Number(clientId),
-          });
-          const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
-          const adults = parseInt(match?.groups?.adults ?? '0', 10);
-          const children = parseInt(match?.groups?.children || '0', 10);
+          rowIndex++;
+          const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+          try {
+            const clientIdVal =
+              typeof clientId === 'string' &&
+              clientId !== 'SUNSHINE' &&
+              clientId !== 'ANONYMOUS'
+                ? Number(clientId)
+                : clientId;
+            const parsed = importClientVisitsSchema.parse({
+              date: new Date(sheetDate),
+              familySize: String(familySize ?? ''),
+              weightWithCart:
+                weightWithCart == null ? undefined : Number(weightWithCart),
+              weightWithoutCart:
+                weightWithoutCart == null ? undefined : Number(weightWithoutCart),
+              petItem: petItem == null ? 0 : Number(petItem),
+              clientId: clientIdVal,
+            });
+            const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+            const adults = parseInt(match?.groups?.adults ?? '0', 10);
+            const children = parseInt(match?.groups?.children || '0', 10);
 
-          let weightWithCartVal = parsed.weightWithCart ?? null;
-          const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
-          if (weightWithCartVal == null && weightWithoutCartVal != null) {
-            weightWithCartVal = weightWithoutCartVal + cartTare;
-          }
+            let weightWithCartVal = parsed.weightWithCart ?? null;
+            const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+            if (weightWithCartVal == null && weightWithoutCartVal != null) {
+              weightWithCartVal = weightWithoutCartVal + cartTare;
+            }
 
-          if (isDryRun) continue;
+            if (parsed.clientId === 'SUNSHINE') {
+              let bagWeight = weightWithoutCartVal;
+              if (bagWeight == null && weightWithCartVal != null) {
+                bagWeight = weightWithCartVal - cartTare;
+              }
+              bagWeight = bagWeight ?? 0;
+              if (!isDryRun) {
+                await client!.query(
+                  `INSERT INTO sunshine_bag_log (date, weight)
+                   VALUES ($1, $2)
+                   ON CONFLICT (date) DO UPDATE SET weight = EXCLUDED.weight`,
+                  [formattedDate, bagWeight],
+                );
+              }
+              continue;
+            }
 
-          const cid = parsed.clientId;
-          const existingClient = await client!.query(
-            'SELECT client_id FROM clients WHERE client_id = $1',
-            [cid],
-          );
-          if ((existingClient.rowCount ?? 0) === 0) {
-            const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
-            await client!.query(
-              `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
-              [cid, profileLink],
-            );
-          }
+            if (isDryRun) continue;
+
+            const isAnonymous = parsed.clientId === 'ANONYMOUS';
+            const cid = isAnonymous ? null : (parsed.clientId as number);
+            if (!isAnonymous) {
+              const existingClient = await client!.query(
+                'SELECT client_id FROM clients WHERE client_id = $1',
+                [cid],
+              );
+              if ((existingClient.rowCount ?? 0) === 0) {
+                const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+                await client!.query(
+                  `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+                  [cid, profileLink],
+                );
+              }
+            }
 
             const existingVisit = await client!.query(
-              'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
-              [cid, formattedDate],
+              cid == null
+                ? 'SELECT id FROM client_visits WHERE client_id IS NULL AND date = $1'
+                : 'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
+              cid == null ? [formattedDate] : [cid, formattedDate],
             );
 
             if ((existingVisit.rowCount ?? 0) > 0) {
@@ -418,22 +473,25 @@ export async function importVisitsFromXlsx(
                      pet_item = COALESCE($3,0),
                      adults = $4,
                      children = $5,
-                     is_anonymous = false
-                 WHERE id = $6`,
+                     is_anonymous = $6,
+                     client_id = $7
+                 WHERE id = $8`,
                 [
                   weightWithCartVal,
                   weightWithoutCartVal,
                   parsed.petItem ?? 0,
                   adults,
                   children,
+                  isAnonymous,
+                  cid,
                   existingVisit.rows[0].id,
                 ],
               );
-              await refreshClientVisitCount(cid, client!);
+              if (cid != null) await refreshClientVisitCount(cid, client!);
             } else {
               await client!.query(
                 `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
-                 VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+                 VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8)`,
                 [
                   formattedDate,
                   cid,
@@ -442,14 +500,15 @@ export async function importVisitsFromXlsx(
                   parsed.petItem ?? 0,
                   adults,
                   children,
+                  isAnonymous,
                 ],
               );
-              await refreshClientVisitCount(cid, client!);
+              if (cid != null) await refreshClientVisitCount(cid, client!);
             }
-        } catch (err: any) {
-          errors.push(
+          } catch (err: any) {
+            errors.push(
             `Row ${rowIndex}: ${err.errors?.[0]?.message || err.message}`,
-          );
+            );
         }
       }
 

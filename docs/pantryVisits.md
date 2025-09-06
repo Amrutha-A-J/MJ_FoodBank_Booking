@@ -34,6 +34,11 @@ Include a header row on every sheet and use the following column order:
 6. Pet Item (`0` or `1`)
 7. Note (optional)
 
+### Special Client IDs
+
+- `SUNSHINE` – logs the row's weight to the daily sunshine bag total without creating a visit.
+- `ANONYMOUS` – records a visit without a client ID and marks it as anonymous.
+
 ### Duplicate handling
 
 If a visit already exists for the same client on a given date, the importer overwrites it with the new data.

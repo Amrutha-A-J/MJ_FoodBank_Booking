@@ -22,7 +22,11 @@ export const importClientVisitsSchema = z.object({
   weightWithCart: z.number().int().min(0).nullable().optional(),
   weightWithoutCart: z.number().int().min(0).nullable().optional(),
   petItem: z.number().int().min(0).optional(),
-  clientId: z.number().int().min(1),
+  clientId: z.union([
+    z.number().int().min(1),
+    z.literal('SUNSHINE'),
+    z.literal('ANONYMOUS'),
+  ]),
 });
 
 export type ImportClientVisit = z.infer<typeof importClientVisitsSchema>;

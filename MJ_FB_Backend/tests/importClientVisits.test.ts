@@ -3,6 +3,7 @@ import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
 import pool from '../src/db';
 import readXlsxFile from 'read-excel-file/node';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 jest.mock('read-excel-file/node');
 
@@ -96,14 +97,18 @@ describe('client visit xlsx import', () => {
     const sheets = [{ name: 'Sheet1' }];
     (readXlsxFile as jest.Mock).mockResolvedValueOnce(sheets);
     const buffer = Buffer.from('xlsx');
-    const queryMock = jest.fn().mockResolvedValueOnce({}).mockResolvedValueOnce({});
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ value: 0 }] }) // cart tare
+      .mockResolvedValueOnce({}); // COMMIT
     (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
 
     const res = await request(app).post('/client-visits/import').attach('file', buffer, 'visits.xlsx');
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ imported: 0, newClients: [], errors: { Sheet1: ['Invalid sheet name'] } });
-    expect(queryMock).toHaveBeenCalledTimes(2);
+    expect(queryMock).toHaveBeenCalledTimes(3);
   });
 
   it('aggregates errors per sheet', async () => {
@@ -124,6 +129,7 @@ describe('client visit xlsx import', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ value: 0 }] }) // cart tare
       .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // select client
       .mockResolvedValueOnce({}) // insert visit
       .mockResolvedValueOnce({}) // refresh count
@@ -137,7 +143,67 @@ describe('client visit xlsx import', () => {
     expect(res.body.errors['2024-05-02'][0]).toMatch('Row 2');
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      ['2024-05-01', 123, 30, 20, 0, 1, 0],
+      ['2024-05-01', 123, 30, 20, 0, 1, 0, false],
+    );
+  });
+
+  it('upserts sunshine bag weight when client id is SUNSHINE', async () => {
+    const mockRead = readXlsxFile as jest.Mock;
+    mockRead.mockImplementation((_buf, options) => {
+      if (options?.getSheets) return Promise.resolve([{ name: '2024-05-01' }]);
+      if (options?.sheet === '2024-05-01') {
+        return Promise.resolve([
+          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+          ['1A', 10, 5, 0, 'SUNSHINE'],
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+    const buffer = Buffer.from('xlsx');
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ value: 0 }] }) // cart tare
+      .mockResolvedValueOnce({}) // upsert sunshine bag
+      .mockResolvedValueOnce({}); // COMMIT
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app).post('/client-visits/import').attach('file', buffer, 'visits.xlsx');
+
+    expect(res.status).toBe(200);
+    expect(res.body.imported).toBe(0);
+    expect(queryMock.mock.calls.some(c => c[0].includes('sunshine_bag_log'))).toBe(true);
+    expect(queryMock.mock.calls.some(c => c[0].includes('INSERT INTO client_visits'))).toBe(false);
+  });
+
+  it('marks visit as anonymous when client id is ANONYMOUS', async () => {
+    const mockRead = readXlsxFile as jest.Mock;
+    mockRead.mockImplementation((_buf, options) => {
+      if (options?.getSheets) return Promise.resolve([{ name: '2024-05-01' }]);
+      if (options?.sheet === '2024-05-01') {
+        return Promise.resolve([
+          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+          ['1A', 30, 20, 0, 'ANONYMOUS'],
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+    const buffer = Buffer.from('xlsx');
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // existing visit
+      .mockResolvedValueOnce({}) // insert visit
+      .mockResolvedValueOnce({}); // COMMIT
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app).post('/client-visits/import/xlsx').attach('file', buffer, 'visits.xlsx');
+
+    expect(res.status).toBe(200);
+    const formatted = formatReginaDate(new Date('2024-05-01'));
+    expect(queryMock).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      [formatted, null, 30, 20, 0, 1, 0, true],
     );
   });
 });

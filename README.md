@@ -411,6 +411,8 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
 - Pantry Visits support bulk importing visits from spreadsheets via `POST /client-visits/import` (also `/visits/import`) and overwrite existing visits on client/date conflicts (see `docs/pantryVisits.md`).
+  - Use `SUNSHINE` as the Client ID to log the day's sunshine bag weight without creating a visit.
+  - Use `ANONYMOUS` to record a visit without a client ID and mark it anonymous.
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 
 ## Deploying to Azure
