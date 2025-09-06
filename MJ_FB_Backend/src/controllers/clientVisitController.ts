@@ -96,8 +96,8 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       [
         date,
         clientId ?? null,
-        weightWithCart,
-        weightWithoutCart,
+        weightWithCart ?? null,
+        weightWithoutCart ?? null,
         petItem ?? 0,
         anonymous ?? false,
         note ?? null,
@@ -189,8 +189,8 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
       [
         date,
         clientId ?? null,
-        weightWithCart,
-        weightWithoutCart,
+        weightWithCart ?? null,
+        weightWithoutCart ?? null,
         petItem ?? 0,
         anonymous ?? false,
         note ?? null,
@@ -240,6 +240,11 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     }
     const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
     await client.query('BEGIN');
+
+    const cartRes = await client.query(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
     const createdClients: number[] = [];
     let imported = 0;
     const errors: Record<string, string[]> = {};
@@ -261,8 +266,10 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         try {
           parsed = importClientVisitsSchema.parse({
             familySize: String(familySize ?? ''),
-            weightWithCart: Number(weightWithCart),
-            weightWithoutCart: Number(weightWithoutCart),
+            weightWithCart:
+              weightWithCart == null ? undefined : Number(weightWithCart),
+            weightWithoutCart:
+              weightWithoutCart == null ? undefined : Number(weightWithoutCart),
             petItem: petItem == null ? undefined : Number(petItem),
             clientId: Number(clientId),
           });
@@ -273,6 +280,11 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
         const adults = parseInt(match?.groups?.adults ?? '0', 10);
         const children = parseInt(match?.groups?.children || '0', 10);
+        let weightWithCartVal = parsed.weightWithCart ?? null;
+        const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+        if (weightWithCartVal == null && weightWithoutCartVal != null) {
+          weightWithCartVal = weightWithoutCartVal + cartTare;
+        }
         const cid = parsed.clientId;
         const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
         if ((existing.rowCount ?? 0) === 0) {
@@ -289,8 +301,8 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
           [
             formatReginaDate(name),
             cid,
-            parsed.weightWithCart,
-            parsed.weightWithoutCart,
+            weightWithCartVal,
+            weightWithoutCartVal,
             parsed.petItem ?? 0,
             adults,
             children,
@@ -335,6 +347,10 @@ export async function importVisitsFromXlsx(
   const summaries: { date: string; rowCount: number; errors: string[] }[] = [];
 
   let client: Awaited<ReturnType<typeof pool.connect>> | null = null;
+  const cartRes = await pool.query(
+    "SELECT value FROM app_config WHERE key = 'cart_tare'",
+  );
+  const cartTare = Number(cartRes.rows[0]?.value ?? 0);
   try {
     const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
     if (!isDryRun) {
@@ -357,14 +373,22 @@ export async function importVisitsFromXlsx(
           const parsed = importClientVisitsSchema.parse({
             date: new Date(sheetDate),
             familySize: String(familySize ?? ''),
-            weightWithCart: Number(weightWithCart),
-            weightWithoutCart: Number(weightWithoutCart),
+            weightWithCart:
+              weightWithCart == null ? undefined : Number(weightWithCart),
+            weightWithoutCart:
+              weightWithoutCart == null ? undefined : Number(weightWithoutCart),
             petItem: petItem == null ? 0 : Number(petItem),
             clientId: Number(clientId),
           });
           const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
           const adults = parseInt(match?.groups?.adults ?? '0', 10);
           const children = parseInt(match?.groups?.children || '0', 10);
+
+          let weightWithCartVal = parsed.weightWithCart ?? null;
+          const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+          if (weightWithCartVal == null && weightWithoutCartVal != null) {
+            weightWithCartVal = weightWithoutCartVal + cartTare;
+          }
 
           if (isDryRun) continue;
 
@@ -397,8 +421,8 @@ export async function importVisitsFromXlsx(
                      is_anonymous = false
                  WHERE id = $6`,
                 [
-                  parsed.weightWithCart,
-                  parsed.weightWithoutCart,
+                  weightWithCartVal,
+                  weightWithoutCartVal,
                   parsed.petItem ?? 0,
                   adults,
                   children,
@@ -413,8 +437,8 @@ export async function importVisitsFromXlsx(
                 [
                   formattedDate,
                   cid,
-                  parsed.weightWithCart,
-                  parsed.weightWithoutCart,
+                  weightWithCartVal,
+                  weightWithoutCartVal,
                   parsed.petItem ?? 0,
                   adults,
                   children,
