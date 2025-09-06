@@ -24,11 +24,8 @@ const envSchema = z.object({
   PASSWORD_SETUP_TEMPLATE_ID: z.coerce.number().default(6),
   BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
   BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
-  BOOKING_STATUS_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
-  VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID: z.coerce.number().default(0),
-  BADGE_MILESTONE_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
 });
 
@@ -64,10 +61,7 @@ export default {
   passwordSetupTemplateId: env.PASSWORD_SETUP_TEMPLATE_ID,
   bookingConfirmationTemplateId: env.BOOKING_CONFIRMATION_TEMPLATE_ID,
   bookingReminderTemplateId: env.BOOKING_REMINDER_TEMPLATE_ID,
-  bookingStatusTemplateId: env.BOOKING_STATUS_TEMPLATE_ID,
   volunteerBookingConfirmationTemplateId: env.VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID,
   volunteerBookingReminderTemplateId: env.VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID,
-  volunteerBookingNotificationTemplateId: env.VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID,
-  badgeMilestoneTemplateId: env.BADGE_MILESTONE_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
 };

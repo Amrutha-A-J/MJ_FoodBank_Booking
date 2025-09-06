@@ -124,17 +124,17 @@ describe('cancelVolunteerBookingOccurrence', () => {
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] });
   }
 
-  it('sends email when staff cancels with reason', async () => {
-    mockCommonQueries();
-    const res = await request(app)
-      .patch('/volunteer-bookings/1/cancel')
-      .set('x-staff', '1')
-      .send({ reason: 'sick' });
-    expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
-    expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
-    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
-  });
+    it('sends email when staff cancels with reason', async () => {
+      mockCommonQueries();
+      const res = await request(app)
+        .patch('/volunteer-bookings/1/cancel')
+        .set('x-staff', '1')
+        .send({ reason: 'sick' });
+      expect(res.status).toBe(200);
+      expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
+      expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
+      expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
+    });
 
   it('does not send email when volunteer cancels', async () => {
     mockCommonQueries();
@@ -161,17 +161,15 @@ describe('cancelRecurringVolunteerBooking', () => {
       .mockResolvedValueOnce({});
   }
 
-  it('sends email when staff cancels recurring booking', async () => {
-    mockRecurringQueries();
-    const res = await request(app)
-      .delete('/volunteer-bookings/recurring/1')
-      .set('x-staff', '1')
-      .send({ reason: 'sick' });
-    expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
-    expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
-    expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
-  });
+    it('does not send email when staff cancels recurring booking', async () => {
+      mockRecurringQueries();
+      const res = await request(app)
+        .delete('/volunteer-bookings/recurring/1')
+        .set('x-staff', '1')
+        .send({ reason: 'sick' });
+      expect(res.status).toBe(200);
+      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
+    });
 
   it('does not send email when volunteer cancels recurring booking', async () => {
     mockRecurringQueries();

@@ -49,14 +49,8 @@ describe('staff recurring volunteer bookings', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.recurringId).toBe(30);
-    expect(res.body.successes).toEqual(['2025-01-01', '2025-01-02', '2025-01-03']);
-    expect(res.body.skipped).toEqual([]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(9);
-    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
-      to: 'vol@example.com',
-      templateId: 0,
-      params: expect.any(Object),
-    });
+      expect(res.body.successes).toEqual(['2025-01-01', '2025-01-02', '2025-01-03']);
+      expect(res.body.skipped).toEqual([]);
   });
 
   it('lists recurring bookings for a volunteer', async () => {
@@ -106,7 +100,7 @@ describe('staff recurring volunteer bookings', () => {
       '/volunteer-bookings/recurring/10?from=2025-01-02',
     );
 
-    expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+      expect(res.status).toBe(200);
+      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 });

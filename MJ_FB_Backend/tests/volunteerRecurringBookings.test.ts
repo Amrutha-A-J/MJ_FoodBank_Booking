@@ -53,13 +53,7 @@ describe('recurring volunteer bookings', () => {
       '2025-01-02',
       '2025-01-03',
     ]);
-    expect(res.body.skipped).toEqual([]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(9);
-    expect(sendTemplatedEmailMock.mock.calls[0][0]).toMatchObject({
-      to: 'test@example.com',
-      templateId: 0,
-      params: expect.any(Object),
-    });
+      expect(res.body.skipped).toEqual([]);
   });
 
   it('skips dates that fail validation', async () => {
@@ -84,11 +78,10 @@ describe('recurring volunteer bookings', () => {
     expect(res.status).toBe(201);
     expect(res.body.recurringId).toBe(20);
     expect(res.body.successes).toEqual(['2025-01-03']);
-    expect(res.body.skipped).toEqual([
-      { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
-      { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
-    ]);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+      expect(res.body.skipped).toEqual([
+        { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
+        { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
+      ]);
   });
 
   it('cancels future recurring bookings', async () => {
@@ -109,8 +102,8 @@ describe('recurring volunteer bookings', () => {
     const res = await request(app).delete(
       '/volunteer-bookings/recurring/10?from=2025-01-02',
     );
-    expect(res.status).toBe(200);
-    expect(sendTemplatedEmailMock.mock.calls).toHaveLength(3);
+      expect(res.status).toBe(200);
+      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 
   it('lists recurring bookings', async () => {

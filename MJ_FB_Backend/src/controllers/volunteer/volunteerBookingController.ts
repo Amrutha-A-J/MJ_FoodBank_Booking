@@ -1408,20 +1408,6 @@ export async function cancelRecurringVolunteerBooking(
        WHERE id=$1`,
       [id, from],
     );
-    const subject = `Recurring volunteer bookings cancelled starting ${from} ${info.start_time}-${info.end_time}`;
-    const body = `Date: ${from} from ${info.start_time} to ${info.end_time}. Reason: ${cancelReason}.`;
-    if (info.email && req.user?.role === 'staff') {
-      await sendTemplatedEmail({
-        to: info.email,
-        templateId: config.volunteerBookingNotificationTemplateId,
-        params: { subject, body },
-      });
-    } else if (!info.email && req.user?.role === 'staff') {
-      logger.warn(
-        'Volunteer booking cancellation email not sent. Volunteer %s has no email.',
-        info.volunteer_id,
-      );
-    }
     res.json({ message: 'Recurring bookings cancelled' });
   } catch (error) {
     logger.error('Error cancelling recurring volunteer bookings:', error);
