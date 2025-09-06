@@ -6,10 +6,11 @@ import config from './config';
 import logger from './utils/logger';
 
 /**
- * Use the REGIONAL RDS trust bundle for your region.
- * Adjust the path if your project lives elsewhere or your region isn't ca-central-1.
+ * Path to the RDS CA bundle.
+ * Defaults to the global bundle in certs but can be overridden with PG_CA_CERT.
  */
-const CA_PATH = '/home/ubuntu/apps/MJ_FoodBank_Booking/MJ_FB_Backend/certs/rds-ca-central-1-bundle.pem';
+const CA_PATH = process.env.PG_CA_CERT ||
+  path.join(__dirname, '../certs/rds-global-bundle.pem');
 
 // Toggle: set PG_INSECURE_SSL=true to skip cert verification TEMPORARILY (for debugging)
 const INSECURE = process.env.PG_INSECURE_SSL === 'true';
