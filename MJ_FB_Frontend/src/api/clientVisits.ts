@@ -17,6 +17,8 @@ export async function createClientVisit(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...payload,
+      adults: payload.adults,
+      children: payload.children,
       note: payload.note ?? undefined,
     }),
   });
@@ -32,6 +34,8 @@ export async function updateClientVisit(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...payload,
+      adults: payload.adults ?? undefined,
+      children: payload.children ?? undefined,
       note: payload.note ?? undefined,
     }),
   });
