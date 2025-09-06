@@ -4,7 +4,8 @@ import logger from '../utils/logger';
 import { formatReginaDate } from '../utils/dateUtils';
 import { Queryable } from '../utils/bookingUtils';
 import { updateBooking } from '../models/bookingRepository';
-import readXlsxFile from 'read-excel-file/node';
+import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
+import type { PoolClient } from 'pg';
 import fs from 'fs/promises';
 import { importClientVisitsSchema } from '../schemas/clientVisitSchemas';
 
@@ -257,7 +258,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     if (!req.file) {
       return res.status(400).json({ message: 'File required' });
     }
-    const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
+    const sheetNames = await readSheetNames(req.file.buffer);
     await client.query('BEGIN');
 
     const cartRes = await client.query(
@@ -273,7 +274,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
       errors[sheet].push(message);
     };
 
-    for (const { name } of sheets) {
+    for (const name of sheetNames) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(name)) {
         addError(name, 'Invalid sheet name');
         continue;
@@ -385,21 +386,21 @@ export async function importVisitsFromXlsx(
   const isDryRun = dryRun === 'true';
   const summaries: { date: string; rowCount: number; errors: string[] }[] = [];
 
-  let client: Awaited<ReturnType<typeof pool.connect>> | null = null;
+  let client: PoolClient | null = null;
   const cartRes = await pool.query(
     "SELECT value FROM app_config WHERE key = 'cart_tare'",
   );
   const cartTare = Number(cartRes.rows[0]?.value ?? 0);
   try {
-    const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
+    const sheetNames = await readSheetNames(req.file.buffer);
     if (!isDryRun) {
       client = await pool.connect();
       await client.query('BEGIN');
     }
 
-    for (const sheet of sheets) {
-      const rows = await readXlsxFile(req.file.buffer, { sheet: sheet.name });
-      const sheetDate = sheet.name;
+    for (const sheetName of sheetNames) {
+      const rows = await readXlsxFile(req.file.buffer, { sheet: sheetName });
+      const sheetDate = sheetName;
       const formattedDate = formatReginaDate(sheetDate);
       const errors: string[] = [];
 
