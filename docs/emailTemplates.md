@@ -16,3 +16,15 @@ This document catalogs Brevo email templates used by the backend and the paramet
   - `link` (string) – one-time URL to the `/set-password` page that lets the recipient create or reset their password.
   - `token` (string) – raw token value for templates that build the link internally.
 
+## Booking confirmation and reminder emails
+
+- **Template ID variables:** `BOOKING_CONFIRMATION_TEMPLATE_ID`, `BOOKING_REMINDER_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the booking.
+  - `cancelLink` (string) – link for the recipient to cancel their booking.
+  - `rescheduleLink` (string) – link allowing rescheduling.
+  - `googleCalendarLink` (string) – URL to add the booking to Google Calendar.
+  - `outlookCalendarLink` (string) – URL to add the booking to Outlook Calendar.
+
+Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
+
