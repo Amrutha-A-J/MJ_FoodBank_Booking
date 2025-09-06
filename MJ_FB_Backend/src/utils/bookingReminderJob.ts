@@ -17,11 +17,12 @@ export async function sendNextDayBookingReminders(): Promise<void> {
     const bookings = await fetchBookingsForReminder(nextDate);
     for (const b of bookings) {
       if (!b.user_email) continue;
-      const time = b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';
+      const time =
+        b.start_time && b.end_time ? ` from ${b.start_time} to ${b.end_time}` : '';
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         b.reschedule_token,
       );
-      const body = `This is a reminder for your booking on ${nextDate}${time}.`;
+      const body = `Date: ${nextDate}${time}`;
       await enqueueEmail({
         to: b.user_email,
         templateId: config.bookingReminderTemplateId,

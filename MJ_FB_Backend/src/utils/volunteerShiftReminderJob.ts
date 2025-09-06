@@ -24,11 +24,14 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
     );
     for (const row of res.rows) {
       if (!row.email) continue;
-      const time = row.start_time && row.end_time ? ` from ${row.start_time} to ${row.end_time}` : '';
+      const time =
+        row.start_time && row.end_time
+          ? ` from ${row.start_time} to ${row.end_time}`
+          : '';
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         row.reschedule_token,
       );
-      const body = `This is a reminder for your volunteer shift on ${nextDate}${time}.`;
+      const body = `Date: ${nextDate}${time}`;
       enqueueEmail({
         to: row.email,
         templateId: config.volunteerBookingReminderTemplateId,
