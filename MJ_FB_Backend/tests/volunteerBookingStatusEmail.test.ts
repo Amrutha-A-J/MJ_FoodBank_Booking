@@ -11,6 +11,7 @@ jest.mock('../src/utils/emailUtils', () => ({
   buildCalendarLinks: () => ({
     googleCalendarLink: '',
     outlookCalendarLink: '',
+    appleCalendarLink: '',
   }),
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;

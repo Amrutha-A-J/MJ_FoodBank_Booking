@@ -8,7 +8,7 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `children_label`
 - `no_reschedule_token`
 - `add_to_google_calendar`
-- `download_ics`
+- `add_to_apple_calendar`
 - `booking_rescheduled`
 - `reschedule_failed`
 - `select_date_time`

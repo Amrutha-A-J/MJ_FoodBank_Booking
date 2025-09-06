@@ -112,7 +112,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
 Booking confirmation and reminder templates can surface "Add to Calendar" buttons by referencing
-`{{ params.googleCalendarLink }}` and `{{ params.outlookCalendarLink }}` in the Brevo templates.
+`{{ params.googleCalendarLink }}`, `{{ params.outlookCalendarLink }}`, and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
 
 Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
@@ -284,9 +284,9 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token` |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `type` |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |

@@ -61,6 +61,7 @@ describe('createBookingForUser', () => {
           body: expect.stringContaining('Mon, Jan 15, 2024'),
           googleCalendarLink: expect.any(String),
           outlookCalendarLink: expect.any(String),
+          appleCalendarLink: expect.any(String),
         }),
       }),
     );

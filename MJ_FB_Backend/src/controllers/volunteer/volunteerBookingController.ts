@@ -193,11 +193,11 @@ export async function createVolunteerBooking(
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
           token,
         );
-        const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
-          date,
-          slot.start_time,
-          slot.end_time,
-        );
+        const {
+          googleCalendarLink,
+          outlookCalendarLink,
+          appleCalendarLink,
+        } = buildCalendarLinks(date, slot.start_time, slot.end_time);
         const body = `Date: ${formatReginaDateWithDay(date)} from ${slot.start_time} to ${slot.end_time}`;
         enqueueEmail({
           to: user.email,
@@ -208,6 +208,7 @@ export async function createVolunteerBooking(
             rescheduleLink,
             googleCalendarLink,
             outlookCalendarLink,
+            appleCalendarLink,
             type: emailType,
           },
         });
@@ -558,11 +559,11 @@ export async function resolveVolunteerBookingConflict(
 
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
-        date!,
-        slot.start_time,
-        slot.end_time,
-      );
+      const {
+        googleCalendarLink,
+        outlookCalendarLink,
+        appleCalendarLink,
+      } = buildCalendarLinks(date!, slot.start_time, slot.end_time);
       const body = `Date: ${formatReginaDateWithDay(date!)} from ${slot.start_time} to ${slot.end_time}`;
       enqueueEmail({
         to: user.email,
@@ -573,6 +574,7 @@ export async function resolveVolunteerBookingConflict(
           rescheduleLink,
           googleCalendarLink,
           outlookCalendarLink,
+          appleCalendarLink,
           type: emailType,
         },
       });

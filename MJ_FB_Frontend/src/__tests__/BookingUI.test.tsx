@@ -243,7 +243,7 @@ describe('Booking confirmation', () => {
     await waitFor(() => expect(createBooking).toHaveBeenCalled());
     const gcal = await screen.findByRole('link', { name: /add to google calendar/i });
     expect(gcal).toHaveAttribute('href', 'https://calendar.test');
-    const ics = screen.getByRole('link', { name: /download ics/i });
+    const ics = screen.getByRole('link', { name: /add to apple calendar/i });
     expect(ics).toHaveAttribute('href', '/test.ics');
   });
 });

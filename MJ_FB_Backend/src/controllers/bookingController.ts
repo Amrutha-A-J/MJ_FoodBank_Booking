@@ -119,22 +119,21 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       client.release();
     }
 
+    const slotRes = await pool.query(
+      'SELECT start_time, end_time FROM slots WHERE id=$1',
+      [slotIdNum],
+    );
+    const { start_time, end_time } = slotRes.rows[0] || {};
+    const {
+      googleCalendarLink,
+      outlookCalendarLink,
+      appleCalendarLink,
+    } = buildCalendarLinks(date, start_time, end_time);
+
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const slotRes = await pool.query(
-        'SELECT start_time, end_time FROM slots WHERE id=$1',
-        [slotIdNum],
-      );
-      const { start_time, end_time } = slotRes.rows[0] || {};
-      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
-        date,
-        start_time,
-        end_time,
-      );
       const time =
-        start_time && end_time
-          ? ` from ${start_time} to ${end_time}`
-          : '';
+        start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
       const formattedDate = formatReginaDateWithDay(date);
       const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
@@ -146,6 +145,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           rescheduleLink,
           googleCalendarLink,
           outlookCalendarLink,
+          appleCalendarLink,
           type: emailType,
         },
       });
@@ -161,6 +161,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       bookingsThisMonth,
       status: 'approved',
       rescheduleToken: token,
+      googleCalendarUrl: googleCalendarLink,
+      icsUrl: appleCalendarLink,
     });
   } catch (error: any) {
     logger.error('Error creating booking:', error);
@@ -647,15 +649,13 @@ export async function createBookingForUser(
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (clientEmail) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const { googleCalendarLink, outlookCalendarLink } = buildCalendarLinks(
-        date,
-        start_time,
-        end_time,
-      );
+      const {
+        googleCalendarLink,
+        outlookCalendarLink,
+        appleCalendarLink,
+      } = buildCalendarLinks(date, start_time, end_time);
       const time =
-        start_time && end_time
-          ? ` from ${start_time} to ${end_time}`
-          : '';
+        start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
       const formattedDate = formatReginaDateWithDay(date);
       const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
@@ -667,6 +667,7 @@ export async function createBookingForUser(
           rescheduleLink,
           googleCalendarLink,
           outlookCalendarLink,
+          appleCalendarLink,
           type: emailType,
         },
       });

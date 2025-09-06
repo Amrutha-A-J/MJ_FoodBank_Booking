@@ -17,7 +17,11 @@ jest.mock('../src/utils/emailQueue', () => ({
 }));
 jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '#cancel', rescheduleLink: '#resched' }),
-  buildCalendarLinks: () => ({ googleCalendarLink: '', outlookCalendarLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '',
+    outlookCalendarLink: '',
+    appleCalendarLink: '',
+  }),
 }));
 jest.mock('../src/models/bookingRepository');
 jest.mock('../src/utils/bookingUtils');

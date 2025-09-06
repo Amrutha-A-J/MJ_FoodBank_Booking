@@ -1,5 +1,6 @@
 import config from '../config';
 import logger from './logger';
+import { buildIcsFile } from './calendarLinks';
 
 export async function sendEmail(
   to: string,
@@ -137,7 +138,11 @@ export function buildCalendarLinks(
   date: string,
   startTime?: string | null,
   endTime?: string | null,
-): { googleCalendarLink: string; outlookCalendarLink: string } {
+): {
+  googleCalendarLink: string;
+  outlookCalendarLink: string;
+  appleCalendarLink: string;
+} {
   const start = new Date(`${date}T${startTime ?? '00:00:00'}-06:00`);
   const end = new Date(`${date}T${endTime ?? '23:59:59'}-06:00`);
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -149,5 +154,13 @@ export function buildCalendarLinks(
     `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=${encodeURIComponent(
       start.toISOString(),
     )}&enddt=${encodeURIComponent(end.toISOString())}&subject=${text}`;
-  return { googleCalendarLink, outlookCalendarLink };
+  const ics = buildIcsFile({
+    title: 'Harvest Pantry Booking',
+    start,
+    end,
+    description: 'Your booking at the Harvest Pantry',
+    location: 'Moose Jaw Food Bank',
+  });
+  const appleCalendarLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+  return { googleCalendarLink, outlookCalendarLink, appleCalendarLink };
 }
