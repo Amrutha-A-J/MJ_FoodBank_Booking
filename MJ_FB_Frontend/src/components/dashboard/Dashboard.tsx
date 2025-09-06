@@ -175,8 +175,12 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
               />
             </SectionCard>
           </Grid>
+        </Grid>
+      </Grid>
+      <Grid size={12}>
+        <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <SectionCard title="Total Pantry Visits">
+            <SectionCard title="Total Clients">
               <ClientVisitTrendChart data={visitStats} />
             </SectionCard>
           </Grid>
@@ -185,80 +189,80 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
               <ClientVisitBreakdownChart data={visitStats} />
             </SectionCard>
           </Grid>
-          <Grid size={12}>
-            <SectionCard title="Quick Search">
-              <Stack spacing={2}>
-                <EntitySearch
-                  type={searchType}
-                  placeholder="Search"
-                  onSelect={res => {
-                    if (searchType === 'user') {
-                      navigate(
-                        `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
-                          res.name,
-                        )}&clientId=${res.client_id}`,
-                      );
-                    } else {
-                      navigate(
-                        `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
-                          res.name,
-                        )}`,
-                      );
-                    }
-                  }}
-                />
-                <Stack direction="row" spacing={1}>
-                  <Button
-                    size="small"
-                    variant={searchType === 'user' ? 'contained' : 'outlined'}
-                    sx={{ textTransform: 'none' }}
-                    onClick={() => setSearchType('user')}
-                  >
-                    Find Client
-                  </Button>
-                  <Button
-                    size="small"
-                    variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
-                    sx={{ textTransform: 'none' }}
-                    onClick={() => setSearchType('volunteer')}
-                  >
-                    Find Volunteer
-                  </Button>
-                </Stack>
-              </Stack>
-            </SectionCard>
-          </Grid>
-          <Grid size={12}>
-            <SectionCard title="Recent Cancellations">
-              <List>
-                {cancellations.slice(0, 5).map(c => (
-                  <ListItem key={c.id}>
-                    <ListItemText
-                      primary={`${c.user_name || 'Unknown'} - ${formatTime(
-                        c.start_time || '',
-                      )}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </SectionCard>
-          </Grid>
-          <Grid size={12}>
-            <SectionCard title="Volunteer Shift Changes">
-              <List>
-                {volCancellations.slice(0, 5).map(c => (
-                  <ListItem key={c.id}>
-                    <ListItemText
-                      primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(
-                        c.start_time || '',
-                      )}`}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </SectionCard>
-          </Grid>
         </Grid>
+      </Grid>
+      <Grid size={12}>
+        <SectionCard title="Quick Search">
+          <Stack spacing={2}>
+            <EntitySearch
+              type={searchType}
+              placeholder="Search"
+              onSelect={res => {
+                if (searchType === 'user') {
+                  navigate(
+                    `/pantry/client-management?tab=history&id=${res.id}&name=${encodeURIComponent(
+                      res.name,
+                    )}&clientId=${res.client_id}`,
+                  );
+                } else {
+                  navigate(
+                    `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
+                      res.name,
+                    )}`,
+                  );
+                }
+              }}
+            />
+            <Stack direction="row" spacing={1}>
+              <Button
+                size="small"
+                variant={searchType === 'user' ? 'contained' : 'outlined'}
+                sx={{ textTransform: 'none' }}
+                onClick={() => setSearchType('user')}
+              >
+                Find Client
+              </Button>
+              <Button
+                size="small"
+                variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
+                sx={{ textTransform: 'none' }}
+                onClick={() => setSearchType('volunteer')}
+              >
+                Find Volunteer
+              </Button>
+            </Stack>
+          </Stack>
+        </SectionCard>
+      </Grid>
+      <Grid size={12}>
+        <SectionCard title="Recent Cancellations">
+          <List>
+            {cancellations.slice(0, 5).map(c => (
+              <ListItem key={c.id}>
+                <ListItemText
+                  primary={`${c.user_name || 'Unknown'} - ${formatTime(
+                    c.start_time || '',
+                  )}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </SectionCard>
+      </Grid>
+      <Grid size={12}>
+        <SectionCard title="Volunteer Shift Changes">
+          <List>
+            {volCancellations.slice(0, 5).map(c => (
+              <ListItem key={c.id}>
+                <ListItemText
+                  primary={`${c.volunteer_name || 'Unknown'} - ${formatTime(
+                    c.start_time || '',
+                  )}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </SectionCard>
       </Grid>
     </Grid>
   );
