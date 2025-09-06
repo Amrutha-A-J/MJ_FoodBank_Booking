@@ -227,6 +227,35 @@ export default function ClientDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
+            <SectionCard title={t('quick_actions')}>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Button
+                  size="small"
+                  variant="contained"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/book-appointment')}
+                >
+                  {t('book_appointment')}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/booking-history')}
+                >
+                  {t('reschedule')}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ textTransform: 'none' }}
+                  onClick={() => navigate('/booking-history')}
+                >
+                  {t('cancel')}
+                </Button>
+              </Stack>
+            </SectionCard>
+
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -282,35 +311,6 @@ export default function ClientDashboard() {
                   </ListItem>
                 )}
               </List>
-            </SectionCard>
-
-            <SectionCard title={t('quick_actions')}>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Button
-                  size="small"
-                  variant="contained"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/book-appointment')}
-                >
-                  {t('book_appointment')}
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/booking-history')}
-                >
-                  {t('reschedule')}
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => navigate('/booking-history')}
-                >
-                  {t('cancel')}
-                </Button>
-              </Stack>
             </SectionCard>
           </Stack>
         </Grid>
