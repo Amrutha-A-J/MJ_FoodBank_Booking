@@ -269,6 +269,8 @@ export interface ClientVisit {
   anonymous: boolean;
   weightWithCart: number;
   weightWithoutCart: number;
+  adults: number;
+  children: number;
   petItem: number;
   note?: string;
 }

@@ -285,6 +285,8 @@
   "client_note_label": "Client note (optional)",
   "staff_note_label": "Staff note",
   "visits_with_notes_only": "View visits with notes only",
+  "adults_label": "Adults",
+  "children_label": "Children",
   "no_reschedule_token": "No reschedule token",
   "sunshine_bag_label": "Sunshine bag?",
   "sunshine_bag_weight_label": "Sunshine Bag Weight",
@@ -292,6 +294,8 @@
     "summary": {
       "clients": "Clients",
       "total_weight": "Total Weight",
+      "adults": "Adults",
+      "children": "Children",
       "sunshine_bag_weight": "Sunshine Bag Weight"
     }
   }

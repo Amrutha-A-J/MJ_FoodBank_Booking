@@ -94,6 +94,8 @@ export default function PantryVisits() {
     clientId: '',
     weightWithCart: '',
     weightWithoutCart: '',
+    adults: '',
+    children: '',
     petItem: '0',
     note: '',
   });
@@ -163,7 +165,9 @@ export default function PantryVisits() {
   const summary = useMemo(() => {
     const clients = visits.length;
     const totalWeight = visits.reduce((sum, v) => sum + v.weightWithoutCart, 0);
-    return { clients, totalWeight };
+    const adults = visits.reduce((sum, v) => sum + v.adults, 0);
+    const children = visits.reduce((sum, v) => sum + v.children, 0);
+    return { clients, totalWeight, adults, children };
   }, [visits]);
 
   function handleSaveVisit() {
@@ -184,6 +188,8 @@ export default function PantryVisits() {
             clientId: '',
             weightWithCart: '',
             weightWithoutCart: '',
+            adults: '',
+            children: '',
             petItem: '0',
             note: '',
           });
@@ -208,6 +214,8 @@ export default function PantryVisits() {
       anonymous: form.anonymous,
       weightWithCart: Number(form.weightWithCart),
       weightWithoutCart: Number(form.weightWithoutCart),
+      adults: Number(form.adults || 0),
+      children: Number(form.children || 0),
       petItem: Number(form.petItem || 0),
       note: form.note.trim() || undefined,
     };
@@ -226,6 +234,8 @@ export default function PantryVisits() {
           clientId: '',
           weightWithCart: '',
           weightWithoutCart: '',
+          adults: '',
+          children: '',
           petItem: '0',
           note: '',
         });
@@ -258,6 +268,8 @@ export default function PantryVisits() {
             <TableCell>Profile</TableCell>
             <TableCell>Weight With Cart</TableCell>
             <TableCell>Weight Without Cart</TableCell>
+            <TableCell>{t('adults_label')}</TableCell>
+            <TableCell>{t('children_label')}</TableCell>
             <TableCell>Pet Item</TableCell>
             <TableCell>Note</TableCell>
             <TableCell align="right"></TableCell>
@@ -266,7 +278,7 @@ export default function PantryVisits() {
         <TableBody>
           {filteredVisits.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} align="center">
+              <TableCell colSpan={11} align="center">
                 No records
               </TableCell>
             </TableRow>
@@ -291,6 +303,8 @@ export default function PantryVisits() {
                 </TableCell>
                 <TableCell>{v.weightWithCart}</TableCell>
                 <TableCell>{v.weightWithoutCart}</TableCell>
+                <TableCell>{v.adults}</TableCell>
+                <TableCell>{v.children}</TableCell>
                 <TableCell>{v.petItem}</TableCell>
                 <TableCell>{v.note || ''}</TableCell>
                 <TableCell align="right">
@@ -306,6 +320,8 @@ export default function PantryVisits() {
                         clientId: v.clientId ? String(v.clientId) : '',
                         weightWithCart: String(v.weightWithCart),
                         weightWithoutCart: String(v.weightWithoutCart),
+                        adults: String(v.adults),
+                        children: String(v.children),
                         petItem: String(v.petItem),
                         note: v.note ?? '',
                       });
@@ -347,6 +363,12 @@ export default function PantryVisits() {
             {t('pantry_visits.summary.total_weight')}: {summary.totalWeight}
           </Typography>
           <Typography variant="body2">
+            {t('pantry_visits.summary.adults')}: {summary.adults}
+          </Typography>
+          <Typography variant="body2">
+            {t('pantry_visits.summary.children')}: {summary.children}
+          </Typography>
+          <Typography variant="body2">
             {t('pantry_visits.summary.sunshine_bag_weight')}: {sunshineBagWeight}
           </Typography>
         </Stack>
@@ -372,6 +394,8 @@ export default function PantryVisits() {
                 clientId: '',
                 weightWithCart: '',
                 weightWithoutCart: '',
+                adults: '',
+                children: '',
                 petItem: '0',
                 note: '',
               });
@@ -456,6 +480,18 @@ export default function PantryVisits() {
                     setForm({ ...form, weightWithoutCart: e.target.value });
                     setAutoWeight(false);
                   }}
+                />
+                <TextField
+                  label={t('adults_label')}
+                  type="number"
+                  value={form.adults}
+                  onChange={e => setForm({ ...form, adults: e.target.value })}
+                />
+                <TextField
+                  label={t('children_label')}
+                  type="number"
+                  value={form.children}
+                  onChange={e => setForm({ ...form, children: e.target.value })}
                 />
                 <TextField
                   label="Pet Item"
