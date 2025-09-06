@@ -28,3 +28,10 @@ This document catalogs Brevo email templates used by the backend and the paramet
 
 Brevo templates can reference these `params.*` values to display actionable links such as “Add to Google Calendar” or “Add to Outlook Calendar”.
 
+## Booking status emails
+
+- **Template ID variable:** `BOOKING_STATUS_TEMPLATE_ID`
+- **Params:**
+  - `body` (string) – message body describing the booking status update.
+  - `type` (string) – booking type, e.g., `shopping appointment`.
+
