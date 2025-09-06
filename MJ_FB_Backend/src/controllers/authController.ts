@@ -364,7 +364,7 @@ export function csrfToken(_req: Request, res: Response) {
     sameSite: 'strict',
     secure,
     path: '/',
-    ...(config.cookieDomain ? { domain: config.cookieDomain } : {}),
+    ...(secure && config.cookieDomain ? { domain: config.cookieDomain } : {}),
   });
   res.json({ csrfToken: token });
 }
