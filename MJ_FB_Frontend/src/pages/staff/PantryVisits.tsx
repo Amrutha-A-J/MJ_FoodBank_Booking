@@ -479,6 +479,7 @@ export default function PantryVisits() {
                 setEditing(null);
                 setRecordOpen(true);
               }}
+              sx={{ typography: 'caption', textTransform: 'none' }}
             >
               Record Visit
             </Button>
@@ -486,6 +487,7 @@ export default function PantryVisits() {
               size="small"
               variant="contained"
               onClick={() => setImportOpen(true)}
+              sx={{ typography: 'caption', textTransform: 'none' }}
             >
               {t('pantry_visits.import_visits')}
             </Button>
