@@ -186,7 +186,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           </Grid>
           <Grid size={12}>
             <SectionCard title="Pantry Schedule (This Week)">
-              <Grid container columns={7} spacing={2}>
+              <Grid container columns={{ xs: 3, sm: 7 }} spacing={2}>
                 {schedule.map((day, i) => (
                   <Grid size={1} key={i}>
                     <Stack alignItems="center" spacing={1}>
