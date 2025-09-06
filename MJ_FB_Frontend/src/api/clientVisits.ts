@@ -16,7 +16,14 @@ export async function createClientVisit(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      ...payload,
+      date: payload.date,
+      clientId: payload.clientId,
+      anonymous: payload.anonymous,
+      weightWithCart: payload.weightWithCart,
+      weightWithoutCart: payload.weightWithoutCart,
+      petItem: payload.petItem,
+      adults: payload.adults,
+      children: payload.children,
       note: payload.note ?? undefined,
     }),
   });
@@ -32,6 +39,8 @@ export async function updateClientVisit(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...payload,
+      adults: payload.adults,
+      children: payload.children,
       note: payload.note ?? undefined,
     }),
   });

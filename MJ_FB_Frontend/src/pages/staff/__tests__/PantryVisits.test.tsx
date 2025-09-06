@@ -72,6 +72,8 @@ describe('PantryVisits', () => {
         weightWithCart: 10,
         weightWithoutCart: 5,
         petItem: 0,
+        adults: 1,
+        children: 2,
       },
       {
         id: 2,
@@ -82,6 +84,8 @@ describe('PantryVisits', () => {
         weightWithCart: 20,
         weightWithoutCart: 15,
         petItem: 1,
+        adults: 2,
+        children: 3,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -116,6 +120,8 @@ describe('PantryVisits', () => {
         weightWithCart: 10,
         weightWithoutCart: 5,
         petItem: 2,
+        adults: 1,
+        children: 1,
       },
       {
         id: 2,
@@ -126,6 +132,8 @@ describe('PantryVisits', () => {
         weightWithCart: 20,
         weightWithoutCart: 15,
         petItem: 1,
+        adults: 2,
+        children: 3,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -139,6 +147,8 @@ describe('PantryVisits', () => {
     expect(await screen.findByText('Clients: 2')).toBeInTheDocument();
     expect(screen.getByText('Total Weight: 20')).toBeInTheDocument();
     expect(screen.getByText('Sunshine Bags: 3')).toBeInTheDocument();
+    expect(screen.getByText('Adults: 3')).toBeInTheDocument();
+    expect(screen.getByText('Children: 4')).toBeInTheDocument();
   });
 
   it('shows "No records" when there are no visits', async () => {

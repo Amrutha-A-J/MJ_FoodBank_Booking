@@ -11,3 +11,5 @@ Add the following translation strings to locale files:
 - `pantry_visits.summary.clients`
 - `pantry_visits.summary.total_weight`
 - `pantry_visits.summary.sunshine_bags`
+- `pantry_visits.summary.adults`
+- `pantry_visits.summary.children`

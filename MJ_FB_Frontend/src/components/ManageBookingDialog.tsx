@@ -45,6 +45,8 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   const [weightWithCart, setWeightWithCart] = useState('');
   const [weightWithoutCart, setWeightWithoutCart] = useState('');
   const [petItem, setPetItem] = useState('0');
+  const [adults, setAdults] = useState('');
+  const [children, setChildren] = useState('');
   const [note, setNote] = useState('');
   const [autoWeight, setAutoWeight] = useState(true);
   const [message, setMessage] = useState('');
@@ -61,6 +63,8 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       setWeightWithCart('');
       setWeightWithoutCart('');
       setPetItem('0');
+      setAdults('');
+      setChildren('');
       setNote('');
       setAutoWeight(true);
     }
@@ -136,6 +140,8 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             anonymous: false,
             weightWithCart: Number(weightWithCart),
             weightWithoutCart: Number(weightWithoutCart),
+            adults: Number(adults || 0),
+            children: Number(children || 0),
             petItem: Number(petItem || 0),
             note: note.trim() || undefined,
           });
@@ -243,6 +249,18 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                   setWeightWithoutCart(e.target.value);
                   setAutoWeight(false);
                 }}
+              />
+              <TextField
+                label="Adults"
+                type="number"
+                value={adults}
+                onChange={e => setAdults(e.target.value)}
+              />
+              <TextField
+                label="Children"
+                type="number"
+                value={children}
+                onChange={e => setChildren(e.target.value)}
               />
               <TextField
                 label="Pet Item"

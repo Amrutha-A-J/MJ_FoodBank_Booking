@@ -56,6 +56,8 @@ describe('ManageBookingDialog', () => {
       expect(screen.getByLabelText(/weight without cart/i)).toHaveValue(3)
     );
 
+    fireEvent.change(screen.getByLabelText(/adults/i), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/children/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/pet item/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/note/i), { target: { value: 'bring ID' } });
 
@@ -68,6 +70,8 @@ describe('ManageBookingDialog', () => {
         anonymous: false,
         weightWithCart: 30,
         weightWithoutCart: 3,
+        adults: 2,
+        children: 1,
         petItem: 1,
         note: 'bring ID',
       })

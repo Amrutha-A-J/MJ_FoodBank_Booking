@@ -270,5 +270,7 @@ export interface ClientVisit {
   weightWithCart: number;
   weightWithoutCart: number;
   petItem: number;
+  adults: number;
+  children: number;
   note?: string;
 }

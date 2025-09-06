@@ -281,7 +281,9 @@
     "summary": {
       "clients": "Clients",
       "total_weight": "Total Weight",
-      "sunshine_bags": "Sunshine Bags"
+      "sunshine_bags": "Sunshine Bags",
+      "adults": "Adults",
+      "children": "Children"
     }
   }
 }

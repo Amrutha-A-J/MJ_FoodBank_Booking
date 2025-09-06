@@ -236,7 +236,7 @@ export function getHelpContent(
         steps: [
           'Open the schedule.',
           'Select a booking.',
-          'Mark visited or no-show, enter weight, and add a staff note if needed.',
+          'Mark visited or no-show, enter weight, adults, children, and add a staff note if needed.',
         ],
       },
     },
