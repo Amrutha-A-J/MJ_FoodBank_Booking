@@ -141,7 +141,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
@@ -520,13 +519,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     if (
       !firstName ||
       !lastName ||
-      !username ||
       selectedCreateRoles.length === 0
     ) {
       setCreateSeverity('error');
-      setCreateMsg(
-        'First name, last name, username and at least one role required'
-      );
+      setCreateMsg('First name, last name and at least one role required');
       return;
     }
     if (onlineAccess && !email) {
@@ -543,7 +539,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       await createVolunteer(
         firstName,
         lastName,
-        username,
         ids,
         onlineAccess,
         email || undefined,
@@ -553,7 +548,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setCreateMsg('Volunteer created');
       setFirstName('');
       setLastName('');
-      setUsername('');
       setEmail('');
       setPhone('');
       setOnlineAccess(false);
@@ -850,13 +844,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               label="Last Name"
               value={lastName}
               onChange={e => setLastName(e.target.value)}
-              size="small"
-              fullWidth
-            />
-            <TextField
-              label="Username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
               size="small"
               fullWidth
             />

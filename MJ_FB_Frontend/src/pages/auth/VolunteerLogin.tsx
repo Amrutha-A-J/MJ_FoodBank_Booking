@@ -15,27 +15,27 @@ export default function VolunteerLogin({
 }: {
   onLogin: (u: LoginResponse) => Promise<void>;
 }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const usernameError = submitted && username === '';
+  const emailError = submitted && email === '';
   const passwordError = submitted && password === '';
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
-    if (username === '' || password === '') return;
+    if (email === '' || password === '') return;
     try {
-      const user = await loginVolunteer(username, password);
+      const user = await loginVolunteer(email, password);
       await onLogin(user);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
-        setError('Incorrect username or password');
+        setError('Incorrect email or password');
       } else if (apiErr?.status === 403) {
         setError('Password setup link expired');
         setResendOpen(true);
@@ -62,15 +62,15 @@ export default function VolunteerLogin({
         }
       >
         <TextField
-          name="username"
-          autoComplete="username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          label="Username"
+          name="email"
+          autoComplete="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          label="Email"
           fullWidth
           required
-          error={usernameError}
-          helperText={usernameError ? 'Username is required' : ''}
+          error={emailError}
+          helperText={emailError ? 'Email is required' : ''}
         />
         <PasswordField
           name="password"

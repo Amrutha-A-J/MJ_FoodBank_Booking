@@ -25,13 +25,13 @@ function normalizeVolunteerBooking(b: any): VolunteerBooking {
 }
 
 export async function loginVolunteer(
-  username: string,
+  email: string,
   password: string
 ): Promise<LoginResponse> {
   const res = await apiFetch(`${API_BASE}/volunteers/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
   });
   const data = await handleResponse(res);
   return data;
@@ -429,7 +429,6 @@ export async function getVolunteerBookingHistory(
 export async function createVolunteer(
   firstName: string,
   lastName: string,
-  username: string,
   roleIds: number[],
   onlineAccess: boolean,
   email?: string,
@@ -443,7 +442,6 @@ export async function createVolunteer(
     body: JSON.stringify({
       firstName,
       lastName,
-      username,
       roleIds,
       onlineAccess,
       email,

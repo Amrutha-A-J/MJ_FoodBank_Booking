@@ -28,7 +28,7 @@ describe('Volunteer with shopper profile', () => {
 
     fireEvent.click(screen.getByText(/volunteer login/i));
 
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'vol' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'vol@example.com' } });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
