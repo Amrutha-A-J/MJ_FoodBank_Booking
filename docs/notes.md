@@ -21,7 +21,7 @@ Add the following translation strings to locale files:
 - `help.client.booking_appointments.steps.2`
 - `dashboard`
 - `client_note_label`
-- `staff_note_label`
-- `visits_with_notes_only`
+ 
+Translations are maintained only for client-visible text.
 
 Document any new translation keys here when extending note functionality.
