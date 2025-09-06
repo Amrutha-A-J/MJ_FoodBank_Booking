@@ -29,4 +29,31 @@ describe('StaffDashboard', () => {
     expect(screen.getByText('News & Events')).toBeInTheDocument();
     expect(screen.queryByText('No-Show Rankings')).toBeNull();
   });
+
+  it('shows events returned by the API', async () => {
+    (getBookings as jest.Mock).mockResolvedValue([]);
+    (getSlotsRange as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({
+      today: [
+        {
+          id: 1,
+          title: 'Staff Meeting',
+          startDate: '2024-01-01',
+          endDate: '2024-01-01',
+          createdBy: 1,
+          createdByName: 'Alice',
+        },
+      ],
+      upcoming: [],
+      past: [],
+    });
+
+    render(
+      <MemoryRouter>
+        <Dashboard role="staff" />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Staff Meeting/)).toBeInTheDocument();
+  });
 });
