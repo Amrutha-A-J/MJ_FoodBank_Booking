@@ -317,3 +317,145 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     }
   }
 }
+
+export async function importVisitsFromXlsx(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { duplicateStrategy, dryRun } = req.query as {
+    duplicateStrategy?: string;
+    dryRun?: string;
+  };
+
+  if (!req.file) {
+    return res.status(400).json({ message: 'File required' });
+  }
+  if (duplicateStrategy !== 'skip' && duplicateStrategy !== 'update') {
+    return res.status(400).json({ message: 'Invalid duplicate strategy' });
+  }
+
+  const isDryRun = dryRun === 'true';
+  const summaries: { date: string; rowCount: number; errors: string[] }[] = [];
+
+  let client: Awaited<ReturnType<typeof pool.connect>> | null = null;
+  try {
+    const sheets = await readXlsxFile(req.file.buffer, { getSheets: true });
+    if (!isDryRun) {
+      client = await pool.connect();
+      await client.query('BEGIN');
+    }
+
+    for (const sheet of sheets) {
+      const rows = await readXlsxFile(req.file.buffer, { sheet: sheet.name });
+      const sheetDate = sheet.name;
+      const formattedDate = formatReginaDate(new Date(sheetDate));
+      const errors: string[] = [];
+
+      const dataRows = rows.slice(1);
+      let rowIndex = 1;
+      for (const row of dataRows) {
+        rowIndex++;
+        const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
+        try {
+          const parsed = importClientVisitsSchema.parse({
+            date: new Date(sheetDate),
+            familySize: String(familySize ?? ''),
+            weightWithCart: Number(weightWithCart),
+            weightWithoutCart: Number(weightWithoutCart),
+            petItem: petItem == null ? 0 : Number(petItem),
+            clientId: Number(clientId),
+          });
+          const match = /(?<adults>\d+)A(?<children>\d*)C?/.exec(parsed.familySize);
+          const adults = parseInt(match?.groups?.adults ?? '0', 10);
+          const children = parseInt(match?.groups?.children || '0', 10);
+
+          if (isDryRun) continue;
+
+          const cid = parsed.clientId;
+          const existingClient = await client!.query(
+            'SELECT client_id FROM clients WHERE client_id = $1',
+            [cid],
+          );
+          if ((existingClient.rowCount ?? 0) === 0) {
+            const profileLink = `https://portal.link2feed.ca/org/1605/intake/${cid}`;
+            await client!.query(
+              `INSERT INTO clients (client_id, role, online_access, profile_link) VALUES ($1, 'shopper', false, $2)`,
+              [cid, profileLink],
+            );
+          }
+
+          const existingVisit = await client!.query(
+            'SELECT id FROM client_visits WHERE client_id = $1 AND date = $2',
+            [cid, formattedDate],
+          );
+
+          if ((existingVisit.rowCount ?? 0) > 0) {
+            if (duplicateStrategy === 'update') {
+              await client!.query(
+                `UPDATE client_visits
+                 SET weight_with_cart = $1,
+                     weight_without_cart = $2,
+                     pet_item = COALESCE($3,0),
+                     adults = $4,
+                     children = $5,
+                     is_anonymous = false
+                 WHERE id = $6`,
+                [
+                  parsed.weightWithCart,
+                  parsed.weightWithoutCart,
+                  parsed.petItem ?? 0,
+                  adults,
+                  children,
+                  existingVisit.rows[0].id,
+                ],
+              );
+              await refreshClientVisitCount(cid, client!);
+            }
+          } else {
+            await client!.query(
+              `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, adults, children, is_anonymous)
+               VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, false)`,
+              [
+                formattedDate,
+                cid,
+                parsed.weightWithCart,
+                parsed.weightWithoutCart,
+                parsed.petItem ?? 0,
+                adults,
+                children,
+              ],
+            );
+            await refreshClientVisitCount(cid, client!);
+          }
+        } catch (err: any) {
+          errors.push(
+            `Row ${rowIndex}: ${err.errors?.[0]?.message || err.message}`,
+          );
+        }
+      }
+
+      summaries.push({ date: sheetDate, rowCount: dataRows.length, errors });
+    }
+
+    if (isDryRun) {
+      res.json(summaries);
+    } else {
+      await client!.query('COMMIT');
+      res.json({ summary: summaries });
+    }
+  } catch (error) {
+    if (!isDryRun && client) await client.query('ROLLBACK');
+    logger.error('Error importing client visits from xlsx:', error);
+    next(error);
+  } finally {
+    if (client) client.release();
+    if (req.file?.path) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (err) {
+        logger.warn('Failed to delete uploaded file:', err);
+      }
+    }
+  }
+}
