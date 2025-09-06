@@ -125,6 +125,8 @@ export interface VolunteerBooking {
   start_time: string;
   end_time: string;
   role_name: string;
+  volunteer_id?: number;
+  volunteer_name?: string;
   status_color?: string;
   reschedule_token?: string;
   recurring_id?: number;
