@@ -298,8 +298,16 @@
       "children": "Children",
       "sunshine_bag_weight": "Sunshine Bag Weight"
     },
-    "bulk_import": "Bulk Import",
-    "bulk_import_success": "Visits imported",
-    "bulk_import_error": "Import failed"
+    "import_visits": "Import Visits",
+    "import": "Import",
+    "import_success": "Visits imported",
+    "import_error": "Import failed",
+    "dry_run": "Dry-run",
+    "duplicate_strategy": "Duplicates",
+    "skip": "Skip",
+    "update": "Update",
+    "sheet_date": "Date",
+    "sheet_rows": "Rows",
+    "sheet_errors": "Errors"
   }
 }

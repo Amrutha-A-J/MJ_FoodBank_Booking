@@ -49,11 +49,29 @@ export async function deleteClientVisit(id: number): Promise<void> {
   await handleResponse(res);
 }
 
-export async function importClientVisits(formData: FormData): Promise<void> {
-  const res = await apiFetch(`${API_BASE}/client-visits/import`, {
+export interface VisitImportSheet {
+  date: string;
+  rows: number;
+  errors: string[];
+}
+
+export interface VisitImportPreview {
+  sheets: VisitImportSheet[];
+}
+
+export async function importVisitsXlsx(
+  formData: FormData,
+  duplicateStrategy: 'skip' | 'update',
+  dryRun?: boolean,
+): Promise<VisitImportPreview | void> {
+  const url = new URL(`${API_BASE}/visits/import/xlsx`);
+  url.searchParams.set('duplicateStrategy', duplicateStrategy);
+  if (dryRun) url.searchParams.set('dryRun', 'true');
+
+  const res = await apiFetch(url.toString(), {
     method: 'POST',
     body: formData,
   });
-  await handleResponse(res);
+  return handleResponse(res);
 }
 
