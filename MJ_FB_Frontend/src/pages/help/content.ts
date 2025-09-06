@@ -233,7 +233,7 @@ export function getHelpContent(
         steps: [
           'Open the Pantry Visits page.',
           'Click Record Visit.',
-          'Check Sunshine bag?, enter the date and weight, then save.',
+          'Check Sunshine bag?, enter the date, weight, and number of clients, then save.',
         ],
       },
     },

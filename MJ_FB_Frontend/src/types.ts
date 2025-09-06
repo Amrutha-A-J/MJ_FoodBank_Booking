@@ -279,4 +279,5 @@ export interface ClientVisit {
 export interface SunshineBag {
   date: string;
   weight: number;
+  clientCount: number;
 }

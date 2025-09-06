@@ -176,4 +176,31 @@ describe('client visit xlsx import', () => {
       ['2024-05-01', 123, 30, 20, 0, 1, 0],
     );
   });
+
+  it('imports sunshine bag row into log', async () => {
+    const sheets = [{ name: '2024-05-01' }];
+    const rows = [
+      ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+      ['3A', null, 24, null, 'SUNSHINE'],
+    ];
+    (readXlsxFile as jest.Mock)
+      .mockResolvedValueOnce(sheets)
+      .mockResolvedValueOnce(rows);
+    const buffer = Buffer.from('xlsx');
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ value: 0 }], rowCount: 1 }) // cart tare
+      .mockResolvedValueOnce({}) // insert sunshine bag
+      .mockResolvedValueOnce({}); // COMMIT
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app).post('/client-visits/import').attach('file', buffer, 'visits.xlsx');
+
+    expect(res.status).toBe(200);
+    expect(queryMock).toHaveBeenCalledWith(
+      expect.stringContaining('sunshine_bag_log'),
+      ['2024-05-01', 24, 3],
+    );
+  });
 });

@@ -124,10 +124,12 @@ describe('PantryVisits', () => {
     expect(anonymous).not.toBeChecked();
     expect(screen.queryByLabelText('Client ID')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Sunshine Bag Weight')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sunshine Bag Clients')).toBeInTheDocument();
 
     fireEvent.click(regular);
     await waitFor(() => expect(screen.getByLabelText('Regular visit')).toBeChecked());
     expect(screen.queryByLabelText('Sunshine Bag Weight')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Sunshine Bag Clients')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Client ID')).toBeInTheDocument();
   });
 
@@ -204,7 +206,7 @@ describe('PantryVisits', () => {
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
-    (getSunshineBag as jest.Mock).mockResolvedValue({ date: '2024-01-01', weight: 12 });
+    (getSunshineBag as jest.Mock).mockResolvedValue({ date: '2024-01-01', weight: 12, clientCount: 2 });
 
     renderVisits();
 
