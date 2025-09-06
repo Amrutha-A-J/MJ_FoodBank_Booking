@@ -22,13 +22,10 @@ export async function listEvents(req: Request, res: Response, next: NextFunction
               e.created_by AS "createdBy",
               e.visible_to_volunteers AS "visibleToVolunteers",
               e.visible_to_clients AS "visibleToClients",
-              CONCAT(s.first_name, ' ', s.last_name) AS "createdByName",
-              COALESCE(json_agg(es.staff_id) FILTER (WHERE es.staff_id IS NOT NULL), '[]') AS "staffIds"
+              CONCAT(s.first_name, ' ', s.last_name) AS "createdByName"
        FROM events e
        JOIN staff s ON e.created_by = s.id
-       LEFT JOIN event_staff es ON e.id = es.event_id
        ${where}
-       GROUP BY e.id, s.first_name, s.last_name
        ORDER BY e.start_date ASC`
     );
 
@@ -67,7 +64,6 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     category,
     startDate,
     endDate,
-    staffIds,
     visibleToVolunteers = false,
     visibleToClients = false,
   } = parsed.data;
@@ -83,13 +79,6 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
       [title, details, category, start, end, createdBy, visibleToVolunteers, visibleToClients]
     );
     const eventId = inserted.rows[0].id;
-    if (staffIds && staffIds.length > 0) {
-      const values = staffIds.map((_, i) => `($1,$${i + 2})`).join(',');
-      await client.query(
-        `INSERT INTO event_staff (event_id, staff_id) VALUES ${values}`,
-        [eventId, ...staffIds]
-      );
-    }
     await client.query('COMMIT');
     res.status(201).json({ id: eventId });
   } catch (error) {
