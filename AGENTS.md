@@ -20,6 +20,7 @@
 - Volunteers sign in with their email address instead of a username, and volunteer emails must be unique (email remains optional).
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - Use the shared `PasswordField` component for any password input so users can toggle visibility.
+- Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
 
