@@ -49,6 +49,7 @@ describe('Volunteer routes role ID validation', () => {
       email: 'john@example.com',
       phone: '123',
       roleIds: [1, 2],
+      onlineAccess: true,
     });
 
     expect(res.status).toBe(201);
@@ -84,9 +85,22 @@ describe('Volunteer routes role ID validation', () => {
       lastName: 'Doe',
       username: 'johndoe',
       roleIds: [1, 2],
+      onlineAccess: false,
     });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ message: 'Invalid roleIds', invalidIds: [2] });
+  });
+
+  it('requires email when online access enabled', async () => {
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      username: 'janedoe',
+      roleIds: [1],
+      onlineAccess: true,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Email required for online account' });
   });
 
   it('returns invalid role IDs when updating trained areas', async () => {

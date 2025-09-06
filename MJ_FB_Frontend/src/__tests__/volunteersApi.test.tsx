@@ -9,6 +9,7 @@ import {
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
   getUnmarkedVolunteerBookings,
+  createVolunteer,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -71,6 +72,25 @@ describe('volunteers api', () => {
   it('fetches recurring volunteer bookings', async () => {
     await getMyRecurringVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
+  });
+
+  it('creates a volunteer', async () => {
+    await createVolunteer('John', 'Doe', 'jdoe', [1, 2], true, 'a@b.com', '123');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteers',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: 'John',
+          lastName: 'Doe',
+          username: 'jdoe',
+          roleIds: [1, 2],
+          onlineAccess: true,
+          email: 'a@b.com',
+          phone: '123',
+        }),
+      }),
+    );
   });
 
   it('creates recurring volunteer booking for volunteer', async () => {

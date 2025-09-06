@@ -32,6 +32,10 @@ Staff accounts may include any of the following access roles:
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
 
+## Volunteer Creation
+
+Create volunteers from the Volunteers page. Check **Online Access** to send an email invitation; the email field becomes required when enabled.
+
 ## Node Version
 
 Requires **Node.js 22+**. The repo includes a `.nvmrc` file and installation is engine‑strict, so use the pinned version:

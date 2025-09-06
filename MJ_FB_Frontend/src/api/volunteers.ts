@@ -425,6 +425,7 @@ export async function createVolunteer(
   lastName: string,
   username: string,
   roleIds: number[],
+  onlineAccess: boolean,
   email?: string,
   phone?: string
 ): Promise<void> {
@@ -438,6 +439,7 @@ export async function createVolunteer(
       lastName,
       username,
       roleIds,
+      onlineAccess,
       email,
       phone,
     }),
