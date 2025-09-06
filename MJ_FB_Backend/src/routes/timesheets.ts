@@ -9,6 +9,7 @@ import {
   rejectTimesheet,
   processTimesheet,
 } from '../controllers/timesheetController';
+import { listLeaveRequestsByStaff } from '../controllers/leaveRequestController';
 
 const router = express.Router();
 
@@ -17,6 +18,12 @@ router.get('/mine', authMiddleware, authorizeRoles('staff', 'admin'), listMyTime
 // admin can list timesheets for any staff
 // optional query params: staffId, year, month
 router.get('/', authMiddleware, authorizeRoles('admin'), listTimesheets);
+router.get(
+  '/leave-requests/:staffId',
+  authMiddleware,
+  authorizeRoles('admin'),
+  listLeaveRequestsByStaff,
+);
 router.get(
   '/:id/days',
   authMiddleware,
