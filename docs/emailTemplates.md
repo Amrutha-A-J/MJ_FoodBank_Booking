@@ -35,3 +35,12 @@ Brevo templates can reference these `params.*` values to display actionable link
   - `body` (string) – message body describing the booking status update.
   - `type` (string) – booking type, e.g., `shopping appointment`.
 
+## Milestone badge email
+
+- **Template ID variable:** `BADGE_MILESTONE_TEMPLATE_ID` (exposed as `config.badgeMilestoneTemplateId`)
+- **Used in:**
+  - `MJ_FB_Backend/src/utils/badgeUtils.ts` (`awardMilestoneBadge`)
+- **Params:**
+  - `body` (string) – message body describing the milestone.
+  - `cardUrl` (string) – link to download the thank-you card.
+
