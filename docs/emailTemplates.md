@@ -35,3 +35,11 @@ Brevo templates can reference these `params.*` values to display actionable link
   - `body` (string) – message body describing the booking status update.
   - `type` (string) – booking type, e.g., `shopping appointment`.
 
+## Agency client update emails
+
+- **Template ID variable:** `AGENCY_CLIENT_UPDATE_TEMPLATE_ID`
+- **Used in:**
+  - `MJ_FB_Backend/src/controllers/agencyController.ts` (`addClientToAgency`, `removeClientFromAgency`)
+- **Params:**
+  - `body` (string) – message describing the client added to or removed from the agency.
+
