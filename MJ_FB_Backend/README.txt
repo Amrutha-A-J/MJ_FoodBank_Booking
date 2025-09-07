@@ -65,6 +65,10 @@ data URLs to ensure Brevo preserves them.
 
 Tests load required environment variables from `.env.test`, which Jest reads via `tests/loadEnv.ts`. Run `npm test` so this setup executes, and update `.env.test` when adding new environment settings.
 
+## Booking Stream
+
+`GET /bookings/stream` exposes a server-sent events feed that emits a JSON payload whenever a booking is created or cancelled. Each event includes the client or volunteer name, their role, and the booking date and time.
+
 ## Booking Notes
 
 Clients may include a **client note** when booking. Staff can record a **staff note** when marking a visit in the pantry schedule. Staff users automatically receive staff notes from `/bookings/history`; agency users can append `includeStaffNotes=true` to retrieve them. The `notes` query parameter filters history by note text.

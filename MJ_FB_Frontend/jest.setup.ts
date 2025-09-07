@@ -54,3 +54,9 @@ class IntersectionObserver {
   disconnect() {}
 }
 (global as any).IntersectionObserver = IntersectionObserver;
+
+class MockEventSource {
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  close() {}
+}
+(global as any).EventSource = MockEventSource as any;

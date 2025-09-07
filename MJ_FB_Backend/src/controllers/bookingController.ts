@@ -14,6 +14,7 @@ import {
   LIMIT_MESSAGE,
   findUpcomingBooking,
 } from '../utils/bookingUtils';
+import { emitBookingEvent } from '../utils/bookingEvents';
 import { enqueueEmail } from '../utils/emailQueue';
 import {
   buildCancelRescheduleLinks,
@@ -135,8 +136,16 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     );
     const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
     const bookingId = inserted.rows[0].id;
+    const { start_time } = slotRes.rows[0] || {};
+    emitBookingEvent({
+      action: 'created',
+      name: req.user.name,
+      role: 'client',
+      date,
+      time: start_time,
+    });
     const uid = `booking-${bookingId}@mjfb`;
-    const { start_time, end_time } = slotRes.rows[0] || {};
+    const { end_time } = slotRes.rows[0] || {};
     const {
       googleCalendarLink,
       outlookCalendarLink,
@@ -272,9 +281,32 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       return res.status(400).json({ message: "You can't cancel past bookings" });
     }
 
+    const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+      booking.slot_id,
+    ]);
+    let name = '';
+    if (booking.user_id) {
+      const nameRes = await pool.query(
+        'SELECT first_name, last_name FROM clients WHERE client_id=$1',
+        [booking.user_id],
+      );
+      name = `${nameRes.rows[0]?.first_name ?? ''} ${nameRes.rows[0]?.last_name ?? ''}`.trim();
+    } else if ((booking as any).new_client_id) {
+      const nameRes = await pool.query('SELECT name FROM new_clients WHERE id=$1', [
+        (booking as any).new_client_id,
+      ]);
+      name = nameRes.rows[0]?.name ?? '';
+    }
     await updateBooking(Number(bookingId), {
       status: 'cancelled',
       request_data: reason,
+    });
+    emitBookingEvent({
+      action: 'cancelled',
+      name,
+      role: 'client',
+      date: booking.date,
+      time: slotRes.rows[0]?.start_time,
     });
 
     let email: string | undefined;
@@ -327,9 +359,32 @@ export async function cancelBookingByToken(
         .status(400)
         .json({ message: "You can't cancel past bookings" });
     }
+    const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+      booking.slot_id,
+    ]);
+    let name = '';
+    if (booking.user_id) {
+      const nameRes = await pool.query(
+        'SELECT first_name, last_name FROM clients WHERE client_id=$1',
+        [booking.user_id],
+      );
+      name = `${nameRes.rows[0]?.first_name ?? ''} ${nameRes.rows[0]?.last_name ?? ''}`.trim();
+    } else if ((booking as any).new_client_id) {
+      const nameRes = await pool.query('SELECT name FROM new_clients WHERE id=$1', [
+        (booking as any).new_client_id,
+      ]);
+      name = nameRes.rows[0]?.name ?? '';
+    }
     await updateBooking(booking.id, {
       status: 'cancelled',
       request_data: 'user cancelled',
+    });
+    emitBookingEvent({
+      action: 'cancelled',
+      name,
+      role: 'client',
+      date: booking.date,
+      time: slotRes.rows[0]?.start_time,
     });
     res.json({ message: 'Booking cancelled' });
   } catch (error) {
@@ -637,6 +692,16 @@ export async function createPreapprovedBooking(
     );
 
     await client.query('COMMIT');
+    const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+      slotId,
+    ]);
+    emitBookingEvent({
+      action: 'created',
+      name,
+      role: 'client',
+      date,
+      time: slotRes.rows[0]?.start_time,
+    });
     res.status(201).json({ message: 'Walk-in booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -725,13 +790,21 @@ export async function createBookingForUser(
     const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
     const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
-    const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
-    const clientEmail = emailRes.rows[0]?.email;
+    const userRes = await pool.query('SELECT first_name, last_name, email FROM clients WHERE client_id=$1', [userId]);
+    const clientEmail = userRes.rows[0]?.email;
+    const name = `${userRes.rows[0]?.first_name ?? ''} ${userRes.rows[0]?.last_name ?? ''}`.trim();
     const slotRes = await pool.query(
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotIdNum],
     );
     const { start_time, end_time } = slotRes.rows[0] || {};
+    emitBookingEvent({
+      action: 'created',
+      name,
+      role: 'client',
+      date,
+      time: start_time,
+    });
     if (clientEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         const {
@@ -830,6 +903,16 @@ export async function createBookingForNewClient(
         client,
       );
       await client.query('COMMIT');
+      const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+        Number(slotId),
+      ]);
+      emitBookingEvent({
+        action: 'created',
+        name,
+        role: 'client',
+        date,
+        time: slotRes.rows[0]?.start_time,
+      });
       res
         .status(201)
         .json({ message: 'Booking created for new client', rescheduleToken: token });

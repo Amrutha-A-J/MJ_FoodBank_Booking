@@ -8,15 +8,16 @@ import {
   createBooking,
   listBookings,
   createPreapprovedBooking,
-  createBookingForUser,   // ✅ make sure to import this controller
+  createBookingForUser, // ✅ make sure to import this controller
   createBookingForNewClient,
   getBookingHistory,
   cancelBooking,
   cancelBookingByToken,
   rescheduleBooking,
   markBookingNoShow,
-  markBookingVisited
+  markBookingVisited,
 } from '../controllers/bookingController';
+import { streamBookings } from '../controllers/bookingStreamController';
 
 const router = express.Router();
 
@@ -46,6 +47,14 @@ router.get(
   authMiddleware,
   authorizeRoles('staff', 'agency'),
   listBookings
+);
+
+// Stream booking events
+router.get(
+  '/stream',
+  authMiddleware,
+  authorizeRoles('staff', 'agency'),
+  streamBookings,
 );
 
 // Booking history for user or staff lookup

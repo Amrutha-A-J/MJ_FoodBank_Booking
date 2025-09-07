@@ -10,6 +10,7 @@ import {
 import { buildIcsFile } from '../../utils/calendarLinks';
 import { enqueueEmail } from '../../utils/emailQueue';
 import logger from '../../utils/logger';
+import { emitBookingEvent } from '../../utils/bookingEvents';
 import {
   CreateRecurringVolunteerBookingRequest,
   CreateRecurringVolunteerBookingForVolunteerRequest,
@@ -191,6 +192,13 @@ export async function createVolunteerBooking(
       );
 
       await client.query('COMMIT');
+      emitBookingEvent({
+        action: 'created',
+        name: user.name,
+        role: 'volunteer',
+        date,
+        time: slot.start_time,
+      });
 
       if (user.email) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
@@ -404,6 +412,18 @@ export async function createVolunteerBookingForVolunteer(
       );
 
       await client.query('COMMIT');
+      const volunteerRes = await pool.query(
+        'SELECT first_name, last_name FROM volunteers WHERE id=$1',
+        [volunteerId],
+      );
+      const vName = `${volunteerRes.rows[0]?.first_name ?? ''} ${volunteerRes.rows[0]?.last_name ?? ''}`.trim();
+      emitBookingEvent({
+        action: 'created',
+        name: vName,
+        role: 'volunteer',
+        date,
+        time: slot.start_time,
+      });
 
       const booking = insertRes.rows[0];
       booking.role_id = booking.slot_id;
@@ -1451,10 +1471,12 @@ export async function cancelVolunteerBookingOccurrence(
       `UPDATE volunteer_bookings SET status='cancelled', reason=$2 WHERE id=$1`,
       [id, cancelReason],
     );
-    const volunteerRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [
-      booking.volunteer_id,
-    ]);
+    const volunteerRes = await pool.query(
+      'SELECT first_name, last_name, email FROM volunteers WHERE id=$1',
+      [booking.volunteer_id],
+    );
     const volunteerEmail = volunteerRes.rows[0]?.email;
+    const vName = `${volunteerRes.rows[0]?.first_name ?? ''} ${volunteerRes.rows[0]?.last_name ?? ''}`.trim();
     const slotRes = await pool.query(
       'SELECT start_time, end_time FROM volunteer_slots WHERE slot_id=$1',
       [booking.slot_id],
@@ -1464,6 +1486,13 @@ export async function cancelVolunteerBookingOccurrence(
       booking.date instanceof Date
         ? formatReginaDate(booking.date)
         : booking.date;
+    emitBookingEvent({
+      action: 'cancelled',
+      name: vName,
+      role: 'volunteer',
+      date: dateStr,
+      time: slot.start_time,
+    });
     const formatted = formatReginaDateWithDay(dateStr);
     const subject = `Volunteer booking cancelled for ${formatted} ${formatTimeToAmPm(
       slot.start_time,

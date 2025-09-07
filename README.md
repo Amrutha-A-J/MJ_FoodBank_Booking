@@ -448,6 +448,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Admin navigation includes a Settings page with Pantry, Warehouse, and Volunteer tabs.
 - The Settings page's Pantry tab lets staff configure a cart tare value and one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
+- Pantry schedule displays real-time booking updates via a server-sent events stream.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
 - Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).
 - Wednesdays include an additional 6:30–7:00 PM pantry slot.

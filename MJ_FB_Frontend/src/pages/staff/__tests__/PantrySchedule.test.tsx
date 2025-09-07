@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
 import { MemoryRouter } from 'react-router-dom';
@@ -192,5 +192,48 @@ describe('PantrySchedule Wednesday evening slot', () => {
       </MemoryRouter>,
     );
     expect(await screen.findByText('6:30 PM - 7:00 PM')).toBeInTheDocument();
+  });
+});
+
+describe('booking stream', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([]);
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows snackbar on stream event for current day', async () => {
+    class ES {
+      static instance: ES | null = null;
+      onmessage: ((e: MessageEvent) => void) | null = null;
+      constructor() {
+        ES.instance = this;
+      }
+      close() {}
+    }
+    (global as any).EventSource = ES as any;
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
+    act(() => {
+      ES.instance?.onmessage?.({
+        data: JSON.stringify({
+          action: 'created',
+          name: 'Test',
+          role: 'client',
+          date: '2024-01-02',
+          time: '09:00:00',
+        }),
+      } as MessageEvent);
+    });
+    expect(await screen.findByText('Refresh')).toBeInTheDocument();
   });
 });
