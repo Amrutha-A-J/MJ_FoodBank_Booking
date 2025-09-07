@@ -183,7 +183,7 @@ export default function Profile({ role }: { role: Role }) {
               />
               {profile.bookingsThisMonth !== undefined && (
                 <Typography>
-                  <strong>{t('profile_page.visits_this_month')}</strong> {profile.bookingsThisMonth}
+                  <strong>{t('visits_this_month')}</strong> {profile.bookingsThisMonth}
                 </Typography>
               )}
             </Stack>
