@@ -12,6 +12,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Password fields include a visibility toggle so users can verify what they type.
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
+- Email templates display times in 12-hour AM/PM format.
 - Client login page reminds users to sign in with their client ID, provides contact and password reset guidance, and directs staff, volunteers, and agencies to use the internal login button from the menu.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
