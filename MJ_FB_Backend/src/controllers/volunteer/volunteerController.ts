@@ -249,9 +249,6 @@ export async function createVolunteerShopperProfile(
   const { clientId } = req.body as {
     clientId?: number;
   };
-  if (!clientId) {
-    return res.status(400).json({ message: 'Client ID required' });
-  }
   try {
     const volRes = await pool.query(
       `SELECT first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
@@ -260,6 +257,24 @@ export async function createVolunteerShopperProfile(
     if ((volRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Volunteer not found' });
     }
+    const email = volRes.rows[0].email;
+    if (email) {
+      const emailCheck = await pool.query(
+        `SELECT client_id FROM clients WHERE email = $1`,
+        [email],
+      );
+      if (emailCheck.rowCount) {
+        const existingId = emailCheck.rows[0].client_id;
+        await pool.query(`UPDATE volunteers SET user_id = $1 WHERE id = $2`, [
+          existingId,
+          id,
+        ]);
+        return res.status(200).json({ userId: existingId });
+      }
+    }
+    if (!clientId) {
+      return res.status(400).json({ message: 'Client ID required' });
+    }
     const clientCheck = await pool.query(
       `SELECT client_id FROM clients WHERE client_id = $1`,
       [clientId],
@@ -267,20 +282,10 @@ export async function createVolunteerShopperProfile(
     if ((clientCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
-    const email = volRes.rows[0].email;
-    if (email) {
-      const emailCheck = await pool.query(
-        `SELECT client_id FROM clients WHERE email = $1`,
-        [email],
-      );
-      if ((emailCheck.rowCount ?? 0) > 0) {
-        return res.status(400).json({ message: 'Email already exists' });
-      }
-    }
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1,$2,$3,$4,$5,'shopper',NULL, true, $6) RETURNING id`,
+       VALUES ($1,$2,$3,$4,$5,'shopper',NULL, true, $6) RETURNING client_id`,
       [
         volRes.rows[0].first_name,
         volRes.rows[0].last_name,
@@ -290,21 +295,21 @@ export async function createVolunteerShopperProfile(
         profileLink,
       ],
     );
-    const userId = userRes.rows[0].id;
+    const userId = userRes.rows[0].client_id;
     await pool.query(`UPDATE volunteers SET user_id = $1 WHERE id = $2`, [
       userId,
       id,
     ]);
     const token = await generatePasswordSetupToken('clients', clientId);
     if (volRes.rows[0].email) {
-        await sendTemplatedEmail({
-          to: volRes.rows[0].email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      await sendTemplatedEmail({
+        to: volRes.rows[0].email,
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
+      });
     }
     res.status(201).json({ userId });
   } catch (error) {
