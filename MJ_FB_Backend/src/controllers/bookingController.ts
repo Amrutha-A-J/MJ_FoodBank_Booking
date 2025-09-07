@@ -3,7 +3,11 @@ import type { AuthRequest } from '../types/AuthRequest';
 import { randomUUID } from 'crypto';
 import pool from '../db';
 import config from '../config';
-import { formatReginaDate, formatReginaDateWithDay } from '../utils/dateUtils';
+import {
+  formatReginaDate,
+  formatReginaDateWithDay,
+  formatTimeToAmPm,
+} from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
   countVisitsAndBookingsForMonth,
@@ -140,7 +144,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
       const time =
-        start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
+        start_time && end_time
+          ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
+          : '';
       const formattedDate = formatReginaDateWithDay(date);
       const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
@@ -460,10 +466,10 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
       const oldTime = oldSlotRes.rows[0]
-        ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
+        ? `${formatTimeToAmPm(oldSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(oldSlotRes.rows[0].end_time)}`
         : '';
       const newTime = newSlotRes.rows[0]
-        ? `${newSlotRes.rows[0].start_time} to ${newSlotRes.rows[0].end_time}`
+        ? `${formatTimeToAmPm(newSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
         : '';
       const uid = `booking-${booking.id}@mjfb`;
       const {
@@ -686,16 +692,18 @@ export async function createBookingForUser(
     );
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (clientEmail) {
-      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const {
-        googleCalendarLink,
-        outlookCalendarLink,
-        appleCalendarLink,
-      } = buildCalendarLinks(date, start_time, end_time, uid, 0);
-      const time =
-        start_time && end_time ? ` from ${start_time} to ${end_time}` : '';
-      const formattedDate = formatReginaDateWithDay(date);
-      const body = `Date: ${formattedDate}${time}`;
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+        const {
+          googleCalendarLink,
+          outlookCalendarLink,
+          appleCalendarLink,
+        } = buildCalendarLinks(date, start_time, end_time, uid, 0);
+        const time =
+          start_time && end_time
+            ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
+            : '';
+        const formattedDate = formatReginaDateWithDay(date);
+        const body = `Date: ${formattedDate}${time}`;
       enqueueEmail({
         to: clientEmail,
         templateId: config.bookingConfirmationTemplateId,

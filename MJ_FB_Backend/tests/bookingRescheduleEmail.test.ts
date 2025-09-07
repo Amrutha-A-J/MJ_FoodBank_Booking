@@ -76,9 +76,9 @@ describe('rescheduleBooking', () => {
     expect(enqueueEmailMock.mock.calls[0][0].to).toBe('client@example.com');
     const params = enqueueEmailMock.mock.calls[0][0].params;
     expect(params.oldDate).toBe('Wed, Jan 1, 2025');
-    expect(params.oldTime).toBe('09:00 to 10:00');
-    expect(params.newDate).toBe('Sun, Jan 5, 2025');
-    expect(params.newTime).toBe('11:00 to 12:00');
+      expect(params.oldTime).toBe('9:00 AM to 10:00 AM');
+      expect(params.newDate).toBe('Sun, Jan 5, 2025');
+      expect(params.newTime).toBe('11:00 AM to 12:00 PM');
     expect(params.cancelLink).toBe('#cancel');
     expect(params.rescheduleLink).toBe('#resched');
     expect(params.googleCalendarLink).toBe('#google');

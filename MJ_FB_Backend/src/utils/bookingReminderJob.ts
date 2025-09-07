@@ -1,6 +1,6 @@
 import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
-import { formatReginaDate, formatReginaDateWithDay } from './dateUtils';
+import { formatReginaDate, formatReginaDateWithDay, formatTimeToAmPm } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
@@ -20,7 +20,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
       if (!b.user_email) continue;
       const time =
         b.start_time && b.end_time
-          ? ` from ${b.start_time} to ${b.end_time}`
+          ? ` from ${formatTimeToAmPm(b.start_time)} to ${formatTimeToAmPm(b.end_time)}`
           : '';
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         b.reschedule_token,

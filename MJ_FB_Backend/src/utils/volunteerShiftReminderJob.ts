@@ -1,6 +1,6 @@
 import pool from '../db';
 import { enqueueEmail } from './emailQueue';
-import { formatReginaDate, formatReginaDateWithDay } from './dateUtils';
+import { formatReginaDate, formatReginaDateWithDay, formatTimeToAmPm } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
@@ -27,7 +27,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
       if (!row.email) continue;
       const time =
         row.start_time && row.end_time
-          ? ` from ${row.start_time} to ${row.end_time}`
+          ? ` from ${formatTimeToAmPm(row.start_time)} to ${formatTimeToAmPm(row.end_time)}`
           : '';
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         row.reschedule_token,

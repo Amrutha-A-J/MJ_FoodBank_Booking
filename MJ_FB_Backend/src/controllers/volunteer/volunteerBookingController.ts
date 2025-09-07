@@ -13,11 +13,12 @@ import {
   CreateRecurringVolunteerBookingRequest,
   CreateRecurringVolunteerBookingForVolunteerRequest,
 } from '../../types/volunteerBooking';
-import {
-  formatReginaDate,
-  formatReginaDateWithDay,
-  reginaStartOfDayISO,
-} from '../../utils/dateUtils';
+  import {
+    formatReginaDate,
+    formatReginaDateWithDay,
+    reginaStartOfDayISO,
+    formatTimeToAmPm,
+  } from '../../utils/dateUtils';
 import config from '../../config';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -200,7 +201,9 @@ export async function createVolunteerBooking(
           outlookCalendarLink,
           appleCalendarLink,
         } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
-        const body = `Date: ${formatReginaDateWithDay(date)} from ${slot.start_time} to ${slot.end_time}`;
+        const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
+          slot.start_time,
+        )} to ${formatTimeToAmPm(slot.end_time)}`;
         enqueueEmail({
           to: user.email,
           templateId: config.volunteerBookingConfirmationTemplateId,
@@ -567,7 +570,9 @@ export async function resolveVolunteerBookingConflict(
         outlookCalendarLink,
         appleCalendarLink,
       } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
-      const body = `Date: ${formatReginaDateWithDay(date!)} from ${slot.start_time} to ${slot.end_time}`;
+      const body = `Date: ${formatReginaDateWithDay(date!)} from ${formatTimeToAmPm(
+        slot.start_time,
+      )} to ${formatTimeToAmPm(slot.end_time)}`;
       enqueueEmail({
         to: user.email,
         templateId: config.volunteerBookingConfirmationTemplateId,
@@ -948,10 +953,12 @@ export async function rescheduleVolunteerBooking(
 
     const email = emailRes.rows[0]?.email;
     if (email) {
-      const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
-      const oldTime = oldSlotRes.rows[0]
-        ? `${oldSlotRes.rows[0].start_time} to ${oldSlotRes.rows[0].end_time}`
-        : '';
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
+        const oldTime = oldSlotRes.rows[0]
+          ? `${formatTimeToAmPm(oldSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(
+              oldSlotRes.rows[0].end_time,
+            )}`
+          : '';
       const uid = `volunteer-booking-${booking.id}@mjfb`;
       const {
         googleCalendarLink,
@@ -979,7 +986,9 @@ export async function rescheduleVolunteerBooking(
           oldDate: formatReginaDateWithDay(booking.date),
           oldTime,
           newDate: formatReginaDateWithDay(date),
-          newTime: `${slot.start_time} to ${slot.end_time}`,
+            newTime: `${formatTimeToAmPm(slot.start_time)} to ${formatTimeToAmPm(
+              slot.end_time,
+            )}`,
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
@@ -1124,8 +1133,12 @@ export async function createRecurringVolunteerBooking(
       }
       successes.push(date);
 
-      const subject = `Volunteer booking confirmed for ${formatReginaDateWithDay(date)} ${slot.start_time}-${slot.end_time}`;
-      const body = `Date: ${formatReginaDateWithDay(date)} from ${slot.start_time} to ${slot.end_time}`;
+      const subject = `Volunteer booking confirmed for ${formatReginaDateWithDay(
+        date,
+      )} ${formatTimeToAmPm(slot.start_time)}-${formatTimeToAmPm(slot.end_time)}`;
+      const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
+        slot.start_time,
+      )} to ${formatTimeToAmPm(slot.end_time)}`;
       if (user.email) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
@@ -1296,8 +1309,12 @@ export async function createRecurringVolunteerBookingForVolunteer(
       successes.push(date);
 
       const formatted = formatReginaDateWithDay(date);
-      const subject = `Volunteer booking confirmed for ${formatted} ${slot.start_time}-${slot.end_time}`;
-      const body = `Date: ${formatted} from ${slot.start_time} to ${slot.end_time}`;
+      const subject = `Volunteer booking confirmed for ${formatted} ${formatTimeToAmPm(
+        slot.start_time,
+      )}-${formatTimeToAmPm(slot.end_time)}`;
+      const body = `Date: ${formatted} from ${formatTimeToAmPm(
+        slot.start_time,
+      )} to ${formatTimeToAmPm(slot.end_time)}`;
       if (volunteerEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         await sendTemplatedEmail({
@@ -1414,8 +1431,12 @@ export async function cancelVolunteerBookingOccurrence(
         ? formatReginaDate(booking.date)
         : booking.date;
     const formatted = formatReginaDateWithDay(dateStr);
-    const subject = `Volunteer booking cancelled for ${formatted} ${slot.start_time}-${slot.end_time}`;
-    const body = `Date: ${formatted} from ${slot.start_time} to ${slot.end_time}. Reason: ${cancelReason}.`;
+    const subject = `Volunteer booking cancelled for ${formatted} ${formatTimeToAmPm(
+      slot.start_time,
+    )}-${formatTimeToAmPm(slot.end_time)}`;
+    const body = `Date: ${formatted} from ${formatTimeToAmPm(slot.start_time)} to ${formatTimeToAmPm(
+      slot.end_time,
+    )}. Reason: ${cancelReason}.`;
     if (volunteerEmail && req.user?.role === 'staff') {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
         booking.reschedule_token,

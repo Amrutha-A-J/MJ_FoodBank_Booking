@@ -45,6 +45,14 @@ export function formatReginaDateTime(date: string | Date): string {
   return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')}`;
 }
 
+export function formatTimeToAmPm(time: string): string {
+  const [hourStr, minute] = time.split(':');
+  const hour = parseInt(hourStr, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minute} ${ampm}`;
+}
+
 export function reginaStartOfDayISO(date: string | Date): string {
   const d = toReginaDate(date);
   const parts = new Intl.DateTimeFormat('en-CA', {
