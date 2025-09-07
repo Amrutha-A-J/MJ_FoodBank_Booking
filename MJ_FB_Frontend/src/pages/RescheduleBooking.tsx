@@ -10,7 +10,7 @@ import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
-import { formatReginaDate } from '../utils/date';
+import { formatReginaDate, toDayjs } from '../utils/date';
 import type { Slot } from '../types';
 import { useTranslation } from 'react-i18next';
 
@@ -29,9 +29,9 @@ export default function RescheduleBooking() {
       getSlots(date)
         .then(s => {
           if (date === todayStr) {
-            const now = new Date();
+            const now = toDayjs().toDate();
             s = s.filter(
-              slot => new Date(`${date}T${slot.startTime}`) > now,
+              slot => toDayjs(`${date}T${slot.startTime}`).toDate() > now,
             );
           }
           s = s.filter(
