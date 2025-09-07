@@ -30,6 +30,10 @@ import {
   startPasswordTokenCleanupJob,
   stopPasswordTokenCleanupJob,
 } from './utils/passwordTokenCleanupJob';
+import {
+  startBlockedSlotCleanupJob,
+  stopBlockedSlotCleanupJob,
+} from './utils/blockedSlotCleanupJob';
 
 const PORT = config.port;
 
@@ -57,6 +61,7 @@ async function init() {
     await seedTimesheets();
     startTimesheetSeedJob();
     startPasswordTokenCleanupJob();
+    startBlockedSlotCleanupJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
@@ -73,6 +78,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopTimesheetSeedJob();
   stopPayPeriodCronJob();
   stopPasswordTokenCleanupJob();
+  stopBlockedSlotCleanupJob();
   shutdownQueue();
   if (server) {
     server.close();
