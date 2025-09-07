@@ -173,7 +173,6 @@ export function buildCalendarLinks(
   sequence = 0,
 ): {
   googleCalendarLink: string;
-  outlookCalendarLink: string;
   appleCalendarLink: string;
   icsContent: string;
 } {
@@ -184,10 +183,6 @@ export function buildCalendarLinks(
   const text = encodeURIComponent('Harvest Pantry Booking');
   const googleCalendarLink =
     `https://calendar.google.com/calendar/render?action=TEMPLATE&dates=${googleDates}&text=${text}`;
-  const outlookCalendarLink =
-    `https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&startdt=${encodeURIComponent(
-      start.toISOString(),
-    )}&enddt=${encodeURIComponent(end.toISOString())}&subject=${text}`;
   const ics = buildIcsFile({
     title: 'Harvest Pantry Booking',
     start,
@@ -200,7 +195,7 @@ export function buildCalendarLinks(
   });
   const fileName = `${uid ?? randomUUID()}.ics`;
   const appleCalendarLink = saveIcsFile(fileName, ics);
-  return { googleCalendarLink, outlookCalendarLink, appleCalendarLink, icsContent: ics };
+  return { googleCalendarLink, appleCalendarLink, icsContent: ics };
 }
 
 export function saveIcsFile(fileName: string, content: string): string {

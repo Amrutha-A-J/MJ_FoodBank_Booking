@@ -17,7 +17,6 @@ describe('volunteer booking date validation', () => {
         buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
         buildCalendarLinks: () => ({
           googleCalendarLink: '',
-          outlookCalendarLink: '',
           appleCalendarLink: '',
           icsContent: '',
         }),

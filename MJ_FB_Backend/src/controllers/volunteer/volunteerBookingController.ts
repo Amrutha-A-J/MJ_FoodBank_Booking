@@ -200,7 +200,6 @@ export async function createVolunteerBooking(
         const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
         const {
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           icsContent,
         } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
@@ -222,7 +221,6 @@ export async function createVolunteerBooking(
             cancelLink,
             rescheduleLink,
             googleCalendarLink,
-            outlookCalendarLink,
             appleCalendarLink,
             type: emailType,
           },
@@ -598,7 +596,6 @@ export async function resolveVolunteerBookingConflict(
       const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
       const {
         googleCalendarLink,
-        outlookCalendarLink,
         appleCalendarLink,
         icsContent,
       } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
@@ -620,7 +617,6 @@ export async function resolveVolunteerBookingConflict(
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           type: emailType,
         },
@@ -1002,7 +998,6 @@ export async function rescheduleVolunteerBooking(
       const uid = `volunteer-booking-${booking.id}@mjfb`;
       const {
         googleCalendarLink,
-        outlookCalendarLink,
         appleCalendarLink,
         icsContent,
       } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 1);
@@ -1046,7 +1041,6 @@ export async function rescheduleVolunteerBooking(
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           appleCalendarCancelLink,
           type: 'Volunteer Shift',

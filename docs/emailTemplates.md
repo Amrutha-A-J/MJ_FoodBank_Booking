@@ -6,12 +6,12 @@ parameters supplied to each template.
 | Template reference | Purpose | Params | Used in |
 | ------------------- | ------- | ------ | ------- |
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId` | `authController.ts`, `agencyController.ts`, `admin/staffController.ts`, `admin/adminStaffController.ts`, `volunteerController.ts`, `userController.ts` |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` | `bookingController.ts` |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `bookingController.ts` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` | `bookingReminderJob.ts` |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` | `volunteerBookingController.ts` |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `volunteerBookingController.ts` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` | `volunteerShiftReminderJob.ts` |
-| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` | `bookingController.ts` |
-| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` | `volunteerBookingController.ts` |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `bookingController.ts` |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` | `volunteerBookingController.ts` |
 
 Client and volunteer reschedule notifications share Brevo template ID **10**.
 
@@ -32,7 +32,6 @@ Cancellation, no-show, volunteer notification, and agency client update emails h
   - `cancelLink` (string) – link for the recipient to cancel their shift.
   - `rescheduleLink` (string) – link allowing rescheduling.
   - `googleCalendarLink` (string) – URL to add the shift to Google Calendar.
-  - `outlookCalendarLink` (string) – URL to add the shift to Outlook Calendar.
   - `appleCalendarLink` (string) – URL to add the shift to Apple Calendar.
   - `type` (string) – booking type, e.g., `volunteer shift`.
 

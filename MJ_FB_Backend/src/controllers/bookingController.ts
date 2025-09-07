@@ -149,7 +149,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
     const {
       googleCalendarLink,
-      outlookCalendarLink,
       appleCalendarLink,
       icsContent,
     } = buildCalendarLinks(date, start_time, end_time, uid, 0);
@@ -177,7 +176,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           type: emailType,
         },
@@ -565,7 +563,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       const uid = `booking-${booking.id}@mjfb`;
       const {
         googleCalendarLink,
-        outlookCalendarLink,
         appleCalendarLink,
         icsContent,
       } = buildCalendarLinks(
@@ -612,7 +609,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           appleCalendarCancelLink,
           type: emailType,
@@ -827,7 +823,6 @@ export async function createBookingForUser(
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         const {
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           icsContent,
         } = buildCalendarLinks(date, start_time, end_time, uid, 0);
@@ -852,7 +847,6 @@ export async function createBookingForUser(
           cancelLink,
           rescheduleLink,
           googleCalendarLink,
-          outlookCalendarLink,
           appleCalendarLink,
           type: emailType,
         },

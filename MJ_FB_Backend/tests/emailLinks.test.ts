@@ -35,14 +35,10 @@ describe('buildCancelRescheduleLinks', () => {
   it('builds calendar links using Regina timezone', () => {
     const {
       googleCalendarLink,
-      outlookCalendarLink,
       appleCalendarLink,
     } = buildCalendarLinks('2024-09-11', '09:30:00', '10:00:00');
     expect(googleCalendarLink).toContain(
       'dates=20240911T153000Z/20240911T160000Z',
-    );
-    expect(outlookCalendarLink).toContain(
-      `startdt=${encodeURIComponent('2024-09-11T15:30:00.000Z')}`,
     );
     const [, base64] = appleCalendarLink.split(',');
     expect(Buffer.from(base64, 'base64').toString()).toContain(

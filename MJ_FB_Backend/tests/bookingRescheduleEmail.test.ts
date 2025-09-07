@@ -19,7 +19,6 @@ jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '#cancel', rescheduleLink: '#resched' }),
   buildCalendarLinks: () => ({
     googleCalendarLink: '#google',
-    outlookCalendarLink: '#outlook',
     appleCalendarLink: '#apple',
     icsContent: '',
   }),
