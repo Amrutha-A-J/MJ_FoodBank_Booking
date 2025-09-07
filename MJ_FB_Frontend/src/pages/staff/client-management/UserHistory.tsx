@@ -328,7 +328,11 @@ export default function UserHistory({
                         )}
                         <TableCell sx={cellSx}>
                           {['approved'].includes(b.status.toLowerCase()) && (
-                            <Stack direction="row" spacing={1}>
+                            <Stack
+                              direction={isSmall ? 'column' : 'row'}
+                              spacing={1}
+                              alignItems={isSmall ? 'stretch' : 'center'}
+                            >
                               <Button
                                 onClick={() => setCancelId(b.id)}
                                 variant="outlined"
