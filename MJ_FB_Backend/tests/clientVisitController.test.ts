@@ -176,6 +176,31 @@ describe('client visit notes', () => {
     expect(res.body[0].children).toBe(2);
   });
 
+  it('returns dates in YYYY-MM-DD format', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 9,
+          date: new Date('2024-05-13T06:00:00.000Z'),
+          clientId: 123,
+          weightWithCart: null,
+          weightWithoutCart: null,
+          petItem: 0,
+          anonymous: false,
+          note: null,
+          adults: 0,
+          children: 0,
+          clientName: '',
+        },
+      ],
+      rowCount: 1,
+    });
+
+    const res = await request(app).get('/client-visits?date=2024-05-13');
+    expect(res.status).toBe(200);
+    expect(res.body[0].date).toBe('2024-05-13');
+  });
+
   it('allows null weights on create', async () => {
     const queryMock = jest
       .fn()

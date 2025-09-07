@@ -219,6 +219,34 @@ describe('PantryVisits', () => {
     expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
+  it('displays visit dates without timezone shift', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-05-13T12:00:00Z'));
+    (getClientVisits as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-05-13',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: null,
+        weightWithoutCart: null,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+      },
+    ]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    renderVisits();
+
+    await screen.findByText('Alice');
+
+    expect(screen.getByText('Mon, May 13, 2024')).toBeInTheDocument();
+
+    jest.useRealTimers();
+  });
+
   it('shows "No records" when there are no visits', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
