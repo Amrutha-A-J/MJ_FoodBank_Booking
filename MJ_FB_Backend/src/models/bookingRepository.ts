@@ -48,9 +48,9 @@ export async function insertBooking(
   client: Queryable = pool,
 ) {
   const reginaDate = formatReginaDate(date);
-  await client.query(
+  const res = await client.query(
     `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
     [
       userId,
       newClientId,
@@ -63,6 +63,7 @@ export async function insertBooking(
       rescheduleToken,
     ],
   );
+  return res.rows[0].id;
 }
 
 export async function fetchBookingById(id: number, client: Queryable = pool) {
