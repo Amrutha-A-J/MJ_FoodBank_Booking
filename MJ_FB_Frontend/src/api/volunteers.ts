@@ -505,6 +505,11 @@ export async function removeVolunteerShopperProfile(
   await handleResponse(res);
 }
 
+export async function deleteVolunteer(id: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}`, { method: 'DELETE' });
+  await handleResponse(res);
+}
+
 export interface VolunteerStats {
   badges: string[];
   lifetimeHours: number;

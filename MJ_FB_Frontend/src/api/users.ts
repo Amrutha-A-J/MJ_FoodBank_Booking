@@ -241,3 +241,8 @@ export async function deleteNewClient(id: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/new-clients/${id}`, { method: "DELETE" });
   await handleResponse(res);
 }
+
+export async function deleteUser(clientId: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, { method: 'DELETE' });
+  await handleResponse(res);
+}

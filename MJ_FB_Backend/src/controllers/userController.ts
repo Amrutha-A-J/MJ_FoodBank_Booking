@@ -576,3 +576,26 @@ export async function updateUserByClientId(
   }
 }
 
+export async function deleteUserByClientId(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user || req.user.role !== 'staff') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { clientId } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM clients WHERE client_id = $1', [
+      clientId,
+    ]);
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: 'User deleted' });
+  } catch (error) {
+    logger.error('Error deleting user:', error);
+    next(error);
+  }
+}
+
