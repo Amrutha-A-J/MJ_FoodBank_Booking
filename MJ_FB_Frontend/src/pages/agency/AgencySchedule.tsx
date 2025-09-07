@@ -3,6 +3,7 @@ import PantrySchedule from '../staff/PantrySchedule';
 import Page from '../../components/Page';
 import { getMyAgencyClients } from '../../api/agencies';
 import { Stack, Typography } from '@mui/material';
+import type { UserSearchResult } from '../../api/users';
 
 interface AgencyClient {
   id: number;
@@ -34,7 +35,7 @@ export default function AgencySchedule() {
   const clientIds = clients.map(c => c.id);
 
   const searchAgencyUsers = useCallback(
-    async (term: string) => {
+    async (term: string): Promise<UserSearchResult[]> => {
       const lower = term.toLowerCase();
       return clients
         .filter(
@@ -43,7 +44,13 @@ export default function AgencySchedule() {
             c.id.toString().includes(term),
         )
         .slice(0, 5)
-        .map(c => ({ client_id: c.id, name: c.name, email: c.email || '' }));
+        .map(c => ({
+          client_id: c.id,
+          name: c.name,
+          email: c.email || '',
+          phone: null,
+          hasPassword: false,
+        }));
     },
     [clients],
   );
