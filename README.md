@@ -172,6 +172,7 @@ Before merging a pull request, confirm the following:
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
+- A nightly token cleanup job runs at `0 3 * * *` Regina time to delete expired password setup and email verification tokens more than 10 days past `expires_at`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
 - Backend email queue retries failed sends with exponential backoff and persists jobs in an `email_queue` table so retries survive restarts. The maximum retries and initial delay are configurable.
