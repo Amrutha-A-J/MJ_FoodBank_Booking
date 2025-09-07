@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { TextField, Button } from '@mui/material';
+import { TextField, Button, Typography } from '@mui/material';
 import { searchUsers } from '../api/users';
 import { searchVolunteers } from '../api/volunteers';
 import { searchAgencies } from '../api/agencies';
@@ -8,6 +8,8 @@ interface SearchResultBase {
   id?: number | string;
   name: string;
   client_id?: number | string;
+  hasPassword?: boolean;
+  clientId?: number | string;
 }
 
 interface EntitySearchProps<T extends SearchResultBase> {
@@ -92,13 +94,22 @@ export default function EntitySearch<T extends SearchResultBase>({
               {renderResult ? (
                 renderResult(r, () => handleSelect(r))
               ) : (
-                <Button
-                  onClick={() => handleSelect(r)}
-                  variant="outlined"
-                  color="primary"
-                >
-                  {getLabel(r)}
-                </Button>
+                <div>
+                  <Button
+                    onClick={() => handleSelect(r)}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    {getLabel(r)}
+                  </Button>
+                  {r.hasPassword && (
+                    <Typography variant="caption">
+                      {type === 'volunteer'
+                        ? 'Volunteer has an online account'
+                        : 'Client has an online account'}
+                    </Typography>
+                  )}
+                </div>
               )}
             </li>
           ))}

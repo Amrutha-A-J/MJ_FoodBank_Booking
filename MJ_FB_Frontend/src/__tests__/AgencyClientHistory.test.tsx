@@ -11,7 +11,11 @@ jest.mock('../api/bookings', () => ({
 }));
 
 jest.mock('../components/EntitySearch', () => (props: any) => (
-  <button onClick={() => props.onSelect({ name: 'Client One', client_id: 1 })}>
+  <button
+    onClick={() =>
+      props.onSelect({ name: 'Client One', client_id: 1, hasPassword: false })
+    }
+  >
     select client
   </button>
 ));

@@ -3,7 +3,9 @@ import EntitySearch from '../components/EntitySearch';
 
 describe('EntitySearch', () => {
   it('clears query after selection when clearOnSelect is true', async () => {
-    const searchFn = jest.fn().mockResolvedValue([{ id: 1, name: 'Client 1', client_id: 1 }]);
+    const searchFn = jest
+      .fn()
+      .mockResolvedValue([{ id: 1, name: 'Client 1', client_id: 1, hasPassword: false }]);
     render(
       <EntitySearch
         type="user"

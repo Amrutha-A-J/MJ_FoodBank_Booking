@@ -12,7 +12,7 @@ jest.mock('../components/EntitySearch', () =>
     if (type === 'agency') {
       return <button onClick={() => onSelect({ id: 1, name: 'Agency A' })}>select agency</button>;
     }
-    const user = { id: 2, name: 'Client C', client_id: 2 };
+    const user = { id: 2, name: 'Client C', client_id: 2, hasPassword: false };
     return <div>{renderResult(user, () => onSelect(user))}</div>;
   },
 );

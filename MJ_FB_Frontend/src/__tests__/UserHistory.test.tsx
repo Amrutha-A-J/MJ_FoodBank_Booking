@@ -61,7 +61,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -92,7 +92,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -104,7 +104,7 @@ describe('UserHistory', () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -120,7 +120,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -171,7 +171,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -203,7 +203,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -229,7 +229,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 
@@ -262,7 +262,7 @@ describe('UserHistory', () => {
 
     render(
       <MemoryRouter>
-        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
       </MemoryRouter>,
     );
 

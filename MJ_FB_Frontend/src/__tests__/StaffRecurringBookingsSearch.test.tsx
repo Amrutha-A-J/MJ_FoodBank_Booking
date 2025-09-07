@@ -23,7 +23,7 @@ jest.mock('../api/volunteers', () => ({
 describe('StaffRecurringBookings volunteer search', () => {
   beforeEach(() => {
     (searchVolunteers as jest.Mock).mockResolvedValue([
-      { id: 7, name: 'Test Vol' },
+      { id: 7, name: 'Test Vol', trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null },
     ]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
     (getRecurringVolunteerBookingsForVolunteer as jest.Mock).mockResolvedValue([]);

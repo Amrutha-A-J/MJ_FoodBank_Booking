@@ -42,7 +42,18 @@ export async function getVolunteerProfile(): Promise<UserProfile> {
   return handleResponse(res);
 }
 
-export async function searchVolunteers(search: string) {
+export interface VolunteerSearchResult {
+  id: number;
+  name: string;
+  trainedAreas: number[];
+  hasShopper: boolean;
+  hasPassword: boolean;
+  clientId: number | null;
+}
+
+export async function searchVolunteers(
+  search: string,
+): Promise<VolunteerSearchResult[]> {
   const res = await apiFetch(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
   );
