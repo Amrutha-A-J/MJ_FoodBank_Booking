@@ -91,7 +91,10 @@ export async function updateBooking(
   const keys = Object.keys(fields).filter((k) => whitelist.includes(k));
   if (keys.length === 0) return;
   const setClause = keys.map((key, idx) => `${key}=$${idx + 2}`).join(', ');
-  const params = [id, ...keys.map((k) => fields[k])];
+  const params = [
+    id,
+    ...keys.map((k) => (k === 'date' ? formatReginaDate(fields[k]) : fields[k])),
+  ];
   await client.query(`UPDATE bookings SET ${setClause} WHERE id=$1`, params);
 }
 
