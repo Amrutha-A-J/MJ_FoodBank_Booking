@@ -16,6 +16,9 @@
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
+- Maintain PostgreSQL health: configure autovacuum thresholds, run `VACUUM ANALYZE`
+  during low-traffic windows, schedule quarterly `REINDEX`/`pg_repack`, and log
+  bloat stats (see `mj_food_bank_deploy_ops_cheatsheet.md`).
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Always document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.

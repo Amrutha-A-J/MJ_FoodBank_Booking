@@ -262,3 +262,52 @@ Run before restart:
 bash scripts/prestart_fetch_rds_ca.sh && pm2 restart mjfb-api --update-env
 ```
 
+---
+
+## 11) Database Maintenance
+
+- **Autovacuum thresholds:** tune database defaults so heavily updated tables
+  vacuum sooner:
+
+  ```sql
+  ALTER DATABASE mj_fb_db
+    SET autovacuum_vacuum_scale_factor = 0.05,
+        autovacuum_vacuum_threshold = 50,
+        autovacuum_analyze_scale_factor = 0.05,
+        autovacuum_analyze_threshold = 50;
+  ```
+
+- **Manual `VACUUM ANALYZE`:** run during low traffic (e.g. nightly at 2 AM) to
+  keep planner stats fresh:
+
+  ```bash
+  VACUUM (ANALYZE);
+  ```
+
+  Cron example:
+
+  ```cron
+  0 2 * * * psql mj_fb_db -c "VACUUM (ANALYZE);"
+  ```
+
+- **Quarterly cleanup:** `REINDEX` or use `pg_repack` on tables with heavy
+  churn to trim dead tuples without exclusive locks:
+
+  ```bash
+  REINDEX TABLE bookings;
+  # or
+  pg_repack -h <DB_HOST> -d mj_fb_db -t bookings
+  ```
+
+- **Monitor bloat:** log `pg_stat_user_tables` metrics and watch
+  `n_dead_tup`/`vacuum_count` for growth. Example check:
+
+  ```sql
+  SELECT relname, n_live_tup, n_dead_tup, vacuum_count
+  FROM pg_stat_user_tables
+  ORDER BY n_dead_tup DESC
+  LIMIT 20;
+  ```
+
+Record findings in ops notes so trends are visible over time.
+

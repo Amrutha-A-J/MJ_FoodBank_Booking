@@ -473,6 +473,17 @@ A nightly retention job purges bookings older than two years and aggregates volu
 - Pantry Visits allow selecting any date to view visits beyond the current week.
 - `GET /client-visits/stats?days=n` aggregates daily visit totals for the past `n` days (default 30) returning `{ date, total, adults, children }`.
 
+## Database Maintenance
+
+See the [Ops Cheatsheet](mj_food_bank_deploy_ops_cheatsheet.md#11-database-maintenance)
+for full procedures. Key tasks:
+
+- Configure database‑level autovacuum thresholds so heavily updated tables
+  vacuum sooner.
+- Run `VACUUM ANALYZE` during low‑traffic windows to refresh planner stats.
+- Schedule quarterly `REINDEX` or `pg_repack` for tables with high churn.
+- Monitor `pg_stat_user_tables` for bloat and log metrics in ops notes.
+
 ## Deploying to Azure
 
 The repository includes Dockerfiles for both the backend and frontend so the application can be containerized and run in Azure services such as Azure Web App for Containers or Azure Container Apps.
