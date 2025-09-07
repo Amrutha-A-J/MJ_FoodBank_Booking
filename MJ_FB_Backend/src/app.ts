@@ -65,6 +65,10 @@ app.use(morgan(':method :url :status :response-time ms'));
 // Any app-level bootstrapping
 initializeSlots();
 
+// Serve generated ICS files
+const icsPath = path.join(__dirname, '..', 'public', 'ics');
+app.use('/ics', express.static(icsPath));
+
 /* =========================================
  * API (everything under /api)
  * ========================================= */

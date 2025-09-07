@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { randomUUID } from 'crypto';
 import config from '../config';
 import logger from './logger';
 import { buildIcsFile } from './calendarLinks';
@@ -61,16 +64,24 @@ export async function sendEmail(
   }
 }
 
+interface Attachment {
+  name: string;
+  content: string;
+  type?: string;
+}
+
 interface TemplatedEmailOptions {
   to: string;
   templateId: number;
   params?: Record<string, unknown>;
+  attachments?: Attachment[];
 }
 
 export async function sendTemplatedEmail({
   to,
   templateId,
   params,
+  attachments,
 }: TemplatedEmailOptions): Promise<void | { skipped: true }> {
   if (process.env.EMAIL_ENABLED !== 'true') {
     return { skipped: true };
@@ -81,6 +92,7 @@ export async function sendTemplatedEmail({
       to,
       templateId,
       params,
+      attachments,
     });
     return;
   }
@@ -93,21 +105,25 @@ export async function sendTemplatedEmail({
   }
 
   try {
+    const body = {
+      sender: {
+        email: config.brevoFromEmail,
+        name: config.brevoFromName || undefined,
+      },
+      to: [{ email: to }],
+      templateId,
+      params: formattedParams || undefined,
+    } as any;
+    if (attachments && attachments.length) {
+      body.attachment = attachments;
+    }
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'api-key': config.brevoApiKey,
       },
-      body: JSON.stringify({
-        sender: {
-          email: config.brevoFromEmail,
-          name: config.brevoFromName || undefined,
-        },
-        to: [{ email: to }],
-        templateId,
-        params: formattedParams || undefined,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (response.ok !== true) {
@@ -119,12 +135,13 @@ export async function sendTemplatedEmail({
         to,
         templateId,
         params,
+        attachments,
       });
     }
   } catch (error) {
     logger.warn(
       'Template email not sent. Check Brevo configuration or running in local environment.',
-      { to, templateId, params, error }
+      { to, templateId, params, attachments, error }
     );
     throw error;
   }
@@ -158,6 +175,7 @@ export function buildCalendarLinks(
   googleCalendarLink: string;
   outlookCalendarLink: string;
   appleCalendarLink: string;
+  icsContent: string;
 } {
   const start = new Date(`${date}T${startTime ?? '00:00:00'}-06:00`);
   const end = new Date(`${date}T${endTime ?? '23:59:59'}-06:00`);
@@ -180,7 +198,18 @@ export function buildCalendarLinks(
     method: 'REQUEST',
     sequence,
   });
-  const icsBase64 = Buffer.from(ics, 'utf8').toString('base64');
-  const appleCalendarLink = `data:text/calendar;charset=utf-8;base64,${icsBase64}`;
-  return { googleCalendarLink, outlookCalendarLink, appleCalendarLink };
+  const fileName = `${uid ?? randomUUID()}.ics`;
+  const appleCalendarLink = saveIcsFile(fileName, ics);
+  return { googleCalendarLink, outlookCalendarLink, appleCalendarLink, icsContent: ics };
+}
+
+export function saveIcsFile(fileName: string, content: string): string {
+  if (config.icsBaseUrl) {
+    const dir = path.join(__dirname, '..', '..', 'public', 'ics');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, fileName), content, 'utf8');
+    return `${config.icsBaseUrl.replace(/\/$/, '')}/${fileName}`;
+  }
+  const base64 = Buffer.from(content, 'utf8').toString('base64');
+  return `data:text/calendar;charset=utf-8;base64,${base64}`;
 }

@@ -115,7 +115,8 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 Booking confirmation, reminder, and reschedule templates can surface "Add to Calendar" buttons by referencing
 `{{ params.googleCalendarLink }}`, `{{ params.outlookCalendarLink }}`, and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
-Apple calendar links are provided as base64-encoded ICS data URLs so Brevo doesn't strip them.
+Calendar emails attach an `.ics` file. If `ICS_BASE_URL` is configured, `appleCalendarLink`
+points to the hosted file; otherwise it falls back to a base64 `data:` URI.
 
 Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
 `type` (`vacation`, `sick`, or `personal` – limited to one personal day per quarter), and optional `reason`; admins approve or reject
@@ -280,6 +281,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `BREVO_API_KEY`                              | Brevo API key for transactional emails                                                                                                    |
 | `BREVO_FROM_EMAIL`                           | Email address used as the sender                                                                                                          |
 | `BREVO_FROM_NAME`                            | Optional sender name displayed in emails                                                                                                  |
+| `ICS_BASE_URL`                              | Base URL where generated ICS files are hosted (optional; falls back to data URIs)                 |
 | `EMAIL_ENABLED`                              | Set to 'true' to enable email sending (default false)                                                |
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
 | `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |

@@ -18,7 +18,9 @@ jest.mock('../src/utils/emailUtils', () => ({
     googleCalendarLink: '#g',
     outlookCalendarLink: '#o',
     appleCalendarLink: '#a',
+    icsContent: '',
   }),
+  saveIcsFile: () => '#',
 }));
 const enqueueEmailMock = enqueueEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({

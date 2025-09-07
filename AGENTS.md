@@ -41,4 +41,8 @@ Client and volunteer reschedule emails currently use Brevo template ID **10**.
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
+Calendar emails attach an ICS file so users can download the event. Set `ICS_BASE_URL`
+to host these files publicly; otherwise `appleCalendarLink` falls back to a base64
+`data:` URI.
+
 Cancel and reschedule links in booking emails point to public pages at `/cancel/:token` and `/reschedule/:token`.

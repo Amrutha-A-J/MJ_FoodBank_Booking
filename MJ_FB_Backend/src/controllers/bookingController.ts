@@ -18,6 +18,7 @@ import { enqueueEmail } from '../utils/emailQueue';
 import {
   buildCancelRescheduleLinks,
   buildCalendarLinks,
+  saveIcsFile,
 } from '../utils/emailUtils';
 import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
@@ -139,6 +140,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       googleCalendarLink,
       outlookCalendarLink,
       appleCalendarLink,
+      icsContent,
     } = buildCalendarLinks(date, start_time, end_time, uid, 0);
 
     if (user.email) {
@@ -149,6 +151,13 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           : '';
       const formattedDate = formatReginaDateWithDay(date);
       const body = `Date: ${formattedDate}${time}`;
+      const attachments = [
+        {
+          name: 'booking.ics',
+          content: Buffer.from(icsContent, 'utf8').toString('base64'),
+          type: 'text/calendar',
+        },
+      ];
       enqueueEmail({
         to: user.email,
         templateId: config.bookingConfirmationTemplateId,
@@ -161,6 +170,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           appleCalendarLink,
           type: emailType,
         },
+        attachments,
       });
     } else {
       logger.warn(
@@ -490,6 +500,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
+        icsContent,
       } = buildCalendarLinks(
         date,
         newSlotRes.rows[0]?.start_time,
@@ -508,7 +519,20 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         sequence: 1,
       });
       const cancelBase64 = Buffer.from(cancelIcs, 'utf8').toString('base64');
-      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8;base64,${cancelBase64}`;
+      const cancelFileName = `${uid}-cancel.ics`;
+      const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
+      const attachments = [
+        {
+          name: 'booking.ics',
+          content: Buffer.from(icsContent, 'utf8').toString('base64'),
+          type: 'text/calendar',
+        },
+        {
+          name: 'booking-cancel.ics',
+          content: cancelBase64,
+          type: 'text/calendar',
+        },
+      ];
       enqueueEmail({
         to: email,
         templateId:
@@ -526,6 +550,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           appleCalendarCancelLink,
           type: emailType,
         },
+        attachments,
       });
     } else {
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
@@ -711,6 +736,7 @@ export async function createBookingForUser(
           googleCalendarLink,
           outlookCalendarLink,
           appleCalendarLink,
+          icsContent,
         } = buildCalendarLinks(date, start_time, end_time, uid, 0);
         const time =
           start_time && end_time
@@ -718,6 +744,13 @@ export async function createBookingForUser(
             : '';
         const formattedDate = formatReginaDateWithDay(date);
         const body = `Date: ${formattedDate}${time}`;
+        const attachments = [
+          {
+            name: 'booking.ics',
+            content: Buffer.from(icsContent, 'utf8').toString('base64'),
+            type: 'text/calendar',
+          },
+        ];
       enqueueEmail({
         to: clientEmail,
         templateId: config.bookingConfirmationTemplateId,
@@ -730,6 +763,7 @@ export async function createBookingForUser(
           appleCalendarLink,
           type: emailType,
         },
+        attachments,
       });
     } else {
       logger.warn(
