@@ -536,7 +536,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       ? await pool.query(
           `SELECT COALESCE(u.email, nc.email) AS email
            FROM bookings b
-           LEFT JOIN users u ON b.user_id = u.user_id
+           LEFT JOIN clients u ON b.user_id = u.client_id
            LEFT JOIN new_clients nc ON b.new_client_id = nc.id
            WHERE b.id=$1`,
           [booking.id],
@@ -544,7 +544,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       : await pool.query(
           `SELECT u.email AS email
            FROM bookings b
-           LEFT JOIN users u ON b.user_id = u.user_id
+           LEFT JOIN clients u ON b.user_id = u.client_id
            WHERE b.id=$1`,
           [booking.id],
         );

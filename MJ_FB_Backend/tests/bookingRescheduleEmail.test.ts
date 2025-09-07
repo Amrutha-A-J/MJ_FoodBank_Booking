@@ -95,7 +95,10 @@ describe('rescheduleBooking', () => {
 
     await rescheduleBooking(req, res, next);
 
-    expect(poolQueryMock.mock.calls[3][0]).not.toContain('new_clients');
+    const query = poolQueryMock.mock.calls[3][0];
+    expect(query).not.toContain('new_clients');
+    expect(query).toContain('LEFT JOIN clients');
+    expect(query).not.toContain('users');
     expect(enqueueEmailMock).toHaveBeenCalledTimes(1);
     expect(enqueueEmailMock.mock.calls[0][0].to).toBe('client@example.com');
   });
