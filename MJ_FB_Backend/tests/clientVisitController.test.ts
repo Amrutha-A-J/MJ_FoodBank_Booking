@@ -140,7 +140,7 @@ describe('client visit notes', () => {
       });
 
     expect(res.status).toBe(200);
-    expect((pool.query as jest.Mock).mock.calls[1]).toEqual([
+    expect((pool.query as jest.Mock).mock.calls[2]).toEqual([
       expect.stringContaining('UPDATE client_visits'),
       ['2024-01-02', 123, 10, 9, 0, false, 'updated note', 1, 2, '7'],
     ]);
@@ -181,7 +181,7 @@ describe('client visit notes', () => {
       rows: [
         {
           id: 9,
-          date: new Date('2024-05-13T06:00:00.000Z'),
+          date: '2024-05-13',
           clientId: 123,
           weightWithCart: null,
           weightWithoutCart: null,
@@ -283,8 +283,8 @@ describe('client visit stats', () => {
   it('aggregates stats by month', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rows: [
-        { month: new Date('2024-01-01'), clients: 2, adults: 3, children: 1 },
-        { month: new Date('2024-02-01'), clients: 3, adults: 4, children: 2 },
+        { month: '2024-01-01', clients: 2, adults: 3, children: 1 },
+        { month: '2024-02-01', clients: 3, adults: 4, children: 2 },
       ],
       rowCount: 2,
     });
