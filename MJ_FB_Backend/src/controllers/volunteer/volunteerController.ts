@@ -390,7 +390,7 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
       trainedAreas: (v.role_ids || []).map(Number),
       hasShopper: Boolean(v.user_id),
       hasPassword: v.password != null,
-      clientId: v.user_id,
+      clientId: v.user_id ? Number(v.user_id) : null,
     }));
 
     res.json(formatted);

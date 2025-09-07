@@ -320,6 +320,42 @@ describe('VolunteerManagement role updates', () => {
   });
 });
 
+describe('VolunteerManagement search captions', () => {
+  it('shows captions for volunteers with online accounts and shopper profiles', async () => {
+    mockVolunteer = {
+      id: 2,
+      name: 'Shopper Vol',
+      trainedAreas: [],
+      hasShopper: true,
+      hasPassword: true,
+      clientId: 123,
+    };
+    (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/search']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(await screen.findByText('Shopper Vol')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Volunteer has an online account')
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'This profile has a shopper profile attached to it. Client ID: 123',
+      )
+    ).toBeInTheDocument();
+  });
+});
+
 describe('VolunteerManagement schedule statuses', () => {
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-01'));

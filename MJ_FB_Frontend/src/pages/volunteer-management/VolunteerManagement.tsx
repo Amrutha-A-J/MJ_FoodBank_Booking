@@ -685,11 +685,25 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             onSelect={selectVolunteer}
           />
           {selectedVolunteer && (
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={2}
-              mt={2}
-            >
+            <>
+              <Box mt={2}>
+                <Typography variant="h6">{selectedVolunteer.name}</Typography>
+                {selectedVolunteer.hasPassword && (
+                  <Typography variant="caption" display="block">
+                    Volunteer has an online account
+                  </Typography>
+                )}
+                {selectedVolunteer.clientId && (
+                  <Typography variant="caption" display="block">
+                    This profile has a shopper profile attached to it. Client ID: {selectedVolunteer.clientId}
+                  </Typography>
+                )}
+              </Box>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                mt={2}
+              >
               <Box sx={{ width: { xs: 1, md: '33%' } }}>
                 <Stack spacing={2} sx={{ width: 1 }}>
                   <PageCard sx={{ width: 1 }}>
@@ -832,6 +846,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 </PageCard>
               </Box>
             </Stack>
+            </>
           )}
         </>
       )}
