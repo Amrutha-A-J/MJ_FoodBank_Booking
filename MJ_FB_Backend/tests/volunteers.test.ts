@@ -120,6 +120,7 @@ describe('Volunteer shopper profile', () => {
         rows: [{ first_name: 'John', last_name: 'Doe', email: 'j@e.com', phone: '123' }],
       })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 9 }] })
       .mockResolvedValueOnce({});
     (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
@@ -134,6 +135,25 @@ describe('Volunteer shopper profile', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
     );
+  });
+
+  it('rejects shopper profile creation when email exists', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ first_name: 'John', last_name: 'Doe', email: 'j@e.com', phone: '123' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ client_id: 5 }] });
+    const res = await request(app)
+      .post('/volunteers/1/shopper')
+      .send({ clientId: 123 });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Email already exists' });
+    expect(pool.query).toHaveBeenCalledTimes(3);
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
   it('removes a shopper profile for a volunteer', async () => {
