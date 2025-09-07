@@ -41,8 +41,8 @@ describe('bookingRepository', () => {
   });
 
   it('insertBooking calls query with correct params', async () => {
-    setQueryResults({});
-    await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null, 'note');
+    setQueryResults({ rows: [{ id: 1 }] });
+    const id = await insertBooking(1, 2, 'approved', '', '2024-01-01', false, 'token', null, 'note');
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/INSERT INTO bookings/);
     expect(call[1]).toEqual(
@@ -59,6 +59,7 @@ describe('bookingRepository', () => {
       ]),
     );
     expect(call[1]).toHaveLength(9);
+    expect(id).toBe(1);
   });
 
   it('updateBooking ignores disallowed keys', async () => {
