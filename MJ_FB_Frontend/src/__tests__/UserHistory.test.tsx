@@ -75,6 +75,31 @@ describe('UserHistory', () => {
     expect(screen.getByText(/bring ID/i)).toBeInTheDocument();
   });
 
+  it('displays visit dates without timezone shift', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-15',
+        start_time: null,
+        end_time: null,
+        created_at: '2024-01-15',
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1 }} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(await screen.findByText('Jan 15, 2024')).toBeInTheDocument();
+  });
+
   it('hides edit client button when initialUser is provided', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
     render(
