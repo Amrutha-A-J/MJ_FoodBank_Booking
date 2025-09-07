@@ -451,14 +451,28 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotId],
     );
-    const emailRes = await pool.query(
-      `SELECT COALESCE(u.email, nc.email) AS email
-       FROM bookings b
-       LEFT JOIN users u ON b.user_id = u.user_id
-       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
-       WHERE b.id=$1`,
-      [booking.id],
+    // Older deployments may not yet have the `new_clients` table. Check for the
+    // table at runtime and only join it when present to avoid undefined table
+    // errors (42P01) when rescheduling bookings.
+    const tableCheck = await pool.query(
+      "SELECT to_regclass('public.new_clients') IS NOT NULL AS exists",
     );
+    const emailRes = tableCheck.rows[0]?.exists
+      ? await pool.query(
+          `SELECT COALESCE(u.email, nc.email) AS email
+           FROM bookings b
+           LEFT JOIN users u ON b.user_id = u.user_id
+           LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+           WHERE b.id=$1`,
+          [booking.id],
+        )
+      : await pool.query(
+          `SELECT u.email AS email
+           FROM bookings b
+           LEFT JOIN users u ON b.user_id = u.user_id
+           WHERE b.id=$1`,
+          [booking.id],
+        );
 
     await updateBooking(booking.id, updateFields);
 
