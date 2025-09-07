@@ -19,7 +19,12 @@ import { getBookings, getSlotsRange } from '../../api/bookings';
 import { getVolunteerBookings } from '../../api/volunteers';
 import type { Role, Booking, VolunteerBooking, SlotsByDate } from '../../types';
 import { getVisitStats, type VisitStat } from '../../api/clientVisits';
-import { formatTime } from '../../utils/time';
+import {
+  formatTime,
+  formatReginaDate,
+  REGINA_TIMEZONE,
+} from '../../utils/time';
+import { formatLocaleDate, toDate } from '../../utils/date';
 import EntitySearch from '../EntitySearch';
 import { getEvents, type EventGroups } from '../../api/events';
 import EventList from '../EventList';
@@ -55,25 +60,6 @@ const Stat = ({ icon, label, value }: StatProps) => (
   </Stack>
 );
 
-function parseLocalDate(dateStr: string) {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function formatDate(dateStr: string) {
-  const d = parseLocalDate(dateStr);
-  return d.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function formatLocalDate(date: Date) {
-  return date.toLocaleDateString('en-CA');
-}
-
 function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [volBookings, setVolBookings] = useState<VolunteerBooking[]>([]);
@@ -107,22 +93,22 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       .catch(() => setVisitStats([]));
   }, []);
 
-  const todayStr = formatLocalDate(new Date());
+  const todayStr = formatReginaDate(new Date());
   const cancellations = bookings.filter(b => b.status === 'cancelled');
   const volCancellations = volBookings.filter(b => b.status === 'cancelled');
   const stats = {
     appointments: bookings.filter(
       b =>
         b.status === 'approved' &&
-        formatLocalDate(parseLocalDate(b.date)) === todayStr,
+        formatReginaDate(toDate(b.date)) === todayStr,
     ).length,
     volunteers: volunteerCount,
     cancellations:
       cancellations.filter(
-        b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
+        b => formatReginaDate(toDate(b.date)) === todayStr,
       ).length +
       volCancellations.filter(
-        b => formatLocalDate(parseLocalDate(b.date)) === todayStr,
+        b => formatReginaDate(toDate(b.date)) === todayStr,
       ).length,
   };
 
@@ -265,7 +251,7 @@ function UserDashboard() {
       .then(b => setBookings(Array.isArray(b) ? b : [b]))
       .catch(() => {});
 
-    const todayStr = formatLocalDate(new Date());
+    const todayStr = formatReginaDate(new Date());
     getSlotsRange(todayStr, 5)
       .then((days: SlotsByDate[]) => {
         const merged = days.flatMap(d =>
@@ -273,9 +259,13 @@ function UserDashboard() {
             .filter(s => (s.available ?? 0) > 0)
             .map(
               s =>
-                `${formatDate(d.date)} ${formatTime(s.startTime)}-${formatTime(
-                  s.endTime,
-                )}`,
+                `${formatLocaleDate(d.date, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  timeZone: REGINA_TIMEZONE,
+                })} ${formatTime(s.startTime)}-${formatTime(s.endTime)}`,
             ),
         );
         setSlotOptions(merged.slice(0, 3));
@@ -314,7 +304,13 @@ function UserDashboard() {
                 }
               >
                 <ListItemText
-                  primary={`${formatDate(a.date)} ${formatTime(a.start_time || '')}`}
+                  primary={`${formatLocaleDate(a.date, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    timeZone: REGINA_TIMEZONE,
+                  })} ${formatTime(a.start_time || '')}`}
                 />
               </ListItem>
             ))}
