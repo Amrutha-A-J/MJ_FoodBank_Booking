@@ -333,7 +333,15 @@ export async function removeVolunteerShopperProfile(
       return res.status(404).json({ message: 'Shopper profile not found' });
     }
     const userId = volRes.rows[0].user_id;
-    await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+    const clientRes = await pool.query(
+      `SELECT profile_link FROM clients WHERE client_id = $1`,
+      [userId],
+    );
+    const profileLink = clientRes.rows[0]?.profile_link;
+    const expectedLink = `https://portal.link2feed.ca/org/1605/intake/${userId}`;
+    if (profileLink === expectedLink) {
+      await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+    }
     await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
     res.json({ message: 'Shopper profile removed' });
   } catch (error) {

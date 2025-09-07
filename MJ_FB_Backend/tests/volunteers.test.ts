@@ -160,6 +160,10 @@ describe('Volunteer shopper profile', () => {
   it('removes a shopper profile for a volunteer', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ profile_link: 'https://portal.link2feed.ca/org/1605/intake/9' }],
+      })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({});
 
@@ -167,6 +171,22 @@ describe('Volunteer shopper profile', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Shopper profile removed' });
+    expect(pool.query).toHaveBeenCalledTimes(4);
+  });
+
+  it('unlinks from existing client without deleting record', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ profile_link: 'existing-link' }] })
+      .mockResolvedValueOnce({});
+
+    const res = await request(app).delete('/volunteers/1/shopper');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Shopper profile removed' });
+    expect(pool.query).toHaveBeenCalledTimes(3);
+    const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
+    expect(queries.some((q: string) => /DELETE FROM clients/.test(q))).toBe(false);
   });
 });
 
