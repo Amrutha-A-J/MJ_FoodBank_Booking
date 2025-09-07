@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import authRouter from '../src/routes/auth';
+import usersRouter from '../src/routes/users';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import {
@@ -16,10 +17,26 @@ jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
 jest.mock('bcrypt');
+jest.mock('../src/middleware/authMiddleware', () => ({
+  authMiddleware: (
+    req: any,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => {
+    req.user = { id: 1, role: 'staff' };
+    next();
+  },
+  authorizeRoles: () => (
+    _req: express.Request,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => next(),
+}));
 
 const app = express();
 app.use(express.json());
 app.use('/auth', authRouter);
+app.use('/users', usersRouter);
 
 describe('requestPasswordReset', () => {
   beforeEach(() => {
@@ -142,5 +159,74 @@ describe('resendPasswordSetup', () => {
       .post('/auth/resend-password-setup')
       .send({});
     expect(res.status).toBe(400);
+  });
+});
+
+describe('createUser password flow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('hashes password when provided and skips email link', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({});
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+
+    const res = await request(app)
+      .post('/users/add-client')
+      .send({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '123',
+        clientId: 123,
+        role: 'shopper',
+        onlineAccess: true,
+        password: 'Secret123!',
+        sendPasswordLink: false,
+      });
+
+    expect(res.status).toBe(201);
+    expect(bcrypt.hash).toHaveBeenCalledWith('Secret123!', 10);
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+    expect((pool.query as jest.Mock).mock.calls[2][1][6]).toBe('hashed');
+  });
+
+  it('sends setup email when sendPasswordLink is true', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({});
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+
+    const res = await request(app)
+      .post('/users/add-client')
+      .send({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '123',
+        clientId: 123,
+        role: 'shopper',
+        onlineAccess: true,
+        sendPasswordLink: true,
+      });
+
+    expect(res.status).toBe(201);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 123);
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
+          token: 'tok',
+          clientId: 123,
+        },
+      }),
+    );
+    expect(bcrypt.hash).not.toHaveBeenCalled();
   });
 });
