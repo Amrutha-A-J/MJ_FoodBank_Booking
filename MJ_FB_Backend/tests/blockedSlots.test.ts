@@ -2,11 +2,14 @@ import request from 'supertest';
 import express from 'express';
 import blockedSlotsRouter from '../src/routes/blockedSlots';
 import pool from '../src/db';
-
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
+jest.mock('../src/utils/blockedSlotCleanupJob', () => ({
+  cleanupPastBlockedSlots: jest.fn().mockResolvedValue(undefined),
+}));
+const { cleanupPastBlockedSlots } = require('../src/utils/blockedSlotCleanupJob');
 
 const app = express();
 app.use(express.json());
@@ -56,5 +59,14 @@ describe('GET /blocked-slots', () => {
     expect(res.body).toEqual([
       { date: '2024-06-18', slotId: 1, reason: 'special' },
     ]);
+  });
+});
+
+describe('POST /blocked-slots/cleanup', () => {
+  it('runs cleanup and responds with success', async () => {
+    const res = await request(app).post('/blocked-slots/cleanup');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Cleanup complete' });
+    expect(cleanupPastBlockedSlots).toHaveBeenCalled();
   });
 });
