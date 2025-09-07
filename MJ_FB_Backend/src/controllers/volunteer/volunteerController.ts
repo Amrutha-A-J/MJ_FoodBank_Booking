@@ -251,11 +251,14 @@ export async function createVolunteerShopperProfile(
   };
   try {
     const volRes = await pool.query(
-      `SELECT first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
+      `SELECT first_name, last_name, email, phone, user_id FROM volunteers WHERE id = $1`,
       [id],
     );
     if ((volRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    if (volRes.rows[0].user_id) {
+      return res.status(409).json({ message: 'Shopper profile already exists' });
     }
     const email = volRes.rows[0].email;
     if (email) {
