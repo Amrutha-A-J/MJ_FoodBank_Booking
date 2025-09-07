@@ -3,6 +3,7 @@ import { List, ListItem, ListItemText, Chip, type SxProps, type Theme } from '@m
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import { formatReginaDate } from '../../utils/time';
+import { toDate } from '../../utils/date';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 
 interface CoverageItem {
@@ -27,7 +28,7 @@ export default function VolunteerCoverageCard({
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const todayStr = formatReginaDate(new Date());
+    const todayStr = formatReginaDate(toDate());
 
     getVolunteerRoles()
       .then(roles =>
@@ -42,7 +43,7 @@ export default function VolunteerCoverageCard({
             const filled = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
-                formatReginaDate(new Date(b.date)) === todayStr,
+                formatReginaDate(toDate(b.date)) === todayStr,
             ).length;
             return {
               roleName: r.name,

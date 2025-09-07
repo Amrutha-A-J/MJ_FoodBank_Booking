@@ -80,6 +80,30 @@ describe('ClientDashboard', () => {
     expect(chipLabel.closest('.MuiChip-colorSuccess')).toBeTruthy();
   });
 
+  it('displays visit dates without timezone shift', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-16T12:00:00Z'));
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: '2024-01-15',
+      },
+    ]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getByText('Mon, Jan 15, 2024')).toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
   it('hides client note in booking history', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([
       {
