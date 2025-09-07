@@ -31,6 +31,7 @@
 - A volunteer shift reminder job (`src/utils/volunteerShiftReminderJob.ts`) runs at server startup and emails volunteers about next-day shifts using the same queue. It also uses `node-cron` with the same schedule and exposes `startVolunteerShiftReminderJob`/`stopVolunteerShiftReminderJob`.
 - A nightly no-show cleanup job (`src/utils/noShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved bookings as `no_show`. It exposes `startNoShowCleanupJob`/`stopNoShowCleanupJob`.
 - A nightly volunteer no-show cleanup job (`src/utils/volunteerNoShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show`. It logs results, emails coordinators, and waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) after each shift before auto-marking.
+- A nightly retention job (`src/utils/bookingRetentionJob.ts`) removes `bookings` and `volunteer_bookings` older than two years and aggregates volunteer stats into the `volunteers` table.
 
 ## Project Layout
 
