@@ -171,6 +171,7 @@ describe('Volunteer shopper profile', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
     );
+    expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0].params.clientId).toBe(123);
   });
 
   it('links to existing client when email matches regardless of case', async () => {

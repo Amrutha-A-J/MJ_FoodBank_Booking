@@ -68,6 +68,7 @@ describe('requestPasswordReset', () => {
         params: {
           link: `${config.frontendOrigins[0]}/set-password?token=tok`,
           token: 'tok',
+          clientId: 3,
         },
       }),
     );

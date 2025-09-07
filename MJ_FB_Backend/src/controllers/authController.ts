@@ -65,14 +65,18 @@ export async function requestPasswordReset(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-        await sendTemplatedEmail({
-          to: user.email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      const params: Record<string, unknown> = {
+        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        token,
+      };
+      if (user.table === 'clients') {
+        params.clientId = user.id;
+      }
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: config.passwordSetupTemplateId,
+        params,
+      });
       logger.info(`Password reset requested for ${user.email}`);
     }
     res.status(204).send();
@@ -138,14 +142,18 @@ export async function resendPasswordSetup(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-        await sendTemplatedEmail({
-          to: user.email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      const params: Record<string, unknown> = {
+        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        token,
+      };
+      if (user.table === 'clients') {
+        params.clientId = user.id;
+      }
+      await sendTemplatedEmail({
+        to: user.email,
+        templateId: config.passwordSetupTemplateId,
+        params,
+      });
       logger.info(`Password setup link resent for ${user.email}`);
     }
     res.status(204).send();
