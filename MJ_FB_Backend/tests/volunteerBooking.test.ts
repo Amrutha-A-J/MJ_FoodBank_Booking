@@ -20,6 +20,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     next: express.NextFunction,
   ) => next(),
 }));
+jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } }));
 
 const app = express();
 app.use(express.json());

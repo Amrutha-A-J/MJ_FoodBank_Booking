@@ -216,7 +216,9 @@ describe('cancelBooking', () => {
       status: 'approved',
       date: futureDate,
     });
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00' }] });
     const req = {
       params: { id: '1' },
       user: { role: 'staff', id: '99' },
@@ -245,7 +247,9 @@ describe('cancelBooking', () => {
       status: 'approved',
       date: futureDate,
     });
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00' }] });
     const req = {
       params: { id: '1' },
       user: { role: 'client', id: '5' },

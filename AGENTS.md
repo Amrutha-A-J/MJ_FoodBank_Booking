@@ -5,6 +5,7 @@
 - Ensure tests are added or updated for any code changes and run the relevant test suites after each task.
 - Use Node.js 22+; run `nvm use` to switch to the pinned version in `.nvmrc`.
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
+- The pantry schedule receives live updates through an SSE endpoint at `/bookings/stream`.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table.
