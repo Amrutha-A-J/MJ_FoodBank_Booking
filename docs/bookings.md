@@ -13,3 +13,4 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `reschedule_failed`
 - `select_date_time`
 - `help.client.rescheduling_or_canceling.steps.3`
+- `visits_this_month`

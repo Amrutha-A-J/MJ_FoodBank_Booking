@@ -154,7 +154,6 @@
     "client_id": "Client ID:",
     "roles": "Roles:",
     "trained_areas": "Trained Areas:",
-    "visits_this_month": "Visits this month:",
     "contact_info": "Contact Info",
     "phone": "Phone",
     "phone_invalid": "Please enter a valid phone number.",
@@ -309,5 +308,6 @@
   "client_login_notice_internal": "If you are staff, volunteer, or agency, use the internal login button in the menu to log in.",
   "client_login_notice_password": "If your password is not working, please use the forgot password link below to set a new password.",
   "client_login_notice_volunteer": "Are you a volunteer looking to shop? Please contact harvestpantry@mjfoodbank.org to enable booking shopping in your volunteer account. After that please login to your volunteer account to book your shopping appointments.",
-  "client_login_notice_close": "Close this modal to sign in."
+  "client_login_notice_close": "Close this modal to sign in.",
+  "visits_this_month": "Visits this month:"
 }
