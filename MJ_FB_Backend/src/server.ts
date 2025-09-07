@@ -20,6 +20,7 @@ import {
 } from './utils/expiredTokenCleanupJob';
 import { startPayPeriodCronJob, stopPayPeriodCronJob } from './utils/payPeriodCronJob';
 import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
+import { startEmailQueueCleanupJob, stopEmailQueueCleanupJob } from './utils/emailQueueCleanupJob';
 import seedPayPeriods from './utils/payPeriodSeeder';
 import seedTimesheets from './utils/timesheetSeeder';
 import {
@@ -59,6 +60,7 @@ async function init() {
     startNoShowCleanupJob();
     startVolunteerNoShowCleanupJob();
     startExpiredTokenCleanupJob();
+    startEmailQueueCleanupJob();
     startPayPeriodCronJob();
     await seedPayPeriods('2025-08-03', '2025-12-31');
     await seedTimesheets();
@@ -80,6 +82,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopNoShowCleanupJob();
   stopVolunteerNoShowCleanupJob();
   stopExpiredTokenCleanupJob();
+  stopEmailQueueCleanupJob();
   stopTimesheetSeedJob();
   stopPayPeriodCronJob();
   stopRetentionJob();

@@ -110,6 +110,8 @@ BREVO_API_KEY=your_api_key
 BREVO_FROM_EMAIL=noreply@example.com
 BREVO_FROM_NAME="MJ Food Bank"
 EMAIL_ENABLED=true # set to 'true' to send emails
+EMAIL_QUEUE_MAX_AGE_DAYS=30 # remove stuck email jobs after this many days
+EMAIL_QUEUE_WARNING_SIZE=100 # warn if queue exceeds this size
 TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ```
 
@@ -287,7 +289,9 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `ICS_BASE_URL`                              | Base URL where generated ICS files are hosted (optional; falls back to data URIs)                 |
 | `EMAIL_ENABLED`                              | Set to 'true' to enable email sending (default false)                                                |
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
-| `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                              |
+| `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                   |
+| `EMAIL_QUEUE_MAX_AGE_DAYS`                   | Remove pending email jobs older than this many days (default 30)                                                              |
+| `EMAIL_QUEUE_WARNING_SIZE`                   | Log a warning if the email queue exceeds this size (default 100)                                                              |
 
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |
