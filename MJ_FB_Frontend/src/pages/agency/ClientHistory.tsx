@@ -207,7 +207,11 @@ export default function ClientHistory() {
                         </TableCell>
                         <TableCell sx={cellSx}>
                           {['approved'].includes(b.status.toLowerCase()) && (
-                            <Stack direction="row" spacing={1}>
+                            <Stack
+                              direction={isSmall ? 'column' : 'row'}
+                              spacing={1}
+                              alignItems={isSmall ? 'stretch' : 'center'}
+                            >
                               <Button
                                 onClick={() => setRescheduleBooking(b)}
                                 variant="outlined"
