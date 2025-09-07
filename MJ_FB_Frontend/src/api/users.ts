@@ -186,7 +186,19 @@ export async function searchUsers(search: string) {
   return handleResponse(res);
 }
 
-export async function getUserByClientId(clientId: string) {
+export interface UserByClientId {
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  phone: string | null;
+  clientId: number;
+  onlineAccess: boolean;
+  hasPassword: boolean;
+}
+
+export async function getUserByClientId(
+  clientId: string,
+): Promise<UserByClientId> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`);
   return handleResponse(res);
 }

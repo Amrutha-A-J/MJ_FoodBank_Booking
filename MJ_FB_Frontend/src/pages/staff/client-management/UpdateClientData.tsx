@@ -15,14 +15,16 @@ import {
   Link,
   FormControlLabel,
   Checkbox,
+  Typography,
 } from "@mui/material";
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
-import {
+import { 
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
+  getUserByClientId,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
 import type { ApiError } from "../../../api/client";
@@ -39,6 +41,7 @@ export default function UpdateClientData() {
     onlineAccess: false,
     password: "",
   });
+  const [hasPassword, setHasPassword] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -55,16 +58,30 @@ export default function UpdateClientData() {
     loadClients();
   }, []);
 
-  function handleEdit(client: IncompleteUser) {
+  async function handleEdit(client: IncompleteUser) {
     setSelected(client);
-    setForm({
-      firstName: client.firstName || "",
-      lastName: client.lastName || "",
-      email: client.email || "",
-      phone: client.phone || "",
-      onlineAccess: false,
-      password: "",
-    });
+    try {
+      const data = await getUserByClientId(String(client.clientId));
+      setForm({
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        onlineAccess: Boolean(data.onlineAccess),
+        password: "",
+      });
+      setHasPassword(Boolean(data.hasPassword));
+    } catch {
+      setForm({
+        firstName: client.firstName || "",
+        lastName: client.lastName || "",
+        email: client.email || "",
+        phone: client.phone || "",
+        onlineAccess: false,
+        password: "",
+      });
+      setHasPassword(false);
+    }
   }
 
   async function handleSave() {
@@ -76,7 +93,7 @@ export default function UpdateClientData() {
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        ...(form.onlineAccess ? { password: form.password } : {}),
+        ...(!hasPassword && form.onlineAccess ? { password: form.password } : {}),
       });
       setSnackbar({
         open: true,
@@ -155,20 +172,24 @@ export default function UpdateClientData() {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={form.onlineAccess}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      onlineAccess: e.target.checked,
-                    })
-                  }
-                />
-              }
-              label="Online Access"
-            />
+            {hasPassword ? (
+              <Typography>Client already has an account</Typography>
+            ) : (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={form.onlineAccess}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        onlineAccess: e.target.checked,
+                      })
+                    }
+                  />
+                }
+                label="Online Access"
+              />
+            )}
             <TextField
               label="First Name"
               value={form.firstName}
@@ -193,7 +214,7 @@ export default function UpdateClientData() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
-            {form.onlineAccess && (
+            {!hasPassword && form.onlineAccess && (
               <PasswordField
                 label="Password"
                 value={form.password}
@@ -210,7 +231,7 @@ export default function UpdateClientData() {
               disabled={
                 !form.firstName ||
                 !form.lastName ||
-                (form.onlineAccess && !form.password)
+                (!hasPassword && form.onlineAccess && !form.password)
               }
             >
               Save
