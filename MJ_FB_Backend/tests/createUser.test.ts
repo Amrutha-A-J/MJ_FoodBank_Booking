@@ -53,7 +53,7 @@ describe('POST /users/add-client', () => {
         clientId: 123,
         role: 'shopper',
         onlineAccess: true,
-        password: 'Secret123!',
+        sendPasswordLink: true,
       });
 
     expect(res.status).toBe(201);

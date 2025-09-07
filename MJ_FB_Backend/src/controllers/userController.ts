@@ -117,16 +117,27 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  const { firstName, lastName, email, phone, clientId, role, onlineAccess } =
-    req.body as {
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      phone?: string;
-      clientId: number;
-      role: UserRole;
-      onlineAccess: boolean;
-    };
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    clientId,
+    role,
+    onlineAccess,
+    password,
+    sendPasswordLink,
+  } = req.body as {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    clientId: number;
+    role: UserRole;
+    onlineAccess: boolean;
+    password?: string;
+    sendPasswordLink?: boolean;
+  };
 
   if (!clientId || !role) {
     return res.status(400).json({ message: 'Client ID and role required' });
@@ -160,9 +171,10 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     }
 
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     await pool.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1, $2, $3, $4, $5, $6, NULL, $7, $8)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         firstName || null,
         lastName || null,
@@ -170,13 +182,14 @@ export async function createUser(req: Request, res: Response, next: NextFunction
         phone || null,
         clientId,
         role,
+        hashedPassword,
         onlineAccess,
         profileLink,
       ],
     );
 
-    const token = await generatePasswordSetupToken('clients', clientId);
-    if (email) {
+    if (sendPasswordLink && email) {
+      const token = await generatePasswordSetupToken('clients', clientId);
       const params: Record<string, unknown> = {
         link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
         token,

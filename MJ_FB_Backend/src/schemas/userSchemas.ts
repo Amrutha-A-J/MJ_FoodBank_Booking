@@ -30,6 +30,7 @@ export const createUserSchema = z
     role: z.enum(['shopper', 'delivery']),
     onlineAccess: z.boolean(),
     password: passwordSchema.optional(),
+    sendPasswordLink: z.boolean().optional(),
   })
   .refine(
     data =>
