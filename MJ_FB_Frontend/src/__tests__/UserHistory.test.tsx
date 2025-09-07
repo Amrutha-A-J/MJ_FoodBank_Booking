@@ -3,7 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
 import { deleteClientVisit } from '../api/clientVisits';
-import { getUserByClientId, updateUserInfo } from '../api/users';
+import {
+  getUserByClientId,
+  updateUserInfo,
+  requestPasswordReset,
+} from '../api/users';
 import { useAuth } from '../hooks/useAuth';
 
 jest.mock('../api/bookings', () => ({
@@ -18,6 +22,7 @@ jest.mock('../api/clientVisits', () => ({
 jest.mock('../api/users', () => ({
   getUserByClientId: jest.fn(),
   updateUserInfo: jest.fn(),
+  requestPasswordReset: jest.fn(),
 }));
 
 jest.mock('../hooks/useAuth');
@@ -240,6 +245,83 @@ describe('UserHistory', () => {
     expect(
       screen.queryByRole('button', { name: /delete visit/i })
     ).not.toBeInTheDocument();
+  });
+
+  it('enables online access without password and sends reset link', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: '',
+      phone: '',
+      onlineAccess: false,
+      hasPassword: false,
+    });
+    (updateUserInfo as jest.Mock).mockResolvedValue(undefined);
+    (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter initialEntries={['/?name=Jane%20Doe&clientId=1']}>
+        <UserHistory />
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole('button', { name: /edit client/i });
+    fireEvent.click(screen.getByRole('button', { name: /edit client/i }));
+    await waitFor(() => expect(getUserByClientId).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByLabelText('Online Access'));
+    const saveBtn = screen.getByRole('button', { name: /^save$/i });
+    expect(saveBtn).not.toBeDisabled();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /send password reset link/i }),
+    );
+
+    await waitFor(() =>
+      expect(updateUserInfo).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ onlineAccess: true }),
+      ),
+    );
+    expect(requestPasswordReset).toHaveBeenCalledWith({ clientId: '1' });
+  });
+
+  it('saves password when provided', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: '',
+      phone: '',
+      onlineAccess: false,
+      hasPassword: false,
+    });
+    (updateUserInfo as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter initialEntries={['/?name=Jane%20Doe&clientId=1']}>
+        <UserHistory />
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole('button', { name: /edit client/i });
+    fireEvent.click(screen.getByRole('button', { name: /edit client/i }));
+    await waitFor(() => expect(getUserByClientId).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByLabelText('Online Access'));
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'Secret1!' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() =>
+      expect(updateUserInfo).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ password: 'Secret1!' }),
+      ),
+    );
   });
 });
 

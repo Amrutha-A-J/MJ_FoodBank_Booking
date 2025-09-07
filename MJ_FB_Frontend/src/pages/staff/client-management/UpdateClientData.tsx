@@ -15,16 +15,16 @@ import {
   Link,
   FormControlLabel,
   Checkbox,
-  Typography,
 } from "@mui/material";
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
-import { 
+import {
   getIncompleteUsers,
   updateUserInfo,
   type IncompleteUser,
   getUserByClientId,
+  requestPasswordReset,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
 import type { ApiError } from "../../../api/client";
@@ -41,7 +41,6 @@ export default function UpdateClientData() {
     onlineAccess: false,
     password: "",
   });
-  const [hasPassword, setHasPassword] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -70,7 +69,6 @@ export default function UpdateClientData() {
         onlineAccess: Boolean(data.onlineAccess),
         password: "",
       });
-      setHasPassword(Boolean(data.hasPassword));
     } catch {
       setForm({
         firstName: client.firstName || "",
@@ -80,12 +78,11 @@ export default function UpdateClientData() {
         onlineAccess: false,
         password: "",
       });
-      setHasPassword(false);
     }
   }
 
-  async function handleSave() {
-    if (!selected) return;
+  async function handleSave(): Promise<boolean> {
+    if (!selected) return false;
     try {
       await updateUserInfo(selected.clientId, {
         firstName: form.firstName,
@@ -93,7 +90,9 @@ export default function UpdateClientData() {
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        ...(!hasPassword && form.onlineAccess ? { password: form.password } : {}),
+        ...(form.onlineAccess && form.password
+          ? { password: form.password }
+          : {}),
       });
       setSnackbar({
         open: true,
@@ -102,6 +101,7 @@ export default function UpdateClientData() {
       });
       setSelected(null);
       loadClients();
+      return true;
     } catch (err: unknown) {
       let message = "Update failed";
       const apiErr = err as ApiError;
@@ -114,6 +114,27 @@ export default function UpdateClientData() {
       setSnackbar({
         open: true,
         message,
+        severity: "error",
+      });
+      return false;
+    }
+  }
+
+  async function handleSendReset() {
+    if (!selected) return;
+    const ok = await handleSave();
+    if (!ok) return;
+    try {
+      await requestPasswordReset({ clientId: String(selected.clientId) });
+      setSnackbar({
+        open: true,
+        message: "Password reset link sent",
+        severity: "success",
+      });
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Failed to send password reset link",
         severity: "error",
       });
     }
@@ -172,24 +193,20 @@ export default function UpdateClientData() {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
-            {hasPassword ? (
-              <Typography>Client already has an account</Typography>
-            ) : (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.onlineAccess}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        onlineAccess: e.target.checked,
-                      })
-                    }
-                  />
-                }
-                label="Online Access"
-              />
-            )}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={form.onlineAccess}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      onlineAccess: e.target.checked,
+                    })
+                  }
+                />
+              }
+              label="Online Access"
+            />
             <TextField
               label="First Name"
               value={form.firstName}
@@ -214,7 +231,7 @@ export default function UpdateClientData() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
-            {!hasPassword && form.onlineAccess && (
+            {form.onlineAccess && (
               <PasswordField
                 label="Password"
                 value={form.password}
@@ -226,13 +243,14 @@ export default function UpdateClientData() {
           </Stack>
         </DialogContent>
           <DialogActions>
+            {form.onlineAccess && (
+              <Button variant="outlined" onClick={handleSendReset}>
+                Send password reset link
+              </Button>
+            )}
             <Button
               onClick={handleSave}
-              disabled={
-                !form.firstName ||
-                !form.lastName ||
-                (!hasPassword && form.onlineAccess && !form.password)
-              }
+              disabled={!form.firstName || !form.lastName}
             >
               Save
             </Button>
