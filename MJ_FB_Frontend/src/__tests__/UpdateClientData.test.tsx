@@ -78,4 +78,24 @@ describe('UpdateClientData', () => {
     );
     expect(requestPasswordReset).toHaveBeenCalledWith({ clientId: '1' });
   });
+
+  it('disables online access checkbox when client has password', async () => {
+    (getUserByClientId as jest.Mock).mockResolvedValueOnce({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: '',
+      phone: '',
+      onlineAccess: true,
+      hasPassword: true,
+    });
+
+    render(<UpdateClientData />);
+
+    await screen.findByRole('button', { name: 'Edit' });
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+    const checkbox = await screen.findByLabelText('Online Access');
+    expect(checkbox).toBeDisabled();
+    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+  });
 });

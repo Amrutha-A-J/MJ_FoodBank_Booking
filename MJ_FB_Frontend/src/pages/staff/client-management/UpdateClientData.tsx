@@ -15,6 +15,7 @@ import {
   Link,
   FormControlLabel,
   Checkbox,
+  Tooltip,
 } from "@mui/material";
 import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
@@ -40,6 +41,7 @@ export default function UpdateClientData() {
     phone: "",
     onlineAccess: false,
     password: "",
+    hasPassword: false,
   });
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -68,6 +70,7 @@ export default function UpdateClientData() {
         phone: data.phone || "",
         onlineAccess: Boolean(data.onlineAccess),
         password: "",
+        hasPassword: data.hasPassword,
       });
     } catch {
       setForm({
@@ -77,6 +80,7 @@ export default function UpdateClientData() {
         phone: client.phone || "",
         onlineAccess: false,
         password: "",
+        hasPassword: false,
       });
     }
   }
@@ -89,7 +93,7 @@ export default function UpdateClientData() {
         lastName: form.lastName,
         email: form.email || undefined,
         phone: form.phone || undefined,
-        onlineAccess: form.onlineAccess,
+        onlineAccess: form.hasPassword ? true : form.onlineAccess,
         ...(form.onlineAccess && form.password
           ? { password: form.password }
           : {}),
@@ -193,20 +197,28 @@ export default function UpdateClientData() {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} mt={1}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={form.onlineAccess}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      onlineAccess: e.target.checked,
-                    })
+            <Tooltip
+              title="Client already has a password"
+              disableHoverListener={!form.hasPassword}
+            >
+              <span>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.onlineAccess}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          onlineAccess: e.target.checked,
+                        })
+                      }
+                      disabled={form.hasPassword}
+                    />
                   }
+                  label="Online Access"
                 />
-              }
-              label="Online Access"
-            />
+              </span>
+            </Tooltip>
             <TextField
               label="First Name"
               value={form.firstName}
@@ -231,7 +243,7 @@ export default function UpdateClientData() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
-            {form.onlineAccess && (
+            {form.onlineAccess && !form.hasPassword && (
               <PasswordField
                 label="Password"
                 value={form.password}

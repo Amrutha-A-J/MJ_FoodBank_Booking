@@ -24,6 +24,7 @@ import {
   FormControlLabel,
   Checkbox,
   Stack,
+  Tooltip,
   Table,
   TableBody,
   TableCell,
@@ -74,6 +75,7 @@ export default function UserHistory({
     phone: '',
     onlineAccess: false,
     password: '',
+    hasPassword: false,
   });
   const { t } = useTranslation();
   const { role } = useAuth();
@@ -180,6 +182,7 @@ export default function UserHistory({
         phone: data.phone || '',
         onlineAccess: Boolean(data.onlineAccess),
         password: '',
+        hasPassword: data.hasPassword,
       });
       setEditOpen(true);
     } catch {
@@ -196,7 +199,7 @@ export default function UserHistory({
         lastName: form.lastName,
         email: form.email || undefined,
         phone: form.phone || undefined,
-        onlineAccess: form.onlineAccess,
+        onlineAccess: form.hasPassword ? true : form.onlineAccess,
         ...(form.onlineAccess && form.password
           ? { password: form.password }
           : {}),
@@ -409,17 +412,28 @@ export default function UserHistory({
               <DialogTitle>Edit Client</DialogTitle>
               <DialogContent>
               <Stack spacing={2} mt={1}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.onlineAccess}
-                      onChange={e =>
-                        setForm({ ...form, onlineAccess: e.target.checked })
+                <Tooltip
+                  title="Client already has a password"
+                  disableHoverListener={!form.hasPassword}
+                >
+                  <span>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={form.onlineAccess}
+                          onChange={e =>
+                            setForm({
+                              ...form,
+                              onlineAccess: e.target.checked,
+                            })
+                          }
+                          disabled={form.hasPassword}
+                        />
                       }
+                      label="Online Access"
                     />
-                  }
-                  label="Online Access"
-                />
+                  </span>
+                </Tooltip>
                 <TextField
                   label="First Name"
                   value={form.firstName}
@@ -442,7 +456,7 @@ export default function UserHistory({
                   value={form.phone}
                   onChange={e => setForm({ ...form, phone: e.target.value })}
                 />
-                {form.onlineAccess && (
+                {form.onlineAccess && !form.hasPassword && (
                   <PasswordField
                     label="Password"
                     value={form.password}

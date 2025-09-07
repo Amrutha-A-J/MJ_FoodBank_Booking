@@ -287,6 +287,32 @@ describe('UserHistory', () => {
     expect(requestPasswordReset).toHaveBeenCalledWith({ clientId: '1' });
   });
 
+  it('disables online access checkbox when client has password', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: '',
+      phone: '',
+      onlineAccess: true,
+      hasPassword: true,
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/?name=Jane%20Doe&clientId=1']}>
+        <UserHistory />
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole('button', { name: /edit client/i });
+    fireEvent.click(screen.getByRole('button', { name: /edit client/i }));
+    await waitFor(() => expect(getUserByClientId).toHaveBeenCalled());
+
+    const checkbox = await screen.findByLabelText('Online Access');
+    expect(checkbox).toBeDisabled();
+    expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+  });
+
   it('saves password when provided', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
     (getUserByClientId as jest.Mock).mockResolvedValue({
