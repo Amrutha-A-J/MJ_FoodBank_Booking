@@ -1,6 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
+import { reginaStartOfDayISO } from '../utils/dateUtils';
+
+export async function refreshSunshineBagOverall(year: number, month: number) {
+  const result = await pool.query(
+    `SELECT COALESCE(SUM(weight)::int, 0) AS weight,
+            COALESCE(SUM(client_count)::int, 0) AS client_count
+       FROM sunshine_bag_log
+       WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
+    [year, month],
+  );
+  const weight = Number(result.rows[0]?.weight ?? 0);
+  const clientCount = Number(result.rows[0]?.client_count ?? 0);
+  await pool.query(
+    `INSERT INTO sunshine_bag_overall (year, month, weight, client_count)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (year, month)
+       DO UPDATE SET weight = EXCLUDED.weight,
+                     client_count = EXCLUDED.client_count`,
+    [year, month, weight, clientCount],
+  );
+}
 
 export async function getSunshineBag(req: Request, res: Response, next: NextFunction) {
   try {
@@ -28,6 +49,8 @@ export async function upsertSunshineBag(req: Request, res: Response, next: NextF
        RETURNING date, weight, client_count as "clientCount"`,
       [date, weight, clientCount],
     );
+    const dt = new Date(reginaStartOfDayISO(date));
+    await refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     logger.error('Error saving sunshine bag:', err);

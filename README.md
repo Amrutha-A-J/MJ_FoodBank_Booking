@@ -446,6 +446,7 @@ A nightly retention job purges bookings older than two years and aggregates volu
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
+- Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly summary tables, and raw log entries older than one year are deleted each Jan 31.
 - Warehouse Aggregations page provides yearly totals and supports exporting them via `/warehouse-overall/export`.
 - Page and form titles render in uppercase with a lighter font weight for clarity.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
