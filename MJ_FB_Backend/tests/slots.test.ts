@@ -85,6 +85,30 @@ describe('GET /slots applies slot rules', () => {
     ]);
   });
 
+  it('lists Wednesday evening slot in range', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
+          { id: 2, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    const res = await request(app)
+      .get('/slots/range')
+      .query({ start: '2024-06-19', days: 1, includePast: 'true' });
+    expect(res.status).toBe(200);
+    expect(res.body[0].date).toBe('2024-06-19');
+    expect(res.body[0].slots.map((s: any) => s.startTime)).toEqual([
+      '09:30:00',
+      '18:30:00',
+    ]);
+  });
+
   it('marks slots blocked from recurring entries', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })

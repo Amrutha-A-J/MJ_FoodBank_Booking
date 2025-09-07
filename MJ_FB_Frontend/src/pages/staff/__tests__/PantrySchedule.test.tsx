@@ -134,3 +134,28 @@ describe('PantrySchedule status display', () => {
     expect(screen.queryByText('Cancel (3)')).toBeNull();
   });
 });
+
+describe('PantrySchedule Wednesday evening slot', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-06-19T00:00:00-06:00'));
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      { id: '2', startTime: '18:30:00', endTime: '19:00:00', available: 1, maxCapacity: 1 },
+    ]);
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows 6:30 PM–7:00 PM slot', async () => {
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByText('6:30 PM - 7:00 PM')).toBeInTheDocument();
+  });
+});
