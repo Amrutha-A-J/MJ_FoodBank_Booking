@@ -1,9 +1,12 @@
 // src/db.ts
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 import fs from 'fs';
 import path from 'path';
 import config from './config';
 import logger from './utils/logger';
+
+// Parse DATE (OID 1082) as YYYY-MM-DD strings to avoid timezone shifts
+types.setTypeParser(1082, (val) => val);
 
 const isLocal = ['localhost', '127.0.0.1'].includes(config.pgHost);
 
