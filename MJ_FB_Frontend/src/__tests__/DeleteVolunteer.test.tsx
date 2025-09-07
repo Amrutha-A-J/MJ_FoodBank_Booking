@@ -6,7 +6,20 @@ import { deleteVolunteer } from '../api/volunteers';
 jest.mock('../api/volunteers', () => ({ deleteVolunteer: jest.fn() }));
 
 jest.mock('../components/EntitySearch', () => (props: any) => (
-  <button onClick={() => props.onSelect({ id: 2, name: 'Jane' })}>Select Volunteer</button>
+  <button
+    onClick={() =>
+      props.onSelect({
+        id: 2,
+        name: 'Jane',
+        trainedAreas: [],
+        hasShopper: false,
+        hasPassword: false,
+        clientId: null,
+      })
+    }
+  >
+    Select Volunteer
+  </button>
 ));
 
 describe('DeleteVolunteer', () => {

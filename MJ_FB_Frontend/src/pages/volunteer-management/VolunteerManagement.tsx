@@ -80,6 +80,8 @@ interface VolunteerResult {
   name: string;
   trainedAreas: number[];
   hasShopper: boolean;
+  hasPassword: boolean;
+  clientId: number | null;
 }
 
 interface VolunteerManagementProps {
@@ -287,7 +289,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     const id = searchParams.get('id');
     const name = searchParams.get('name');
     if (id && name) {
-      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false });
+      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null });
     }
   }, [tab, searchParams, selectedVolunteer]);
 
@@ -346,7 +348,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     } catch {
       // ignore
     }
-    return { id, name, trainedAreas: [], hasShopper: false };
+    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null };
   }
 
   async function refreshVolunteer() {

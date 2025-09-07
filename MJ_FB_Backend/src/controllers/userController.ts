@@ -219,7 +219,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
     }
 
     const usersResult = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone
+      `SELECT client_id, first_name, last_name, email, phone, password
        FROM clients
        WHERE (first_name || ' ' || last_name) ILIKE $1
           OR email ILIKE $1
@@ -235,6 +235,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
       email: u.email,
       phone: u.phone,
       client_id: u.client_id,
+      hasPassword: u.password != null,
     }));
 
     res.json(formatted);

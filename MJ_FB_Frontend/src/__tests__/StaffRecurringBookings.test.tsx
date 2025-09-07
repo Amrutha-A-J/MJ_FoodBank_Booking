@@ -12,7 +12,18 @@ import {
 jest.mock('../components/EntitySearch', () => ({
   __esModule: true,
   default: ({ onSelect }: any) => (
-    <button onClick={() => onSelect({ id: 7, name: 'Test Vol' })}>
+    <button
+      onClick={() =>
+        onSelect({
+          id: 7,
+          name: 'Test Vol',
+          trainedAreas: [],
+          hasShopper: false,
+          hasPassword: false,
+          clientId: null,
+        })
+      }
+    >
       Select Volunteer
     </button>
   ),

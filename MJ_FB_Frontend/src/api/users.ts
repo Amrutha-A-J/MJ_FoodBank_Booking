@@ -183,11 +183,21 @@ export async function addUser(
   await handleResponse(res);
 }
 
-export async function searchUsers(search: string) {
+export async function searchUsers(
+  search: string,
+): Promise<UserSearchResult[]> {
   const res = await apiFetch(
     `${API_BASE}/users/search?search=${encodeURIComponent(search)}`,
   );
   return handleResponse(res);
+}
+
+export interface UserSearchResult {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  client_id: number;
+  hasPassword: boolean;
 }
 
 export interface UserByClientId {
