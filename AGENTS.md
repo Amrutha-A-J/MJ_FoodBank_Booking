@@ -9,6 +9,7 @@
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table.
+- Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.
 - Anonymous pantry visits display "(ANONYMOUS)" after the client ID and their family size is excluded from the summary counts.
 - Bulk pantry visit imports use the `POST /client-visits/import` endpoint (also available at `/visits/import`) and overwrite existing visits when client/date duplicates are found; see `docs/pantryVisits.md` for sheet naming and dry-run options.
 - Client visits enforce a unique client/date combination; attempts to record a second visit for the same client and day return a 409 error.
@@ -17,6 +18,7 @@
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
 - Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert `OPS_ALERT_EMAILS` on failure.
+- Stale email queue entries older than `EMAIL_QUEUE_MAX_AGE_DAYS` are purged nightly and the job logs the queue size, warning when it exceeds `EMAIL_QUEUE_WARNING_SIZE`.
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Always document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
