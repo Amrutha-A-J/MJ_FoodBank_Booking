@@ -13,6 +13,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
 - Email templates display times in 12-hour AM/PM format.
+- Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - Client login page reminds users to sign in with their client ID, provides contact and password reset guidance, and directs staff, volunteers, and agencies to use the internal login button from the menu.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
@@ -174,6 +175,7 @@ Before merging a pull request, confirm the following:
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
+- A nightly retention job deletes `bookings` and `volunteer_bookings` older than two years and rolls their volunteer hours and counts into aggregate fields.
 - A nightly token cleanup job runs at `0 3 * * *` Regina time to delete expired password setup and email verification tokens more than 10 days past `expires_at`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
 - Reusable Brevo email utility allows sending templated emails with custom properties and template IDs.
@@ -435,6 +437,7 @@ and cached on the server:
 - `CANS_WEIGHT_MULTIPLIER` (default `20`)
 
 The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show`.
+A nightly retention job purges bookings older than two years and aggregates volunteer statistics.
 
 ### Frontend features
 
@@ -447,6 +450,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
+- Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly summary tables, and raw log entries older than one year are deleted each Jan 31.
 - Warehouse Aggregations page provides yearly totals and supports exporting them via `/warehouse-overall/export`.
 - Page and form titles render in uppercase with a lighter font weight for clarity.
 - Admin staff creation page provides a link back to the staff list for easier navigation.
