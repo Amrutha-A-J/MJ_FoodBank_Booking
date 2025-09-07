@@ -2,6 +2,13 @@ import config from '../config';
 import logger from './logger';
 import { buildIcsFile } from './calendarLinks';
 
+function toTitleCase(value: string): string {
+  return value
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export async function sendEmail(
   to: string,
   subject: string,
@@ -78,6 +85,13 @@ export async function sendTemplatedEmail({
     return;
   }
 
+  const formattedParams: Record<string, unknown> | undefined = params
+    ? { ...params }
+    : undefined;
+  if (formattedParams && typeof formattedParams['type'] === 'string') {
+    formattedParams['type'] = toTitleCase(formattedParams['type'] as string);
+  }
+
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -92,7 +106,7 @@ export async function sendTemplatedEmail({
         },
         to: [{ email: to }],
         templateId,
-        params: params || undefined,
+        params: formattedParams || undefined,
       }),
     });
 

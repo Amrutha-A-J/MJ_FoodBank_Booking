@@ -43,4 +43,15 @@ describe('sendTemplatedEmail', () => {
       params: { name: 'Tester' },
     });
   });
+
+  it('capitalizes the type param', async () => {
+    await sendTemplatedEmail({
+      to: 'user@example.com',
+      templateId: 123,
+      params: { type: 'shopping appointment' },
+    });
+
+    const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.params.type).toBe('Shopping Appointment');
+  });
 });
