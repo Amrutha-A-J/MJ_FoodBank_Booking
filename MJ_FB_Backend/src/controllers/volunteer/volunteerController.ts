@@ -306,13 +306,15 @@ export async function createVolunteerShopperProfile(
     ]);
     const token = await generatePasswordSetupToken('clients', clientId);
     if (volRes.rows[0].email) {
+      const params: Record<string, unknown> = {
+        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        token,
+        clientId,
+      };
       await sendTemplatedEmail({
         to: volRes.rows[0].email,
         templateId: config.passwordSetupTemplateId,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-          token,
-        },
+        params,
       });
     }
     res.status(201).json({ userId });

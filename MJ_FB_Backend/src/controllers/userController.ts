@@ -177,14 +177,16 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
     const token = await generatePasswordSetupToken('clients', clientId);
     if (email) {
-        await sendTemplatedEmail({
-          to: email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      const params: Record<string, unknown> = {
+        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+        token,
+        clientId,
+      };
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params,
+      });
     }
 
     res.status(201).json({ message: 'User created' });

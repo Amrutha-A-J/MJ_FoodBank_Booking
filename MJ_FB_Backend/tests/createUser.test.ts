@@ -60,7 +60,14 @@ describe('POST /users/add-client', () => {
     expect(res.body).toEqual({ message: 'User created' });
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('clients', 123);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+      expect.objectContaining({
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=tok`,
+          token: 'tok',
+          clientId: 123,
+        },
+      }),
     );
   });
 
