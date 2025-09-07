@@ -31,7 +31,7 @@ interface SlotsByDateResponse {
 interface CreateBookingBody {
   slotId: number;
   date: string;
-  note: string;
+  note?: string;
   userId?: number;
   type: string;
 }
@@ -80,16 +80,15 @@ export async function getSlotsRange(
 export async function createBooking(
   slotId: string,
   date: string,
-  note: string,
+  note?: string,
   userId?: number,
 ) {
   const body: CreateBookingBody = {
     slotId: Number(slotId),
     date,
-    note,
     type: 'shopping appointment',
   };
-  if (note) body.note = note;
+  if (note && note.trim()) body.note = note;
   if (userId) body.userId = userId;
   const res = await apiFetch(`${API_BASE}/bookings`, {
     method: 'POST',

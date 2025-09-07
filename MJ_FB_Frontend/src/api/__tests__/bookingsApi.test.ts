@@ -40,4 +40,12 @@ describe('bookings api', () => {
       body: JSON.stringify({ slotId: 3, date: '2024-05-01', note: 'note', type: 'shopping appointment' }),
     }));
   });
+
+  it('omits note when blank', async () => {
+    await createBooking('4', '2024-05-01', '   ');
+    expect(apiFetch).toHaveBeenCalledWith('/api/bookings', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ slotId: 4, date: '2024-05-01', type: 'shopping appointment' }),
+    }));
+  });
 });
