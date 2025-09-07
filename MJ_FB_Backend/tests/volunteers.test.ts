@@ -98,6 +98,25 @@ describe('Volunteer routes role ID validation', () => {
     expect(res.body).toEqual({ message: 'Email required for online account' });
   });
 
+  it('does not create a token when email is missing', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 2, rows: [{ id: 1 }, { id: 2 }] }) // validRoles
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // insert volunteer
+      .mockResolvedValueOnce({}); // insert trained roles
+
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'John',
+      lastName: 'Doe',
+      roleIds: [1, 2],
+      onlineAccess: false,
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ id: 5 });
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
+
   it('returns invalid role IDs when updating trained areas', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }); // validRoles
     const res = await request(app)
