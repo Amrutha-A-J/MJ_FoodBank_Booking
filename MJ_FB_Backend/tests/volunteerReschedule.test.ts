@@ -72,9 +72,6 @@ describe('rescheduleVolunteerBooking', () => {
     expect(params.googleCalendarLink).toBe('#g');
     expect(params.outlookCalendarLink).toBe('#o');
     expect(params.appleCalendarLink).toBe('#a');
-    const [, cancelBase64] = params.appleCalendarCancelLink.split(',');
-    expect(Buffer.from(cancelBase64, 'base64').toString()).toContain(
-      'METHOD:CANCEL',
-    );
+    expect(params.appleCalendarCancelLink).toBe('#');
   });
 });

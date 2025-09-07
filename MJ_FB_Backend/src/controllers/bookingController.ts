@@ -37,6 +37,7 @@ import {
 import { insertNewClient } from '../models/newClient';
 import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
+import { hasTable } from '../utils/dbUtils';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -283,12 +284,18 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
         [bookingUserId],
       );
       email = emailRes.rows[0]?.email;
-    } else if (booking.new_client_id) {
-      const emailRes = await pool.query(
-        'SELECT email FROM new_clients WHERE id=$1',
-        [booking.new_client_id],
-      );
-      email = emailRes.rows[0]?.email;
+    } else {
+      const newClientId = (booking as any).new_client_id;
+      if (newClientId) {
+        const hasNewClients = await hasTable('new_clients');
+        if (hasNewClients) {
+          const emailRes = await pool.query(
+            'SELECT email FROM new_clients WHERE id=$1',
+            [newClientId],
+          );
+          email = emailRes.rows[0]?.email;
+        }
+      }
     }
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
@@ -461,13 +468,8 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotId],
     );
-    // Older deployments may not yet have the `new_clients` table. Check for the
-    // table at runtime and only join it when present to avoid undefined table
-    // errors (42P01) when rescheduling bookings.
-    const tableCheck = await pool.query(
-      "SELECT to_regclass('public.new_clients') IS NOT NULL AS exists",
-    );
-    const emailRes = tableCheck.rows[0]?.exists
+    const hasNewClients = await hasTable('new_clients');
+    const emailRes = hasNewClients
       ? await pool.query(
           `SELECT COALESCE(u.email, nc.email) AS email
            FROM bookings b
