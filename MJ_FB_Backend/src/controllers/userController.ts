@@ -509,7 +509,7 @@ export async function updateUserByClientId(
     };
   try {
     if (onlineAccess) {
-      if (!password || !firstName || !lastName) {
+      if (!firstName || !lastName) {
         return res
           .status(400)
           .json({ message: 'Missing fields for online access' });
@@ -525,11 +525,11 @@ export async function updateUserByClientId(
         }
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
       const result = await pool.query(
         `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
-             online_access = true, password = $5
+             online_access = true, password = COALESCE($5, password)
          WHERE client_id = $6
          RETURNING client_id, first_name, last_name, email, phone, profile_link`,
         [
