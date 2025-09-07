@@ -205,6 +205,12 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Navigate schedule days',
+      body: {
+        description: 'Use the Previous, Today, and Next buttons to change the displayed date.',
+      },
+    },
+    {
       title: 'Manage availability',
       body: {
         description: 'Open or block pantry slots and adjust capacities.',
