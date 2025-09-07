@@ -23,10 +23,12 @@ describe('sunshine bag log', () => {
   });
 
   it('upserts sunshine bag weight and client count', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ date: '2024-01-01', weight: 5, clientCount: 3 }],
-      rowCount: 1,
-    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [{ date: '2024-01-01', weight: 5, clientCount: 3 }],
+        rowCount: 1,
+      })
+      .mockResolvedValue({ rows: [{ weight: 5, client_count: 3 }], rowCount: 1 });
     const res = await request(app)
       .post('/sunshine-bags')
       .send({ date: '2024-01-01', weight: 5, clientCount: 3 });

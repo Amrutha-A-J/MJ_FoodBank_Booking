@@ -33,6 +33,7 @@
 - A nightly volunteer no-show cleanup job (`src/utils/volunteerNoShowCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show`. It logs results, emails coordinators, and waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) after each shift before auto-marking.
 - An expired token cleanup job (`src/utils/expiredTokenCleanupJob.ts`) runs nightly at 3:00 AM Regina time to delete `password_setup_tokens` and `client_email_verifications` rows with `expires_at` more than 10 days ago. It exposes `startExpiredTokenCleanupJob`/`stopExpiredTokenCleanupJob`.
 - A daily password token cleanup job (`src/utils/passwordTokenCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 1 * * *` Regina time to delete used or expired password setup tokens. It exposes `startPasswordTokenCleanupJob`/`stopPasswordTokenCleanupJob`.
+- A yearly log cleanup job (`src/utils/logCleanupJob.ts`) runs every Jan 31 to aggregate the previous year's warehouse and sunshine bag logs then purge those old records from the live tables.
 
 ## Project Layout
 
