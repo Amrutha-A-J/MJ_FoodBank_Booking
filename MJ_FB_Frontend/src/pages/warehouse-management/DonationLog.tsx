@@ -27,15 +27,12 @@ import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, toDate, toDayjs, formatDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const d = toDayjs(date);
+  const day = d.day();
+  return d.add(day === 0 ? -6 : 1 - day, 'day').startOf('day').toDate();
 }
 
 function format(date: Date) {

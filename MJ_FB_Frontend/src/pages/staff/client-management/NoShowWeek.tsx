@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getBookings } from '../../../api/bookings';
-import { formatDate, toDayjs, toDate } from '../../../utils/date';
+import { formatDate, toDayjs } from '../../../utils/date';
 import { formatTime } from '../../../utils/time';
 import {
   Box,
@@ -24,12 +24,9 @@ import StyledTabs from '../../../components/StyledTabs';
 import type { Booking } from '../../../types';
 
 function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return toDayjs(d);
+  const d = toDayjs(date);
+  const day = d.day();
+  return d.add(day === 0 ? -6 : 1 - day, 'day').startOf('day');
 }
 
 export default function NoShowWeek() {

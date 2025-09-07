@@ -77,15 +77,15 @@ describe('NoShowWeek', () => {
       </MemoryRouter>,
     );
 
-    const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const dates = [
+      'Monday, Dec 25, 2023',
+      'Tuesday, Dec 26, 2023',
+      'Wednesday, Dec 27, 2023',
+      'Thursday, Dec 28, 2023',
+      'Friday, Dec 29, 2023',
+      'Saturday, Dec 30, 2023',
       'Sunday, Dec 31, 2023',
-      'Monday, Jan 1, 2024',
-      'Tuesday, Jan 2, 2024',
-      'Wednesday, Jan 3, 2024',
-      'Thursday, Jan 4, 2024',
-      'Friday, Jan 5, 2024',
-      'Saturday, Jan 6, 2024',
     ];
 
     labels.forEach(label => {

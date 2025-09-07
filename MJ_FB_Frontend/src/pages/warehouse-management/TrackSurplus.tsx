@@ -29,19 +29,16 @@ import {
   deleteSurplus,
   type Surplus,
 } from '../../api/surplus';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, toDate, toDayjs, formatDate, addDays } from '../../utils/date';
 import {
   getWarehouseSettings,
   type WarehouseSettings,
 } from '../../api/warehouseSettings';
 
 function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const d = toDayjs(date);
+  const day = d.day();
+  return d.add(day === 0 ? -6 : 1 - day, 'day').startOf('day').toDate();
 }
 
 function format(date: Date) {

@@ -16,7 +16,7 @@ export function toDayjs(input?: ConfigType) {
     return dayjs();
   }
   if (input instanceof Date) {
-    const parsed = dayjs(input).tz(REGINA_TIMEZONE, true);
+    const parsed = dayjs(input).tz(REGINA_TIMEZONE);
     return parsed.isValid() ? parsed : dayjs(NaN);
   }
   const isLocalString =

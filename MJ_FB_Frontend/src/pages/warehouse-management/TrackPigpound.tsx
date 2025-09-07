@@ -29,15 +29,12 @@ import {
   deletePigPound,
   type PigPound,
 } from '../../api/pigPounds';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, toDate, toDayjs, formatDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const d = toDayjs(date);
+  const day = d.day();
+  return d.add(day === 0 ? -6 : 1 - day, 'day').startOf('day').toDate();
 }
 
 function format(date: Date) {
