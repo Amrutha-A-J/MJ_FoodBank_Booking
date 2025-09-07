@@ -13,10 +13,16 @@ jest.mock('../../../api/bookings', () => ({
 
 describe('PantrySchedule new client workflow', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
     (bookingApi.getSlots as jest.Mock).mockResolvedValue([
       { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1, maxCapacity: 1 },
     ]);
     (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('shows new client label', async () => {
@@ -69,14 +75,43 @@ describe('PantrySchedule new client workflow', () => {
       undefined,
     );
   });
+
+  it('offers create new client when search returns none', async () => {
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    const searchUsersMock = jest.fn().mockResolvedValue([]);
+    render(
+      <MemoryRouter>
+        <PantrySchedule searchUsersFn={searchUsersMock} />
+      </MemoryRouter>,
+    );
+
+    const rows = await screen.findAllByRole('row');
+    const cells = within(rows[1]).getAllByRole('cell');
+    fireEvent.click(cells[1]);
+
+    fireEvent.change(
+      screen.getByLabelText('Search users by name/email/phone/client ID'),
+      { target: { value: 'abc' } },
+    );
+
+    await screen.findByRole('button', { name: 'Create new client' });
+    fireEvent.click(screen.getByRole('button', { name: 'Create new client' }));
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+  });
 });
 
 describe('PantrySchedule status display', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
     (bookingApi.getSlots as jest.Mock).mockResolvedValue([
       { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 2, maxCapacity: 2 },
     ]);
     (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('shows bookings with non-cancelled statuses', async () => {
