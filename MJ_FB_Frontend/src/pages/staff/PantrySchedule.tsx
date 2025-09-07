@@ -117,7 +117,9 @@ export default function PantrySchedule({
 
   useEffect(() => {
     if (typeof EventSource === 'undefined') return;
-    const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, { withCredentials: true });
+    const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, {
+      withCredentials: true,
+    });
     es.onmessage = ev => {
       try {
         const data = JSON.parse(ev.data) as {
@@ -128,15 +130,14 @@ export default function PantrySchedule({
           time: string;
         };
         if (data.date === formatDate(currentDate)) {
-          const actionText = data.action === 'created' ? 'booked' : 'cancelled';
+          void loadData();
+          const actionText =
+            data.action === 'created' ? 'booked' : 'cancelled';
           setSnackbar({
-            message: `${data.name} (${data.role}) ${actionText} ${formatTime(data.time)}`,
+            message: `${data.name} (${data.role}) ${actionText} ${formatTime(
+              data.time,
+            )}`,
             severity: 'info',
-            action: (
-              <Button color="inherit" size="small" onClick={() => { loadData(); setSnackbar(null); }}>
-                Refresh
-              </Button>
-            ),
           });
         }
       } catch {
