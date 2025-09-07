@@ -415,7 +415,10 @@ export async function getVolunteerStats(
     );
     const badges = new Set(manualRes.rows.map(r => r.badge_code));
 
-    const earlyRes = await pool.query<{ has_early_bird: boolean }>(
+    // Determine whether this volunteer qualifies for the early-bird badge.
+    // The query returns a single boolean column aliased as `early`,
+    // so type the result accordingly.
+    const earlyRes = await pool.query<{ early: boolean }>(
       `SELECT has_early_bird OR EXISTS (
          SELECT 1 FROM volunteer_bookings vb
          JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
