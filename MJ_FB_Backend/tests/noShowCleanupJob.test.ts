@@ -6,6 +6,7 @@ jest.mock('../src/utils/scheduleDailyJob', () => {
     default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
+jest.mock('../src/utils/opsAlert');
 const noShowJob = require('../src/utils/noShowCleanupJob');
 const {
   cleanupNoShows,
@@ -13,6 +14,7 @@ const {
   stopNoShowCleanupJob,
 } = noShowJob;
 import pool from '../src/db';
+import { alertOps } from '../src/utils/opsAlert';
 
 describe('cleanupNoShows', () => {
   beforeEach(() => {
@@ -25,6 +27,12 @@ describe('cleanupNoShows', () => {
     expect(pool.query).toHaveBeenCalledWith(
       "UPDATE bookings SET status='no_show', note=NULL WHERE status='approved' AND date < CURRENT_DATE",
     );
+  });
+
+  it('alerts ops on failure', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+    await cleanupNoShows();
+    expect(alertOps).toHaveBeenCalled();
   });
 });
 

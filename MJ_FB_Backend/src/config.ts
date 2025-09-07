@@ -32,6 +32,7 @@ const envSchema = z.object({
   VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID: z.coerce.number().default(0),
   VOLUNTEER_RESCHEDULE_TEMPLATE_ID: z.coerce.number().default(10),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
+  OPS_ALERT_EMAILS: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -46,6 +47,9 @@ const frontendOrigins = env.FRONTEND_ORIGIN
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
+const opsAlertEmails = env.OPS_ALERT_EMAILS
+  ? env.OPS_ALERT_EMAILS.split(',').map(e => e.trim()).filter(Boolean)
+  : [];
 
 export default {
   pgUser: env.PG_USER,
@@ -74,4 +78,5 @@ export default {
   volunteerBookingReminderTemplateId: env.VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID,
   volunteerRescheduleTemplateId: env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
+  opsAlertEmails,
 };
