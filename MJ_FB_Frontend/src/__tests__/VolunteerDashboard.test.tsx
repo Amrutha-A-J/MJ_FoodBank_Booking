@@ -13,6 +13,7 @@ import {
   type VolunteerStats,
 } from '../api/volunteers';
 import { getEvents } from '../api/events';
+import { toDayjs, formatReginaDate } from '../utils/date';
 
 jest.mock('../api/volunteers', () => ({
   getMyVolunteerBookings: jest.fn(),
@@ -120,8 +121,14 @@ describe('VolunteerDashboard', () => {
   });
 
   it('hides slots already booked by volunteer', async () => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-29'));
-    const today = '2024-01-29';
+    jest
+      .useFakeTimers()
+      .setSystemTime(
+        toDayjs('2024-01-29T00:00', 'America/Regina').toDate(),
+      );
+    const today = formatReginaDate(
+      toDayjs('2024-01-29T00:00', 'America/Regina'),
+    );
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -163,7 +170,9 @@ describe('VolunteerDashboard', () => {
 
   it('excludes past shifts from available slots', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-29T19:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-01-29T13:00', 'America/Regina').toDate(),
+    );
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -177,7 +186,9 @@ describe('VolunteerDashboard', () => {
         booked: 0,
         available: 3,
         status: 'available',
-        date: '2024-01-29',
+        date: formatReginaDate(
+          toDayjs('2024-01-29T00:00', 'America/Regina'),
+        ),
         category_id: 1,
         category_name: 'Front',
         is_wednesday_slot: false,
@@ -193,7 +204,9 @@ describe('VolunteerDashboard', () => {
 
   it('lists upcoming available shifts', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-29T14:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-01-29T08:00', 'America/Regina').toDate(),
+    );
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -207,7 +220,9 @@ describe('VolunteerDashboard', () => {
         booked: 0,
         available: 3,
         status: 'available',
-        date: '2024-01-29',
+        date: formatReginaDate(
+          toDayjs('2024-01-29T00:00', 'America/Regina'),
+        ),
         category_id: 1,
         category_name: 'Front',
         is_wednesday_slot: false,
@@ -224,7 +239,9 @@ describe('VolunteerDashboard', () => {
 
   it('filters available shifts by role', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-29T14:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-01-29T08:00', 'America/Regina').toDate(),
+    );
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -238,7 +255,9 @@ describe('VolunteerDashboard', () => {
         booked: 0,
         available: 3,
         status: 'available',
-        date: '2024-01-29',
+        date: formatReginaDate(
+          toDayjs('2024-01-29T00:00', 'America/Regina'),
+        ),
         category_id: 1,
         category_name: 'Front',
         is_wednesday_slot: false,
@@ -253,7 +272,9 @@ describe('VolunteerDashboard', () => {
         booked: 0,
         available: 2,
         status: 'available',
-        date: '2024-01-29',
+        date: formatReginaDate(
+          toDayjs('2024-01-29T00:00', 'America/Regina'),
+        ),
         category_id: 2,
         category_name: 'Back',
         is_wednesday_slot: false,
@@ -279,9 +300,13 @@ describe('VolunteerDashboard', () => {
 
   it('shows server error when shift request fails', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-10T12:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
+    );
 
-    const today = '2024-01-15';
+    const today = formatReginaDate(
+      toDayjs('2024-01-15T00:00', 'America/Regina'),
+    );
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
       {
@@ -323,14 +348,18 @@ describe('VolunteerDashboard', () => {
 
   it('shows upcoming approved shift in My Next Shift', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-02-06T18:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-02-06T12:00', 'America/Regina').toDate(),
+    );
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
         status: 'approved',
         role_id: 1,
-        date: '2024-02-06',
+        date: formatReginaDate(
+          toDayjs('2024-02-06T00:00', 'America/Regina'),
+        ),
         start_time: '17:00:00',
         end_time: '18:00:00',
         role_name: 'Greeter',
@@ -499,14 +528,18 @@ describe('VolunteerDashboard', () => {
 
   it('displays year in date labels', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-10T12:00:00Z'));
+    jest.setSystemTime(
+      toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
+    );
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
         id: 1,
         status: 'approved',
         role_id: 1,
-        date: '2024-01-15',
+        date: formatReginaDate(
+          toDayjs('2024-01-15T00:00', 'America/Regina'),
+        ),
         start_time: '09:00:00',
         end_time: '12:00:00',
         role_name: 'Greeter',
@@ -523,7 +556,9 @@ describe('VolunteerDashboard', () => {
         booked: 0,
         available: 3,
         status: 'available',
-        date: '2024-01-20',
+        date: formatReginaDate(
+          toDayjs('2024-01-20T00:00', 'America/Regina'),
+        ),
         category_id: 1,
         category_name: 'Kitchen',
         is_wednesday_slot: false,
@@ -549,7 +584,9 @@ describe('VolunteerDashboard', () => {
         id: 1,
         status: 'completed',
         role_id: 1,
-        date: '2024-01-15',
+        date: formatReginaDate(
+          toDayjs('2024-01-15T00:00', 'America/Regina'),
+        ),
         start_time: '09:00:00',
         end_time: '12:00:00',
         role_name: 'Greeter',
@@ -558,7 +595,9 @@ describe('VolunteerDashboard', () => {
         id: 2,
         status: 'completed',
         role_id: 1,
-        date: '2024-02-10',
+        date: formatReginaDate(
+          toDayjs('2024-02-10T00:00', 'America/Regina'),
+        ),
         start_time: '09:00:00',
         end_time: '12:00:00',
         role_name: 'Greeter',
