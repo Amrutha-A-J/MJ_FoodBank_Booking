@@ -43,20 +43,24 @@ export const createUserSchema = z
 
 // Schema for updating a user's basic information. First and last names are
 // required while email and phone are optional.
-export const updateUserSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  onlineAccess: z.boolean().optional(),
-  password: passwordSchema.optional(),
-}).refine(
-  data => !data.onlineAccess || (!!data.firstName && !!data.lastName),
-  {
-    message: 'firstName and lastName required for online access',
-    path: ['onlineAccess'],
-  },
-);
+export const updateUserSchema = z
+  .object({
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    email: z.string().email().optional(),
+    phone: z.string().optional(),
+    onlineAccess: z.boolean().optional(),
+    password: passwordSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.onlineAccess && (!data.firstName || !data.lastName)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'firstName and lastName required for online access',
+        path: ['onlineAccess'],
+      });
+    }
+  });
 
 // Schema for users updating their own contact information. Either
 // email or phone must be provided, but both are optional.

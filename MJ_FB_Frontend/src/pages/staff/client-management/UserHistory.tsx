@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getBookingHistory, cancelBooking } from '../../../api/bookings';
 import { deleteClientVisit } from '../../../api/clientVisits';
-import { getUserByClientId, updateUserInfo } from '../../../api/users';
+import {
+  getUserByClientId,
+  updateUserInfo,
+  requestPasswordReset,
+} from '../../../api/users';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatTime } from '../../../utils/time';
 import {
@@ -193,7 +197,9 @@ export default function UserHistory({
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        ...(form.onlineAccess ? { password: form.password } : {}),
+        ...(form.onlineAccess && form.password
+          ? { password: form.password }
+          : {}),
       });
       setSelected(s =>
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
@@ -205,6 +211,19 @@ export default function UserHistory({
     } catch {
       setSeverity('error');
       setMessage(t('update_failed'));
+    }
+  }
+
+  async function handleSaveAndReset() {
+    await handleSaveClient();
+    if (!selected) return;
+    try {
+      await requestPasswordReset({ clientId: String(selected.client_id) });
+      setSeverity('success');
+      setMessage('Reset link sent');
+    } catch {
+      setSeverity('error');
+      setMessage('Reset link failed');
     }
   }
 
@@ -432,15 +451,20 @@ export default function UserHistory({
               </Stack>
             </DialogContent>
                 <DialogActions>
+                  {form.onlineAccess && (
+                    <Button
+                      variant="outlined"
+                      onClick={handleSaveAndReset}
+                      disabled={!form.firstName || !form.lastName}
+                    >
+                      Send password reset link
+                    </Button>
+                  )}
                   <Button
                     variant="contained"
                     color="primary"
                     onClick={handleSaveClient}
-                    disabled={
-                      !form.firstName ||
-                      !form.lastName ||
-                      (form.onlineAccess && !form.password)
-                    }
+                    disabled={!form.firstName || !form.lastName}
                   >
                     Save
                   </Button>

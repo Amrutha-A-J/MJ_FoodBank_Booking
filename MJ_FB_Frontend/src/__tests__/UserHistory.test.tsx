@@ -3,7 +3,11 @@ import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
 import { deleteClientVisit } from '../api/clientVisits';
-import { getUserByClientId, updateUserInfo } from '../api/users';
+import {
+  getUserByClientId,
+  updateUserInfo,
+  requestPasswordReset,
+} from '../api/users';
 import { useAuth } from '../hooks/useAuth';
 
 jest.mock('../api/bookings', () => ({
@@ -18,6 +22,7 @@ jest.mock('../api/clientVisits', () => ({
 jest.mock('../api/users', () => ({
   getUserByClientId: jest.fn(),
   updateUserInfo: jest.fn(),
+  requestPasswordReset: jest.fn(),
 }));
 
 jest.mock('../hooks/useAuth');
@@ -25,6 +30,7 @@ const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
 describe('UserHistory', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseAuth.mockReturnValue({ role: 'staff' } as any);
   });
   it('renders bookings and walk-in visits', async () => {
@@ -240,6 +246,35 @@ describe('UserHistory', () => {
     expect(
       screen.queryByRole('button', { name: /delete visit/i })
     ).not.toBeInTheDocument();
+  });
+
+  it('sends password reset link when enabled', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getUserByClientId as jest.Mock).mockResolvedValue({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: '',
+      phone: '',
+      onlineAccess: false,
+    });
+    (updateUserInfo as jest.Mock).mockResolvedValue({});
+    (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter initialEntries={["/?name=Test&clientId=1"]}>
+        <UserHistory />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: /edit client/i }));
+    fireEvent.click(await screen.findByLabelText('Online Access'));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Send password reset link' }),
+    );
+
+    await waitFor(() => expect(updateUserInfo).toHaveBeenCalled());
+    expect(requestPasswordReset).toHaveBeenCalledWith({ clientId: '1' });
   });
 });
 

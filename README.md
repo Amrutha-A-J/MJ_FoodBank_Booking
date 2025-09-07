@@ -455,6 +455,7 @@ The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`)
 - Staff can add agencies, assign clients, and book appointments for those clients through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list with Book buttons for scheduling on their behalf.
 - Staff can enter pay period timesheets with daily hour categories, request vacation leave, and submit periods for approval with admin review and processing.
 - Staff can delete client and volunteer accounts from the Client Management and Volunteer Management pages.
+- Staff can enable online access for a client without setting a password and send a password reset link after saving.
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.

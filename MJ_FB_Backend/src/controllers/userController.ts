@@ -505,7 +505,7 @@ export async function updateUserByClientId(
     };
   try {
     if (onlineAccess) {
-      if (!password || !firstName || !lastName) {
+      if (!firstName || !lastName) {
         return res
           .status(400)
           .json({ message: 'Missing fields for online access' });
@@ -521,22 +521,30 @@ export async function updateUserByClientId(
         }
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const result = await pool.query(
+      let query =
         `UPDATE clients
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
-             online_access = true, password = $5
-         WHERE client_id = $6
-         RETURNING client_id, first_name, last_name, email, phone, profile_link`,
-        [
-          firstName,
-          lastName,
-          email || null,
-          phone || null,
-          hashedPassword,
-          clientId,
-        ],
-      );
+             online_access = true`;
+      const params: any[] = [
+        firstName,
+        lastName,
+        email || null,
+        phone || null,
+      ];
+
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        query += ', password = $5';
+        params.push(hashedPassword, clientId);
+      } else {
+        params.push(clientId);
+      }
+
+      query +=
+        ' WHERE client_id = $' + params.length +
+        '\n         RETURNING client_id, first_name, last_name, email, phone, profile_link';
+
+      const result = await pool.query(query, params);
       if ((result.rowCount ?? 0) === 0) {
         return res.status(404).json({ message: 'User not found' });
       }

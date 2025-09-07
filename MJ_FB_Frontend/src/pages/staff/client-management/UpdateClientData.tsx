@@ -22,6 +22,7 @@ import DialogCloseButton from "../../../components/DialogCloseButton";
 import {
   getIncompleteUsers,
   updateUserInfo,
+  requestPasswordReset,
   type IncompleteUser,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
@@ -76,7 +77,9 @@ export default function UpdateClientData() {
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        ...(form.onlineAccess ? { password: form.password } : {}),
+        ...(form.onlineAccess && form.password
+          ? { password: form.password }
+          : {}),
       });
       setSnackbar({
         open: true,
@@ -98,6 +101,25 @@ export default function UpdateClientData() {
         open: true,
         message,
         severity: "error",
+      });
+    }
+  }
+
+  async function handleSaveAndReset() {
+    await handleSave();
+    if (!selected) return;
+    try {
+      await requestPasswordReset({ clientId: String(selected.clientId) });
+      setSnackbar({
+        open: true,
+        message: 'Reset link sent',
+        severity: 'success',
+      });
+    } catch {
+      setSnackbar({
+        open: true,
+        message: 'Reset link failed',
+        severity: 'error',
       });
     }
   }
@@ -205,13 +227,17 @@ export default function UpdateClientData() {
           </Stack>
         </DialogContent>
           <DialogActions>
+            {form.onlineAccess && (
+              <Button
+                onClick={handleSaveAndReset}
+                disabled={!form.firstName || !form.lastName}
+              >
+                Send password reset link
+              </Button>
+            )}
             <Button
               onClick={handleSave}
-              disabled={
-                !form.firstName ||
-                !form.lastName ||
-                (form.onlineAccess && !form.password)
-              }
+              disabled={!form.firstName || !form.lastName}
             >
               Save
             </Button>
