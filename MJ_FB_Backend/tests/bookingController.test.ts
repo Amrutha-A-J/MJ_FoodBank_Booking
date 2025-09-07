@@ -64,8 +64,14 @@ describe('createBookingForUser', () => {
           outlookCalendarLink: expect.any(String),
           appleCalendarLink: expect.any(String),
         }),
+        attachments: [
+          expect.objectContaining({ name: 'booking.ics', type: 'text/calendar' }),
+        ],
       }),
     );
+    const call = enqueueEmail.mock.calls[0][0];
+    const decoded = Buffer.from(call.attachments[0].content, 'base64').toString();
+    expect(decoded).toContain('BEGIN:VCALENDAR');
   });
 
   it('returns 400 if booking date is a holiday', async () => {

@@ -17,6 +17,7 @@ jest.doMock('../src/utils/emailUtils', () => ({
     icsContent: '',
   }),
   saveIcsFile: () => '#',
+  buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
 }));
 jest.doMock('../src/utils/emailQueue', () => ({
   __esModule: true,

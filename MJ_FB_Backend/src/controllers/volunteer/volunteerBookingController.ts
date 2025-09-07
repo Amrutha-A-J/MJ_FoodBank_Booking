@@ -6,6 +6,7 @@ import {
   buildCancelRescheduleLinks,
   buildCalendarLinks,
   saveIcsFile,
+  buildIcsAttachment,
 } from '../../utils/emailUtils';
 import { buildIcsFile } from '../../utils/calendarLinks';
 import { enqueueEmail } from '../../utils/emailQueue';
@@ -207,11 +208,7 @@ export async function createVolunteerBooking(
           slot.start_time,
         )} to ${formatTimeToAmPm(slot.end_time)}`;
         const attachments = [
-          {
-            name: 'shift.ics',
-            content: Buffer.from(icsContent, 'utf8').toString('base64'),
-            type: 'text/calendar',
-          },
+          buildIcsAttachment(icsContent, 'shift.ics'),
         ];
         enqueueEmail({
           to: user.email,
@@ -585,11 +582,7 @@ export async function resolveVolunteerBookingConflict(
         slot.start_time,
       )} to ${formatTimeToAmPm(slot.end_time)}`;
       const attachments = [
-        {
-          name: 'shift.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
+        buildIcsAttachment(icsContent, 'shift.ics'),
       ];
       enqueueEmail({
         to: user.email,
@@ -999,11 +992,7 @@ export async function rescheduleVolunteerBooking(
       const cancelFileName = `${uid}-cancel.ics`;
       const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
       const attachments = [
-        {
-          name: 'shift.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
+        buildIcsAttachment(icsContent, 'shift.ics'),
         {
           name: 'shift-cancel.ics',
           content: cancelBase64,

@@ -203,6 +203,14 @@ export function buildCalendarLinks(
   return { googleCalendarLink, outlookCalendarLink, appleCalendarLink, icsContent: ics };
 }
 
+export function buildIcsAttachment(icsContent: string, fileName: string) {
+  return {
+    name: fileName,
+    content: Buffer.from(icsContent, 'utf8').toString('base64'),
+    type: 'text/calendar' as const,
+  };
+}
+
 export function saveIcsFile(fileName: string, content: string): string {
   if (config.icsBaseUrl) {
     const dir = path.join(__dirname, '..', '..', 'public', 'ics');

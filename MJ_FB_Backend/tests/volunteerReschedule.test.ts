@@ -21,6 +21,7 @@ jest.mock('../src/utils/emailUtils', () => ({
     icsContent: '',
   }),
   saveIcsFile: () => '#',
+  buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
 }));
 const enqueueEmailMock = enqueueEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -76,5 +77,7 @@ describe('rescheduleVolunteerBooking', () => {
     expect(Buffer.from(cancelBase64, 'base64').toString()).toContain(
       'METHOD:CANCEL',
     );
+    const attachments = enqueueEmailMock.mock.calls[0][0].attachments;
+    expect(attachments[0]).toMatchObject({ name: 'event.ics', type: 'text/calendar' });
   });
 });

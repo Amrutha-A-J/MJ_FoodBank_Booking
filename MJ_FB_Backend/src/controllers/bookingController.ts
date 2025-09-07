@@ -19,6 +19,7 @@ import {
   buildCancelRescheduleLinks,
   buildCalendarLinks,
   saveIcsFile,
+  buildIcsAttachment,
 } from '../utils/emailUtils';
 import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
@@ -152,11 +153,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       const formattedDate = formatReginaDateWithDay(date);
       const body = `Date: ${formattedDate}${time}`;
       const attachments = [
-        {
-          name: 'booking.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
+        buildIcsAttachment(icsContent, 'booking.ics'),
       ];
       enqueueEmail({
         to: user.email,
@@ -522,11 +519,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       const cancelFileName = `${uid}-cancel.ics`;
       const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
       const attachments = [
-        {
-          name: 'booking.ics',
-          content: Buffer.from(icsContent, 'utf8').toString('base64'),
-          type: 'text/calendar',
-        },
+        buildIcsAttachment(icsContent, 'booking.ics'),
         {
           name: 'booking-cancel.ics',
           content: cancelBase64,
@@ -745,11 +738,7 @@ export async function createBookingForUser(
         const formattedDate = formatReginaDateWithDay(date);
         const body = `Date: ${formattedDate}${time}`;
         const attachments = [
-          {
-            name: 'booking.ics',
-            content: Buffer.from(icsContent, 'utf8').toString('base64'),
-            type: 'text/calendar',
-          },
+          buildIcsAttachment(icsContent, 'booking.ics'),
         ];
       enqueueEmail({
         to: clientEmail,

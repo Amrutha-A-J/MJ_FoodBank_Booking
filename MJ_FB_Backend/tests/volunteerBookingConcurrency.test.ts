@@ -52,6 +52,7 @@ jest.mock('../src/utils/emailUtils', () => ({
     icsContent: '',
   }),
   saveIcsFile: () => '#',
+  buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
 }));
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/middleware/authMiddleware', () => ({

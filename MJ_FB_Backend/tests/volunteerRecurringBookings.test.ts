@@ -14,6 +14,7 @@ jest.mock('../src/utils/emailUtils', () => ({
     icsContent: '',
   }),
   saveIcsFile: () => '#',
+  buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({

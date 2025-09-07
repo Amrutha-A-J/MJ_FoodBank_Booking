@@ -13,6 +13,7 @@ jest.mock('../src/utils/emailUtils', () => ({
     icsContent: '',
   }),
   saveIcsFile: () => '#',
+  buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
 }));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (

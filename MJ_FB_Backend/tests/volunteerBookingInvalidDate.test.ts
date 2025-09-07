@@ -22,6 +22,7 @@ describe('volunteer booking date validation', () => {
           icsContent: '',
         }),
         saveIcsFile: () => '#',
+        buildIcsAttachment: () => ({ name: 'event.ics', content: '', type: 'text/calendar' }),
       }));
       jest.doMock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
       jest.doMock('../src/middleware/authMiddleware', () => ({
