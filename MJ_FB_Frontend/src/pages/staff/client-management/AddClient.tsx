@@ -3,8 +3,20 @@ import { addUser } from '../../../api/users';
 import type { UserRole } from '../../../types';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import FeedbackModal from '../../../components/FeedbackModal';
-import { Box, Button, Stack, TextField, MenuItem, Typography, FormControlLabel, Checkbox } from '@mui/material';
+import {
+  Box,
+  Button,
+  Stack,
+  TextField,
+  MenuItem,
+  Typography,
+  FormControlLabel,
+  Checkbox,
+  ToggleButtonGroup,
+  ToggleButton,
+} from '@mui/material';
 import Page from '../../../components/Page';
+import PasswordField from '../../../components/PasswordField';
 
 export default function AddClient() {
   const [email, setEmail] = useState('');
@@ -17,11 +29,17 @@ export default function AddClient() {
   const [lastName, setLastName] = useState('');
   const [clientId, setClientId] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
+  const [sendPasswordLink, setSendPasswordLink] = useState(true);
+  const [password, setPassword] = useState('');
 
   async function submitUser() {
     if (onlineAccess) {
       if (!firstName || !lastName || !clientId || !email) {
         setError('First name, last name, client ID and email required');
+        return;
+      }
+      if (!sendPasswordLink && !password) {
+        setError('Password required');
         return;
       }
     } else if (!clientId) {
@@ -36,7 +54,9 @@ export default function AddClient() {
         role,
         onlineAccess,
         email || undefined,
-        phone || undefined
+        phone || undefined,
+        sendPasswordLink ? undefined : password || undefined,
+        sendPasswordLink
       );
       setSuccess('Client added successfully');
       setFirstName('');
@@ -45,6 +65,8 @@ export default function AddClient() {
       setEmail('');
       setPhone('');
       setOnlineAccess(false);
+      setSendPasswordLink(true);
+      setPassword('');
       setRole('shopper');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -59,13 +81,43 @@ export default function AddClient() {
           <FeedbackModal open={!!success} onClose={() => setSuccess('')} message={success} />
           <Stack spacing={2}>
           <FormControlLabel
-            control={<Checkbox checked={onlineAccess} onChange={e => setOnlineAccess(e.target.checked)} />}
+            control={
+              <Checkbox
+                checked={onlineAccess}
+                onChange={e => {
+                  setOnlineAccess(e.target.checked);
+                  if (!e.target.checked) {
+                    setSendPasswordLink(true);
+                    setPassword('');
+                  }
+                }}
+              />
+            }
             label="Online Access"
           />
           {onlineAccess && (
-            <Typography variant="body2" color="text.secondary">
-              An email invitation will be sent.
-            </Typography>
+            <>
+              <ToggleButtonGroup
+                size="small"
+                value={sendPasswordLink ? 'link' : 'password'}
+                exclusive
+                onChange={(_, v) => v && setSendPasswordLink(v === 'link')}
+              >
+                <ToggleButton value="link">Send link</ToggleButton>
+                <ToggleButton value="password">Set password</ToggleButton>
+              </ToggleButtonGroup>
+              {sendPasswordLink ? (
+                <Typography variant="body2" color="text.secondary">
+                  An email invitation will be sent.
+                </Typography>
+              ) : (
+                <PasswordField
+                  label="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+              )}
+            </>
           )}
           <TextField label="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <TextField label="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />

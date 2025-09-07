@@ -25,4 +25,34 @@ describe('users api', () => {
     expect(apiFetch).not.toHaveBeenCalled();
   });
 
+  it('sends password and flag to addUser', async () => {
+    await addUser(
+      'John',
+      'Doe',
+      '123',
+      'shopper',
+      true,
+      'john@example.com',
+      undefined,
+      'P@ssword1',
+      false,
+    );
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/users/add-client',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: 'John',
+          lastName: 'Doe',
+          clientId: 123,
+          role: 'shopper',
+          onlineAccess: true,
+          email: 'john@example.com',
+          password: 'P@ssword1',
+          sendPasswordLink: false,
+        }),
+      }),
+    );
+  });
+
 });

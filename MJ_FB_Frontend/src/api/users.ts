@@ -156,6 +156,8 @@ export async function addUser(
   onlineAccess: boolean,
   email?: string,
   phone?: string,
+  password?: string,
+  sendPasswordLink?: boolean,
 ): Promise<void> {
   const id = Number(clientId);
   if (!Number.isInteger(id)) {
@@ -174,6 +176,8 @@ export async function addUser(
       onlineAccess,
       email,
       phone,
+      password,
+      sendPasswordLink,
     }),
   });
   await handleResponse(res);
