@@ -84,6 +84,9 @@ describe('rescheduleBooking', () => {
     expect(params.googleCalendarLink).toBe('#google');
     expect(params.outlookCalendarLink).toBe('#outlook');
     expect(params.appleCalendarLink).toBe('#apple');
-    expect(params.appleCalendarCancelLink).toContain('METHOD%3ACANCEL');
+    const [, cancelBase64] = params.appleCalendarCancelLink.split(',');
+    expect(Buffer.from(cancelBase64, 'base64').toString()).toContain(
+      'METHOD:CANCEL',
+    );
   });
 });

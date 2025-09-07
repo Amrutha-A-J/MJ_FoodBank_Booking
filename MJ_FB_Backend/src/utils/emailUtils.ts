@@ -166,6 +166,7 @@ export function buildCalendarLinks(
     method: 'REQUEST',
     sequence,
   });
-  const appleCalendarLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+  const icsBase64 = Buffer.from(ics, 'utf8').toString('base64');
+  const appleCalendarLink = `data:text/calendar;charset=utf-8;base64,${icsBase64}`;
   return { googleCalendarLink, outlookCalendarLink, appleCalendarLink };
 }

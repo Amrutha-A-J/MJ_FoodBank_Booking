@@ -114,6 +114,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 Booking confirmation, reminder, and reschedule templates can surface "Add to Calendar" buttons by referencing
 `{{ params.googleCalendarLink }}`, `{{ params.outlookCalendarLink }}`, and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
+Apple calendar links are provided as base64-encoded ICS data URLs so Brevo doesn't strip them.
 
 Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
 `type` (`vacation`, `sick`, or `personal` – limited to one personal day per quarter), and optional `reason`; admins approve or reject
