@@ -130,7 +130,11 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
        ORDER BY v.id`,
       [date]
     );
-    res.json(result.rows);
+    const rows = result.rows.map(r => ({
+      ...r,
+      date: formatReginaDate(r.date),
+    }));
+    res.json(rows);
   } catch (error) {
     logger.error('Error listing client visits:', error);
     next(error);
