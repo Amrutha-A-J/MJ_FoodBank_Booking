@@ -33,6 +33,8 @@ const envSchema = z.object({
   VOLUNTEER_RESCHEDULE_TEMPLATE_ID: z.coerce.number().default(10),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
   OPS_ALERT_EMAILS: z.string().optional(),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -79,4 +81,6 @@ export default {
   volunteerRescheduleTemplateId: env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
   opsAlertEmails,
+  telegramBotToken: env.TELEGRAM_BOT_TOKEN ?? '',
+  telegramAlertChatId: env.TELEGRAM_ALERT_CHAT_ID ?? '',
 };

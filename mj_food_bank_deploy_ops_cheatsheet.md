@@ -267,7 +267,7 @@ bash scripts/prestart_fetch_rds_ca.sh && pm2 restart mjfb-api --update-env
 ## 11) Nightly Jobs
 
 - `cleanupNoShows` and `cleanupVolunteerNoShows` run nightly at **20:00** Regina time.
-- Failures email `OPS_ALERT_EMAILS`; check inbox or logs if alerts arrive.
+ - Failures alert `OPS_ALERT_EMAILS` and the Telegram channel configured via `TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID`; check inbox or logs if alerts arrive.
 - Verify last run via logs:
   ```bash
   pm2 logs mjfb-api --lines 100 | egrep 'clean up no-shows|volunteer no-shows'

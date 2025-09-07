@@ -132,6 +132,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 Booking confirmation, reminder, and reschedule templates can surface "Add to Calendar" buttons by referencing
 `{{ params.googleCalendarLink }}` and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
+Ops alerts can also be forwarded to a Telegram chat when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
 Calendar emails attach an `.ics` file. If `ICS_BASE_URL` is configured, `appleCalendarLink`
 points to the hosted file; otherwise it falls back to a base64 `data:` URI.
 
@@ -189,7 +190,7 @@ Before merging a pull request, confirm the following:
 - Booking confirmation and reminder emails include Cancel and Reschedule buttons so users can manage their appointments directly from the message.
 - A nightly cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved bookings as `no_show`.
 - A nightly volunteer no-show cleanup job runs via `node-cron` at `0 20 * * *` Regina time to mark past approved volunteer bookings as `no_show` after `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours.
-- Failures in these nightly cleanup jobs trigger email alerts to addresses listed in `OPS_ALERT_EMAILS`.
+- Failures in these nightly cleanup jobs trigger alerts via email (`OPS_ALERT_EMAILS`) or Telegram when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are set.
 - A nightly retention job deletes `bookings` and `volunteer_bookings` older than two years and rolls their volunteer hours and counts into aggregate fields.
 - A nightly token cleanup job runs at `0 3 * * *` Regina time to delete expired password setup and email verification tokens more than 10 days past `expires_at`.
 - Milestone badge awards send a template-based thank-you card via email and expose the card link through the stats endpoint.
@@ -306,7 +307,10 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
 | `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                   |
 | `EMAIL_QUEUE_MAX_AGE_DAYS`                   | Remove pending email jobs older than this many days (default 30)                                                              |
-| `EMAIL_QUEUE_WARNING_SIZE`                   | Log a warning if the email queue exceeds this size (default 100)                                                              |
+| `EMAIL_QUEUE_WARNING_SIZE`                   | Log a warning if the email queue exceeds this size (default 100)                                                       |
+| `OPS_ALERT_EMAILS`                           | Comma-separated list of emails to notify when nightly jobs fail (optional)                                             |
+| `TELEGRAM_BOT_TOKEN`                         | Telegram bot token used for ops alerts (optional)                                                                       |
+| `TELEGRAM_ALERT_CHAT_ID`                     | Telegram chat ID that receives ops alerts (optional)                                                                    |
 
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |

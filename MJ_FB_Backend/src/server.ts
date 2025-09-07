@@ -4,6 +4,7 @@ import { setupDatabase } from './setupDatabase';
 import { runMigrations } from './runMigrations';
 import logger from './utils/logger';
 import app from './app';
+import { alertOps } from './utils/opsAlert';
 import { startBookingReminderJob, stopBookingReminderJob } from './utils/bookingReminderJob';
 import {
   startVolunteerShiftReminderJob,
@@ -71,6 +72,7 @@ async function init() {
     startBlockedSlotCleanupJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
+    await alertOps('Server startup', err);
     process.exit(1);
   }
 }
