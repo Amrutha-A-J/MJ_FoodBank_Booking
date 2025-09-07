@@ -58,6 +58,7 @@ fetchBookingByTokenMock.mockResolvedValue({
 poolQueryMock
   .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] })
   .mockResolvedValueOnce({ rows: [{ start_time: '11:00', end_time: '12:00' }] })
+  .mockResolvedValueOnce({ rows: [{ exists: true }] })
   .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
 
 describe('rescheduleBooking', () => {

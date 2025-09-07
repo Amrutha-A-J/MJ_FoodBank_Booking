@@ -9,11 +9,18 @@ jest.doMock('../src/db', () => ({
 }));
 jest.doMock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
+  buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
+  buildCalendarLinks: () => ({
+    googleCalendarLink: '',
+    outlookCalendarLink: '',
+    appleCalendarLink: '',
+  }),
 }));
 jest.doMock('../src/utils/emailQueue', () => ({
   __esModule: true,
   enqueueEmail: jest.fn(),
 }));
+jest.doMock('../src/utils/bookingUtils');
 jest.doMock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),
@@ -106,15 +113,11 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  jest
-    .spyOn(bookingUtils, 'isDateWithinCurrentOrNextMonth')
-    .mockReturnValue(true);
-  jest
-    .spyOn(bookingUtils, 'countVisitsAndBookingsForMonth')
-    .mockResolvedValue(0);
-  jest.spyOn(bookingUtils, 'findUpcomingBooking').mockResolvedValue(null);
+  (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
+  (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(0);
+  (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
   (pool.connect as jest.Mock).mockResolvedValue({
-    query: jest.fn(),
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     release: jest.fn(),
   });
   (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
@@ -289,6 +292,12 @@ describe('Agency booking modifications', () => {
     });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '11:00', end_time: '12:00' }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
 
     const res = await request(app)
       .post('/api/bookings/reschedule/token123')

@@ -25,6 +25,7 @@ jest.mock('../src/models/bookingRepository', () => ({
   fetchBookingByToken: jest.fn(),
   updateBooking: jest.fn(),
 }));
+jest.mock('../src/utils/bookingUtils');
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
@@ -85,17 +86,17 @@ app.use(
 beforeEach(() => {
   jest.clearAllMocks();
   (pool.connect as jest.Mock).mockResolvedValue({
-    query: jest.fn(),
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     release: jest.fn(),
   });
   (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
-  jest.spyOn(bookingUtils, 'isDateWithinCurrentOrNextMonth').mockReturnValue(true);
-  jest.spyOn(bookingUtils, 'countVisitsAndBookingsForMonth').mockResolvedValue(0);
-  jest.spyOn(bookingUtils, 'findUpcomingBooking').mockResolvedValue(null);
+  (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
+  (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(0);
+  (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
 });
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  jest.resetAllMocks();
 });
 
 describe('volunteer acting as shopper', () => {
@@ -149,6 +150,12 @@ describe('volunteer acting as shopper', () => {
     });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '11:00', end_time: '12:00' }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
 
     const res = await request(app)
       .post('/bookings/reschedule/token123')
