@@ -55,6 +55,8 @@ export default function PantrySchedule({
   const [assignMessage, setAssignMessage] = useState('');
   const [isNewClient, setIsNewClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
+  const [streamError, setStreamError] = useState(false);
+  const [esRetry, setEsRetry] = useState(0);
 
   const theme = useTheme();
   const neutralCellBg = theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
@@ -120,6 +122,12 @@ export default function PantrySchedule({
     const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, {
       withCredentials: true,
     });
+    es.onopen = () => {
+      setStreamError(false);
+    };
+    es.onerror = () => {
+      setStreamError(true);
+    };
     es.onmessage = ev => {
       try {
         const data = JSON.parse(ev.data) as {
@@ -147,7 +155,7 @@ export default function PantrySchedule({
     return () => {
       es.close();
     };
-  }, [currentDate, loadData]);
+  }, [currentDate, loadData, esRetry]);
 
   useEffect(() => {
     if (assignSlot && !isNewClient && searchTerm.length >= 3) {
@@ -164,6 +172,10 @@ export default function PantrySchedule({
 
   function changeDay(delta: number) {
     setCurrentDate(d => addDays(d, delta));
+  }
+
+  function retryStream() {
+    setEsRetry(r => r + 1);
   }
 
 
@@ -360,6 +372,14 @@ export default function PantrySchedule({
         severity={snackbar?.severity}
         action={snackbar?.action}
       />
+      {streamError && (
+        <p style={{ color: theme.palette.error.main, textAlign: 'center' }}>
+          Live updates unavailable{' '}
+          <Button onClick={retryStream} variant="outlined" size="small" color="primary">
+            Retry
+          </Button>
+        </p>
+      )}
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
       ) : (
