@@ -8,6 +8,7 @@ import {
   listUsersMissingInfo,
   updateUserByClientId,
   updateMyProfile,
+  deleteUserByClientId,
 } from '../controllers/userController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
@@ -41,6 +42,12 @@ router.patch(
   authorizeRoles('staff'),
   validate(updateUserSchema),
   updateUserByClientId,
+);
+router.delete(
+  '/id/:clientId',
+  authMiddleware,
+  authorizeRoles('staff'),
+  deleteUserByClientId,
 );
 router.get(
   '/missing-info',

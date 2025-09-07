@@ -251,3 +251,32 @@ describe('Volunteer badges', () => {
     expect(res.body).toEqual({ badgeCode: 'helper' });
   });
 });
+
+describe('Delete volunteer', () => {
+  const staffApp = express();
+  staffApp.use(express.json());
+  staffApp.use((req, _res, next) => {
+    (req as any).user = { role: 'staff' };
+    next();
+  });
+  staffApp.use('/volunteers', volunteersRouter);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('deletes existing volunteer', async () => {
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 1 });
+    const res = await request(staffApp).delete('/volunteers/3');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Volunteer deleted' });
+    expect(pool.query).toHaveBeenCalledWith('DELETE FROM volunteers WHERE id = $1', ['3']);
+  });
+
+  it('returns 404 when volunteer missing', async () => {
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0 });
+    const res = await request(staffApp).delete('/volunteers/3');
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: 'Volunteer not found' });
+  });
+});

@@ -9,6 +9,7 @@ import {
   removeVolunteerShopperProfile,
   getVolunteerStats,
   awardVolunteerBadge,
+  deleteVolunteer,
 } from '../../controllers/volunteer/volunteerController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 
@@ -55,6 +56,13 @@ router.delete(
   authMiddleware,
   authorizeRoles('staff'),
   removeVolunteerShopperProfile
+);
+
+router.delete(
+  '/:id',
+  authMiddleware,
+  authorizeRoles('staff'),
+  deleteVolunteer,
 );
 
 export default router;

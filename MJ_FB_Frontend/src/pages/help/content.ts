@@ -263,13 +263,24 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Manage clients',
+      body: {
+        description: 'Search, add, update, and delete client accounts.',
+        steps: [
+          'Go to the Client Management page.',
+          'Search by name or client ID.',
+          'View, edit, or delete client information.',
+        ],
+      },
+    },
+    {
       title: 'Manage volunteers',
       body: {
-        description: 'Search, add, and review volunteers.',
+        description: 'Search, add, delete, and review volunteers.',
         steps: [
           'Go to the Volunteers page.',
           'Search by name.',
-          'View or edit volunteer information.',
+          'View, edit, or delete volunteer information.',
           'Check Online Access to email login details when creating a volunteer.',
         ],
       },

@@ -8,6 +8,7 @@ import UpdateClientData from './client-management/UpdateClientData';
 import UserHistory from './client-management/UserHistory';
 import NewClients from './client-management/NewClients';
 import NoShowWeek from './client-management/NoShowWeek';
+import DeleteClient from './client-management/DeleteClient';
 
 export default function ClientManagement() {
   const [searchParams] = useSearchParams();
@@ -41,6 +42,7 @@ export default function ClientManagement() {
     { label: 'Update', content: <UpdateClientData /> },
     { label: 'New Clients', content: <NewClients /> },
     { label: 'No Shows', content: <NoShowWeek /> },
+    { label: 'Delete', content: <DeleteClient /> },
   ];
 
   return (

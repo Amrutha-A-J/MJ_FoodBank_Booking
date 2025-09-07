@@ -535,3 +535,26 @@ export async function awardVolunteerBadge(
     next(error);
   }
 }
+
+export async function deleteVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user || req.user.role !== 'staff') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM volunteers WHERE id = $1', [
+      id,
+    ]);
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    res.json({ message: 'Volunteer deleted' });
+  } catch (error) {
+    logger.error('Error deleting volunteer:', error);
+    next(error);
+  }
+}
