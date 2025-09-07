@@ -2,6 +2,7 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import config from '../config';
+import { alertOps } from './opsAlert';
 
 /**
  * Mark past approved volunteer bookings as no-show.
@@ -27,6 +28,7 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
     }
   } catch (err) {
     logger.error('Failed to clean up volunteer no-shows', err);
+    await alertOps('cleanupVolunteerNoShows', err);
   }
 }
 

@@ -6,6 +6,7 @@ jest.mock('../src/utils/scheduleDailyJob', () => {
     default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
+jest.mock('../src/utils/opsAlert');
 const job = require('../src/utils/volunteerNoShowCleanupJob');
 const {
   cleanupVolunteerNoShows,
@@ -15,6 +16,7 @@ const {
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 jest.mock('../src/utils/emailUtils');
+import { alertOps } from '../src/utils/opsAlert';
 
 describe('cleanupVolunteerNoShows', () => {
   beforeEach(() => {
@@ -35,6 +37,12 @@ describe('cleanupVolunteerNoShows', () => {
     expect(query).toContain('FROM volunteer_slots');
     expect(query).toContain('vb.date + vs.end_time');
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
+
+  it('alerts ops on failure', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await cleanupVolunteerNoShows();
+    expect(alertOps).toHaveBeenCalled();
   });
 });
 

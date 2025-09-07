@@ -56,6 +56,7 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` – Brevo template ID for volunteer booking notifications (cancellations, coordinator alerts).
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
+`OPS_ALERT_EMAILS` – Comma-separated list of emails to notify when nightly jobs fail.
 
 Booking confirmation and reminder templates can surface Google and Apple calendar links by
 referencing `{{ params.googleCalendarLink }}` and `{{ params.appleCalendarLink }}` in the Brevo
