@@ -32,6 +32,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
     next: express.NextFunction,
   ) => next(),
 }));
+jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn(), connect: jest.fn() } }));
 
 const app = express();
 app.use(express.json());
@@ -64,7 +65,8 @@ describe('createVolunteerBookingForVolunteer force', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ first_name: 'A', last_name: 'B' }] });
 
     client.query
       .mockResolvedValueOnce({}) // BEGIN

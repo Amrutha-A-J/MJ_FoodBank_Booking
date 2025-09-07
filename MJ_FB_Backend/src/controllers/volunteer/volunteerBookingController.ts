@@ -21,6 +21,7 @@ import {
     formatTimeToAmPm,
   } from '../../utils/dateUtils';
 import config from '../../config';
+import { sendBookingEvent } from '../../utils/bookingEvents';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -242,6 +243,13 @@ export async function createVolunteerBooking(
         booking.date instanceof Date
           ? formatReginaDate(booking.date)
           : booking.date;
+      sendBookingEvent({
+        action: 'created',
+        name: user.name || 'Volunteer',
+        role: 'volunteer',
+        date,
+        time: slot.start_time,
+      });
       res.status(201).json(booking);
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
@@ -413,6 +421,19 @@ export async function createVolunteerBookingForVolunteer(
         booking.date instanceof Date
           ? formatReginaDate(booking.date)
           : booking.date;
+      const nameRes = await pool.query(
+        'SELECT first_name, last_name FROM volunteers WHERE id=$1',
+        [volunteerId],
+      );
+      const row = nameRes.rows[0];
+      const name = row?.first_name && row?.last_name ? `${row.first_name} ${row.last_name}` : 'Volunteer';
+      sendBookingEvent({
+        action: 'created',
+        name,
+        role: 'volunteer',
+        date,
+        time: slot.start_time,
+      });
       res.status(201).json(booking);
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
@@ -1451,10 +1472,11 @@ export async function cancelVolunteerBookingOccurrence(
       `UPDATE volunteer_bookings SET status='cancelled', reason=$2 WHERE id=$1`,
       [id, cancelReason],
     );
-    const volunteerRes = await pool.query('SELECT email FROM volunteers WHERE id=$1', [
-      booking.volunteer_id,
-    ]);
-    const volunteerEmail = volunteerRes.rows[0]?.email;
+    const volunteerRes = await pool.query(
+      'SELECT email, first_name, last_name FROM volunteers WHERE id=$1',
+      [booking.volunteer_id],
+    );
+    const { email: volunteerEmail, first_name, last_name } = volunteerRes.rows[0] || {};
     const slotRes = await pool.query(
       'SELECT start_time, end_time FROM volunteer_slots WHERE slot_id=$1',
       [booking.slot_id],
@@ -1492,6 +1514,14 @@ export async function cancelVolunteerBookingOccurrence(
     booking.status_color = statusColor(booking.status);
     booking.date = dateStr;
     booking.reason = cancelReason;
+    const name = first_name && last_name ? `${first_name} ${last_name}` : 'Volunteer';
+    sendBookingEvent({
+      action: 'cancelled',
+      name,
+      role: 'volunteer',
+      date: dateStr,
+      time: slot.start_time,
+    });
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);

@@ -3,6 +3,7 @@ import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import * as bookingRepository from '../src/models/bookingRepository';
 import { formatReginaDate } from '../src/utils/dateUtils';
+import pool from '../src/db';
 
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/models/bookingRepository', () => ({
@@ -11,6 +12,7 @@ jest.mock('../src/models/bookingRepository', () => ({
   fetchBookingByToken: jest.fn(),
   updateBooking: jest.fn(),
 }));
+jest.mock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } }));
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   optionalAuthMiddleware: (
@@ -53,8 +55,13 @@ describe('cancel booking by token', () => {
       id: 1,
       status: 'approved',
       date: futureDate,
+      slot_id: 2,
+      user_id: 3,
     });
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00' }] })
+      .mockResolvedValueOnce({ rows: [{ first_name: 'A', last_name: 'B' }] });
 
     const res = await request(app).post('/bookings/cancel/tok123');
 

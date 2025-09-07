@@ -18,6 +18,7 @@ jest.mock('../src/models/newClient', () => ({
 jest.mock('../src/utils/bookingUtils', () => ({
   isDateWithinCurrentOrNextMonth: jest.fn().mockReturnValue(true),
 }));
+jest.mock('../src/db', () => ({ __esModule: true, default: { connect: jest.fn(), query: jest.fn() } }));
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (
     req: any,
@@ -50,6 +51,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 beforeEach(() => {
   jest.clearAllMocks();
   (pool.connect as jest.Mock).mockResolvedValue({ query: jest.fn(), release: jest.fn() });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ start_time: '09:00:00' }] });
   (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
   (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
   (newClientModel.insertNewClient as jest.Mock).mockResolvedValue(1);

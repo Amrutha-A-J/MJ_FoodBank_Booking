@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import {
   getSlots,
   getBookings,
@@ -50,7 +50,7 @@ export default function PantrySchedule({
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [userResults, setUserResults] = useState<User[]>([]);
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor } | null>(null);
+  const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor; action?: ReactNode } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState('');
   const [isNewClient, setIsNewClient] = useState(false);
@@ -112,6 +112,39 @@ export default function PantrySchedule({
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', reloadIfVisible);
+    };
+  }, [currentDate, loadData]);
+
+  useEffect(() => {
+    if (typeof EventSource === 'undefined') return;
+    const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, { withCredentials: true });
+    es.onmessage = ev => {
+      try {
+        const data = JSON.parse(ev.data) as {
+          action: 'created' | 'cancelled';
+          name: string;
+          role: string;
+          date: string;
+          time: string;
+        };
+        if (data.date === formatDate(currentDate)) {
+          const actionText = data.action === 'created' ? 'booked' : 'cancelled';
+          setSnackbar({
+            message: `${data.name} (${data.role}) ${actionText} ${formatTime(data.time)}`,
+            severity: 'info',
+            action: (
+              <Button color="inherit" size="small" onClick={() => { loadData(); setSnackbar(null); }}>
+                Refresh
+              </Button>
+            ),
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+    return () => {
+      es.close();
     };
   }, [currentDate, loadData]);
 
@@ -324,6 +357,7 @@ export default function PantrySchedule({
         onClose={() => setSnackbar(null)}
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
+        action={snackbar?.action}
       />
       {isClosed ? (
         <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>

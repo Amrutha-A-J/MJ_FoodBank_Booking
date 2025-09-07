@@ -38,6 +38,7 @@ import { insertNewClient } from '../models/newClient';
 import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
+import { sendBookingEvent } from '../utils/bookingEvents';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -137,6 +138,15 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
     const { start_time, end_time } = slotRes.rows[0] || {};
+    if (start_time) {
+      sendBookingEvent({
+        action: 'created',
+        name: user.name || 'Client',
+        role: 'client',
+        date,
+        time: start_time,
+      });
+    }
     const {
       googleCalendarLink,
       outlookCalendarLink,
@@ -278,24 +288,47 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
     });
 
     let email: string | undefined;
+    let name = 'Client';
     if (bookingUserId !== undefined) {
       const emailRes = await pool.query(
-        'SELECT email FROM clients WHERE client_id=$1',
+        'SELECT email, first_name, last_name FROM clients WHERE client_id=$1',
         [bookingUserId],
       );
-      email = emailRes.rows[0]?.email;
+      const row = emailRes.rows[0];
+      email = row?.email;
+      if (row?.first_name && row?.last_name) {
+        name = `${row.first_name} ${row.last_name}`;
+      }
     } else {
       const newClientId = (booking as any).new_client_id;
       if (newClientId) {
         const hasNewClients = await hasTable('new_clients');
         if (hasNewClients) {
           const emailRes = await pool.query(
-            'SELECT email FROM new_clients WHERE id=$1',
+            'SELECT email, name FROM new_clients WHERE id=$1',
             [newClientId],
           );
-          email = emailRes.rows[0]?.email;
+          const row = emailRes.rows[0];
+          email = row?.email;
+          name = row?.name || name;
         }
       }
+    }
+    let start_time: string | undefined;
+    if (booking.slot_id) {
+      const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+        booking.slot_id,
+      ]);
+      start_time = slotRes.rows[0]?.start_time;
+    }
+    if (start_time) {
+      sendBookingEvent({
+        action: 'cancelled',
+        name,
+        role: 'client',
+        date: booking.date,
+        time: start_time,
+      });
     }
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
@@ -331,6 +364,38 @@ export async function cancelBookingByToken(
       status: 'cancelled',
       request_data: 'user cancelled',
     });
+    let name = 'Client';
+    let start_time: string | undefined;
+    if (booking.slot_id) {
+      const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+        booking.slot_id,
+      ]);
+      start_time = slotRes.rows[0]?.start_time;
+    }
+    if (booking.user_id) {
+      const resUser = await pool.query(
+        'SELECT first_name, last_name FROM clients WHERE client_id=$1',
+        [booking.user_id],
+      );
+      const row = resUser.rows[0];
+      if (row?.first_name && row?.last_name) {
+        name = `${row.first_name} ${row.last_name}`;
+      }
+    } else if ((booking as any).new_client_id) {
+      const resNc = await pool.query('SELECT name FROM new_clients WHERE id=$1', [
+        (booking as any).new_client_id,
+      ]);
+      name = resNc.rows[0]?.name || name;
+    }
+    if (start_time) {
+      sendBookingEvent({
+        action: 'cancelled',
+        name,
+        role: 'client',
+        date: booking.date,
+        time: start_time,
+      });
+    }
     res.json({ message: 'Booking cancelled' });
   } catch (error) {
     logger.error('Error cancelling booking by token:', error);
@@ -637,6 +702,19 @@ export async function createPreapprovedBooking(
     );
 
     await client.query('COMMIT');
+    const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+      slotId,
+    ]);
+    const start_time = slotRes.rows[0]?.start_time;
+    if (start_time) {
+      sendBookingEvent({
+        action: 'created',
+        name,
+        role: 'client',
+        date,
+        time: start_time,
+      });
+    }
     res.status(201).json({ message: 'Walk-in booking created', rescheduleToken: token });
   } catch (error: any) {
     await client.query('ROLLBACK');
@@ -725,13 +803,26 @@ export async function createBookingForUser(
     const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
     const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
-    const emailRes = await pool.query('SELECT email FROM clients WHERE client_id=$1', [userId]);
-    const clientEmail = emailRes.rows[0]?.email;
+    const emailRes = await pool.query(
+      'SELECT email, first_name, last_name FROM clients WHERE client_id=$1',
+      [userId],
+    );
+    const { email: clientEmail, first_name, last_name } = emailRes.rows[0] || {};
     const slotRes = await pool.query(
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotIdNum],
     );
     const { start_time, end_time } = slotRes.rows[0] || {};
+    if (start_time) {
+      const name = first_name && last_name ? `${first_name} ${last_name}` : 'Client';
+      sendBookingEvent({
+        action: 'created',
+        name,
+        role: 'client',
+        date,
+        time: start_time,
+      });
+    }
     if (clientEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         const {
@@ -830,6 +921,19 @@ export async function createBookingForNewClient(
         client,
       );
       await client.query('COMMIT');
+      const slotRes = await pool.query('SELECT start_time FROM slots WHERE id=$1', [
+        Number(slotId),
+      ]);
+      const start_time = slotRes.rows[0]?.start_time;
+      if (start_time) {
+        sendBookingEvent({
+          action: 'created',
+          name,
+          role: 'client',
+          date,
+          time: start_time,
+        });
+      }
       res
         .status(201)
         .json({ message: 'Booking created for new client', rescheduleToken: token });
