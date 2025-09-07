@@ -275,7 +275,9 @@ export default function PantrySchedule({
   return (
     <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
+        <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
+          Previous
+        </Button>
         <h3>
           {dateStr} - {dayName}
           {isHoliday
@@ -284,7 +286,23 @@ export default function PantrySchedule({
               ? ' (Weekend)'
               : ''}
         </h3>
-        <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            onClick={() =>
+              setCurrentDate(
+                fromZonedTime(`${formatDate()}T00:00:00`, reginaTimeZone),
+              )
+            }
+            variant="outlined"
+            size="small"
+            color="primary"
+          >
+            Today
+          </Button>
+          <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
+            Next
+          </Button>
+        </div>
       </div>
       <FeedbackSnackbar
         open={!!snackbar}
