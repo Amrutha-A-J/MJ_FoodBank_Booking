@@ -88,6 +88,8 @@ describe('Navbar component', () => {
       expect(screen.queryByText(/Hello, Tester/i)).toBeNull();
       fireEvent.click(screen.getByLabelText(/open navigation menu/i));
       expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Profile/i)).toBeNull();
+      fireEvent.click(screen.getByText(/Hello, Tester/i));
       expect(screen.getByText(/Profile/i)).toBeInTheDocument();
       expect(screen.getByText(/Help/i)).toBeInTheDocument();
       expect(screen.getByText(/Logout/i)).toBeInTheDocument();

@@ -23,7 +23,12 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-export type NavLink = { label: string; to: string; badge?: number };
+export type NavLink = {
+  label: string;
+  to?: string;
+  badge?: number;
+  onClick?: () => void;
+};
 export type NavGroup = { label: string; links: NavLink[] };
 
 interface NavbarProps {
@@ -113,6 +118,19 @@ export default function Navbar({
     },
   };
 
+  const mobileProfileGroup: NavGroup | null =
+    onLogout && name
+      ? {
+          label: t('hello_name', { name }),
+          links: [
+            ...(role === 'staff' ? profileLinks ?? [] : []),
+            { label: t('profile'), to: '/profile' },
+            { label: t('help.title'), to: '/help' },
+            { label: t('logout'), onClick: () => onLogout?.() },
+          ],
+        }
+      : null;
+
   return (
     <Box
       sx={{
@@ -199,66 +217,30 @@ export default function Navbar({
                         )
                       )}
 
-                      {onLogout &&
-                        (name ? (
-                          <>
-                            <ListItemButton disabled sx={{ ...DROPDOWN_ITEM_SX, opacity: 0.6 }}>
-                              {t('hello_name', { name })}
-                            </ListItemButton>
-                            {role === 'staff' &&
-                              (profileLinks ?? []).map(({ label, to }) => (
-                                <ListItemButton
-                                  key={to}
-                                  component={RouterLink}
-                                  to={to}
-                                  onClick={() => setMobileOpen(false)}
-                                  disabled={loading}
-                                  sx={DROPDOWN_ITEM_SX}
-                                >
-                                  {label}
-                                </ListItemButton>
-                              ))}
-                            <ListItemButton
-                              component={RouterLink}
-                              to="/profile"
-                              onClick={() => setMobileOpen(false)}
-                              disabled={loading}
-                              sx={DROPDOWN_ITEM_SX}
-                            >
-                              {t('profile')}
-                            </ListItemButton>
-                            <ListItemButton
-                              component={RouterLink}
-                              to="/help"
-                              onClick={() => setMobileOpen(false)}
-                              disabled={loading}
-                              sx={DROPDOWN_ITEM_SX}
-                            >
-                              {t('help.title')}
-                            </ListItemButton>
-                            <ListItemButton
-                              onClick={() => {
-                                setMobileOpen(false);
-                                onLogout?.();
-                              }}
-                              disabled={loading}
-                              sx={DROPDOWN_ITEM_SX}
-                            >
-                              {t('logout')}
-                            </ListItemButton>
-                          </>
-                        ) : (
-                          <ListItemButton
-                            onClick={() => {
-                              setMobileOpen(false);
-                              onLogout?.();
-                            }}
-                            disabled={loading}
-                            sx={DROPDOWN_ITEM_SX}
-                          >
-                            {t('logout')}
-                          </ListItemButton>
-                        ))}
+                      {mobileProfileGroup ? (
+                        <ListItemButton
+                          onClick={() => setMobileSubmenu(mobileProfileGroup)}
+                          sx={{
+                            ...DROPDOWN_ITEM_SX,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          {mobileProfileGroup.label}
+                          <ChevronLeft fontSize="small" />
+                        </ListItemButton>
+                      ) : onLogout ? (
+                        <ListItemButton
+                          onClick={() => {
+                            setMobileOpen(false);
+                            onLogout?.();
+                          }}
+                          disabled={loading}
+                          sx={DROPDOWN_ITEM_SX}
+                        >
+                          {t('logout')}
+                        </ListItemButton>
+                      ) : null}
                     </List>
                   </Box>
 
@@ -281,15 +263,15 @@ export default function Navbar({
                           <ChevronRight fontSize="small" sx={{ mr: 1 }} />
                           <ListItemText primary={mobileSubmenu.label} />
                         </ListItemButton>
-                        {mobileSubmenu.links.map(({ label, to, badge }) => (
+                        {mobileSubmenu.links.map(({ label, to, badge, onClick }) => (
                           <ListItemButton
-                            key={to}
-                            component={RouterLink}
-                            to={to}
-                            selected={location.pathname === to}
+                            key={to ?? label}
+                            {...(to ? { component: RouterLink, to } : {})}
+                            selected={to ? location.pathname === to : false}
                             onClick={() => {
                               setMobileOpen(false);
                               setMobileSubmenu(null);
+                              onClick?.();
                             }}
                             disabled={loading}
                             sx={DROPDOWN_ITEM_SX}
