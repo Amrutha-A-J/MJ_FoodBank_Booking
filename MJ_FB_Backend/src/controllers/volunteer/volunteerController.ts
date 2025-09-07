@@ -223,16 +223,16 @@ export async function createVolunteer(
        SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
-    const token = await generatePasswordSetupToken('volunteers', volunteerId);
     if (email) {
-        await sendTemplatedEmail({
-          to: email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      const token = await generatePasswordSetupToken('volunteers', volunteerId);
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
+      });
     }
     res.status(201).json({ id: volunteerId });
   } catch (error) {
@@ -252,11 +252,14 @@ export async function createVolunteerShopperProfile(
   };
   try {
     const volRes = await pool.query(
-      `SELECT first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
+      `SELECT first_name, last_name, email, phone, user_id FROM volunteers WHERE id = $1`,
       [id],
     );
     if ((volRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    if (volRes.rows[0].user_id) {
+      return res.status(409).json({ message: 'Shopper profile already exists' });
     }
     const email = volRes.rows[0].email;
     if (email) {
@@ -334,7 +337,15 @@ export async function removeVolunteerShopperProfile(
       return res.status(404).json({ message: 'Shopper profile not found' });
     }
     const userId = volRes.rows[0].user_id;
-    await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+    const clientRes = await pool.query(
+      `SELECT profile_link FROM clients WHERE client_id = $1`,
+      [userId],
+    );
+    const profileLink = clientRes.rows[0]?.profile_link;
+    const expectedLink = `https://portal.link2feed.ca/org/1605/intake/${userId}`;
+    if (profileLink === expectedLink) {
+      await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+    }
     await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
     res.json({ message: 'Shopper profile removed' });
   } catch (error) {

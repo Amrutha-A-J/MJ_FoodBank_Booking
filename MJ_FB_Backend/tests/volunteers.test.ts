@@ -113,6 +113,25 @@ describe('Volunteer routes role ID validation', () => {
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(
       /LOWER\(email\) = LOWER\(\$1\)/,
     );
+
+  it('does not create a token when email is missing', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 2, rows: [{ id: 1 }, { id: 2 }] }) // validRoles
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // insert volunteer
+      .mockResolvedValueOnce({}); // insert trained roles
+
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'John',
+      lastName: 'Doe',
+      roleIds: [1, 2],
+      onlineAccess: false,
+    });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ id: 5 });
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+
   });
 
   it('returns invalid role IDs when updating trained areas', async () => {
@@ -177,9 +196,36 @@ describe('Volunteer shopper profile', () => {
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
+  it('returns 409 when shopper profile already exists', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'j@e.com',
+          phone: '123',
+          user_id: 9,
+        },
+      ],
+    });
+
+    const res = await request(app)
+      .post('/volunteers/1/shopper')
+      .send({ clientId: 123 });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ message: 'Shopper profile already exists' });
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
   it('removes a shopper profile for a volunteer', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ profile_link: 'https://portal.link2feed.ca/org/1605/intake/9' }],
+      })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({});
 
@@ -187,6 +233,22 @@ describe('Volunteer shopper profile', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Shopper profile removed' });
+    expect(pool.query).toHaveBeenCalledTimes(4);
+  });
+
+  it('unlinks from existing client without deleting record', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ profile_link: 'existing-link' }] })
+      .mockResolvedValueOnce({});
+
+    const res = await request(app).delete('/volunteers/1/shopper');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Shopper profile removed' });
+    expect(pool.query).toHaveBeenCalledTimes(3);
+    const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
+    expect(queries.some((q: string) => /DELETE FROM clients/.test(q))).toBe(false);
   });
 });
 
