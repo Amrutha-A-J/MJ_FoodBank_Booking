@@ -415,14 +415,16 @@ export async function getVolunteerStats(
     );
     const badges = new Set(manualRes.rows.map(r => r.badge_code));
 
-    const earlyRes = await pool.query(
-      `SELECT 1 FROM volunteer_bookings vb
-       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1 AND vb.status = 'completed' AND vs.start_time < '09:00:00'
-       LIMIT 1`,
+    const earlyRes = await pool.query<{ has_early_bird: boolean }>(
+      `SELECT has_early_bird OR EXISTS (
+         SELECT 1 FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.volunteer_id = $1 AND vb.status = 'completed' AND vs.start_time < '09:00:00'
+       ) AS early
+       FROM volunteers WHERE id = $1`,
       [user.id],
     );
-    if (earlyRes.rowCount) badges.add('early-bird');
+    if (earlyRes.rows[0]?.early) badges.add('early-bird');
 
     const statsRes = await pool.query<{
       lifetime_hours: string;
@@ -430,7 +432,7 @@ export async function getVolunteerStats(
       total_shifts: string;
     }>(
       `SELECT
-         COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
+         v.archived_hours + COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS lifetime_hours,
          COALESCE(SUM(
            CASE
              WHEN date_trunc('month', vb.date) = date_trunc('month', CURRENT_DATE)
@@ -438,10 +440,12 @@ export async function getVolunteerStats(
              ELSE 0
            END
        ), 0) AS month_hours,
-        COUNT(*) AS total_shifts
-       FROM volunteer_bookings vb
-       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1 AND vb.status = 'completed' AND vb.date <= CURRENT_DATE`,
+         v.archived_shifts + COUNT(vb.*) AS total_shifts
+       FROM volunteers v
+       LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id AND vb.status = 'completed' AND vb.date <= CURRENT_DATE
+       LEFT JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       WHERE v.id = $1
+       GROUP BY v.archived_hours, v.archived_shifts`,
       [user.id],
     );
     const statsRow = statsRes.rows[0];
@@ -450,11 +454,14 @@ export async function getVolunteerStats(
     const totalShifts = Number(statsRow?.total_shifts ?? 0);
 
     const heavyRes = await pool.query<{ count: string }>(
-      `SELECT COUNT(*) FROM volunteer_bookings
-       WHERE volunteer_id = $1 AND status = 'completed'`,
+      `SELECT v.archived_shifts + COUNT(vb.*) AS count
+       FROM volunteers v
+       LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id AND vb.status = 'completed'
+       WHERE v.id = $1
+       GROUP BY v.archived_shifts`,
       [user.id],
     );
-    if (Number(heavyRes.rows[0].count) >= 10) badges.add('heavy-lifter');
+    if (Number(heavyRes.rows[0]?.count ?? 0) >= 10) badges.add('heavy-lifter');
 
     const weeksRes = await pool.query<{ week_start: string }>(
       `SELECT DISTINCT date_trunc('week', date) AS week_start
