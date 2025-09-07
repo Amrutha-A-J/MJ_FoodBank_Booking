@@ -76,6 +76,20 @@ The backend trusts the AWS RDS certificate chain stored at
 `PG_HOST` should reference the Lightsail endpoint DNS name rather than an IP
 address so hostname verification succeeds.
 
+## Database Maintenance
+
+- Configure autovacuum thresholds so vacuum and analyze run proactively:
+  ```sql
+  ALTER DATABASE mj_fb_db
+    SET autovacuum_vacuum_scale_factor = 0.05,
+        autovacuum_analyze_scale_factor = 0.05,
+        autovacuum_vacuum_threshold = 50,
+        autovacuum_analyze_threshold = 50;
+  ```
+- Schedule a low-traffic `VACUUM (ANALYZE, VERBOSE)` to keep planner stats fresh.
+- Plan quarterly `REINDEX` or [`pg_repack`](https://reorg.github.io/pg_repack/) runs for heavily updated tables such as `bookings` and `volunteer_bookings`.
+- Monitor table bloat using `pg_stat_user_tables` or `pgstattuple` and log maintenance tasks in `mj_food_bank_deploy_ops_cheatsheet.md`.
+
 ## Timesheet and Leave Setup
 
 Timesheet features require backend migrations, seeded pay periods, and email
