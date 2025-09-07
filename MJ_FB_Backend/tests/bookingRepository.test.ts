@@ -8,6 +8,7 @@ import {
   fetchBookingsForReminder,
   fetchBookingHistory,
 } from '../src/models/bookingRepository';
+import { formatReginaDate } from '../src/utils/dateUtils';
 
 
 describe('bookingRepository', () => {
@@ -77,6 +78,17 @@ describe('bookingRepository', () => {
     expect(sql).toEqual(expect.stringContaining('WHERE id=$1'));
     expect(params).toEqual(expect.arrayContaining([1, 'cancelled', 'reason']));
     expect(params).toHaveLength(3);
+  });
+
+  it('updateBooking formats date field', async () => {
+    setQueryResults({});
+    const date = '2024-01-01T06:00:00Z';
+    await updateBooking(1, { date });
+    const params = (mockPool.query as jest.Mock).mock.calls[0][1];
+    expect(params).toEqual([
+      1,
+      formatReginaDate(date),
+    ]);
   });
 
   it('updateBooking returns early when only disallowed keys provided', async () => {
