@@ -222,16 +222,16 @@ export async function createVolunteer(
        SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
-    const token = await generatePasswordSetupToken('volunteers', volunteerId);
     if (email) {
-        await sendTemplatedEmail({
-          to: email,
-          templateId: config.passwordSetupTemplateId,
-          params: {
-            link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-            token,
-          },
-        });
+      const token = await generatePasswordSetupToken('volunteers', volunteerId);
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params: {
+          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+          token,
+        },
+      });
     }
     res.status(201).json({ id: volunteerId });
   } catch (error) {
