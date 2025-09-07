@@ -7,6 +7,7 @@ import {
   deleteBlockedSlotParamsSchema,
 } from '../schemas/blockedSlotSchemas';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
+import { cleanupPastBlockedSlots } from '../utils/blockedSlotCleanupJob';
 
 const router = express.Router();
 
@@ -90,6 +91,16 @@ router.delete(
     const { date, slotId } = req.params;
     await pool.query('DELETE FROM blocked_slots WHERE date = $1 AND slot_id = $2', [date, slotId]);
     res.json({ message: 'Removed' });
+  },
+);
+
+router.post(
+  '/cleanup',
+  authMiddleware,
+  authorizeRoles('admin'),
+  async (_req, res) => {
+    await cleanupPastBlockedSlots();
+    res.json({ message: 'Cleanup complete' });
   },
 );
 

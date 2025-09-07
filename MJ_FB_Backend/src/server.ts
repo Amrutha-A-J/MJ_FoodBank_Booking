@@ -26,11 +26,17 @@ import {
   startTimesheetSeedJob,
   stopTimesheetSeedJob,
 } from './utils/timesheetSeedJob';
+import { startRetentionJob, stopRetentionJob } from './utils/bookingRetentionJob';
 import {
   startPasswordTokenCleanupJob,
   stopPasswordTokenCleanupJob,
 } from './utils/passwordTokenCleanupJob';
 import { startLogCleanupJob, stopLogCleanupJob } from './utils/logCleanupJob';
+import {
+  startBlockedSlotCleanupJob,
+  stopBlockedSlotCleanupJob,
+} from './utils/blockedSlotCleanupJob';
+
 
 const PORT = config.port;
 
@@ -57,8 +63,10 @@ async function init() {
     await seedPayPeriods('2025-08-03', '2025-12-31');
     await seedTimesheets();
     startTimesheetSeedJob();
+    startRetentionJob();
     startPasswordTokenCleanupJob();
     startLogCleanupJob();
+    startBlockedSlotCleanupJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     process.exit(1);
@@ -74,8 +82,10 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopExpiredTokenCleanupJob();
   stopTimesheetSeedJob();
   stopPayPeriodCronJob();
+  stopRetentionJob();
   stopPasswordTokenCleanupJob();
   stopLogCleanupJob();
+  stopBlockedSlotCleanupJob();
   shutdownQueue();
   if (server) {
     server.close();

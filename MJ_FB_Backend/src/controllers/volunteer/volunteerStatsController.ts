@@ -13,11 +13,11 @@ export async function getVolunteerLeaderboard(
     const result = await pool.query(
       `WITH volunteer_counts AS (
          SELECT v.id,
-                COALESCE(COUNT(vb.*), 0) AS total
+                v.archived_shifts + COALESCE(COUNT(vb.*), 0) AS total
          FROM volunteers v
          LEFT JOIN volunteer_bookings vb
            ON vb.volunteer_id = v.id AND vb.status = 'completed'
-         GROUP BY v.id
+         GROUP BY v.id, v.archived_shifts
        ),
        ranked AS (
          SELECT id,
@@ -47,7 +47,7 @@ export async function getVolunteerGroupStats(
 ) {
   try {
     const result = await pool.query(
-      `WITH hours AS (
+      `WITH booking_hours AS (
          SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (vs.end_time - vs.start_time)) / 3600), 0) AS total_hours,
                 COALESCE(SUM(
                   CASE
@@ -60,8 +60,11 @@ export async function getVolunteerGroupStats(
          JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
          WHERE vb.status = 'completed'
        ),
+       archived AS (
+         SELECT COALESCE(SUM(archived_hours),0) AS archived_hours FROM volunteers
+       ),
        weight AS (
-       SELECT COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS total_lbs,
+         SELECT COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS total_lbs,
               COALESCE(SUM(
                 CASE
                   WHEN date_trunc('week', date) = date_trunc('week', CURRENT_DATE)
@@ -87,14 +90,14 @@ export async function getVolunteerGroupStats(
         FROM app_config
         WHERE key = 'volunteer_monthly_hours_goal'
       )
-      SELECT total_hours,
-             month_hours,
+      SELECT archived.archived_hours + booking_hours.total_hours AS total_hours,
+             booking_hours.month_hours,
              month_goal,
              total_lbs,
              week_lbs,
              month_lbs,
              month_families
-        FROM hours, weight, goal`,
+        FROM booking_hours, archived, weight, goal`,
     );
     const row = result.rows[0] ?? {};
     res.json({
@@ -123,13 +126,13 @@ export async function getVolunteerRanking(
     const result = await pool.query(
       `SELECT v.id,
               v.first_name || ' ' || v.last_name AS name,
-              COUNT(*) AS total
+              v.archived_shifts + COUNT(*) AS total
          FROM volunteer_bookings vb
          JOIN volunteers v ON vb.volunteer_id = v.id
          JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
         WHERE vb.status = 'completed'
           AND ($1::int IS NULL OR vs.role_id = $1)
-        GROUP BY v.id
+        GROUP BY v.id, name, v.archived_shifts
         ORDER BY total DESC
         LIMIT 10`,
       [filterRole],
@@ -156,11 +159,11 @@ export async function getVolunteerNoShowRanking(
       `WITH stats AS (
          SELECT v.id,
                 v.first_name || ' ' || v.last_name AS name,
-                COUNT(*) FILTER (WHERE vb.status IN ('approved','completed','no_show')) AS total_bookings,
-                COUNT(*) FILTER (WHERE vb.status = 'no_show') AS no_shows
+                v.archived_bookings + COUNT(*) FILTER (WHERE vb.status IN ('approved','completed','no_show')) AS total_bookings,
+                v.archived_no_shows + COUNT(*) FILTER (WHERE vb.status = 'no_show') AS no_shows
          FROM volunteers v
          LEFT JOIN volunteer_bookings vb ON vb.volunteer_id = v.id
-         GROUP BY v.id
+         GROUP BY v.id, name, v.archived_bookings, v.archived_no_shows
        )
        SELECT id,
               name,
