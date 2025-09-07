@@ -101,6 +101,21 @@ export default function PantrySchedule({
   }, [loadData]);
 
   useEffect(() => {
+    if (formatDate(currentDate) !== formatDate()) return;
+    const reloadIfVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
+    const interval = setInterval(reloadIfVisible, 60_000);
+    document.addEventListener('visibilitychange', reloadIfVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', reloadIfVisible);
+    };
+  }, [currentDate, loadData]);
+
+  useEffect(() => {
     if (assignSlot && !isNewClient && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
