@@ -409,7 +409,17 @@ export default function PantrySchedule({
                     </li>
                   ))}
                   {assignSlot && searchTerm.length >= 3 && userResults.length === 0 && (
-                    <li>No search results.</li>
+                    <li>
+                      No search results.
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => setIsNewClient(true)}
+                        sx={{ ml: 1 }}
+                      >
+                        Create new client
+                      </Button>
+                    </li>
                   )}
                 </ul>
               </>
