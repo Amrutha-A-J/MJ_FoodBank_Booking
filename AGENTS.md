@@ -31,12 +31,12 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |
 | `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId` |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
-| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `outlookCalendarLink`, `appleCalendarLink`, `type` |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 
 Client and volunteer reschedule emails currently use Brevo template ID **10**.
 

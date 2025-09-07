@@ -61,7 +61,6 @@ describe('createBookingForUser', () => {
         params: expect.objectContaining({
             body: expect.stringContaining('Mon, Jan 15, 2024 from 9:00 AM to 9:30 AM'),
           googleCalendarLink: expect.any(String),
-          outlookCalendarLink: expect.any(String),
           appleCalendarLink: expect.any(String),
         }),
       }),

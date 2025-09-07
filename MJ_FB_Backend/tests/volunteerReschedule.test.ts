@@ -16,7 +16,6 @@ jest.mock('../src/utils/emailUtils', () => ({
   buildCancelRescheduleLinks: () => ({ cancelLink: '', rescheduleLink: '' }),
   buildCalendarLinks: () => ({
     googleCalendarLink: '#g',
-    outlookCalendarLink: '#o',
     appleCalendarLink: '#a',
     icsContent: '',
   }),
@@ -67,10 +66,9 @@ describe('rescheduleVolunteerBooking', () => {
     const params = enqueueEmailMock.mock.calls[0][0].params;
     expect(params.oldDate).toBe('Sun, Sep 1, 2030');
       expect(params.oldTime).toBe('8:00 AM to 9:00 AM');
-      expect(params.newDate).toBe('Thu, Sep 5, 2030');
-      expect(params.newTime).toBe('9:00 AM to 12:00 PM');
+    expect(params.newDate).toBe('Thu, Sep 5, 2030');
+    expect(params.newTime).toBe('9:00 AM to 12:00 PM');
     expect(params.googleCalendarLink).toBe('#g');
-    expect(params.outlookCalendarLink).toBe('#o');
     expect(params.appleCalendarLink).toBe('#a');
     expect(params.appleCalendarCancelLink).toBe('#');
   });
