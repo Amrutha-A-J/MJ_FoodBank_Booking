@@ -180,6 +180,45 @@ describe('Volunteer routes role ID validation', () => {
   });
 });
 
+describe('Search volunteers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns clientId and hasPassword when shopper profile linked', async () => {
+    (pool.query as jest.Mock).mockResolvedValue({
+      rowCount: 1,
+      rows: [
+        {
+          id: 1,
+          first_name: 'Jane',
+          last_name: 'Doe',
+          user_id: 7,
+          has_password: true,
+          role_ids: [2],
+        },
+      ],
+    });
+
+    const res = await request(app)
+      .get('/volunteers/search')
+      .query({ search: 'Jane' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: 1,
+        name: 'Jane Doe',
+        trainedAreas: [2],
+        hasShopper: true,
+        clientId: 7,
+        hasPassword: true,
+      },
+    ]);
+    expect(pool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT v.id'), ['%Jane%']);
+  });
+});
+
 describe('Volunteer shopper profile', () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -30,7 +30,13 @@ jest.mock('../api/volunteers', () => ({
   createVolunteer: jest.fn(),
 }));
 
-let mockVolunteer: any = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+let mockVolunteer: any = {
+  id: 1,
+  name: 'Test Vol',
+  trainedAreas: [],
+  hasShopper: false,
+  hasPassword: false,
+};
 
 jest.mock('../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
@@ -143,7 +149,13 @@ describe('VolunteerManagement create volunteer', () => {
 
 describe('VolunteerManagement shopper profile', () => {
   it('creates shopper profile for volunteer', async () => {
-    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+    mockVolunteer = {
+      id: 1,
+      name: 'Test Vol',
+      trainedAreas: [],
+      hasShopper: false,
+      hasPassword: false,
+    };
     (searchVolunteers as jest.Mock)
       .mockResolvedValueOnce([mockVolunteer])
       .mockResolvedValueOnce([{ ...mockVolunteer, hasShopper: true }]);
@@ -177,7 +189,14 @@ describe('VolunteerManagement shopper profile', () => {
   });
 
   it('removes shopper profile for volunteer', async () => {
-    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: true };
+    mockVolunteer = {
+      id: 1,
+      name: 'Test Vol',
+      trainedAreas: [],
+      hasShopper: true,
+      hasPassword: false,
+      clientId: 123,
+    };
     (searchVolunteers as jest.Mock)
       .mockResolvedValueOnce([mockVolunteer])
       .mockResolvedValueOnce([{ ...mockVolunteer, hasShopper: false }]);
@@ -203,11 +222,47 @@ describe('VolunteerManagement shopper profile', () => {
       expect(screen.getByLabelText(/shopper profile/i)).not.toBeChecked()
     );
   });
+
+  it('shows captions for linked shopper profile and online account', async () => {
+    mockVolunteer = {
+      id: 1,
+      name: 'Test Vol',
+      trainedAreas: [],
+      hasShopper: true,
+      hasPassword: true,
+      clientId: 456,
+    };
+    (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/search']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(
+      await screen.findByText('Volunteer has an online account'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This profile has a shopper profile attached to it. Client ID: 456',
+      ),
+    ).toBeInTheDocument();
+  });
 });
 
 describe('VolunteerManagement search reset', () => {
   it('clears selected volunteer when leaving search tab', async () => {
-    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+    mockVolunteer = {
+      id: 1,
+      name: 'Test Vol',
+      trainedAreas: [],
+      hasShopper: false,
+      hasPassword: false,
+    };
     (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
 
     let navigateFn: (path: string) => void = () => {};
@@ -241,7 +296,13 @@ describe('VolunteerManagement search reset', () => {
 
 describe('VolunteerManagement role updates', () => {
   it('saves trained roles for volunteer', async () => {
-    mockVolunteer = { id: 1, name: 'Test Vol', trainedAreas: [], hasShopper: false };
+    mockVolunteer = {
+      id: 1,
+      name: 'Test Vol',
+      trainedAreas: [],
+      hasShopper: false,
+      hasPassword: false,
+    };
     (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {

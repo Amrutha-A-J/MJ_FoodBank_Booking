@@ -372,6 +372,7 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
 
     const result = await pool.query(
       `SELECT v.id, v.first_name, v.last_name, v.user_id,
+              v.password IS NOT NULL AS has_password,
               ARRAY_REMOVE(ARRAY_AGG(vtr.role_id), NULL) AS role_ids
        FROM volunteers v
        LEFT JOIN volunteer_trained_roles vtr ON v.id = vtr.volunteer_id
@@ -389,6 +390,8 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
       name: `${v.first_name} ${v.last_name}`.trim(),
       trainedAreas: (v.role_ids || []).map(Number),
       hasShopper: Boolean(v.user_id),
+      ...(v.user_id && { clientId: Number(v.user_id) }),
+      hasPassword: v.has_password,
     }));
 
     res.json(formatted);

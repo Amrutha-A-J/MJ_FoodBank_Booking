@@ -80,6 +80,8 @@ interface VolunteerResult {
   name: string;
   trainedAreas: number[];
   hasShopper: boolean;
+  clientId?: number;
+  hasPassword: boolean;
 }
 
 interface VolunteerManagementProps {
@@ -346,7 +348,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     } catch {
       // ignore
     }
-    return { id, name, trainedAreas: [], hasShopper: false };
+    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false };
   }
 
   async function refreshVolunteer() {
@@ -683,11 +685,25 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             onSelect={selectVolunteer}
           />
           {selectedVolunteer && (
-            <Stack
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={2}
-              mt={2}
-            >
+            <>
+              <Typography variant="h6" mt={2}>
+                {selectedVolunteer.name}
+              </Typography>
+              {selectedVolunteer.hasPassword && (
+                <Typography variant="caption">
+                  Volunteer has an online account
+                </Typography>
+              )}
+              {selectedVolunteer.clientId && (
+                <Typography variant="caption">
+                  This profile has a shopper profile attached to it. Client ID: {selectedVolunteer.clientId}
+                </Typography>
+              )}
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                mt={2}
+              >
               <Box sx={{ width: { xs: 1, md: '33%' } }}>
                 <Stack spacing={2} sx={{ width: 1 }}>
                   <PageCard sx={{ width: 1 }}>
@@ -830,6 +846,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 </PageCard>
               </Box>
             </Stack>
+          </>
           )}
         </>
       )}
