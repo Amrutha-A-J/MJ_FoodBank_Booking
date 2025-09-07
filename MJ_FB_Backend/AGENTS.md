@@ -14,6 +14,7 @@
 - Requires Node.js 22+ for native `fetch`; development is pinned via `.nvmrc`, and `.npmrc` sets `engine-strict=true` to prevent using other Node versions. GitHub Actions reads `.nvmrc` to keep CI builds and tests on the same runtime.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The `volunteers` table no longer includes a `username` column, and `email` must be unique though it can be null.
+- PostgreSQL `DATE` fields are returned as plain strings (`YYYY-MM-DD`) via a custom type parser; avoid converting them to JS `Date` objects unless a time-of-day is required.
 
 ## Email & Jobs
 

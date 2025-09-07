@@ -195,4 +195,20 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/NULL AS client_note/);
   });
+
+  it('fetchBookingHistory formats booking dates as YYYY-MM-DD', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookingHistory([1], false, undefined, false);
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toMatch(/to_char\(b.date, 'YYYY-MM-DD'\) AS date/);
+  });
+
+  it('fetchBookingHistory formats visit dates as YYYY-MM-DD', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    await fetchBookingHistory([1], false, undefined, true);
+    const visitCall = (mockPool.query as jest.Mock).mock.calls[1];
+    expect(visitCall[0]).toMatch(/to_char\(v.date, 'YYYY-MM-DD'\) AS date/);
+  });
 });

@@ -1,9 +1,12 @@
 // src/db.ts
-import { Pool } from 'pg';
+import { Pool, types } from 'pg';
 import fs from 'fs';
 import path from 'path';
 import config from './config';
 import logger from './utils/logger';
+
+// Ensure DATE columns are returned as plain strings (YYYY-MM-DD)
+types.setTypeParser(1082, (val) => val);
 
 const isLocal = ['localhost', '127.0.0.1'].includes(config.pgHost);
 
