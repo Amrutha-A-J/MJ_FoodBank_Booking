@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NoShowWeek from '../client-management/NoShowWeek';
 import { getBookings } from '../../../api/bookings';
+import { toDayjs, formatReginaDate } from '../../../utils/date';
 
 jest.mock('../../../api/bookings', () => ({
   getBookings: jest.fn(),
@@ -10,7 +11,9 @@ jest.mock('../../../api/bookings', () => ({
 describe('NoShowWeek', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2023-12-31T12:00:00'));
+    jest.setSystemTime(
+      toDayjs('2023-12-31', 'America/Regina').toDate(),
+    );
     (getBookings as jest.Mock).mockImplementation(({ date }) => {
       if (date === '2023-12-31') {
         return Promise.resolve([
@@ -77,16 +80,12 @@ describe('NoShowWeek', () => {
       </MemoryRouter>,
     );
 
-    const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dates = [
-      'Sunday, Dec 31, 2023',
-      'Monday, Jan 1, 2024',
-      'Tuesday, Jan 2, 2024',
-      'Wednesday, Jan 3, 2024',
-      'Thursday, Jan 4, 2024',
-      'Friday, Jan 5, 2024',
-      'Saturday, Jan 6, 2024',
-    ];
+    const base = toDayjs('2023-12-31', 'America/Regina').startOf('week');
+    const days = Array.from({ length: 7 }, (_, i) =>
+      toDayjs(formatReginaDate(base.add(i, 'day'))),
+    );
+    const labels = days.map(d => d.format('ddd'));
+    const dates = days.map(d => d.format('dddd, MMM D, YYYY'));
 
     labels.forEach(label => {
       expect(screen.getByRole('tab', { name: label })).toBeInTheDocument();
