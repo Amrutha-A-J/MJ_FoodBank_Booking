@@ -17,9 +17,13 @@ interface Props {
 
 export default function ClientVisitBreakdownChart({ data }: Props) {
   const theme = useTheme();
+  const chartData =
+    data.length === 1
+      ? [...data, { month: '', clients: 0, adults: 0, children: 0 }]
+      : data;
   return (
     <ResponsiveContainer width="100%" height={300} data-testid="visit-breakdown-chart">
-      <LineChart data={data}>
+      <LineChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
         <YAxis allowDecimals={false} />
