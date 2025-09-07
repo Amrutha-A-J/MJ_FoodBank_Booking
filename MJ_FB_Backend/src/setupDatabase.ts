@@ -474,11 +474,9 @@ CREATE TABLE IF NOT EXISTS email_queue (
     $$ LANGUAGE plpgsql;
   `);
 
-  await client.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS password_setup_tokens_token_hash_idx ON password_setup_tokens (token_hash);`
-  );
+  // Indexes are managed via migrations
 
-  // Remove duplicate slots and enforce uniqueness
+  // Remove duplicate slots; uniqueness enforced via migrations
   await client.query(`
     DELETE FROM slots a
     USING slots b
@@ -486,11 +484,8 @@ CREATE TABLE IF NOT EXISTS email_queue (
       AND a.start_time = b.start_time
       AND a.end_time = b.end_time;
   `);
-  await client.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS slots_unique_start_end ON slots (start_time, end_time);`
-  );
 
-  // Remove duplicate volunteer slots and enforce uniqueness
+  // Remove duplicate volunteer slots; uniqueness enforced via migrations
   await client.query(`
     DELETE FROM volunteer_slots a
     USING volunteer_slots b
@@ -499,11 +494,8 @@ CREATE TABLE IF NOT EXISTS email_queue (
       AND a.start_time = b.start_time
       AND a.end_time = b.end_time;
   `);
-  await client.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_slots_unique_role_time ON volunteer_slots (role_id, start_time, end_time);`
-  );
 
-    // Remove duplicate volunteer bookings and enforce uniqueness
+    // Remove duplicate volunteer bookings; uniqueness enforced via migrations
     await client.query(`
       DELETE FROM volunteer_bookings a
       USING volunteer_bookings b
@@ -514,73 +506,6 @@ CREATE TABLE IF NOT EXISTS email_queue (
         AND a.status <> 'cancelled'
         AND b.status <> 'cancelled';
     `);
-    await client.query(
-      `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_unique_volunteer_slot_date ON volunteer_bookings (volunteer_id, slot_id, date) WHERE status <> 'cancelled';`
-    );
-
-  // Create indexes for faster lookups on bookings and volunteer_bookings
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS bookings_user_id_idx ON bookings (user_id);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS bookings_new_client_id_idx ON bookings (new_client_id);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS bookings_slot_date_status_idx ON bookings (slot_id, date, status);`
-  );
-  await client.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS bookings_reschedule_token_idx ON bookings (reschedule_token);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS volunteer_bookings_volunteer_id_idx ON volunteer_bookings (volunteer_id);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS volunteer_bookings_slot_date_status_idx ON volunteer_bookings (slot_id, date, status);`
-  );
-  await client.query(
-    `CREATE UNIQUE INDEX IF NOT EXISTS volunteer_bookings_reschedule_token_idx ON volunteer_bookings (reschedule_token);`
-  );
-
-  // Create index for new_clients creation date
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS new_clients_created_at_idx ON new_clients (created_at DESC);`
-  );
-
-  // Create indexes for donation and warehouse log tables
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS donations_donor_id_idx ON donations (donor_id);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS donations_date_idx ON donations (date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS client_visits_date_idx ON client_visits (date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS client_visits_client_id_idx ON client_visits (client_id);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS events_start_date_idx ON events (start_date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS surplus_log_date_idx ON surplus_log (date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS pig_pound_log_date_idx ON pig_pound_log (date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS outgoing_donation_log_receiver_date_idx ON outgoing_donation_log (receiver_id, date);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS warehouse_overall_year_idx ON warehouse_overall (year);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS donor_aggregations_year_idx ON donor_aggregations (year);`
-  );
-  await client.query(
-    `CREATE INDEX IF NOT EXISTS email_queue_next_attempt_idx ON email_queue (next_attempt);`
-  );
-
   // Insert master data
   await client.query(`
 INSERT INTO slots (start_time, end_time, max_capacity) VALUES
