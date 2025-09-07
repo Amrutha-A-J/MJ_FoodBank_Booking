@@ -23,7 +23,7 @@ import {
 } from '../api/bookings';
 import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
-import { formatReginaDate } from '../utils/date';
+import { formatReginaDate, toDayjs } from '../utils/date';
 import type { Slot, Booking } from '../types';
 
 const CART_TARE = 27;
@@ -51,7 +51,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
   const [autoWeight, setAutoWeight] = useState(true);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
-  const todayStr = formatReginaDate(new Date());
+  const todayStr = formatReginaDate(toDayjs());
 
   useEffect(() => {
     if (open) {
@@ -75,8 +75,10 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       getSlots(date)
         .then(s => {
           if (date === todayStr) {
-            const now = new Date();
-            s = s.filter(slot => new Date(`${date}T${slot.startTime}`) > now);
+            const now = toDayjs();
+            s = s.filter(slot =>
+              toDayjs(`${date}T${slot.startTime}`).isAfter(now),
+            );
           }
           s = s.filter(
             slot =>
