@@ -487,7 +487,8 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         method: 'CANCEL',
         sequence: 1,
       });
-      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8,${encodeURIComponent(cancelIcs)}`;
+      const cancelBase64 = Buffer.from(cancelIcs, 'utf8').toString('base64');
+      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8;base64,${cancelBase64}`;
       enqueueEmail({
         to: email,
         templateId:

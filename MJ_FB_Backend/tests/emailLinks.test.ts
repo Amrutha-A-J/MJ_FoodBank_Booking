@@ -44,7 +44,8 @@ describe('buildCancelRescheduleLinks', () => {
     expect(outlookCalendarLink).toContain(
       `startdt=${encodeURIComponent('2024-09-11T15:30:00.000Z')}`,
     );
-    expect(decodeURIComponent(appleCalendarLink.split(',')[1])).toContain(
+    const [, base64] = appleCalendarLink.split(',');
+    expect(Buffer.from(base64, 'base64').toString()).toContain(
       'BEGIN:VCALENDAR',
     );
   });
