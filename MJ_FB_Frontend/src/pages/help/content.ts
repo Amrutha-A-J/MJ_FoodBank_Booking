@@ -265,23 +265,26 @@ export function getHelpContent(
     {
       title: 'Manage clients',
       body: {
-        description: 'Search, add, update, and delete client accounts.',
+        description:
+          'Search, add, update, and delete client accounts. Choose Set Password or Send Setup Link for online access.',
         steps: [
           'Go to the Client Management page.',
           'Search by name or client ID.',
           'View, edit, or delete client information.',
+          'Choose Set Password or Send Setup Link when enabling online access.',
         ],
       },
     },
     {
       title: 'Manage volunteers',
       body: {
-        description: 'Search, add, delete, and review volunteers.',
+        description:
+          'Search, add, delete, and review volunteers. Choose Set Password or Send Setup Link for online access.',
         steps: [
           'Go to the Volunteers page.',
           'Search by name.',
           'View, edit, or delete volunteer information.',
-          'Check Online Access to email login details when creating a volunteer.',
+          'Choose Set Password or Send Setup Link when creating a volunteer.',
         ],
       },
     },

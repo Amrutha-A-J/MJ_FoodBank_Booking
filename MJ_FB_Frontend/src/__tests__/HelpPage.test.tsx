@@ -95,5 +95,24 @@ describe('HelpPage', () => {
       screen.getByText(/Fill in hours for each day\./i),
     ).toBeInTheDocument();
   });
+
+  it('mentions password setup choices in management sections', () => {
+    mockUseAuth.mockReturnValue({
+      role: 'staff',
+      access: ['pantry'],
+      token: '',
+      name: '',
+      userRole: '',
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+      id: null,
+    } as any);
+    renderPage();
+    expect(
+      screen.getAllByText(/Set Password or Send Setup Link/i),
+    ).toHaveLength(2);
+  });
 });
 
