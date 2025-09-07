@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import TextField, { type TextFieldProps } from '@mui/material/TextField';
 import { IconButton, InputAdornment } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useTranslation } from 'react-i18next';
 
 export default function PasswordField({ InputProps, ...props }: TextFieldProps) {
