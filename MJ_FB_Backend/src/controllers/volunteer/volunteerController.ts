@@ -6,6 +6,7 @@ import issueAuthTokens, { AuthPayload } from '../../utils/authUtils';
 import config from '../../config';
 import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
+import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function updateTrainedArea(
   req: Request,
@@ -467,14 +468,15 @@ export async function getVolunteerStats(
     const weekSet = new Set(weekStarts);
 
     const startOfWeek = (d: Date) => {
-      const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      const date = new Date(reginaStartOfDayISO(d));
       const day = date.getUTCDay();
       const diff = (day + 6) % 7;
       date.setUTCDate(date.getUTCDate() - diff);
       return date.toISOString().slice(0, 10);
     };
 
-    let current = startOfWeek(new Date());
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    let current = startOfWeek(today);
     let streak = 0;
     while (weekSet.has(current)) {
       streak++;
