@@ -5,6 +5,7 @@ import {
   sendTemplatedEmail,
   buildCancelRescheduleLinks,
   buildCalendarLinks,
+  saveIcsFile,
 } from '../../utils/emailUtils';
 import { buildIcsFile } from '../../utils/calendarLinks';
 import { enqueueEmail } from '../../utils/emailQueue';
@@ -200,10 +201,18 @@ export async function createVolunteerBooking(
           googleCalendarLink,
           outlookCalendarLink,
           appleCalendarLink,
+          icsContent,
         } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
         const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
           slot.start_time,
         )} to ${formatTimeToAmPm(slot.end_time)}`;
+        const attachments = [
+          {
+            name: 'shift.ics',
+            content: Buffer.from(icsContent, 'utf8').toString('base64'),
+            type: 'text/calendar',
+          },
+        ];
         enqueueEmail({
           to: user.email,
           templateId: config.volunteerBookingConfirmationTemplateId,
@@ -216,6 +225,7 @@ export async function createVolunteerBooking(
             appleCalendarLink,
             type: emailType,
           },
+          attachments,
         });
       } else {
         logger.warn(
@@ -569,10 +579,18 @@ export async function resolveVolunteerBookingConflict(
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
+        icsContent,
       } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
       const body = `Date: ${formatReginaDateWithDay(date!)} from ${formatTimeToAmPm(
         slot.start_time,
       )} to ${formatTimeToAmPm(slot.end_time)}`;
+      const attachments = [
+        {
+          name: 'shift.ics',
+          content: Buffer.from(icsContent, 'utf8').toString('base64'),
+          type: 'text/calendar',
+        },
+      ];
       enqueueEmail({
         to: user.email,
         templateId: config.volunteerBookingConfirmationTemplateId,
@@ -585,6 +603,7 @@ export async function resolveVolunteerBookingConflict(
           appleCalendarLink,
           type: emailType,
         },
+        attachments,
       });
     } else {
       logger.warn(
@@ -964,6 +983,7 @@ export async function rescheduleVolunteerBooking(
         googleCalendarLink,
         outlookCalendarLink,
         appleCalendarLink,
+        icsContent,
       } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 1);
       const cancelIcs = buildIcsFile({
         title: 'Volunteer Shift',
@@ -976,7 +996,20 @@ export async function rescheduleVolunteerBooking(
         sequence: 1,
       });
       const cancelBase64 = Buffer.from(cancelIcs, 'utf8').toString('base64');
-      const appleCalendarCancelLink = `data:text/calendar;charset=utf-8;base64,${cancelBase64}`;
+      const cancelFileName = `${uid}-cancel.ics`;
+      const appleCalendarCancelLink = saveIcsFile(cancelFileName, cancelIcs);
+      const attachments = [
+        {
+          name: 'shift.ics',
+          content: Buffer.from(icsContent, 'utf8').toString('base64'),
+          type: 'text/calendar',
+        },
+        {
+          name: 'shift-cancel.ics',
+          content: cancelBase64,
+          type: 'text/calendar',
+        },
+      ];
       enqueueEmail({
         to: email,
         templateId:
@@ -997,6 +1030,7 @@ export async function rescheduleVolunteerBooking(
           appleCalendarCancelLink,
           type: 'Volunteer Shift',
         },
+        attachments,
       });
     } else {
       logger.warn(

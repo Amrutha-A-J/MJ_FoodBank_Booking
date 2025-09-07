@@ -18,6 +18,10 @@ Client and volunteer reschedule notifications share Brevo template ID **10**.
 Brevo templates can reference these `params.*` values to display links and other
 dynamic content. The `body` parameter includes the booking date with the weekday and time range.
 
+Calendar emails also attach an ICS file so recipients can download the event directly.
+If `ICS_BASE_URL` is configured, the `appleCalendarLink` points to the hosted `.ics`
+file; otherwise it falls back to a base64 `data:` URI.
+
 Cancellation, no-show, volunteer notification, and agency client update emails have been discontinued.
 
 ## Volunteer booking confirmation and reminder emails

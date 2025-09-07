@@ -19,7 +19,9 @@ describe('volunteer booking date validation', () => {
           googleCalendarLink: '',
           outlookCalendarLink: '',
           appleCalendarLink: '',
+          icsContent: '',
         }),
+        saveIcsFile: () => '#',
       }));
       jest.doMock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
       jest.doMock('../src/middleware/authMiddleware', () => ({

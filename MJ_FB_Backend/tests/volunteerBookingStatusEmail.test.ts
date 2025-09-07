@@ -12,7 +12,9 @@ jest.mock('../src/utils/emailUtils', () => ({
     googleCalendarLink: '',
     outlookCalendarLink: '',
     appleCalendarLink: '',
+    icsContent: '',
   }),
+  saveIcsFile: () => '#',
 }));
 const sendTemplatedEmailMock = sendTemplatedEmail as jest.Mock;
 jest.mock('../src/middleware/authMiddleware', () => ({

@@ -10,7 +10,9 @@ jest.mock('../src/utils/emailUtils', () => ({
     googleCalendarLink: '',
     outlookCalendarLink: '',
     appleCalendarLink: '',
+    icsContent: '',
   }),
+  saveIcsFile: () => '#',
 }));
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
 jest.mock('../src/middleware/authMiddleware', () => ({

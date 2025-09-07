@@ -14,7 +14,9 @@ jest.doMock('../src/utils/emailUtils', () => ({
     googleCalendarLink: '',
     outlookCalendarLink: '',
     appleCalendarLink: '',
+    icsContent: '',
   }),
+  saveIcsFile: () => '#',
 }));
 jest.doMock('../src/utils/emailQueue', () => ({
   __esModule: true,

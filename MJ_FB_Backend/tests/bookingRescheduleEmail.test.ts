@@ -21,7 +21,9 @@ jest.mock('../src/utils/emailUtils', () => ({
     googleCalendarLink: '#google',
     outlookCalendarLink: '#outlook',
     appleCalendarLink: '#apple',
+    icsContent: '',
   }),
+  saveIcsFile: () => '#',
 }));
 jest.mock('../src/models/bookingRepository');
 jest.mock('../src/utils/bookingUtils');
