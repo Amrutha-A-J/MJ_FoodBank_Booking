@@ -71,6 +71,7 @@ export default function UserHistory({
     onlineAccess: false,
     password: '',
   });
+  const [hasPassword, setHasPassword] = useState(false);
   const { t } = useTranslation();
   const { role } = useAuth();
   const showNotes = role === 'staff' || role === 'agency';
@@ -174,9 +175,10 @@ export default function UserHistory({
         lastName: data.lastName || '',
         email: data.email || '',
         phone: data.phone || '',
-        onlineAccess: Boolean((data as any).onlineAccess),
+        onlineAccess: Boolean(data.onlineAccess),
         password: '',
       });
+      setHasPassword(Boolean(data.hasPassword));
       setEditOpen(true);
     } catch {
       setSeverity('error');
@@ -193,7 +195,7 @@ export default function UserHistory({
         email: form.email || undefined,
         phone: form.phone || undefined,
         onlineAccess: form.onlineAccess,
-        ...(form.onlineAccess ? { password: form.password } : {}),
+        ...(!hasPassword && form.onlineAccess ? { password: form.password } : {}),
       });
       setSelected(s =>
         s ? { ...s, name: `${form.firstName} ${form.lastName}` } : s
@@ -387,17 +389,21 @@ export default function UserHistory({
               <DialogTitle>Edit Client</DialogTitle>
               <DialogContent>
               <Stack spacing={2} mt={1}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.onlineAccess}
-                      onChange={e =>
-                        setForm({ ...form, onlineAccess: e.target.checked })
-                      }
-                    />
-                  }
-                  label="Online Access"
-                />
+                {hasPassword ? (
+                  <Typography>Client already has an account</Typography>
+                ) : (
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={form.onlineAccess}
+                        onChange={e =>
+                          setForm({ ...form, onlineAccess: e.target.checked })
+                        }
+                      />
+                    }
+                    label="Online Access"
+                  />
+                )}
                 <TextField
                   label="First Name"
                   value={form.firstName}
@@ -420,7 +426,7 @@ export default function UserHistory({
                   value={form.phone}
                   onChange={e => setForm({ ...form, phone: e.target.value })}
                 />
-                {form.onlineAccess && (
+                {!hasPassword && form.onlineAccess && (
                   <PasswordField
                     label="Password"
                     value={form.password}
@@ -439,7 +445,7 @@ export default function UserHistory({
                     disabled={
                       !form.firstName ||
                       !form.lastName ||
-                      (form.onlineAccess && !form.password)
+                      (!hasPassword && form.onlineAccess && !form.password)
                     }
                   >
                     Save

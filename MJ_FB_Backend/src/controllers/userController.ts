@@ -233,7 +233,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params;
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone
+      `SELECT client_id, first_name, last_name, email, phone, online_access, password
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -247,6 +247,8 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
       email: row.email,
       phone: row.phone,
       clientId: row.client_id,
+      onlineAccess: row.online_access,
+      hasPassword: row.password != null,
     });
   } catch (error) {
     logger.error('Error fetching user by client ID:', error);
