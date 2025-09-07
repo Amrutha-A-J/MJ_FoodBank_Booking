@@ -84,7 +84,16 @@ describe('volunteers api', () => {
   });
 
   it('creates a volunteer', async () => {
-    await createVolunteer('John', 'Doe', [1, 2], true, 'a@b.com', '123');
+    await createVolunteer(
+      'John',
+      'Doe',
+      [1, 2],
+      true,
+      'a@b.com',
+      '123',
+      'Secret!1',
+      false,
+    );
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/volunteers',
       expect.objectContaining({
@@ -96,6 +105,8 @@ describe('volunteers api', () => {
           onlineAccess: true,
           email: 'a@b.com',
           phone: '123',
+          password: 'Secret!1',
+          sendPasswordLink: false,
         }),
       }),
     );

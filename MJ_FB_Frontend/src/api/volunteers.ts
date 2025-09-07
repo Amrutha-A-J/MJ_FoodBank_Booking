@@ -432,21 +432,26 @@ export async function createVolunteer(
   roleIds: number[],
   onlineAccess: boolean,
   email?: string,
-  phone?: string
+  phone?: string,
+  password?: string,
+  sendPasswordLink?: boolean,
 ): Promise<void> {
+  const body: any = {
+    firstName,
+    lastName,
+    roleIds,
+    onlineAccess,
+    email,
+    phone,
+  };
+  if (password !== undefined) body.password = password;
+  if (sendPasswordLink !== undefined) body.sendPasswordLink = sendPasswordLink;
   const res = await apiFetch(`${API_BASE}/volunteers`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      roleIds,
-      onlineAccess,
-      email,
-      phone,
-    }),
+    body: JSON.stringify(body),
   });
   await handleResponse(res);
 }

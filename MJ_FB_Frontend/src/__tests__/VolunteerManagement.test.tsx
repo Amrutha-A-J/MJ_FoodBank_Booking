@@ -58,7 +58,9 @@ describe('VolunteerManagement create volunteer', () => {
         name: 'Greeter',
         max_volunteers: 1,
         category_name: 'Front',
-        shifts: [],
+        shifts: [
+          { id: 1, start_time: '09:00:00', end_time: '10:00:00' },
+        ],
       },
     ]);
 
@@ -81,8 +83,61 @@ describe('VolunteerManagement create volunteer', () => {
     fireEvent.click(screen.getByLabelText(/online access/i));
     fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
 
-    expect(await screen.findByText(/email required for online access/i)).toBeInTheDocument();
-    expect(createVolunteer).not.toHaveBeenCalled();
+    await waitFor(() => expect(createVolunteer).not.toHaveBeenCalled());
+  });
+
+  it('allows setting password instead of sending setup link', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 1,
+        category_name: 'Front',
+        shifts: [
+          { id: 1, start_time: '09:00:00', end_time: '10:00:00' },
+        ],
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/create']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText('First Name'), {
+      target: { value: 'John' },
+    });
+    fireEvent.change(screen.getByLabelText('Last Name'), {
+      target: { value: 'Doe' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
+    fireEvent.click(await screen.findByLabelText('Greeter'));
+    fireEvent.click(screen.getByLabelText(/online access/i));
+    fireEvent.click(await screen.findByLabelText(/send password setup link/i));
+    fireEvent.change(await screen.findByLabelText(/email/i), {
+      target: { value: 'john@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'Secret!1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+    await waitFor(() =>
+      expect(createVolunteer).toHaveBeenCalledWith(
+        'John',
+        'Doe',
+        [1],
+        true,
+        'john@example.com',
+        undefined,
+        'Secret!1',
+        false,
+      ),
+    );
   });
 });
 
