@@ -157,6 +157,29 @@ describe('Volunteer shopper profile', () => {
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
+  it('returns 409 when shopper profile already exists', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'j@e.com',
+          phone: '123',
+          user_id: 9,
+        },
+      ],
+    });
+
+    const res = await request(app)
+      .post('/volunteers/1/shopper')
+      .send({ clientId: 123 });
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ message: 'Shopper profile already exists' });
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
   it('removes a shopper profile for a volunteer', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_id: 9 }] })
