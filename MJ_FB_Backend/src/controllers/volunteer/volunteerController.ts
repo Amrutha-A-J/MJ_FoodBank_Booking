@@ -163,6 +163,8 @@ export async function createVolunteer(
     phone,
     roleIds,
     onlineAccess,
+    password,
+    sendPasswordLink,
   } = req.body as {
     firstName?: string;
     lastName?: string;
@@ -170,6 +172,8 @@ export async function createVolunteer(
     phone?: string;
     roleIds?: number[];
     onlineAccess?: boolean;
+    password?: string;
+    sendPasswordLink?: boolean;
   };
 
   if (
@@ -211,11 +215,12 @@ export async function createVolunteer(
       return res.status(400).json({ message: 'Invalid roleIds', invalidIds });
     }
 
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     const result = await pool.query(
       `INSERT INTO volunteers (first_name, last_name, email, phone, password)
-       VALUES ($1,$2,$3,$4,NULL)
+       VALUES ($1,$2,$3,$4,$5)
        RETURNING id`,
-      [firstName, lastName, email, phone]
+      [firstName, lastName, email, phone, hashedPassword]
     );
     const volunteerId = result.rows[0].id;
     await pool.query(
@@ -223,7 +228,7 @@ export async function createVolunteer(
        SELECT $1, vr.id, vr.category_id FROM volunteer_roles vr WHERE vr.id = ANY($2::int[])`,
       [volunteerId, roleIds]
     );
-    if (email) {
+    if (sendPasswordLink && email) {
       const token = await generatePasswordSetupToken('volunteers', volunteerId);
       await sendTemplatedEmail({
         to: email,

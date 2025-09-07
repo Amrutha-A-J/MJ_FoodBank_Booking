@@ -33,7 +33,7 @@ describe('Volunteer routes role ID validation', () => {
     jest.clearAllMocks();
   });
 
-  it('creates a volunteer when role IDs are valid', async () => {
+  it('creates a volunteer when role IDs are valid and sends setup link when requested', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
       .mockResolvedValueOnce({ rowCount: 2, rows: [{ id: 1 }, { id: 2 }] }) // validRoles
@@ -48,6 +48,7 @@ describe('Volunteer routes role ID validation', () => {
       phone: '123',
       roleIds: [1, 2],
       onlineAccess: true,
+      sendPasswordLink: true,
     });
 
     expect(res.status).toBe(201);
@@ -57,6 +58,32 @@ describe('Volunteer routes role ID validation', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
     );
+  });
+
+  it('hashes password when provided and skips setup email', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }) // validRoles
+      .mockResolvedValueOnce({ rows: [{ id: 5 }] }) // insert volunteer
+      .mockResolvedValueOnce({}); // insert trained roles
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      phone: '123',
+      roleIds: [1],
+      password: 'Secret1!',
+    });
+
+    expect(res.status).toBe(201);
+    expect(bcrypt.hash).toHaveBeenCalledWith('Secret1!', 10);
+    const insertCall = (pool.query as jest.Mock).mock.calls.find(c =>
+      typeof c[0] === 'string' && c[0].includes('INSERT INTO volunteers'),
+    );
+    expect(insertCall[1][4]).toBe('hashed');
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
   it('updates trained areas when role IDs are valid', async () => {
@@ -95,7 +122,14 @@ describe('Volunteer routes role ID validation', () => {
       onlineAccess: true,
     });
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ message: 'Email required for online account' });
+    expect(res.body).toEqual({
+      errors: [
+        expect.objectContaining({
+          message: 'Email required for online account',
+          path: ['email'],
+        }),
+      ],
+    });
   });
 
   it('rejects duplicate email regardless of case', async () => {
@@ -113,6 +147,8 @@ describe('Volunteer routes role ID validation', () => {
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(
       /LOWER\(email\) = LOWER\(\$1\)/,
     );
+
+  });
 
   it('does not create a token when email is missing', async () => {
     (pool.query as jest.Mock)
