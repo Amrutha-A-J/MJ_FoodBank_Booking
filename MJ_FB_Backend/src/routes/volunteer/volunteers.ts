@@ -12,6 +12,8 @@ import {
   deleteVolunteer,
 } from '../../controllers/volunteer/volunteerController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
+import { validate } from '../../middleware/validate';
+import { createVolunteerSchema } from '../../schemas/volunteer/volunteerSchemas';
 
 const router = express.Router();
 
@@ -27,6 +29,7 @@ router.post(
   '/',
   authMiddleware,
   authorizeRoles('staff'),
+  validate(createVolunteerSchema),
   createVolunteer
 );
 
