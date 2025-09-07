@@ -193,9 +193,9 @@ export default function Navbar({
                       {groups.map((group) =>
                         group.links.length === 1 ? (
                           <ListItemButton
-                            key={group.links[0].to}
+                            key={group.links[0].to!}
                             component={RouterLink}
-                            to={group.links[0].to}
+                            to={group.links[0].to!}
                             selected={location.pathname === group.links[0].to}
                             onClick={() => setMobileOpen(false)}
                             disabled={loading}
@@ -304,10 +304,10 @@ export default function Navbar({
             groups.map((group) =>
               group.links.length === 1 ? (
                 <Button
-                  key={group.links[0].to}
+                  key={group.links[0].to!}
                   color="inherit"
                   component={RouterLink}
-                  to={group.links[0].to}
+                  to={group.links[0].to!}
                   disabled={loading}
                   disableElevation
                   disableRipple
@@ -353,9 +353,9 @@ export default function Navbar({
                   >
                     {group.links.map(({ label, to, badge }) => (
                       <MenuItem
-                        key={to}
+                        key={to!}
                         component={RouterLink}
-                        to={to}
+                        to={to!}
                         selected={location.pathname === to}
                         onClick={closeGroup}
                         disabled={loading}
@@ -406,9 +406,9 @@ export default function Navbar({
                   {role === 'staff' &&
                     profileLinks?.map(({ label, to }) => (
                       <MenuItem
-                        key={to}
+                        key={to!}
                         component={RouterLink}
-                        to={to}
+                        to={to!}
                         onClick={closeProfileMenu}
                         disabled={loading}
                         sx={DROPDOWN_ITEM_SX}
