@@ -273,3 +273,27 @@ bash scripts/prestart_fetch_rds_ca.sh && pm2 restart mjfb-api --update-env
   pm2 logs mjfb-api --lines 100 | egrep 'clean up no-shows|volunteer no-shows'
   ```
 
+## 12) Database Maintenance
+
+- **Set autovacuum thresholds** so vacuum runs before tables bloat:
+  ```bash
+  psql -c "ALTER DATABASE mj_fb_db \
+    SET autovacuum_vacuum_scale_factor = 0.05, \
+        autovacuum_analyze_scale_factor = 0.05, \
+        autovacuum_vacuum_threshold = 50, \
+        autovacuum_analyze_threshold = 50;"
+  ```
+- **Nightly `VACUUM (ANALYZE, VERBOSE)`** during low-traffic hours (example cron at 1 AM Regina):
+  ```cron
+  0 1 * * * PGPASSWORD='<DB_PASSWORD>' psql "host=<DB_HOST> port=5432 dbname=mj_fb_db user=postgres sslmode=verify-full sslrootcert=/home/ubuntu/apps/MJ_FoodBank_Booking/MJ_FB_Backend/certs/rds-ca-central-1-bundle.pem" -c 'VACUUM (ANALYZE, VERBOSE);' >> /var/log/mjfb_vacuum.log 2>&1
+  ```
+- **Quarterly `REINDEX` or `pg_repack`** for heavy tables (run first day of each quarter at 3 AM):
+  ```cron
+  0 3 1 */3 * pg_repack --table bookings --dbname=mj_fb_db --host <DB_HOST> --username postgres --no-superuser-check >> /var/log/mjfb_repack.log 2>&1
+  ```
+- **Monitor table bloat**:
+  ```bash
+  psql -c "SELECT relname, n_live_tup, n_dead_tup FROM pg_stat_user_tables WHERE n_dead_tup > 0 ORDER BY n_dead_tup DESC LIMIT 20;"
+  ```
+  Review results monthly and record actions in ops notes.
+

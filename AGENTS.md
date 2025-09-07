@@ -19,6 +19,7 @@
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
 - Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert `OPS_ALERT_EMAILS` on failure.
 - Stale email queue entries older than `EMAIL_QUEUE_MAX_AGE_DAYS` are purged nightly and the job logs the queue size, warning when it exceeds `EMAIL_QUEUE_WARNING_SIZE`.
+- Maintain database health: set database-level autovacuum thresholds, schedule manual `VACUUM ANALYZE` during low-traffic windows, plan quarterly `REINDEX` or `pg_repack` runs for heavily updated tables, and monitor table bloat metrics. Record these tasks in ops docs.
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Always document new environment variables in the repository README and `.env.example` files.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
