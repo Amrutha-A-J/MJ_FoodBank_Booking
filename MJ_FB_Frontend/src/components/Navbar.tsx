@@ -154,7 +154,15 @@ export default function Navbar({
                   setMobileSubmenu(null);
                 }}
               >
-                <Box sx={{ width: 260, position: 'relative', overflow: 'hidden' }}>
+                <Box
+                  sx={{
+                    width: 260,
+                    position: 'relative',
+                    height: '100%',
+                    overflowX: 'hidden',
+                    overflowY: 'auto',
+                  }}
+                >
                   <Box
                     sx={{
                       display: 'flex',
