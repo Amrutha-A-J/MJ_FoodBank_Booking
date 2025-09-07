@@ -75,12 +75,13 @@ describe('VolunteerRescheduleDialog', () => {
 
     fireEvent.mouseDown(await screen.findByLabelText(/role/i));
 
-    const label = `Pantry ${formatTime('13:00:00')}–${formatTime('16:00:00')}`;
-    expect(screen.getByText(label)).toBeInTheDocument();
-    expect(
-      screen.queryByText(
-        `Pantry ${formatTime('09:00:00')}–${formatTime('12:00:00')}`,
-      ),
-    ).toBeNull();
+    {
+      const label = `Pantry ${formatTime('13:00:00')}–${formatTime('16:00:00')}`;
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    {
+      const label = `Pantry ${formatTime('09:00:00')}–${formatTime('12:00:00')}`;
+      expect(screen.queryByText(label)).toBeNull();
+    }
   });
 });
