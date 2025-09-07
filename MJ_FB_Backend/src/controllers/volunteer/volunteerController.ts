@@ -192,9 +192,10 @@ export async function createVolunteer(
 
   try {
     if (email) {
-      const emailCheck = await pool.query('SELECT id FROM volunteers WHERE email=$1', [
-        email,
-      ]);
+      const emailCheck = await pool.query(
+        'SELECT id FROM volunteers WHERE LOWER(email) = LOWER($1)',
+        [email],
+      );
       if ((emailCheck.rowCount ?? 0) > 0) {
         return res.status(400).json({ message: 'Email already exists' });
       }
@@ -260,7 +261,7 @@ export async function createVolunteerShopperProfile(
     const email = volRes.rows[0].email;
     if (email) {
       const emailCheck = await pool.query(
-        `SELECT client_id FROM clients WHERE email = $1`,
+        `SELECT client_id FROM clients WHERE LOWER(email) = LOWER($1)`,
         [email],
       );
       if (emailCheck.rowCount) {

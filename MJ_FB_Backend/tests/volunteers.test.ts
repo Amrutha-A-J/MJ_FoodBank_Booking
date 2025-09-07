@@ -98,6 +98,23 @@ describe('Volunteer routes role ID validation', () => {
     expect(res.body).toEqual({ message: 'Email required for online account' });
   });
 
+  it('rejects duplicate email regardless of case', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 2 }] });
+    const res = await request(app).post('/volunteers').send({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'John@Example.com',
+      phone: '123',
+      roleIds: [1],
+      onlineAccess: true,
+    });
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: 'Email already exists' });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(
+      /LOWER\(email\) = LOWER\(\$1\)/,
+    );
+  });
+
   it('returns invalid role IDs when updating trained areas', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] }); // validRoles
     const res = await request(app)
@@ -137,11 +154,11 @@ describe('Volunteer shopper profile', () => {
     );
   });
 
-  it('links to existing client when email matches', async () => {
+  it('links to existing client when email matches regardless of case', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ first_name: 'John', last_name: 'Doe', email: 'j@e.com', phone: '123' }],
+        rows: [{ first_name: 'John', last_name: 'Doe', email: 'J@E.com', phone: '123' }],
       }) // volunteer
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ client_id: 5 }] }) // existing client
       .mockResolvedValueOnce({}); // update volunteer
@@ -153,6 +170,9 @@ describe('Volunteer shopper profile', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ userId: 5 });
     expect(pool.query).toHaveBeenCalledTimes(3);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(
+      /LOWER\(email\) = LOWER\(\$1\)/,
+    );
     expect(generatePasswordSetupToken).not.toHaveBeenCalled();
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
