@@ -20,6 +20,7 @@ import {
   Checkbox,
   FormControlLabel,
   TextField,
+  Chip,
 } from '@mui/material';
 import ManageBookingDialog from '../../components/ManageBookingDialog';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
@@ -55,6 +56,7 @@ export default function PantrySchedule({
   const [assignMessage, setAssignMessage] = useState('');
   const [isNewClient, setIsNewClient] = useState(false);
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
+  const [streamError, setStreamError] = useState(false);
 
   const theme = useTheme();
   const neutralCellBg = theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
@@ -117,34 +119,49 @@ export default function PantrySchedule({
 
   useEffect(() => {
     if (typeof EventSource === 'undefined') return;
-    const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, { withCredentials: true });
-    es.onmessage = ev => {
-      try {
-        const data = JSON.parse(ev.data) as {
-          action: 'created' | 'cancelled';
-          name: string;
-          role: string;
-          date: string;
-          time: string;
-        };
-        if (data.date === formatDate(currentDate)) {
-          const actionText = data.action === 'created' ? 'booked' : 'cancelled';
-          setSnackbar({
-            message: `${data.name} (${data.role}) ${actionText} ${formatTime(data.time)}`,
-            severity: 'info',
-            action: (
-              <Button color="inherit" size="small" onClick={() => { loadData(); setSnackbar(null); }}>
-                Refresh
-              </Button>
-            ),
-          });
+    let es: EventSource;
+    let retry: number | undefined;
+
+    const connect = () => {
+      es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, { withCredentials: true });
+      es.onopen = () => setStreamError(false);
+      es.onmessage = ev => {
+        try {
+          const data = JSON.parse(ev.data) as {
+            action: 'created' | 'cancelled';
+            name: string;
+            role: string;
+            date: string;
+            time: string;
+          };
+          if (data.date === formatDate(currentDate)) {
+            const actionText = data.action === 'created' ? 'booked' : 'cancelled';
+            setSnackbar({
+              message: `${data.name} (${data.role}) ${actionText} ${formatTime(data.time)}`,
+              severity: 'info',
+              action: (
+                <Button color="inherit" size="small" onClick={() => { loadData(); setSnackbar(null); }}>
+                  Refresh
+                </Button>
+              ),
+            });
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
-      }
+      };
+      es.onerror = () => {
+        setStreamError(true);
+        es.close();
+        retry = window.setTimeout(connect, 5000);
+      };
     };
+
+    connect();
+
     return () => {
       es.close();
+      if (retry) clearTimeout(retry);
     };
   }, [currentDate, loadData]);
 
@@ -352,6 +369,15 @@ export default function PantrySchedule({
           </Button>
         </div>
       </div>
+      {streamError && (
+        <Chip
+          label="Live updates disconnected"
+          color="warning"
+          size="small"
+          sx={{ mb: 2 }}
+          data-testid="sse-disconnected"
+        />
+      )}
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}

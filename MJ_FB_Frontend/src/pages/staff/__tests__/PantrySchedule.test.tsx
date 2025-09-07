@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
 import { MemoryRouter } from 'react-router-dom';
@@ -167,6 +167,56 @@ describe('PantrySchedule status display', () => {
     expect(await screen.findByText('Done (1)')).toBeInTheDocument();
     expect(await screen.findByText('Flake (2)')).toBeInTheDocument();
     expect(screen.queryByText('Cancel (3)')).toBeNull();
+  });
+});
+
+describe('PantrySchedule live updates connection', () => {
+  class MockEventSource {
+    static instances: MockEventSource[] = [];
+    onmessage: ((ev: MessageEvent) => void) | null = null;
+    onerror: ((ev: Event) => void) | null = null;
+    onopen: ((ev: Event) => void) | null = null;
+    constructor() {
+      MockEventSource.instances.push(this);
+    }
+    close() {}
+  }
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
+    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1, maxCapacity: 1 },
+    ]);
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
+    (global as any).EventSource = MockEventSource;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete (global as any).EventSource;
+    MockEventSource.instances = [];
+  });
+
+  it('warns when live updates disconnect and clears on reconnect', async () => {
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
+
+    const first = MockEventSource.instances[0];
+    first.onerror?.(new Event('error'));
+
+    expect(await screen.findByText('Live updates disconnected')).toBeInTheDocument();
+
+    jest.advanceTimersByTime(5000);
+    const second = MockEventSource.instances[1];
+    second.onopen?.(new Event('open'));
+
+    await waitFor(() => expect(screen.queryByText('Live updates disconnected')).toBeNull());
   });
 });
 
