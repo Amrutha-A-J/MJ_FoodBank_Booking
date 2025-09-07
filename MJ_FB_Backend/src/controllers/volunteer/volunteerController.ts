@@ -267,6 +267,16 @@ export async function createVolunteerShopperProfile(
     if ((clientCheck.rowCount ?? 0) > 0) {
       return res.status(400).json({ message: 'Client ID already exists' });
     }
+    const email = volRes.rows[0].email;
+    if (email) {
+      const emailCheck = await pool.query(
+        `SELECT client_id FROM clients WHERE email = $1`,
+        [email],
+      );
+      if ((emailCheck.rowCount ?? 0) > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
       `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
