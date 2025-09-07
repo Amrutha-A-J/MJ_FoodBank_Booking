@@ -57,6 +57,8 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
 `OPS_ALERT_EMAILS` – Comma-separated list of emails to notify when nightly jobs fail.
+`TELEGRAM_BOT_TOKEN` – Telegram bot token for ops alerts (optional).
+`TELEGRAM_ALERT_CHAT_ID` – Telegram chat ID that receives ops alerts (optional).
 
 Booking confirmation and reminder templates can surface Google and Apple calendar links by
 referencing `{{ params.googleCalendarLink }}` and `{{ params.appleCalendarLink }}` in the Brevo
