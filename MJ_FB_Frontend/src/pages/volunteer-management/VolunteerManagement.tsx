@@ -20,6 +20,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import PasswordField from '../../components/PasswordField';
 import PageCard from '../../components/layout/PageCard';
 import {
   Button,
@@ -144,6 +145,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [onlineAccess, setOnlineAccess] = useState(false);
+  const [sendPasswordLink, setSendPasswordLink] = useState(true);
+  const [password, setPassword] = useState('');
   const [selectedCreateRoles, setSelectedCreateRoles] = useState<string[]>([]);
   const [createMsg, setCreateMsg] = useState('');
   const [createSeverity, setCreateSeverity] = useState<'success' | 'error'>('success');
@@ -530,6 +533,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setCreateMsg('Email required for online access');
       return;
     }
+    if (onlineAccess && !sendPasswordLink && !password) {
+      setCreateSeverity('error');
+      setCreateMsg('Password required');
+      return;
+    }
     try {
       const ids = Array.from(
         new Set(
@@ -542,7 +550,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         ids,
         onlineAccess,
         email || undefined,
-        phone || undefined
+        phone || undefined,
+        !sendPasswordLink ? password || undefined : undefined,
+        sendPasswordLink,
       );
       setCreateSeverity('success');
       setCreateMsg('Volunteer created');
@@ -551,6 +561,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setEmail('');
       setPhone('');
       setOnlineAccess(false);
+      setSendPasswordLink(true);
+      setPassword('');
       setSelectedCreateRoles([]);
     } catch (e) {
       setCreateSeverity('error');
@@ -855,15 +867,43 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               control={
                 <Checkbox
                   checked={onlineAccess}
-                  onChange={e => setOnlineAccess(e.target.checked)}
+                  onChange={e => {
+                    setOnlineAccess(e.target.checked);
+                    if (!e.target.checked) {
+                      setSendPasswordLink(true);
+                      setPassword('');
+                    }
+                  }}
                 />
               }
               label="Online Access"
             />
             {onlineAccess && (
-              <Typography variant="body2" color="text.secondary">
-                An email invitation will be sent.
-              </Typography>
+              <>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={sendPasswordLink}
+                      onChange={e => setSendPasswordLink(e.target.checked)}
+                    />
+                  }
+                  label="Send password setup link"
+                />
+                {sendPasswordLink && (
+                  <Typography variant="body2" color="text.secondary">
+                    An email invitation will be sent.
+                  </Typography>
+                )}
+                {!sendPasswordLink && (
+                  <PasswordField
+                    label="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    size="small"
+                    fullWidth
+                  />
+                )}
+              </>
             )}
             <TextField
               label={onlineAccess ? 'Email' : 'Email (optional)'}
