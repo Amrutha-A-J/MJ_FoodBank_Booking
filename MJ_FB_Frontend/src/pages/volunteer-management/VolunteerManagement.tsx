@@ -11,6 +11,7 @@ import {
   createVolunteerBookingForVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  type VolunteerSearchResult,
 } from '../../api/volunteers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
@@ -81,7 +82,7 @@ interface VolunteerResult {
   trainedAreas: number[];
   hasShopper: boolean;
   hasPassword: boolean;
-  clientId: number | null;
+  clientId?: number;
 }
 
 interface VolunteerManagementProps {
@@ -289,7 +290,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     const id = searchParams.get('id');
     const name = searchParams.get('name');
     if (id && name) {
-      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null });
+      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false, hasPassword: false });
     }
   }, [tab, searchParams, selectedVolunteer]);
 
@@ -342,13 +343,15 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
     try {
-      const res = await searchVolunteers(name);
-      const found = res.find((v: VolunteerResult) => v.id === id);
-      if (found) return found;
+    const res = await searchVolunteers(name);
+    const found = res.find((v: VolunteerSearchResult) => v.id === id);
+    if (found) {
+      return { ...found, clientId: found.clientId ?? undefined };
+    }
     } catch {
       // ignore
     }
-    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false, clientId: null };
+    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false };
   }
 
   async function refreshVolunteer() {
@@ -366,24 +369,27 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     );
   }
 
-  async function selectVolunteer(u: VolunteerResult) {
-    const vol = await loadVolunteer(u.id, u.name);
-    setSelectedVolunteer(vol);
-    setTrainedEdit(
-      Array.from(
-        new Set(
-          (vol.trainedAreas || [])
-            .map(id => idToName.get(id))
-            .filter(Boolean) as string[]
-        )
-      )
-    );
-    try {
-      const data = await getVolunteerBookingHistory(vol.id);
-      setHistory(data);
-    } catch {
-      setHistory([]);
-    }
+  function selectVolunteer(u: VolunteerResult) {
+    loadVolunteer(u.id, u.name)
+      .then(vol => {
+        setSelectedVolunteer(vol);
+        setTrainedEdit(
+          Array.from(
+            new Set(
+              (vol.trainedAreas || [])
+                .map(id => idToName.get(id))
+                .filter(Boolean) as string[]
+            )
+          )
+        );
+        return getVolunteerBookingHistory(vol.id);
+      })
+      .then(data => {
+        setHistory(data);
+      })
+      .catch(() => {
+        setHistory([]);
+      });
   }
 
   function toggleTrained(name: string, checked: boolean) {
@@ -581,8 +587,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     }
     const delay = setTimeout(() => {
       searchVolunteers(assignSearch)
-        .then((data: VolunteerResult[]) => {
-          const sorted = data
+        .then(data => {
+          const formatted = data.map(v => ({
+            ...v,
+            clientId: v.clientId ?? undefined,
+          }));
+          const sorted = formatted
             .sort(
               (a, b) =>
                 Number(b.trainedAreas.includes(assignSlot.role_id)) -
@@ -679,7 +689,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
       {tab === 'search' && (
         <>
-          <EntitySearch
+          <EntitySearch<VolunteerResult>
             type="volunteer"
             placeholder="Search volunteers"
             onSelect={selectVolunteer}

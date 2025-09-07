@@ -6,7 +6,7 @@ import {
   createBookingForUser,
   createBookingForNewClient,
 } from '../../api/bookings';
-import { searchUsers } from '../../api/users';
+import { searchUsers, type UserSearchResult } from '../../api/users';
 import type { Slot, Holiday, Booking } from '../../types';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { formatTime } from '../../utils/time';
@@ -25,12 +25,6 @@ import ManageBookingDialog from '../../components/ManageBookingDialog';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
 import Page from '../../components/Page';
 
-interface User {
-  client_id: number;
-  name: string;
-  email: string;
-}
-
 const reginaTimeZone = 'America/Regina';
 
 export default function PantrySchedule({
@@ -38,7 +32,7 @@ export default function PantrySchedule({
   searchUsersFn,
 }: {
   clientIds?: number[];
-  searchUsersFn?: (search: string) => Promise<User[]>;
+  searchUsersFn?: (search: string) => Promise<UserSearchResult[]>;
 }) {
   const [currentDate, setCurrentDate] = useState(() => {
     const todayStr = formatDate();
@@ -49,7 +43,7 @@ export default function PantrySchedule({
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [userResults, setUserResults] = useState<User[]>([]);
+  const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
   const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor; action?: ReactNode } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState('');
@@ -161,7 +155,7 @@ export default function PantrySchedule({
     if (assignSlot && !isNewClient && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
-          .then((data: User[]) => setUserResults(data.slice(0, 5)))
+          .then(data => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);
       return () => clearTimeout(delay);
@@ -179,7 +173,7 @@ export default function PantrySchedule({
   }
 
 
-  async function assignExistingUser(user: User) {
+  async function assignExistingUser(user: UserSearchResult) {
     if (!assignSlot) return;
     try {
       setAssignMessage('');
