@@ -195,4 +195,54 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/NULL AS client_note/);
   });
+
+  it('fetchBookingHistory casts booking and visit dates to YYYY-MM-DD strings', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 1,
+            status: 'approved',
+            date: '2024-01-01',
+            slot_id: 1,
+            reason: null,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            created_at: '2024-01-01T00:00:00Z',
+            is_staff_booking: false,
+            reschedule_token: null,
+            client_note: null,
+            staff_note: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 2,
+            status: 'visited',
+            date: '2024-01-02',
+            slot_id: null,
+            reason: null,
+            start_time: null,
+            end_time: null,
+            created_at: '2024-01-02',
+            is_staff_booking: false,
+            reschedule_token: null,
+            staff_note: 'visit note',
+          },
+        ],
+      });
+
+    const rows = await fetchBookingHistory([1], false, undefined, true);
+    const firstSql = (mockPool.query as jest.Mock).mock.calls[0][0];
+    const secondSql = (mockPool.query as jest.Mock).mock.calls[1][0];
+    expect(firstSql).toMatch(/to_char\(b.date, 'YYYY-MM-DD'\) AS date/);
+    expect(secondSql).toMatch(/to_char\(v.date, 'YYYY-MM-DD'\) AS date/);
+    expect(secondSql).toMatch(/to_char\(v.date, 'YYYY-MM-DD'\) AS created_at/);
+    expect(rows.map(r => r.date).sort()).toEqual(['2024-01-01', '2024-01-02']);
+    rows.forEach(r => {
+      expect(r.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+  });
 });
