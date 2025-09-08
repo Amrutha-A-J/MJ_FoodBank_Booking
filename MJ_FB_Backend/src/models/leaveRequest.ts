@@ -45,6 +45,7 @@ export async function selectLeaveRequests(): Promise<LeaveRequest[]> {
     `SELECT lr.*, s.first_name || ' ' || s.last_name AS requester_name
      FROM leave_requests lr
      JOIN staff s ON s.id = lr.staff_id
+     WHERE lr.status = 'pending'
      ORDER BY lr.start_date`,
   );
   return res.rows;

@@ -536,8 +536,8 @@ export function getHelpContent(
         description: 'Review staff vacation requests.',
         steps: [
           'Navigate to Admin > Leave Requests.',
-          'Review pending requests.',
-          'Approve or reject requests as needed.',
+          'Each card lists the start and end dates, leave type, and day count.',
+          'Approve or reject requests to clear them from the list.',
         ],
       },
     },
