@@ -447,6 +447,8 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
+Set `VITE_ENABLE_SERVICE_WORKER=true` in `MJ_FB_Frontend/.env` to register the service worker outside production for local PWA testing. It defaults to disabled.
+
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to

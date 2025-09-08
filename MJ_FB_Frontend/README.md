@@ -45,7 +45,7 @@ The build will fail if this variable is missing.
 
 ## Progressive Web App
 
-The app registers a service worker when running in a secure context. Use HTTPS when serving the built site.
+The app registers a service worker when running in a secure context. Use HTTPS when serving the built site. Set `VITE_ENABLE_SERVICE_WORKER=true` to register the worker outside production for local PWA testing.
 
 - `npm run preview` serves the production build over HTTPS.
 - The Docker image uses Nginx configured for HTTPS. Provide `tls.crt` and `tls.key` under `/etc/nginx/certs`.

@@ -1,8 +1,12 @@
 export function registerServiceWorker() {
-  const mode = (import.meta as any).env?.MODE ?? process.env.NODE_ENV;
-  if (mode !== 'production') {
+  const env = (import.meta as any).env ?? process.env;
+  const mode = env?.MODE ?? env?.NODE_ENV;
+  const enable = env?.VITE_ENABLE_SERVICE_WORKER === 'true';
+
+  if (mode !== 'production' && !enable) {
     return;
   }
+
   if ('serviceWorker' in navigator && window.isSecureContext) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
