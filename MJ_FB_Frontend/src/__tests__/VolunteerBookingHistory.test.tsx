@@ -12,6 +12,23 @@ jest.mock('../api/volunteers', () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
 }));
 
+const originalMatchMedia = window.matchMedia;
+function setScreen(matches: boolean) {
+  window.matchMedia = () => ({
+    matches,
+    media: '',
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  });
+}
+afterEach(() => {
+  window.matchMedia = originalMatchMedia;
+});
+
 describe('VolunteerBookingHistory', () => {
   beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
@@ -58,6 +75,27 @@ describe('VolunteerBookingHistory', () => {
         is_wednesday_slot: false,
       },
     ]);
+  });
+
+  it('renders table on large screens', async () => {
+    setScreen(false);
+    render(
+      <MemoryRouter>
+        <VolunteerBookingHistory />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+  });
+
+  it('renders cards on small screens', async () => {
+    setScreen(true);
+    render(
+      <MemoryRouter>
+        <VolunteerBookingHistory />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(await screen.findByText(/cancel/i)).toBeInTheDocument();
   });
 
   it('shows only available slots in reschedule dialog', async () => {
