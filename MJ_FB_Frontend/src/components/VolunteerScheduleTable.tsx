@@ -30,9 +30,10 @@ interface Props {
 
 export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
-  const slotWidth = `calc((100% - 160px) / ${safeMaxSlots})`;
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
+  const timeColumnWidth = isSmall ? 100 : 160;
+  const slotWidth = `calc((100% - ${timeColumnWidth}px) / ${safeMaxSlots})`;
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
         <Table
@@ -54,7 +55,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
           }}
         >
         <colgroup>
-          <col style={{ width: 160 }} />
+          <col style={{ width: timeColumnWidth }} />
           {Array.from({ length: safeMaxSlots }).map((_, i) => (
             <col key={i} style={{ width: slotWidth }} />
           ))}
