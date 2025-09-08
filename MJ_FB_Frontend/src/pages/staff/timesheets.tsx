@@ -2,10 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Table,
-  TableHead,
   TableRow,
   TableCell,
-  TableBody,
   TableFooter,
   TextField,
   Tooltip,
@@ -25,6 +23,7 @@ import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import type { ApiError } from '../../api/client';
 import {
   useTimesheets,
@@ -53,6 +52,11 @@ interface Day {
   note: string;
   expected: number;
   lockedLeave: boolean;
+}
+
+interface DayRow extends Day {
+  index: number;
+  paid: number;
 }
 
 export default function Timesheets() {
@@ -182,102 +186,124 @@ export default function Timesheets() {
     );
     const shortfall = totals.expected - totals.paid;
     const otBankRemaining = 40 - totals.ot;
+    const rows: DayRow[] = days.map((d, index) => ({
+      ...d,
+      index,
+      paid: d.reg + d.ot + d.stat + d.sick + d.vac,
+    }));
+
+    const columns = [
+      {
+        field: 'date',
+        header: t('timesheets.date'),
+        render: (row: DayRow) => (
+          <>
+            {formatLocaleDate(row.date)}
+            {row.lockedLeave && (
+              <Tooltip title={t('timesheets.lock_leave_tooltip')}>
+                <LockIcon sx={{ ml: 1, fontSize: 16 }} />
+              </Tooltip>
+            )}
+          </>
+        ),
+      },
+      {
+        field: 'reg',
+        header: t('timesheets.reg'),
+        render: (row: DayRow) => (
+          <TextField
+            type="number"
+            value={row.reg}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            error={row.paid > 8}
+            onChange={e => handleChange(row.index, 'reg', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'ot',
+        header: t('timesheets.ot'),
+        render: (row: DayRow) => (
+          <TextField
+            type="number"
+            value={row.ot}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            error={row.paid > 8}
+            onChange={e => handleChange(row.index, 'ot', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'stat',
+        header: t('timesheets.stat'),
+        render: (row: DayRow) => (
+          <TextField
+            type="number"
+            value={row.stat}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            error={row.paid > 8}
+            onChange={e => handleChange(row.index, 'stat', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'sick',
+        header: t('timesheets.sick'),
+        render: (row: DayRow) => (
+          <TextField
+            type="number"
+            value={row.sick}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            error={row.paid > 8}
+            onChange={e => handleChange(row.index, 'sick', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'vac',
+        header: t('timesheets.vac'),
+        render: (row: DayRow) => (
+          <TextField
+            type="number"
+            value={row.vac}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            error={row.paid > 8}
+            onChange={e => handleChange(row.index, 'vac', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'note',
+        header: t('timesheets.note'),
+        render: (row: DayRow) => (
+          <TextField
+            value={row.note}
+            size="small"
+            disabled={inputsDisabled || row.lockedLeave}
+            onChange={e => handleChange(row.index, 'note', e.target.value)}
+          />
+        ),
+      },
+      {
+        field: 'paid',
+        header: t('timesheets.paid_total'),
+        render: (row: DayRow) => (
+          <Typography sx={{ color: row.paid > 8 ? 'error.main' : undefined }}>
+            {row.paid}
+          </Typography>
+        ),
+      },
+    ];
 
     return (
       <Box>
+        <ResponsiveTable columns={columns} rows={rows} getRowKey={r => r.date} />
         <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('timesheets.date')}</TableCell>
-              <TableCell>{t('timesheets.reg')}</TableCell>
-              <TableCell>{t('timesheets.ot')}</TableCell>
-              <TableCell>{t('timesheets.stat')}</TableCell>
-              <TableCell>{t('timesheets.sick')}</TableCell>
-              <TableCell>{t('timesheets.vac')}</TableCell>
-              <TableCell>{t('timesheets.note')}</TableCell>
-              <TableCell>{t('timesheets.paid_total')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {days.map((d, i) => {
-              const paid = d.reg + d.ot + d.stat + d.sick + d.vac;
-              const over = paid > 8;
-              const disabled = inputsDisabled || d.lockedLeave;
-              return (
-                <TableRow key={d.date}>
-                  <TableCell>
-                    {formatLocaleDate(d.date)}
-                    {d.lockedLeave && (
-                      <Tooltip title={t('timesheets.lock_leave_tooltip')}>
-                        <LockIcon sx={{ ml: 1, fontSize: 16 }} />
-                      </Tooltip>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={d.reg}
-                      size="small"
-                      disabled={disabled}
-                      error={over}
-                      onChange={e => handleChange(i, 'reg', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={d.ot}
-                      size="small"
-                      disabled={disabled}
-                      error={over}
-                      onChange={e => handleChange(i, 'ot', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={d.stat}
-                      size="small"
-                      disabled={disabled}
-                      error={over}
-                      onChange={e => handleChange(i, 'stat', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={d.sick}
-                      size="small"
-                      disabled={disabled}
-                      error={over}
-                      onChange={e => handleChange(i, 'sick', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={d.vac}
-                      size="small"
-                      disabled={disabled}
-                      error={over}
-                      onChange={e => handleChange(i, 'vac', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={d.note}
-                      size="small"
-                      disabled={disabled}
-                      onChange={e => handleChange(i, 'note', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ color: over ? 'error.main' : undefined }}>
-                    {paid}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
           <TableFooter>
             <TableRow>
               <TableCell>{t('timesheets.summary.totals')}</TableCell>
