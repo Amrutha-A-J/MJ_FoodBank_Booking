@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import type { ReactNode, Ref } from 'react';
 
-export interface Column<T> {
+export interface Column<T extends object> {
   /** Unique field identifier */
   field: keyof T & string;
   /** Header label */
@@ -23,7 +23,7 @@ export interface Column<T> {
   render?: (row: T) => ReactNode;
 }
 
-interface Props<T> {
+interface Props<T extends object> {
   columns: Column<T>[];
   rows: T[];
   /** Returns a unique key for each row */
@@ -32,7 +32,12 @@ interface Props<T> {
   tableRef?: Ref<HTMLTableElement>;
 }
 
-export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef }: Props<T>) {
+export default function ResponsiveTable<T extends object>({
+  columns,
+  rows,
+  getRowKey,
+  tableRef,
+}: Props<T>) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -54,7 +59,9 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef 
                     {col.header}
                   </Typography>
                   <Box sx={{ flex: 1 }}>
-                    {col.render ? col.render(row) : String(row[col.field])}
+                    {col.render
+                      ? col.render(row)
+                      : ((row?.[col.field] ?? '') as ReactNode)}
                   </Box>
                 </Stack>
               ))}
@@ -79,7 +86,9 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef 
           <TableRow key={rowKey(row, rowIndex)}>
             {columns.map((col) => (
               <TableCell key={col.field}>
-                {col.render ? col.render(row) : (row as any)[col.field]}
+                {col.render
+                  ? col.render(row)
+                  : ((row?.[col.field] ?? '') as ReactNode)}
               </TableCell>
             ))}
           </TableRow>

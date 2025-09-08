@@ -23,7 +23,7 @@ import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDia
 import DialogCloseButton from '../../components/DialogCloseButton';
 import PasswordField from '../../components/PasswordField';
 import PageCard from '../../components/layout/PageCard';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import {
   Button,
   TextField,
@@ -113,7 +113,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
-  const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
+  const [history, setHistory] = useState<HistoryRow[]>([]);
 
   interface HistoryRow extends VolunteerBookingDetail {
     time?: string;
@@ -171,7 +171,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [cancelRecurringBooking, setCancelRecurringBooking] =
     useState<VolunteerBookingDetail | null>(null);
 
-  const historyColumns = useMemo(
+  const historyColumns: Column<HistoryRow>[] = useMemo(
     () => [
       { field: 'role_name', header: t('role') },
       { field: 'date', header: t('date') },
@@ -180,15 +180,15 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         header: t('time'),
         render: (row: HistoryRow) => (
           <>
-            {formatTime(row.start_time || '')} -
-            {formatTime(row.end_time || '')}
+            {formatTime(row.start_time ?? '')} -
+            {formatTime(row.end_time ?? '')}
           </>
         ),
       },
       {
         field: 'status',
         header: t('status'),
-        render: (row: HistoryRow) => t(row.status),
+        render: (row: HistoryRow) => t(row.status ?? ''),
       },
       {
         field: 'actions',

@@ -23,7 +23,7 @@ import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import type { ApiError } from '../../api/client';
 import {
   useTimesheets,
@@ -192,7 +192,7 @@ export default function Timesheets() {
       paid: d.reg + d.ot + d.stat + d.sick + d.vac,
     }));
 
-    const columns = [
+    const columns: Column<DayRow>[] = [
       {
         field: 'date',
         header: t('timesheets.date'),

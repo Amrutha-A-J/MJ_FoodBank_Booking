@@ -18,7 +18,7 @@ import Page from '../../components/Page';
 import PageCard from '../../components/layout/PageCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import {
   getVolunteerBookingsForReview,
   updateVolunteerBookingStatus,
@@ -27,8 +27,14 @@ import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
 import dayjs from '../../utils/date';
 
+interface BookingRow extends VolunteerBookingDetail {
+  select?: unknown;
+  actions?: unknown;
+  time?: string;
+}
+
 export default function PendingReviews() {
-  const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [dialog, setDialog] = useState<VolunteerBookingDetail | null>(null);
   const [message, setMessage] = useState('');
@@ -54,7 +60,7 @@ export default function PendingReviews() {
   }, [dayIdx]);
 
   const bookingsByDate = useMemo(() => {
-    const map: Record<string, VolunteerBookingDetail[]> = {};
+    const map: Record<string, BookingRow[]> = {};
     for (const b of bookings) {
       (map[b.date] ||= []).push(b);
     }
@@ -64,7 +70,7 @@ export default function PendingReviews() {
   const currentDate = days[dayIdx];
   const dateStr = currentDate.format('YYYY-MM-DD');
   const isToday = dayIdx === today.day();
-  const displayed = (bookingsByDate[dateStr] ?? []).filter(b =>
+  const displayed: BookingRow[] = (bookingsByDate[dateStr] ?? []).filter(b =>
     isToday ? (statusFilter === 'all' || b.status === statusFilter) : b.status === 'no_show',
   );
 
@@ -99,11 +105,11 @@ export default function PendingReviews() {
     }
   }
 
-  const columns = [
+  const columns: Column<BookingRow>[] = [
     {
       field: 'select',
       header: '',
-      render: (b: VolunteerBookingDetail) => (
+      render: (b: BookingRow) => (
         <Checkbox
           checked={selected.includes(b.id)}
           onChange={() => toggle(b.id)}
@@ -116,9 +122,9 @@ export default function PendingReviews() {
     {
       field: 'time',
       header: 'Time',
-      render: (b: VolunteerBookingDetail) => (
+      render: (b: BookingRow) => (
         <>
-          {formatTime(b.start_time)} - {formatTime(b.end_time)}
+          {formatTime(b.start_time ?? '')} - {formatTime(b.end_time ?? '')}
         </>
       ),
     },
@@ -126,7 +132,7 @@ export default function PendingReviews() {
     {
       field: 'actions',
       header: 'Actions',
-      render: (b: VolunteerBookingDetail) => (
+      render: (b: BookingRow) => (
         <Button onClick={() => setDialog(b)}>Review</Button>
       ),
     },
@@ -185,8 +191,8 @@ export default function PendingReviews() {
           </Stack>
           {displayed.length > 0 ? (
             <ResponsiveTable
-              columns={columns as any}
-              rows={displayed as any}
+              columns={columns}
+              rows={displayed}
               getRowKey={b => b.id}
             />
           ) : (

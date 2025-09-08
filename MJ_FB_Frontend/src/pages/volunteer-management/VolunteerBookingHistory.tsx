@@ -11,7 +11,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -109,20 +109,20 @@ export default function VolunteerBookingHistory() {
     }
   }
 
-  const columns = [
+  const columns: Column<VolunteerBooking>[] = [
     { field: 'role_name', header: t('role') },
     { field: 'date', header: t('date') },
     {
       field: 'time' as keyof VolunteerBooking & string,
       header: t('time'),
-      render: h => `${formatTime(h.start_time)} - ${formatTime(h.end_time)}`,
+      render: h => `${formatTime(h.start_time ?? '')} - ${formatTime(h.end_time ?? '')}`,
     },
-    { field: 'status', header: t('status'), render: h => t(h.status) },
+    { field: 'status', header: t('status'), render: h => t(h.status ?? '') },
     {
       field: 'actions' as keyof VolunteerBooking & string,
       header: t('actions'),
       render: h =>
-        h.status.toLowerCase() === 'approved'
+        h.status?.toLowerCase() === 'approved'
           ? isSmall ? (
               <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
                 <Button size="small" onClick={() => setCancelBooking(h)} fullWidth>
