@@ -61,15 +61,15 @@ p {
 
 @media (max-width: 600px) {
   h1 {
-    font-size: 2.2em;
+    font-size: 2.4em;
   }
 
   h2 {
-    font-size: 1.8em;
+    font-size: 2em;
   }
 
   p {
-    font-size: 0.9em;
+    font-size: 1em;
   }
 
   main {
