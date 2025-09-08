@@ -39,7 +39,12 @@ export default function AdminLeaveRequests() {
         return (
           <Card key={r.id} sx={{ mb: 2 }}>
             <CardContent
-              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: 2,
+              }}
             >
               <Box sx={{ flexGrow: 1 }}>
                 <Typography fontWeight="bold">{r.requester_name}</Typography>
@@ -50,10 +55,18 @@ export default function AdminLeaveRequests() {
                   days) • {r.type ? t(`leave.type.${r.type}`) : ''}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  width: { xs: '100%', sm: 'auto' },
+                }}
+              >
                 <Button
                   variant="contained"
                   size="small"
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() =>
                     approve.mutate(
                       { requestId: r.id },
@@ -67,6 +80,7 @@ export default function AdminLeaveRequests() {
                   variant="contained"
                   color="error"
                   size="small"
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() =>
                     reject.mutate(
                       { requestId: r.id },
