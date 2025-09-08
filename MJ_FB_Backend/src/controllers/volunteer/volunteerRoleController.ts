@@ -143,11 +143,16 @@ export async function listVolunteerRoles(
 ) {
   try {
     const includeInactive = req.query.includeInactive === 'true';
-    const whereClause = includeInactive ? '' : 'WHERE vs.is_active';
+    const whereClause = includeInactive
+      ? ''
+      : 'WHERE vs.is_active OR vs.slot_id IS NULL';
     const result = await pool.query(
-        `SELECT vr.id, vr.category_id, vr.name,
-                MAX(vs.max_volunteers) AS max_volunteers,
-                vmr.name AS category_name,
+      `SELECT vr.id,
+              vr.category_id,
+              vr.name,
+              COALESCE(MAX(vs.max_volunteers), 0) AS max_volunteers,
+              vmr.name AS category_name,
+              COALESCE(
                 json_agg(
                   json_build_object(
                     'id', vs.slot_id,
@@ -157,13 +162,15 @@ export async function listVolunteerRoles(
                     'is_active', vs.is_active
                   )
                   ORDER BY vs.slot_id
-                ) AS shifts
+                ) FILTER (WHERE vs.slot_id IS NOT NULL),
+                '[]'
+              ) AS shifts
        FROM volunteer_roles vr
-       JOIN volunteer_slots vs ON vs.role_id = vr.id
+       LEFT JOIN volunteer_slots vs ON vs.role_id = vr.id
        JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
        ${whereClause}
        GROUP BY vr.id, vr.category_id, vr.name, vmr.name
-       ORDER BY vr.id`
+       ORDER BY vr.id`,
     );
     res.json(
       result.rows.map(row => ({
