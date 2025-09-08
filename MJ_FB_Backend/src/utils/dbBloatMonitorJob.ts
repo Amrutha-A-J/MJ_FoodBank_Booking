@@ -16,7 +16,7 @@ export async function checkDbBloat(): Promise<void> {
         .join(', ');
       const subject = 'Database tables require vacuum';
       const body = `Tables exceeding dead row threshold ${config.vacuumAlertDeadRowsThreshold}: ${details}`;
-      await notifyOps(subject, body);
+      await notifyOps(`${subject}\n${body}`);
     }
   } catch (err) {
     logger.error('Failed to check database bloat', err);
