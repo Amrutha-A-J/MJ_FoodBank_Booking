@@ -218,6 +218,8 @@ export default function Timesheets() {
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'reg', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 80 } }}
           />
         ),
       },
@@ -232,6 +234,8 @@ export default function Timesheets() {
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'ot', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 80 } }}
           />
         ),
       },
@@ -246,6 +250,8 @@ export default function Timesheets() {
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'stat', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 80 } }}
           />
         ),
       },
@@ -260,6 +266,8 @@ export default function Timesheets() {
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'sick', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 80 } }}
           />
         ),
       },
@@ -274,6 +282,8 @@ export default function Timesheets() {
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'vac', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 80 } }}
           />
         ),
       },
@@ -286,6 +296,8 @@ export default function Timesheets() {
             size="small"
             disabled={inputsDisabled || row.lockedLeave}
             onChange={e => handleChange(row.index, 'note', e.target.value)}
+            fullWidth
+            sx={{ width: { xs: '100%', sm: 200 } }}
           />
         ),
       },

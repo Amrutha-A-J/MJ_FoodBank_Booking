@@ -11,7 +11,8 @@ Staff see up to seven pay period tabs: the current period, the next period (if
 generated), and up to five previous periods.
 
 On small screens, daily entries render as stacked cards instead of a table,
-making the timesheet easier to read on mobile devices.
+making the timesheet easier to read on mobile devices. Input fields now use
+uniform widths so entries align cleanly.
 
 Hours entered on the page are stored locally until you submit the period. No
 API requests are made while editing, preventing the page from refreshing after
