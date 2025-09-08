@@ -12,6 +12,7 @@ import {
   generatePasswordSetupToken,
   verifyPasswordSetupToken,
   markPasswordTokenUsed,
+  buildPasswordSetupEmailParams,
 } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 
@@ -65,13 +66,11 @@ export async function requestPasswordReset(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-      const params: Record<string, unknown> = {
-        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+      const params = buildPasswordSetupEmailParams(
+        user.table,
         token,
-      };
-      if (user.table === 'clients') {
-        params.clientId = user.id;
-      }
+        user.table === 'clients' ? user.id : undefined,
+      );
       await sendTemplatedEmail({
         to: user.email,
         templateId: config.passwordSetupTemplateId,
@@ -142,13 +141,11 @@ export async function resendPasswordSetup(
 
     if (user) {
       const token = await generatePasswordSetupToken(user.table, user.id);
-      const params: Record<string, unknown> = {
-        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+      const params = buildPasswordSetupEmailParams(
+        user.table,
         token,
-      };
-      if (user.table === 'clients') {
-        params.clientId = user.id;
-      }
+        user.table === 'clients' ? user.id : undefined,
+      );
       await sendTemplatedEmail({
         to: user.email,
         templateId: config.passwordSetupTemplateId,

@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import logger from '../../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../../utils/authUtils';
 import config from '../../config';
-import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
+import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
@@ -231,13 +231,11 @@ export async function createVolunteer(
     );
     if (sendPasswordLink && email) {
       const token = await generatePasswordSetupToken('volunteers', volunteerId);
+      const params = buildPasswordSetupEmailParams('volunteers', token);
       await sendTemplatedEmail({
         to: email,
         templateId: config.passwordSetupTemplateId,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-          token,
-        },
+        params,
       });
     }
     res.status(201).json({ id: volunteerId });
@@ -312,11 +310,7 @@ export async function createVolunteerShopperProfile(
     ]);
     const token = await generatePasswordSetupToken('clients', clientId);
     if (volRes.rows[0].email) {
-      const params: Record<string, unknown> = {
-        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-        token,
-        clientId,
-      };
+      const params = buildPasswordSetupEmailParams('clients', token, clientId);
       await sendTemplatedEmail({
         to: volRes.rows[0].email,
         templateId: config.passwordSetupTemplateId,

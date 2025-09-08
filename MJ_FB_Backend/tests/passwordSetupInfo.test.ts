@@ -4,7 +4,15 @@ import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import { verifyPasswordSetupToken } from '../src/utils/passwordSetupUtils';
 
-jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/passwordSetupUtils', () => {
+  const actual = jest.requireActual('../src/utils/passwordSetupUtils');
+  return {
+    ...actual,
+    generatePasswordSetupToken: jest.fn(),
+    verifyPasswordSetupToken: jest.fn(),
+    markPasswordTokenUsed: jest.fn(),
+  };
+});
 
 const app = express();
 app.use(express.json());

@@ -30,6 +30,7 @@
 - Users complete initial password creation at `/set-password` using a token from the setup email.
 - A language selector is available on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages; avoid adding page-specific selectors elsewhere.
 - After setting a password, users are redirected to the login page for their role.
+- The password setup page shows a role-specific login reminder and a button linking to the correct login screen.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
 - Staff can assign clients to agencies from the Harvest Pantry → Agency Management page via the **Add Client to Agency** tab, which includes agency search, client listing, and removal confirmations. Initially, the page shows only agency search; selecting an agency reveals a two-column layout with client search on the left and the agency's client list on the right.
 - Agencies can book appointments for their associated clients from the Agency → Book Appointment page. Client results are fetched from the server as you type to avoid long lists.

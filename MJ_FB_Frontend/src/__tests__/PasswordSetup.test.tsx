@@ -115,4 +115,20 @@ describe('PasswordSetup', () => {
     expect(await screen.findByText(/email/i)).toBeInTheDocument();
     expect(screen.getByText('staff@example.com')).toBeInTheDocument();
   });
+
+  it('shows role-specific login message and button', async () => {
+    (getPasswordSetupInfo as jest.Mock).mockResolvedValue({ userType: 'volunteer' });
+    render(
+      <MemoryRouter initialEntries={["/set-password?token=tok"]}>
+        <Routes>
+          <Route path="/set-password" element={<PasswordSetup />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(
+      await screen.findByText(/use the volunteer login/i),
+    ).toBeInTheDocument();
+    const btn = screen.getByRole('button', { name: /back to login/i });
+    expect(btn).toHaveAttribute('href', '/login/volunteer');
+  });
 });

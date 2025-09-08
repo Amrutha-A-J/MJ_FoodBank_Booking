@@ -34,6 +34,7 @@
 - Text input fields default to `size="medium"` to improve tap targets on small screens.
 - Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
+- Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page displays a role-specific login reminder and button.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
@@ -42,7 +43,7 @@ See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/
 
 | Template reference | Purpose | Params |
 | ------------------- | ------- | ------ |
-| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId` |
+| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId`, `role`, `loginLink` |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
