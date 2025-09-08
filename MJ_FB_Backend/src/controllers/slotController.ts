@@ -183,7 +183,7 @@ export async function listSlotsRange(
   res: Response,
   next: NextFunction,
 ) {
-  const days = Number(req.query.days) || 7;
+  const days = Number(req.query.days) || 90;
   const start = (req.query.start as string) || formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
