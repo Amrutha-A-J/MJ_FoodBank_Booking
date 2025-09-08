@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import BookingUI from '../BookingUI';
-import { getMyAgencyClients } from '../../api/agencies';
+import { searchAgencyClients } from '../../api/agencies';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
 
@@ -25,10 +25,18 @@ export default function AgencyBookAppointment() {
   const [selected, setSelected] = useState<AgencyClient | null>(null);
   const [snackbar, setSnackbar] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingClients, setLoadingClients] = useState(false);
 
   useEffect(() => {
-    getMyAgencyClients()
+    if (!search) {
+      setClients([]);
+      return;
+    }
+    setLoadingClients(true);
+    let active = true;
+    searchAgencyClients(search)
       .then(data => {
+        if (!active) return;
         const mapped = Array.isArray(data)
           ? data.map((c: any) => ({
               id: c.id ?? c.client_id,
@@ -41,18 +49,14 @@ export default function AgencyBookAppointment() {
           : [];
         setClients(mapped);
       })
-      .catch(() => setSnackbar('Failed to load clients'));
-  }, []);
-
-  const filtered = search
-    ? clients.filter(c => {
-        const term = search.toLowerCase();
-        return (
-          c.name.toLowerCase().includes(term) ||
-          (c.email ? c.email.toLowerCase().includes(term) : false)
-        );
-      })
-    : [];
+      .catch(() => active && setSnackbar('Failed to load clients'))
+      .finally(() => {
+        if (active) setLoadingClients(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [search]);
 
   return (
     <Page title="Book Appointment">
@@ -64,20 +68,32 @@ export default function AgencyBookAppointment() {
         sx={{ mb: 2 }}
       />
       {search && (
-        <List>
-          {filtered.map(u => (
-            <ListItemButton
-              key={u.id}
-              onClick={() => {
-                setSelected(u);
-                setLoading(true);
-                setSearch('');
-              }}
-            >
-              <ListItemText primary={u.name} secondary={u.email} />
-            </ListItemButton>
-          ))}
-        </List>
+        <>
+          {loadingClients && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+              <CircularProgress size={20} />
+            </Box>
+          )}
+          {!loadingClients && clients.length > 0 && (
+            <List>
+              {clients.map(u => (
+                <ListItemButton
+                  key={u.id}
+                  onClick={() => {
+                    setSelected(u);
+                    setLoading(true);
+                    setSearch('');
+                  }}
+                >
+                  <ListItemText primary={u.name} secondary={u.email} />
+                </ListItemButton>
+              ))}
+            </List>
+          )}
+          {!loadingClients && clients.length === 0 && (
+            <Typography>No clients found</Typography>
+          )}
+        </>
       )}
       {selected && (
         <>

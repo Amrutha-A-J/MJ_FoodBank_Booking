@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import AgencyBookAppointment from '../pages/agency/AgencyBookAppointment';
 
 jest.mock('../api/agencies', () => ({
-  getMyAgencyClients: jest.fn(),
+  searchAgencyClients: jest.fn(),
 }));
 
 const mockBookingUI = jest.fn();
@@ -15,8 +15,8 @@ describe('AgencyBookAppointment', () => {
   });
 
   it('shows loading indicator while BookingUI loads', async () => {
-    const { getMyAgencyClients } = require('../api/agencies');
-    (getMyAgencyClients as jest.Mock).mockResolvedValue([
+    const { searchAgencyClients } = require('../api/agencies');
+    (searchAgencyClients as jest.Mock).mockResolvedValue([
       { id: 1, name: 'Alice', email: 'a@example.com' },
     ]);
     mockBookingUI.mockImplementation(({ shopperName, userId }: any) => (
@@ -35,8 +35,8 @@ describe('AgencyBookAppointment', () => {
   });
 
   it('renders BookingUI when a client is selected', async () => {
-    const { getMyAgencyClients } = require('../api/agencies');
-    (getMyAgencyClients as jest.Mock).mockResolvedValue([
+    const { searchAgencyClients } = require('../api/agencies');
+    (searchAgencyClients as jest.Mock).mockResolvedValue([
       { id: 1, name: 'Alice', email: 'a@example.com' },
     ]);
     mockBookingUI.mockImplementation(({ shopperName, userId, onLoadingChange }: any) => {

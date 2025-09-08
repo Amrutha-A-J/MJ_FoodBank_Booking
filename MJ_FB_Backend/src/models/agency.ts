@@ -36,14 +36,29 @@ export interface AgencyClientSummary {
 
 export async function getAgencyClients(
   agencyId: number,
+  search?: string,
+  limit = 25,
+  offset = 0,
 ): Promise<AgencyClientSummary[]> {
-  const res = await pool.query(
+  const params: any[] = [agencyId];
+  let query =
     `SELECT ac.client_id, c.first_name, c.last_name, c.email
      FROM agency_clients ac
      INNER JOIN clients c USING (client_id)
-     WHERE ac.agency_id = $1`,
-    [agencyId],
-  );
+     WHERE ac.agency_id = $1`;
+
+  if (search) {
+    params.push(`${search}%`);
+    query +=
+      ' AND (c.first_name ILIKE $2 OR c.last_name ILIKE $2 OR c.email ILIKE $2)';
+  }
+
+  const limitIndex = params.length + 1;
+  const offsetIndex = params.length + 2;
+  params.push(limit, offset);
+  query += ` ORDER BY c.first_name, c.last_name LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
+
+  const res = await pool.query(query, params);
   return res.rows as AgencyClientSummary[];
 }
 

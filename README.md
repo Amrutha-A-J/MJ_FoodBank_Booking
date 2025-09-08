@@ -484,7 +484,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).
 - Pantry and volunteer schedule pages present a mobile-friendly card layout on extra-small screens.
 - Wednesdays include an additional 6:30–7:00 PM pantry slot.
-- Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients load once and appear only after entering a search term, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
+- Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients are searched server-side and appear as you type, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
 - Agencies can view slot availability and cancel or reschedule bookings for their clients using the standard booking APIs.
 - Agency navigation offers Dashboard, Book Appointment, Booking History, Clients, and Schedule pages, all behind an `AgencyGuard`.
 - Agency profile page shows the agency's name, email, and contact info with editable fields and sends password reset links via email.
