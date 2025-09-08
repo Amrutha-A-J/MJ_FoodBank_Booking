@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Button, Link } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { setPassword as setPasswordApi } from '../../api/users';
+import {
+  setPassword as setPasswordApi,
+  getPasswordSetupInfo,
+  type PasswordSetupInfo,
+} from '../../api/users';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 import { useTranslation } from 'react-i18next';
 
@@ -15,8 +19,16 @@ export default function PasswordSetup() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resendOpen, setResendOpen] = useState(false);
+  const [info, setInfo] = useState<PasswordSetupInfo | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!token) return;
+    getPasswordSetupInfo(token)
+      .then(data => setInfo(data))
+      .catch(() => undefined);
+  }, [token]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,6 +68,16 @@ export default function PasswordSetup() {
           fullWidth
           required
         />
+        {info?.clientId && (
+          <p>
+            {t('client_id')}: {info.clientId}
+          </p>
+        )}
+        {info?.email && (
+          <p>
+            {t('email')}: {info.email}
+          </p>
+        )}
         <Link component={RouterLink} to="/login" underline="hover">
           {t('back_to_login')}
         </Link>

@@ -162,6 +162,84 @@ export async function resendPasswordSetup(
   }
 }
 
+export async function getPasswordSetupInfo(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const token = req.query.token as string | undefined;
+  if (!token) {
+    return res.status(400).json({ message: 'Missing token' });
+  }
+  try {
+    const row = await verifyPasswordSetupToken(token);
+    if (!row) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+    let info: { userType: string; clientId?: number; email?: string };
+    switch (row.user_type) {
+      case 'clients': {
+        const result = await pool.query(
+          'SELECT client_id FROM clients WHERE client_id=$1',
+          [row.user_id],
+        );
+        if ((result.rowCount ?? 0) === 0) {
+          return res
+            .status(400)
+            .json({ message: 'Invalid or expired token' });
+        }
+        info = { userType: 'client', clientId: result.rows[0].client_id };
+        break;
+      }
+      case 'staff': {
+        const result = await pool.query('SELECT email FROM staff WHERE id=$1', [
+          row.user_id,
+        ]);
+        if ((result.rowCount ?? 0) === 0) {
+          return res
+            .status(400)
+            .json({ message: 'Invalid or expired token' });
+        }
+        info = { userType: 'staff', email: result.rows[0].email };
+        break;
+      }
+      case 'volunteers': {
+        const result = await pool.query(
+          'SELECT email FROM volunteers WHERE id=$1',
+          [row.user_id],
+        );
+        if ((result.rowCount ?? 0) === 0) {
+          return res
+            .status(400)
+            .json({ message: 'Invalid or expired token' });
+        }
+        info = { userType: 'volunteer', email: result.rows[0].email };
+        break;
+      }
+      case 'agencies': {
+        const result = await pool.query(
+          'SELECT email FROM agencies WHERE id=$1',
+          [row.user_id],
+        );
+        if ((result.rowCount ?? 0) === 0) {
+          return res
+            .status(400)
+            .json({ message: 'Invalid or expired token' });
+        }
+        info = { userType: 'agency', email: result.rows[0].email };
+        break;
+      }
+      default:
+        return res
+          .status(400)
+          .json({ message: 'Invalid or expired token' });
+    }
+    res.json(info);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function setPassword(
   req: Request,
   res: Response,

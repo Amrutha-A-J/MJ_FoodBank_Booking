@@ -103,6 +103,21 @@ export async function setPassword(
   return data.loginPath;
 }
 
+export interface PasswordSetupInfo {
+  userType: string;
+  clientId?: number;
+  email?: string;
+}
+
+export async function getPasswordSetupInfo(
+  token: string,
+): Promise<PasswordSetupInfo> {
+  const res = await apiFetch(
+    `${API_BASE}/auth/password-setup-info?token=${encodeURIComponent(token)}`,
+  );
+  return handleResponse(res);
+}
+
 export async function getUserProfile(): Promise<UserProfile> {
   const res = await apiFetch(`${API_BASE}/users/me`);
   return handleResponse(res);
