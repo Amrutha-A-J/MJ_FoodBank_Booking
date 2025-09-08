@@ -457,6 +457,7 @@ and cached on the server:
 
 The volunteer no-show cleanup job waits `VOLUNTEER_NO_SHOW_HOURS` (default `24`) hours after a shift before marking it as `no_show`.
 A nightly retention job purges bookings older than two years and aggregates volunteer statistics.
+A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` exceeds `VACUUM_ALERT_DEAD_ROWS_THRESHOLD` (default `5000`).
 
 ### Frontend features
 
