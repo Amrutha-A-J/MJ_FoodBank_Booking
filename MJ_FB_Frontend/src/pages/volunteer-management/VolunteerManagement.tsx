@@ -740,11 +740,28 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           </FormControl>
           {selectedRole && roleInfos.length > 0 ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">Previous</Button>
-                <h3>{formatDate(currentDate)}</h3>
-                <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
-              </div>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mt: 2,
+                }}
+              >
+                <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
+                  Previous
+                </Button>
+                <Typography
+                  variant="h5"
+                  component="h3"
+                  sx={{ fontWeight: theme.typography.fontWeightBold }}
+                >
+                  {formatDate(currentDate)}
+                </Typography>
+                <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
+                  Next
+                </Button>
+              </Box>
               <VolunteerScheduleTable
                 maxSlots={maxSlots}
                 rows={rows}

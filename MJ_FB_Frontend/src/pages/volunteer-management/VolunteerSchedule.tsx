@@ -401,7 +401,11 @@ export default function VolunteerSchedule() {
                 Previous
               </Button>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h6" component="h3">
+                <Typography
+                  variant="h5"
+                  component="h3"
+                  sx={{ fontWeight: theme.typography.fontWeightBold }}
+                >
                   {dateStr} - {dayName}
                   {isHoliday
                     ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`

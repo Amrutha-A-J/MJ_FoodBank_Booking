@@ -396,7 +396,11 @@ export default function PantrySchedule({
         >
           Previous
         </Button>
-        <Typography component="h3">
+        <Typography
+          component="h3"
+          variant="h5"
+          sx={{ fontWeight: theme.typography.fontWeightBold }}
+        >
           {dateStr} - {dayName}
           {isHoliday
             ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
