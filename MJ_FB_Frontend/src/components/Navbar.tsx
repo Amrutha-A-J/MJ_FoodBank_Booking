@@ -107,6 +107,7 @@ export default function Navbar({
 
   const MOBILE_DROPDOWN_ITEM_SX = {
     ...DROPDOWN_ITEM_SX,
+    fontSize: 16,
     minHeight: 56,
   } as const;
 
@@ -167,7 +168,7 @@ export default function Navbar({
                 aria-label="open navigation menu"
                 onClick={() => setMobileOpen(true)}
               >
-                <MenuIcon />
+                <MenuIcon fontSize="large" />
               </IconButton>
               <Drawer
                 anchor="left"
