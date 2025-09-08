@@ -7,11 +7,6 @@ import {
   DialogActions,
   DialogContentText,
   TextField,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   TableContainer,
   Stack,
   Autocomplete,
@@ -27,6 +22,7 @@ import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
@@ -68,6 +64,53 @@ export default function DonationLog() {
     weight: '',
   });
   const [donorName, setDonorName] = useState('');
+
+  type DonationRow = Donation & { actions?: string };
+
+  const columns: Column<DonationRow>[] = [
+    {
+      field: 'date',
+      header: 'Date',
+      render: d => formatLocaleDate(d.date),
+    },
+    { field: 'donor', header: 'Donor' },
+    {
+      field: 'weight',
+      header: 'Weight (lbs)',
+      render: d => `${d.weight} lbs`,
+    },
+    {
+      field: 'actions' as keyof DonationRow & string,
+      header: 'Actions',
+      render: d => (
+        <>
+          <IconButton
+            size="small"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setEditing(d);
+              setForm({ date: d.date, donorId: d.donorId, weight: String(d.weight) });
+              setRecordOpen(true);
+            }}
+            aria-label="Edit donation"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setToDelete(d);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete donation"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
 
   useEffect(() => {
     getDonors()
@@ -120,48 +163,11 @@ export default function DonationLog() {
 
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Donor</TableCell>
-            <TableCell>Weight (lbs)</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {donations.map(d => (
-            <TableRow key={d.id}>
-              <TableCell>{d.donor}</TableCell>
-              <TableCell>{d.weight} lbs</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={e => {
-                    (e.currentTarget as HTMLButtonElement).blur();
-                    setEditing(d);
-                    setForm({ date: d.date, donorId: d.donorId, weight: String(d.weight) });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit donation"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={e => {
-                    (e.currentTarget as HTMLButtonElement).blur();
-                    setToDelete(d);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete donation"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ResponsiveTable
+        columns={columns}
+        rows={donations}
+        getRowKey={r => r.id}
+      />
     </TableContainer>
   );
 

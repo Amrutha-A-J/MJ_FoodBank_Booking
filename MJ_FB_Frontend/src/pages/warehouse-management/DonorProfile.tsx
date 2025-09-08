@@ -5,11 +5,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
 } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
@@ -20,6 +15,7 @@ import {
 } from '../../api/donors';
 import { formatLocaleDate } from '../../utils/date';
 import Page from '../../components/Page';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 export default function DonorProfile() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +33,15 @@ export default function DonorProfile() {
       .then(setDonations)
       .catch(err => setError(err.message || 'Failed to load donations'));
   }, [id]);
+
+  const columns: Column<DonorDonation>[] = [
+    {
+      field: 'date',
+      header: 'Date',
+      render: d => formatLocaleDate(d.date),
+    },
+    { field: 'weight', header: 'Weight (lbs)' },
+  ];
 
   return (
     <Page title="Donor Profile">
@@ -59,31 +64,13 @@ export default function DonorProfile() {
           <Typography variant="subtitle1" gutterBottom>
             Donations
           </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Weight (lbs)</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {donations.map(d => (
-                <TableRow key={d.id}>
-                  <TableCell>{formatLocaleDate(d.date)}</TableCell>
-                  <TableCell>{d.weight}</TableCell>
-                </TableRow>
-              ))}
-              {donations.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={2}>
-                    <Typography variant="body2" color="text.secondary">
-                      No donations found.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {donations.length ? (
+            <ResponsiveTable columns={columns} rows={donations} getRowKey={d => d.id} />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No donations found.
+            </Typography>
+          )}
         </CardContent>
       </Card>
       <FeedbackSnackbar

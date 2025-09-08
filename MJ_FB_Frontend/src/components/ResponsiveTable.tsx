@@ -1,7 +1,19 @@
-import { Card, CardContent, Stack, Table, TableBody, TableCell, TableHead, TableRow, Typography, useMediaQuery, useTheme } from '@mui/material';
-import type { ReactNode } from 'react';
+import {
+  Card,
+  CardContent,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import type { ReactNode, Ref } from 'react';
 
-interface Column<T> {
+export interface Column<T> {
   /** Unique field identifier */
   field: keyof T & string;
   /** Header label */
@@ -15,9 +27,11 @@ interface Props<T> {
   rows: T[];
   /** Returns a unique key for each row */
   getRowKey?: (row: T, index: number) => React.Key;
+  /** Optional ref to the underlying table element */
+  tableRef?: Ref<HTMLTableElement>;
 }
 
-export default function ResponsiveTable<T>({ columns, rows, getRowKey }: Props<T>) {
+export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef }: Props<T>) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -46,7 +60,7 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey }: Props<T
   }
 
   return (
-    <Table size="small" data-testid="responsive-table-table">
+    <Table size="small" data-testid="responsive-table-table" ref={tableRef}>
       <TableHead>
         <TableRow>
           {columns.map((col) => (

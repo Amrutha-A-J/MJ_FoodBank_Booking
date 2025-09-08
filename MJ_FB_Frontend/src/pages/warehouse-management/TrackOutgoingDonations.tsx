@@ -7,11 +7,6 @@ import {
   DialogActions,
   DialogContentText,
   TextField,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   TableContainer,
   Stack,
   Autocomplete,
@@ -28,6 +23,7 @@ import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, d
 import type { OutgoingReceiver } from '../../api/outgoingReceivers';
 import type { OutgoingDonation } from '../../api/outgoingDonations';
 import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -73,6 +69,58 @@ export default function TrackOutgoingDonations() {
     note: '',
   });
   const [receiverName, setReceiverName] = useState('');
+
+  type OutgoingDonationRow = OutgoingDonation & { actions?: string };
+
+  const columns: Column<OutgoingDonationRow>[] = [
+    {
+      field: 'date',
+      header: 'Date',
+      render: d =>
+        formatLocaleDate(d.date, {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+    },
+    { field: 'receiver', header: 'Receiver' },
+    {
+      field: 'weight',
+      header: 'Weight (lbs)',
+      render: d => `${d.weight} lbs`,
+    },
+    { field: 'note', header: 'Note', render: d => d.note || '' },
+    {
+      field: 'actions' as keyof OutgoingDonationRow & string,
+      header: 'Actions',
+      render: d => (
+        <>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setEditing(d);
+              setForm({ date: normalize(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
+              setRecordOpen(true);
+            }}
+            aria-label="Edit outgoing donation"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setToDelete(d);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete outgoing donation"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
 
   useEffect(() => {
     getOutgoingReceivers()
@@ -130,57 +178,11 @@ export default function TrackOutgoingDonations() {
 
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Receiver</TableCell>
-            <TableCell>Weight (lbs)</TableCell>
-            <TableCell>Note</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {donations.map(d => (
-            <TableRow key={d.id}>
-              <TableCell>
-                {formatLocaleDate(d.date, {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </TableCell>
-              <TableCell>{d.receiver}</TableCell>
-              <TableCell>{d.weight} lbs</TableCell>
-              <TableCell>{d.note}</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(d);
-                    setForm({ date: normalize(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit outgoing donation"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(d);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete outgoing donation"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ResponsiveTable
+        columns={columns}
+        rows={donations}
+        getRowKey={r => r.id}
+      />
     </TableContainer>
   );
 
