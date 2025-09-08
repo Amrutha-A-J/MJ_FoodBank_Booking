@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Button,
   Dialog,
   DialogTitle,
@@ -30,6 +25,7 @@ import {
 import type { AlertColor } from "@mui/material";
 import type { ApiError } from "../../../api/client";
 import PasswordField from "../../../components/PasswordField";
+import ResponsiveTable from "../../../components/ResponsiveTable";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
@@ -146,28 +142,27 @@ export default function UpdateClientData() {
 
   return (
     <Page title="Update Client Data">
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Client ID</TableCell>
-            <TableCell>Profile Link</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {clients.map((client) => (
-            <TableRow key={client.clientId}>
-              <TableCell>{client.clientId}</TableCell>
-              <TableCell>
-                <Link
-                  href={client.profileLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {client.profileLink}
-                </Link>
-              </TableCell>
-              <TableCell align="right">
+      <ResponsiveTable
+        columns={[
+          { field: 'clientId', header: 'Client ID' },
+          {
+            field: 'profileLink',
+            header: 'Profile Link',
+            render: client => (
+              <Link
+                href={client.profileLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {client.profileLink}
+              </Link>
+            ),
+          },
+          {
+            field: 'actions' as keyof IncompleteUser & string,
+            header: 'Actions',
+            render: client => (
+              <Stack direction="row" justifyContent="flex-end">
                 <Button
                   size="small"
                   variant="outlined"
@@ -175,11 +170,13 @@ export default function UpdateClientData() {
                 >
                   Edit
                 </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </Stack>
+            ),
+          },
+        ]}
+        rows={clients}
+        getRowKey={c => c.clientId}
+      />
 
       <Dialog open={!!selected} onClose={() => setSelected(null)}>
         <DialogCloseButton onClose={() => setSelected(null)} />

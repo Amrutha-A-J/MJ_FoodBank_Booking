@@ -39,4 +39,19 @@ describe('ResponsiveTable', () => {
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Age')).toBeInTheDocument();
   });
+
+  it('handles row clicks', () => {
+    useMediaQueryMock.mockReturnValue(false);
+    const handleClick = jest.fn();
+    render(
+      <ResponsiveTable
+        columns={columns}
+        rows={rows}
+        getRowKey={(r) => r.id}
+        onRowClick={handleClick}
+      />,
+    );
+    screen.getByText('Alice').closest('tr')?.click();
+    expect(handleClick).toHaveBeenCalledWith(rows[0]);
+  });
 });

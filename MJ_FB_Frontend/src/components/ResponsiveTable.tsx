@@ -15,9 +15,11 @@ interface Props<T> {
   rows: T[];
   /** Returns a unique key for each row */
   getRowKey?: (row: T, index: number) => React.Key;
+  /** Called when a row/card is clicked */
+  onRowClick?: (row: T) => void;
 }
 
-export default function ResponsiveTable<T>({ columns, rows, getRowKey }: Props<T>) {
+export default function ResponsiveTable<T>({ columns, rows, getRowKey, onRowClick }: Props<T>) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -28,7 +30,12 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey }: Props<T
     return (
       <>
         {rows.map((row, rowIndex) => (
-          <Card key={rowKey(row, rowIndex)} sx={{ mb: 2 }} data-testid="responsive-table-card">
+          <Card
+            key={rowKey(row, rowIndex)}
+            sx={{ mb: 2, cursor: onRowClick ? 'pointer' : undefined }}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            data-testid="responsive-table-card"
+          >
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {columns.map((col) => (
                 <Stack key={col.field} direction="row" spacing={1}>
@@ -56,7 +63,12 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey }: Props<T
       </TableHead>
       <TableBody>
         {rows.map((row, rowIndex) => (
-          <TableRow key={rowKey(row, rowIndex)}>
+          <TableRow
+            key={rowKey(row, rowIndex)}
+            hover={!!onRowClick}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            sx={onRowClick ? { cursor: 'pointer' } : undefined}
+          >
             {columns.map((col) => (
               <TableCell key={col.field}>
                 {col.render ? col.render(row) : (row as any)[col.field]}

@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  IconButton,
-} from '@mui/material';
+import { IconButton, Stack } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Page from '../../../components/Page';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
+import ResponsiveTable from '../../../components/ResponsiveTable';
 import {
   getNewClients,
   deleteNewClient,
@@ -51,32 +45,31 @@ export default function NewClients() {
 
   return (
     <Page title="New Clients">
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Phone</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {clients.map(c => (
-            <TableRow key={c.id}>
-              <TableCell>{c.name}</TableCell>
-              <TableCell>{c.email}</TableCell>
-              <TableCell>{c.phone}</TableCell>
-              <TableCell>{c.created_at}</TableCell>
-              <TableCell align="right">
-                <IconButton aria-label="delete" onClick={() => handleDelete(c.id)} size="small">
+      <ResponsiveTable
+        columns={[
+          { field: 'name', header: 'Name' },
+          { field: 'email', header: 'Email' },
+          { field: 'phone', header: 'Phone' },
+          { field: 'created_at', header: 'Created' },
+          {
+            field: 'actions' as keyof NewClient & string,
+            header: 'Actions',
+            render: c => (
+              <Stack direction="row" justifyContent="flex-end">
+                <IconButton
+                  aria-label="delete"
+                  onClick={() => handleDelete(c.id)}
+                  size="small"
+                >
                   <DeleteIcon />
                 </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </Stack>
+            ),
+          },
+        ]}
+        rows={clients}
+        getRowKey={c => c.id}
+      />
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}

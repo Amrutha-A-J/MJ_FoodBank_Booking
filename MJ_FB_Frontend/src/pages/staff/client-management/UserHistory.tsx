@@ -25,15 +25,6 @@ import {
   Checkbox,
   Stack,
   Tooltip,
-  Card,
-  CardContent,
-  CardActions,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
   Typography,
   useMediaQuery,
   useTheme,
@@ -48,6 +39,7 @@ import { useTranslation } from 'react-i18next';
 import { toDate, formatDate } from '../../../utils/date';
 import Page from '../../../components/Page';
 import type { Booking } from '../../../types';
+import ResponsiveTable from '../../../components/ResponsiveTable';
 
 interface User {
   name: string;
@@ -136,13 +128,73 @@ export default function UserHistory({
 
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const cellSx = {
-    border: 1,
-    borderColor: 'divider',
-    p: isSmall ? 0.5 : 1,
-    fontSize: isSmall ? '0.85rem' : undefined,
-    textAlign: 'left',
-  } as const;
+
+  const columns = [
+    {
+      field: 'date',
+      header: t('date'),
+      render: (b: Booking) =>
+        b.date && !isNaN(toDate(b.date).getTime())
+          ? formatDate(b.date, 'MMM D, YYYY')
+          : 'N/A',
+    },
+    {
+      field: 'time',
+      header: t('time'),
+      render: (b: Booking) => {
+        const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
+        const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
+        return startTime !== 'N/A' && endTime !== 'N/A'
+          ? `${startTime} - ${endTime}`
+          : 'N/A';
+      },
+    },
+    { field: 'status', header: t('status'), render: (b: Booking) => t(b.status) },
+    { field: 'reason', header: t('reason'), render: (b: Booking) => b.reason || '' },
+  ] as any;
+
+  if (showNotes) {
+    columns.push({
+      field: 'staff_note' as keyof Booking & string,
+      header: t('staff_note_label'),
+      render: (b: Booking) =>
+        b.staff_note ? <Typography variant="body2">{b.staff_note}</Typography> : '',
+    });
+  }
+
+  columns.push({
+    field: 'actions' as keyof Booking & string,
+    header: t('actions'),
+    render: (b: Booking) => (
+      <>
+        {['approved'].includes(b.status.toLowerCase()) && (
+          <Stack
+            direction={isSmall ? 'column' : 'row'}
+            spacing={1}
+            alignItems={isSmall ? 'stretch' : 'center'}
+          >
+            <Button onClick={() => setCancelId(b.id)} variant="outlined" color="primary">
+              {t('cancel')}
+            </Button>
+            <Button onClick={() => setRescheduleBooking(b)} variant="outlined" color="primary">
+              {t('reschedule')}
+            </Button>
+          </Stack>
+        )}
+        {role === 'staff' && b.status === 'visited' && !b.slot_id && (
+          <Button
+            onClick={() => setDeleteVisitId(b.id)}
+            variant="outlined"
+            color="error"
+            size="small"
+            sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
+          >
+            Delete visit
+          </Button>
+        )}
+      </>
+    ),
+  });
 
   async function confirmCancel() {
     if (cancelId == null) return;
@@ -283,170 +335,14 @@ export default function UserHistory({
                 label={t('visits_with_notes_only')}
               />
             )}
-            {isSmall ? (
-              paginated.length === 0 ? (
-                <Typography align="center">{t('no_bookings')}</Typography>
-              ) : (
-                <Stack spacing={2}>
-                  {paginated.map(b => {
-                    const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-                    const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-                    const formattedDate =
-                      b.date && !isNaN(toDate(b.date).getTime())
-                        ? formatDate(b.date, 'MMM D, YYYY')
-                        : 'N/A';
-                    return (
-                      <Card key={`${b.id}-${b.date}`}>
-                        <CardContent>
-                          <Typography variant="subtitle2">
-                            {t('date')}: {formattedDate}
-                          </Typography>
-                          <Typography variant="body2">
-                            {t('time')}: {startTime !== 'N/A' && endTime !== 'N/A'
-                              ? `${startTime} - ${endTime}`
-                              : 'N/A'}
-                          </Typography>
-                          <Typography variant="body2">
-                            {t('status')}: {t(b.status)}
-                          </Typography>
-                          {b.reason && (
-                            <Typography variant="body2">
-                              {t('reason')}: {b.reason}
-                            </Typography>
-                          )}
-                          {showNotes && b.staff_note && (
-                            <Typography variant="body2">
-                              {t('staff_note_label')}: {b.staff_note}
-                            </Typography>
-                          )}
-                        </CardContent>
-                        <CardActions>
-                          <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
-                            {['approved'].includes(b.status.toLowerCase()) && (
-                              <>
-                                <Button
-                                  onClick={() => setCancelId(b.id)}
-                                  variant="outlined"
-                                  color="primary"
-                                  fullWidth
-                                >
-                                  {t('cancel')}
-                                </Button>
-                                <Button
-                                  onClick={() => setRescheduleBooking(b)}
-                                  variant="outlined"
-                                  color="primary"
-                                  fullWidth
-                                >
-                                  {t('reschedule')}
-                                </Button>
-                              </>
-                            )}
-                            {role === 'staff' && b.status === 'visited' && !b.slot_id && (
-                              <Button
-                                onClick={() => setDeleteVisitId(b.id)}
-                                variant="outlined"
-                                color="error"
-                                fullWidth
-                              >
-                                Delete visit
-                              </Button>
-                            )}
-                          </Stack>
-                        </CardActions>
-                      </Card>
-                    );
-                  })}
-                </Stack>
-              )
+            {paginated.length === 0 ? (
+              <Typography align="center">{t('no_bookings')}</Typography>
             ) : (
-              <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={cellSx}>{t('date')}</TableCell>
-                      <TableCell sx={cellSx}>{t('time')}</TableCell>
-                      <TableCell sx={cellSx}>{t('status')}</TableCell>
-                      <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                      {showNotes && (
-                        <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
-                      )}
-                      <TableCell sx={cellSx}>{t('actions')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginated.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={showNotes ? 6 : 5} sx={{ textAlign: 'center' }}>
-                          {t('no_bookings')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    {paginated.map(b => {
-                      const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-                      const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-                      const formattedDate =
-                        b.date && !isNaN(toDate(b.date).getTime())
-                          ? formatDate(b.date, 'MMM D, YYYY')
-                          : 'N/A';
-                      return (
-                        <TableRow key={`${b.id}-${b.date}`}>
-                          <TableCell sx={cellSx}>{formattedDate}</TableCell>
-                          <TableCell sx={cellSx}>
-                            {startTime !== 'N/A' && endTime !== 'N/A'
-                              ? `${startTime} - ${endTime}`
-                              : 'N/A'}
-                          </TableCell>
-                          <TableCell sx={cellSx}>{t(b.status)}</TableCell>
-                          <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                          {showNotes && (
-                            <TableCell sx={cellSx}>
-                              {b.staff_note && (
-                                <Typography variant="body2">{b.staff_note}</Typography>
-                              )}
-                            </TableCell>
-                          )}
-                          <TableCell sx={cellSx}>
-                            {['approved'].includes(b.status.toLowerCase()) && (
-                              <Stack
-                                direction={isSmall ? 'column' : 'row'}
-                                spacing={1}
-                                alignItems={isSmall ? 'stretch' : 'center'}
-                              >
-                                <Button
-                                  onClick={() => setCancelId(b.id)}
-                                  variant="outlined"
-                                  color="primary"
-                                >
-                                  {t('cancel')}
-                                </Button>
-                                <Button
-                                  onClick={() => setRescheduleBooking(b)}
-                                  variant="outlined"
-                                  color="primary"
-                                >
-                                  {t('reschedule')}
-                                </Button>
-                              </Stack>
-                            )}
-                            {role === 'staff' && b.status === 'visited' && !b.slot_id && (
-                              <Button
-                                onClick={() => setDeleteVisitId(b.id)}
-                                variant="outlined"
-                                color="error"
-                                size="small"
-                                sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
-                              >
-                                Delete visit
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <ResponsiveTable
+                columns={columns}
+                rows={paginated}
+                getRowKey={b => `${b.id}-${b.date}`}
+              />
             )}
             {totalPages > 1 && (
               <Box
