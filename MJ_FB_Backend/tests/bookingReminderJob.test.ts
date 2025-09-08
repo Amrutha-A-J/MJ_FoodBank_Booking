@@ -10,6 +10,7 @@ jest.doMock('../src/models/bookingRepository', () => ({
 jest.doMock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
 }));
+jest.mock('../src/utils/opsAlert');
 
 jest.doMock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
@@ -28,6 +29,7 @@ const {
   stopBookingReminderJob,
 } = bookingReminder;
 const db = require('../src/db').default;
+import { alertOps } from '../src/utils/opsAlert';
 
 test('does not query database on import', () => {
   expect(db.query).not.toHaveBeenCalled();
@@ -68,7 +70,7 @@ describe('sendNextDayBookingReminders', () => {
     );
   });
 
-  it('surfaces failures from enqueueEmail immediately', async () => {
+  it('alerts ops and surfaces failures from enqueueEmail', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
         user_email: 'user@example.com',
@@ -77,14 +79,10 @@ describe('sendNextDayBookingReminders', () => {
     ]);
     (enqueueEmail as jest.Mock).mockRejectedValue(new Error('fail'));
 
-    await sendNextDayBookingReminders().then(
-      () => {
-        throw new Error('expected rejection');
-      },
-      (err: unknown) => {
-        expect(err).toBeInstanceOf(Error);
-        expect((err as Error).message).toBe('fail');
-      },
+    await expect(sendNextDayBookingReminders()).rejects.toThrow('fail');
+    expect(alertOps).toHaveBeenCalledWith(
+      'sendNextDayBookingReminders',
+      expect.any(Error),
     );
   });
 });
