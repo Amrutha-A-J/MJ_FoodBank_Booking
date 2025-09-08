@@ -1,7 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PasswordSetup from '../pages/auth/PasswordSetup';
-import { setPassword, resendPasswordSetup } from '../api/users';
+import {
+  setPassword,
+  resendPasswordSetup,
+  getPasswordSetupInfo,
+} from '../api/users';
 
 const mockNavigate = jest.fn();
 
@@ -13,11 +17,13 @@ jest.mock('react-router-dom', () => ({
 jest.mock('../api/users', () => ({
   setPassword: jest.fn(),
   resendPasswordSetup: jest.fn(),
+  getPasswordSetupInfo: jest.fn(),
 }));
 
 describe('PasswordSetup', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    (getPasswordSetupInfo as jest.Mock).mockResolvedValue({});
   });
   it('submits password with token from query and redirects', async () => {
     (setPassword as jest.Mock).mockResolvedValue('/login/user');
@@ -76,5 +82,37 @@ describe('PasswordSetup', () => {
     await waitFor(() =>
       expect(resendPasswordSetup).toHaveBeenCalledWith({ email: 'user@example.com' }),
     );
+  });
+
+  it('shows client ID from token info', async () => {
+    (getPasswordSetupInfo as jest.Mock).mockResolvedValue({
+      userType: 'client',
+      clientId: 123,
+    });
+    render(
+      <MemoryRouter initialEntries={["/set-password?token=tok"]}>
+        <Routes>
+          <Route path="/set-password" element={<PasswordSetup />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText(/client id/i)).toBeInTheDocument();
+    expect(screen.getByText('123')).toBeInTheDocument();
+  });
+
+  it('shows email from token info', async () => {
+    (getPasswordSetupInfo as jest.Mock).mockResolvedValue({
+      userType: 'staff',
+      email: 'staff@example.com',
+    });
+    render(
+      <MemoryRouter initialEntries={["/set-password?token=tok"]}>
+        <Routes>
+          <Route path="/set-password" element={<PasswordSetup />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText(/email/i)).toBeInTheDocument();
+    expect(screen.getByText('staff@example.com')).toBeInTheDocument();
   });
 });
