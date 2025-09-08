@@ -46,8 +46,13 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef 
           <Card key={rowKey(row, rowIndex)} sx={{ mb: 2 }} data-testid="responsive-table-card">
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {columns.map((col) => (
-                <Stack key={col.field} direction="row" spacing={1}>
-                  <Typography variant="subtitle2">{col.header}</Typography>
+                <Stack key={col.field} direction="row" spacing={1} alignItems="center">
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ width: 100, flexShrink: 0 }}
+                  >
+                    {col.header}
+                  </Typography>
                   <Box sx={{ flex: 1 }}>
                     {col.render ? col.render(row) : String(row[col.field])}
                   </Box>
