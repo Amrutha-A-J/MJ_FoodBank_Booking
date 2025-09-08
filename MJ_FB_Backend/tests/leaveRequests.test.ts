@@ -2,6 +2,7 @@ import "./setupTests";
 import {
   createLeaveRequest,
   approveLeaveRequest,
+  listLeaveRequests,
   listLeaveRequestsByStaff,
 } from "../src/controllers/leaveRequestController";
 import mockPool from "./utils/mockDb";
@@ -214,5 +215,45 @@ describe("leave requests controller", () => {
       },
     ]);
     expect(mockPool.query).toHaveBeenCalledWith(expect.any(String), [1]);
+  });
+
+  it("lists only pending leave requests", async () => {
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 4,
+          staff_id: 1,
+          start_date: "2024-04-01",
+          end_date: "2024-04-02",
+          type: "vacation",
+          status: "pending",
+          reason: null,
+          requester_name: "Test User",
+          created_at: "now",
+          updated_at: "now",
+        },
+      ],
+      rowCount: 1,
+    });
+    const req: any = {};
+    const res = makeRes();
+    await listLeaveRequests(req, res as any, () => {});
+    expect(mockPool.query).toHaveBeenCalledWith(
+      expect.stringContaining("WHERE lr.status = 'pending'"),
+    );
+    expect(res.json).toHaveBeenCalledWith([
+      {
+        id: 4,
+        staff_id: 1,
+        start_date: "2024-04-01",
+        end_date: "2024-04-02",
+        type: "vacation",
+        status: "pending",
+        reason: null,
+        requester_name: "Test User",
+        created_at: "now",
+        updated_at: "now",
+      },
+    ]);
   });
 });

@@ -91,24 +91,28 @@ export function useCreateLeaveRequest(timesheetId?: number) {
 
 export function useApproveLeaveRequest() {
   const qc = useQueryClient();
-  return useMutation<void, ApiError, { requestId: number; timesheetId: number }>({
+  return useMutation<void, ApiError, { requestId: number; timesheetId?: number }>({
     mutationFn: ({ requestId }) => approveLeaveRequest(requestId),
     onSuccess: (_, { timesheetId }) => {
       qc.invalidateQueries({ queryKey: ['leaveRequests'] });
-      qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
-      qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      if (timesheetId) {
+        qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
+        qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      }
     },
   });
 }
 
 export function useRejectLeaveRequest() {
   const qc = useQueryClient();
-  return useMutation<void, ApiError, { requestId: number; timesheetId: number }>({
+  return useMutation<void, ApiError, { requestId: number; timesheetId?: number }>({
     mutationFn: ({ requestId }) => rejectLeaveRequest(requestId),
     onSuccess: (_, { timesheetId }) => {
       qc.invalidateQueries({ queryKey: ['leaveRequests'] });
-      qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
-      qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      if (timesheetId) {
+        qc.invalidateQueries({ queryKey: ['leaveRequests', timesheetId] });
+        qc.invalidateQueries({ queryKey: ['timesheets', timesheetId, 'days'] });
+      }
     },
   });
 }
