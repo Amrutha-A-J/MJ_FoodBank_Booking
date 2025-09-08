@@ -1,21 +1,9 @@
 import { useEffect, useState } from 'react';
-import {
-  Box,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  IconButton,
-  Typography,
-} from '@mui/material';
+import { Box, IconButton, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
-import {
-  getNewClients,
-  deleteNewClient,
-  type NewClient,
-} from '../../../api/users';
+import ResponsiveTable, { type Column } from '../../../components/ResponsiveTable';
+import { getNewClients, deleteNewClient, type NewClient } from '../../../api/users';
 import type { AlertColor } from '@mui/material';
 
 export default function NewClients() {
@@ -50,37 +38,34 @@ export default function NewClients() {
     }
   }
 
+  type ClientRow = NewClient & { actions?: string };
+
+  const columns: Column<ClientRow>[] = [
+    { field: 'name', header: 'Name' },
+    { field: 'email', header: 'Email', render: c => c.email ?? '' },
+    { field: 'phone', header: 'Phone', render: c => c.phone ?? '' },
+    { field: 'created_at', header: 'Created' },
+    {
+      field: 'actions' as keyof ClientRow & string,
+      header: 'Actions',
+      render: c => (
+        <IconButton
+          aria-label="delete"
+          onClick={() => handleDelete(c.id)}
+          size="small"
+        >
+          <DeleteIcon />
+        </IconButton>
+      ),
+    },
+  ];
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
         New Clients
       </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Phone</TableCell>
-            <TableCell>Created</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {clients.map(c => (
-            <TableRow key={c.id}>
-              <TableCell>{c.name}</TableCell>
-              <TableCell>{c.email}</TableCell>
-              <TableCell>{c.phone}</TableCell>
-              <TableCell>{c.created_at}</TableCell>
-              <TableCell align="right">
-                <IconButton aria-label="delete" onClick={() => handleDelete(c.id)} size="small">
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ResponsiveTable columns={columns} rows={clients} getRowKey={c => c.id} />
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}

@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Box,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Button,
   Dialog,
   DialogTitle,
@@ -18,6 +13,7 @@ import {
   Checkbox,
   Tooltip,
   Typography,
+  TableContainer,
 } from "@mui/material";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
@@ -31,6 +27,7 @@ import {
 import type { AlertColor } from "@mui/material";
 import type { ApiError } from "../../../api/client";
 import PasswordField from "../../../components/PasswordField";
+import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
@@ -145,45 +142,42 @@ export default function UpdateClientData() {
     }
   }
 
+  type ClientRow = IncompleteUser & { actions?: string };
+
+  const columns: Column<ClientRow>[] = [
+    { field: 'clientId', header: 'Client ID' },
+    {
+      field: 'profileLink',
+      header: 'Profile Link',
+      render: c => (
+        <Link href={c.profileLink} target="_blank" rel="noopener noreferrer">
+          {c.profileLink}
+        </Link>
+      ),
+    },
+    {
+      field: 'actions' as keyof ClientRow & string,
+      header: 'Actions',
+      render: c => (
+        <Button size="small" variant="outlined" onClick={() => handleEdit(c)}>
+          Edit
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
         Update Client Data
       </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Client ID</TableCell>
-            <TableCell>Profile Link</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {clients.map((client) => (
-            <TableRow key={client.clientId}>
-              <TableCell>{client.clientId}</TableCell>
-              <TableCell>
-                <Link
-                  href={client.profileLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {client.profileLink}
-                </Link>
-              </TableCell>
-              <TableCell align="right">
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => handleEdit(client)}
-                >
-                  Edit
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <TableContainer>
+        <ResponsiveTable
+          columns={columns}
+          rows={clients}
+          getRowKey={c => c.clientId}
+        />
+      </TableContainer>
 
       <Dialog open={!!selected} onClose={() => setSelected(null)}>
         <DialogCloseButton onClose={() => setSelected(null)} />

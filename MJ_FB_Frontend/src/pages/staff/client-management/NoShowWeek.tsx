@@ -5,12 +5,7 @@ import { formatTime } from '../../../utils/time';
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
   FormControl,
   InputLabel,
   Select,
@@ -22,6 +17,7 @@ import ManageBookingDialog from '../../../components/ManageBookingDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import StyledTabs from '../../../components/StyledTabs';
 import type { Booking } from '../../../types';
+import ResponsiveTable, { type Column } from '../../../components/ResponsiveTable';
 
 export default function NoShowWeek() {
   const [start] = useState(() => toDayjs().tz(REGINA_TIMEZONE).startOf('week'));
@@ -74,6 +70,39 @@ export default function NoShowWeek() {
     loadWeek();
   }
 
+  const columns: Column<Booking>[] = [
+    {
+      field: 'start_time',
+      header: 'Time',
+      render: b => (
+        <Box sx={{ cursor: 'pointer' }} onClick={() => setManageBooking(b)}>
+          {b.start_time ? formatTime(b.start_time) : ''}
+        </Box>
+      ),
+    },
+    {
+      field: 'user_name',
+      header: 'Client',
+      render: b => (
+        <Box sx={{ cursor: 'pointer' }} onClick={() => setManageBooking(b)}>
+          {b.user_name}
+        </Box>
+      ),
+    },
+    {
+      field: 'status',
+      header: 'Status',
+      render: b => (
+        <Box
+          sx={{ cursor: 'pointer', textTransform: 'capitalize' }}
+          onClick={() => setManageBooking(b)}
+        >
+          {b.status.replace('_', ' ')}
+        </Box>
+      ),
+    },
+  ];
+
   const tabs = days.map(d => {
     const dateStr = formatDate(d);
     const list = filtered(dateStr);
@@ -105,39 +134,16 @@ export default function NoShowWeek() {
           {list.length === 0 ? (
             <Typography>No bookings</Typography>
           ) : (
-            <TableContainer>
-              <Table
-                size="small"
-                data-testid={
-                  dateStr === todayStr ? 'today-bookings' : undefined
-                }
-              >
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Time</TableCell>
-                    <TableCell>Client</TableCell>
-                    <TableCell>Status</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {list.map(b => (
-                    <TableRow
-                      key={b.id}
-                      hover
-                      sx={{ cursor: 'pointer' }}
-                      onClick={() => setManageBooking(b)}
-                    >
-                      <TableCell>
-                        {b.start_time ? formatTime(b.start_time) : ''}
-                      </TableCell>
-                      <TableCell>{b.user_name}</TableCell>
-                      <TableCell sx={{ textTransform: 'capitalize' }}>
-                        {b.status.replace('_', ' ')}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <TableContainer
+              data-testid={
+                dateStr === todayStr ? 'today-bookings' : undefined
+              }
+            >
+              <ResponsiveTable
+                columns={columns}
+                rows={list}
+                getRowKey={b => b.id}
+              />
             </TableContainer>
           )}
         </Box>
