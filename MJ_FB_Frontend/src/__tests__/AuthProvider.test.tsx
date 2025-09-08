@@ -72,7 +72,7 @@ describe('AuthProvider cardUrl cleanup', () => {
     await waitFor(() =>
       expect(screen.getByTestId('card')).toHaveTextContent(''),
     );
-    expect(apiLogout).toHaveBeenCalled();
+    expect(apiLogout).not.toHaveBeenCalled();
   });
 });
 
