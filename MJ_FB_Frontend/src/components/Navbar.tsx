@@ -105,6 +105,11 @@ export default function Navbar({
     },
   } as const;
 
+  const MOBILE_DROPDOWN_ITEM_SX = {
+    ...DROPDOWN_ITEM_SX,
+    minHeight: 56,
+  } as const;
+
   const menuPaperProps = {
     elevation: 0,
     sx: {
@@ -199,7 +204,7 @@ export default function Navbar({
                             selected={location.pathname === group.links[0].to}
                             onClick={() => setMobileOpen(false)}
                             disabled={loading}
-                            sx={DROPDOWN_ITEM_SX}
+                            sx={MOBILE_DROPDOWN_ITEM_SX}
                           >
                             {group.links[0].badge ? (
                               <Badge color="error" badgeContent={group.links[0].badge}>
@@ -214,7 +219,7 @@ export default function Navbar({
                             key={group.label}
                             onClick={() => setMobileSubmenu(group)}
                             sx={{
-                              ...DROPDOWN_ITEM_SX,
+                              ...MOBILE_DROPDOWN_ITEM_SX,
                               display: 'flex',
                               justifyContent: 'space-between',
                             }}
@@ -229,7 +234,7 @@ export default function Navbar({
                         <ListItemButton
                           onClick={() => setMobileSubmenu(mobileProfileGroup)}
                           sx={{
-                            ...DROPDOWN_ITEM_SX,
+                            ...MOBILE_DROPDOWN_ITEM_SX,
                             display: 'flex',
                             justifyContent: 'space-between',
                           }}
@@ -244,7 +249,7 @@ export default function Navbar({
                             onLogout?.();
                           }}
                           disabled={loading}
-                          sx={DROPDOWN_ITEM_SX}
+                          sx={MOBILE_DROPDOWN_ITEM_SX}
                         >
                           {t('logout')}
                         </ListItemButton>
@@ -266,7 +271,10 @@ export default function Navbar({
                       <List sx={{ width: '100%', p: 1 }}>
                         <ListItemButton
                           onClick={() => setMobileSubmenu(null)}
-                          sx={{ ...DROPDOWN_ITEM_SX, justifyContent: 'flex-start' }}
+                          sx={{
+                            ...MOBILE_DROPDOWN_ITEM_SX,
+                            justifyContent: 'flex-start',
+                          }}
                         >
                           <ChevronRight fontSize="small" sx={{ mr: 1 }} />
                           <ListItemText primary={mobileSubmenu.label} />
@@ -282,7 +290,7 @@ export default function Navbar({
                               onClick?.();
                             }}
                             disabled={loading}
-                            sx={DROPDOWN_ITEM_SX}
+                            sx={MOBILE_DROPDOWN_ITEM_SX}
                           >
                             {badge ? (
                               <Badge color="error" badgeContent={badge}>
