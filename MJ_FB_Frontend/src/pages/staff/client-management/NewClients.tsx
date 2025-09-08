@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
+  Box,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
   IconButton,
+  Typography,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Page from '../../../components/Page';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import {
   getNewClients,
@@ -50,7 +51,10 @@ export default function NewClients() {
   }
 
   return (
-    <Page title="New Clients">
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        New Clients
+      </Typography>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -83,7 +87,7 @@ export default function NewClients() {
         message={snackbar?.message ?? ''}
         severity={snackbar?.severity}
       />
-    </Page>
+    </Box>
   );
 }
 
