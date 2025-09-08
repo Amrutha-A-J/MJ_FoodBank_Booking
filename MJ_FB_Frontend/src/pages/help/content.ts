@@ -373,6 +373,18 @@ export function getHelpContent(
       },
     },
     {
+      title: 'View volunteers on duty',
+      body: {
+        description:
+          'Volunteer Coverage lists scheduled volunteers for each role.',
+        steps: [
+          'Open the staff dashboard.',
+          'Check the Volunteer Coverage card.',
+          'Click a role to view volunteers on duty.',
+        ],
+      },
+    },
+    {
       title: t('help.pantry.timesheets.title'),
       body: {
         description: t('help.pantry.timesheets.description'),
@@ -397,6 +409,17 @@ export function getHelpContent(
     },
   ],
   warehouse: [
+    {
+      title: 'View volunteers on duty',
+      body: {
+        description: 'Volunteer Coverage lists scheduled warehouse volunteers.',
+        steps: [
+          'Open the Warehouse Dashboard.',
+          'Review the Volunteer Coverage card.',
+          'Click a role to view volunteers on duty.',
+        ],
+      },
+    },
     {
       title: 'Log donations and outgoing shipments',
       body: {
