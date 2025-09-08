@@ -5,6 +5,7 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
+import { alertOps } from './opsAlert';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -41,6 +42,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
     }
   } catch (err) {
     logger.error('Failed to send volunteer shift reminders', err);
+    await alertOps('sendNextDayVolunteerShiftReminders', err);
   }
 }
 

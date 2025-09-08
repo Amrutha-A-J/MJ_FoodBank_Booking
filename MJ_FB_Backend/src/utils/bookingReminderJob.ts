@@ -5,6 +5,7 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
+import { alertOps } from './opsAlert';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -34,6 +35,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
     }
   } catch (err) {
     logger.error('Failed to send booking reminders', err);
+    await alertOps('sendNextDayBookingReminders', err);
     throw err;
   }
 }

@@ -1,33 +1,49 @@
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 
-const sendNextDayVolunteerShiftRemindersMock = jest
-  .fn()
-  .mockResolvedValue(undefined);
-
-jest.mock('../src/utils/volunteerShiftReminderJob', () => {
-  const scheduleDailyJob = jest.requireActual(
-    '../src/utils/scheduleDailyJob',
-  ).default;
-  const job = scheduleDailyJob(
-    sendNextDayVolunteerShiftRemindersMock,
-    '0 9 * * *',
-    false,
-    false,
-  );
+jest.doMock('../src/db', () => ({
+  __esModule: true,
+  default: { query: jest.fn() },
+}));
+jest.doMock('../src/utils/emailQueue', () => ({
+  enqueueEmail: jest.fn(),
+}));
+jest.doMock('../src/utils/scheduleDailyJob', () => {
+  const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
     __esModule: true,
-    sendNextDayVolunteerShiftReminders: sendNextDayVolunteerShiftRemindersMock,
-    startVolunteerShiftReminderJob: job.start,
-    stopVolunteerShiftReminderJob: job.stop,
+    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
+jest.mock('../src/utils/opsAlert');
 
-import pool from '../src/db';
-import {
+const pool = require('../src/db').default;
+const volunteerShiftReminder = require('../src/utils/volunteerShiftReminderJob');
+const {
+  sendNextDayVolunteerShiftReminders,
   startVolunteerShiftReminderJob,
   stopVolunteerShiftReminderJob,
-  sendNextDayVolunteerShiftReminders,
-} from '../src/utils/volunteerShiftReminderJob';
+} = volunteerShiftReminder;
+import { alertOps } from '../src/utils/opsAlert';
+
+describe('sendNextDayVolunteerShiftReminders', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
+  it('alerts ops on failure', async () => {
+    (pool.query as jest.Mock).mockRejectedValue(new Error('boom'));
+    await sendNextDayVolunteerShiftReminders();
+    expect(alertOps).toHaveBeenCalledWith(
+      'sendNextDayVolunteerShiftReminders',
+      expect.any(Error),
+    );
+  });
+});
 
 describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
   let scheduleMock: jest.Mock;
@@ -47,7 +63,6 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
     jest.useRealTimers();
     scheduleMock.mockReset();
     querySpy.mockRestore();
-    (sendNextDayVolunteerShiftReminders as jest.Mock).mockReset();
   });
 
   it('schedules and stops the cron job without querying the database', () => {
