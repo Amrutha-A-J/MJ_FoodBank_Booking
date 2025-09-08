@@ -249,7 +249,9 @@ export default function WarehouseDashboard() {
   ];
 
   return (
-    <Page title="Warehouse Manager Dashboard" header={<WarehouseQuickLinks />}>
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Warehouse Manager Dashboard">
       <Box>
       <Stack
         direction={{ xs: 'column', md: 'row' }}
@@ -522,14 +524,14 @@ export default function WarehouseDashboard() {
         Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
       </Typography>
 
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-        severity={snackbar.severity}
-      />
-      </Box>
-    </Page>
-  );
-}
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          message={snackbar.message}
+          severity={snackbar.severity}
+        />
+        </Page>
+      </>
+    );
+  }
 

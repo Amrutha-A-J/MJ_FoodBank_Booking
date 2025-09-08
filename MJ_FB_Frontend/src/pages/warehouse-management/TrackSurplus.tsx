@@ -188,26 +188,22 @@ export default function TrackSurplus() {
   }));
 
   return (
-    <Page
-      title="Track Surplus"
-      header={
-        <Stack spacing={2}>
-          <WarehouseQuickLinks />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Surplus
-          </Button>
-        </Stack>
-      }
-    >
-      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Track Surplus">
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+          sx={{ mb: 2 }}
+        >
+          Record Surplus
+        </Button>
+        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
@@ -269,11 +265,12 @@ export default function TrackSurplus() {
         </DialogActions>
       </Dialog>
 
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ open: false, message: '' })}
-        message={snackbar.message}
-      />
-    </Page>
-  );
-}
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ open: false, message: '' })}
+          message={snackbar.message}
+        />
+      </Page>
+    </>
+    );
+  }

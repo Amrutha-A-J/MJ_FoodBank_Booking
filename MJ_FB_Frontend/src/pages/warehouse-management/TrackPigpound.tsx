@@ -160,26 +160,22 @@ export default function TrackPigpound() {
   }));
 
   return (
-    <Page
-      title="Track Pigpound"
-      header={
-        <Stack spacing={2}>
-          <WarehouseQuickLinks />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({ date: format(selectedDate), weight: '' });
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Pig Pound Donation
-          </Button>
-        </Stack>
-      }
-    >
-      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Track Pigpound">
+        <Button
+          size="small"
+          variant="contained"
+          onClick={() => {
+            setForm({ date: format(selectedDate), weight: '' });
+            setEditing(null);
+            setRecordOpen(true);
+          }}
+          sx={{ mb: 2 }}
+        >
+          Record Pig Pound Donation
+        </Button>
+        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
         <Dialog
           open={recordOpen}
@@ -260,11 +256,12 @@ export default function TrackPigpound() {
           </DialogActions>
         </Dialog>
 
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ open: false, message: '' })}
-        message={snackbar.message}
-      />
-    </Page>
-  );
-}
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ open: false, message: '' })}
+          message={snackbar.message}
+        />
+      </Page>
+    </>
+    );
+  }

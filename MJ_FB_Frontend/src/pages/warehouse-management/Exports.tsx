@@ -89,7 +89,9 @@ export default function Exports() {
   };
 
   return (
-    <Page title="Exports" header={<WarehouseQuickLinks />}>
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Exports">
       <Stack spacing={2} sx={{ mb: 2 }} direction="row">
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel id="year-label">Year</InputLabel>
@@ -132,5 +134,6 @@ export default function Exports() {
         severity={snackbar.severity}
       />
     </Page>
+    </>
   );
 }
