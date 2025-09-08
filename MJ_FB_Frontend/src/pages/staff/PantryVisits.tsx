@@ -28,6 +28,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import {
   getClientVisits,
   createClientVisit,
@@ -350,103 +351,110 @@ export default function PantryVisits() {
     }
   }
 
-  const table = (
-    <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Client ID</TableCell>
-            <TableCell>Client Name</TableCell>
-            <TableCell>Profile</TableCell>
-            <TableCell>Weight With Cart</TableCell>
-            <TableCell>Weight Without Cart</TableCell>
-            <TableCell>{t('adults_label')}</TableCell>
-            <TableCell>{t('children_label')}</TableCell>
-            <TableCell>Pet Item</TableCell>
-            <TableCell>Note</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredVisits.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={11} align="center">
-                No records
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredVisits.map(v => (
-              <TableRow key={v.id}>
-                <TableCell>{formatDisplay(v.date)}</TableCell>
-                <TableCell>
-                  {v.clientId ?? 'N/A'}
-                  {v.anonymous ? ' (ANONYMOUS)' : ''}
-                </TableCell>
-                <TableCell>{v.clientName ?? ''}</TableCell>
-                <TableCell>
-                  {v.clientId ? (
-                    <a
-                      href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Link
-                    </a>
-                  ) : (
-                    'N/A'
-                  )}
-                </TableCell>
-                <TableCell>{v.weightWithCart}</TableCell>
-                <TableCell>{v.weightWithoutCart}</TableCell>
-                <TableCell>{v.adults}</TableCell>
-                <TableCell>{v.children}</TableCell>
-                <TableCell>{v.petItem}</TableCell>
-                <TableCell>{v.note || ''}</TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setEditing(v);
-                      setForm({
-                        date: formatDate(v.date),
-                        anonymous: v.anonymous,
-                        sunshineBag: false,
-                        sunshineWeight: '',
-                        sunshineClients: '',
-                        clientId: v.clientId ? String(v.clientId) : '',
-                        weightWithCart: String(v.weightWithCart),
-                        weightWithoutCart: String(v.weightWithoutCart),
-                        adults: String(v.adults),
-                        children: String(v.children),
-                        petItem: String(v.petItem),
-                        note: v.note ?? '',
-                      });
-                      setAutoWeight(true);
-                      setRecordOpen(true);
-                    }}
-                    aria-label="Edit visit"
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setToDelete(v);
-                      setDeleteOpen(true);
-                    }}
-                    aria-label="Delete visit"
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+  const columns: any[] = [
+    {
+      field: 'date',
+      header: 'Date',
+      render: (v: ClientVisit) => formatDisplay(v.date),
+    },
+    {
+      field: 'clientId',
+      header: 'Client ID',
+      render: (v: ClientVisit) =>
+        `${v.clientId ?? 'N/A'}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
+    },
+    {
+      field: 'clientName',
+      header: 'Client Name',
+      render: (v: ClientVisit) => v.clientName ?? '',
+    },
+    {
+      field: 'profile',
+      header: 'Profile',
+      render: (v: ClientVisit) =>
+        v.clientId ? (
+          <a
+            href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Link
+          </a>
+        ) : (
+          'N/A'
+        ),
+    },
+    { field: 'weightWithCart', header: 'Weight With Cart' },
+    { field: 'weightWithoutCart', header: 'Weight Without Cart' },
+    {
+      field: 'adults',
+      header: t('adults_label'),
+      render: (v: ClientVisit) => v.adults,
+    },
+    {
+      field: 'children',
+      header: t('children_label'),
+      render: (v: ClientVisit) => v.children,
+    },
+    { field: 'petItem', header: 'Pet Item', render: (v: ClientVisit) => v.petItem },
+    { field: 'note', header: 'Note', render: (v: ClientVisit) => v.note || '' },
+    {
+      field: 'actions',
+      header: 'Actions',
+      render: (v: ClientVisit) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setEditing(v);
+              setForm({
+                date: formatDate(v.date),
+                anonymous: v.anonymous,
+                sunshineBag: false,
+                sunshineWeight: '',
+                sunshineClients: '',
+                clientId: v.clientId ? String(v.clientId) : '',
+                weightWithCart: String(v.weightWithCart),
+                weightWithoutCart: String(v.weightWithoutCart),
+                adults: String(v.adults),
+                children: String(v.children),
+                petItem: String(v.petItem),
+                note: v.note ?? '',
+              });
+              setAutoWeight(true);
+              setRecordOpen(true);
+            }}
+            aria-label="Edit visit"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setToDelete(v);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete visit"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
+
+  const table =
+    filteredVisits.length === 0 ? (
+      <Typography align="center">No records</Typography>
+    ) : (
+      <TableContainer sx={{ overflowX: 'auto' }}>
+        <ResponsiveTable
+          columns={columns}
+          rows={filteredVisits}
+          getRowKey={(v) => v.id}
+        />
+      </TableContainer>
+    );
 
   const tabs = weekDates.map(d => ({
     label: (
@@ -463,19 +471,19 @@ export default function PantryVisits() {
       <>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <Typography variant="body2">
-            {t('pantry_visits.summary.clients')}: {summary.clients}
+            {`${t('pantry_visits.summary.clients')}: ${summary.clients}`}
           </Typography>
           <Typography variant="body2">
-            {t('pantry_visits.summary.total_weight')}: {summary.totalWeight}
+            {`${t('pantry_visits.summary.total_weight')}: ${summary.totalWeight}`}
           </Typography>
           <Typography variant="body2">
-            {t('pantry_visits.summary.adults')}: {summary.adults}
+            {`${t('pantry_visits.summary.adults')}: ${summary.adults}`}
           </Typography>
           <Typography variant="body2">
-            {t('pantry_visits.summary.children')}: {summary.children}
+            {`${t('pantry_visits.summary.children')}: ${summary.children}`}
           </Typography>
           <Typography variant="body2">
-            {t('pantry_visits.summary.sunshine_bag_weight')}: {sunshineBagWeight}
+            {`${t('pantry_visits.summary.sunshine_bag_weight')}: ${sunshineBagWeight}`}
           </Typography>
         </Stack>
         {table}
