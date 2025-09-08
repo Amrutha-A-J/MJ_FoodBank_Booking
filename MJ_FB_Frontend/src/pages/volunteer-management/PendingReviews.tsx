@@ -1,10 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Checkbox,
   Button,
   Stack,
@@ -12,6 +7,7 @@ import {
   Tabs,
   Tab,
   FormControl,
+  FormControlLabel,
   InputLabel,
   Select,
   MenuItem,
@@ -22,6 +18,7 @@ import Page from '../../components/Page';
 import PageCard from '../../components/layout/PageCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import {
   getVolunteerBookingsForReview,
   updateVolunteerBookingStatus,
@@ -102,6 +99,39 @@ export default function PendingReviews() {
     }
   }
 
+  const columns = [
+    {
+      field: 'select',
+      header: '',
+      render: (b: VolunteerBookingDetail) => (
+        <Checkbox
+          checked={selected.includes(b.id)}
+          onChange={() => toggle(b.id)}
+        />
+      ),
+    },
+    { field: 'volunteer_name', header: 'Volunteer' },
+    { field: 'role_name', header: 'Role' },
+    { field: 'date', header: 'Date' },
+    {
+      field: 'time',
+      header: 'Time',
+      render: (b: VolunteerBookingDetail) => (
+        <>
+          {formatTime(b.start_time)} - {formatTime(b.end_time)}
+        </>
+      ),
+    },
+    { field: 'status', header: 'Status' },
+    {
+      field: 'actions',
+      header: 'Actions',
+      render: (b: VolunteerBookingDetail) => (
+        <Button onClick={() => setDialog(b)}>Review</Button>
+      ),
+    },
+  ];
+
   return (
     <Page title="Pending Reviews">
       <PageCard>
@@ -133,7 +163,11 @@ export default function PendingReviews() {
               </Select>
             </FormControl>
           )}
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <FormControlLabel
+              control={<Checkbox checked={allChecked} onChange={toggleAll} />}
+              label="Select All"
+            />
             <Button
               variant="contained"
               disabled={selected.length === 0}
@@ -149,50 +183,15 @@ export default function PendingReviews() {
               Mark No Show
             </Button>
           </Stack>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell padding="checkbox">
-                  <Checkbox checked={allChecked} onChange={toggleAll} />
-                </TableCell>
-                <TableCell>Volunteer</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Date</TableCell>
-                <TableCell>Time</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {displayed.map(b => (
-                <TableRow key={b.id} hover>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selected.includes(b.id)}
-                      onChange={() => toggle(b.id)}
-                    />
-                  </TableCell>
-                  <TableCell>{b.volunteer_name}</TableCell>
-                  <TableCell>{b.role_name}</TableCell>
-                  <TableCell>{b.date}</TableCell>
-                  <TableCell>
-                    {formatTime(b.start_time)} - {formatTime(b.end_time)}
-                  </TableCell>
-                  <TableCell>{b.status}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => setDialog(b)}>Review</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {displayed.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7}>
-                    <Typography>No bookings</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {displayed.length > 0 ? (
+            <ResponsiveTable
+              columns={columns as any}
+              rows={displayed as any}
+              getRowKey={b => b.id}
+            />
+          ) : (
+            <Typography>No bookings</Typography>
+          )}
         </Stack>
         <ManageVolunteerShiftDialog
           open={Boolean(dialog)}
