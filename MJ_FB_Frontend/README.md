@@ -47,6 +47,9 @@ The build will fail if this variable is missing.
 
 The app registers a service worker when running in a secure context. Use HTTPS when serving the built site.
 
+- An **Install App** button appears when the browser allows installation; click it to add the app.
+- iOS users must open the site in Safari and choose **Add to Home Screen**.
+
 - `npm run preview` serves the production build over HTTPS.
 - The Docker image uses Nginx configured for HTTPS. Provide `tls.crt` and `tls.key` under `/etc/nginx/certs`.
 

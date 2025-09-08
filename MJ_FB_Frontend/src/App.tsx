@@ -14,6 +14,7 @@ import { getVolunteerBookingsForReview } from './api/volunteers';
 import { getStaffRootPath } from './utils/staffRootPath';
 import dayjs, { formatDate } from './utils/date';
 import LanguageSelector from './components/LanguageSelector';
+import InstallAppButton from './components/InstallAppButton';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -547,6 +548,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <InstallAppButton />
       <AppContent />
     </BrowserRouter>
   );

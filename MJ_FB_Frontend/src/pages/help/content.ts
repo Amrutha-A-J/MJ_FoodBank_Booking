@@ -11,8 +11,19 @@ export interface HelpSection {
 export function getHelpContent(
   t: TFunction,
 ): Record<'client' | 'volunteer' | 'agency' | 'pantry' | 'warehouse' | 'admin', HelpSection[]> {
+  const installAppSection: HelpSection = {
+    title: t('help.install_app.title'),
+    body: {
+      description: t('help.install_app.description'),
+      steps: [
+        t('help.install_app.steps.0'),
+        t('help.install_app.steps.1'),
+      ],
+    },
+  };
   return {
     client: [
+      installAppSection,
       {
         title: t('help.client.booking_appointments.title'),
         body: {
@@ -70,7 +81,8 @@ export function getHelpContent(
       },
     ],
     volunteer: [
-    { 
+      installAppSection,
+    {
       title: 'View schedule',
       body: {
         description: 'The volunteer schedule shows available shifts for your trained roles.',
@@ -139,6 +151,7 @@ export function getHelpContent(
     },
   ],
   agency: [
+    installAppSection,
     {
       title: 'Search and link clients',
       body: {
@@ -197,6 +210,7 @@ export function getHelpContent(
     },
   ],
   pantry: [
+    installAppSection,
     {
       title: 'Pantry quick links',
       body: {
@@ -409,6 +423,7 @@ export function getHelpContent(
     },
   ],
   warehouse: [
+    installAppSection,
     {
       title: 'View volunteers on duty',
       body: {
@@ -456,6 +471,7 @@ export function getHelpContent(
     },
   ],
   admin: [
+    installAppSection,
     {
       title: 'Staff users and permissions',
       body: {
