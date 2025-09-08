@@ -4,6 +4,7 @@ import {
   getBookings,
   getHolidays,
   createBookingForUser,
+  createBookingForNewClient,
 } from "../../api/bookings";
 import { searchUsers, addClientById, type UserSearchResult } from "../../api/users";
 import type { Slot, Holiday, Booking } from "../../types";
@@ -29,6 +30,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
@@ -53,6 +56,8 @@ export default function PantrySchedule({
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
+  const [isNewClient, setIsNewClient] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
   const [snackbar, setSnackbar] = useState<{
     message: string;
     severity: AlertColor;
@@ -67,6 +72,8 @@ export default function PantrySchedule({
     setAssignSlot(null);
     setSearchTerm("");
     setAssignMessage("");
+    setIsNewClient(false);
+    setNewClientName("");
   };
 
   const theme = useTheme();
@@ -232,6 +239,27 @@ export default function PantrySchedule({
     } catch (err) {
       console.error(err);
       const msg = err instanceof Error ? err.message : "Failed to add client";
+      setAssignMessage(msg);
+    }
+  }
+
+  async function assignNewClient() {
+    if (!assignSlot || !newClientName.trim()) return;
+    try {
+      setAssignMessage("");
+      await createBookingForNewClient(
+        newClientName.trim(),
+        parseInt(assignSlot.id),
+        formatDate(currentDate),
+      );
+      setAssignSlot(null);
+      setNewClientName("");
+      setIsNewClient(false);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      const msg =
+        err instanceof Error ? err.message : "Failed to assign new client";
       setAssignMessage(msg);
     }
   }
@@ -491,8 +519,11 @@ export default function PantrySchedule({
                 </ListItem>
               ))}
               {searchTerm.length >= 3 && userResults.length === 0 && (
-                <ListItem
-                  secondaryAction={
+                <>
+                  <ListItem>
+                    <ListItemText primary="No search results." />
+                  </ListItem>
+                  <ListItem>
                     <Button
                       size="small"
                       variant="text"
@@ -500,12 +531,30 @@ export default function PantrySchedule({
                     >
                       Add existing client to the app
                     </Button>
-                  }
-                >
-                  <ListItemText primary="No search results." />
-                </ListItem>
+                  </ListItem>
+                </>
               )}
             </List>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isNewClient}
+                  onChange={(e) => setIsNewClient(e.target.checked)}
+                  size="small"
+                />
+              }
+              label="New client"
+              sx={{ mt: 1 }}
+            />
+            {isNewClient && (
+              <TextField
+                label="Name"
+                value={newClientName}
+                onChange={(e) => setNewClientName(e.target.value)}
+                fullWidth
+                margin="dense"
+              />
+            )}
             <FeedbackSnackbar
               open={!!assignMessage}
               onClose={() => setAssignMessage("")}
@@ -517,6 +566,17 @@ export default function PantrySchedule({
             <Button onClick={handleAssignClose} variant="outlined" color="primary">
               Close
             </Button>
+            {isNewClient && (
+              <Button
+                onClick={assignNewClient}
+                variant="contained"
+                color="primary"
+                size="small"
+                disabled={!newClientName.trim()}
+              >
+                Assign new client
+              </Button>
+            )}
           </DialogActions>
         </Dialog>
       )}

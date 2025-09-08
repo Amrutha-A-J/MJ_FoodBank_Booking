@@ -9,6 +9,7 @@ jest.mock('../../../api/bookings', () => ({
   getBookings: jest.fn(),
   getHolidays: jest.fn(),
   createBookingForUser: jest.fn(),
+  createBookingForNewClient: jest.fn(),
 }));
 
 jest.mock('../../../api/users', () => ({
@@ -97,6 +98,41 @@ describe('PantrySchedule add existing client workflow', () => {
         1,
         expect.any(String),
         true,
+      );
+    });
+  });
+
+  it('assigns new client booking', async () => {
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    (bookingApi.createBookingForNewClient as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    render(
+      <MemoryRouter>
+        <PantrySchedule />
+      </MemoryRouter>,
+    );
+
+    const rows = await screen.findAllByRole('row');
+    const cells = within(rows[1]).getAllByRole('cell');
+    fireEvent.click(cells[1]);
+
+    const newClientBox = await screen.findByRole('checkbox', {
+      name: /new client/i,
+    });
+    fireEvent.click(newClientBox);
+
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'Someone New' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assign new client' }));
+
+    await waitFor(() => {
+      expect(bookingApi.createBookingForNewClient).toHaveBeenCalledWith(
+        'Someone New',
+        1,
+        expect.any(String),
       );
     });
   });
