@@ -11,23 +11,14 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import { useTranslation } from 'react-i18next';
 import {
-  TableContainer,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Card,
-  CardContent,
-  CardActions,
   Stack,
   Typography,
   useTheme,
@@ -67,6 +58,7 @@ export default function VolunteerBookingHistory() {
       return map;
     }, new Map<number, VolunteerBooking[]>() ).values()
   );
+  const rows = groups.flatMap(group => group);
 
   async function handleCancel() {
     if (!cancelBooking) return;
@@ -117,123 +109,66 @@ export default function VolunteerBookingHistory() {
     }
   }
 
+  const columns = [
+    { field: 'role_name', header: t('role') },
+    { field: 'date', header: t('date') },
+    {
+      field: 'time' as keyof VolunteerBooking & string,
+      header: t('time'),
+      render: h => `${formatTime(h.start_time)} - ${formatTime(h.end_time)}`,
+    },
+    { field: 'status', header: t('status'), render: h => t(h.status) },
+    {
+      field: 'actions' as keyof VolunteerBooking & string,
+      header: t('actions'),
+      render: h =>
+        h.status.toLowerCase() === 'approved'
+          ? isSmall ? (
+              <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
+                <Button size="small" onClick={() => setCancelBooking(h)} fullWidth>
+                  {t('cancel')}
+                </Button>
+                <Button size="small" onClick={() => setRescheduleBooking(h)} fullWidth>
+                  {t('reschedule')}
+                </Button>
+                {h.recurring_id && (
+                  <Button
+                    size="small"
+                    onClick={() => setCancelSeriesId(h.recurring_id!)}
+                    fullWidth
+                  >
+                    {t('cancel_all_upcoming_short')}
+                  </Button>
+                )}
+              </Stack>
+            ) : (
+              <>
+                <Button size="small" onClick={() => setCancelBooking(h)}>
+                  {t('cancel')}
+                </Button>
+                <Button size="small" onClick={() => setRescheduleBooking(h)}>
+                  {t('reschedule')}
+                </Button>
+                {h.recurring_id && (
+                  <Button
+                    size="small"
+                    onClick={() => setCancelSeriesId(h.recurring_id!)}
+                  >
+                    {t('cancel_all_upcoming_short')}
+                  </Button>
+                )}
+              </>
+            )
+          : null,
+    },
+  ];
+
   return (
     <Page title={t('booking_history')}>
-      {isSmall ? (
-        history.length === 0 ? (
-          <Typography align="center">{t('no_bookings')}</Typography>
-        ) : (
-          <Stack spacing={2}>
-            {groups.flatMap(group =>
-              group.map(h => (
-                <Card key={h.id}>
-                  <CardContent>
-                    <Typography variant="subtitle2">{h.role_name}</Typography>
-                    <Typography variant="body2">
-                      {t('date')}: {h.date}
-                    </Typography>
-                    <Typography variant="body2">
-                      {t('time')}: {formatTime(h.start_time)} - {formatTime(h.end_time)}
-                    </Typography>
-                    <Typography variant="body2">
-                      {t('status')}: {t(h.status)}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    {h.status.toLowerCase() === 'approved' && (
-                      <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
-                        <Button
-                          size="small"
-                          onClick={() => setCancelBooking(h)}
-                          fullWidth
-                        >
-                          {t('cancel')}
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => setRescheduleBooking(h)}
-                          fullWidth
-                        >
-                          {t('reschedule')}
-                        </Button>
-                        {h.recurring_id && (
-                          <Button
-                            size="small"
-                            onClick={() => setCancelSeriesId(h.recurring_id!)}
-                            fullWidth
-                          >
-                            {t('cancel_all_upcoming_short')}
-                          </Button>
-                        )}
-                      </Stack>
-                    )}
-                  </CardActions>
-                </Card>
-              )),
-            )}
-          </Stack>
-        )
+      {rows.length === 0 ? (
+        <Typography align="center">{t('no_bookings')}</Typography>
       ) : (
-        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('role')}</TableCell>
-                <TableCell>{t('date')}</TableCell>
-                <TableCell>{t('time')}</TableCell>
-                <TableCell>{t('status')}</TableCell>
-                <TableCell>{t('actions')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {groups.flatMap(group =>
-                group.map(h => (
-                  <TableRow key={h.id}>
-                    <TableCell>{h.role_name}</TableCell>
-                    <TableCell>{h.date}</TableCell>
-                    <TableCell>
-                      {formatTime(h.start_time)} - {formatTime(h.end_time)}
-                    </TableCell>
-                    <TableCell>{t(h.status)}</TableCell>
-                    <TableCell>
-                      {h.status.toLowerCase() === 'approved' && (
-                        <>
-                          <Button
-                            size="small"
-                            onClick={() => setCancelBooking(h)}
-                          >
-                            {t('cancel')}
-                          </Button>
-                          <Button
-                            size="small"
-                            onClick={() => setRescheduleBooking(h)}
-                          >
-                            {t('reschedule')}
-                          </Button>
-                          {h.recurring_id && (
-                            <Button
-                              size="small"
-                              onClick={() => setCancelSeriesId(h.recurring_id!)}
-                            >
-                              {t('cancel_all_upcoming_short')}
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )),
-              )}
-              {history.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    {t('no_bookings')}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <ResponsiveTable columns={columns} rows={rows} getRowKey={h => h.id} />
       )}
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
