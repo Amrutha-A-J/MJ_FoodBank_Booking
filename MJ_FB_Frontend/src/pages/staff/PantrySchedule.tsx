@@ -22,6 +22,17 @@ import {
   Checkbox,
   FormControlLabel,
   TextField,
+  Typography,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Box,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
@@ -61,6 +72,14 @@ export default function PantrySchedule({
   });
   const [streamError, setStreamError] = useState(false);
   const [esRetry, setEsRetry] = useState(0);
+
+  const handleAssignClose = () => {
+    setAssignSlot(null);
+    setSearchTerm("");
+    setAssignMessage("");
+    setIsNewClient(false);
+    setNewClient({ name: "", email: "", phone: "" });
+  };
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -330,14 +349,9 @@ export default function PantrySchedule({
           };
         } else if (!withinCapacity) {
           content = (
-            <span
-              style={{
-                color: theme.palette.text.secondary,
-                fontSize: "0.75rem",
-              }}
-            >
+            <Typography variant="caption" color="text.secondary">
               Over capacity
-            </span>
+            </Typography>
           );
         } else {
           content = "";
@@ -353,13 +367,11 @@ export default function PantrySchedule({
 
   return (
     <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2 }}
       >
         <Button
           onClick={() => changeDay(-1)}
@@ -368,15 +380,15 @@ export default function PantrySchedule({
         >
           Previous
         </Button>
-        <h3>
+        <Typography component="h3">
           {dateStr} - {dayName}
           {isHoliday
             ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
             : isWeekend
               ? " (Weekend)"
               : ""}
-        </h3>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        </Typography>
+        <Stack direction="row" spacing={1} alignItems="center">
           <Button
             onClick={() =>
               setCurrentDate(
@@ -396,8 +408,8 @@ export default function PantrySchedule({
           >
             Next
           </Button>
-        </div>
-      </div>
+        </Stack>
+      </Stack>
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
@@ -406,7 +418,7 @@ export default function PantrySchedule({
         action={snackbar?.action}
       />
       {streamError && (
-        <p style={{ color: theme.palette.error.main, textAlign: "center" }}>
+        <Typography color="error" align="center">
           Live updates unavailable{" "}
           <Button
             onClick={retryStream}
@@ -416,21 +428,19 @@ export default function PantrySchedule({
           >
             Retry
           </Button>
-        </p>
+        </Typography>
       )}
       {isClosed ? (
-        <p style={{ textAlign: "center" }}>
+        <Typography align="center">
           Moose Jaw food bank is closed for {dayName}
-        </p>
+        </Typography>
       ) : (
         <>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              marginBottom: 8,
-            }}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            sx={{ mb: 1 }}
           >
             {[
               { label: "Approved", color: statusColors.approved },
@@ -441,23 +451,17 @@ export default function PantrySchedule({
                 color: theme.palette.warning.light,
               },
             ].map((item) => (
-              <span
+              <Chip
                 key={item.label}
-                style={{ display: "flex", alignItems: "center", gap: 4 }}
-              >
-                <span
-                  style={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: item.color,
-                    border: "1px solid #ccc",
-                    borderRadius: 4,
-                  }}
-                />
-                {item.label}
-              </span>
+                label={item.label}
+                size="small"
+                sx={{
+                  bgcolor: item.color,
+                  color: theme.palette.getContrastText(item.color),
+                }}
+              />
             ))}
-          </div>
+          </Stack>
           {isSmallScreen ? (
             <ScheduleCards maxSlots={maxSlots} rows={rows} />
           ) : (
@@ -467,29 +471,16 @@ export default function PantrySchedule({
       )}
 
       {assignSlot && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.3)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+        <Dialog
+          open={!!assignSlot}
+          onClose={handleAssignClose}
+          fullWidth
+          maxWidth="xs"
+          sx={{ zIndex: (t) => t.zIndex.modal }}
+          PaperProps={{ sx: { p: 2, borderRadius: 2 } }}
         >
-          <div
-            style={{
-              background: "white",
-              padding: 16,
-              borderRadius: 10,
-              width: 300,
-              maxWidth: "90vw",
-            }}
-          >
-            <h4>Assign User</h4>
+          <DialogTitle>Assign User</DialogTitle>
+          <DialogContent>
             <FormControlLabel
               control={
                 <Checkbox
@@ -500,7 +491,7 @@ export default function PantrySchedule({
               label={<>New client</>}
             />
             {isNewClient ? (
-              <>
+              <Stack spacing={1} sx={{ mt: 1 }}>
                 <TextField
                   label="Name"
                   value={newClient.name}
@@ -537,7 +528,7 @@ export default function PantrySchedule({
                 >
                   Assign
                 </Button>
-              </>
+              </Stack>
             ) : (
               <>
                 <TextField
@@ -547,44 +538,42 @@ export default function PantrySchedule({
                   fullWidth
                   margin="dense"
                 />
-                <ul
-                  style={{
-                    listStyle: "none",
-                    paddingLeft: 0,
-                    maxHeight: "150px",
-                    overflowY: "auto",
-                  }}
-                >
+                <List sx={{ maxHeight: 150, overflowY: "auto" }}>
                   {userResults.map((u) => (
-                    <li key={u.client_id} style={{ marginBottom: 4 }}>
-                      {u.name} ({u.email})
-                      <Button
-                        style={{ marginLeft: 4 }}
-                        onClick={() => assignExistingUser(u)}
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                      >
-                        Assign
-                      </Button>
-                    </li>
+                    <ListItem
+                      key={u.client_id}
+                      sx={{ mb: 0.5 }}
+                      secondaryAction={
+                        <Button
+                          onClick={() => assignExistingUser(u)}
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          sx={{ ml: 0.5 }}
+                        >
+                          Assign
+                        </Button>
+                      }
+                    >
+                      <ListItemText primary={`${u.name} (${u.email})`} />
+                    </ListItem>
                   ))}
-                  {assignSlot &&
-                    searchTerm.length >= 3 &&
-                    userResults.length === 0 && (
-                      <li>
-                        No search results.
+                  {searchTerm.length >= 3 && userResults.length === 0 && (
+                    <ListItem
+                      secondaryAction={
                         <Button
                           size="small"
                           variant="text"
                           onClick={() => setIsNewClient(true)}
-                          sx={{ ml: 1 }}
                         >
                           Create new client
                         </Button>
-                      </li>
-                    )}
-                </ul>
+                      }
+                    >
+                      <ListItemText primary="No search results." />
+                    </ListItem>
+                  )}
+                </List>
               </>
             )}
             <FeedbackSnackbar
@@ -593,21 +582,13 @@ export default function PantrySchedule({
               message={assignMessage}
               severity="error"
             />
-            <Button
-              onClick={() => {
-                setAssignSlot(null);
-                setSearchTerm("");
-                setAssignMessage("");
-                setIsNewClient(false);
-                setNewClient({ name: "", email: "", phone: "" });
-              }}
-              variant="outlined"
-              color="primary"
-            >
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleAssignClose} variant="outlined" color="primary">
               Close
             </Button>
-          </div>
-        </div>
+          </DialogActions>
+        </Dialog>
       )}
 
       {manageBooking && (
