@@ -6,11 +6,6 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   TableContainer,
   Stack,
   TextField,
@@ -30,6 +25,7 @@ import {
   type PigPound,
 } from '../../api/pigPounds';
 import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -105,58 +101,55 @@ export default function TrackPigpound() {
       );
   }
 
+  type PigPoundRow = PigPound & { actions?: string };
+
+  const columns: Column<PigPoundRow>[] = [
+    { field: 'date', header: 'Date', render: e => formatLocaleDate(e.date) },
+    {
+      field: 'weight',
+      header: 'Weight (lbs)',
+      render: e => `${e.weight} lbs`,
+    },
+    {
+      field: 'actions' as keyof PigPoundRow & string,
+      header: 'Actions',
+      render: e => (
+        <>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setEditing(e);
+              setForm({ date: formatDate(e.date), weight: String(e.weight) });
+              setRecordOpen(true);
+            }}
+            aria-label="Edit entry"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setToDelete(e);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete entry"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
+
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Weight (lbs)</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {entries.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={3} align="center">
-                No records
-              </TableCell>
-            </TableRow>
-          ) : (
-            entries.map(e => (
-              <TableRow key={e.id}>
-                <TableCell>
-                  {formatLocaleDate(e.date)}
-                </TableCell>
-                <TableCell>{e.weight} lbs</TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setEditing(e);
-                      setForm({ date: formatDate(e.date), weight: String(e.weight) });
-                      setRecordOpen(true);
-                    }}
-                    aria-label="Edit entry"
-                  >
-                    <Edit fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      setToDelete(e);
-                      setDeleteOpen(true);
-                    }}
-                    aria-label="Delete entry"
-                  >
-                    <Delete fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+      {entries.length === 0 ? (
+        <Stack alignItems="center" py={2}>
+          No records
+        </Stack>
+      ) : (
+        <ResponsiveTable columns={columns} rows={entries} getRowKey={r => r.id} />
+      )}
     </TableContainer>
   );
 

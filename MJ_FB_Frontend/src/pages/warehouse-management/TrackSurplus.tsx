@@ -6,11 +6,6 @@ import {
   DialogContent,
   DialogTitle,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TableContainer,
   TextField,
   MenuItem,
@@ -34,6 +29,7 @@ import {
   getWarehouseSettings,
   type WarehouseSettings,
 } from '../../api/warehouseSettings';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -121,59 +117,67 @@ export default function TrackSurplus() {
       .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save surplus' }));
   }
 
+  type SurplusRow = Surplus & { actions?: string };
+
+  const columns: Column<SurplusRow>[] = [
+    {
+      field: 'date',
+      header: 'Date',
+      render: r =>
+        formatLocaleDate(r.date, {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+    },
+    { field: 'type', header: 'Type' },
+    { field: 'count', header: 'Count' },
+    {
+      field: 'weight',
+      header: 'Weight (lbs)',
+      render: r => `${r.weight} lbs`,
+    },
+    {
+      field: 'actions' as keyof SurplusRow & string,
+      header: 'Actions',
+      render: r => (
+        <>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setEditing(r);
+              setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
+              setRecordOpen(true);
+            }}
+            aria-label="Edit surplus"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setToDelete(r);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete surplus"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+    },
+  ];
+
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Count</TableCell>
-            <TableCell>Weight (lbs)</TableCell>
-            <TableCell align="right"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredRecords.map(r => (
-            <TableRow key={r.id}>
-              <TableCell>
-                {formatLocaleDate(r.date, {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </TableCell>
-              <TableCell>{r.type}</TableCell>
-              <TableCell>{r.count}</TableCell>
-              <TableCell>{r.weight} lbs</TableCell>
-              <TableCell align="right">
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setEditing(r);
-                    setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
-                    setRecordOpen(true);
-                  }}
-                  aria-label="Edit surplus"
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setToDelete(r);
-                    setDeleteOpen(true);
-                  }}
-                  aria-label="Delete surplus"
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {filteredRecords.length ? (
+        <ResponsiveTable columns={columns} rows={filteredRecords} getRowKey={r => r.id} />
+      ) : (
+        <Stack alignItems="center" py={2}>
+          No records
+        </Stack>
+      )}
     </TableContainer>
   );
 

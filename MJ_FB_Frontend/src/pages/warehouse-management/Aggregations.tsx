@@ -1,10 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   TableContainer,
   FormControl,
   InputLabel,
@@ -26,6 +21,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -187,139 +183,52 @@ export default function Aggregations() {
         </Button>
       </Stack>
       <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
-        <Table size="small" stickyHeader ref={donorTableRef}>
-          <TableHead>
-            <TableRow>
-              <TableCell
-                sx={{
-                  position: 'sticky',
-                  left: 0,
-                  zIndex: 3,
-                  backgroundColor: 'background.paper',
-                }}
-              >
-                Donor
-              </TableCell>
-              {monthNames.map((name, idx) => (
-                <TableCell
-                  key={idx}
-                  align="right"
-                  sx={{ top: 0, zIndex: 2, backgroundColor: 'background.paper' }}
-                >
-                  {name}
-                </TableCell>
-              ))}
-              <TableCell
-                align="right"
-                sx={{ position: 'sticky', right: 0, top: 0, zIndex: 3, backgroundColor: 'background.paper' }}
-              >
-                Total
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {donorLoading ? (
-              <TableRow>
-                <TableCell colSpan={monthNames.length + 2} align="center">
-                  <CircularProgress size={24} />
-                </TableCell>
-              </TableRow>
-            ) : (
-              (() => {
-                const monthTotals = Array(12).fill(0);
-                donorRows.forEach(d =>
-                  d.monthlyTotals.forEach((v, i) => {
-                    monthTotals[i] += v;
-                  }),
-                );
-                return (
-                  <>
-                    {donorRows.map(d => {
-                      const hasDonation = d.total > 0;
-                      return (
-                        <TableRow key={d.donor}>
-                          <TableCell
-                            sx={{
-                              position: 'sticky',
-                              left: 0,
-                              zIndex: 2,
-                              backgroundColor: 'background.paper',
-                              fontWeight: hasDonation ? 'bold' : undefined,
-                            }}
-                          >
-                            {d.donor}
-                          </TableCell>
-                          {d.monthlyTotals.map((value, idx) => (
-                            <TableCell
-                              key={idx}
-                              align="right"
-                              sx={{ fontWeight: value > 0 ? 'bold' : undefined }}
-                            >
-                              {value}
-                            </TableCell>
-                          ))}
-                          <TableCell
-                            align="right"
-                            sx={{
-                              position: 'sticky',
-                              right: 0,
-                              zIndex: 2,
-                              backgroundColor: 'background.paper',
-                              fontWeight: hasDonation ? 'bold' : undefined,
-                            }}
-                          >
-                            {d.total}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                    <TableRow>
-                      <TableCell
-                        sx={{
-                          position: 'sticky',
-                          left: 0,
-                          bottom: 0,
-                          zIndex: 3,
-                          backgroundColor: 'background.paper',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        Total
-                      </TableCell>
-                      {monthTotals.map((total, idx) => (
-                        <TableCell
-                          key={idx}
-                          align="right"
-                          sx={{
-                            bottom: 0,
-                            position: 'sticky',
-                            backgroundColor: 'background.paper',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {total}
-                        </TableCell>
-                      ))}
-                      <TableCell
-                        align="right"
-                        sx={{
-                          position: 'sticky',
-                          right: 0,
-                          bottom: 0,
-                          zIndex: 3,
-                          backgroundColor: 'background.paper',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {monthTotals.reduce((a, b) => a + b, 0)}
-                      </TableCell>
-                    </TableRow>
-                  </>
-                );
-              })()
-            )}
-          </TableBody>
-        </Table>
+        {(() => {
+          const donorRowsData = donorRows.map(d => {
+            const row: any = { donor: d.donor, total: d.total };
+            monthNames.forEach((_, idx) => {
+              row[`m${idx}`] = d.monthlyTotals[idx];
+            });
+            return row;
+          });
+          const monthTotals = Array(12).fill(0);
+          donorRows.forEach(d =>
+            d.monthlyTotals.forEach((v, i) => {
+              monthTotals[i] += v;
+            }),
+          );
+          const totalsRow: any = { donor: 'Total', total: monthTotals.reduce((a, b) => a + b, 0) };
+          monthNames.forEach((_, idx) => {
+            totalsRow[`m${idx}`] = monthTotals[idx];
+          });
+
+          type DonorRow = typeof donorRowsData[number];
+
+          const columns: Column<DonorRow>[] = [
+            { field: 'donor', header: 'Donor' },
+            ...monthNames.map((name, idx) => ({
+              field: `m${idx}` as keyof DonorRow & string,
+              header: name,
+              render: (r: any) => r[`m${idx}`],
+            })),
+            { field: 'total', header: 'Total' },
+          ];
+
+          const rows = [...donorRowsData, totalsRow];
+
+          return donorLoading ? (
+            <Stack alignItems="center" py={2}>
+              <CircularProgress size={24} />
+            </Stack>
+          ) : (
+            <ResponsiveTable
+              columns={columns}
+              rows={rows}
+              getRowKey={r => r.donor}
+              tableRef={donorTableRef}
+            />
+          );
+        })()}
       </TableContainer>
     </>
   );
@@ -352,45 +261,42 @@ export default function Aggregations() {
         </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Month</TableCell>
-              <TableCell align="right">Donations</TableCell>
-              <TableCell align="right">Surplus</TableCell>
-              <TableCell align="right">Pig Pound</TableCell>
-              <TableCell align="right">Outgoing Donations</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {overallLoading ? (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  <CircularProgress size={24} />
-                </TableCell>
-              </TableRow>
-            ) : (
-              <>
-                {overallData.map((r, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{monthNames[r.month - 1]}</TableCell>
-                    <TableCell align="right">{r.donations}</TableCell>
-                    <TableCell align="right">{r.surplus}</TableCell>
-                    <TableCell align="right">{r.pigPound}</TableCell>
-                    <TableCell align="right">{r.outgoingDonations}</TableCell>
-                  </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell>Total</TableCell>
-                  <TableCell align="right">{totals.donations}</TableCell>
-                  <TableCell align="right">{totals.surplus}</TableCell>
-                  <TableCell align="right">{totals.pigPound}</TableCell>
-                  <TableCell align="right">{totals.outgoingDonations}</TableCell>
-                </TableRow>
-              </>
-            )}
-          </TableBody>
-        </Table>
+        {overallLoading ? (
+          <Stack alignItems="center" py={2}>
+            <CircularProgress size={24} />
+          </Stack>
+        ) : (
+          (() => {
+            const columns: Column<WarehouseOverall & { monthName: string }>[] = [
+              { field: 'monthName', header: 'Month' },
+              { field: 'donations', header: 'Donations' },
+              { field: 'surplus', header: 'Surplus' },
+              { field: 'pigPound', header: 'Pig Pound' },
+              { field: 'outgoingDonations', header: 'Outgoing Donations' },
+            ];
+
+            const rows = overallData.map(r => ({
+              ...r,
+              monthName: monthNames[r.month - 1],
+            }));
+            rows.push({
+              month: 13,
+              monthName: 'Total',
+              donations: totals.donations,
+              surplus: totals.surplus,
+              pigPound: totals.pigPound,
+              outgoingDonations: totals.outgoingDonations,
+            } as any);
+
+            return (
+              <ResponsiveTable
+                columns={columns}
+                rows={rows}
+                getRowKey={r => r.monthName}
+              />
+            );
+          })()
+        )}
       </TableContainer>
     </>
   );
