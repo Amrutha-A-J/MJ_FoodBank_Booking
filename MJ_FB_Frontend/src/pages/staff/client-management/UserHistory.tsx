@@ -95,11 +95,25 @@ export default function UserHistory({
     else if (filter !== 'all') opts.status = filter;
     return getBookingHistory(opts)
       .then(data => {
-        const arr = Array.isArray(data) ? data : [data];
-        const sorted = arr.sort(
+        const arr = Array.isArray(data) ? [...data] : [data];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const active = arr
+          .filter(
+            b =>
+              b.status === 'approved' &&
+              toDate(b.date).getTime() >= today.getTime(),
+          )
+          .sort(
+            (a, b) =>
+              toDate(a.date).getTime() - toDate(b.date).getTime(),
+          )[0];
+        const remaining = active ? arr.filter(b => b !== active) : arr;
+        const sorted = remaining.sort(
           (a, b) => toDate(b.date).getTime() - toDate(a.date).getTime(),
         );
-        setBookings(sorted);
+        const ordered = active ? [active, ...sorted] : sorted;
+        setBookings(ordered);
         setPage(1);
       })
       .catch(err => console.error('Error loading history:', err));

@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import UserHistory from '../pages/staff/client-management/UserHistory';
 import { getBookingHistory, cancelBooking } from '../api/bookings';
@@ -9,6 +9,7 @@ import {
   requestPasswordReset,
 } from '../api/users';
 import { useAuth } from '../hooks/useAuth';
+import { formatDate } from '../utils/date';
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn(),
@@ -115,6 +116,84 @@ describe('UserHistory', () => {
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(await screen.findByText('Jan 15, 2024')).toBeInTheDocument();
+  });
+
+  it('orders active booking first and sorts others by date desc', async () => {
+    const today = new Date();
+    const fmt = (d: Date) => formatDate(d, 'YYYY-MM-DD');
+    const disp = (d: Date) => formatDate(d, 'MMM D, YYYY');
+    const past1 = new Date(today);
+    past1.setDate(past1.getDate() - 5);
+    const future1 = new Date(today);
+    future1.setDate(future1.getDate() + 5);
+    const future2 = new Date(today);
+    future2.setDate(future2.getDate() + 10);
+    const past2 = new Date(today);
+    past2.setDate(past2.getDate() - 10);
+
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'visited',
+        date: fmt(past1),
+        start_time: null,
+        end_time: null,
+        created_at: fmt(past1),
+        slot_id: null,
+        is_staff_booking: false,
+        reschedule_token: null,
+      },
+      {
+        id: 2,
+        status: 'approved',
+        date: fmt(future1),
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: fmt(future1),
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 'a',
+      },
+      {
+        id: 3,
+        status: 'approved',
+        date: fmt(future2),
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: fmt(future2),
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 'b',
+      },
+      {
+        id: 4,
+        status: 'approved',
+        date: fmt(past2),
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: fmt(past2),
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 'c',
+      },
+    ]);
+
+    setScreen(false);
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText(disp(future1));
+    const rows = screen.getAllByRole('row').slice(1);
+    const dates = rows.map(row => within(row).getByText(/\d{4}/).textContent);
+    expect(dates).toEqual([
+      disp(future1),
+      disp(future2),
+      disp(past1),
+      disp(past2),
+    ]);
   });
 
   it('hides edit client button when initialUser is provided', async () => {
