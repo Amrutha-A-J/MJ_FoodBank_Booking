@@ -3,39 +3,30 @@ import { MemoryRouter } from 'react-router-dom';
 import WarehouseQuickLinks from '../components/WarehouseQuickLinks';
 
 describe('WarehouseQuickLinks', () => {
-  it('renders links to warehouse routes', () => {
+  it('renders warehouse tracking links only', () => {
     render(
       <MemoryRouter>
         <WarehouseQuickLinks />
       </MemoryRouter>
     );
-    expect(screen.getByRole('link', { name: /Dashboard/i })).toHaveAttribute(
-      'href',
-      '/warehouse-management',
-    );
-    expect(screen.getByRole('link', { name: /Donation Log/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Track Donation/i })).toHaveAttribute(
       'href',
       '/warehouse-management/donation-log',
+    );
+    expect(
+      screen.getByRole('link', { name: /Track Pig Pounds/i }),
+    ).toHaveAttribute('href', '/warehouse-management/track-pigpound');
+    expect(screen.getByRole('link', { name: /Track Outgoing/i })).toHaveAttribute(
+      'href',
+      '/warehouse-management/track-outgoing-donations',
     );
     expect(screen.getByRole('link', { name: /Track Surplus/i })).toHaveAttribute(
       'href',
       '/warehouse-management/track-surplus',
     );
-    expect(screen.getByRole('link', { name: /Track Pigpound/i })).toHaveAttribute(
-      'href',
-      '/warehouse-management/track-pigpound',
-    );
-    expect(
-      screen.getByRole('link', { name: /Track Outgoing Donations/i }),
-    ).toHaveAttribute('href', '/warehouse-management/track-outgoing-donations');
-    expect(screen.getByRole('link', { name: /Aggregations/i })).toHaveAttribute(
-      'href',
-      '/warehouse-management/aggregations',
-    );
-    expect(screen.getByRole('link', { name: /Exports/i })).toHaveAttribute(
-      'href',
-      '/warehouse-management/exports',
-    );
+    expect(screen.queryByRole('link', { name: /Dashboard/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Aggregations/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Exports/i })).not.toBeInTheDocument();
   });
 });
 

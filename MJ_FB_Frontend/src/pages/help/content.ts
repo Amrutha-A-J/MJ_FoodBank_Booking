@@ -428,7 +428,7 @@ export function getHelpContent(
       title: 'Warehouse quick links',
       body: {
         description:
-          'Warehouse pages include a quick-access bar with links to Dashboard, Donation Log, Track Surplus, Track Pigpound, Track Outgoing Donations, Aggregations, and Exports.',
+          'Warehouse pages include a quick-access bar with links to Track Donation, Track Pig Pounds, Track Outgoing, and Track Surplus.',
       },
     },
     {
