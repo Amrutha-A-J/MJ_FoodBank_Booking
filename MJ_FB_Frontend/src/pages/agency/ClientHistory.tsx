@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ReactNode } from 'react';
 import { getBookingHistory, cancelBooking } from '../../api/bookings';
 import { getMyAgencyClients } from '../../api/agencies';
 import { formatTime } from '../../utils/time';
@@ -9,19 +9,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TableContainer,
-  useMediaQuery,
-  useTheme,
   Stack,
   Typography,
-  Card,
-  CardContent,
-  CardActions,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import EntitySearch from '../../components/EntitySearch';
@@ -30,6 +20,7 @@ import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import type { Booking } from '../../types';
 
 interface User {
@@ -116,15 +107,78 @@ export default function ClientHistory() {
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const cellSx = {
-    border: 1,
-    borderColor: 'divider',
-    p: isSmall ? 0.5 : 1,
-    fontSize: isSmall ? '0.85rem' : undefined,
-    textAlign: 'left',
-  } as const;
+  const columns: {
+    field: keyof Booking & string;
+    header: string;
+    render?: (row: Booking) => ReactNode;
+  }[] = [
+    {
+      field: 'date',
+      header: t('date'),
+      render: b =>
+        b.date && !isNaN(toDate(b.date).getTime())
+          ? formatDate(b.date, 'MMM D, YYYY')
+          : 'N/A',
+    },
+    {
+      field: 'start_time',
+      header: t('time'),
+      render: b => {
+        const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
+        const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
+        return startTime !== 'N/A' && endTime !== 'N/A'
+          ? `${startTime} - ${endTime}`
+          : 'N/A';
+      },
+    },
+    {
+      field: 'status',
+      header: t('status'),
+      render: b => t(b.status),
+    },
+    {
+      field: 'reason',
+      header: t('reason'),
+      render: b => b.reason || '',
+    },
+    {
+      field: 'staff_note',
+      header: t('staff_note_label'),
+      render: b =>
+        b.staff_note ? (
+          <Typography variant="body2">{b.staff_note}</Typography>
+        ) : (
+          ''
+        ),
+    },
+    {
+      field: 'id',
+      header: t('actions'),
+      render: b =>
+        ['approved'].includes(b.status.toLowerCase()) && (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+          >
+            <Button
+              onClick={() => setRescheduleBooking(b)}
+              variant="outlined"
+              color="primary"
+            >
+              {t('reschedule')}
+            </Button>
+            <Button
+              onClick={() => handleCancel(b)}
+              variant="outlined"
+              color="error"
+            >
+              {t('cancel')}
+            </Button>
+          </Stack>
+        ),
+    },
+  ];
 
   const handleCancel = async (b: Booking) => {
     if (!window.confirm('Cancel this booking?')) return;
@@ -166,144 +220,15 @@ export default function ClientHistory() {
                 <MenuItem value="past">{t('past')}</MenuItem>
               </Select>
             </FormControl>
-            {isSmall ? (
-              paginated.length === 0 ? (
-                <Typography align="center">{t('no_bookings')}</Typography>
-              ) : (
-                <Stack spacing={2}>
-                  {paginated.map(b => {
-                    const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-                    const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-                    const formattedDate =
-                      b.date && !isNaN(toDate(b.date).getTime())
-                        ? formatDate(b.date, 'MMM D, YYYY')
-                        : 'N/A';
-                    return (
-                      <Card key={`${b.id}-${b.date}`}>
-                        <CardContent>
-                          <Typography variant="subtitle2">
-                            {t('date')}: {formattedDate}
-                          </Typography>
-                          <Typography variant="body2">
-                            {t('time')}: {startTime !== 'N/A' && endTime !== 'N/A'
-                              ? `${startTime} - ${endTime}`
-                              : 'N/A'}
-                          </Typography>
-                          <Typography variant="body2">
-                            {t('status')}: {t(b.status)}
-                          </Typography>
-                          {b.reason && (
-                            <Typography variant="body2">
-                              {t('reason')}: {b.reason}
-                            </Typography>
-                          )}
-                          {b.staff_note && (
-                            <Typography variant="body2">
-                              {t('staff_note_label')}: {b.staff_note}
-                            </Typography>
-                          )}
-                        </CardContent>
-                        <CardActions>
-                          <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
-                            {['approved'].includes(b.status.toLowerCase()) && (
-                              <>
-                                <Button
-                                  onClick={() => setRescheduleBooking(b)}
-                                  variant="outlined"
-                                  color="primary"
-                                  fullWidth
-                                >
-                                  {t('reschedule')}
-                                </Button>
-                                <Button
-                                  onClick={() => handleCancel(b)}
-                                  variant="outlined"
-                                  color="error"
-                                  fullWidth
-                                >
-                                  {t('cancel')}
-                                </Button>
-                              </>
-                            )}
-                          </Stack>
-                        </CardActions>
-                      </Card>
-                    );
-                  })}
-                </Stack>
-              )
+            {paginated.length === 0 ? (
+              <Typography align="center">{t('no_bookings')}</Typography>
             ) : (
               <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={cellSx}>{t('date')}</TableCell>
-                      <TableCell sx={cellSx}>{t('time')}</TableCell>
-                      <TableCell sx={cellSx}>{t('status')}</TableCell>
-                      <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                      <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
-                      <TableCell sx={cellSx}>{t('actions')}</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginated.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} sx={{ textAlign: 'center' }}>
-                          {t('no_bookings')}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    {paginated.map(b => {
-                      const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-                      const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-                      const formattedDate =
-                        b.date && !isNaN(toDate(b.date).getTime())
-                          ? formatDate(b.date, 'MMM D, YYYY')
-                          : 'N/A';
-                      return (
-                        <TableRow key={`${b.id}-${b.date}`}>
-                          <TableCell sx={cellSx}>{formattedDate}</TableCell>
-                          <TableCell sx={cellSx}>
-                            {startTime !== 'N/A' && endTime !== 'N/A'
-                              ? `${startTime} - ${endTime}`
-                              : 'N/A'}
-                          </TableCell>
-                          <TableCell sx={cellSx}>{t(b.status)}</TableCell>
-                          <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                          <TableCell sx={cellSx}>
-                            {b.staff_note && (
-                              <Typography variant="body2">{b.staff_note}</Typography>
-                            )}
-                          </TableCell>
-                          <TableCell sx={cellSx}>
-                            {['approved'].includes(b.status.toLowerCase()) && (
-                              <Stack
-                                direction={isSmall ? 'column' : 'row'}
-                                spacing={1}
-                                alignItems={isSmall ? 'stretch' : 'center'}
-                              >
-                                <Button
-                                  onClick={() => setRescheduleBooking(b)}
-                                  variant="outlined"
-                                  color="primary"
-                                >
-                                  {t('reschedule')}
-                                </Button>
-                                <Button
-                                  onClick={() => handleCancel(b)}
-                                  variant="outlined"
-                                  color="error"
-                                >
-                                  {t('cancel')}
-                                </Button>
-                              </Stack>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <ResponsiveTable
+                  columns={columns}
+                  rows={paginated}
+                  getRowKey={b => `${b.id}-${b.date}`}
+                />
               </TableContainer>
             )}
             {totalPages > 1 && (

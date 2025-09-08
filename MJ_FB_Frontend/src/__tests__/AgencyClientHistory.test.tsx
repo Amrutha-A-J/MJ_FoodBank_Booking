@@ -117,7 +117,19 @@ describe('Agency ClientHistory', () => {
     (getMyAgencyClients as jest.Mock).mockResolvedValue([
       { client_id: 1, name: 'Client One' },
     ]);
-    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: '2024-01-01',
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 'tok',
+      },
+    ]);
     render(<ClientHistory />);
     fireEvent.click(screen.getByText('select client'));
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
