@@ -216,7 +216,7 @@ export async function fetchBookingHistory(
        LEFT JOIN slots s ON b.slot_id = s.id
        LEFT JOIN client_visits v ON v.client_id = b.user_id AND v.date = b.date
        WHERE ${where}
-       ORDER BY b.created_at DESC${limitOffset}`,
+       ORDER BY (b.status='approved' AND b.date >= CURRENT_DATE) DESC, b.date DESC${limitOffset}`,
     params,
   );
   let rows = res.rows;
@@ -235,10 +235,15 @@ export async function fetchBookingHistory(
       [userIds],
     );
     rows = rows.concat(visitRes.rows);
-    rows.sort(
-      (a: any, b: any) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
+    const today = new Date().toISOString().slice(0, 10);
+    rows.sort((a: any, b: any) => {
+      const aUpcoming = a.status === 'approved' && a.date >= today;
+      const bUpcoming = b.status === 'approved' && b.date >= today;
+      if (aUpcoming !== bUpcoming) {
+        return aUpcoming ? -1 : 1;
+      }
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
     if (typeof offset === 'number') {
       rows = rows.slice(offset);
     }
