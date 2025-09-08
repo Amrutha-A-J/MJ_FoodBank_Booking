@@ -43,16 +43,6 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
-## Progressive Web App
-
-The app registers a service worker when running in a secure context. Use HTTPS when serving the built site. Set `VITE_ENABLE_SERVICE_WORKER=true` to register the worker outside production for local PWA testing.
-
-- An **Install App** button appears when the browser allows installation; click it to add the app.
-- iOS users must open the site in Safari and choose **Add to Home Screen**.
-
-- `npm run preview` serves the production build over HTTPS.
-- The Docker image uses Nginx configured for HTTPS. Provide `tls.crt` and `tls.key` under `/etc/nginx/certs`.
-
 ## Mobile Responsiveness
 
 Layouts are built with Material UI and include CSS adjustments for small screens. Review changes on screens below 600px to ensure components remain usable.
