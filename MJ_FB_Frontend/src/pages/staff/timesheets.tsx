@@ -62,7 +62,7 @@ interface DayRow extends Day {
 
 export default function Timesheets() {
   const { t } = useTranslation();
-  const inAdmin = useMatch('/admin/*') !== null;
+  const inAdmin = useMatch('/admin/timesheet') !== null;
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [staff, setStaff] = useState<StaffOption | null>(null);
