@@ -18,6 +18,7 @@ import {
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
@@ -307,7 +308,7 @@ export default function Aggregations() {
   ];
 
   return (
-    <Page title="Aggregations">
+    <Page title="Aggregations" header={<WarehouseQuickLinks />}>
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
       <FeedbackSnackbar
         open={snackbar.open}

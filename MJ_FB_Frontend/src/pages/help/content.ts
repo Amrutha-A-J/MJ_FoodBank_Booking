@@ -425,6 +425,13 @@ export function getHelpContent(
   warehouse: [
     installAppSection,
     {
+      title: 'Warehouse quick links',
+      body: {
+        description:
+          'Warehouse pages include a quick-access bar with links to Dashboard, Donation Log, Track Surplus, Track Pigpound, Track Outgoing Donations, Aggregations, and Exports.',
+      },
+    },
+    {
       title: 'View volunteers on duty',
       body: {
         description: 'Volunteer Coverage lists scheduled warehouse volunteers.',

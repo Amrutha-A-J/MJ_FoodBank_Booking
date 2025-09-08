@@ -16,6 +16,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import { getDonors, createDonor } from '../../api/donors';
@@ -180,29 +181,32 @@ export default function DonationLog() {
     <Page
       title="Donation Log"
       header={
-        <Stack direction="row" spacing={1} mb={2}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: format(selectedDate), donorId: null, weight: '' });
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Donation
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setNewDonorOpen(true);
-            }}
-          >
-            Add Donor
-          </Button>
+        <Stack spacing={2}>
+          <WarehouseQuickLinks />
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={e => {
+                (e.currentTarget as HTMLButtonElement).blur();
+                setForm({ date: format(selectedDate), donorId: null, weight: '' });
+                setEditing(null);
+                setRecordOpen(true);
+              }}
+            >
+              Record Donation
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={e => {
+                (e.currentTarget as HTMLButtonElement).blur();
+                setNewDonorOpen(true);
+              }}
+            >
+              Add Donor
+            </Button>
+          </Stack>
         </Stack>
       }
     >

@@ -16,6 +16,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoingReceivers';
@@ -195,28 +196,31 @@ export default function TrackOutgoingDonations() {
     <Page
       title="Track Outgoing Donations"
       header={
-        <Stack direction="row" spacing={1} mb={2}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => {
-              setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
-              setEditing(null);
-              setRecordOpen(true);
-            }}
-          >
-            Record Outgoing Donation
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => {
-              setReceiverName('');
-              setNewReceiverOpen(true);
-            }}
-          >
-            Add Receiver
-          </Button>
+        <Stack spacing={2}>
+          <WarehouseQuickLinks />
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant="contained"
+              onClick={() => {
+                setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
+                setEditing(null);
+                setRecordOpen(true);
+              }}
+            >
+              Record Outgoing Donation
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => {
+                setReceiverName('');
+                setNewReceiverOpen(true);
+              }}
+            >
+              Add Receiver
+            </Button>
+          </Stack>
         </Stack>
       }
     >

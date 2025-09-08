@@ -47,6 +47,7 @@ import { getTopReceivers, type TopReceiver } from '../../api/outgoingReceivers';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 
 interface MonthlyTotal {
   year: number;
@@ -248,7 +249,7 @@ export default function WarehouseDashboard() {
   ];
 
   return (
-    <Page title="Warehouse Manager Dashboard">
+    <Page title="Warehouse Manager Dashboard" header={<WarehouseQuickLinks />}>
       <Box>
       <Stack
         direction={{ xs: 'column', md: 'row' }}

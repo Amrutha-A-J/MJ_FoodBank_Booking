@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import {
   getWarehouseOverallYears,
   rebuildWarehouseOverall,
@@ -88,7 +89,7 @@ export default function Exports() {
   };
 
   return (
-    <Page title="Exports">
+    <Page title="Exports" header={<WarehouseQuickLinks />}>
       <Stack spacing={2} sx={{ mb: 2 }} direction="row">
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel id="year-label">Year</InputLabel>
