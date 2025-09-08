@@ -19,7 +19,7 @@ import {
   useLeaveRequests,
   type LeaveRequest,
 } from '../../api/leaveRequests';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { formatLocaleDate } from '../../utils/date';
 import { useState } from 'react';
 
@@ -32,7 +32,7 @@ export default function LeaveManagement() {
   const { requests } = useLeaveRequests(current?.staff_id);
   const [open, setOpen] = useState(false);
 
-  const columns = [
+  const columns: Column<LeaveRequest>[] = [
     {
       field: 'start_date',
       header: t('leave.start_date'),
@@ -143,7 +143,7 @@ export default function LeaveManagement() {
 
           <ResponsiveTable
             columns={columns}
-            rows={requests}
+            rows={requests ?? []}
             getRowKey={r => r.id}
           />
         </Box>

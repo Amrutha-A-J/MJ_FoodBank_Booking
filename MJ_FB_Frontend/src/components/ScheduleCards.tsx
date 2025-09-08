@@ -1,4 +1,4 @@
-import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
+import { Card, CardContent, Typography, Box } from "@mui/material";
 import type { ReactNode } from "react";
 import i18n from "../i18n";
 
@@ -36,15 +36,20 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
               <Typography variant="h6" gutterBottom>
                 {row.time}
               </Typography>
-              <Grid container spacing={1}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${safeMaxSlots}, 1fr)` ,
+                  gap: 1,
+                }}
+              >
                 {row.cells.map((cell, i) => (
-                  <Grid
-                    item
+                  <Box
                     key={i}
-                    xs={(12 / safeMaxSlots) * (cell.colSpan || 1)}
                     onClick={cell.onClick}
                     sx={{
                       cursor: cell.onClick ? "pointer" : "default",
+                      gridColumn: `span ${cell.colSpan ?? 1}`,
                     }}
                   >
                     <Box
@@ -59,12 +64,12 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
                     >
                       {cell.content}
                     </Box>
-                  </Grid>
+                  </Box>
                 ))}
                 {Array.from({ length: safeMaxSlots - used }).map((_, i) => (
-                  <Grid item key={`empty-${i}`} xs={12 / safeMaxSlots} />
+                  <Box key={`empty-${i}`} />
                 ))}
-              </Grid>
+              </Box>
             </CardContent>
           </Card>
         );
