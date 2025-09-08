@@ -1094,7 +1094,14 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: 300 }}>
+          <Box
+            sx={{
+              background: 'white',
+              p: 2,
+              borderRadius: 2,
+              width: { xs: '90vw', sm: 300 },
+            }}
+          >
             <h4>Assign Volunteer</h4>
               <TextField
                 type="text"
@@ -1135,7 +1142,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             >
               Close
             </Button>
-          </div>
+          </Box>
         </div>
       )}
 
