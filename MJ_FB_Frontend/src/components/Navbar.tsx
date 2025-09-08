@@ -174,7 +174,7 @@ export default function Navbar({
               >
                 <Box
                   sx={{
-                    width: 260,
+                    width: { xs: '75vw', sm: 260 },
                     position: 'relative',
                     height: '100%',
                     overflowX: 'hidden',
