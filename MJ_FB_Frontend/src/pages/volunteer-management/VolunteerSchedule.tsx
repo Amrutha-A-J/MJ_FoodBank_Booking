@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { ReactNode } from 'react';
+import { useState, useEffect, useCallback } from "react";
+import type { ReactNode } from "react";
 import {
   getVolunteerRolesForVolunteer,
   requestVolunteerBooking,
@@ -9,25 +9,26 @@ import {
   cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
   resolveVolunteerBookingConflict,
-} from '../../api/volunteers';
-import { getHolidays } from '../../api/bookings';
+} from "../../api/volunteers";
+import { getHolidays } from "../../api/bookings";
 import type {
   VolunteerRole,
   Holiday,
   VolunteerBooking,
   VolunteerRoleGroup,
-} from '../../types';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
-import { formatTime } from '../../utils/time';
-import { formatDate, addDays } from '../../utils/date';
-import Page from '../../components/Page';
-import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
-import DialogCloseButton from '../../components/DialogCloseButton';
-import OverlapBookingDialog from '../../components/OverlapBookingDialog';
-import type { ApiError } from '../../api/client';
-import type { VolunteerBookingConflict } from '../../types';
+} from "../../types";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { formatTime } from "../../utils/time";
+import { formatDate, addDays } from "../../utils/date";
+import Page from "../../components/Page";
+import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
+import ScheduleCards from "../../components/ScheduleCards";
+import FeedbackSnackbar from "../../components/FeedbackSnackbar";
+import RescheduleDialog from "../../components/VolunteerRescheduleDialog";
+import DialogCloseButton from "../../components/DialogCloseButton";
+import OverlapBookingDialog from "../../components/OverlapBookingDialog";
+import type { ApiError } from "../../api/client";
+import type { VolunteerBookingConflict } from "../../types";
 import {
   Box,
   FormControl,
@@ -45,11 +46,12 @@ import {
   Checkbox,
   FormControlLabel,
   useTheme,
-} from '@mui/material';
-import { lighten } from '@mui/material/styles';
-import type { AlertColor } from '@mui/material';
+  useMediaQuery,
+} from "@mui/material";
+import { lighten } from "@mui/material/styles";
+import type { AlertColor } from "@mui/material";
 
-const reginaTimeZone = 'America/Regina';
+const reginaTimeZone = "America/Regina";
 
 export default function VolunteerSchedule() {
   const [currentDate, setCurrentDate] = useState(() => {
@@ -59,21 +61,26 @@ export default function VolunteerSchedule() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [roleGroups, setRoleGroups] = useState<VolunteerRoleGroup[]>([]);
-  const [selectedRoleKey, setSelectedRoleKey] = useState<string>('');
+  const [selectedRoleKey, setSelectedRoleKey] = useState<string>("");
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
-  const [decisionReason, setDecisionReason] = useState('');
+  const [decisionReason, setDecisionReason] = useState("");
   const [rescheduleBooking, setRescheduleBooking] =
     useState<VolunteerBooking | null>(null);
-  const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
-  const [frequency, setFrequency] =
-    useState<'one-time' | 'daily' | 'weekly'>('one-time');
+  const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(
+    null,
+  );
+  const [frequency, setFrequency] = useState<"one-time" | "daily" | "weekly">(
+    "one-time",
+  );
   const [weekdays, setWeekdays] = useState<number[]>([]);
-  const [endDate, setEndDate] = useState('');
-  const [message, setMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
+  const [endDate, setEndDate] = useState("");
+  const [message, setMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] =
+    useState<AlertColor>("success");
   const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const approvedColor = lighten(theme.palette.success.light, 0.4);
   const todayStr = formatDate();
   const todayStart = fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
@@ -82,27 +89,25 @@ export default function VolunteerSchedule() {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-    const holiday = holidays.some(h => h.date === dateStr);
+    const holiday = holidays.some((h) => h.date === dateStr);
     try {
       const [roleData, bookingData] = await Promise.all([
         getVolunteerRolesForVolunteer(dateStr),
         getMyVolunteerBookings(),
       ]);
-      const disallowed = weekend || holiday
-        ? ['Pantry', 'Warehouse', 'Administrative']
-        : [];
+      const disallowed =
+        weekend || holiday ? ["Pantry", "Warehouse", "Administrative"] : [];
       const filteredRoles = roleData.filter(
         (r: VolunteerRole) => !disallowed.includes(r.category_name),
       );
       const map = new Map<number, VolunteerRoleGroup>();
       filteredRoles.forEach((r: VolunteerRole) => {
-        const group =
-          map.get(r.category_id) || {
-            category_id: r.category_id,
-            category: r.category_name,
-            roles: [],
-          };
-        let role = group.roles.find(g => g.id === r.role_id);
+        const group = map.get(r.category_id) || {
+          category_id: r.category_id,
+          category: r.category_name,
+          roles: [],
+        };
+        let role = group.roles.find((g) => g.id === r.role_id);
         if (!role) {
           role = { id: r.role_id, name: r.name, slots: [] };
           group.roles.push(role);
@@ -113,15 +118,15 @@ export default function VolunteerSchedule() {
       const groups = Array.from(map.values());
       setRoleGroups(groups);
       const keys = new Set(
-        groups.flatMap(g => g.roles.map(r => `${g.category_id}|${r.id}`)),
+        groups.flatMap((g) => g.roles.map((r) => `${g.category_id}|${r.id}`)),
       );
-      setSelectedRoleKey(prev => (prev && keys.has(prev) ? prev : ''));
+      setSelectedRoleKey((prev) => (prev && keys.has(prev) ? prev : ""));
 
-      const allowedIds = new Set(filteredRoles.map(r => r.id));
+      const allowedIds = new Set(filteredRoles.map((r) => r.id));
       const filteredBookings = bookingData.filter(
         (b: VolunteerBooking) =>
           b.date === dateStr &&
-          b.status === 'approved' &&
+          b.status === "approved" &&
           allowedIds.has(b.role_id),
       );
       setBookings(filteredBookings);
@@ -131,7 +136,9 @@ export default function VolunteerSchedule() {
   }, [currentDate, holidays]);
 
   useEffect(() => {
-    getHolidays().then(setHolidays).catch(() => {});
+    getHolidays()
+      .then(setHolidays)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -139,7 +146,7 @@ export default function VolunteerSchedule() {
   }, [loadData]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => {
+    setCurrentDate((d) => {
       const next = addDays(d, delta);
       return next < todayStart ? d : next;
     });
@@ -148,25 +155,22 @@ export default function VolunteerSchedule() {
   async function submitRequest() {
     if (!requestRole) return;
     try {
-      if (frequency === 'one-time') {
-        await requestVolunteerBooking(
-          requestRole.id,
-          formatDate(currentDate),
-        );
+      if (frequency === "one-time") {
+        await requestVolunteerBooking(requestRole.id, formatDate(currentDate));
       } else {
         await createRecurringVolunteerBooking(
           requestRole.id,
           formatDate(currentDate),
           frequency,
-          frequency === 'weekly' ? weekdays : undefined,
+          frequency === "weekly" ? weekdays : undefined,
           endDate || undefined,
         );
       }
-      const dateLabel = formatDate(currentDate, 'ddd, MMM D, YYYY');
+      const dateLabel = formatDate(currentDate, "ddd, MMM D, YYYY");
       const timeLabel = `${formatTime(requestRole.start_time)}–${formatTime(
         requestRole.end_time,
       )}`;
-      setSnackbarSeverity('success');
+      setSnackbarSeverity("success");
       setMessage(`Shift booked for ${dateLabel} · ${timeLabel}`);
       setRequestRole(null);
       await loadData();
@@ -176,13 +180,13 @@ export default function VolunteerSchedule() {
       if (apiErr.status === 409 && details?.attempted && details?.existing) {
         setConflict(details);
       } else {
-        setSnackbarSeverity('error');
+        setSnackbarSeverity("error");
         setMessage(apiErr.message);
       }
     }
   }
 
-  async function resolveConflict(choice: 'existing' | 'new') {
+  async function resolveConflict(choice: "existing" | "new") {
     if (!conflict) return;
     try {
       await resolveVolunteerBookingConflict(
@@ -191,14 +195,14 @@ export default function VolunteerSchedule() {
         conflict.attempted.date,
         choice,
       );
-      setSnackbarSeverity('success');
+      setSnackbarSeverity("success");
       setMessage(
-        choice === 'new' ? 'Booking replaced' : 'Existing booking kept',
+        choice === "new" ? "Booking replaced" : "Existing booking kept",
       );
       await loadData();
     } catch {
-      setSnackbarSeverity('error');
-      setMessage('Failed to resolve conflict');
+      setSnackbarSeverity("error");
+      setMessage("Failed to resolve conflict");
     } finally {
       setConflict(null);
       setRequestRole(null);
@@ -209,33 +213,31 @@ export default function VolunteerSchedule() {
     if (!decisionBooking) return;
     try {
       await cancelVolunteerBooking(decisionBooking.id);
-      setSnackbarSeverity('success');
-      setMessage('Booking cancelled');
+      setSnackbarSeverity("success");
+      setMessage("Booking cancelled");
       await loadData();
     } catch {
-      setSnackbarSeverity('error');
-      setMessage('Failed to cancel booking');
+      setSnackbarSeverity("error");
+      setMessage("Failed to cancel booking");
     } finally {
       setDecisionBooking(null);
-      setDecisionReason('');
+      setDecisionReason("");
     }
   }
 
   async function cancelSeries() {
     if (!decisionBooking?.recurring_id) return;
     try {
-      await cancelRecurringVolunteerBooking(
-        decisionBooking.recurring_id,
-      );
-      setSnackbarSeverity('success');
-      setMessage('Series cancelled');
+      await cancelRecurringVolunteerBooking(decisionBooking.recurring_id);
+      setSnackbarSeverity("success");
+      setMessage("Series cancelled");
       await loadData();
     } catch {
-      setSnackbarSeverity('error');
-      setMessage('Failed to cancel series');
+      setSnackbarSeverity("error");
+      setMessage("Failed to cancel series");
     } finally {
       setDecisionBooking(null);
-      setDecisionReason('');
+      setDecisionReason("");
     }
   }
 
@@ -243,15 +245,15 @@ export default function VolunteerSchedule() {
     if (!rescheduleBooking) return;
     try {
       await rescheduleVolunteerBookingByToken(
-        rescheduleBooking.reschedule_token || '',
+        rescheduleBooking.reschedule_token || "",
         roleId,
         date,
       );
-      setMessage('Booking rescheduled');
+      setMessage("Booking rescheduled");
       await loadData();
     } catch {
-      setSnackbarSeverity('error');
-      setMessage('Failed to reschedule booking');
+      setSnackbarSeverity("error");
+      setMessage("Failed to reschedule booking");
     } finally {
       setRescheduleBooking(null);
     }
@@ -260,16 +262,15 @@ export default function VolunteerSchedule() {
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
   const today = toZonedTime(new Date(), reginaTimeZone);
-  const isToday =
-    reginaDate.toDateString() === today.toDateString();
-  const dayName = formatDate(currentDate, 'dddd');
-  const holidayObj = holidays.find(h => h.date === dateStr);
+  const isToday = reginaDate.toDateString() === today.toDateString();
+  const dayName = formatDate(currentDate, "dddd");
+  const holidayObj = holidays.find((h) => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-  const allowedOnClosed = ['Gardening', 'Special Events'];
-  const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split('|');
+  const allowedOnClosed = ["Gardening", "Special Events"];
+  const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split("|");
   const selectedCategory = roleGroups.find(
-    g => g.category_id === Number(selectedCategoryId),
+    (g) => g.category_id === Number(selectedCategoryId),
   )?.category;
   const isClosed =
     (isHoliday || isWeekend) &&
@@ -279,22 +280,22 @@ export default function VolunteerSchedule() {
     ? (() => {
         let slots =
           roleGroups
-            .find(g => g.category_id === Number(selectedCategoryId))
-            ?.roles.find(r => r.id === Number(selectedRoleId))?.slots || [];
+            .find((g) => g.category_id === Number(selectedCategoryId))
+            ?.roles.find((r) => r.id === Number(selectedRoleId))?.slots || [];
         if (isToday) {
           const nowMinutes = today.getHours() * 60 + today.getMinutes();
-          slots = slots.filter(s => {
-            const [h, m] = s.start_time.split(':').map(Number);
+          slots = slots.filter((s) => {
+            const [h, m] = s.start_time.split(":").map(Number);
             return h * 60 + m > nowMinutes;
           });
         }
         return slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
       })()
     : [];
-  const maxSlots = Math.max(0, ...roleSlots.map(r => r.max_volunteers));
+  const maxSlots = Math.max(0, ...roleSlots.map((r) => r.max_volunteers));
   const showClosedMessage = (isHoliday || isWeekend) && roleGroups.length === 0;
-  const rows = roleSlots.map(role => {
-    const myBooking = bookings.find(b => b.role_id === role.id);
+  const rows = roleSlots.map((role) => {
+    const myBooking = bookings.find((b) => b.role_id === role.id);
     const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
     const cells: {
       content: ReactNode;
@@ -303,18 +304,18 @@ export default function VolunteerSchedule() {
     }[] = [];
     if (myBooking) {
       cells.push({
-        content: 'My Booking',
+        content: "My Booking",
         backgroundColor: approvedColor,
         onClick: () => {
           setDecisionBooking(myBooking);
-          setDecisionReason('');
+          setDecisionReason("");
         },
       });
     }
     for (let i = cells.length; i < role.max_volunteers; i++) {
       if (i - (myBooking ? 1 : 0) < othersBooked) {
         cells.push({
-          content: 'Booked',
+          content: "Booked",
           backgroundColor: theme.palette.grey[200],
         });
       } else {
@@ -328,14 +329,14 @@ export default function VolunteerSchedule() {
           ),
           onClick: () => {
             if (!isClosed) {
-              setFrequency('one-time');
+              setFrequency("one-time");
               setWeekdays([reginaDate.getDay()]);
-              setEndDate('');
+              setEndDate("");
               setRequestRole(role);
-              setMessage('');
+              setMessage("");
             } else {
-              setSnackbarSeverity('error');
-              setMessage('Booking not allowed on weekends or holidays');
+              setSnackbarSeverity("error");
+              setMessage("Booking not allowed on weekends or holidays");
             }
           },
         });
@@ -350,139 +351,148 @@ export default function VolunteerSchedule() {
   return (
     <Page title="Volunteer Schedule">
       <Box>
-      <FormControl size="small" sx={{ minWidth: 200 }}>
-        <InputLabel id="role-select-label">Role</InputLabel>
-        <Select
-          labelId="role-select-label"
-          value={selectedRoleKey}
-          label="Role"
-          onChange={e => setSelectedRoleKey(e.target.value)}
-        >
-          <MenuItem value="">Select role</MenuItem>
-          {roleGroups.flatMap(g => [
-            <ListSubheader key={`${g.category_id}-header`}>
-              {g.category}
-            </ListSubheader>,
-            ...g.roles.map(r => (
-              <MenuItem
-                key={`${g.category_id}-${r.id}`}
-                value={`${g.category_id}|${r.id}`}
-              >
-                {r.name}
-              </MenuItem>
-            )),
-          ])}
-        </Select>
-      </FormControl>
-      {selectedRoleKey ? (
-        <>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 2,
-            }}
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="role-select-label">Role</InputLabel>
+          <Select
+            labelId="role-select-label"
+            value={selectedRoleKey}
+            label="Role"
+            onChange={(e) => setSelectedRoleKey(e.target.value)}
           >
-            <Button
-              onClick={() => changeDay(-1)}
-              variant="outlined"
-              color="primary"
-              disabled={currentDate <= todayStart}
+            <MenuItem value="">Select role</MenuItem>
+            {roleGroups.flatMap((g) => [
+              <ListSubheader key={`${g.category_id}-header`}>
+                {g.category}
+              </ListSubheader>,
+              ...g.roles.map((r) => (
+                <MenuItem
+                  key={`${g.category_id}-${r.id}`}
+                  value={`${g.category_id}|${r.id}`}
+                >
+                  {r.name}
+                </MenuItem>
+              )),
+            ])}
+          </Select>
+        </FormControl>
+        {selectedRoleKey ? (
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
             >
-              Previous
-            </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="h6" component="h3">
-                {dateStr} - {dayName}
-                {isHoliday
-                  ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
-                  : isWeekend
-                    ? ' (Weekend)'
-                    : ''}
-              </Typography>
+              <Button
+                onClick={() => changeDay(-1)}
+                variant="outlined"
+                color="primary"
+                disabled={currentDate <= todayStart}
+              >
+                Previous
+              </Button>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Typography variant="h6" component="h3">
+                  {dateStr} - {dayName}
+                  {isHoliday
+                    ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
+                    : isWeekend
+                      ? " (Weekend)"
+                      : ""}
+                </Typography>
+              </Box>
+              <Button
+                onClick={() => changeDay(1)}
+                variant="outlined"
+                color="primary"
+              >
+                Next
+              </Button>
             </Box>
-            <Button onClick={() => changeDay(1)} variant="outlined" color="primary">Next</Button>
-          </Box>
-          <FeedbackSnackbar
-            open={!!message}
-            onClose={() => setMessage('')}
-            message={message}
-            severity={snackbarSeverity}
-          />
-          {isClosed ? (
-            <Typography align="center">
-              Moose Jaw food bank is closed for {dayName}
-            </Typography>
-          ) : (
-            <VolunteerScheduleTable
-              maxSlots={maxSlots}
-              rows={rows}
+            <FeedbackSnackbar
+              open={!!message}
+              onClose={() => setMessage("")}
+              message={message}
+              severity={snackbarSeverity}
             />
-          )}
-        </>
-      ) : showClosedMessage ? (
-        <Typography align="center" sx={{ mt: 2 }}>
-          Moose Jaw food bank is closed for {dayName}
-        </Typography>
-      ) : null}
+            {isClosed ? (
+              <Typography align="center">
+                Moose Jaw food bank is closed for {dayName}
+              </Typography>
+            ) : isSmallScreen ? (
+              <ScheduleCards maxSlots={maxSlots} rows={rows} />
+            ) : (
+              <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+            )}
+          </>
+        ) : showClosedMessage ? (
+          <Typography align="center" sx={{ mt: 2 }}>
+            Moose Jaw food bank is closed for {dayName}
+          </Typography>
+        ) : null}
 
         <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
           <DialogCloseButton onClose={() => setRequestRole(null)} />
           <DialogTitle>Request Booking</DialogTitle>
           <DialogContent dividers>
-          <Typography sx={{ mb: 2 }}>
-            Request booking for {requestRole?.name}?
-          </Typography>
-          <FormControl fullWidth size="small">
-            <InputLabel id="freq-label">Frequency</InputLabel>
-            <Select
-              labelId="freq-label"
-              value={frequency}
-              label="Frequency"
-              onChange={e =>
-                setFrequency(e.target.value as 'one-time' | 'daily' | 'weekly')
-              }
-            >
-              <MenuItem value="one-time">One-time</MenuItem>
-              <MenuItem value="daily">Daily</MenuItem>
-              <MenuItem value="weekly">Weekly</MenuItem>
-            </Select>
-          </FormControl>
-          {frequency === 'weekly' && (
-            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap' }}>
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
-                <FormControlLabel
-                  key={d}
-                  control={
-                    <Checkbox
-                      size="small"
-                      checked={weekdays.includes(i)}
-                      onChange={() =>
-                        setWeekdays(prev =>
-                          prev.includes(i)
-                            ? prev.filter(x => x !== i)
-                            : [...prev, i],
-                        )
+            <Typography sx={{ mb: 2 }}>
+              Request booking for {requestRole?.name}?
+            </Typography>
+            <FormControl fullWidth size="small">
+              <InputLabel id="freq-label">Frequency</InputLabel>
+              <Select
+                labelId="freq-label"
+                value={frequency}
+                label="Frequency"
+                onChange={(e) =>
+                  setFrequency(
+                    e.target.value as "one-time" | "daily" | "weekly",
+                  )
+                }
+              >
+                <MenuItem value="one-time">One-time</MenuItem>
+                <MenuItem value="daily">Daily</MenuItem>
+                <MenuItem value="weekly">Weekly</MenuItem>
+              </Select>
+            </FormControl>
+            {frequency === "weekly" && (
+              <Box sx={{ mt: 2, display: "flex", flexWrap: "wrap" }}>
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (d, i) => (
+                    <FormControlLabel
+                      key={d}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={weekdays.includes(i)}
+                          onChange={() =>
+                            setWeekdays((prev) =>
+                              prev.includes(i)
+                                ? prev.filter((x) => x !== i)
+                                : [...prev, i],
+                            )
+                          }
+                        />
                       }
+                      label={d}
                     />
-                  }
-                  label={d}
-                />
-              ))}
-            </Box>
-          )}
-          {(frequency === 'daily' || frequency === 'weekly') && (
+                  ),
+                )}
+              </Box>
+            )}
+            {(frequency === "daily" || frequency === "weekly") && (
               <TextField
                 label="End date"
                 type="date"
                 size="small"
                 value={endDate}
-                onChange={e => setEndDate(e.target.value)}
+                onChange={(e) => setEndDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
-          )}
-        </DialogContent>
+            )}
+          </DialogContent>
           <DialogActions>
             <Button onClick={submitRequest} variant="outlined" color="primary">
               Submit
@@ -494,30 +504,34 @@ export default function VolunteerSchedule() {
           open={!!decisionBooking}
           onClose={() => {
             setDecisionBooking(null);
-            setDecisionReason('');
+            setDecisionReason("");
           }}
         >
-          <DialogCloseButton onClose={() => {
-            setDecisionBooking(null);
-            setDecisionReason('');
-          }} />
+          <DialogCloseButton
+            onClose={() => {
+              setDecisionBooking(null);
+              setDecisionReason("");
+            }}
+          />
           <DialogTitle>Manage Booking</DialogTitle>
           <DialogContent dividers>
-            <Typography>Modify booking for {decisionBooking?.role_name}?</Typography>
+            <Typography>
+              Modify booking for {decisionBooking?.role_name}?
+            </Typography>
             <TextField
               placeholder="Reason for cancellation"
               value={decisionReason}
-              onChange={e => setDecisionReason(e.target.value)}
+              onChange={(e) => setDecisionReason(e.target.value)}
               fullWidth
               multiline
             />
-        </DialogContent>
+          </DialogContent>
           <DialogActions>
             <Button
               onClick={() => {
                 setRescheduleBooking(decisionBooking);
                 setDecisionBooking(null);
-                setDecisionReason('');
+                setDecisionReason("");
               }}
               variant="outlined"
               color="primary"
@@ -525,11 +539,7 @@ export default function VolunteerSchedule() {
               Reschedule
             </Button>
             {decisionBooking?.recurring_id && (
-              <Button
-                onClick={cancelSeries}
-                variant="outlined"
-                color="primary"
-              >
+              <Button onClick={cancelSeries} variant="outlined" color="primary">
                 Cancel All Upcoming
               </Button>
             )}
@@ -538,22 +548,21 @@ export default function VolunteerSchedule() {
             </Button>
           </DialogActions>
         </Dialog>
-      {conflict && (
-        <OverlapBookingDialog
-          open
-          attempted={conflict.attempted}
-          existing={conflict.existing}
-          onClose={() => setConflict(null)}
-          onResolve={resolveConflict}
+        {conflict && (
+          <OverlapBookingDialog
+            open
+            attempted={conflict.attempted}
+            existing={conflict.existing}
+            onClose={() => setConflict(null)}
+            onResolve={resolveConflict}
+          />
+        )}
+        <RescheduleDialog
+          open={!!rescheduleBooking}
+          onClose={() => setRescheduleBooking(null)}
+          onSubmit={handleReschedule}
         />
-      )}
-      <RescheduleDialog
-        open={!!rescheduleBooking}
-        onClose={() => setRescheduleBooking(null)}
-        onSubmit={handleReschedule}
-      />
-    </Box>
+      </Box>
     </Page>
   );
 }
-

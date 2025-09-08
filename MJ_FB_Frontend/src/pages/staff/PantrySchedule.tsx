@@ -1,31 +1,33 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import {
   getSlots,
   getBookings,
   getHolidays,
   createBookingForUser,
   createBookingForNewClient,
-} from '../../api/bookings';
-import { searchUsers, type UserSearchResult } from '../../api/users';
-import type { Slot, Holiday, Booking } from '../../types';
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
-import { formatTime } from '../../utils/time';
-import { formatDate, addDays } from '../../utils/date';
-import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
-import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+} from "../../api/bookings";
+import { searchUsers, type UserSearchResult } from "../../api/users";
+import type { Slot, Holiday, Booking } from "../../types";
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { formatTime } from "../../utils/time";
+import { formatDate, addDays } from "../../utils/date";
+import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
+import ScheduleCards from "../../components/ScheduleCards";
+import FeedbackSnackbar from "../../components/FeedbackSnackbar";
 import {
   Button,
   type AlertColor,
   useTheme,
+  useMediaQuery,
   Checkbox,
   FormControlLabel,
   TextField,
-} from '@mui/material';
-import ManageBookingDialog from '../../components/ManageBookingDialog';
-import PantryQuickLinks from '../../components/PantryQuickLinks';
-import Page from '../../components/Page';
+} from "@mui/material";
+import ManageBookingDialog from "../../components/ManageBookingDialog";
+import PantryQuickLinks from "../../components/PantryQuickLinks";
+import Page from "../../components/Page";
 
-const reginaTimeZone = 'America/Regina';
+const reginaTimeZone = "America/Regina";
 
 export default function PantrySchedule({
   clientIds,
@@ -42,29 +44,41 @@ export default function PantrySchedule({
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [assignSlot, setAssignSlot] = useState<Slot | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
-  const [snackbar, setSnackbar] = useState<{ message: string; severity: AlertColor; action?: ReactNode } | null>(null);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    severity: AlertColor;
+    action?: ReactNode;
+  } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
-  const [assignMessage, setAssignMessage] = useState('');
+  const [assignMessage, setAssignMessage] = useState("");
   const [isNewClient, setIsNewClient] = useState(false);
-  const [newClient, setNewClient] = useState({ name: '', email: '', phone: '' });
+  const [newClient, setNewClient] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
   const [streamError, setStreamError] = useState(false);
   const [esRetry, setEsRetry] = useState(0);
 
   const theme = useTheme();
-  const neutralCellBg = theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const neutralCellBg =
+    theme.palette.mode === "dark"
+      ? theme.palette.grey[800]
+      : theme.palette.grey[200];
   const statusColors: Record<string, string> = {
-    approved: 'rgb(228,241,228)',
-    no_show: 'rgb(255, 200, 200)',
-    visited: 'rgb(111,146,113)',
+    approved: "rgb(228,241,228)",
+    no_show: "rgb(255, 200, 200)",
+    visited: "rgb(111,146,113)",
   };
 
   const loadData = useCallback(async () => {
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
-    const holiday = holidays.some(h => h.date === dateStr);
+    const holiday = holidays.some((h) => h.date === dateStr);
     if (weekend || holiday) {
       setSlots([]);
       setBookings([]);
@@ -80,7 +94,7 @@ export default function PantrySchedule({
         ? bookingsData
         : [bookingsData];
       const filtered = bookingsArray.filter(
-        (b: Booking) => b.status.toLowerCase() !== 'cancelled',
+        (b: Booking) => b.status.toLowerCase() !== "cancelled",
       );
       setBookings(filtered);
     } catch (err) {
@@ -89,7 +103,9 @@ export default function PantrySchedule({
   }, [currentDate, holidays, clientIds]);
 
   useEffect(() => {
-    getHolidays().then(setHolidays).catch(() => {});
+    getHolidays()
+      .then(setHolidays)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -99,33 +115,36 @@ export default function PantrySchedule({
   useEffect(() => {
     if (formatDate(currentDate) !== formatDate()) return;
     const reloadIfVisible = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         loadData();
       }
     };
     const interval = setInterval(reloadIfVisible, 60_000);
-    document.addEventListener('visibilitychange', reloadIfVisible);
+    document.addEventListener("visibilitychange", reloadIfVisible);
     return () => {
       clearInterval(interval);
-      document.removeEventListener('visibilitychange', reloadIfVisible);
+      document.removeEventListener("visibilitychange", reloadIfVisible);
     };
   }, [currentDate, loadData]);
 
   useEffect(() => {
-    if (typeof EventSource === 'undefined') return;
-    const es = new EventSource(`${import.meta.env.VITE_API_BASE}/bookings/stream`, {
-      withCredentials: true,
-    });
+    if (typeof EventSource === "undefined") return;
+    const es = new EventSource(
+      `${import.meta.env.VITE_API_BASE}/bookings/stream`,
+      {
+        withCredentials: true,
+      },
+    );
     es.onopen = () => {
       setStreamError(false);
     };
     es.onerror = () => {
       setStreamError(true);
     };
-    es.onmessage = ev => {
+    es.onmessage = (ev) => {
       try {
         const data = JSON.parse(ev.data) as {
-          action: 'created' | 'cancelled';
+          action: "created" | "cancelled";
           name: string;
           role: string;
           date: string;
@@ -133,13 +152,12 @@ export default function PantrySchedule({
         };
         if (data.date === formatDate(currentDate)) {
           void loadData();
-          const actionText =
-            data.action === 'created' ? 'booked' : 'cancelled';
+          const actionText = data.action === "created" ? "booked" : "cancelled";
           setSnackbar({
             message: `${data.name} (${data.role}) ${actionText} ${formatTime(
               data.time,
             )}`,
-            severity: 'info',
+            severity: "info",
           });
         }
       } catch {
@@ -155,7 +173,7 @@ export default function PantrySchedule({
     if (assignSlot && !isNewClient && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
-          .then(data => setUserResults(data.slice(0, 5)))
+          .then((data) => setUserResults(data.slice(0, 5)))
           .catch(() => setUserResults([]));
       }, 300);
       return () => clearTimeout(delay);
@@ -165,32 +183,31 @@ export default function PantrySchedule({
   }, [searchTerm, assignSlot, isNewClient]);
 
   function changeDay(delta: number) {
-    setCurrentDate(d => addDays(d, delta));
+    setCurrentDate((d) => addDays(d, delta));
   }
 
   function retryStream() {
-    setEsRetry(r => r + 1);
+    setEsRetry((r) => r + 1);
   }
-
 
   async function assignExistingUser(user: UserSearchResult) {
     if (!assignSlot) return;
     try {
-      setAssignMessage('');
+      setAssignMessage("");
       await createBookingForUser(
         user.client_id,
         parseInt(assignSlot.id),
         formatDate(currentDate),
-        true
+        true,
       );
       setAssignSlot(null);
-      setSearchTerm('');
+      setSearchTerm("");
       setIsNewClient(false);
-      setNewClient({ name: '', email: '', phone: '' });
+      setNewClient({ name: "", email: "", phone: "" });
       await loadData();
     } catch (err) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : 'Failed to assign user';
+      const msg = err instanceof Error ? err.message : "Failed to assign user";
       setAssignMessage(msg);
     }
   }
@@ -198,7 +215,7 @@ export default function PantrySchedule({
   async function assignNewClient() {
     if (!assignSlot) return;
     try {
-      setAssignMessage('');
+      setAssignMessage("");
       await createBookingForNewClient(
         newClient.name,
         parseInt(assignSlot.id),
@@ -208,29 +225,29 @@ export default function PantrySchedule({
       );
       setAssignSlot(null);
       setIsNewClient(false);
-      setNewClient({ name: '', email: '', phone: '' });
-      setSearchTerm('');
+      setNewClient({ name: "", email: "", phone: "" });
+      setSearchTerm("");
       await loadData();
     } catch (err) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : 'Failed to assign user';
+      const msg = err instanceof Error ? err.message : "Failed to assign user";
       setAssignMessage(msg);
     }
   }
 
   const dateStr = formatDate(currentDate);
   const reginaDate = toZonedTime(currentDate, reginaTimeZone);
-  const dayName = formatDate(currentDate, 'dddd');
-  const holidayObj = holidays.find(h => h.date === dateStr);
+  const dayName = formatDate(currentDate, "dddd");
+  const holidayObj = holidays.find((h) => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const isClosed = isHoliday || isWeekend;
 
   const maxSlots = Math.max(
     0,
-    ...slots.map(s => {
+    ...slots.map((s) => {
       const bookingCount = bookings.filter(
-        b => b.slot_id === parseInt(s.id),
+        (b) => b.slot_id === parseInt(s.id),
       ).length;
       return Math.max(s.maxCapacity ?? 0, bookingCount);
     }),
@@ -240,45 +257,47 @@ export default function PantrySchedule({
   if (
     !isClosed &&
     !displaySlots.some(
-      s => s.startTime === '12:00:00' || s.startTime === '12:30:00',
+      (s) => s.startTime === "12:00:00" || s.startTime === "12:30:00",
     )
   ) {
     displaySlots.push({
-      id: 'lunch-break',
-      startTime: '12:00:00',
-      endTime: '13:00:00',
-      status: 'break',
-      reason: 'Lunch',
+      id: "lunch-break",
+      startTime: "12:00:00",
+      endTime: "13:00:00",
+      status: "break",
+      reason: "Lunch",
     });
   }
   displaySlots.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-  const rows = displaySlots.map(slot => {
-    if (slot.status === 'break') {
+  const rows = displaySlots.map((slot) => {
+    if (slot.status === "break") {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [
           {
-            content: `Break${slot.reason ? ` - ${slot.reason}` : ''}`,
+            content: `Break${slot.reason ? ` - ${slot.reason}` : ""}`,
             colSpan: maxSlots,
             backgroundColor: neutralCellBg,
           },
         ],
       };
     }
-    if (slot.status === 'blocked') {
+    if (slot.status === "blocked") {
       return {
         time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         cells: [
           {
-            content: `Blocked${slot.reason ? ` - ${slot.reason}` : ''}`,
+            content: `Blocked${slot.reason ? ` - ${slot.reason}` : ""}`,
             colSpan: maxSlots,
             backgroundColor: neutralCellBg,
           },
         ],
       };
     }
-    const slotBookings = bookings.filter(b => b.slot_id === parseInt(slot.id));
+    const slotBookings = bookings.filter(
+      (b) => b.slot_id === parseInt(slot.id),
+    );
     return {
       time: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
       cells: Array.from({ length: maxSlots }).map((_, i) => {
@@ -300,23 +319,28 @@ export default function PantrySchedule({
             content = text;
             backgroundColor = statusColors[booking.status];
           }
-          if (booking.status === 'approved') {
+          if (booking.status === "approved") {
             onClick = () => setManageBooking(booking);
           }
         } else if (withinCapacity && !isClosed) {
-          content = '';
+          content = "";
           onClick = () => {
             setAssignSlot(slot);
-            setAssignMessage('');
+            setAssignMessage("");
           };
         } else if (!withinCapacity) {
           content = (
-            <span style={{ color: theme.palette.text.secondary, fontSize: '0.75rem' }}>
+            <span
+              style={{
+                color: theme.palette.text.secondary,
+                fontSize: "0.75rem",
+              }}
+            >
               Over capacity
             </span>
           );
         } else {
-          content = '';
+          content = "";
         }
         return {
           content,
@@ -329,19 +353,30 @@ export default function PantrySchedule({
 
   return (
     <Page title="Pantry Schedule" header={<PantryQuickLinks />}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Button
+          onClick={() => changeDay(-1)}
+          variant="outlined"
+          color="primary"
+        >
           Previous
         </Button>
         <h3>
           {dateStr} - {dayName}
           {isHoliday
-            ? ` (Holiday${holidayObj?.reason ? ': ' + holidayObj.reason : ''})`
+            ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
             : isWeekend
-              ? ' (Weekend)'
-              : ''}
+              ? " (Weekend)"
+              : ""}
         </h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Button
             onClick={() =>
               setCurrentDate(
@@ -354,7 +389,11 @@ export default function PantrySchedule({
           >
             Today
           </Button>
-          <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
+          <Button
+            onClick={() => changeDay(1)}
+            variant="outlined"
+            color="primary"
+          >
             Next
           </Button>
         </div>
@@ -362,39 +401,56 @@ export default function PantrySchedule({
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
-        message={snackbar?.message || ''}
+        message={snackbar?.message || ""}
         severity={snackbar?.severity}
         action={snackbar?.action}
       />
       {streamError && (
-        <p style={{ color: theme.palette.error.main, textAlign: 'center' }}>
-          Live updates unavailable{' '}
-          <Button onClick={retryStream} variant="outlined" size="small" color="primary">
+        <p style={{ color: theme.palette.error.main, textAlign: "center" }}>
+          Live updates unavailable{" "}
+          <Button
+            onClick={retryStream}
+            variant="outlined"
+            size="small"
+            color="primary"
+          >
             Retry
           </Button>
         </p>
       )}
       {isClosed ? (
-        <p style={{ textAlign: 'center' }}>Moose Jaw food bank is closed for {dayName}</p>
+        <p style={{ textAlign: "center" }}>
+          Moose Jaw food bank is closed for {dayName}
+        </p>
       ) : (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 8,
+            }}
+          >
             {[
-              { label: 'Approved', color: statusColors.approved },
-              { label: 'No Show', color: statusColors.no_show },
-              { label: 'Visited', color: statusColors.visited },
-              { label: 'Capacity Exceeded', color: theme.palette.warning.light },
-            ].map(item => (
+              { label: "Approved", color: statusColors.approved },
+              { label: "No Show", color: statusColors.no_show },
+              { label: "Visited", color: statusColors.visited },
+              {
+                label: "Capacity Exceeded",
+                color: theme.palette.warning.light,
+              },
+            ].map((item) => (
               <span
                 key={item.label}
-                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                style={{ display: "flex", alignItems: "center", gap: 4 }}
               >
                 <span
                   style={{
                     width: 16,
                     height: 16,
                     backgroundColor: item.color,
-                    border: '1px solid #ccc',
+                    border: "1px solid #ccc",
                     borderRadius: 4,
                   }}
                 />
@@ -402,65 +458,73 @@ export default function PantrySchedule({
               </span>
             ))}
           </div>
-          <VolunteerScheduleTable
-            maxSlots={maxSlots}
-            rows={rows}
-          />
+          {isSmallScreen ? (
+            <ScheduleCards maxSlots={maxSlots} rows={rows} />
+          ) : (
+            <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+          )}
         </>
       )}
 
       {assignSlot && (
         <div
           style={{
-            position: 'fixed',
+            position: "fixed",
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            backgroundColor: "rgba(0,0,0,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <div
             style={{
-              background: 'white',
+              background: "white",
               padding: 16,
               borderRadius: 10,
               width: 300,
-              maxWidth: '90vw',
+              maxWidth: "90vw",
             }}
           >
             <h4>Assign User</h4>
             <FormControlLabel
-              control={<Checkbox checked={isNewClient} onChange={e => setIsNewClient(e.target.checked)} />}
-              label={
-                <>
-                  New client
-                </>
+              control={
+                <Checkbox
+                  checked={isNewClient}
+                  onChange={(e) => setIsNewClient(e.target.checked)}
+                />
               }
+              label={<>New client</>}
             />
             {isNewClient ? (
               <>
                 <TextField
                   label="Name"
                   value={newClient.name}
-                  onChange={e => setNewClient({ ...newClient, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, name: e.target.value })
+                  }
                   fullWidth
                   margin="dense"
                 />
                 <TextField
                   label="Email (optional)"
                   value={newClient.email}
-                  onChange={e => setNewClient({ ...newClient, email: e.target.value })}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, email: e.target.value })
+                  }
                   fullWidth
                   margin="dense"
                 />
                 <TextField
                   label="Phone (optional)"
                   value={newClient.phone}
-                  onChange={e => setNewClient({ ...newClient, phone: e.target.value })}
+                  onChange={(e) =>
+                    setNewClient({ ...newClient, phone: e.target.value })
+                  }
                   fullWidth
                   margin="dense"
                 />
@@ -479,12 +543,19 @@ export default function PantrySchedule({
                 <TextField
                   label="Search users by name/email/phone/client ID"
                   value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   fullWidth
                   margin="dense"
                 />
-                <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
-                  {userResults.map(u => (
+                <ul
+                  style={{
+                    listStyle: "none",
+                    paddingLeft: 0,
+                    maxHeight: "150px",
+                    overflowY: "auto",
+                  }}
+                >
+                  {userResults.map((u) => (
                     <li key={u.client_id} style={{ marginBottom: 4 }}>
                       {u.name} ({u.email})
                       <Button
@@ -498,30 +569,37 @@ export default function PantrySchedule({
                       </Button>
                     </li>
                   ))}
-                  {assignSlot && searchTerm.length >= 3 && userResults.length === 0 && (
-                    <li>
-                      No search results.
-                      <Button
-                        size="small"
-                        variant="text"
-                        onClick={() => setIsNewClient(true)}
-                        sx={{ ml: 1 }}
-                      >
-                        Create new client
-                      </Button>
-                    </li>
-                  )}
+                  {assignSlot &&
+                    searchTerm.length >= 3 &&
+                    userResults.length === 0 && (
+                      <li>
+                        No search results.
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => setIsNewClient(true)}
+                          sx={{ ml: 1 }}
+                        >
+                          Create new client
+                        </Button>
+                      </li>
+                    )}
                 </ul>
               </>
             )}
-            <FeedbackSnackbar open={!!assignMessage} onClose={() => setAssignMessage('')} message={assignMessage} severity="error" />
+            <FeedbackSnackbar
+              open={!!assignMessage}
+              onClose={() => setAssignMessage("")}
+              message={assignMessage}
+              severity="error"
+            />
             <Button
               onClick={() => {
                 setAssignSlot(null);
-                setSearchTerm('');
-                setAssignMessage('');
+                setSearchTerm("");
+                setAssignMessage("");
                 setIsNewClient(false);
-                setNewClient({ name: '', email: '', phone: '' });
+                setNewClient({ name: "", email: "", phone: "" });
               }}
               variant="outlined"
               color="primary"
@@ -546,4 +624,3 @@ export default function PantrySchedule({
     </Page>
   );
 }
-

@@ -289,54 +289,53 @@ The database schema is managed via TypeScript migrations in `src/migrations`; ru
 
 Create a `.env` file in `MJ_FB_Backend` with the following variables. The server fails to start if any required variable is missing.
 
-| Variable                                     | Description                                                                                                                               |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `PG_HOST`                                    | PostgreSQL host                                                                                                                           |
-| `PG_PORT`                                    | PostgreSQL port                                                                                                                           |
-| `PG_USER`                                    | PostgreSQL username                                                                                                                       |
-| `PG_PASSWORD`                                | PostgreSQL password                                                                                                                       |
-| `PG_DATABASE`                                | PostgreSQL database name                                                                                                                  |
-| `JWT_SECRET`                                 | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
-| `JWT_REFRESH_SECRET`                         | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`.                                     |
-| `FRONTEND_ORIGIN`                            | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored)                               |
-| `PORT`                                       | Port for the backend server (defaults to 4000)                                                                                            |
-| `BREVO_API_KEY`                              | Brevo API key for transactional emails                                                                                                    |
-| `BREVO_FROM_EMAIL`                           | Email address used as the sender                                                                                                          |
-| `BREVO_FROM_NAME`                            | Optional sender name displayed in emails                                                                                                  |
-| `ICS_BASE_URL`                              | Base URL where generated ICS files are hosted (optional; falls back to data URIs)                 |
-| `EMAIL_ENABLED`                              | Set to 'true' to enable email sending (default false)                                                |
-| `EMAIL_QUEUE_MAX_RETRIES`                    | Max retry attempts for failed email jobs (default 5)                                                                                      |
-| `EMAIL_QUEUE_BACKOFF_MS`                     | Initial backoff delay in ms for email retries (default 1000)                                                                   |
-| `EMAIL_QUEUE_MAX_AGE_DAYS`                   | Remove pending email jobs older than this many days (default 30)                                                              |
-| `EMAIL_QUEUE_WARNING_SIZE`                   | Log a warning if the email queue exceeds this size (default 100)                                                       |
-| `TELEGRAM_BOT_TOKEN`                         | Telegram bot token used for ops alerts (optional)                                                                       |
-| `TELEGRAM_ALERT_CHAT_ID`                     | Telegram chat ID that receives ops alerts (optional)                                                                    |
+| Variable                   | Description                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `PG_HOST`                  | PostgreSQL host                                                                                                                           |
+| `PG_PORT`                  | PostgreSQL port                                                                                                                           |
+| `PG_USER`                  | PostgreSQL username                                                                                                                       |
+| `PG_PASSWORD`              | PostgreSQL password                                                                                                                       |
+| `PG_DATABASE`              | PostgreSQL database name                                                                                                                  |
+| `JWT_SECRET`               | Secret used to sign JWT tokens for clients, staff, volunteers, and agencies. Generate a strong random value, e.g., `openssl rand -hex 32` |
+| `JWT_REFRESH_SECRET`       | Secret used to sign refresh JWT tokens for all roles. Use a different strong value from `JWT_SECRET`.                                     |
+| `FRONTEND_ORIGIN`          | Allowed origins for CORS and base URL for password setup links (comma separated; empty entries are ignored)                               |
+| `PORT`                     | Port for the backend server (defaults to 4000)                                                                                            |
+| `BREVO_API_KEY`            | Brevo API key for transactional emails                                                                                                    |
+| `BREVO_FROM_EMAIL`         | Email address used as the sender                                                                                                          |
+| `BREVO_FROM_NAME`          | Optional sender name displayed in emails                                                                                                  |
+| `ICS_BASE_URL`             | Base URL where generated ICS files are hosted (optional; falls back to data URIs)                                                         |
+| `EMAIL_ENABLED`            | Set to 'true' to enable email sending (default false)                                                                                     |
+| `EMAIL_QUEUE_MAX_RETRIES`  | Max retry attempts for failed email jobs (default 5)                                                                                      |
+| `EMAIL_QUEUE_BACKOFF_MS`   | Initial backoff delay in ms for email retries (default 1000)                                                                              |
+| `EMAIL_QUEUE_MAX_AGE_DAYS` | Remove pending email jobs older than this many days (default 30)                                                                          |
+| `EMAIL_QUEUE_WARNING_SIZE` | Log a warning if the email queue exceeds this size (default 100)                                                                          |
+| `TELEGRAM_BOT_TOKEN`       | Telegram bot token used for ops alerts (optional)                                                                                         |
+| `TELEGRAM_ALERT_CHAT_ID`   | Telegram chat ID that receives ops alerts (optional)                                                                                      |
 
-| Template reference | Purpose | Params |
-| ------------------- | ------- | ------ |
-| `PASSWORD_SETUP_TEMPLATE_ID` | Account invitations and password reset emails | `link`, `token`, `clientId` |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Booking approval confirmations for clients | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
-| `BOOKING_REMINDER_TEMPLATE_ID` | Next-day booking reminders for clients | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
-| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Volunteer shift reminder emails | `body`, `cancelLink`, `rescheduleLink`, `type` |
-| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Booking reschedule notifications for clients | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
-| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Volunteer shift reschedule emails | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type` |
+| Template reference                           | Purpose                                       | Params                                                                                    |
+| -------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `PASSWORD_SETUP_TEMPLATE_ID`                 | Account invitations and password reset emails | `link`, `token`, `clientId`                                                               |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Booking approval confirmations for clients    | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
+| `BOOKING_REMINDER_TEMPLATE_ID`               | Next-day booking reminders for clients        | `body`, `cancelLink`, `rescheduleLink`, `type`                                            |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails           | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
+| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Volunteer shift reminder emails               | `body`, `cancelLink`, `rescheduleLink`, `type`                                            |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Booking reschedule notifications for clients  | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Volunteer shift reschedule emails             | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
 See [docs/emailTemplates.md](docs/emailTemplates.md) for detailed usage notes.
 
 Booking confirmation and reminder email bodies include the weekday and time for clarity.
- 
-| `PASSWORD_SETUP_TEMPLATE_ID`                 | Brevo template ID for invitation and password setup emails (default 6) |
-| `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Brevo template ID for booking confirmation emails                     |
-| `BOOKING_REMINDER_TEMPLATE_ID`               | Brevo template ID for booking reminder emails                         |
-| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations                 |
-| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Brevo template ID for volunteer shift reminder emails                 |
-| `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Brevo template ID for client reschedule emails (default 10)           |
-| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Brevo template ID for volunteer reschedule emails (default 10)        |
-| `PASSWORD_SETUP_TOKEN_TTL_HOURS`             | Hours until password setup tokens expire (default 24)                 |
 
+| `PASSWORD_SETUP_TEMPLATE_ID` | Brevo template ID for invitation and password setup emails (default 6) |
+| `BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for booking confirmation emails |
+| `BOOKING_REMINDER_TEMPLATE_ID` | Brevo template ID for booking reminder emails |
+| `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Brevo template ID for volunteer booking confirmations |
+| `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Brevo template ID for volunteer shift reminder emails |
+| `CLIENT_RESCHEDULE_TEMPLATE_ID` | Brevo template ID for client reschedule emails (default 10) |
+| `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Brevo template ID for volunteer reschedule emails (default 10) |
+| `PASSWORD_SETUP_TOKEN_TTL_HOURS` | Hours until password setup tokens expire (default 24) |
 
 ### Invitation flow
 
@@ -483,6 +482,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Pantry schedule listens for live booking updates via a Server‑Sent Events stream at `/bookings/stream`.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
 - Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).
+- Pantry and volunteer schedule pages present a mobile-friendly card layout on extra-small screens.
 - Wednesdays include an additional 6:30–7:00 PM pantry slot.
 - Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients load once and appear only after entering a search term, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.
 - Agencies can view slot availability and cancel or reschedule bookings for their clients using the standard booking APIs.
@@ -524,4 +524,3 @@ docker push <registry>.azurecr.io/mjfb-frontend
 3. Configure the environment variables in the Azure portal using the provided `.env.example` files. Ensure `JWT_SECRET` is set to a strong value.
 
 This setup prepares the project so it can be hosted on Azure with containerized services.
-
