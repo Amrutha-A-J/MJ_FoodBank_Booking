@@ -2,7 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import clientVisitsRouter from '../src/routes/clientVisits';
 import pool from '../src/db';
-import readXlsxFile from 'read-excel-file/node';
+import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
 
 jest.mock('read-excel-file/node');
 
@@ -27,17 +27,13 @@ describe('client visit xlsx import', () => {
   });
 
   it('updates duplicate visits by default', async () => {
-    const mockRead = readXlsxFile as jest.Mock;
-    mockRead.mockImplementation((_buf, options) => {
-      if (options?.getSheets) return Promise.resolve([{ name: '2024-05-01' }]);
-      if (options?.sheet === '2024-05-01') {
-        return Promise.resolve([
-          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
-          ['1A', 30, 20, 0, 123],
-        ]);
-      }
-      return Promise.resolve([]);
-    });
+      const mockRead = readXlsxFile as jest.Mock;
+      const mockSheets = readSheetNames as jest.Mock;
+      mockSheets.mockResolvedValueOnce(['2024-05-01']);
+    mockRead.mockResolvedValueOnce([
+      ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+      ['1A', 30, 20, 0, 123],
+    ]);
     const buffer = Buffer.from('xlsx');
     const queryMock = jest
       .fn()
@@ -58,19 +54,16 @@ describe('client visit xlsx import', () => {
     );
   });
 
-  it('uses sheet name as visit date', async () => {
-    const mockRead = readXlsxFile as jest.Mock;
-    mockRead.mockImplementation((_buf, options) => {
-      if (options?.getSheets) return Promise.resolve([{ name: '2024-05-01' }]);
-      if (options?.sheet === '2024-05-01') {
-        return Promise.resolve([
-          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
-          ['1A', 30, 20, 0, 123],
-        ]);
-      }
-      return Promise.resolve([]);
-    });
+    it('uses sheet name as visit date', async () => {
+      const mockRead = readXlsxFile as jest.Mock;
+      const mockSheets = readSheetNames as jest.Mock;
+      mockSheets.mockResolvedValueOnce(['2024-05-01']);
+    mockRead.mockResolvedValueOnce([
+      ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+      ['1A', 30, null, 0, 123],
+    ]);
     const buffer = Buffer.from('xlsx');
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ value: 5 }], rowCount: 1 });
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
@@ -86,30 +79,23 @@ describe('client visit xlsx import', () => {
     expect(res.status).toBe(200);
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      ['2024-05-01', 123, 30, 20, 0, 1, 0],
+      ['2024-05-01', 123, 30, 25, 0, 1, 0],
     );
   });
 
   it('returns validation summary on dry run', async () => {
-    const mockRead = readXlsxFile as jest.Mock;
-    mockRead.mockImplementation((_buf, options) => {
-      if (options?.getSheets) {
-        return Promise.resolve([{ name: '2024-05-01' }, { name: '2024-05-02' }]);
-      }
-      if (options?.sheet === '2024-05-01') {
-        return Promise.resolve([
-          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
-          ['1A', 30, 20, 0, 123],
-        ]);
-      }
-      if (options?.sheet === '2024-05-02') {
-        return Promise.resolve([
-          ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
-          ['bad', 30, 20, 0, 123],
-        ]);
-      }
-      return Promise.resolve([]);
-    });
+      const mockRead = readXlsxFile as jest.Mock;
+      const mockSheets = readSheetNames as jest.Mock;
+      mockSheets.mockResolvedValueOnce(['2024-05-01', '2024-05-02']);
+    mockRead
+      .mockResolvedValueOnce([
+        ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+        ['1A', 30, 20, 0, 123],
+      ])
+      .mockResolvedValueOnce([
+        ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
+        ['bad', 30, 20, 0, 123],
+      ]);
 
     const buffer = Buffer.from('xlsx');
     const res = await request(app)
@@ -125,8 +111,8 @@ describe('client visit xlsx import', () => {
   });
 
   it('returns error for invalid sheet name', async () => {
-    const sheets = [{ name: 'Sheet1' }];
-    (readXlsxFile as jest.Mock).mockResolvedValueOnce(sheets);
+    const sheets = ['Sheet1'];
+    (readSheetNames as jest.Mock).mockResolvedValueOnce(sheets);
     const buffer = Buffer.from('xlsx');
     const queryMock = jest
       .fn()
@@ -143,23 +129,24 @@ describe('client visit xlsx import', () => {
   });
 
   it('aggregates errors per sheet', async () => {
-    const sheets = [{ name: '2024-05-01' }, { name: '2024-05-02' }];
+    const sheets = ['2024-05-01', '2024-05-02'];
     const sheet1Rows = [
       ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
-      ['1A', 30, 20, 0, 123],
+      ['1A', 30, null, 0, 123],
     ];
     const sheet2Rows = [
       ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
       ['1A', 'bad', 20, 0, 456],
     ];
+    (readSheetNames as jest.Mock).mockResolvedValueOnce(sheets);
     (readXlsxFile as jest.Mock)
-      .mockResolvedValueOnce(sheets)
       .mockResolvedValueOnce(sheet1Rows)
       .mockResolvedValueOnce(sheet2Rows);
     const buffer = Buffer.from('xlsx');
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ value: 5 }], rowCount: 1 }) // cart tare
       .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // select client
       .mockResolvedValueOnce({}) // insert visit
       .mockResolvedValueOnce({}) // refresh count
@@ -173,19 +160,18 @@ describe('client visit xlsx import', () => {
     expect(res.body.errors['2024-05-02'][0]).toMatch('Row 2');
     expect(queryMock).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO client_visits'),
-      ['2024-05-01', 123, 30, 20, 0, 1, 0],
+      ['2024-05-01', 123, 30, 25, 0, 1, 0],
     );
   });
 
   it('imports sunshine bag row into log', async () => {
-    const sheets = [{ name: '2024-05-01' }];
+    const sheets = ['2024-05-01'];
     const rows = [
       ['family size', 'weight with cart', 'weight without cart', 'pet item', 'client id'],
       ['3A', null, 24, null, 'SUNSHINE'],
     ];
-    (readXlsxFile as jest.Mock)
-      .mockResolvedValueOnce(sheets)
-      .mockResolvedValueOnce(rows);
+    (readSheetNames as jest.Mock).mockResolvedValueOnce(sheets);
+    (readXlsxFile as jest.Mock).mockResolvedValueOnce(rows);
     const buffer = Buffer.from('xlsx');
     const queryMock = jest
       .fn()
