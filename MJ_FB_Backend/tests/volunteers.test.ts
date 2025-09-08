@@ -345,20 +345,30 @@ describe('Volunteer badges', () => {
   it('returns computed badges', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [] }) // manual badges
-      .mockResolvedValueOnce({ rowCount: 1 }) // early bird
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ early: true }] }) // early bird
       .mockResolvedValueOnce({ rows: [{ lifetime_hours: '0', month_hours: '0', total_shifts: '10' }] }) // stats
       .mockResolvedValueOnce({ rows: [{ count: '10' }] }) // heavy lifter
       .mockResolvedValueOnce({ rows: [] }) // weeks
-      .mockResolvedValueOnce({ rows: [{ families_served: '0', pounds_handled: '0', month_families_served: '0', month_pounds_handled: '0' }] }); // contributions
+      .mockResolvedValueOnce({ rows: [{ families_served: '4', pounds_handled: '125', month_families_served: '2', month_pounds_handled: '45' }] }); // contributions
 
     const res = await request(app).get('/volunteers/me/stats');
     expect(res.status).toBe(200);
-    expect(res.body.badges).toEqual(['early-bird', 'heavy-lifter']);
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        badges: ['early-bird', 'heavy-lifter'],
+        familiesServed: 4,
+        poundsHandled: 125,
+        monthFamiliesServed: 2,
+        monthPoundsHandled: 45,
+      }),
+    );
     const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
     expect(queries[1]).toContain("status = 'completed'");
     expect(queries[2]).toContain("status = 'completed'");
     expect(queries[3]).toContain("status = 'completed'");
     expect(queries[4]).toContain("status = 'completed'");
+    expect(queries[5]).toContain('weight_without_cart');
+    expect(queries[5]).toContain('cart_tare');
   });
 
   it('awards a badge', async () => {

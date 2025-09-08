@@ -504,14 +504,19 @@ export async function getVolunteerStats(
       month_pounds_handled: string;
     }>(
       `SELECT COUNT(*) AS families_served,
-              COALESCE(SUM(weight_with_cart - weight_without_cart), 0) AS pounds_handled,
+              COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)), 0) AS pounds_handled,
               COUNT(DISTINCT client_id) FILTER (
                 WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
               ) AS month_families_served,
-              COALESCE(SUM(weight_with_cart - weight_without_cart) FILTER (
+              COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)) FILTER (
                 WHERE date_trunc('month', date) = date_trunc('month', CURRENT_DATE)
               ), 0) AS month_pounds_handled
-         FROM client_visits`,
+         FROM client_visits
+         CROSS JOIN (
+           SELECT COALESCE(value::numeric, 0) AS cart_tare
+           FROM app_config
+           WHERE key = 'cart_tare'
+         ) c`,
     );
     const familiesServed = Number(contribRes.rows[0]?.families_served ?? 0);
     const poundsHandled = Number(contribRes.rows[0]?.pounds_handled ?? 0);
