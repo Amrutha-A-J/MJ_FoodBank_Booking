@@ -7,8 +7,8 @@ from the **Hello** menu in the top-right corner. Admins can review periods at
 `/admin/timesheet` and vacation requests at `/admin/leave-requests` from the
 Admin menu. Admins select a staff member before viewing their periods.
 
-Staff see up to seven pay period tabs: the current period, the next period (if
-generated), and up to five previous periods.
+Staff see up to ten pay period tabs: the current period, the next four periods
+(if generated), and up to five previous periods.
 
 On small screens, daily entries render as stacked cards instead of a table,
 making the timesheet easier to read on mobile devices. Input fields now use
@@ -37,8 +37,9 @@ node src/utils/payPeriodSeeder.ts START_DATE END_DATE
 ```
 
 3. Timesheets for staff are created on startup and refreshed daily by a cron
-   job. If the `staff` table includes an `active` column, only active staff are
-   processed. You can seed them manually for the current pay period if
+   job. The seeder ensures each active staff member has timesheets for the
+   current and next four pay periods. If the `staff` table includes an `active`
+   column, only active staff are processed. You can seed them manually if
    necessary:
 
 ```bash

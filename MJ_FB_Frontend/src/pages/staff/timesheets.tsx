@@ -104,7 +104,7 @@ export default function Timesheets() {
     const idx = timesheets.findIndex(p => !p.approved_at);
     const currentIdx = idx === -1 ? timesheets.length - 1 : idx;
     const start = Math.max(0, currentIdx - 5);
-    const end = Math.min(timesheets.length, currentIdx + 2);
+    const end = Math.min(timesheets.length, currentIdx + 5);
     return timesheets.slice(start, end);
   }, [timesheets, inAdmin]);
 
