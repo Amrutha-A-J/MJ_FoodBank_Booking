@@ -148,37 +148,43 @@ export async function createStaff(
   await handleResponse(res);
 }
 
+export interface AddUserOptions {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  sendPasswordLink?: boolean;
+}
+
 export async function addUser(
-  firstName: string,
-  lastName: string,
   clientId: string,
   role: UserRole,
   onlineAccess: boolean,
-  email?: string,
-  phone?: string,
-  password?: string,
-  sendPasswordLink?: boolean,
+  options: AddUserOptions = {},
 ): Promise<void> {
   const id = Number(clientId);
   if (!Number.isInteger(id)) {
     return Promise.reject(new Error("Invalid client ID"));
   }
+  const body: Record<string, unknown> = {
+    clientId: id,
+    role,
+    onlineAccess,
+  };
+  if (options.firstName) body.firstName = options.firstName;
+  if (options.lastName) body.lastName = options.lastName;
+  if (options.email) body.email = options.email;
+  if (options.phone) body.phone = options.phone;
+  if (options.password) body.password = options.password;
+  if (options.sendPasswordLink) body.sendPasswordLink = options.sendPasswordLink;
+
   const res = await apiFetch(`${API_BASE}/users/add-client`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      clientId: id,
-      role,
-      onlineAccess,
-      email,
-      phone,
-      password,
-      sendPasswordLink,
-    }),
+    body: JSON.stringify(body),
   });
   await handleResponse(res);
 }

@@ -46,17 +46,14 @@ export default function AddClient() {
       return;
     }
     try {
-      await addUser(
+      await addUser(clientId, role, onlineAccess, {
         firstName,
         lastName,
-        clientId,
-        role,
-        onlineAccess,
-        email || undefined,
-        phone || undefined,
-        sendPasswordLink ? undefined : password || undefined,
-        sendPasswordLink
-      );
+        email: email || undefined,
+        phone: phone || undefined,
+        password: sendPasswordLink ? undefined : password || undefined,
+        sendPasswordLink,
+      });
       setSuccess('Client added successfully');
       setFirstName('');
       setLastName('');
