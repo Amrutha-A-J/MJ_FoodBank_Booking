@@ -33,7 +33,6 @@ const envSchema = z.object({
   VOLUNTEER_RESCHEDULE_TEMPLATE_ID: z.coerce.number().default(10),
   VOLUNTEER_NO_SHOW_HOURS: z.coerce.number().default(24),
   VACUUM_ALERT_DEAD_ROWS_THRESHOLD: z.coerce.number().default(5000),
-  OPS_ALERT_EMAILS: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
 });
@@ -50,10 +49,6 @@ const frontendOrigins = env.FRONTEND_ORIGIN
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
-const opsAlertEmails = env.OPS_ALERT_EMAILS
-  ? env.OPS_ALERT_EMAILS.split(',').map(e => e.trim()).filter(Boolean)
-  : [];
-
 export default {
   pgUser: env.PG_USER,
   pgPassword: env.PG_PASSWORD,
@@ -82,7 +77,6 @@ export default {
   volunteerRescheduleTemplateId: env.VOLUNTEER_RESCHEDULE_TEMPLATE_ID,
   volunteerNoShowHours: env.VOLUNTEER_NO_SHOW_HOURS,
   vacuumAlertDeadRowsThreshold: env.VACUUM_ALERT_DEAD_ROWS_THRESHOLD,
-  opsAlertEmails,
   telegramBotToken: env.TELEGRAM_BOT_TOKEN ?? '',
   telegramAlertChatId: env.TELEGRAM_ALERT_CHAT_ID ?? '',
 };

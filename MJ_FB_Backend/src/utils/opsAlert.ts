@@ -1,5 +1,4 @@
 import config from '../config';
-import { sendEmail } from './emailUtils';
 import logger from './logger';
 
 async function sendTelegram(message: string): Promise<void> {
@@ -19,28 +18,10 @@ export async function alertOps(job: string, err: unknown): Promise<void> {
   const subject = `[MJFB] ${job} failed`;
   const body = `Job ${job} failed with error: ${err instanceof Error ? err.message : String(err)}`;
   const message = `${subject}\n${body}`;
-  const tasks: Promise<unknown>[] = [];
-  if (config.opsAlertEmails.length) {
-    tasks.push(
-      ...config.opsAlertEmails.map(email =>
-        sendEmail(email, subject, body).catch(e => logger.error('Failed to send ops alert', e)),
-      ),
-    );
-  }
-  tasks.push(sendTelegram(message));
-  await Promise.all(tasks);
+  await sendTelegram(message);
 }
 
 export async function notifyOps(message: string): Promise<void> {
   const subject = `[MJFB] ${message}`;
-  const tasks: Promise<unknown>[] = [];
-  if (config.opsAlertEmails.length) {
-    tasks.push(
-      ...config.opsAlertEmails.map(email =>
-        sendEmail(email, subject, message).catch(e => logger.error('Failed to send ops alert', e)),
-      ),
-    );
-  }
-  tasks.push(sendTelegram(subject));
-  await Promise.all(tasks);
+  await sendTelegram(subject);
 }

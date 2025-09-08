@@ -56,7 +56,6 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` – Brevo template ID for volunteer booking notifications (cancellations, coordinator alerts).
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
-`OPS_ALERT_EMAILS` – Comma-separated list of emails to notify when nightly jobs fail.
 `TELEGRAM_BOT_TOKEN` – Telegram bot token for ops alerts (optional).
 `TELEGRAM_ALERT_CHAT_ID` – Telegram chat ID that receives ops alerts (optional).
 
