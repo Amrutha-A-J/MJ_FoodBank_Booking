@@ -43,6 +43,7 @@ const Login = React.lazy(() => import('./pages/auth/Login'));
 const StaffLogin = React.lazy(() => import('./pages/auth/StaffLogin'));
 const VolunteerLogin = React.lazy(() => import('./pages/auth/VolunteerLogin'));
 const PasswordSetup = React.lazy(() => import('./pages/auth/PasswordSetup'));
+const LoginSelection = React.lazy(() => import('./pages/auth/LoginSelection'));
 const VolunteerDashboard = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerDashboard')
 );
@@ -152,7 +153,7 @@ export default function App() {
     : undefined;
   if (!role) {
     navGroups.push(
-      { label: t('client_login'), links: [{ label: t('client_login'), to: '/login/user' }] },
+      { label: t('login'), links: [{ label: t('login'), to: '/login' }] },
       {
         label: 'Internal Login',
         links: [
@@ -537,8 +538,8 @@ export default function App() {
                     <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
                     <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
                     <Route path="/set-password" element={<PasswordSetup />} />
-                    <Route path="/login" element={<Navigate to="/login/user" replace />} />
-                    <Route path="*" element={<Navigate to="/login/user" replace />} />
+                    <Route path="/login" element={<LoginSelection />} />
+                    <Route path="*" element={<Navigate to="/login" replace />} />
                   </Routes>
                 </Suspense>
               </main>

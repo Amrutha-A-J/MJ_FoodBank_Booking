@@ -64,7 +64,7 @@ describe('Agency UI access', () => {
   it('redirects unauthenticated users away from agency routes', async () => {
     window.history.pushState({}, '', '/agency/book');
     renderWithProviders(<App />);
-    await waitFor(() => expect(window.location.pathname).toBe('/login/user'));
-    expect(screen.getByText(/client login/i)).toBeInTheDocument();
+    await waitFor(() => expect(window.location.pathname).toBe('/login'));
+    expect(screen.getByText(/login/i)).toBeInTheDocument();
   });
 });

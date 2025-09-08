@@ -11,6 +11,16 @@ export interface HelpSection {
 export function getHelpContent(
   t: TFunction,
 ): Record<'client' | 'volunteer' | 'agency' | 'pantry' | 'warehouse' | 'admin', HelpSection[]> {
+  const loginSection: HelpSection = {
+    title: t('help.login.title'),
+    body: {
+      description: t('help.login.description'),
+      steps: [
+        t('help.login.steps.0'),
+        t('help.login.steps.1'),
+      ],
+    },
+  };
   const installAppSection: HelpSection = {
     title: t('help.install_app.title'),
     body: {
@@ -23,6 +33,7 @@ export function getHelpContent(
   };
   return {
     client: [
+      loginSection,
       installAppSection,
       {
         title: t('help.client.booking_appointments.title'),
@@ -81,6 +92,7 @@ export function getHelpContent(
       },
     ],
     volunteer: [
+      loginSection,
       installAppSection,
     {
       title: 'View schedule',
@@ -152,6 +164,7 @@ export function getHelpContent(
     },
   ],
   agency: [
+    loginSection,
     installAppSection,
     {
       title: 'Search and link clients',
@@ -211,6 +224,7 @@ export function getHelpContent(
     },
   ],
   pantry: [
+    loginSection,
     installAppSection,
     {
       title: 'Pantry quick links',
@@ -436,6 +450,7 @@ export function getHelpContent(
     },
   ],
   warehouse: [
+    loginSection,
     installAppSection,
     {
       title: 'Warehouse quick links',
@@ -491,6 +506,7 @@ export function getHelpContent(
     },
   ],
   admin: [
+    loginSection,
     installAppSection,
     {
       title: 'Staff users and permissions',
