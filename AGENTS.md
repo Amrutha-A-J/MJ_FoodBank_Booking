@@ -23,7 +23,6 @@
 - Maintain database health: set database-level autovacuum thresholds, schedule manual `VACUUM ANALYZE` during low-traffic windows, plan quarterly `REINDEX` or `pg_repack` runs for heavily updated tables, and monitor table bloat metrics. Record these tasks in ops docs.
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".
 - Always document new environment variables in the repository README and `.env.example` files.
-- Set `VITE_ENABLE_SERVICE_WORKER=true` in `MJ_FB_Frontend/.env` to register the service worker outside production for PWA testing.
 - Implement all database schema changes via migrations in `MJ_FB_Backend/src/migrations`; do not modify `src/setupDatabase.ts` for schema updates.
 - Volunteers sign in with their email address instead of a username, and volunteer emails must be unique (email remains optional).
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.

@@ -6,7 +6,6 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './queryClient';
-import { registerServiceWorker } from './registerServiceWorker';
 import { AuthProvider } from './hooks/useAuth';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -41,8 +40,6 @@ if (import.meta.hot) {
   import.meta.hot.accept();
   import.meta.hot.dispose(() => root.unmount());
 }
-
-registerServiceWorker();
 
 export default Main;
 
