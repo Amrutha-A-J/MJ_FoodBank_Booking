@@ -115,7 +115,7 @@ export default function EntitySearch<T extends SearchResultBase>({
           ))}
         </ul>
       ) : (
-        query.length >= 3 && <p>No search results.</p>
+        query.trim().length >= 3 && <p>No search results.</p>
       )}
       <FeedbackSnackbar
         open={!!error}
