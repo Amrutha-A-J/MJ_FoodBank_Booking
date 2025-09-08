@@ -80,7 +80,7 @@ describe('PantryVisits', () => {
     jest.useRealTimers();
   });
 
-  it('uses cart tare from config when calculating weight', async () => {
+  it('fetches cart tare for pantry staff and auto-deducts weight', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
@@ -94,8 +94,9 @@ describe('PantryVisits', () => {
     const withCart = screen.getByLabelText('Weight With Cart');
     fireEvent.change(withCart, { target: { value: '50' } });
 
-    const withoutCart = screen.getByLabelText('Weight Without Cart');
-    expect(withoutCart).toHaveValue(40);
+    await waitFor(() =>
+      expect(screen.getByLabelText('Weight Without Cart')).toHaveValue(40),
+    );
   });
 
   it('selects only one visit type and can return to regular', async () => {
