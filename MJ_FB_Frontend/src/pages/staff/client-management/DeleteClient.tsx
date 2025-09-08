@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@mui/material';
-import Page from '../../../components/Page';
+import { Box, Button, Typography } from '@mui/material';
 import EntitySearch from '../../../components/EntitySearch';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -29,7 +28,10 @@ export default function DeleteClient() {
   }
 
   return (
-    <Page title="Delete Client">
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Delete Client
+      </Typography>
       <EntitySearch type="user" placeholder="Search client" onSelect={c => setClient(c as Client)} />
       {client && (
         <Button
@@ -55,6 +57,6 @@ export default function DeleteClient() {
         message={message}
         severity={severity}
       />
-    </Page>
+    </Box>
   );
 }

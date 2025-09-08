@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Box,
   Table,
   TableHead,
   TableRow,
@@ -16,8 +17,8 @@ import {
   FormControlLabel,
   Checkbox,
   Tooltip,
+  Typography,
 } from "@mui/material";
-import Page from "../../../components/Page";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
 import {
@@ -145,7 +146,10 @@ export default function UpdateClientData() {
   }
 
   return (
-    <Page title="Update Client Data">
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Update Client Data
+      </Typography>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -275,6 +279,6 @@ export default function UpdateClientData() {
         message={snackbar?.message || ""}
         severity={snackbar?.severity}
       />
-    </Page>
+    </Box>
   );
 }

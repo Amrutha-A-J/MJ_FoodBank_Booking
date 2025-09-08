@@ -15,7 +15,6 @@ import {
   ToggleButtonGroup,
   ToggleButton,
 } from '@mui/material';
-import Page from '../../../components/Page';
 import PasswordField from '../../../components/PasswordField';
 
 export default function AddClient() {
@@ -74,7 +73,10 @@ export default function AddClient() {
   }
 
   return (
-    <Page title="Create Client">
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Create Client
+      </Typography>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box maxWidth={400} width="100%" mt={4}>
           <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
@@ -145,7 +147,7 @@ export default function AddClient() {
         </Stack>
         </Box>
       </Box>
-    </Page>
+    </Box>
   );
 }
 

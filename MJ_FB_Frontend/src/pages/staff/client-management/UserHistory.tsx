@@ -46,7 +46,6 @@ import DialogCloseButton from '../../../components/DialogCloseButton';
 import PasswordField from '../../../components/PasswordField';
 import { useTranslation } from 'react-i18next';
 import { toDate, formatDate } from '../../../utils/date';
-import Page from '../../../components/Page';
 import type { Booking } from '../../../types';
 
 interface User {
@@ -237,7 +236,10 @@ export default function UserHistory({
   }
 
   return (
-    <Page title={initialUser ? t('booking_history') : t('client_history')}>
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        {initialUser ? t('booking_history') : t('client_history')}
+      </Typography>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
         {!initialUser && (
@@ -609,13 +611,13 @@ export default function UserHistory({
             </DialogActions>
           </Dialog>
           <FeedbackSnackbar
-          open={!!message}
-          onClose={() => setMessage('')}
-          message={message}
-          severity={severity}
-        />
+            open={!!message}
+            onClose={() => setMessage('')}
+            message={message}
+            severity={severity}
+          />
         </Box>
       </Box>
-    </Page>
+    </Box>
   );
 }
