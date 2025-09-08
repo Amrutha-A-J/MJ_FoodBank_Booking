@@ -7,6 +7,30 @@ export async function searchAgencies(query: string) {
   return handleResponse(res);
 }
 
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+let lastReject: ((reason?: any) => void) | undefined;
+
+export function searchAgencyClients(term: string) {
+  if (searchTimer) {
+    clearTimeout(searchTimer);
+    lastReject?.(new Error('canceled'));
+  }
+
+  return new Promise<any[]>((resolve, reject) => {
+    lastReject = reject;
+    searchTimer = setTimeout(async () => {
+      try {
+        const res = await apiFetch(
+          `${API_BASE}/agencies/me/clients?search=${encodeURIComponent(term)}`,
+        );
+        resolve(await handleResponse(res));
+      } catch (err) {
+        reject(err);
+      }
+    }, 300);
+  });
+}
+
 export async function getAgencyClients(agencyId: number | 'me') {
   const res = await apiFetch(`${API_BASE}/agencies/${agencyId}/clients`, {
     method: 'GET',

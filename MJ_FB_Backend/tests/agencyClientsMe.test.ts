@@ -48,6 +48,17 @@ describe('GET /agencies/me/clients', () => {
     expect(res.body).toEqual([
       { client_id: 5, first_name: 'John', last_name: 'Doe', email: null },
     ]);
-    expect(getAgencyClients).toHaveBeenCalledWith(1);
+    expect(getAgencyClients).toHaveBeenCalledWith(1, undefined, 25, 0);
+  });
+
+  it('forwards search and pagination parameters', async () => {
+    (getAgencyClients as jest.Mock).mockResolvedValue([]);
+
+    const res = await request(app)
+      .get('/agencies/me/clients')
+      .query({ search: 'Jo', limit: '5', offset: '10' });
+
+    expect(res.status).toBe(200);
+    expect(getAgencyClients).toHaveBeenCalledWith(1, 'Jo', 5, 10);
   });
 });

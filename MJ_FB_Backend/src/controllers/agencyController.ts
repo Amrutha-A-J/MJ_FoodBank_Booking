@@ -158,7 +158,26 @@ export async function getAgencyClients(
     ) {
       return res.status(403).json({ message: 'Forbidden' });
     }
-    const clients = await fetchAgencyClients(agencyId);
+    const search = req.query.search as string | undefined;
+    const limitParam = req.query.limit as string | undefined;
+    const offsetParam = req.query.offset as string | undefined;
+    let limit = 25;
+    if (limitParam !== undefined) {
+      const parsed = Number(limitParam);
+      if (!Number.isFinite(parsed) || parsed < 1) {
+        return res.status(400).json({ message: 'Invalid limit' });
+      }
+      limit = Math.min(parsed, 100);
+    }
+    let offset = 0;
+    if (offsetParam !== undefined) {
+      const parsed = Number(offsetParam);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return res.status(400).json({ message: 'Invalid offset' });
+      }
+      offset = parsed;
+    }
+    const clients = await fetchAgencyClients(agencyId, search, limit, offset);
     res.json(clients);
   } catch (err) {
     next(err);
