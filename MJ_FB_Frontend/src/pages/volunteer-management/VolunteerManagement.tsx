@@ -69,6 +69,7 @@ interface RoleOption {
   startTime?: string;
   endTime?: string;
   max_volunteers: number;
+  has_shifts: boolean;
 }
 
 interface VolunteerResult {
@@ -247,8 +248,21 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   useEffect(() => {
     getVolunteerRoles()
       .then(data => {
-        const flattened: RoleOption[] = data.flatMap(r =>
-          r.shifts.map(s => ({
+        const flattened: RoleOption[] = data.flatMap(r => {
+          if (r.shifts.length === 0) {
+            return [
+              {
+                id: r.id,
+                role_id: r.id,
+                category_id: r.category_id,
+                category_name: r.category_name,
+                name: r.name,
+                max_volunteers: r.max_volunteers,
+                has_shifts: false,
+              },
+            ];
+          }
+          return r.shifts.map(s => ({
             id: s.id,
             role_id: r.id,
             category_id: r.category_id,
@@ -257,19 +271,20 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             start_time: s.start_time,
             end_time: s.end_time,
             max_volunteers: r.max_volunteers,
-          })),
-        );
+            has_shifts: true,
+          }));
+        });
         setRoles(flattened);
       })
       .catch(() => {});
   }, []);
 
   const groupedRoles = useMemo(() => {
-    const groups = new Map<string, { name: string; category_id: number }[]>();
+    const groups = new Map<string, { name: string; category_id: number; has_shifts: boolean }[]>();
     roles.forEach(r => {
       const arr = groups.get(r.category_name) || [];
       if (!arr.some(a => a.name === r.name)) {
-        arr.push({ name: r.name, category_id: r.category_id });
+        arr.push({ name: r.name, category_id: r.category_id, has_shifts: r.has_shifts });
       }
       groups.set(r.category_name, arr);
     });
@@ -279,6 +294,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const nameToSlotIds = useMemo(() => {
     const map = new Map<string, number[]>();
     roles.forEach(r => {
+      if (!r.has_shifts) return;
       const arr = map.get(r.name) || [];
       arr.push(r.id);
       map.set(r.name, arr);
@@ -308,11 +324,13 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     () =>
       groupedRoles.flatMap(g => [
         <ListSubheader key={`${g.category}-header`}>{g.category}</ListSubheader>,
-        ...g.roles.map(r => (
-          <MenuItem key={r.name} value={r.name}>
-            {r.name}
-          </MenuItem>
-        )),
+        ...g.roles
+          .filter(r => r.has_shifts)
+          .map(r => (
+            <MenuItem key={r.name} value={r.name}>
+              {r.name}
+            </MenuItem>
+          )),
       ]),
     [groupedRoles]
   );
