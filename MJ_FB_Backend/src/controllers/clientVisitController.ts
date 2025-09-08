@@ -18,7 +18,8 @@ export async function refreshClientVisitCount(
      SET bookings_this_month = (
        SELECT COUNT(*) FROM client_visits v
        WHERE v.client_id = c.client_id
-         AND DATE_TRUNC('month', v.date) = DATE_TRUNC('month', CURRENT_DATE)
+         AND v.date >= DATE_TRUNC('month', CURRENT_DATE)
+         AND v.date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
      ),
      booking_count_last_updated = NOW()
      WHERE c.client_id = $1`,
