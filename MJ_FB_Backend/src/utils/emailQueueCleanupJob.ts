@@ -16,7 +16,6 @@ export async function cleanupEmailQueue(): Promise<void> {
     if (size > config.emailQueueWarningSize) {
       logger.warn('Email queue size exceeds threshold', { size, threshold: config.emailQueueWarningSize });
       await notifyOps(
-        'Email queue size exceeds threshold',
         `Email queue size ${size} exceeds warning threshold ${config.emailQueueWarningSize}`,
       );
     }

@@ -31,17 +31,16 @@ export async function alertOps(job: string, err: unknown): Promise<void> {
   await Promise.all(tasks);
 }
 
-export async function notifyOps(subject: string, body: string): Promise<void> {
-  const fullSubject = `[MJFB] ${subject}`;
-  const message = `${fullSubject}\n${body}`;
+export async function notifyOps(message: string): Promise<void> {
+  const subject = `[MJFB] ${message}`;
   const tasks: Promise<unknown>[] = [];
   if (config.opsAlertEmails.length) {
     tasks.push(
       ...config.opsAlertEmails.map(email =>
-        sendEmail(email, fullSubject, body).catch(e => logger.error('Failed to send ops alert', e)),
+        sendEmail(email, subject, message).catch(e => logger.error('Failed to send ops alert', e)),
       ),
     );
   }
-  tasks.push(sendTelegram(message));
+  tasks.push(sendTelegram(subject));
   await Promise.all(tasks);
 }

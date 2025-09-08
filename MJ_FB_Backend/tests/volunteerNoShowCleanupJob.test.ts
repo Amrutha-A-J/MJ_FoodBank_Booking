@@ -16,7 +16,7 @@ const {
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 jest.mock('../src/utils/emailUtils');
-import { alertOps } from '../src/utils/opsAlert';
+import { alertOps, notifyOps } from '../src/utils/opsAlert';
 
 describe('cleanupVolunteerNoShows', () => {
   beforeEach(() => {
@@ -37,6 +37,7 @@ describe('cleanupVolunteerNoShows', () => {
     expect(query).toContain('FROM volunteer_slots');
     expect(query).toContain('vb.date + vs.end_time');
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
+    expect(notifyOps).toHaveBeenCalledWith('cleanupVolunteerNoShows marked 1 bookings');
   });
 
   it('alerts ops on failure', async () => {
