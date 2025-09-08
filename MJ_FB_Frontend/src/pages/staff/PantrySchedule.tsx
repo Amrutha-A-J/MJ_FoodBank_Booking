@@ -423,7 +423,15 @@ export default function PantrySchedule({
             justifyContent: 'center',
           }}
         >
-          <div style={{ background: 'white', padding: 16, borderRadius: 10, width: '300px' }}>
+          <div
+            style={{
+              background: 'white',
+              padding: 16,
+              borderRadius: 10,
+              width: 300,
+              maxWidth: '90vw',
+            }}
+          >
             <h4>Assign User</h4>
             <FormControlLabel
               control={<Checkbox checked={isNewClient} onChange={e => setIsNewClient(e.target.checked)} />}
