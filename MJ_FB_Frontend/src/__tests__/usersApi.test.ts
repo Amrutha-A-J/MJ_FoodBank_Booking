@@ -19,37 +19,48 @@ describe('users api', () => {
   });
 
   it('rejects addUser with invalid clientId', async () => {
-    await expect(addUser('John', 'Doe', 'abc', 'shopper', true)).rejects.toThrow(
+    await expect(addUser('abc', 'shopper', true)).rejects.toThrow(
       'Invalid client ID',
     );
     expect(apiFetch).not.toHaveBeenCalled();
   });
 
-  it('sends password and flag to addUser', async () => {
-    await addUser(
-      'John',
-      'Doe',
-      '123',
-      'shopper',
-      true,
-      'john@example.com',
-      undefined,
-      'P@ssword1',
-      false,
-    );
+  it('sends provided fields to addUser', async () => {
+    await addUser('123', 'shopper', true, {
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'john@example.com',
+      password: 'P@ssword1',
+      sendPasswordLink: false,
+    });
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/users/add-client',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
-          firstName: 'John',
-          lastName: 'Doe',
           clientId: 123,
           role: 'shopper',
           onlineAccess: true,
+          firstName: 'John',
+          lastName: 'Doe',
           email: 'john@example.com',
           password: 'P@ssword1',
           sendPasswordLink: false,
+        }),
+      }),
+    );
+  });
+
+  it('omits undefined fields in addUser', async () => {
+    await addUser('123', 'shopper', false);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/users/add-client',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          clientId: 123,
+          role: 'shopper',
+          onlineAccess: false,
         }),
       }),
     );
