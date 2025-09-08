@@ -1,4 +1,5 @@
 import {
+  Box,
   Card,
   CardContent,
   Stack,
@@ -47,9 +48,9 @@ export default function ResponsiveTable<T>({ columns, rows, getRowKey, tableRef 
               {columns.map((col) => (
                 <Stack key={col.field} direction="row" spacing={1}>
                   <Typography variant="subtitle2">{col.header}</Typography>
-                  <Typography sx={{ flex: 1 }}>
+                  <Box sx={{ flex: 1 }}>
                     {col.render ? col.render(row) : String(row[col.field])}
-                  </Typography>
+                  </Box>
                 </Stack>
               ))}
             </CardContent>
