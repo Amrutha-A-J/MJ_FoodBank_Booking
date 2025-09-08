@@ -399,6 +399,7 @@ export default function BookingUI({
             ref={slotsRef}
             sx={{
               p: 2,
+              pb: 8,
               borderRadius: 2,
               maxHeight: { xs: 420, md: 560 },
               overflow: 'auto',
@@ -459,12 +460,11 @@ export default function BookingUI({
           </Paper>
         </Grid>
       </Grid>
-      <Paper
+      <Box
+        component={Paper}
         sx={{
-          position: 'fixed',
+          position: 'sticky',
           bottom: 0,
-          left: 0,
-          right: 0,
           mt: 2,
           p: 2,
           borderRadius: { xs: 0, md: 2 },
@@ -496,7 +496,7 @@ export default function BookingUI({
             {t('book_selected_slot')}
           </Button>
         </Stack>
-      </Paper>
+      </Box>
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogCloseButton onClose={() => setConfirmOpen(false)} />
         <DialogTitle>{t('confirm_booking')}</DialogTitle>
