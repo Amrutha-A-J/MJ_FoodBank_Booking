@@ -26,4 +26,28 @@ describe('EntitySearch', () => {
 
     expect((input as HTMLInputElement).value).toBe('');
   });
+
+  it('hides "No search results." when the query is cleared', async () => {
+    const searchFn = jest.fn().mockResolvedValue([]);
+    render(
+      <EntitySearch
+        type="user"
+        placeholder="Search clients"
+        onSelect={() => {}}
+        searchFn={searchFn}
+      />,
+    );
+
+    const input = screen.getByLabelText(/search/i);
+    fireEvent.change(input, { target: { value: 'abc' } });
+
+    await waitFor(() => expect(searchFn).toHaveBeenCalled());
+    await screen.findByText('No search results.');
+
+    fireEvent.change(input, { target: { value: '   ' } });
+
+    await waitFor(() =>
+      expect(screen.queryByText('No search results.')).not.toBeInTheDocument(),
+    );
+  });
 });
