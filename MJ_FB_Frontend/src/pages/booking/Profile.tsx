@@ -17,6 +17,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PageContainer from '../../components/layout/PageContainer';
 import PageCard from '../../components/layout/PageCard';
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 export default function Profile({ role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -100,14 +101,15 @@ export default function Profile({ role }: { role: Role }) {
   }
 
   return (
-    <PageContainer maxWidth="sm">
-      <PageCard
-        variant="elevation"
-        elevation={0}
-        sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}
-        contentProps={{ sx: { p: 0 } }}
-      >
-        <Stack spacing={3}>
+    <ErrorBoundary>
+      <PageContainer maxWidth="sm">
+        <PageCard
+          variant="elevation"
+          elevation={0}
+          sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}
+          contentProps={{ sx: { p: 0 } }}
+        >
+          <Stack spacing={3}>
           {/* Header */}
           <Stack direction="row" alignItems="center" spacing={2}>
             <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
@@ -230,5 +232,6 @@ export default function Profile({ role }: { role: Role }) {
         severity={toast.severity}
       />
     </PageContainer>
+    </ErrorBoundary>
   );
 }

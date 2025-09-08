@@ -267,6 +267,9 @@ export default function App() {
   const AppContent = () => {
     const location = useLocation();
     const path = location.pathname;
+    useEffect(() => {
+      console.log('Navigated to', path);
+    }, [path]);
     const showLanguageSelector =
       path.startsWith('/login') ||
       path.startsWith('/forgot-password') ||
