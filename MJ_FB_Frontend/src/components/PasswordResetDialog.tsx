@@ -22,15 +22,13 @@ export default function PasswordResetDialog({
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const { t } = useTranslation();
 
-  const label =
-    type === 'staff' || type === 'volunteer' ? t('email') : t('client_id');
   const formTitle = t('reset_password');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       const body: any =
-        type === 'staff' || type === 'volunteer'
+        identifier.includes('@') || !/^\d+$/.test(identifier)
           ? { email: identifier }
           : { clientId: identifier };
       await requestPasswordReset(body);
@@ -56,20 +54,16 @@ export default function PasswordResetDialog({
             actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
-            {type === 'user' && (
-              <Typography variant="body2">
-                {t('client_reset_password_instructions')}
-              </Typography>
-            )}
+            <Typography variant="body2">
+              {t('password_reset_instructions')}
+            </Typography>
             <TextField
               autoFocus
               margin="dense"
-              label={label}
-              type={type === 'staff' || type === 'volunteer' ? 'email' : 'text'}
-              name={type === 'staff' || type === 'volunteer' ? 'email' : 'clientId'}
-              autoComplete={
-                type === 'staff' || type === 'volunteer' ? 'email' : 'off'
-              }
+              label={t('email_or_client_id')}
+              type="text"
+              name="identifier"
+              autoComplete="email"
               fullWidth
               value={identifier}
               onChange={e => setIdentifier(e.target.value)}
