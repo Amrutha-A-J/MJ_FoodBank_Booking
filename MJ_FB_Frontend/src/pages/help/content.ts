@@ -364,6 +364,17 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Book new clients from the schedule',
+      body: {
+        description: 'Assign a slot to someone without a client ID.',
+        steps: [
+          'Click Assign User on a slot.',
+          'Check New client and enter their name.',
+          'Select Assign new client.',
+        ],
+      },
+    },
+    {
       title: 'Manage agencies and their clients',
       body: {
         description: 'Link or unlink agency clients and make bookings on their behalf.',
