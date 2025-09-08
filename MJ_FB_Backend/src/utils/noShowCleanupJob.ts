@@ -1,16 +1,18 @@
 import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
-import { alertOps } from './opsAlert';
+import { alertOps, notifyOps } from './opsAlert';
 
 /**
  * Mark past approved bookings as no-show.
  */
 export async function cleanupNoShows(): Promise<void> {
   try {
-    await pool.query(
+    const res = await pool.query(
       "UPDATE bookings SET status='no_show', note=NULL WHERE status='approved' AND date < CURRENT_DATE",
     );
+    const count = res.rowCount ?? 0;
+    await notifyOps(`cleanupNoShows marked ${count} bookings`);
   } catch (err) {
     logger.error('Failed to clean up no-shows', err);
     await alertOps('cleanupNoShows', err);
