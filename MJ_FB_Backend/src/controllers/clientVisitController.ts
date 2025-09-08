@@ -170,6 +170,14 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         return res.status(409).json({ message: 'Duplicate visit' });
       }
     }
+    const cartRes = await client.query(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    let weightWithoutCartAdjusted = weightWithoutCart;
+    if (weightWithCart != null && weightWithoutCart == null) {
+      weightWithoutCartAdjusted = weightWithCart - cartTare;
+    }
     const insertRes = await client.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
        VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9)
@@ -179,7 +187,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         date,
         clientId ?? null,
         weightWithCart ?? null,
-        weightWithoutCart ?? null,
+        weightWithoutCartAdjusted ?? null,
         petItem ?? 0,
         anonymous ?? false,
         note ?? null,
@@ -271,6 +279,14 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         return res.status(409).json({ message: 'Duplicate visit' });
       }
     }
+    const cartRes = await pool.query(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    let weightWithoutCartAdjusted = weightWithoutCart;
+    if (weightWithCart != null && weightWithoutCart == null) {
+      weightWithoutCartAdjusted = weightWithCart - cartTare;
+    }
     const result = await pool.query(
       `UPDATE client_visits
        SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7, adults = $8, children = $9
@@ -281,7 +297,7 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         date,
         clientId ?? null,
         weightWithCart ?? null,
-        weightWithoutCart ?? null,
+        weightWithoutCartAdjusted ?? null,
         petItem ?? 0,
         anonymous ?? false,
         note ?? null,

@@ -33,6 +33,7 @@ describe('client visit notes', () => {
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '2' }], rowCount: 1 }) // cart tare
       .mockResolvedValueOnce({
         rows: [
           {
@@ -107,6 +108,7 @@ describe('client visit notes', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // existing
       .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '2' }], rowCount: 1 }) // cart tare
       .mockResolvedValueOnce({
         rows: [
           {
@@ -140,7 +142,7 @@ describe('client visit notes', () => {
       });
 
     expect(res.status).toBe(200);
-    expect((pool.query as jest.Mock).mock.calls[2]).toEqual([
+    expect((pool.query as jest.Mock).mock.calls[3]).toEqual([
       expect.stringContaining('UPDATE client_visits'),
       ['2024-01-02', 123, 10, 9, 0, false, 'updated note', 1, 2, '7'],
     ]);
@@ -206,6 +208,7 @@ describe('client visit notes', () => {
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '2' }], rowCount: 1 }) // cart tare
       .mockResolvedValueOnce({
         rows: [
           {
@@ -240,6 +243,86 @@ describe('client visit notes', () => {
       expect.stringContaining('INSERT INTO client_visits'),
       ['2024-01-03', 123, null, null, 0, false, null, 1, 2],
     );
+  });
+
+  it('calculates weightWithoutCart using cart tare on create', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '2' }], rowCount: 1 }) // cart tare
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 9,
+            date: '2024-01-04',
+            clientId: 123,
+            weightWithCart: 10,
+            weightWithoutCart: 8,
+            petItem: 0,
+            anonymous: false,
+            note: null,
+            adults: 0,
+            children: 0,
+          },
+        ],
+        rowCount: 1,
+      }) // insert
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}) // refresh count
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // same-day booking
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (pool.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const res = await request(app)
+      .post('/client-visits')
+      .send({ date: '2024-01-04', clientId: 123, weightWithCart: 10, adults: 0, children: 0 });
+
+    expect(res.status).toBe(201);
+    expect(queryMock).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      ['2024-01-04', 123, 10, 8, 0, false, null, 0, 0],
+    );
+    expect(res.body.weightWithoutCart).toBe(8);
+  });
+
+  it('calculates weightWithoutCart using cart tare on update', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ client_id: 123 }], rowCount: 1 }) // existing
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '2' }], rowCount: 1 }) // cart tare
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 7,
+            date: '2024-01-02',
+            clientId: 123,
+            weightWithCart: 10,
+            weightWithoutCart: 8,
+            petItem: 0,
+            anonymous: false,
+            note: null,
+            adults: 0,
+            children: 0,
+          },
+        ],
+        rowCount: 1,
+      }) // update
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}); // refresh count
+
+    const res = await request(app)
+      .put('/client-visits/7')
+      .send({ date: '2024-01-02', clientId: 123, weightWithCart: 10, adults: 0, children: 0 });
+
+    expect(res.status).toBe(200);
+    expect((pool.query as jest.Mock).mock.calls[3]).toEqual([
+      expect.stringContaining('UPDATE client_visits'),
+      ['2024-01-02', 123, 10, 8, 0, false, null, 0, 0, '7'],
+    ]);
+    expect(res.body.weightWithoutCart).toBe(8);
   });
 
   it('reverts booking when visit deleted', async () => {
