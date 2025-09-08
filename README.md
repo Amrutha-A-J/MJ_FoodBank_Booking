@@ -493,6 +493,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff can enter pay period timesheets with daily hour categories, request vacation leave, and submit periods for approval with admin review and processing.
 - Staff can delete client and volunteer accounts from the Client Management and Volunteer Management pages.
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.
+- Warehouse pages include quick links for Dashboard, Donation Log, Track Surplus, Track Pigpound, Track Outgoing Donations, Aggregations, and Exports.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
 - Anonymous Pantry Visits show "(ANONYMOUS)" after the client ID and their family size is excluded from summary counts.

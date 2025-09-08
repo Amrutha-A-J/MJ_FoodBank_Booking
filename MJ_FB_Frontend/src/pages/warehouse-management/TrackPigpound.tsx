@@ -15,6 +15,7 @@ import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import {
@@ -162,17 +163,20 @@ export default function TrackPigpound() {
     <Page
       title="Track Pigpound"
       header={
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => {
-            setForm({ date: format(selectedDate), weight: '' });
-            setEditing(null);
-            setRecordOpen(true);
-          }}
-        >
-          Record Pig Pound Donation
-        </Button>
+        <Stack spacing={2}>
+          <WarehouseQuickLinks />
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setForm({ date: format(selectedDate), weight: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
+            Record Pig Pound Donation
+          </Button>
+        </Stack>
       }
     >
       <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
