@@ -14,6 +14,7 @@ import { getHelpContent, type HelpSection } from './content';
 import resetCss from '../../reset.css?url';
 import RoleTabs, { type RoleTabOption } from '../../components/RoleTabs';
 import { useTranslation } from 'react-i18next';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 function roleLabel(role: string) {
   return role.charAt(0).toUpperCase() + role.slice(1);
@@ -95,31 +96,33 @@ export default function HelpPage() {
   }, [roles, search, helpContent, t]);
 
   return (
-    <Page
-      title={t('help.title')}
-      header={
-        <Stack spacing={2} sx={{ mb: 2, '@media print': { display: 'none' } }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <TextField
-              label={t('help.search')}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              size="small"
-              sx={{ '@media print': { display: 'none' } }}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => window.print()}
-              sx={{ '@media print': { display: 'none' } }}
-            >
-              {t('help.print')}
-            </Button>
+    <ErrorBoundary>
+      <Page
+        title={t('help.title')}
+        header={
+          <Stack spacing={2} sx={{ mb: 2, '@media print': { display: 'none' } }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <TextField
+                label={t('help.search')}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                size="small"
+                sx={{ '@media print': { display: 'none' } }}
+              />
+              <Button
+                variant="outlined"
+                onClick={() => window.print()}
+                sx={{ '@media print': { display: 'none' } }}
+              >
+                {t('help.print')}
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
-      }
-    >
-      {roles.length > 1 ? tabs.length && <RoleTabs tabs={tabs} /> : tabs[0]?.content}
-    </Page>
+        }
+      >
+        {roles.length > 1 ? tabs.length && <RoleTabs tabs={tabs} /> : tabs[0]?.content}
+      </Page>
+    </ErrorBoundary>
   );
 }
 

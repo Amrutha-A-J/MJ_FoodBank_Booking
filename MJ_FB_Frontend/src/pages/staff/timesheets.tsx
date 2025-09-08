@@ -41,6 +41,7 @@ import {
 } from '../../api/staff';
 import { searchStaff as searchAdminStaff } from '../../api/adminStaff';
 import type { Staff } from '../../types';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 interface Day {
   date: string;
@@ -371,7 +372,8 @@ export default function Timesheets() {
     : [];
 
   return (
-    <Page title={t('timesheets.title')}>
+    <ErrorBoundary>
+      <Page title={t('timesheets.title')}>
       {inAdmin && (
         <>
           <Autocomplete
@@ -485,7 +487,8 @@ export default function Timesheets() {
         message={message}
         severity="error"
       />
-    </Page>
+      </Page>
+    </ErrorBoundary>
   );
 }
 

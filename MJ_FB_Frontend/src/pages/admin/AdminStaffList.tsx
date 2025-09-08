@@ -13,6 +13,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ResponsiveTable from '../../components/ResponsiveTable';
 import { listStaff, deleteStaff, searchStaff } from '../../api/adminStaff';
 import type { Staff, StaffAccess } from '../../types';
+import ErrorBoundary from '../../components/ErrorBoundary';
 
 export default function AdminStaffList() {
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -54,53 +55,55 @@ export default function AdminStaffList() {
   }
 
   return (
-    <Page title="Staff List">
-      <Box p={2}>
-        <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-        <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} />
-        <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
-          <TextField
-            label="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            size="small"
+    <ErrorBoundary>
+      <Page title="Staff List">
+        <Box p={2}>
+          <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
+          <FeedbackSnackbar open={!!success} onClose={() => setSuccess('')} message={success} />
+          <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
+            <TextField
+              label="Search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              size="small"
+            />
+            <Button variant="contained" component={RouterLink} to="/admin/staff/create">
+              Add Staff
+            </Button>
+          </Box>
+          <ResponsiveTable
+            columns={[
+              {
+                field: 'firstName',
+                header: 'Name',
+                render: (row: Staff) => `${row.firstName} ${row.lastName}`,
+              },
+              { field: 'email', header: 'Email' },
+              {
+                field: 'access',
+                header: 'Access',
+                render: (row: Staff) => row.access.map(a => accessLabels[a]).join(', '),
+              },
+              {
+                field: 'id',
+                header: 'Actions',
+                render: (row: Staff) => (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} size="small" aria-label="edit">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDelete(row.id)} size="small" aria-label="delete">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                ),
+              },
+            ]}
+            rows={staff}
+            getRowKey={row => row.id}
           />
-          <Button variant="contained" component={RouterLink} to="/admin/staff/create">
-            Add Staff
-          </Button>
         </Box>
-        <ResponsiveTable
-          columns={[
-            {
-              field: 'firstName',
-              header: 'Name',
-              render: (row: Staff) => `${row.firstName} ${row.lastName}`,
-            },
-            { field: 'email', header: 'Email' },
-            {
-              field: 'access',
-              header: 'Access',
-              render: (row: Staff) => row.access.map(a => accessLabels[a]).join(', '),
-            },
-            {
-              field: 'id',
-              header: 'Actions',
-              render: (row: Staff) => (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} size="small" aria-label="edit">
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(row.id)} size="small" aria-label="delete">
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              ),
-            },
-          ]}
-          rows={staff}
-          getRowKey={row => row.id}
-        />
-      </Box>
-    </Page>
+      </Page>
+    </ErrorBoundary>
   );
 }
