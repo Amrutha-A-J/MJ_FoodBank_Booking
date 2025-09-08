@@ -90,6 +90,7 @@ export function getHelpContent(
           t('help.dashboard_nav_step'),
           'Open the Volunteer Schedule.',
           'Select a role from the dropdown.',
+          'Use the date picker to choose a day.',
           'Review open shifts.',
         ],
       },
@@ -221,7 +222,8 @@ export function getHelpContent(
     {
       title: 'Navigate schedule days',
       body: {
-        description: 'Use the Previous, Today, and Next buttons to change the displayed date.',
+        description:
+          'Use the Previous, Today, and Next buttons or the date picker to change the displayed date.',
       },
     },
     {

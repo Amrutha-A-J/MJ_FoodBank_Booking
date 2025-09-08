@@ -36,6 +36,12 @@ import {
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
 import Page from "../../components/Page";
+import {
+  LocalizationProvider,
+  DatePicker,
+} from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "../../utils/date";
 
 const reginaTimeZone = "America/Regina";
 
@@ -411,6 +417,23 @@ export default function PantrySchedule({
           >
             Today
           </Button>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            dateLibInstance={dayjs}
+          >
+            <DatePicker
+              value={dayjs(currentDate)}
+              format="YYYY-MM-DD"
+              onChange={(d) => {
+                if (d) {
+                  setCurrentDate(
+                    fromZonedTime(`${formatDate(d)}T00:00:00`, reginaTimeZone),
+                  );
+                }
+              }}
+              slotProps={{ textField: { size: "small" } }}
+            />
+          </LocalizationProvider>
           <Button
             onClick={() => changeDay(1)}
             variant="outlined"
