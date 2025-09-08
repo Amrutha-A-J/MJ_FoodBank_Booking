@@ -353,13 +353,13 @@ export function getHelpContent(
       },
     },
     {
-      title: 'Book new clients from the schedule',
+      title: 'Add existing clients to the app from the schedule',
       body: {
-        description: 'Use the Assign User modal to book a slot for an unregistered individual.',
+        description: 'Use the Assign User modal when a client ID is missing from the system.',
         steps: [
           'Click Assign User on a slot.',
-          'Choose New client.',
-          'Enter name and confirm booking.',
+          'Enter the client ID.',
+          'Select Add existing client to the app to create and assign the booking.',
         ],
       },
     },

@@ -4,9 +4,8 @@ import {
   getBookings,
   getHolidays,
   createBookingForUser,
-  createBookingForNewClient,
 } from "../../api/bookings";
-import { searchUsers, type UserSearchResult } from "../../api/users";
+import { searchUsers, addClientById, type UserSearchResult } from "../../api/users";
 import type { Slot, Holiday, Booking } from "../../types";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { formatTime } from "../../utils/time";
@@ -19,8 +18,6 @@ import {
   type AlertColor,
   useTheme,
   useMediaQuery,
-  Checkbox,
-  FormControlLabel,
   TextField,
   Typography,
   Stack,
@@ -63,12 +60,6 @@ export default function PantrySchedule({
   } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState("");
-  const [isNewClient, setIsNewClient] = useState(false);
-  const [newClient, setNewClient] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
   const [streamError, setStreamError] = useState(false);
   const [esRetry, setEsRetry] = useState(0);
 
@@ -76,8 +67,6 @@ export default function PantrySchedule({
     setAssignSlot(null);
     setSearchTerm("");
     setAssignMessage("");
-    setIsNewClient(false);
-    setNewClient({ name: "", email: "", phone: "" });
   };
 
   const theme = useTheme();
@@ -188,7 +177,7 @@ export default function PantrySchedule({
   }, [currentDate, loadData, esRetry]);
 
   useEffect(() => {
-    if (assignSlot && !isNewClient && searchTerm.length >= 3) {
+    if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
           .then((data) => setUserResults(data.slice(0, 5)))
@@ -198,7 +187,7 @@ export default function PantrySchedule({
     } else {
       setUserResults([]);
     }
-  }, [searchTerm, assignSlot, isNewClient]);
+  }, [searchTerm, assignSlot]);
 
   function changeDay(delta: number) {
     setCurrentDate((d) => addDays(d, delta));
@@ -220,8 +209,6 @@ export default function PantrySchedule({
       );
       setAssignSlot(null);
       setSearchTerm("");
-      setIsNewClient(false);
-      setNewClient({ name: "", email: "", phone: "" });
       await loadData();
     } catch (err) {
       console.error(err);
@@ -230,25 +217,21 @@ export default function PantrySchedule({
     }
   }
 
-  async function assignNewClient() {
+  async function addClientAndAssign() {
     if (!assignSlot) return;
     try {
       setAssignMessage("");
-      await createBookingForNewClient(
-        newClient.name,
-        parseInt(assignSlot.id),
-        formatDate(currentDate),
-        newClient.email || undefined,
-        newClient.phone || undefined,
-      );
-      setAssignSlot(null);
-      setIsNewClient(false);
-      setNewClient({ name: "", email: "", phone: "" });
-      setSearchTerm("");
-      await loadData();
+      await addClientById(searchTerm);
+      const results = await (searchUsersFn || searchUsers)(searchTerm);
+      setUserResults(results.slice(0, 5));
+      if (results[0]) {
+        await assignExistingUser(results[0]);
+      } else {
+        throw new Error("Client not found after adding");
+      }
     } catch (err) {
       console.error(err);
-      const msg = err instanceof Error ? err.message : "Failed to assign user";
+      const msg = err instanceof Error ? err.message : "Failed to add client";
       setAssignMessage(msg);
     }
   }
@@ -480,101 +463,49 @@ export default function PantrySchedule({
         >
           <DialogTitle>Assign User</DialogTitle>
           <DialogContent>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isNewClient}
-                  onChange={(e) => setIsNewClient(e.target.checked)}
-                />
-              }
-              label={<>New client</>}
+            <TextField
+              label="Search users by name/email/phone/client ID"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              fullWidth
+              margin="dense"
             />
-            {isNewClient ? (
-              <Stack spacing={1} sx={{ mt: 1 }}>
-                <TextField
-                  label="Name"
-                  value={newClient.name}
-                  onChange={(e) =>
-                    setNewClient({ ...newClient, name: e.target.value })
+            <List sx={{ maxHeight: 150, overflowY: "auto" }}>
+              {userResults.map((u) => (
+                <ListItem
+                  key={u.client_id}
+                  sx={{ mb: 0.5 }}
+                  secondaryAction={
+                    <Button
+                      onClick={() => assignExistingUser(u)}
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      sx={{ ml: 0.5 }}
+                    >
+                      Assign
+                    </Button>
                   }
-                  fullWidth
-                  margin="dense"
-                />
-                <TextField
-                  label="Email (optional)"
-                  value={newClient.email}
-                  onChange={(e) =>
-                    setNewClient({ ...newClient, email: e.target.value })
-                  }
-                  fullWidth
-                  margin="dense"
-                />
-                <TextField
-                  label="Phone (optional)"
-                  value={newClient.phone}
-                  onChange={(e) =>
-                    setNewClient({ ...newClient, phone: e.target.value })
-                  }
-                  fullWidth
-                  margin="dense"
-                />
-                <Button
-                  sx={{ mt: 1 }}
-                  onClick={assignNewClient}
-                  variant="contained"
-                  size="small"
-                  disabled={!newClient.name}
                 >
-                  Assign
-                </Button>
-              </Stack>
-            ) : (
-              <>
-                <TextField
-                  label="Search users by name/email/phone/client ID"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  fullWidth
-                  margin="dense"
-                />
-                <List sx={{ maxHeight: 150, overflowY: "auto" }}>
-                  {userResults.map((u) => (
-                    <ListItem
-                      key={u.client_id}
-                      sx={{ mb: 0.5 }}
-                      secondaryAction={
-                        <Button
-                          onClick={() => assignExistingUser(u)}
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          sx={{ ml: 0.5 }}
-                        >
-                          Assign
-                        </Button>
-                      }
+                  <ListItemText primary={`${u.name} (${u.email})`} />
+                </ListItem>
+              ))}
+              {searchTerm.length >= 3 && userResults.length === 0 && (
+                <ListItem
+                  secondaryAction={
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={addClientAndAssign}
                     >
-                      <ListItemText primary={`${u.name} (${u.email})`} />
-                    </ListItem>
-                  ))}
-                  {searchTerm.length >= 3 && userResults.length === 0 && (
-                    <ListItem
-                      secondaryAction={
-                        <Button
-                          size="small"
-                          variant="text"
-                          onClick={() => setIsNewClient(true)}
-                        >
-                          Create new client
-                        </Button>
-                      }
-                    >
-                      <ListItemText primary="No search results." />
-                    </ListItem>
-                  )}
-                </List>
-              </>
-            )}
+                      Add existing client to the app
+                    </Button>
+                  }
+                >
+                  <ListItemText primary="No search results." />
+                </ListItem>
+              )}
+            </List>
             <FeedbackSnackbar
               open={!!assignMessage}
               onClose={() => setAssignMessage("")}

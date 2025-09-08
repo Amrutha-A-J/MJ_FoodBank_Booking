@@ -482,7 +482,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Pantry schedule listens for live booking updates via a Server‑Sent Events stream at `/bookings/stream`.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
-- Staff can book new clients directly from the pantry schedule's **Assign User** modal by checking **New client** and entering a name (email and phone optional).
+- Staff can add existing clients to the app from the pantry schedule's **Assign User** modal by entering a client ID and choosing **Add existing client to the app**, which creates a shopper without online access and assigns the slot.
 - Pantry and volunteer schedule pages present a mobile-friendly card layout on extra-small screens.
 - Wednesdays include an additional 6:30–7:00 PM pantry slot.
 - Agencies can book appointments for their associated clients via the Agency → Book Appointment page. Clients are searched server-side and appear as you type, avoiding long lists. The page hides the client list after a selection and uses a single “Book Appointment” heading for clarity.

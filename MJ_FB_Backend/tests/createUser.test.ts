@@ -88,4 +88,18 @@ describe('POST /users/add-client', () => {
     );
     expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
+
+  it('creates user with client ID only when online access disabled', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // clientId check
+      .mockResolvedValueOnce({}); // insert
+
+    const res = await request(app)
+      .post('/users/add-client')
+      .send({ clientId: 456, role: 'shopper', onlineAccess: false });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ message: 'User created' });
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
 });
