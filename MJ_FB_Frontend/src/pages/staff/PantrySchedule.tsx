@@ -28,7 +28,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Box,
   Chip,
   List,
   ListItem,
