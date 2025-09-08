@@ -8,7 +8,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Leave request API under `/api/leave/requests` for staff leave, supporting
   vacation, sick, or personal requests (one personal day per quarter) with optional reasons.
   Admins can view requests for a specific staff member via
-  `/api/timesheets/leave-requests/:staffId`.
+  `/api/timesheets/leave-requests/:staffId` (using the staff ID, not the timesheet ID).
 - Password fields include a visibility toggle so users can verify what they type.
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.

@@ -29,7 +29,7 @@ export default function LeaveManagement() {
   const current =
     timesheets.find(p => !p.approved_at) || timesheets[timesheets.length - 1];
   const leaveMutation = useCreateLeaveRequest(current?.id);
-  const { requests } = useLeaveRequests(current?.id);
+  const { requests } = useLeaveRequests(current?.staff_id);
   const [open, setOpen] = useState(false);
 
   const columns = [

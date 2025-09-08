@@ -26,10 +26,10 @@ export async function createLeaveRequest(
 }
 
 export async function listLeaveRequests(
-  timesheetId: number,
+  staffId: number,
 ): Promise<LeaveRequest[]> {
   const res = await apiFetch(
-    `${API_BASE}/timesheets/${timesheetId}/leave-requests`,
+    `${API_BASE}/timesheets/leave-requests/${staffId}`,
   );
   return handleResponse(res);
 }
@@ -55,11 +55,11 @@ export async function rejectLeaveRequest(requestId: number): Promise<void> {
   await handleResponse(res);
 }
 
-export function useLeaveRequests(timesheetId?: number) {
+export function useLeaveRequests(staffId?: number) {
   const { data, isFetching, error } = useQuery<LeaveRequest[]>({
-    queryKey: ['leaveRequests', timesheetId],
-    queryFn: () => listLeaveRequests(timesheetId!),
-    enabled: !!timesheetId,
+    queryKey: ['leaveRequests', staffId],
+    queryFn: () => listLeaveRequests(staffId!),
+    enabled: !!staffId,
   });
   return { requests: data ?? [], isLoading: isFetching, error };
 }
