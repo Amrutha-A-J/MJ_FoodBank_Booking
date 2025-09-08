@@ -42,13 +42,18 @@ export async function getTimesheets(
     params.push(staffId);
     clauses.push(`t.staff_id = $${params.length}`);
   }
-  if (year !== undefined) {
-    params.push(year);
-    clauses.push(`EXTRACT(YEAR FROM t.start_date) = $${params.length}`);
-  }
   if (month !== undefined) {
-    params.push(month);
-    clauses.push(`EXTRACT(MONTH FROM t.start_date) = $${params.length}`);
+    const yr = year ?? new Date().getFullYear();
+    params.push(`${yr}-${String(month).padStart(2, '0')}-01`);
+    const idx = params.length;
+    clauses.push(
+      `t.start_date <= ($${idx}::date + INTERVAL '1 month' - INTERVAL '1 day') AND t.end_date >= $${idx}`,
+    );
+  } else if (year !== undefined) {
+    params.push(year);
+    clauses.push(
+      `(EXTRACT(YEAR FROM t.start_date) = $${params.length} OR EXTRACT(YEAR FROM t.end_date) = $${params.length})`,
+    );
   }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const res = await pool.query(

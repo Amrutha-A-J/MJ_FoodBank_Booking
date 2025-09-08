@@ -45,6 +45,22 @@ describe('timesheet controller', () => {
     expect(res.json).toHaveBeenCalledWith([{ id: 3 }]);
   });
 
+  it('filters timesheets by overlapping month', async () => {
+    (mockPool.query as jest.Mock).mockClear();
+    (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 4 }], rowCount: 1 });
+    const req: any = {
+      user: { id: '99', role: 'admin', type: 'staff' },
+      query: { month: '4', year: '2024' },
+    };
+    const res: any = { json: jest.fn() };
+    await listTimesheets(req, res, () => {});
+    const call = (mockPool.query as jest.Mock).mock.calls[0];
+    expect(call[0]).toContain('t.start_date <= ($1');
+    expect(call[0]).toContain('AND t.end_date >= $1');
+    expect(call[1]).toEqual(['2024-04-01']);
+    expect(res.json).toHaveBeenCalledWith([{ id: 4 }]);
+  });
+
   it('gets timesheet days', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
