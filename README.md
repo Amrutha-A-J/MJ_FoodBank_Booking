@@ -15,6 +15,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Email templates display times in 12-hour AM/PM format.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - Client login page reminds users to sign in with their client ID, provides contact and password reset guidance, and directs staff, volunteers, and agencies to use the internal login button from the menu.
+- Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at

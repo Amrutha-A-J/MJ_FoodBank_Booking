@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
 import { requestPasswordReset } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
@@ -56,6 +56,11 @@ export default function PasswordResetDialog({
             actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
+            {type === 'user' && (
+              <Typography variant="body2">
+                {t('client_reset_password_instructions')}
+              </Typography>
+            )}
             <TextField
               autoFocus
               margin="dense"
