@@ -8,9 +8,7 @@ const router = Router();
 
 router.use(authMiddleware);
 router.use(authorizeRoles('staff'));
-router.use(authorizeAccess('admin'));
-
-router.get('/', getAppConfig);
-router.put('/', validate(appConfigSchema), updateAppConfig);
+router.get('/', authorizeAccess('admin', 'pantry'), getAppConfig);
+router.put('/', authorizeAccess('admin'), validate(appConfigSchema), updateAppConfig);
 
 export default router;
