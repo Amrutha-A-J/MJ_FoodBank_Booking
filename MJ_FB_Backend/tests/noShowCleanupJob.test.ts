@@ -14,7 +14,7 @@ const {
   stopNoShowCleanupJob,
 } = noShowJob;
 import pool from '../src/db';
-import { alertOps } from '../src/utils/opsAlert';
+import { alertOps, notifyOps } from '../src/utils/opsAlert';
 
 describe('cleanupNoShows', () => {
   beforeEach(() => {
@@ -27,6 +27,7 @@ describe('cleanupNoShows', () => {
     expect(pool.query).toHaveBeenCalledWith(
       "UPDATE bookings SET status='no_show', note=NULL WHERE status='approved' AND date < CURRENT_DATE",
     );
+    expect(notifyOps).toHaveBeenCalledWith('cleanupNoShows marked 1 bookings');
   });
 
   it('alerts ops on failure', async () => {
