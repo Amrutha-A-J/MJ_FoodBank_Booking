@@ -49,7 +49,9 @@ node src/utils/timesheetSeeder.ts
 
 Each timesheet belongs to a `pay_periods` row. Pay periods typically span two
 weeks and the seeder ensures every active staff member has a timesheet covering
-the current period.
+the current period. When a pay period spans two calendar months, it will appear
+under both months when filtering so staff and admins see the same data from
+either view.
 
 ## Stat holidays and OT banking
 
@@ -90,7 +92,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 ## API usage
 
 - `GET /timesheets/mine` – list pay periods for the logged in staff member.
-- `GET /timesheets` – admins can list pay periods for all staff and may filter with `?staffId=`, `year=`, and `month=`.
+- `GET /timesheets` – admins can list pay periods for all staff and may filter with `?staffId=`, `year=`, and `month=`. When filtering by `year` and `month`, pay periods spanning two months appear in both queries.
 - `GET /timesheets/:id/days` – list daily entries for a timesheet. Admins may retrieve any staff timesheet.
 - `PATCH /timesheets/:id/days/:date` – update hours for a day. Body accepts `regHours`, `otHours`, `statHours`, `sickHours`, `vacHours`, and optional `note`.
 - `POST /timesheets/:id/submit` – submit a pay period.
