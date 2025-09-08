@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
 import { sendTemplatedEmail } from '../utils/emailUtils';
-import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
+import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../utils/passwordSetupUtils';
 import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
 
@@ -190,11 +190,7 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
     if (sendPasswordLink && email) {
       const token = await generatePasswordSetupToken('clients', clientId);
-      const params: Record<string, unknown> = {
-        link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-        token,
-        clientId,
-      };
+      const params = buildPasswordSetupEmailParams('clients', token, clientId);
       await sendTemplatedEmail({
         to: email,
         templateId: config.passwordSetupTemplateId,

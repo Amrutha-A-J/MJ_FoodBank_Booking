@@ -1,5 +1,6 @@
 import { randomBytes, createHash } from 'crypto';
 import pool from '../db';
+import config from '../config';
 
 export type PasswordTokenRow = {
   id: number;
@@ -46,4 +47,33 @@ export async function verifyPasswordSetupToken(
 
 export async function markPasswordTokenUsed(id: number): Promise<void> {
   await pool.query('UPDATE password_setup_tokens SET used=true WHERE id=$1', [id]);
+}
+
+export function buildPasswordSetupEmailParams(
+  userType: PasswordTokenRow['user_type'],
+  token: string,
+  clientId?: number,
+): Record<string, unknown> {
+  const loginPathMap: Record<PasswordTokenRow['user_type'], string> = {
+    clients: '/login',
+    volunteers: '/login/volunteer',
+    staff: '/login/staff',
+    agencies: '/login/agency',
+  };
+  const roleMap: Record<PasswordTokenRow['user_type'], string> = {
+    clients: 'client',
+    volunteers: 'volunteer',
+    staff: 'staff',
+    agencies: 'agency',
+  };
+  const params: Record<string, unknown> = {
+    link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
+    token,
+    role: roleMap[userType],
+    loginLink: `${config.frontendOrigins[0]}${loginPathMap[userType]}`,
+  };
+  if (userType === 'clients' && clientId !== undefined) {
+    params.clientId = clientId;
+  }
+  return params;
 }

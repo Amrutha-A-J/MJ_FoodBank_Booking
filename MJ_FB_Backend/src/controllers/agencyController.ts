@@ -10,7 +10,7 @@ import {
     searchAgencies as findAgencies,
   } from '../models/agency';
 import { createAgencySchema } from '../schemas/agencySchemas';
-import { generatePasswordSetupToken } from '../utils/passwordSetupUtils';
+import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import config from '../config';
 import { parseIdParam } from '../utils/parseIdParam';
@@ -35,14 +35,12 @@ export async function createAgency(
     }
     const agency = await insertAgency(name, email, contactInfo);
     const token = await generatePasswordSetupToken('agencies', agency.id);
-      await sendTemplatedEmail({
-        to: email,
-        templateId: config.passwordSetupTemplateId,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-          token,
-        },
-      });
+    const params = buildPasswordSetupEmailParams('agencies', token);
+    await sendTemplatedEmail({
+      to: email,
+      templateId: config.passwordSetupTemplateId,
+      params,
+    });
     res.status(201).json({ id: agency.id });
   } catch (err) {
     next(err);

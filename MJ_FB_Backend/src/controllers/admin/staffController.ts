@@ -3,7 +3,7 @@ import pool from '../../db';
 import logger from '../../utils/logger';
 import { createStaffSchema } from '../../schemas/admin/staffSchemas';
 import { StaffAccess } from '../../models/staff';
-import { generatePasswordSetupToken } from '../../utils/passwordSetupUtils';
+import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import config from '../../config';
 import seedTimesheets from '../../utils/timesheetSeeder';
@@ -57,14 +57,12 @@ export async function createStaff(
     );
     const staffId = result.rows[0].id;
     const token = await generatePasswordSetupToken('staff', staffId);
-      await sendTemplatedEmail({
-        to: email,
-        templateId: config.passwordSetupTemplateId,
-        params: {
-          link: `${config.frontendOrigins[0]}/set-password?token=${token}`,
-          token,
-        },
-      });
+    const params = buildPasswordSetupEmailParams('staff', token);
+    await sendTemplatedEmail({
+      to: email,
+      templateId: config.passwordSetupTemplateId,
+      params,
+    });
     await seedTimesheets(staffId);
 
     res.status(201).json({ message: 'Staff created' });

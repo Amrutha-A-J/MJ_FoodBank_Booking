@@ -12,7 +12,15 @@ import {
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
 
-jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/passwordSetupUtils', () => {
+  const actual = jest.requireActual('../src/utils/passwordSetupUtils');
+  return {
+    ...actual,
+    generatePasswordSetupToken: jest.fn(),
+    verifyPasswordSetupToken: jest.fn(),
+    markPasswordTokenUsed: jest.fn(),
+  };
+});
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
@@ -59,10 +67,12 @@ describe('requestPasswordReset', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,
-        params: {
+        params: expect.objectContaining({
           link: `${config.frontendOrigins[0]}/set-password?token=tok`,
           token: 'tok',
-        },
+          role: 'volunteer',
+          loginLink: `${config.frontendOrigins[0]}/login/volunteer`,
+        }),
       }),
     );
   });
@@ -82,11 +92,13 @@ describe('requestPasswordReset', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,
-        params: {
+        params: expect.objectContaining({
           link: `${config.frontendOrigins[0]}/set-password?token=tok`,
           token: 'tok',
           clientId: 3,
-        },
+          role: 'client',
+          loginLink: `${config.frontendOrigins[0]}/login`,
+        }),
       }),
     );
   });
@@ -146,10 +158,12 @@ describe('resendPasswordSetup', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,
-        params: {
+        params: expect.objectContaining({
           link: `${config.frontendOrigins[0]}/set-password?token=tok2`,
           token: 'tok2',
-        },
+          role: 'staff',
+          loginLink: `${config.frontendOrigins[0]}/login/staff`,
+        }),
       }),
     );
   });
@@ -220,11 +234,13 @@ describe('createUser password flow', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,
-        params: {
+        params: expect.objectContaining({
           link: `${config.frontendOrigins[0]}/set-password?token=tok`,
           token: 'tok',
           clientId: 123,
-        },
+          role: 'client',
+          loginLink: `${config.frontendOrigins[0]}/login`,
+        }),
       }),
     );
     expect(bcrypt.hash).not.toHaveBeenCalled();

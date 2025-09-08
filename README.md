@@ -317,7 +317,7 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 
 | Template reference                           | Purpose                                       | Params                                                                                    |
 | -------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `PASSWORD_SETUP_TEMPLATE_ID`                 | Account invitations and password reset emails | `link`, `token`, `clientId`                                                               |
+| `PASSWORD_SETUP_TEMPLATE_ID`                 | Account invitations and password reset emails | `link`, `token`, `clientId`, `role`, `loginLink`                                           |
 | `BOOKING_CONFIRMATION_TEMPLATE_ID`           | Booking approval confirmations for clients    | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
 | `BOOKING_REMINDER_TEMPLATE_ID`               | Next-day booking reminders for clients        | `body`, `cancelLink`, `rescheduleLink`, `type`                                            |
 | `VOLUNTEER_BOOKING_CONFIRMATION_TEMPLATE_ID` | Volunteer shift confirmation emails           | `body`, `cancelLink`, `rescheduleLink`, `googleCalendarLink`, `appleCalendarLink`, `type` |
@@ -342,7 +342,7 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 
 ### Invitation flow
 
-New clients, volunteers, staff, and agencies are created without passwords. The backend generates a one-time token and emails a setup link using the Brevo template defined by `PASSWORD_SETUP_TEMPLATE_ID`. The link points to `/set-password` on the first origin listed in `FRONTEND_ORIGIN`.
+New clients, volunteers, staff, and agencies are created without passwords. The backend generates a one-time token and emails a setup link using the Brevo template defined by `PASSWORD_SETUP_TEMPLATE_ID`. The email notes the recipient's role and includes a direct login link. The setup link points to `/set-password` on the first origin listed in `FRONTEND_ORIGIN`.
 After setting a password, users are redirected to the login page for their role.
 
 ### Agency setup

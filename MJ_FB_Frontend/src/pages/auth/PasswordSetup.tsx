@@ -23,6 +23,19 @@ export default function PasswordSetup() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const loginPathMap: Record<string, string> = {
+    client: '/login',
+    volunteer: '/login/volunteer',
+    staff: '/login/staff',
+    agency: '/login/agency',
+  };
+  const loginMessageMap: Record<string, string> = {
+    client: 'use_client_login',
+    volunteer: 'use_volunteer_login',
+    staff: 'use_staff_login',
+    agency: 'use_agency_login',
+  };
+
   useEffect(() => {
     if (!token) return;
     getPasswordSetupInfo(token)
@@ -78,9 +91,17 @@ export default function PasswordSetup() {
             {t('email')}: {info.email}
           </p>
         )}
-        <Link component={RouterLink} to="/login" underline="hover">
+        {info?.userType && (
+          <p>{t(loginMessageMap[info.userType])}</p>
+        )}
+        <Button
+          component={RouterLink}
+          to={info ? loginPathMap[info.userType] : '/login'}
+          variant="outlined"
+          size="small"
+        >
           {t('back_to_login')}
-        </Link>
+        </Button>
         {error.toLowerCase().includes('expired token') && (
           <Link component="button" onClick={() => setResendOpen(true)} underline="hover">
             {t('resend_link')}

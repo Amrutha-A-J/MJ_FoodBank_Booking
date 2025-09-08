@@ -6,7 +6,15 @@ import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
 
-jest.mock('../src/utils/passwordSetupUtils');
+jest.mock('../src/utils/passwordSetupUtils', () => {
+  const actual = jest.requireActual('../src/utils/passwordSetupUtils');
+  return {
+    ...actual,
+    generatePasswordSetupToken: jest.fn(),
+    verifyPasswordSetupToken: jest.fn(),
+    markPasswordTokenUsed: jest.fn(),
+  };
+});
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
 }));
@@ -62,11 +70,13 @@ describe('POST /users/add-client', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         templateId: config.passwordSetupTemplateId,
-        params: {
+        params: expect.objectContaining({
           link: `${config.frontendOrigins[0]}/set-password?token=tok`,
           token: 'tok',
           clientId: 123,
-        },
+          role: 'client',
+          loginLink: `${config.frontendOrigins[0]}/login`,
+        }),
       }),
     );
   });
