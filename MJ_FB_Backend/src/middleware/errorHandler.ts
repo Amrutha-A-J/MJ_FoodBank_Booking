@@ -4,13 +4,13 @@ import { alertOps } from '../utils/opsAlert';
 
 const errorHandler = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ) => {
   const { status, body } = buildErrorResponse(err);
   if (status >= 500) {
-    void alertOps('API error', err);
+    void alertOps(`${req.method} ${req.path}`, err);
   }
   res.status(status).json(body);
 };
