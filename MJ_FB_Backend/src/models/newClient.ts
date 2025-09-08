@@ -19,7 +19,7 @@ export async function insertNewClient(
         `SELECT id FROM new_clients WHERE LOWER(email) = LOWER($1)`,
         [email],
       );
-      if (existing.rowCount > 0) return existing.rows[0].id;
+      if ((existing.rowCount ?? 0) > 0) return existing.rows[0].id;
     }
     throw err;
   }
