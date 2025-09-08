@@ -23,6 +23,7 @@ import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDia
 import DialogCloseButton from '../../components/DialogCloseButton';
 import PasswordField from '../../components/PasswordField';
 import PageCard from '../../components/layout/PageCard';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import {
   Button,
   TextField,
@@ -37,12 +38,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableContainer,
   Typography,
   useTheme,
   Stack,
@@ -120,7 +115,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
 
-  const cellSx = { border: 1, borderColor: 'divider', p: 0.5 } as const;
+  interface HistoryRow extends VolunteerBookingDetail {
+    time?: string;
+    actions?: string;
+  }
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -172,6 +170,59 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     useState<VolunteerBookingDetail | null>(null);
   const [cancelRecurringBooking, setCancelRecurringBooking] =
     useState<VolunteerBookingDetail | null>(null);
+
+  const historyColumns = useMemo(
+    () => [
+      { field: 'role_name', header: t('role') },
+      { field: 'date', header: t('date') },
+      {
+        field: 'time',
+        header: t('time'),
+        render: (row: HistoryRow) => (
+          <>
+            {formatTime(row.start_time || '')} -
+            {formatTime(row.end_time || '')}
+          </>
+        ),
+      },
+      {
+        field: 'status',
+        header: t('status'),
+        render: (row: HistoryRow) => t(row.status),
+      },
+      {
+        field: 'actions',
+        header: '',
+        render: (row: HistoryRow) =>
+          row.status === 'approved' ? (
+            <>
+              <Button
+                onClick={() => setManageShift(row)}
+                variant="outlined"
+                color="primary"
+                size="small"
+              >
+                {t('manage')}
+              </Button>
+              {row.recurring_id && (
+                <>
+                  {' '}
+                  <Button
+                    onClick={() => setCancelRecurringBooking(row)}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                  >
+                    {t('cancel_all_upcoming_short')}
+                  </Button>
+                </>
+              )}
+            </>
+          ) : null,
+      },
+    ],
+    [t]
+  );
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -793,66 +844,19 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                   <Typography variant="h6" gutterBottom>
                     {t('booking_history')}
                   </Typography>
-                  <TableContainer sx={{ overflowX: 'auto' }}>
-                    <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={cellSx}>{t('role')}</TableCell>
-                          <TableCell sx={cellSx}>{t('date')}</TableCell>
-                          <TableCell sx={cellSx}>{t('time')}</TableCell>
-                          <TableCell sx={cellSx}>{t('status')}</TableCell>
-                          <TableCell sx={cellSx} />
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {history.map(h => (
-                          <TableRow key={h.id}>
-                            <TableCell sx={cellSx}>{h.role_name}</TableCell>
-                            <TableCell sx={cellSx}>{h.date}</TableCell>
-                            <TableCell sx={cellSx}>
-                              {formatTime(h.start_time || '')} -
-                              {formatTime(h.end_time || '')}
-                            </TableCell>
-                            <TableCell sx={cellSx}>{t(h.status)}</TableCell>
-                            <TableCell sx={cellSx}>
-                              {h.status === 'approved' && (
-                                <>
-                                  <Button
-                                    onClick={() => setManageShift(h)}
-                                    variant="outlined"
-                                    color="primary"
-                                    size="small"
-                                  >
-                                    {t('manage')}
-                                  </Button>
-                                  {h.recurring_id && (
-                                    <>
-                                      {' '}
-                                      <Button
-                                        onClick={() => setCancelRecurringBooking(h)}
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                      >
-                                        {t('cancel_all_upcoming_short')}
-                                      </Button>
-                                    </>
-                                  )}
-                                </>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {history.length === 0 && (
-                          <TableRow>
-                            <TableCell colSpan={5} sx={{ textAlign: 'center', p: 1 }}>
-                              {t('no_bookings')}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                  {history.length > 0 ? (
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <ResponsiveTable
+                        columns={historyColumns}
+                        rows={history as HistoryRow[]}
+                        getRowKey={h => h.id}
+                      />
+                    </Box>
+                  ) : (
+                    <Typography sx={{ textAlign: 'center', p: 1 }}>
+                      {t('no_bookings')}
+                    </Typography>
+                  )}
                 </PageCard>
               </Box>
             </Stack>
