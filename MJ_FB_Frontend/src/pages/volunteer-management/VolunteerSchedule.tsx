@@ -41,6 +41,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Stack,
   TextField,
   Typography,
   Checkbox,
@@ -50,6 +51,12 @@ import {
 } from "@mui/material";
 import { lighten } from "@mui/material/styles";
 import type { AlertColor } from "@mui/material";
+import {
+  LocalizationProvider,
+  DatePicker,
+} from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "../../utils/date";
 
 const reginaTimeZone = "America/Regina";
 
@@ -393,7 +400,7 @@ export default function VolunteerSchedule() {
               >
                 Previous
               </Button>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="h6" component="h3">
                   {dateStr} - {dayName}
                   {isHoliday
@@ -402,7 +409,27 @@ export default function VolunteerSchedule() {
                       ? " (Weekend)"
                       : ""}
                 </Typography>
-              </Box>
+                <LocalizationProvider
+                  dateAdapter={AdapterDayjs}
+                  dateLibInstance={dayjs}
+                >
+                  <DatePicker
+                    value={dayjs(currentDate)}
+                    minDate={dayjs(todayStart)}
+                    format="YYYY-MM-DD"
+                    onChange={(d) => {
+                      if (d) {
+                        const next = fromZonedTime(
+                          `${formatDate(d)}T00:00:00`,
+                          reginaTimeZone,
+                        );
+                        setCurrentDate(next < todayStart ? todayStart : next);
+                      }
+                    }}
+                    slotProps={{ textField: { size: "small" } }}
+                  />
+                </LocalizationProvider>
+              </Stack>
               <Button
                 onClick={() => changeDay(1)}
                 variant="outlined"
