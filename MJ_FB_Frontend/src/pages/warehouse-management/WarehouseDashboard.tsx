@@ -524,14 +524,15 @@ export default function WarehouseDashboard() {
         Tip: Press Ctrl/Cmd+K in the search box to quickly filter donors/receivers.
       </Typography>
 
-        <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          message={snackbar.message}
-          severity={snackbar.severity}
-        />
-        </Page>
-      </>
-    );
-  }
+      </Box>
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
+    </Page>
+  </>
+  );
+}
 
