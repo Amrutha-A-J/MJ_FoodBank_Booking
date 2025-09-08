@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import config from '../config';
 import logger from './logger';
 import { buildIcsFile } from './calendarLinks';
+import { alertOps } from './opsAlert';
 
 function toTitleCase(value: string): string {
   return value
@@ -23,6 +24,7 @@ export async function sendEmail(
 
   if (!config.brevoApiKey || !config.brevoFromEmail) {
     logger.warn('Brevo email configuration is missing. Email not sent.', { to, subject, body });
+    void alertOps('sendEmail', new Error('Missing Brevo configuration'));
     return;
   }
 
@@ -54,12 +56,14 @@ export async function sendEmail(
         subject,
         body,
       });
+      void alertOps('sendEmail', new Error(`Brevo responded with status ${response.status}`));
     }
   } catch (error) {
     logger.warn(
       'Email not sent. Check Brevo configuration or running in local environment.',
       { to, subject, body, error }
     );
+    void alertOps('sendEmail', error);
     throw error;
   }
 }
@@ -94,6 +98,7 @@ export async function sendTemplatedEmail({
       params,
       attachments,
     });
+    void alertOps('sendTemplatedEmail', new Error('Missing Brevo configuration'));
     return;
   }
 
@@ -137,12 +142,17 @@ export async function sendTemplatedEmail({
         params,
         attachments,
       });
+      void alertOps(
+        'sendTemplatedEmail',
+        new Error(`Brevo responded with status ${response.status}`),
+      );
     }
   } catch (error) {
     logger.warn(
       'Template email not sent. Check Brevo configuration or running in local environment.',
       { to, templateId, params, attachments, error }
     );
+    void alertOps('sendTemplatedEmail', error);
     throw error;
   }
 }
