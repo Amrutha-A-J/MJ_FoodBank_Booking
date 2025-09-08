@@ -248,7 +248,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   useEffect(() => {
     getVolunteerRoles()
       .then(data => {
-        const flattened: RoleOption[] = data.flatMap(r => {
+        const flattened: RoleOption[] = data.flatMap<RoleOption>(r => {
           if (r.shifts.length === 0) {
             return [
               {
