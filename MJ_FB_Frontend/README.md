@@ -56,3 +56,4 @@ The app registers a service worker when running in a secure context. Use HTTPS w
 ## Mobile Responsiveness
 
 Layouts are built with Material UI and include CSS adjustments for small screens. Review changes on screens below 600px to ensure components remain usable.
+Pantry and volunteer schedules switch to a card-based layout on phones for easier viewing.
