@@ -153,6 +153,7 @@
   "email_or_client_id": "Email or Client ID",
   "setup_link_sent": "If the account exists, a setup link has been sent.",
   "reset_link_sent": "If the account exists, a reset link has been sent.",
+  "client_reset_password_instructions": "Enter your client ID and select submit. You'll get an email with a link to reset your password.",
   "profile_page": {
     "title": "MJ Foodbank - User Profile",
     "user_profile": "User Profile",
