@@ -307,15 +307,18 @@ export default function Aggregations() {
     { label: 'Yearly Overall Aggregations', content: overallContent },
   ];
 
-  return (
-    <Page title="Aggregations" header={<WarehouseQuickLinks />}>
-      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-        severity={snackbar.severity}
-      />
-    </Page>
-  );
+    return (
+      <>
+        <WarehouseQuickLinks />
+        <Page title="Aggregations">
+          <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+          <FeedbackSnackbar
+            open={snackbar.open}
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            message={snackbar.message}
+            severity={snackbar.severity}
+          />
+        </Page>
+      </>
+    );
 }

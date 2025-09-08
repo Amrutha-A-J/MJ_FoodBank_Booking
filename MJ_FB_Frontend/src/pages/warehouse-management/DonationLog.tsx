@@ -178,39 +178,34 @@ export default function DonationLog() {
   }));
 
   return (
-    <Page
-      title="Donation Log"
-      header={
-        <Stack spacing={2}>
-          <WarehouseQuickLinks />
-          <Stack direction="row" spacing={1}>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={e => {
-                (e.currentTarget as HTMLButtonElement).blur();
-                setForm({ date: format(selectedDate), donorId: null, weight: '' });
-                setEditing(null);
-                setRecordOpen(true);
-              }}
-            >
-              Record Donation
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={e => {
-                (e.currentTarget as HTMLButtonElement).blur();
-                setNewDonorOpen(true);
-              }}
-            >
-              Add Donor
-            </Button>
-          </Stack>
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Donation Log">
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setForm({ date: format(selectedDate), donorId: null, weight: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
+            Record Donation
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setNewDonorOpen(true);
+            }}
+          >
+            Add Donor
+          </Button>
         </Stack>
-      }
-    >
-      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
@@ -298,5 +293,6 @@ export default function DonationLog() {
         message={snackbar.message}
       />
     </Page>
+  </>
   );
 }

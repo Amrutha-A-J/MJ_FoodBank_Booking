@@ -193,38 +193,33 @@ export default function TrackOutgoingDonations() {
   }));
 
   return (
-    <Page
-      title="Track Outgoing Donations"
-      header={
-        <Stack spacing={2}>
-          <WarehouseQuickLinks />
-          <Stack direction="row" spacing={1}>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={() => {
-                setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
-                setEditing(null);
-                setRecordOpen(true);
-              }}
-            >
-              Record Outgoing Donation
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => {
-                setReceiverName('');
-                setNewReceiverOpen(true);
-              }}
-            >
-              Add Receiver
-            </Button>
-          </Stack>
+    <>
+      <WarehouseQuickLinks />
+      <Page title="Track Outgoing Donations">
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
+              setEditing(null);
+              setRecordOpen(true);
+            }}
+          >
+            Record Outgoing Donation
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => {
+              setReceiverName('');
+              setNewReceiverOpen(true);
+            }}
+          >
+            Add Receiver
+          </Button>
         </Stack>
-      }
-    >
-      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
@@ -310,11 +305,12 @@ export default function TrackOutgoingDonations() {
         </DialogActions>
       </Dialog>
 
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ open: false, message: '' })}
-        message={snackbar.message}
-      />
-    </Page>
-  );
-}
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ open: false, message: '' })}
+          message={snackbar.message}
+        />
+      </Page>
+    </>
+    );
+  }
