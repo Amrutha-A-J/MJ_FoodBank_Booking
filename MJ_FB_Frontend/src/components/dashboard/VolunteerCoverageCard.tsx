@@ -1,16 +1,29 @@
 import { useEffect, useState } from 'react';
-import { List, ListItem, ListItemText, Chip, type SxProps, type Theme } from '@mui/material';
+import {
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
+  ListItemButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  type SxProps,
+  type Theme,
+} from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
 import { formatReginaDate } from '../../utils/time';
 import { toDate } from '../../utils/date';
 import FeedbackSnackbar from '../FeedbackSnackbar';
+import DialogCloseButton from '../DialogCloseButton';
 
 interface CoverageItem {
   roleName: string;
   masterRole: string;
   filled: number;
   total: number;
+  volunteers: string[];
 }
 
 interface VolunteerCoverageCardProps {
@@ -26,6 +39,7 @@ export default function VolunteerCoverageCard({
 }: VolunteerCoverageCardProps) {
   const [coverage, setCoverage] = useState<CoverageItem[]>([]);
   const [error, setError] = useState('');
+  const [selected, setSelected] = useState<CoverageItem | null>(null);
 
   useEffect(() => {
     const todayStr = formatReginaDate(toDate());
@@ -40,16 +54,21 @@ export default function VolunteerCoverageCard({
         Promise.all(
           roles.map(async r => {
             const bookings = await getVolunteerBookingsByRole(r.id);
-            const filled = bookings.filter(
+            const todayBookings = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
                 formatReginaDate(toDate(b.date)) === todayStr,
-            ).length;
+            );
+            const volunteers = todayBookings
+              .map((b: any) => b.volunteer_name)
+              .filter(Boolean);
+            const filled = todayBookings.length;
             return {
               roleName: r.name,
               masterRole: r.category_name,
               filled,
               total: r.max_volunteers,
+              volunteers,
             };
           }),
         ),
@@ -78,13 +97,35 @@ export default function VolunteerCoverageCard({
               <ListItem
                 key={`${c.roleName}-${c.masterRole}`}
                 secondaryAction={<Chip color={color} label={`${c.filled}/${c.total}`} />}
+                disablePadding
               >
-                <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
+                <ListItemButton onClick={() => setSelected(c)}>
+                  <ListItemText primary={`${c.roleName} (${c.masterRole})`} />
+                </ListItemButton>
               </ListItem>
             );
           })}
         </List>
       </SectionCard>
+      <Dialog open={!!selected} onClose={() => setSelected(null)}>
+        <DialogTitle sx={{ position: 'relative' }}>
+          {`Volunteers – ${selected?.roleName ?? ''}`}
+          <DialogCloseButton onClose={() => setSelected(null)} />
+        </DialogTitle>
+        <DialogContent>
+          {selected?.volunteers.length ? (
+            <List sx={{ maxHeight: 300, overflowY: 'auto' }}>
+              {selected.volunteers.map(name => (
+                <ListItem key={name}>
+                  <ListItemText primary={name} />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            'No volunteer is available'
+          )}
+        </DialogContent>
+      </Dialog>
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}
