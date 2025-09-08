@@ -409,9 +409,12 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         const adults = parseInt(match?.groups?.adults ?? '0', 10);
         const children = parseInt(match?.groups?.children || '0', 10);
         let weightWithCartVal = parsed.weightWithCart ?? null;
-        const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+        let weightWithoutCartVal = parsed.weightWithoutCart ?? null;
         if (weightWithCartVal == null && weightWithoutCartVal != null) {
           weightWithCartVal = weightWithoutCartVal + cartTare;
+        }
+        if (weightWithoutCartVal == null && weightWithCartVal != null) {
+          weightWithoutCartVal = weightWithCartVal - cartTare;
         }
         const cid = parsed.clientId;
         const existing = await client.query('SELECT client_id FROM clients WHERE client_id = $1', [cid]);
@@ -535,9 +538,12 @@ export async function importVisitsFromXlsx(
           const children = parseInt(match?.groups?.children || '0', 10);
 
           let weightWithCartVal = parsed.weightWithCart ?? null;
-          const weightWithoutCartVal = parsed.weightWithoutCart ?? null;
+          let weightWithoutCartVal = parsed.weightWithoutCart ?? null;
           if (weightWithCartVal == null && weightWithoutCartVal != null) {
             weightWithCartVal = weightWithoutCartVal + cartTare;
+          }
+          if (weightWithoutCartVal == null && weightWithCartVal != null) {
+            weightWithoutCartVal = weightWithCartVal - cartTare;
           }
 
           if (isDryRun) continue;
