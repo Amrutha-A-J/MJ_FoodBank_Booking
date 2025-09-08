@@ -471,8 +471,13 @@ export default function BookingUI({
           zIndex: theme => theme.zIndex.appBar,
         }}
       >
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Typography>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          justifyContent={{ xs: 'center', sm: 'space-between' }}
+          spacing={1}
+        >
+          <Typography sx={{ mb: { xs: 1, sm: 0 } }}>
             {selectedSlotId
               ? t('selected_on', {
                   slot: selectedLabel,
@@ -485,6 +490,8 @@ export default function BookingUI({
             size="small"
             disabled={!selectedSlotId || booking || loadingConfirm}
             onClick={handleOpenConfirm}
+            fullWidth
+            sx={{ width: { sm: 'auto' } }}
           >
             {t('book_selected_slot')}
           </Button>
