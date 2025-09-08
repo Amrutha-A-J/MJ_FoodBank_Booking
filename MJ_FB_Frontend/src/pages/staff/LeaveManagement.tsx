@@ -9,18 +9,17 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import Page from '../../components/Page';
 import { useTimesheets } from '../../api/timesheets';
-import { useCreateLeaveRequest, useLeaveRequests } from '../../api/leaveRequests';
+import {
+  useCreateLeaveRequest,
+  useLeaveRequests,
+  type LeaveRequest,
+} from '../../api/leaveRequests';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import { formatLocaleDate } from '../../utils/date';
 import { useState } from 'react';
 
@@ -32,6 +31,32 @@ export default function LeaveManagement() {
   const leaveMutation = useCreateLeaveRequest(current?.id);
   const { requests } = useLeaveRequests(current?.id);
   const [open, setOpen] = useState(false);
+
+  const columns = [
+    {
+      field: 'start_date',
+      header: t('leave.start_date'),
+      render: (r: LeaveRequest) =>
+        formatLocaleDate(r.start_date ?? r.work_date),
+    },
+    {
+      field: 'end_date',
+      header: t('leave.end_date'),
+      render: (r: LeaveRequest) =>
+        formatLocaleDate(r.end_date ?? r.work_date),
+    },
+    {
+      field: 'type',
+      header: t('leave.type_label'),
+      render: (r: LeaveRequest) =>
+        r.type ? t(`leave.type.${r.type}`) : '',
+    },
+    {
+      field: 'status',
+      header: t('leave.status_label'),
+      render: (r: LeaveRequest) => t(`leave.status.${r.status}`),
+    },
+  ];
 
   return (
     <Page title={t('leave.title')}>
@@ -116,36 +141,11 @@ export default function LeaveManagement() {
             </Box>
           </Dialog>
 
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('leave.start_date')}</TableCell>
-                  <TableCell>{t('leave.end_date')}</TableCell>
-                  <TableCell>{t('leave.type_label')}</TableCell>
-                  <TableCell>{t('leave.status_label')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {requests.map(r => (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      {formatLocaleDate(r.start_date ?? r.work_date)}
-                    </TableCell>
-                    <TableCell>
-                      {formatLocaleDate(r.end_date ?? r.work_date)}
-                    </TableCell>
-                    <TableCell>
-                      {r.type ? t(`leave.type.${r.type}`) : ''}
-                    </TableCell>
-                    <TableCell>
-                      {t(`leave.status.${r.status}`)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <ResponsiveTable
+            columns={columns}
+            rows={requests}
+            getRowKey={r => r.id}
+          />
         </Box>
       )}
     </Page>
