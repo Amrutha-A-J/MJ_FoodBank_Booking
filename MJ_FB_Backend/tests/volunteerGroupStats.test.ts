@@ -52,5 +52,7 @@ describe('Volunteer group stats', () => {
     expect(query).toContain('client_visits');
     expect(query).toContain('app_config');
     expect(query).toContain("vb.status = 'completed'");
+    expect(query).toContain('weight_without_cart');
+    expect(query).toContain('cart_tare');
   });
 });
