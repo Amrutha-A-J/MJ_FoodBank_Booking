@@ -187,3 +187,16 @@ describe('GET /slots closed days', () => {
     expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('GET /slots/range default length', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
+  });
+
+  it('returns 90 days when days param omitted', async () => {
+    const res = await request(app).get('/slots/range');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(90);
+  });
+});

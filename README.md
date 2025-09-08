@@ -481,6 +481,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - The Settings page's Pantry tab lets staff configure a cart tare value and one max booking capacity used for all pantry times.
 - Pantry schedule cells use color coding: rgb(228,241,228) for approved, rgb(255, 200, 200) for no-show, rgb(111,146,113) for visited, and the theme's warning light for capacity exceeded.
 - Pantry schedule listens for live booking updates via a Server‑Sent Events stream at `/bookings/stream`.
+- `/slots/range` returns 90 days of slot availability by default so the pantry schedule can load the next three months.
 - Filled pantry schedule slots display the client's ID in parentheses, or show `[NEW CLIENT] Name` when booked for an unregistered individual.
 - Staff can add existing clients to the app from the pantry schedule's **Assign User** modal by entering a client ID and choosing **Add existing client to the app**, which creates a shopper without online access and assigns the slot.
 - Pantry and volunteer schedule pages present a mobile-friendly card layout on extra-small screens.
