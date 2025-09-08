@@ -183,7 +183,7 @@ export default function VolunteerBooking() {
         <Grid size={{ xs: 12, md: 'grow' }} sx={{ flexGrow: 1 }}>
           <Paper
             ref={slotsRef}
-            sx={{ p: 2, borderRadius: 2, maxHeight: { xs: 420, md: 560 }, overflow: 'auto' }}
+            sx={{ p: 2, pb: 8, borderRadius: 2, maxHeight: { xs: 420, md: 560 }, overflow: 'auto' }}
           >
             {isLoading ? (
               <Box>
@@ -215,12 +215,11 @@ export default function VolunteerBooking() {
           </Paper>
         </Grid>
       </Grid>
-      <Paper
+      <Box
+        component={Paper}
         sx={{
-          position: 'fixed',
+          position: 'sticky',
           bottom: 0,
-          left: 0,
-          right: 0,
           mt: 2,
           p: 2,
           borderRadius: { xs: 0, md: 2 },
@@ -244,7 +243,7 @@ export default function VolunteerBooking() {
             Request shift
           </Button>
         </Stack>
-      </Paper>
+      </Box>
         {conflict && (
           <OverlapBookingDialog
             open
