@@ -16,6 +16,7 @@
 
 ## Environment
 - Requires Node.js 22+; run `nvm use` to match the version in `.nvmrc`.
+- Set `VITE_ENABLE_SERVICE_WORKER=true` in `.env` to register the service worker outside production for PWA testing.
 
 ## Project Layout
 - React app built with Vite.

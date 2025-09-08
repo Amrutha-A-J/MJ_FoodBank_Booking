@@ -45,7 +45,7 @@ The build will fail if this variable is missing.
 
 ## Progressive Web App
 
-The app registers a service worker when running in a secure context. Use HTTPS when serving the built site.
+The app registers a service worker when running in a secure context. Use HTTPS when serving the built site. Set `VITE_ENABLE_SERVICE_WORKER=true` to register the worker outside production for local PWA testing.
 
 - An **Install App** button appears when the browser allows installation; click it to add the app.
 - iOS users must open the site in Safari and choose **Add to Home Screen**.
