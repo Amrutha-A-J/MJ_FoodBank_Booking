@@ -22,7 +22,8 @@ Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 **Timesheets** at `/admin/timesheet` and **Leave Requests** at
 `/admin/leave-requests` under the Admin menu for reviewing submissions. Admins can
 retrieve any staff timesheet's day entries through the API at
-`GET /timesheets/:id/days` and list periods via `GET /timesheets`.
+`GET /timesheets/:id/days` and list periods via `GET /timesheets`. The interface
+shows the current and next four pay periods so staff can enter hours in advance.
 
 ## Staff Access Roles
 

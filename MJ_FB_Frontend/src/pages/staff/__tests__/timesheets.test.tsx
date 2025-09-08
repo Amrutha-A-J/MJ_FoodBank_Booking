@@ -171,12 +171,12 @@ describe('Timesheets', () => {
     expect(mockSubmit).toHaveBeenCalledWith(1);
   });
 
-  it('shows at most seven timesheet tabs with next period last', () => {
-    const timesheets = Array.from({ length: 9 }).map((_, i) => ({
+  it('shows current and next four timesheet tabs with up to five previous', () => {
+    const timesheets = Array.from({ length: 12 }).map((_, i) => ({
       id: i + 1,
       staff_id: 1,
-      start_date: `2024-0${i + 1}-01`,
-      end_date: `2024-0${i + 1}-07`,
+      start_date: `2024-${(i + 1).toString().padStart(2, '0')}-01`,
+      end_date: `2024-${(i + 1).toString().padStart(2, '0')}-07`,
       submitted_at: null,
       approved_at: i < 7 ? '2024-01-01' : null,
       total_hours: 0,
@@ -191,9 +191,9 @@ describe('Timesheets', () => {
     });
     render();
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(7);
+    expect(tabs).toHaveLength(10);
     expect(tabs[0]).toHaveTextContent('2024-03-01 - 2024-03-07');
-    expect(tabs[6]).toHaveTextContent('2024-09-01 - 2024-09-07');
+    expect(tabs[9]).toHaveTextContent('2024-12-01 - 2024-12-07');
   });
 
   it('locks day when leave approved', () => {
