@@ -9,39 +9,18 @@ export default function WarehouseQuickLinks() {
 
   return (
     <Stack
-      direction={{ xs: 'column', md: 'row' }}
-      spacing={{ xs: 1, md: 2 }}
-      sx={{ width: '100%', flexWrap: 'wrap' }}
+      direction="row"
+      spacing={2}
+      sx={{ width: '100%', flexWrap: 'nowrap', display: { xs: 'none', md: 'flex' } }}
     >
       <Button
         size="small"
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
-        to="/warehouse-management"
-        fullWidth
-      >
-        Dashboard
-      </Button>
-      <Button
-        size="small"
-        variant="outlined"
-        sx={buttonSx}
-        component={RouterLink}
         to="/warehouse-management/donation-log"
-        fullWidth
       >
-        Donation Log
-      </Button>
-      <Button
-        size="small"
-        variant="outlined"
-        sx={buttonSx}
-        component={RouterLink}
-        to="/warehouse-management/track-surplus"
-        fullWidth
-      >
-        Track Surplus
+        Track Donation
       </Button>
       <Button
         size="small"
@@ -49,9 +28,8 @@ export default function WarehouseQuickLinks() {
         sx={buttonSx}
         component={RouterLink}
         to="/warehouse-management/track-pigpound"
-        fullWidth
       >
-        Track Pigpound
+        Track Pig Pounds
       </Button>
       <Button
         size="small"
@@ -59,29 +37,17 @@ export default function WarehouseQuickLinks() {
         sx={buttonSx}
         component={RouterLink}
         to="/warehouse-management/track-outgoing-donations"
-        fullWidth
       >
-        Track Outgoing Donations
+        Track Outgoing
       </Button>
       <Button
         size="small"
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
-        to="/warehouse-management/aggregations"
-        fullWidth
+        to="/warehouse-management/track-surplus"
       >
-        Aggregations
-      </Button>
-      <Button
-        size="small"
-        variant="outlined"
-        sx={buttonSx}
-        component={RouterLink}
-        to="/warehouse-management/exports"
-        fullWidth
-      >
-        Exports
+        Track Surplus
       </Button>
     </Stack>
   );
