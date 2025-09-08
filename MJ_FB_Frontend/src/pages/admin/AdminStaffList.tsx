@@ -3,11 +3,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   TextField,
   IconButton,
 } from '@mui/material';
@@ -15,6 +10,7 @@ import Page from '../../components/Page';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ResponsiveTable from '../../components/ResponsiveTable';
 import { listStaff, deleteStaff, searchStaff } from '../../api/adminStaff';
 import type { Staff, StaffAccess } from '../../types';
 
@@ -73,33 +69,37 @@ export default function AdminStaffList() {
             Add Staff
           </Button>
         </Box>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Access</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {staff.map(s => (
-              <TableRow key={s.id}>
-                <TableCell>{s.firstName} {s.lastName}</TableCell>
-                <TableCell>{s.email}</TableCell>
-                <TableCell>{s.access.map(a => accessLabels[a]).join(', ')}</TableCell>
-                <TableCell align="right">
-                  <IconButton component={RouterLink} to={`/admin/staff/${s.id}`} size="small" aria-label="edit">
+        <ResponsiveTable
+          columns={[
+            {
+              field: 'firstName',
+              header: 'Name',
+              render: (row: Staff) => `${row.firstName} ${row.lastName}`,
+            },
+            { field: 'email', header: 'Email' },
+            {
+              field: 'access',
+              header: 'Access',
+              render: (row: Staff) => row.access.map(a => accessLabels[a]).join(', '),
+            },
+            {
+              field: 'id',
+              header: 'Actions',
+              render: (row: Staff) => (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} size="small" aria-label="edit">
                     <EditIcon />
                   </IconButton>
-                  <IconButton onClick={() => handleDelete(s.id)} size="small" aria-label="delete">
+                  <IconButton onClick={() => handleDelete(row.id)} size="small" aria-label="delete">
                     <DeleteIcon />
                   </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </Box>
+              ),
+            },
+          ]}
+          rows={staff}
+          getRowKey={row => row.id}
+        />
       </Box>
     </Page>
   );
