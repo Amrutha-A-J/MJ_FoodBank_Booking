@@ -189,6 +189,19 @@ export async function addUser(
   await handleResponse(res);
 }
 
+export async function addClientById(clientId: string): Promise<void> {
+  const id = Number(clientId);
+  if (!Number.isInteger(id)) {
+    return Promise.reject(new Error("Invalid client ID"));
+  }
+  const res = await apiFetch(`${API_BASE}/users/add-client`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: id, role: "shopper", onlineAccess: false }),
+  });
+  await handleResponse(res);
+}
+
 export async function searchUsers(
   search: string,
 ): Promise<UserSearchResult[]> {

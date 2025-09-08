@@ -37,7 +37,7 @@
 - Agencies can view pantry slot availability and manage bookings—including creating, cancelling, and rescheduling—for their linked clients.
 - Volunteer navigation includes a **Recurring Bookings** submenu for managing repeating shifts; keep related documentation up to date.
 - Staff access timesheets and leave requests from the profile menu; admins review them under Admin → Timesheets and Admin → Leave Requests.
-- The pantry schedule's **Assign User** modal includes a **New client** option; selecting it lets staff enter a name (with optional email and phone) and books the slot via `POST /bookings/new-client`. These bookings appear on the schedule as `[NEW CLIENT] Name`.
+- The pantry schedule's **Assign User** modal lets staff add an existing client to the app when search returns no match. Click **Add existing client to the app** to create a shopper by client ID with online access disabled and assign the slot. Bookings for unregistered individuals still appear as `[NEW CLIENT] Name`.
 
 ## Development Guidelines
 - In the frontend, favor composition of reusable components and keep pages focused on layout and data flow.

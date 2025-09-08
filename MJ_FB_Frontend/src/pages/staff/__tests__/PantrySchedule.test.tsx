@@ -1,6 +1,7 @@
-import { render, screen, fireEvent, within, act } from '@testing-library/react';
+import { render, screen, fireEvent, within, act, waitFor } from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
+import * as usersApi from '../../../api/users';
 import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../../../api/bookings', () => ({
@@ -8,10 +9,13 @@ jest.mock('../../../api/bookings', () => ({
   getBookings: jest.fn(),
   getHolidays: jest.fn(),
   createBookingForUser: jest.fn(),
-  createBookingForNewClient: jest.fn(),
 }));
 
-describe('PantrySchedule new client workflow', () => {
+jest.mock('../../../api/users', () => ({
+  addClientById: jest.fn(),
+}));
+
+describe('PantrySchedule add existing client workflow', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
@@ -51,34 +55,21 @@ describe('PantrySchedule new client workflow', () => {
     expect(await screen.findByText('[NEW CLIENT] New Person')).toBeInTheDocument();
   });
 
-  it('creates booking for new client', async () => {
+  it('adds existing client to the app when search returns none', async () => {
     (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
-    render(
-      <MemoryRouter>
-        <PantrySchedule searchUsersFn={jest.fn()} />
-      </MemoryRouter>,
-    );
-
-    const rows = await screen.findAllByRole('row');
-    const cells = within(rows[1]).getAllByRole('cell');
-    fireEvent.click(cells[1]);
-
-    fireEvent.click(screen.getByLabelText('New client'));
-    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Test User' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Assign' }));
-
-    expect(bookingApi.createBookingForNewClient).toHaveBeenCalledWith(
-      'Test User',
-      1,
-      expect.any(String),
-      undefined,
-      undefined,
-    );
-  });
-
-  it('offers create new client when search returns none', async () => {
-    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
-    const searchUsersMock = jest.fn().mockResolvedValue([]);
+    (usersApi.addClientById as jest.Mock).mockResolvedValue(undefined);
+    const searchUsersMock = jest
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          name: 'Test User',
+          email: null,
+          phone: null,
+          client_id: 123,
+          hasPassword: false,
+        },
+      ]);
     render(
       <MemoryRouter>
         <PantrySchedule searchUsersFn={searchUsersMock} />
@@ -91,12 +82,23 @@ describe('PantrySchedule new client workflow', () => {
 
     fireEvent.change(
       screen.getByLabelText('Search users by name/email/phone/client ID'),
-      { target: { value: 'abc' } },
+      { target: { value: '123' } },
     );
 
-    await screen.findByRole('button', { name: 'Create new client' });
-    fireEvent.click(screen.getByRole('button', { name: 'Create new client' }));
-    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    const addBtn = await screen.findByRole('button', {
+      name: 'Add existing client to the app',
+    });
+    fireEvent.click(addBtn);
+
+    await waitFor(() => {
+      expect(usersApi.addClientById).toHaveBeenCalledWith('123');
+      expect(bookingApi.createBookingForUser).toHaveBeenCalledWith(
+        123,
+        1,
+        expect.any(String),
+        true,
+      );
+    });
   });
 });
 
