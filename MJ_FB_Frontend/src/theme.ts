@@ -194,13 +194,16 @@ let theme = createTheme({
 
     // Form controls — crisp outline on focus like branded forms
     MuiTextField: {
-      defaultProps: { fullWidth: true, size: 'small', variant: 'outlined' },
+      defaultProps: { fullWidth: true, size: 'medium', variant: 'outlined' },
       styleOverrides: {
         root: ({ theme }) => ({
           '& .MuiOutlinedInput-root': {
             borderRadius: theme.shape.borderRadius,
             '&.MuiInputBase-sizeSmall:not(.MuiInputBase-multiline)': {
               height: theme.spacing(5),
+            },
+            '&.MuiInputBase-sizeMedium:not(.MuiInputBase-multiline)': {
+              height: theme.spacing(7),
             },
             '&:hover .MuiOutlinedInput-notchedOutline': {
               borderColor: alpha(BRAND_PRIMARY, 0.4),
@@ -218,12 +221,13 @@ let theme = createTheme({
     },
 
     MuiSelect: {
-      defaultProps: { fullWidth: true, size: 'small', variant: 'outlined' },
+      defaultProps: { fullWidth: true, size: 'medium', variant: 'outlined' },
       styleOverrides: {
         root: ({ theme }) => ({
           '&.MuiInputBase-root.MuiOutlinedInput-root': {
             borderRadius: theme.shape.borderRadius,
             '&.MuiInputBase-sizeSmall': { height: theme.spacing(5) },
+            '&.MuiInputBase-sizeMedium': { height: theme.spacing(7) },
             '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(BRAND_PRIMARY, 0.4) },
             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
               borderColor: BRAND_PRIMARY,
