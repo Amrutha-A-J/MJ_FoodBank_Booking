@@ -211,17 +211,26 @@ export default function ClientDashboard() {
                 {history.slice(0, 3).map(b => {
                   const time = b.start_time ? formatTime(b.start_time) : '';
                   return (
-                    <ListItem
-                      key={`${b.id}-${b.date}`}
-                      secondaryAction={
-                        <Chip label={t(b.status)} color={statusColor(b.status)} />
-                      }
-                    >
-                      <ListItemText
-                        primary={
-                          time ? `${formatDate(b.date)} ${time}` : formatDate(b.date)
-                        }
-                      />
+                    <ListItem key={`${b.id}-${b.date}`} disableGutters>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={1}
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        justifyContent="space-between"
+                        sx={{ width: '100%' }}
+                      >
+                        <ListItemText
+                          primary={
+                            time
+                              ? `${formatDate(b.date)} ${time}`
+                              : formatDate(b.date)
+                          }
+                        />
+                        <Chip
+                          label={t(b.status)}
+                          color={statusColor(b.status)}
+                        />
+                      </Stack>
                     </ListItem>
                   );
                 })}
@@ -233,11 +242,18 @@ export default function ClientDashboard() {
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
             <SectionCard title={t('quick_actions')}>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+              >
                 <Button
                   size="small"
                   variant="contained"
-                  sx={{ textTransform: 'none' }}
+                  sx={{
+                    textTransform: 'none',
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
                   onClick={() => navigate('/book-appointment')}
                 >
                   {t('book_appointment')}
@@ -245,7 +261,10 @@ export default function ClientDashboard() {
                 <Button
                   size="small"
                   variant="outlined"
-                  sx={{ textTransform: 'none' }}
+                  sx={{
+                    textTransform: 'none',
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
                   onClick={() => navigate('/booking-history')}
                 >
                   {t('reschedule')}
@@ -253,7 +272,10 @@ export default function ClientDashboard() {
                 <Button
                   size="small"
                   variant="outlined"
-                  sx={{ textTransform: 'none' }}
+                  sx={{
+                    textTransform: 'none',
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
                   onClick={() => navigate('/booking-history')}
                 >
                   {t('cancel')}
@@ -290,24 +312,31 @@ export default function ClientDashboard() {
               <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
                 {nextSlots.length ? (
                   nextSlots.map(s => (
-                    <ListItem
-                      key={`${s.date}-${s.slot.id}`}
-                      secondaryAction={
+                    <ListItem key={`${s.date}-${s.slot.id}`} disableGutters>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={1}
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        justifyContent="space-between"
+                        sx={{ width: '100%' }}
+                      >
+                        <ListItemText
+                          primary={`${formatDate(s.date)} ${formatTime(
+                            s.slot.startTime,
+                          )}-${formatTime(s.slot.endTime)}`}
+                        />
                         <Button
                           size="small"
                           variant="contained"
-                          sx={{ textTransform: 'none' }}
+                          sx={{
+                            textTransform: 'none',
+                            width: { xs: '100%', sm: 'auto' },
+                          }}
                           onClick={() => navigate('/book-appointment')}
                         >
                           {t('book')}
                         </Button>
-                      }
-                    >
-                      <ListItemText
-                        primary={`${formatDate(s.date)} ${formatTime(
-                          s.slot.startTime,
-                        )}-${formatTime(s.slot.endTime)}`}
-                      />
+                      </Stack>
                     </ListItem>
                   ))
                 ) : (
