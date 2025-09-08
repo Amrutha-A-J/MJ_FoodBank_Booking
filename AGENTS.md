@@ -30,6 +30,7 @@
 - Volunteers sign in with their email address instead of a username, and volunteer emails must be unique (email remains optional).
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - Use the shared `PasswordField` component for any password input so users can toggle visibility.
+- Text input fields default to `size="medium"` to improve tap targets on small screens.
 - Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.

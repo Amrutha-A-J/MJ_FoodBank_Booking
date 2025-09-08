@@ -62,6 +62,7 @@
 - Lists: `List` + `ListItem` for short, actionable sets.
 - Tables: Use dense row height; keep actions in a trailing column; keep columns ≤ 7 on desktop.
 - Forms: Use `TextField`, `Select`, `Checkbox`, `Radio` from MUI. For password inputs, use the shared `PasswordField` component so users can toggle visibility. Label every field; show helper text for constraints. Validate on blur and on submit; show inline errors and a top summary only if multiple errors exist.
+  - Text inputs default to `size="medium"` to provide comfortable tap targets on mobile; override to `small` only when space is limited.
 - Form containers: Wrap forms in a container centered horizontally and vertically within the viewport.
 - Feedback: Use the shared `FeedbackSnackbar` for success/info/error; avoid custom alerts. Keep messages short and specific.
 - Loading: Prefer skeletons for cards/lists; use `CircularProgress` inline for button-level waits; never block entire pages without a reason.
