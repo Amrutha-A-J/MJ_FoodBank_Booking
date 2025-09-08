@@ -144,7 +144,9 @@ describe('bookingRepository', () => {
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.user_id = ANY\(\$1\)/);
-    expect(call[0]).toMatch(/ORDER BY b.created_at DESC/);
+    expect(call[0]).toMatch(
+      /ORDER BY \(b.status='approved' AND b.date >= CURRENT_DATE\) DESC, b.date DESC/
+    );
     expect(call[0]).toMatch(/LIMIT \$2/);
     expect(call[0]).toMatch(/OFFSET \$3/);
     expect(call[1]).toEqual(
@@ -200,6 +202,62 @@ describe('bookingRepository', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].client_note).toBeNull();
     expect(rows[0].staff_note).toBe('visit note');
+  });
+
+  it('fetchBookingHistory sorts upcoming approved bookings first when including visits', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 2,
+            status: 'visited',
+            date: '2024-01-01',
+            slot_id: 1,
+            reason: null,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            created_at: '2024-01-01',
+            is_staff_booking: false,
+            reschedule_token: null,
+            client_note: null,
+            staff_note: 'note',
+          },
+          {
+            id: 1,
+            status: 'approved',
+            date: '2099-01-01',
+            slot_id: 1,
+            reason: null,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            created_at: '2024-01-01',
+            is_staff_booking: false,
+            reschedule_token: null,
+            client_note: null,
+            staff_note: null,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            id: 3,
+            status: 'visited',
+            date: '2023-01-01',
+            slot_id: null,
+            reason: null,
+            start_time: null,
+            end_time: null,
+            created_at: '2023-01-01',
+            is_staff_booking: false,
+            reschedule_token: null,
+            staff_note: 'visit note',
+          },
+        ],
+      });
+
+    const rows = await fetchBookingHistory([1], false, undefined, true);
+    expect(rows.map((r) => r.id)).toEqual([1, 2, 3]);
   });
 
   it('fetchBookingHistory can omit client notes when includeClientNotes is false', async () => {
