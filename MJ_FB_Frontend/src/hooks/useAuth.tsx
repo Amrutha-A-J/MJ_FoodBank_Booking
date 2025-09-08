@@ -71,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!newRole || !newName) {
         clearAuth();
-        void apiLogout();
         setSessionMessage('Session ended in another tab');
       } else {
         setRole(newRole as Role);
