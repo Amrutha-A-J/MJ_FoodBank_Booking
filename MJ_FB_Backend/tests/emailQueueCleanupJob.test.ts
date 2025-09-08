@@ -6,6 +6,7 @@ jest.mock('../src/utils/scheduleDailyJob', () => {
     default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
+jest.mock('../src/utils/opsAlert');
 const job = require('../src/utils/emailQueueCleanupJob');
 const {
   cleanupEmailQueue,
@@ -15,6 +16,7 @@ const {
 import pool from '../src/db';
 import logger from '../src/utils/logger';
 import config from '../src/config';
+import { alertOps, notifyOps } from '../src/utils/opsAlert';
 
 describe('cleanupEmailQueue', () => {
   beforeEach(() => {
@@ -36,7 +38,7 @@ describe('cleanupEmailQueue', () => {
     expect(infoSpy).toHaveBeenCalledWith('Email queue size', { size: 5 });
   });
 
-  it('warns when queue size exceeds threshold', async () => {
+  it('warns and notifies when queue size exceeds threshold', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0 })
       .mockResolvedValueOnce({ rows: [{ count: String(config.emailQueueWarningSize + 1) }] });
@@ -46,6 +48,13 @@ describe('cleanupEmailQueue', () => {
       size: config.emailQueueWarningSize + 1,
       threshold: config.emailQueueWarningSize,
     });
+    expect(notifyOps).toHaveBeenCalled();
+  });
+
+  it('alerts ops on failure', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('fail'));
+    await cleanupEmailQueue();
+    expect(alertOps).toHaveBeenCalled();
   });
 });
 

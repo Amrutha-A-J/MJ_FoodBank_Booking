@@ -2,6 +2,7 @@ import pool from '../db';
 import config from '../config';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
+import { alertOps, notifyOps } from './opsAlert';
 
 export async function cleanupEmailQueue(): Promise<void> {
   try {
@@ -14,9 +15,14 @@ export async function cleanupEmailQueue(): Promise<void> {
     logger.info('Email queue size', { size });
     if (size > config.emailQueueWarningSize) {
       logger.warn('Email queue size exceeds threshold', { size, threshold: config.emailQueueWarningSize });
+      await notifyOps(
+        'Email queue size exceeds threshold',
+        `Email queue size ${size} exceeds warning threshold ${config.emailQueueWarningSize}`,
+      );
     }
   } catch (err) {
     logger.error('Failed to clean up email queue', err);
+    await alertOps('cleanupEmailQueue', err);
   }
 }
 
