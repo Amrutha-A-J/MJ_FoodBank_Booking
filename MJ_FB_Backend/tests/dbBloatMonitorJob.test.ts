@@ -31,9 +31,10 @@ describe('checkDbBloat', () => {
       [config.vacuumAlertDeadRowsThreshold],
     );
     expect(notifyOps).toHaveBeenCalledWith(
-      'Database tables require vacuum',
-      expect.stringContaining('foo (6000 dead rows)'),
+      expect.stringContaining('Database tables require vacuum'),
     );
+    const message = (notifyOps as jest.Mock).mock.calls[0][0] as string;
+    expect(message).toContain('foo (6000 dead rows)');
   });
 
   it('skips notification when no tables exceed threshold', async () => {
