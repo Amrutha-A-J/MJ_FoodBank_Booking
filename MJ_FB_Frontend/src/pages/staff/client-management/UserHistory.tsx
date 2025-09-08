@@ -25,6 +25,9 @@ import {
   Checkbox,
   Stack,
   Tooltip,
+  Card,
+  CardContent,
+  CardActions,
   Table,
   TableBody,
   TableCell,
@@ -280,28 +283,11 @@ export default function UserHistory({
                 label={t('visits_with_notes_only')}
               />
             )}
-            <TableContainer sx={{ overflowX: 'auto' }}>
-              <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={cellSx}>{t('date')}</TableCell>
-                    <TableCell sx={cellSx}>{t('time')}</TableCell>
-                    <TableCell sx={cellSx}>{t('status')}</TableCell>
-                    <TableCell sx={cellSx}>{t('reason')}</TableCell>
-                    {showNotes && (
-                      <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
-                    )}
-                    <TableCell sx={cellSx}>{t('actions')}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {paginated.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={showNotes ? 6 : 5} sx={{ textAlign: 'center' }}>
-                        {t('no_bookings')}
-                      </TableCell>
-                    </TableRow>
-                  )}
+            {isSmall ? (
+              paginated.length === 0 ? (
+                <Typography align="center">{t('no_bookings')}</Typography>
+              ) : (
+                <Stack spacing={2}>
                   {paginated.map(b => {
                     const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
                     const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
@@ -310,63 +296,158 @@ export default function UserHistory({
                         ? formatDate(b.date, 'MMM D, YYYY')
                         : 'N/A';
                     return (
-                      <TableRow key={`${b.id}-${b.date}`}>
-                        <TableCell sx={cellSx}>{formattedDate}</TableCell>
-                        <TableCell sx={cellSx}>
-                          {startTime !== 'N/A' && endTime !== 'N/A'
-                            ? `${startTime} - ${endTime}`
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell sx={cellSx}>{t(b.status)}</TableCell>
-                        <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
-                        {showNotes && (
-                          <TableCell sx={cellSx}>
-                            {b.staff_note && (
-                              <Typography variant="body2">{b.staff_note}</Typography>
+                      <Card key={`${b.id}-${b.date}`}>
+                        <CardContent>
+                          <Typography variant="subtitle2">
+                            {t('date')}: {formattedDate}
+                          </Typography>
+                          <Typography variant="body2">
+                            {t('time')}: {startTime !== 'N/A' && endTime !== 'N/A'
+                              ? `${startTime} - ${endTime}`
+                              : 'N/A'}
+                          </Typography>
+                          <Typography variant="body2">
+                            {t('status')}: {t(b.status)}
+                          </Typography>
+                          {b.reason && (
+                            <Typography variant="body2">
+                              {t('reason')}: {b.reason}
+                            </Typography>
+                          )}
+                          {showNotes && b.staff_note && (
+                            <Typography variant="body2">
+                              {t('staff_note_label')}: {b.staff_note}
+                            </Typography>
+                          )}
+                        </CardContent>
+                        <CardActions>
+                          <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
+                            {['approved'].includes(b.status.toLowerCase()) && (
+                              <>
+                                <Button
+                                  onClick={() => setCancelId(b.id)}
+                                  variant="outlined"
+                                  color="primary"
+                                  fullWidth
+                                >
+                                  {t('cancel')}
+                                </Button>
+                                <Button
+                                  onClick={() => setRescheduleBooking(b)}
+                                  variant="outlined"
+                                  color="primary"
+                                  fullWidth
+                                >
+                                  {t('reschedule')}
+                                </Button>
+                              </>
                             )}
-                          </TableCell>
-                        )}
-                        <TableCell sx={cellSx}>
-                          {['approved'].includes(b.status.toLowerCase()) && (
-                            <Stack
-                              direction={isSmall ? 'column' : 'row'}
-                              spacing={1}
-                              alignItems={isSmall ? 'stretch' : 'center'}
-                            >
+                            {role === 'staff' && b.status === 'visited' && !b.slot_id && (
                               <Button
-                                onClick={() => setCancelId(b.id)}
+                                onClick={() => setDeleteVisitId(b.id)}
                                 variant="outlined"
-                                color="primary"
+                                color="error"
+                                fullWidth
                               >
-                                {t('cancel')}
+                                Delete visit
                               </Button>
-                              <Button
-                                onClick={() => setRescheduleBooking(b)}
-                                variant="outlined"
-                                color="primary"
-                              >
-                                {t('reschedule')}
-                              </Button>
-                            </Stack>
-                          )}
-                          {role === 'staff' && b.status === 'visited' && !b.slot_id && (
-                            <Button
-                              onClick={() => setDeleteVisitId(b.id)}
-                              variant="outlined"
-                              color="error"
-                              size="small"
-                              sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
-                            >
-                              Delete visit
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                            )}
+                          </Stack>
+                        </CardActions>
+                      </Card>
                     );
                   })}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </Stack>
+              )
+            ) : (
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table size="small" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={cellSx}>{t('date')}</TableCell>
+                      <TableCell sx={cellSx}>{t('time')}</TableCell>
+                      <TableCell sx={cellSx}>{t('status')}</TableCell>
+                      <TableCell sx={cellSx}>{t('reason')}</TableCell>
+                      {showNotes && (
+                        <TableCell sx={cellSx}>{t('staff_note_label')}</TableCell>
+                      )}
+                      <TableCell sx={cellSx}>{t('actions')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginated.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={showNotes ? 6 : 5} sx={{ textAlign: 'center' }}>
+                          {t('no_bookings')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {paginated.map(b => {
+                      const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
+                      const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
+                      const formattedDate =
+                        b.date && !isNaN(toDate(b.date).getTime())
+                          ? formatDate(b.date, 'MMM D, YYYY')
+                          : 'N/A';
+                      return (
+                        <TableRow key={`${b.id}-${b.date}`}>
+                          <TableCell sx={cellSx}>{formattedDate}</TableCell>
+                          <TableCell sx={cellSx}>
+                            {startTime !== 'N/A' && endTime !== 'N/A'
+                              ? `${startTime} - ${endTime}`
+                              : 'N/A'}
+                          </TableCell>
+                          <TableCell sx={cellSx}>{t(b.status)}</TableCell>
+                          <TableCell sx={cellSx}>{b.reason || ''}</TableCell>
+                          {showNotes && (
+                            <TableCell sx={cellSx}>
+                              {b.staff_note && (
+                                <Typography variant="body2">{b.staff_note}</Typography>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell sx={cellSx}>
+                            {['approved'].includes(b.status.toLowerCase()) && (
+                              <Stack
+                                direction={isSmall ? 'column' : 'row'}
+                                spacing={1}
+                                alignItems={isSmall ? 'stretch' : 'center'}
+                              >
+                                <Button
+                                  onClick={() => setCancelId(b.id)}
+                                  variant="outlined"
+                                  color="primary"
+                                >
+                                  {t('cancel')}
+                                </Button>
+                                <Button
+                                  onClick={() => setRescheduleBooking(b)}
+                                  variant="outlined"
+                                  color="primary"
+                                >
+                                  {t('reschedule')}
+                                </Button>
+                              </Stack>
+                            )}
+                            {role === 'staff' && b.status === 'visited' && !b.slot_id && (
+                              <Button
+                                onClick={() => setDeleteVisitId(b.id)}
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
+                              >
+                                Delete visit
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
             {totalPages > 1 && (
               <Box
                 sx={{

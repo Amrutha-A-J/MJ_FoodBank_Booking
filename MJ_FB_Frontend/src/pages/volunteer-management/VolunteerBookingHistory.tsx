@@ -25,6 +25,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card,
+  CardContent,
+  CardActions,
+  Stack,
+  Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 
@@ -38,6 +45,9 @@ export default function VolunteerBookingHistory() {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const { t } = useTranslation();
+
+  const theme = useTheme();
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
@@ -109,39 +119,40 @@ export default function VolunteerBookingHistory() {
 
   return (
     <Page title={t('booking_history')}>
-      <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('role')}</TableCell>
-              <TableCell>{t('date')}</TableCell>
-              <TableCell>{t('time')}</TableCell>
-              <TableCell>{t('status')}</TableCell>
-              <TableCell>{t('actions')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+      {isSmall ? (
+        history.length === 0 ? (
+          <Typography align="center">{t('no_bookings')}</Typography>
+        ) : (
+          <Stack spacing={2}>
             {groups.flatMap(group =>
               group.map(h => (
-                <TableRow key={h.id}>
-                  <TableCell>{h.role_name}</TableCell>
-                  <TableCell>{h.date}</TableCell>
-                  <TableCell>
-                    {formatTime(h.start_time)} - {formatTime(h.end_time)}
-                  </TableCell>
-                  <TableCell>{t(h.status)}</TableCell>
-                  <TableCell>
+                <Card key={h.id}>
+                  <CardContent>
+                    <Typography variant="subtitle2">{h.role_name}</Typography>
+                    <Typography variant="body2">
+                      {t('date')}: {h.date}
+                    </Typography>
+                    <Typography variant="body2">
+                      {t('time')}: {formatTime(h.start_time)} - {formatTime(h.end_time)}
+                    </Typography>
+                    <Typography variant="body2">
+                      {t('status')}: {t(h.status)}
+                    </Typography>
+                  </CardContent>
+                  <CardActions>
                     {h.status.toLowerCase() === 'approved' && (
-                      <>
+                      <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
                         <Button
                           size="small"
                           onClick={() => setCancelBooking(h)}
+                          fullWidth
                         >
                           {t('cancel')}
                         </Button>
                         <Button
                           size="small"
                           onClick={() => setRescheduleBooking(h)}
+                          fullWidth
                         >
                           {t('reschedule')}
                         </Button>
@@ -149,26 +160,81 @@ export default function VolunteerBookingHistory() {
                           <Button
                             size="small"
                             onClick={() => setCancelSeriesId(h.recurring_id!)}
+                            fullWidth
                           >
                             {t('cancel_all_upcoming_short')}
                           </Button>
                         )}
-                      </>
+                      </Stack>
                     )}
-                  </TableCell>
-                </TableRow>
+                  </CardActions>
+                </Card>
               )),
             )}
-            {history.length === 0 && (
+          </Stack>
+        )
+      ) : (
+        <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+          <Table size="small">
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={5} align="center">
-                  {t('no_bookings')}
-                </TableCell>
+                <TableCell>{t('role')}</TableCell>
+                <TableCell>{t('date')}</TableCell>
+                <TableCell>{t('time')}</TableCell>
+                <TableCell>{t('status')}</TableCell>
+                <TableCell>{t('actions')}</TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {groups.flatMap(group =>
+                group.map(h => (
+                  <TableRow key={h.id}>
+                    <TableCell>{h.role_name}</TableCell>
+                    <TableCell>{h.date}</TableCell>
+                    <TableCell>
+                      {formatTime(h.start_time)} - {formatTime(h.end_time)}
+                    </TableCell>
+                    <TableCell>{t(h.status)}</TableCell>
+                    <TableCell>
+                      {h.status.toLowerCase() === 'approved' && (
+                        <>
+                          <Button
+                            size="small"
+                            onClick={() => setCancelBooking(h)}
+                          >
+                            {t('cancel')}
+                          </Button>
+                          <Button
+                            size="small"
+                            onClick={() => setRescheduleBooking(h)}
+                          >
+                            {t('reschedule')}
+                          </Button>
+                          {h.recurring_id && (
+                            <Button
+                              size="small"
+                              onClick={() => setCancelSeriesId(h.recurring_id!)}
+                            >
+                              {t('cancel_all_upcoming_short')}
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )),
+              )}
+              {history.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    {t('no_bookings')}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
         <DialogCloseButton onClose={() => setCancelBooking(null)} />

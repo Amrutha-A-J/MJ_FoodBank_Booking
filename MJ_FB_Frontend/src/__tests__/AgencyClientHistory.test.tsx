@@ -22,6 +22,23 @@ jest.mock('../components/EntitySearch', () => (props: any) => (
 
 jest.mock('../components/RescheduleDialog', () => () => <div>RescheduleDialog</div>);
 
+const originalMatchMedia = window.matchMedia;
+function setScreen(matches: boolean) {
+  window.matchMedia = () => ({
+    matches,
+    media: '',
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  });
+}
+afterEach(() => {
+  window.matchMedia = originalMatchMedia;
+});
+
 describe('Agency ClientHistory', () => {
   it('cancels a booking', async () => {
     const { getMyAgencyClients } = require('../api/agencies');
@@ -91,5 +108,46 @@ describe('Agency ClientHistory', () => {
     );
     expect(screen.queryByText(/client note/i)).not.toBeInTheDocument();
     expect(screen.getByText(/staff note/i, { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('renders table on large screens', async () => {
+    setScreen(false);
+    const { getMyAgencyClients } = require('../api/agencies');
+    const { getBookingHistory } = require('../api/bookings');
+    (getMyAgencyClients as jest.Mock).mockResolvedValue([
+      { client_id: 1, name: 'Client One' },
+    ]);
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    render(<ClientHistory />);
+    fireEvent.click(screen.getByText('select client'));
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  it('renders cards on small screens', async () => {
+    setScreen(true);
+    const { getMyAgencyClients } = require('../api/agencies');
+    const { getBookingHistory } = require('../api/bookings');
+    (getMyAgencyClients as jest.Mock).mockResolvedValue([
+      { client_id: 1, name: 'Client One' },
+    ]);
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: '2024-01-01',
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 'tok',
+      },
+    ]);
+    render(<ClientHistory />);
+    fireEvent.click(screen.getByText('select client'));
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(await screen.findByText(/cancel/i)).toBeInTheDocument();
   });
 });

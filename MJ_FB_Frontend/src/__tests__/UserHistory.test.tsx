@@ -28,6 +28,23 @@ jest.mock('../api/users', () => ({
 jest.mock('../hooks/useAuth');
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
+const originalMatchMedia = window.matchMedia;
+function setScreen(matches: boolean) {
+  window.matchMedia = () => ({
+    matches,
+    media: '',
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  });
+}
+afterEach(() => {
+  window.matchMedia = originalMatchMedia;
+});
+
 describe('UserHistory', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({ role: 'staff' } as any);
@@ -236,10 +253,7 @@ describe('UserHistory', () => {
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     const rowButton = await screen.findByRole('button', { name: /delete visit/i });
     fireEvent.click(rowButton);
-    await waitFor(() =>
-      expect(screen.getAllByRole('button', { name: /delete visit/i }).length).toBe(2),
-    );
-    const confirmButton = screen.getAllByRole('button', { name: /delete visit/i })[1];
+    const confirmButton = await screen.findByRole('button', { name: /delete visit/i });
     fireEvent.click(confirmButton);
     await waitFor(() => expect(deleteClientVisit).toHaveBeenCalledWith(2));
   });
@@ -373,6 +387,43 @@ describe('UserHistory', () => {
         expect.objectContaining({ password: 'Secret1!' }),
       ),
     );
+  });
+
+  it('renders table on large screens', async () => {
+    setScreen(false);
+    (getBookingHistory as jest.Mock).mockResolvedValue([]);
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  it('renders cards on small screens', async () => {
+    setScreen(true);
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        created_at: '2024-01-01',
+        slot_id: 1,
+        is_staff_booking: false,
+        reschedule_token: 't',
+      },
+    ]);
+    render(
+      <MemoryRouter>
+        <UserHistory initialUser={{ id: 1, name: 'Test', client_id: 1, hasPassword: false }} />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(await screen.findByText(/cancel/i)).toBeInTheDocument();
   });
 });
 
