@@ -63,8 +63,10 @@ Staff can request vacation, sick, or personal leave via `/api/leave/requests`.
 Personal days are limited to one per calendar quarter and approved requests do
 **not** prefill timesheets. Admins can view requests for a specific staff member
 at `/api/timesheets/leave-requests/:staffId` or list all requests at
-`/api/leave/requests`. Approving a vacation or sick request adds default hours
-for each day in the request but leaves the entries editable. An approved request
+`/api/leave/requests`. The Admin → Leave Requests page shows the start and end
+dates, request type, and an automatically calculated day count for each pending
+request. Approving a vacation or sick request adds default hours for each day in
+the request but leaves the entries editable. An approved request
 also creates a `staff_leave` event visible to clients and volunteers. Rejection
 simply removes the request.
 
