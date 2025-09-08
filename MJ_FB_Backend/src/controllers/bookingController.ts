@@ -439,6 +439,18 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
     if ((dup.rowCount ?? 0) > 0) {
       return res.status(409).json({ message: 'Duplicate visit' });
     }
+    const cartRes = await pool.query(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    let weightWithCartVal = weightWithCart ?? null;
+    let weightWithoutCartVal = weightWithoutCart ?? null;
+    if (weightWithCartVal == null && weightWithoutCartVal != null) {
+      weightWithCartVal = weightWithoutCartVal + cartTare;
+    }
+    if (weightWithoutCartVal == null && weightWithCartVal != null) {
+      weightWithoutCartVal = weightWithCartVal - cartTare;
+    }
     const insertRes = await pool.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
        SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4, COALESCE($5,0), COALESCE($6,0)
@@ -446,8 +458,8 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
        WHERE b.id = $7
        RETURNING client_id`,
       [
-        weightWithCart ?? null,
-        weightWithoutCart ?? null,
+        weightWithCartVal ?? null,
+        weightWithoutCartVal ?? null,
         petItem ?? 0,
         note ?? null,
         adults ?? 0,

@@ -299,3 +299,72 @@ describe('markBookingNoShow', () => {
     expect(res.json).toHaveBeenCalledWith({ message: 'Booking marked as no-show' });
   });
 });
+
+describe('markBookingVisited', () => {
+  let markBookingVisited: any;
+  let pool: any;
+  let updateBooking: jest.Mock;
+  let refreshClientVisitCount: jest.Mock;
+
+  beforeEach(() => {
+    jest.resetModules();
+    jest.isolateModules(() => {
+      jest.doMock('../src/db', () => ({
+        __esModule: true,
+        default: { query: jest.fn() },
+      }));
+      jest.doMock('../src/models/bookingRepository', () => ({
+        __esModule: true,
+        updateBooking: jest.fn().mockResolvedValue(undefined),
+      }));
+      jest.doMock('../src/controllers/clientVisitController', () => ({
+        __esModule: true,
+        refreshClientVisitCount: jest.fn(),
+      }));
+      markBookingVisited = require('../src/controllers/bookingController').markBookingVisited;
+      pool = require('../src/db').default;
+      updateBooking = require('../src/models/bookingRepository').updateBooking;
+      refreshClientVisitCount = require('../src/controllers/clientVisitController').refreshClientVisitCount;
+    });
+  });
+
+  it('computes missing weightWithoutCart from weightWithCart', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0 })
+      .mockResolvedValueOnce({ rows: [{ value: '5' }] })
+      .mockResolvedValueOnce({ rows: [{ client_id: 1 }] });
+    const req = { params: { id: '123' }, body: { weightWithCart: 15 } } as unknown as Request;
+    const res = { json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await markBookingVisited(req, res, next);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      [15, 10, 0, null, 0, 0, 123],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+  });
+
+  it('computes missing weightWithCart from weightWithoutCart', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0 })
+      .mockResolvedValueOnce({ rows: [{ value: '5' }] })
+      .mockResolvedValueOnce({ rows: [{ client_id: 1 }] });
+    const req = { params: { id: '123' }, body: { weightWithoutCart: 10 } } as unknown as Request;
+    const res = { json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await markBookingVisited(req, res, next);
+
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO client_visits'),
+      [15, 10, 0, null, 0, 0, 123],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      "SELECT value FROM app_config WHERE key = 'cart_tare'",
+    );
+  });
+});
