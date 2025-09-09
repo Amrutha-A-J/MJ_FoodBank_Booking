@@ -121,9 +121,10 @@ export default function App() {
   const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
+  const showDonorManagement = isStaff && hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
-  const showDonationLog = showWarehouse || showDonationEntry;
+  const showDonationLog = showWarehouse || showDonationEntry || showDonorManagement;
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
@@ -172,6 +173,11 @@ export default function App() {
           },
         ],
       });
+
+    const donorLinks = [
+      { label: 'Donation Log', to: '/donor-management' },
+    ];
+    if (showDonorManagement) navGroups.push({ label: 'Donor Management', links: donorLinks });
 
     const warehouseLinks = [
       { label: t('dashboard'), to: '/warehouse-management' },
@@ -347,6 +353,9 @@ export default function App() {
                       path="/leave-requests"
                       element={<LeaveManagement />}
                     />
+                  )}
+                  {showDonorManagement && (
+                    <Route path="/donor-management" element={<DonationLog />} />
                   )}
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
