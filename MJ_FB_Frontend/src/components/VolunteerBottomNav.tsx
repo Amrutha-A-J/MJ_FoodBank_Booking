@@ -1,10 +1,12 @@
 import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import Dashboard from '@mui/icons-material/Dashboard';
 import CalendarToday from '@mui/icons-material/CalendarToday';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function VolunteerBottomNav() {
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/volunteer';
-  const value = path.startsWith('/volunteer/schedule') ? 'schedule' : 'dashboard';
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const value = pathname.startsWith('/volunteer/schedule') ? 'schedule' : 'dashboard';
 
   return (
     <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
@@ -12,8 +14,8 @@ export default function VolunteerBottomNav() {
         showLabels
         value={value}
         onChange={(_, newValue) => {
-          if (newValue === 'dashboard') window.location.assign('/volunteer');
-          if (newValue === 'schedule') window.location.assign('/volunteer/schedule');
+          if (newValue === 'dashboard') navigate('/volunteer');
+          if (newValue === 'schedule') navigate('/volunteer/schedule');
         }}
       >
         <BottomNavigationAction
