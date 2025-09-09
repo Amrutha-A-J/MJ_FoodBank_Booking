@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import config from '../config';
 
 export async function listDonors(req: Request, res: Response, next: NextFunction) {
   try {
@@ -222,7 +223,11 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
       else groups['501+'].push(row);
     }
 
-    const templateMap: Record<string, number> = { '1-100': 11, '101-500': 12, '501+': 13 };
+    const templateMap: Record<string, number> = {
+      '1-100': config.donorTemplateId1To100,
+      '101-500': config.donorTemplateId101To500,
+      '501+': config.donorTemplateId501Plus,
+    };
     let sent = 0;
     for (const [range, donors] of Object.entries(groups)) {
       if (donors.length === 0) continue;
