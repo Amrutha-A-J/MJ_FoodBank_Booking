@@ -23,7 +23,7 @@ export interface LoginResponse {
   name: string;
   bookingsThisMonth?: number;
   userRole?: UserRole;
-  access: StaffAccess[];
+  access?: StaffAccess[];
   id?: number;
 }
 
