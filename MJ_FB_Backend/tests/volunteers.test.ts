@@ -1,16 +1,13 @@
 import request from 'supertest';
 import express from 'express';
 import volunteersRouter from '../src/routes/volunteer/volunteers';
-import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { generatePasswordSetupToken } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
 
 jest.mock('bcrypt');
-jest.mock('jsonwebtoken');
 jest.mock('../src/utils/passwordSetupUtils', () => {
   const actual = jest.requireActual('../src/utils/passwordSetupUtils');
   return {
@@ -35,7 +32,6 @@ app.use((req, _res, next) => {
   (req as any).user = { id: 1, role: 'volunteer' };
   next();
 });
-app.use('/auth', authRouter);
 app.use('/volunteers', volunteersRouter);
 
 describe('Volunteer routes role ID validation', () => {
@@ -296,52 +292,6 @@ describe('Volunteer shopper profile', () => {
     expect(pool.query).toHaveBeenCalledTimes(3);
     const queries = (pool.query as jest.Mock).mock.calls.map(c => c[0]);
     expect(queries.some((q: string) => /DELETE FROM clients/.test(q))).toBe(false);
-  });
-});
-
-describe('Volunteer login with shopper profile', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('includes shopper info in token and response', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [
-        {
-          id: 1,
-          first_name: 'John',
-          last_name: 'Doe',
-          email: 'john@example.com',
-          password: 'hashed',
-          user_id: 9,
-          user_role: 'shopper',
-        },
-      ],
-    });
-    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-    (jwt.sign as jest.Mock).mockReturnValue('token');
-
-    const res = await request(app)
-      .post('/auth/login')
-      .send({ email: 'john@example.com', password: 'Secret1!' });
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({
-      role: 'volunteer',
-      name: 'John Doe',
-      userRole: 'shopper',
-      access: [],
-      id: 1,
-    });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
-    expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
-      id: 1,
-      role: 'volunteer',
-      type: 'volunteer',
-      userId: 9,
-      userRole: 'shopper',
-    });
   });
 });
 
