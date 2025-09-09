@@ -17,3 +17,15 @@ export const defaultTheme: ThemeConfig = {
 };
 
 export default defaultTheme;
+
+export const HIGH_CONTRAST_KEY = 'highContrast';
+
+export function getHighContrast(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(HIGH_CONTRAST_KEY) === 'true';
+}
+
+export function setHighContrast(value: boolean) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(HIGH_CONTRAST_KEY, String(value));
+}

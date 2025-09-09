@@ -168,7 +168,7 @@ export default function Navbar({
                 aria-label="open navigation menu"
                 onClick={() => setMobileOpen(true)}
               >
-                <MenuIcon fontSize="large" />
+                <MenuIcon fontSize="large" aria-label="menu" />
               </IconButton>
               <Drawer
                 anchor="left"
@@ -226,7 +226,7 @@ export default function Navbar({
                             }}
                           >
                             {group.label}
-                            <ChevronLeft fontSize="small" />
+                            <ChevronLeft fontSize="small" aria-label="open submenu" />
                           </ListItemButton>
                         )
                       )}
@@ -241,7 +241,7 @@ export default function Navbar({
                           }}
                         >
                           {mobileProfileGroup.label}
-                          <ChevronLeft fontSize="small" />
+                          <ChevronLeft fontSize="small" aria-label="open submenu" />
                         </ListItemButton>
                       ) : onLogout ? (
                         <ListItemButton
@@ -277,7 +277,7 @@ export default function Navbar({
                             justifyContent: 'flex-start',
                           }}
                         >
-                          <ChevronRight fontSize="small" sx={{ mr: 1 }} />
+                          <ChevronRight fontSize="small" sx={{ mr: 1 }} aria-label="back to menu" />
                           <ListItemText primary={mobileSubmenu.label} />
                         </ListItemButton>
                         {mobileSubmenu.links.map(({ label, to, badge, onClick }) => (
@@ -340,7 +340,13 @@ export default function Navbar({
                   <Button
                     color="inherit"
                     onClick={(e) => handleGroupClick(group.label, e)}
-                    endIcon={openGroup === group.label ? <ExpandLess /> : <ExpandMore />}
+                    endIcon={
+                      openGroup === group.label ? (
+                        <ExpandLess aria-label="collapse" />
+                      ) : (
+                        <ExpandMore aria-label="expand" />
+                      )
+                    }
                     disableElevation
                     disableRipple
                     sx={NAV_TXT_SX}
@@ -392,7 +398,13 @@ export default function Navbar({
                 <Button
                   color="inherit"
                   onClick={handleProfileClick}
-                  endIcon={profileMenuOpen ? <ExpandLess /> : <ExpandMore />}
+                  endIcon={
+                    profileMenuOpen ? (
+                      <ExpandLess aria-label="collapse" />
+                    ) : (
+                      <ExpandMore aria-label="expand" />
+                    )
+                  }
                   disableElevation
                   disableRipple
                   sx={NAV_TXT_SX}
