@@ -104,4 +104,22 @@ describe('rescheduleBooking', () => {
     expect(enqueueEmailMock).toHaveBeenCalledTimes(1);
     expect(enqueueEmailMock.mock.calls[0][0].to).toBe('client@example.com');
   });
+
+  it('returns no-show message when booking is marked no_show', async () => {
+    fetchBookingByTokenMock.mockResolvedValueOnce({ status: 'no_show' });
+    const req = {
+      params: { token: 'tok' },
+      body: { slotId: 6, date: '2025-01-05' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await rescheduleBooking(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message:
+        'This booking has already expired and was marked as a no-show. Please book a new appointment.',
+    });
+  });
 });

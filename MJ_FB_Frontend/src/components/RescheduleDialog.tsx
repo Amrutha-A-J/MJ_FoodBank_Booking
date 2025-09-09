@@ -74,9 +74,9 @@ export default function RescheduleDialog({
       onClose();
       setDate('');
       setSlotId('');
-    } catch {
+    } catch (err: any) {
       setSnackbarSeverity('error');
-      setMessage('Failed to reschedule booking');
+      setMessage(err.message);
     }
   }
 
