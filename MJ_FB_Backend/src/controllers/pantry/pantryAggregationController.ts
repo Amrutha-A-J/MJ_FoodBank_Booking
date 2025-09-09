@@ -51,7 +51,7 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
+  const clients = visitClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
@@ -95,7 +95,7 @@ export async function refreshPantryMonthly(year: number, month: number) {
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
+  const clients = visitClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
@@ -139,7 +139,7 @@ export async function refreshPantryYearly(year: number) {
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
+  const clients = visitClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
