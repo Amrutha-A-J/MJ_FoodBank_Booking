@@ -40,8 +40,8 @@
 - Buttons default to `size="medium"`; use `size="small"` only when space is constrained.
 - Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
-- Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page displays a role-specific login reminder and button.
- - Profile pages let clients and volunteers toggle email reminders from `/users/me/preferences`.
+- Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page includes a login button without any role-specific reminder text.
+- Profile pages let clients and volunteers toggle email reminders from `/users/me/preferences`.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
