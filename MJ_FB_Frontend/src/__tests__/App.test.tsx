@@ -83,4 +83,7 @@ describe('App authentication persistence', () => {
   it('computes warehouse path for single warehouse access', () => {
     expect(getStaffRootPath(['warehouse'] as any)).toBe('/warehouse-management');
   });
+  it('computes donor path for single donor access', () => {
+    expect(getStaffRootPath(['donor_management'] as any)).toBe('/donor-management');
+  });
 });

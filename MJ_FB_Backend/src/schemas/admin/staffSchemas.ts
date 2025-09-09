@@ -6,7 +6,7 @@ export const staffAccessEnum = z.enum([
   'volunteer_management',
   'warehouse',
   'admin',
-  'other',
+  'donor_management',
   'payroll_management',
 ]);
 

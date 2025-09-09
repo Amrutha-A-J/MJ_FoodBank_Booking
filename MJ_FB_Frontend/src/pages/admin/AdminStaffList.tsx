@@ -26,7 +26,7 @@ export default function AdminStaffList() {
     volunteer_management: 'Volunteer Management',
     warehouse: 'Warehouse',
     admin: 'Admin',
-    other: 'Other',
+    donor_management: 'Donor Management',
     payroll_management: 'Payroll Management',
     donation_entry: 'Donation Entry',
   };
