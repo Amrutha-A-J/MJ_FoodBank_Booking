@@ -12,7 +12,9 @@ export default defineConfig(async ({ mode }) => {
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'service-worker.ts',
-      injectManifest: { globPatterns: [] },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+      },
     }),
   ]
   if (mode === 'production') {
