@@ -34,7 +34,7 @@ export default function PantryQuickLinks() {
         Record a Visit
       </Button>
       <Button
-        
+
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
@@ -42,6 +42,16 @@ export default function PantryQuickLinks() {
         fullWidth
       >
         Search Client
+      </Button>
+      <Button
+
+        variant="outlined"
+        sx={buttonSx}
+        component={RouterLink}
+        to="/pantry/aggregations"
+        fullWidth
+      >
+        Aggregations
       </Button>
     </Stack>
   );

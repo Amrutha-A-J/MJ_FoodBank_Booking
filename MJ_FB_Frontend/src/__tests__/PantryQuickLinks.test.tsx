@@ -21,5 +21,9 @@ describe('PantryQuickLinks', () => {
       'href',
       '/pantry/client-management?tab=history',
     );
+    expect(screen.getByRole('link', { name: /Aggregations/i })).toHaveAttribute(
+      'href',
+      '/pantry/aggregations',
+    );
   });
 });

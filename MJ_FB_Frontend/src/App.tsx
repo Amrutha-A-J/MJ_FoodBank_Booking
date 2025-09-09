@@ -169,6 +169,7 @@ export default function App() {
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
+      { label: 'Aggregations', to: '/pantry/aggregations' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -360,6 +361,9 @@ export default function App() {
                   )}
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
+                  )}
+                  {showStaff && (
+                    <Route path="/pantry/aggregations" element={<Aggregations />} />
                   )}
                   {isStaff && (
                     <Route path="/timesheet" element={<Timesheets />} />
