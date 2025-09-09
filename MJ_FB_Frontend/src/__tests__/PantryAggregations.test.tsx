@@ -28,6 +28,10 @@ describe('PantryAggregations page', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetPantryWeekly.mockResolvedValue([]);
+    mockGetPantryMonthly.mockResolvedValue([]);
+    mockGetPantryYearly.mockResolvedValue([]);
+    mockGetPantryYears.mockResolvedValue([new Date().getFullYear()]);
   });
 
   it('loads data for each tab', async () => {
@@ -45,6 +49,23 @@ describe('PantryAggregations page', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /yearly/i }));
     await waitFor(() => expect(mockGetPantryYearly).toHaveBeenCalled());
+  });
+
+  it('displays weekly aggregations in a table', async () => {
+    mockGetPantryWeekly.mockResolvedValueOnce([{ week: 1, clients: 2 }]);
+
+    render(
+      <MemoryRouter>
+        <PantryAggregations />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
+
+    expect(screen.getByTestId('responsive-table-table')).toBeInTheDocument();
+    expect(screen.getByText('week')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('exports weekly data', async () => {
