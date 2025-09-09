@@ -26,11 +26,6 @@ jest.mock('../pages/donor-management/DonorDashboard', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
-jest.mock('../pages/donor-management/DonorManagement', () => {
-  const mod = { __esModule: true, default: () => <div>DonorManagementPage</div> };
-  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
-  return mod;
-});
 jest.mock('../pages/donor-management/DonorProfile', () => {
   const mod = { __esModule: true, default: () => <div>DonorProfilePage</div> };
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
