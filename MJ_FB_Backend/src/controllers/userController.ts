@@ -746,16 +746,15 @@ export async function getMyPreferences(req: Request, res: Response, next: NextFu
   }
   try {
     const result = await pool.query(
-      `SELECT email_reminders, push_notifications FROM user_preferences WHERE user_id = $1 AND user_type = $2`,
+      `SELECT email_reminders FROM user_preferences WHERE user_id = $1 AND user_type = $2`,
       [user.id, user.type],
     );
     if ((result.rowCount ?? 0) === 0) {
-      return res.json({ emailReminders: true, pushNotifications: true });
+      return res.json({ emailReminders: true });
     }
     const row = result.rows[0];
     res.json({
       emailReminders: row.email_reminders,
-      pushNotifications: row.push_notifications,
     });
   } catch (error) {
     logger.error('Error fetching user preferences:', error);
@@ -769,20 +768,19 @@ export async function updateMyPreferences(req: Request, res: Response, next: Nex
   if (user.type !== 'user' && user.type !== 'volunteer') {
     return res.status(403).json({ message: 'Unsupported user type' });
   }
-  const { emailReminders, pushNotifications } = req.body as UserPreferences;
+  const { emailReminders } = req.body as UserPreferences;
   try {
     const result = await pool.query(
-      `INSERT INTO user_preferences (user_id, user_type, email_reminders, push_notifications)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO user_preferences (user_id, user_type, email_reminders)
+       VALUES ($1, $2, $3)
        ON CONFLICT (user_id, user_type)
-       DO UPDATE SET email_reminders = EXCLUDED.email_reminders, push_notifications = EXCLUDED.push_notifications
-       RETURNING email_reminders, push_notifications`,
-      [user.id, user.type, emailReminders, pushNotifications],
+       DO UPDATE SET email_reminders = EXCLUDED.email_reminders
+       RETURNING email_reminders`,
+      [user.id, user.type, emailReminders],
     );
     const row = result.rows[0];
     res.json({
       emailReminders: row.email_reminders,
-      pushNotifications: row.push_notifications,
     });
   } catch (error) {
     logger.error('Error updating user preferences:', error);

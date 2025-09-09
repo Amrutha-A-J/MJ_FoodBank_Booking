@@ -212,17 +212,24 @@ export async function updateVolunteer(
       }
     }
 
+    const existing = await pool.query('SELECT password FROM volunteers WHERE id = $1', [id]);
+    if ((existing.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    const hadPassword = !!existing.rows[0].password;
+
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
     const result = await pool.query(
       `UPDATE volunteers
        SET first_name = $1, last_name = $2, email = $3, phone = $4,
            password = CASE
+             WHEN $6 IS NOT NULL THEN $6
              WHEN $5::boolean = false THEN NULL
-             ELSE COALESCE($6, password)
+             ELSE password
            END
        WHERE id = $7
-       RETURNING id, first_name, last_name, email, phone`,
+       RETURNING id, first_name, last_name, email, phone, password`,
       [
         firstName,
         lastName,
@@ -238,7 +245,7 @@ export async function updateVolunteer(
     }
     const row = result.rows[0];
 
-    if (sendPasswordLink && email) {
+    if (sendPasswordLink && email && onlineAccess && !hadPassword) {
       const token = await generatePasswordSetupToken('volunteers', Number(id));
       const params = buildPasswordSetupEmailParams('volunteers', token);
       await sendTemplatedEmail({

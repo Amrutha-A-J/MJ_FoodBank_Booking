@@ -69,6 +69,5 @@ export const updateMyProfileSchema = z
 
 export const updatePreferencesSchema = z.object({
   emailReminders: z.boolean(),
-  pushNotifications: z.boolean(),
 });
 

@@ -29,7 +29,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
 const app = express();
 app.use(express.json());
 app.use((req, _res, next) => {
-  (req as any).user = { id: 1, role: 'volunteer' };
+  (req as any).user = { id: 1, role: 'staff' };
   next();
 });
 app.use('/volunteers', volunteersRouter);
@@ -183,6 +183,81 @@ describe('Volunteer routes role ID validation', () => {
       .send({ roleIds: [1, 2] });
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ message: 'Invalid roleIds', invalidIds: [2] });
+  });
+});
+
+describe('updateVolunteer', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sends setup link when enabling online access', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ password: null }] }) // existing
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'J',
+            last_name: 'D',
+            email: 'john@example.com',
+            phone: '123',
+            password: null,
+          },
+        ],
+      });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+
+    const res = await request(app).put('/volunteers/1').send({
+      firstName: 'J',
+      lastName: 'D',
+      email: 'john@example.com',
+      phone: '123',
+      onlineAccess: true,
+      sendPasswordLink: true,
+    });
+
+    expect(res.status).toBe(200);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 1);
+    expect(sendTemplatedEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ templateId: config.passwordSetupTemplateId }),
+    );
+  });
+
+  it('hashes password and stores it', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ password: null }] }) // existing
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'J',
+            last_name: 'D',
+            email: 'john@example.com',
+            phone: '123',
+            password: 'hashed',
+          },
+        ],
+      });
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+
+    const res = await request(app).put('/volunteers/1').send({
+      firstName: 'J',
+      lastName: 'D',
+      email: 'john@example.com',
+      phone: '123',
+      password: 'Secret1!',
+    });
+
+    expect(res.status).toBe(200);
+    expect(bcrypt.hash).toHaveBeenCalledWith('Secret1!', 10);
+    const updateCall = (pool.query as jest.Mock).mock.calls[2];
+    expect(updateCall[1][5]).toBe('hashed');
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 });
 
@@ -354,7 +429,8 @@ describe('Update volunteer', () => {
 
   it('updates volunteer and hashes password', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ password: null }] }) // existing
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ id: 1, first_name: 'A', last_name: 'B', email: 'a@b.c', phone: '123' }],
@@ -364,7 +440,7 @@ describe('Update volunteer', () => {
     const res = await request(staffApp).put('/volunteers/1').send({
       firstName: 'A',
       lastName: 'B',
-      email: 'a@b.c',
+      email: 'a@b.ca',
       phone: '123',
       onlineAccess: true,
       password: 'Secret1!',
@@ -376,7 +452,8 @@ describe('Update volunteer', () => {
 
   it('sends password link when requested', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // emailCheck
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ password: null }] }) // existing
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ id: 1, first_name: 'A', last_name: 'B', email: 'a@b.c', phone: '123' }],
@@ -386,7 +463,7 @@ describe('Update volunteer', () => {
     const res = await request(staffApp).put('/volunteers/1').send({
       firstName: 'A',
       lastName: 'B',
-      email: 'a@b.c',
+      email: 'a@b.ca',
       phone: '123',
       onlineAccess: true,
       sendPasswordLink: true,
