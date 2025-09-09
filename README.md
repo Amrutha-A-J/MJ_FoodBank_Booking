@@ -17,7 +17,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   `FCM_SERVICE_ACCOUNT` on the backend and corresponding `VITE_FIREBASE_*`
   variables on the frontend.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
-- Users sign in at `/login` with their client ID or email. The login page reminds users to sign in with their client ID or email, provides contact and password reset guidance, and directs staff, volunteers, and agencies accordingly.
+- All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
