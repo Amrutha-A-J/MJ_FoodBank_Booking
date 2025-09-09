@@ -162,14 +162,17 @@ export async function getMailLists(req: Request, res: Response, next: NextFuncti
       year = now.getUTCFullYear();
       month = now.getUTCMonth() + 1;
     }
+    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
+    const endDate = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+
     const donorsRes = await pool.query(
       `SELECT d.id, d.first_name AS "firstName", d.last_name AS "lastName", d.email,
               COALESCE(SUM(n.amount), 0)::int AS amount
        FROM monetary_donations n
        JOIN monetary_donors d ON n.donor_id = d.id
-       WHERE EXTRACT(YEAR FROM n.date) = $1 AND EXTRACT(MONTH FROM n.date) = $2
+       WHERE n.date >= $1 AND n.date < $2
        GROUP BY d.id, d.first_name, d.last_name, d.email`,
-      [year, month],
+      [startDate, endDate],
     );
 
     const groups: Record<string, any[]> = { '1-100': [], '101-500': [], '501+': [] };
@@ -197,13 +200,16 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
       month = now.getUTCMonth() + 1;
     }
 
+    const startDate = new Date(Date.UTC(year, month - 1, 1)).toISOString().slice(0, 10);
+    const endDate = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+
     const donorsRes = await pool.query(
       `SELECT d.first_name, d.email, COALESCE(SUM(n.amount), 0)::int AS amount
        FROM monetary_donations n
        JOIN monetary_donors d ON n.donor_id = d.id
-       WHERE EXTRACT(YEAR FROM n.date) = $1 AND EXTRACT(MONTH FROM n.date) = $2
+       WHERE n.date >= $1 AND n.date < $2
        GROUP BY d.id, d.first_name, d.email`,
-      [year, month],
+      [startDate, endDate],
     );
 
     const statsRes = await pool.query(
@@ -211,8 +217,8 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
               COALESCE(SUM(children),0)::int AS children,
               COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)),0)::int AS pounds
        FROM client_visits
-       WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
+       WHERE date >= $1 AND date < $2`,
+      [startDate, endDate],
     );
     const { families, children, pounds } = statsRes.rows[0];
 

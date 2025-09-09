@@ -144,14 +144,13 @@ describe('Mailing list generation', () => {
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('EXTRACT(YEAR'),
-      [2024, 6],
+      expect.stringContaining('n.date >= $1 AND n.date < $2'),
+      ['2024-06-01', '2024-07-01'],
     );
     jest.useRealTimers();
   });
 
-  it('sends mailing lists with default month and template mapping', async () => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-07-05T00:00:00Z'));
+  it('sends mailing lists with template mapping', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
@@ -169,13 +168,19 @@ describe('Mailing list generation', () => {
 
     const res = await request(app)
       .post('/monetary-donors/mail-lists/send')
+      .send({ year: 2024, month: 6 })
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('EXTRACT(YEAR'),
-      [2024, 6],
+      expect.stringContaining('n.date >= $1 AND n.date < $2'),
+      ['2024-06-01', '2024-07-01'],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('date >= $1 AND date < $2'),
+      ['2024-06-01', '2024-07-01'],
     );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
@@ -190,10 +195,9 @@ describe('Mailing list generation', () => {
     });
     expect((sendTemplatedEmail as jest.Mock).mock.calls[2][0]).toEqual({
       to: 'c@example.com',
-      templateId: 13,
+      templateId: 12,
       params: { firstName: 'C', amount: 600, families: 4, children: 7, pounds: 120 },
     });
     expect(res.body).toEqual({ sent: 3 });
-    jest.useRealTimers();
   });
 });
