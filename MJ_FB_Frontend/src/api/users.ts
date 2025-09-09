@@ -3,6 +3,7 @@ import type {
   UserProfile,
   StaffAccess,
   LoginResponse,
+  UserPreferences,
 } from "../types";
 import { API_BASE, apiFetch, handleResponse } from "./client";
 export type { LoginResponse } from "../types";
@@ -282,3 +283,20 @@ export async function deleteUser(clientId: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/users/id/${clientId}`, { method: 'DELETE' });
   await handleResponse(res);
 }
+
+export async function getUserPreferences(): Promise<UserPreferences> {
+  const res = await apiFetch(`${API_BASE}/users/me/preferences`);
+  return handleResponse(res);
+}
+
+export async function updateUserPreferences(
+  data: UserPreferences,
+): Promise<UserPreferences> {
+  const res = await apiFetch(`${API_BASE}/users/me/preferences`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+

@@ -469,6 +469,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
 - A language selector lets users switch languages on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages.
 - Profile pages provide a button to email a password reset link instead of changing passwords directly.
+- Profile pages let clients and volunteers opt in or out of email reminders and push notifications.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Staff dashboard includes a pantry visit trend line chart showing monthly totals for clients, adults, and children.

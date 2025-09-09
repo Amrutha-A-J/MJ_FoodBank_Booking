@@ -182,6 +182,11 @@ export interface UserProfile {
   defaultBookingNote?: string;
 }
 
+export interface UserPreferences {
+  emailReminders: boolean;
+  pushNotifications: boolean;
+}
+
 export interface RoleOption {
   categoryId: number;
   categoryName: string;

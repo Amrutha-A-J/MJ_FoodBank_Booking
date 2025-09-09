@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import {
   Stack,
   Typography,
+  FormControlLabel,
+  Switch,
   Avatar,
   Divider,
   TextField,
@@ -29,6 +31,8 @@ export default function Profile({ role }: { role: Role }) {
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [prefs, setPrefs] = useState<UserPreferences>({ emailReminders: true, pushNotifications: true });
+  const [prefsSaving, setPrefsSaving] = useState(false);
   const [toast, setToast] = useState<{
     open: boolean;
     message: string;
@@ -50,6 +54,14 @@ export default function Profile({ role }: { role: Role }) {
       })
       .catch(e => setError(e instanceof Error ? e.message : String(e)));
   }, [role]);
+  useEffect(() => {
+    if (role === 'volunteer' || role === 'shopper' || role === 'delivery') {
+      getUserPreferences()
+        .then(p => setPrefs(p))
+        .catch(e => setError(e instanceof Error ? e.message : String(e)));
+    }
+  }, [role]);
+
   const initials = profile
     ? profile.role === 'agency'
       ? (profile.firstName ?? '').slice(0, 2).toUpperCase()
@@ -100,6 +112,21 @@ export default function Profile({ role }: { role: Role }) {
       setEditing(true);
     }
   }
+  async function handleSavePreferences() {
+    setPrefsSaving(true);
+    try {
+      const updated = await updateUserPreferences(prefs);
+      setPrefs(updated);
+      setToast({ open: true, message: t('profile_page.preferences_saved'), severity: 'success' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setToast({ open: true, message: msg, severity: 'error' });
+    } finally {
+      setPrefsSaving(false);
+    }
+  }
+
+
 
   return (
     <ErrorBoundary>
@@ -202,6 +229,38 @@ export default function Profile({ role }: { role: Role }) {
             {editing ? t('profile_page.save') : t('profile_page.edit_profile')}
           </Button>
 
+          {(role === 'volunteer' || profile?.role === 'shopper' || profile?.role === 'delivery') && (
+            <>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="h6">{t('profile_page.notifications')}</Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={prefs.emailReminders}
+                    onChange={e => setPrefs(p => ({ ...p, emailReminders: e.target.checked }))}
+                  />
+                }
+                label={t('profile_page.email_reminders')}
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={prefs.pushNotifications}
+                    onChange={e => setPrefs(p => ({ ...p, pushNotifications: e.target.checked }))}
+                  />
+                }
+                label={t('profile_page.push_notifications')}
+              />
+              <Button
+                variant="outlined"
+                startIcon={prefsSaving ? <CircularProgress size={20} /> : <AccountCircle />}
+                disabled={prefsSaving}
+                onClick={handleSavePreferences}
+              >
+                {t('profile_page.save')}
+              </Button>
+            </>
+          )}
           <Divider sx={{ my: 1 }} />
 
           {/* Password reset */}

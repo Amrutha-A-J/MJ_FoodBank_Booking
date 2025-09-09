@@ -8,6 +8,8 @@ import {
   updateUserByClientId,
   updateMyProfile,
   deleteUserByClientId,
+  getMyPreferences,
+  updateMyPreferences,
 } from '../controllers/userController';
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
@@ -15,6 +17,7 @@ import {
   createUserSchema,
   updateUserSchema,
   updateMyProfileSchema,
+  updatePreferencesSchema,
 } from '../schemas/userSchemas';
 
 const router = express.Router();
@@ -53,6 +56,8 @@ router.get(
 );
 router.get('/me', authMiddleware, getUserProfile);
 router.patch('/me', authMiddleware, validate(updateMyProfileSchema), updateMyProfile);
+router.get('/me/preferences', authMiddleware, getMyPreferences);
+router.put('/me/preferences', authMiddleware, validate(updatePreferencesSchema), updateMyPreferences);
 
 
 export default router;
