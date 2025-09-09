@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { TextField, Checkbox, FormControlLabel, Button, Typography } from '@mui/material';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
@@ -27,6 +27,15 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
   const [access, setAccess] = useState<StaffAccess[]>(initial?.access || []);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    if (initial) {
+      setFirstName(initial.firstName);
+      setLastName(initial.lastName);
+      setEmail(initial.email);
+      setAccess(initial.access);
+    }
+  }, [initial]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
