@@ -31,7 +31,7 @@ export default function Profile({ role }: { role: Role }) {
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [prefs, setPrefs] = useState<UserPreferences>({ emailReminders: true, pushNotifications: true });
+  const [prefs, setPrefs] = useState<UserPreferences>({ emailReminders: true });
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [toast, setToast] = useState<{
     open: boolean;
@@ -241,15 +241,6 @@ export default function Profile({ role }: { role: Role }) {
                   />
                 }
                 label={t('profile_page.email_reminders')}
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={prefs.pushNotifications}
-                    onChange={e => setPrefs(p => ({ ...p, pushNotifications: e.target.checked }))}
-                  />
-                }
-                label={t('profile_page.push_notifications')}
               />
               <Button
                 variant="outlined"

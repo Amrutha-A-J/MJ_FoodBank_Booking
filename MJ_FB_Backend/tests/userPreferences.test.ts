@@ -28,7 +28,7 @@ describe('User preference routes', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
     const res = await request(app).get('/api/users/me/preferences');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ emailReminders: true, pushNotifications: true });
+    expect(res.body).toEqual({ emailReminders: true });
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('FROM user_preferences'),
       [1, 'client'],
@@ -38,16 +38,16 @@ describe('User preference routes', () => {
   it('updates preferences', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ email_reminders: false, push_notifications: false }],
+      rows: [{ email_reminders: false }],
     });
     const res = await request(app)
       .put('/api/users/me/preferences')
-      .send({ emailReminders: false, pushNotifications: false });
+      .send({ emailReminders: false });
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO user_preferences'),
-      [1, 'client', false, false],
+      [1, 'client', false],
     );
-    expect(res.body).toEqual({ emailReminders: false, pushNotifications: false });
+    expect(res.body).toEqual({ emailReminders: false });
   });
 });

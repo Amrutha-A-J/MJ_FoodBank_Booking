@@ -1,10 +1,8 @@
 # Feature Log
 
-- f038a6a7 feat: add context to telegram ops alerts
 - 12a59458 feat: default component size to medium
 - 9746858e feat: add offline fallback and booking sync
 - 11b12434 feat: unify login page
-- 0ab1800c feat: add push notification infrastructure
 - ea1f480c feat: improve volunteer mobile navigation
 - 9cde983b feat: unify login endpoint
 - 23658a42 feat(frontend): cache static and schedule data
@@ -35,8 +33,6 @@
 - 4a30caae feat: add install app prompt
 - 4bf4d72d feat: allow optional service worker
 - 460c5b91 feat: show volunteer names for coverage
-- bb26615b feat: alert ops on no-show cleanup
-- 4eeee22d feat: add telegram ops alerts
 - 53701605 feat: clean stale email queue jobs nightly
 - 05014369 feat: clean past blocked slots
 - 7cbaefa6 feat: auto refresh pantry schedule on updates

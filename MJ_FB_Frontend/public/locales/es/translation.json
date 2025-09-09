@@ -202,7 +202,6 @@
     "password_symbol": "Password must include a symbol.",
     "notifications": "Notifications",
     "email_reminders": "Email reminders",
-    "push_notifications": "Push notifications",
     "preferences_saved": "Preferences saved."
   },
   "my_upcoming_appointment": "My Upcoming Appointment",

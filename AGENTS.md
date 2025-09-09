@@ -23,9 +23,6 @@
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
-- Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert a Telegram channel (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID`) on failure.
-- API requests that return a 5xx error send a Telegram alert with the HTTP method and path when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
-- Telegram alerts are sent when clients or volunteers create, cancel, or reschedule bookings.
 - Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert a Telegram channel (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID`) on failure; alerts include a timestamp and stack trace.
 - API requests that return a 5xx error send a Telegram alert with the HTTP method, path, timestamp, and stack trace when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
 - Telegram alerts are sent when clients or volunteers create, cancel, or reschedule bookings.
@@ -42,7 +39,7 @@
 - Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
 - Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page displays a role-specific login reminder and button.
-- Profile pages let clients and volunteers toggle email reminders and push notifications from `/users/me/preferences`.
+ - Profile pages let clients and volunteers toggle email reminders from `/users/me/preferences`.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.

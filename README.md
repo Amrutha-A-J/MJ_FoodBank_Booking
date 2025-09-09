@@ -314,8 +314,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `EMAIL_QUEUE_BACKOFF_MS`   | Initial backoff delay in ms for email retries (default 1000)                                                                              |
 | `EMAIL_QUEUE_MAX_AGE_DAYS` | Remove pending email jobs older than this many days (default 30)                                                                          |
 | `EMAIL_QUEUE_WARNING_SIZE` | Log a warning if the email queue exceeds this size (default 100)                                                                          |
-| `TELEGRAM_BOT_TOKEN`       | Telegram bot token used for ops alerts (optional)                                                                                         |
-| `TELEGRAM_ALERT_CHAT_ID`   | Telegram chat ID that receives ops alerts (optional)                                                                                      |
+| `TELEGRAM_BOT_TOKEN`       | Telegram bot token used for ops alerts (optional) |
+| `TELEGRAM_ALERT_CHAT_ID`   | Telegram chat ID that receives ops alerts (optional) |
 
 | Template reference                           | Purpose                                       | Params                                                                                    |
 | -------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -469,7 +469,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
 - A language selector lets users switch languages on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages.
 - Profile pages provide a button to email a password reset link instead of changing passwords directly.
-- Profile pages let clients and volunteers opt in or out of email reminders and push notifications.
+- Profile pages let clients and volunteers opt in or out of email reminders.
 - A shared dashboard component lives in `src/components/dashboard`.
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Staff dashboard includes a pantry visit trend line chart showing monthly totals for clients, adults, and children.

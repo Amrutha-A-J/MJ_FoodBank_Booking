@@ -1,17 +1,16 @@
 # Notification preferences
 
-Clients and volunteers can manage notification settings from the Profile page.
+Clients and volunteers can manage email reminder settings from the Profile page.
 
 ## API
-- `GET /users/me/preferences` returns `{ emailReminders, pushNotifications }`.
-- `PUT /users/me/preferences` updates `{ emailReminders, pushNotifications }`.
+- `GET /users/me/preferences` returns `{ emailReminders }`.
+- `PUT /users/me/preferences` updates `{ emailReminders }`.
 
-Both options default to `true`.
+Email reminders default to `true`.
 
 ## Localization
 Add these translation keys to locale files:
 - `profile_page.notifications`
 - `profile_page.email_reminders`
-- `profile_page.push_notifications`
 - `profile_page.preferences_saved`
 - `help.client.manage_profile_and_password.steps.1`

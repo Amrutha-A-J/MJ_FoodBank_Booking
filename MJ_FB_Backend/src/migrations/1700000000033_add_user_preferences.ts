@@ -5,7 +5,6 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     user_id: { type: 'integer', notNull: true },
     user_type: { type: 'text', notNull: true },
     email_reminders: { type: 'boolean', notNull: true, default: true },
-    push_notifications: { type: 'boolean', notNull: true, default: true },
   });
   pgm.createPrimaryKey('user_preferences', ['user_id', 'user_type']);
 }
