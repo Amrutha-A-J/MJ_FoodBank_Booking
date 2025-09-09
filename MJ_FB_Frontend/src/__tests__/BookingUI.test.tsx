@@ -5,6 +5,20 @@ import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 
+class EventSourceMock {
+  constructor(public url: string) {}
+  onmessage: ((event: { data: string }) => void) | null = null;
+  close() {}
+}
+
+beforeEach(() => {
+  (global as any).EventSource = EventSourceMock as any;
+});
+
+afterEach(() => {
+  delete (global as any).EventSource;
+});
+
 jest.mock('@mui/x-date-pickers/DateCalendar', () => ({
   DateCalendar: () => <div />,
 }));

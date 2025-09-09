@@ -368,5 +368,6 @@
       "body": "Tap Schedule to sign up for shifts. Install the app for faster access."
     },
     "close": "Got it"
-  }
+  },
+  "use_biometrics": "Use biometrics"
 }

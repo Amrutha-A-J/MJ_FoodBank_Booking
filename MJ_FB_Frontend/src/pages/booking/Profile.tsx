@@ -12,8 +12,14 @@ import {
 } from '@mui/material';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import Lock from '@mui/icons-material/Lock';
-import type { Role, UserProfile } from '../../types';
-import { getUserProfile, requestPasswordReset, updateMyProfile } from '../../api/users';
+import type { Role, UserProfile, UserPreferences } from '../../types';
+import {
+  getUserProfile,
+  requestPasswordReset,
+  updateMyProfile,
+  getUserPreferences,
+  updateUserPreferences,
+} from '../../api/users';
 import { getVolunteerProfile } from '../../api/volunteers';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PageContainer from '../../components/layout/PageContainer';

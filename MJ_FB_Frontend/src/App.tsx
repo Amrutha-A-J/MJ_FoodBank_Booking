@@ -65,8 +65,8 @@ const StaffRecurringBookings = React.lazy(() =>
 const VolunteerRankings = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerRankings')
 );
-const VolunteerTabs = React.lazy(() =>
-  import('./pages/volunteer-management/VolunteerTabs')
+const VolunteerAdmin = React.lazy(() =>
+  import('./pages/staff/VolunteerManagement')
 );
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
@@ -453,7 +453,7 @@ export default function App() {
                       />
                       <Route
                         path="/volunteer-management/volunteers"
-                        element={<VolunteerTabs />}
+                        element={<VolunteerAdmin />}
                       />
                       <Route
                         path="/volunteer-management/rankings"

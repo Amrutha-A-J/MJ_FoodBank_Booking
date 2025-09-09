@@ -60,6 +60,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
 import i18n from "../../i18n";
+import useSlotStream from "../../hooks/useSlotStream";
 
 const reginaTimeZone = "America/Regina";
 
@@ -150,6 +151,17 @@ export default function VolunteerSchedule() {
       setLoading(false);
     }
   }, [currentDate, holidays]);
+
+  const handleStream = useCallback(
+    (data: any) => {
+      if (data?.date === formatDate(currentDate)) {
+        void loadData();
+      }
+    },
+    [currentDate, loadData],
+  );
+
+  useSlotStream(handleStream);
 
   useEffect(() => {
     getHolidays()
@@ -355,6 +367,7 @@ export default function VolunteerSchedule() {
         });
       } else {
         cells.push({
+          content: "",
           onClick: () => {
             if (!isClosed) {
               quickBook(role);
