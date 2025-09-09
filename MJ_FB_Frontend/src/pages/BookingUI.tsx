@@ -496,14 +496,14 @@ export default function BookingUI({
       </Grid>
       <Box
         component={Paper}
-        sx={{
+        sx={theme => ({
           position: 'sticky',
-          bottom: 0,
+          bottom: embedded ? 0 : theme.spacing(7),
           mt: 2,
           p: 2,
           borderRadius: { xs: 0, md: 2 },
-          zIndex: theme => theme.zIndex.appBar,
-        }}
+          zIndex: theme.zIndex.appBar,
+        })}
       >
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
