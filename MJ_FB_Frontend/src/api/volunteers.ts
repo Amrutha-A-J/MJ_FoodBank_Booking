@@ -28,7 +28,7 @@ export async function loginVolunteer(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/volunteers/login`, {
+  const res = await apiFetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),

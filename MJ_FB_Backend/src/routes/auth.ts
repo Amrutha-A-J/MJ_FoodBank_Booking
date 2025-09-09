@@ -9,10 +9,14 @@ import {
   logout,
   csrfToken,
 } from '../controllers/authController';
+import { loginUser } from '../controllers/userController';
 import { authMiddleware } from '../middleware/authMiddleware';
+import { validate } from '../middleware/validate';
+import { authLoginSchema } from '../schemas/userSchemas';
 
 const router = Router();
 
+router.post('/login', validate(authLoginSchema), loginUser);
 router.post('/request-password-reset', requestPasswordReset);
 router.post('/resend-password-setup', resendPasswordSetup);
 router.get('/password-setup-info', getPasswordSetupInfo);

@@ -15,7 +15,7 @@ export async function loginUser(
   if (!Number.isInteger(id)) {
     return Promise.reject(new Error("Invalid client ID"));
   }
-  const res = await apiFetch(`${API_BASE}/users/login`, {
+  const res = await apiFetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientId: id, password }),
@@ -27,7 +27,7 @@ export async function loginStaff(
   email: string,
   password: string,
 ): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/users/login`, {
+  const res = await apiFetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -39,7 +39,7 @@ export async function loginAgency(
   email: string,
   password: string,
 ): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/users/login`, {
+  const res = await apiFetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import volunteersRouter from '../src/routes/volunteer/volunteers';
+import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 
@@ -13,7 +13,7 @@ jest.mock('../src/utils/authUtils', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/volunteers', volunteersRouter);
+app.use('/auth', authRouter);
 
 describe('donation entry volunteer login', () => {
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('donation entry volunteer login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     const res = await request(app)
-      .post('/volunteers/login')
+      .post('/auth/login')
       .send({ email: 'jane@example.com', password: 'pw' });
 
     expect(res.status).toBe(200);

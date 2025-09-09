@@ -1,6 +1,5 @@
 import express from 'express';
 import {
-  loginUser,
   createUser,
   searchUsers,
   getUserProfile,
@@ -13,15 +12,12 @@ import {
 import { authMiddleware, authorizeRoles } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import {
-  loginSchema,
   createUserSchema,
   updateUserSchema,
   updateMyProfileSchema,
 } from '../schemas/userSchemas';
 
 const router = express.Router();
-
-router.post('/login', validate(loginSchema), loginUser);
 router.post(
   '/add-client',
   authMiddleware,
