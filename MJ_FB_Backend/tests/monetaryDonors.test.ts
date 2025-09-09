@@ -179,8 +179,8 @@ describe('Mailing list generation', () => {
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       3,
-      expect.stringContaining('date >= $1 AND date < $2'),
-      ['2024-06-01', '2024-07-01'],
+      expect.stringContaining('FROM pantry_monthly_overall'),
+      [2024, 6],
     );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
