@@ -15,7 +15,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Email templates display times in 12-hour AM/PM format.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
-- A **Use biometrics** option on the login page lets users sign in with platform authenticators via WebAuthn.
+- A **Use biometrics** option on the mobile login page lets users sign in with platform authenticators via WebAuthn.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.

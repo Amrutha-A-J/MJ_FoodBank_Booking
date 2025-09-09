@@ -6,6 +6,8 @@ import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -28,6 +30,8 @@ export default function Login({
   const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
@@ -157,15 +161,17 @@ export default function Login({
               >
                 {t('login')}
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                fullWidth
-                size="medium"
-                onClick={handleWebAuthn}
-              >
-                {t('use_biometrics')}
-              </Button>
+              {isMobile && (
+                <Button
+                  type="button"
+                  variant="outlined"
+                  fullWidth
+                  size="medium"
+                  onClick={handleWebAuthn}
+                >
+                  {t('use_biometrics')}
+                </Button>
+              )}
             </Stack>
           }
           centered={false}
