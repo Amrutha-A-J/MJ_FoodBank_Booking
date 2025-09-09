@@ -741,7 +741,7 @@ export async function deleteUserByClientId(
 export async function getMyPreferences(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  if (user.type !== 'client' && user.type !== 'volunteer') {
+  if (user.type !== 'user' && user.type !== 'volunteer') {
     return res.status(403).json({ message: 'Unsupported user type' });
   }
   try {
@@ -766,7 +766,7 @@ export async function getMyPreferences(req: Request, res: Response, next: NextFu
 export async function updateMyPreferences(req: Request, res: Response, next: NextFunction) {
   const user = req.user;
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
-  if (user.type !== 'client' && user.type !== 'volunteer') {
+  if (user.type !== 'user' && user.type !== 'volunteer') {
     return res.status(403).json({ message: 'Unsupported user type' });
   }
   const { emailReminders, pushNotifications } = req.body as UserPreferences;
