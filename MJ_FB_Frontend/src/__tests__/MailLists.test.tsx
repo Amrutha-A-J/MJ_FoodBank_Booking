@@ -45,7 +45,24 @@ describe('MailLists', () => {
     });
   });
 
-  it('disables send when there are no donors', async () => {
+  it('enables send when at least one list has donors', async () => {
+    (getMailLists as jest.Mock).mockResolvedValue({
+      '1-100': [],
+      '101-500': [
+        { id: 2, firstName: 'Bob', lastName: 'B', email: 'b@example.com', amount: 150 },
+      ],
+      '501+': [],
+    });
+
+    renderWithProviders(<MailLists />);
+
+    const btn = await screen.findByRole('button', { name: /send emails/i });
+    await waitFor(() => expect(btn).toBeEnabled());
+    expect(
+      screen.queryByText('No donors to email for last month')
+    ).not.toBeInTheDocument();
+  });
+  it('disables send and shows helper text when there are no donors', async () => {
     (getMailLists as jest.Mock).mockResolvedValue({
       '1-100': [],
       '101-500': [],
