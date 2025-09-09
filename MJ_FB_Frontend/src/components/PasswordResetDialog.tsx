@@ -10,11 +10,9 @@ import { useTranslation } from 'react-i18next';
 export default function PasswordResetDialog({
   open,
   onClose,
-  type,
 }: {
   open: boolean;
   onClose: () => void;
-  type: 'user' | 'staff' | 'volunteer';
 }) {
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');

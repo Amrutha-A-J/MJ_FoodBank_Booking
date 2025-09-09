@@ -14,7 +14,7 @@ describe('PasswordResetDialog', () => {
   });
 
   it('submits email identifier', async () => {
-    render(<PasswordResetDialog open onClose={() => {}} type="user" />);
+    render(<PasswordResetDialog open onClose={() => {}} />);
     fireEvent.change(screen.getByLabelText(/email or client id/i), {
       target: { value: 'user@example.com' },
     });
@@ -27,7 +27,7 @@ describe('PasswordResetDialog', () => {
   });
 
   it('submits numeric client identifier', async () => {
-    render(<PasswordResetDialog open onClose={() => {}} type="user" />);
+    render(<PasswordResetDialog open onClose={() => {}} />);
     fireEvent.change(screen.getByLabelText(/email or client id/i), {
       target: { value: '12345' },
     });
