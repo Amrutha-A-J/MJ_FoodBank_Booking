@@ -4,6 +4,7 @@ import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
+import { notifyOps } from '../src/utils/opsAlert';
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn().mockResolvedValue(undefined),
@@ -137,6 +138,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
       expect(sendTemplatedEmailMock).toHaveBeenCalledTimes(1);
       expect(sendTemplatedEmailMock.mock.calls[0][0].to).toBe('vol@example.com');
       expect(sendTemplatedEmailMock.mock.calls[0][0].params.body).toContain('sick');
+      expect(notifyOps).toHaveBeenCalled();
     });
 
   it('does not send email when volunteer cancels', async () => {
@@ -146,6 +148,7 @@ describe('cancelVolunteerBookingOccurrence', () => {
       .send({ reason: 'sick' });
     expect(res.status).toBe(200);
     expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
+    expect(notifyOps).toHaveBeenCalled();
   });
 });
 

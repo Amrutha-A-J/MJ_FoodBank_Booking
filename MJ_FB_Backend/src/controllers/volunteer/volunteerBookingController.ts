@@ -22,6 +22,7 @@ import {
   } from '../../utils/dateUtils';
 import config from '../../config';
 import { sendBookingEvent } from '../../utils/bookingEvents';
+import { notifyOps } from '../../utils/opsAlert';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -248,6 +249,9 @@ export async function createVolunteerBooking(
         date,
         time: slot.start_time,
       });
+      await notifyOps(
+        `${user.name || 'Volunteer'} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
+      );
       res.status(201).json(booking);
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
@@ -432,6 +436,9 @@ export async function createVolunteerBookingForVolunteer(
         date,
         time: slot.start_time,
       });
+      await notifyOps(
+        `${name} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
+      );
       res.status(201).json(booking);
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
@@ -977,7 +984,7 @@ export async function rescheduleVolunteerBooking(
       [booking.slot_id],
     );
     const emailRes = await pool.query(
-      'SELECT email FROM volunteers WHERE id = $1',
+      'SELECT email, first_name, last_name FROM volunteers WHERE id = $1',
       [booking.volunteer_id],
     );
 
@@ -987,7 +994,8 @@ export async function rescheduleVolunteerBooking(
       [roleId, date, newToken, booking.id],
     );
 
-    const email = emailRes.rows[0]?.email;
+    const { email, first_name, last_name } = emailRes.rows[0] || {};
+    const name = first_name && last_name ? `${first_name} ${last_name}` : 'Volunteer';
     if (email) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
         const oldTime = oldSlotRes.rows[0]
@@ -1053,6 +1061,19 @@ export async function rescheduleVolunteerBooking(
         booking.id,
       );
     }
+
+    sendBookingEvent({
+      action: 'rescheduled',
+      name,
+      role: 'volunteer',
+      date,
+      time: slot.start_time,
+    });
+    await notifyOps(
+      `${name} (volunteer) rescheduled shift from ${formatReginaDateWithDay(booking.date)} ${formatTimeToAmPm(
+        oldSlotRes.rows[0].start_time,
+      )} to ${formatReginaDateWithDay(date)} ${formatTimeToAmPm(slot.start_time)}`,
+    );
 
     res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
   } catch (error) {
@@ -1516,6 +1537,11 @@ export async function cancelVolunteerBookingOccurrence(
       date: dateStr,
       time: slot.start_time,
     });
+    await notifyOps(
+      `${name} (volunteer) cancelled shift on ${formatReginaDateWithDay(dateStr)} at ${formatTimeToAmPm(slot.start_time)}${
+        cancelReason ? ` (${cancelReason})` : ''
+      }`,
+    );
     res.json(booking);
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);

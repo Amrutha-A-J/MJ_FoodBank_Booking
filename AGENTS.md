@@ -22,8 +22,12 @@
 - Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
+- Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert a Telegram channel (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID`) on failure.
+- API requests that return a 5xx error send a Telegram alert with the HTTP method and path when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
+- Telegram alerts are sent when clients or volunteers create, cancel, or reschedule bookings.
 - Nightly no-show cleanup jobs mark past bookings and volunteer shifts as `no_show` and alert a Telegram channel (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_ALERT_CHAT_ID`) on failure; alerts include a timestamp and stack trace.
 - API requests that return a 5xx error send a Telegram alert with the HTTP method, path, timestamp, and stack trace when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
+- Telegram alerts are sent when clients or volunteers create, cancel, or reschedule bookings.
 - Stale email queue entries older than `EMAIL_QUEUE_MAX_AGE_DAYS` are purged nightly and the job logs the queue size, warning when it exceeds `EMAIL_QUEUE_WARNING_SIZE`.
 - Maintain database health: set database-level autovacuum thresholds, schedule manual `VACUUM ANALYZE` during low-traffic windows, plan quarterly `REINDEX` or `pg_repack` runs for heavily updated tables, and monitor table bloat metrics. Record these tasks in ops docs.
 - Deployments are performed manually; follow the steps in the repository `README.md` under "Deploying to Azure".

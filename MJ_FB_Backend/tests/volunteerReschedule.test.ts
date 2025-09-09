@@ -3,6 +3,7 @@ import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
 import pool from '../src/db';
 import { enqueueEmail } from '../src/utils/emailQueue';
+import { notifyOps } from '../src/utils/opsAlert';
 
 jest.mock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
@@ -71,5 +72,6 @@ describe('rescheduleVolunteerBooking', () => {
     expect(params.googleCalendarLink).toBe('#g');
     expect(params.appleCalendarLink).toBe('#a');
     expect(params.appleCalendarCancelLink).toBe('#');
+    expect(notifyOps).toHaveBeenCalled();
   });
 });
