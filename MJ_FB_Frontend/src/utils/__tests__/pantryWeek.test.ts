@@ -10,6 +10,17 @@ describe('getWeekRanges', () => {
       { week: 5, startDate: '2024-05-27', endDate: '2024-05-31' },
     ]);
   });
+
+  test('handles month starting on Sunday', () => {
+    expect(getWeekRanges(2024, 8)).toEqual([
+      { week: 1, startDate: '2024-09-01', endDate: '2024-09-01' },
+      { week: 2, startDate: '2024-09-02', endDate: '2024-09-08' },
+      { week: 3, startDate: '2024-09-09', endDate: '2024-09-15' },
+      { week: 4, startDate: '2024-09-16', endDate: '2024-09-22' },
+      { week: 5, startDate: '2024-09-23', endDate: '2024-09-29' },
+      { week: 6, startDate: '2024-09-30', endDate: '2024-09-30' },
+    ]);
+  });
 });
 
 describe('getWeekForDate', () => {
