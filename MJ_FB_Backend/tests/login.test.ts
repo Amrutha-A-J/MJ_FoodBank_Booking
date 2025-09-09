@@ -33,6 +33,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
 });
 
 describe('POST /api/auth/login', () => {
@@ -96,6 +97,50 @@ describe('POST /api/auth/login', () => {
       role: 'volunteer',
       type: 'volunteer',
       userId: volunteerWithShopper.user_id,
+      userRole: 'shopper',
+    });
+  });
+
+  it('logs in volunteer via client ID and returns both roles', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            client_id: 9,
+            first_name: 'John',
+            last_name: 'Doe',
+            role: 'shopper',
+            password: 'hashed',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'John', last_name: 'Doe' }],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ clientId: 9, password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      role: 'volunteer',
+      name: 'John Doe',
+      userRole: 'shopper',
+      access: [],
+      id: 1,
+    });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE client_id = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/FROM volunteers WHERE user_id = \$1/);
+    expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
+      id: 1,
+      role: 'volunteer',
+      type: 'volunteer',
+      userId: 9,
       userRole: 'shopper',
     });
   });
