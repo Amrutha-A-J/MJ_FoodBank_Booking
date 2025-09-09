@@ -39,6 +39,7 @@ import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
 import { sendBookingEvent } from '../utils/bookingEvents';
+import { notifyUser } from '../utils/notify';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -153,14 +154,14 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       icsContent,
     } = buildCalendarLinks(date, start_time, end_time, uid, 0);
 
+    const time =
+      start_time && end_time
+        ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
+        : '';
+    const formattedDate = formatReginaDateWithDay(date);
+    const body = `Date: ${formattedDate}${time}`;
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const time =
-        start_time && end_time
-          ? ` from ${formatTimeToAmPm(start_time)} to ${formatTimeToAmPm(end_time)}`
-          : '';
-      const formattedDate = formatReginaDateWithDay(date);
-      const body = `Date: ${formattedDate}${time}`;
       const attachments = [
         {
           name: 'booking.ics',
@@ -187,6 +188,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         userId,
       );
     }
+    await notifyUser(userId, 'client', 'Booking Confirmed', body);
     const bookingsThisMonth = await getClientBookingsThisMonth(userId);
     res.status(201).json({
       message: 'Booking automatically approved',
@@ -328,6 +330,10 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
         time: start_time,
       });
     }
+    if (bookingUserId !== undefined) {
+      const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
+      await notifyUser(bookingUserId, 'client', 'Booking Cancelled', notifyBody);
+    }
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
     logger.error('Error cancelling booking:', error);
@@ -393,6 +399,10 @@ export async function cancelBookingByToken(
         date: booking.date,
         time: start_time,
       });
+    }
+    if (booking.user_id) {
+      const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
+      await notifyUser(Number(booking.user_id), 'client', 'Booking Cancelled', notifyBody);
     }
     res.json({ message: 'Booking cancelled' });
   } catch (error) {
@@ -630,6 +640,12 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     } else {
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
     }
+
+    const notifyTime = newSlotRes.rows[0]
+      ? ` from ${formatTimeToAmPm(newSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
+      : '';
+    const notifyBody = `Date: ${formatReginaDateWithDay(date)}${notifyTime}`;
+    await notifyUser(Number(booking.user_id), 'client', 'Booking Rescheduled', notifyBody);
 
     res.json({
       message: 'Booking rescheduled',

@@ -10,6 +10,9 @@ jest.doMock('../src/models/bookingRepository', () => ({
 jest.doMock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
 }));
+jest.doMock('../src/utils/notify', () => ({
+  notifyUser: jest.fn(),
+}));
 jest.mock('../src/utils/opsAlert');
 
 jest.doMock('../src/utils/scheduleDailyJob', () => {
@@ -48,6 +51,7 @@ describe('sendNextDayBookingReminders', () => {
   it('fetches next-day bookings and queues reminder emails', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
+        user_id: 1,
         user_email: 'user@example.com',
         start_time: '09:00:00',
         end_time: '10:00:00',
@@ -67,6 +71,13 @@ describe('sendNextDayBookingReminders', () => {
           body: expect.stringContaining('Tue, Jan 2, 2024'),
         }),
       }),
+    );
+    const { notifyUser } = require('../src/utils/notify');
+    expect(notifyUser).toHaveBeenCalledWith(
+      1,
+      'client',
+      'Booking Reminder',
+      expect.stringContaining('Tue, Jan 2, 2024'),
     );
   });
 

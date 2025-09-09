@@ -13,6 +13,9 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
 - Email templates display times in 12-hour AM/PM format.
+- Push notifications are delivered via Firebase Cloud Messaging; configure
+  `FCM_SERVICE_ACCOUNT` on the backend and corresponding `VITE_FIREBASE_*`
+  variables on the frontend.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - A login selection page links to client, volunteer, staff, and agency login screens. The client login still reminds users to sign in with their client ID, provides contact and password reset guidance, and directs staff, volunteers, and agencies accordingly.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.

@@ -6,6 +6,7 @@ import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
 import { alertOps } from './opsAlert';
+import { notifyUser } from './notify';
 
 /**
  * Send reminder emails for volunteer shifts scheduled for the next day.
@@ -17,7 +18,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
   const formattedDate = formatReginaDateWithDay(nextDate);
   try {
     const res = await pool.query(
-      `SELECT v.email, vs.start_time, vs.end_time, vb.reschedule_token
+      `SELECT v.email, vb.volunteer_id, vs.start_time, vs.end_time, vb.reschedule_token
        FROM volunteer_bookings vb
        JOIN volunteers v ON vb.volunteer_id = v.id
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
@@ -39,6 +40,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
         templateId: config.volunteerBookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'Volunteer Shift' },
       });
+      await notifyUser(row.volunteer_id, 'volunteer', 'Shift Reminder', body);
     }
   } catch (err) {
     logger.error('Failed to send volunteer shift reminders', err);
