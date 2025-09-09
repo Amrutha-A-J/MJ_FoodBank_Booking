@@ -47,9 +47,9 @@ export default function MailLists() {
     load();
   }, [year, month]);
 
-  async function handleSend(templateId: number) {
+  async function handleSend() {
     try {
-      await sendMailListEmails(year, month, templateId);
+      await sendMailListEmails(year, month);
       setSnackbar({ open: true, message: 'Emails sent', severity: 'success' });
     } catch (error: any) {
       setSnackbar({
@@ -88,10 +88,7 @@ export default function MailLists() {
                 mb={1}
               >
                 <Typography variant="h6">{`$${range}`}</Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => handleSend(range === '1-100' ? 11 : 12)}
-                >
+                <Button variant="contained" onClick={handleSend}>
                   Send Emails
                 </Button>
               </Stack>
