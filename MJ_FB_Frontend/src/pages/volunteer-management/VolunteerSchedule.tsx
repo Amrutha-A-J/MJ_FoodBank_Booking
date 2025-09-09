@@ -59,6 +59,7 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
+import i18n from "../../i18n";
 
 const reginaTimeZone = "America/Regina";
 
@@ -157,6 +158,22 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  async function quickBook(role: VolunteerRole) {
+    try {
+      await requestVolunteerBooking(role.id, formatDate(currentDate));
+      setSnackbarSeverity('success');
+      setMessage(i18n.t('slot_booked_success'));
+      await loadData();
+    } catch (err: any) {
+      if (err?.conflict) {
+        setConflict(err.conflict);
+      } else {
+        setSnackbarSeverity('error');
+        setMessage(i18n.t('booking_failed'));
+      }
+    }
+  }
 
   function changeDay(delta: number) {
     setCurrentDate((d) => {
@@ -333,20 +350,9 @@ export default function VolunteerSchedule() {
         });
       } else {
         cells.push({
-          content: (
-            <>
-              Volunteer Needed
-              <br />
-              Click Here to Book
-            </>
-          ),
           onClick: () => {
             if (!isClosed) {
-              setFrequency("one-time");
-              setWeekdays([reginaDate.getDay()]);
-              setEndDate("");
-              setRequestRole(role);
-              setMessage("");
+              quickBook(role);
             } else {
               setSnackbarSeverity("error");
               setMessage("Booking not allowed on weekends or holidays");

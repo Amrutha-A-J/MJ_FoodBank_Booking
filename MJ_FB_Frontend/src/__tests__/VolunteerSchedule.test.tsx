@@ -1,4 +1,4 @@
-import { screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import * as mui from "@mui/material";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
 import i18n from "../i18n";
@@ -196,5 +196,37 @@ describe("VolunteerSchedule", () => {
     expect(await screen.findByText(i18n.t("no_bookings"))).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
     mq.mockRestore();
+  });
+
+  it('books a slot via Sign Up button', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '09:00:00',
+        end_time: '12:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'open',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+    (requestVolunteerBooking as jest.Mock).mockResolvedValue({});
+
+    renderWithProviders(<VolunteerSchedule />);
+
+    fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
+    fireEvent.click(await screen.findByText('Greeter'));
+
+    fireEvent.click(await screen.findByRole('button', { name: /sign up/i }));
+
+    await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   });
 });

@@ -179,6 +179,7 @@ export interface UserProfile {
   bookingsThisMonth?: number;
   roles?: StaffAccess[];
   trainedAreas?: string[];
+  defaultBookingNote?: string;
 }
 
 export interface RoleOption {

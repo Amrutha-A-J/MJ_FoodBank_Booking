@@ -69,6 +69,7 @@ describe('VolunteerDashboard', () => {
       monthFamilies: 0,
     });
     localStorage.clear();
+    localStorage.setItem('volunteerOnboarding', 'true');
   });
 
   afterEach(() => jest.useRealTimers());

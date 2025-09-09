@@ -56,6 +56,7 @@ import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import type { ApiError } from '../../api/client';
 import type { VolunteerBookingConflict } from '../../types';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
+import OnboardingModal from '../../components/OnboardingModal';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -324,6 +325,11 @@ export default function VolunteerDashboard() {
 
   return (
     <Page title="Volunteer Dashboard" sx={{ pb: 7 }}>
+      <OnboardingModal
+        storageKey="volunteerOnboarding"
+        title={t('onboarding.volunteer.title')}
+        body={t('onboarding.volunteer.body')}
+      />
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <CircularProgress />
