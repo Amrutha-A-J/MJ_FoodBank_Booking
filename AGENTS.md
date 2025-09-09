@@ -10,6 +10,7 @@
 - `/slots/range` returns 90 days of availability by default so the pantry schedule can load slots three months ahead.
 - Staff can add existing clients to the app from the pantry schedule's Assign User modal by entering a client ID. The client is created as a shopper with online access disabled and immediately assigned to the selected slot.
 - A login selection page at `/login` links to client, volunteer, staff, and agency login screens.
+- Volunteers see an Install App button on their first visit to volunteer pages with an onboarding modal about offline use; installations are tracked.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table.

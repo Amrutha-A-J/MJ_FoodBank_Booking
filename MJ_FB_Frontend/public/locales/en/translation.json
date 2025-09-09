@@ -124,7 +124,7 @@
     },
     "install_app": {
       "title": "Install the app",
-      "description": "Add the web app to your device.",
+      "description": "Add the web app to your device to use volunteer tools offline.",
       "steps": [
         "Click Install App when the button appears.",
         "On iOS, open in Safari and use Add to Home Screen."
