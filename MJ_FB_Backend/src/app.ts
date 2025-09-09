@@ -46,6 +46,7 @@ import timesheetsRoutes from './routes/timesheets';
 import leaveRequestsRoutes from './routes/leaveRequests';
 import sunshineBagsRoutes from './routes/sunshineBags';
 import webauthnRoutes from './routes/webauthn';
+import pantryAggregationsRoutes from './routes/pantry/aggregations';
 
 const app = express();
 
@@ -117,6 +118,7 @@ api.use('/stats', statsRoutes);
 api.use('/timesheets', timesheetsRoutes);
 api.use('/leave/requests', leaveRequestsRoutes);
 api.use('/sunshine-bags', sunshineBagsRoutes);
+api.use('/pantry-aggregations', pantryAggregationsRoutes);
 
 // Mount /api
 app.use('/api', api);
