@@ -2,6 +2,8 @@ import { precacheAndRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
+import { initializeApp } from 'firebase/app'
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw'
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
@@ -33,3 +35,27 @@ registerRoute(
   }),
   'GET',
 )
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+}
+
+const app = initializeApp(firebaseConfig)
+const messaging = getMessaging(app)
+
+onBackgroundMessage(messaging, payload => {
+  const { title, body } = payload.notification || {}
+  self.registration.showNotification(title ?? 'Notification', { body })
+})
+
+self.addEventListener('push', event => {
+  const data = event.data?.json?.() || {}
+  const { title, body } = data.notification || data
+  event.waitUntil(
+    self.registration.showNotification(title ?? 'Notification', { body }),
+  )
+})

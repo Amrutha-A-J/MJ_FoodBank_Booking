@@ -35,6 +35,7 @@ const envSchema = z.object({
   VACUUM_ALERT_DEAD_ROWS_THRESHOLD: z.coerce.number().default(5000),
   TELEGRAM_BOT_TOKEN: z.string().optional(),
   TELEGRAM_ALERT_CHAT_ID: z.string().optional(),
+  FCM_SERVICE_ACCOUNT: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -79,4 +80,5 @@ export default {
   vacuumAlertDeadRowsThreshold: env.VACUUM_ALERT_DEAD_ROWS_THRESHOLD,
   telegramBotToken: env.TELEGRAM_BOT_TOKEN ?? '',
   telegramAlertChatId: env.TELEGRAM_ALERT_CHAT_ID ?? '',
+  fcmServiceAccount: env.FCM_SERVICE_ACCOUNT ? JSON.parse(env.FCM_SERVICE_ACCOUNT) : null,
 };

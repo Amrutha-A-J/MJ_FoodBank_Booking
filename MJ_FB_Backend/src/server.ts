@@ -39,6 +39,7 @@ import {
   stopBlockedSlotCleanupJob,
 } from './utils/blockedSlotCleanupJob';
 import { startDbBloatMonitorJob, stopDbBloatMonitorJob } from './utils/dbBloatMonitorJob';
+import { initNotificationService } from './utils/notificationService';
 
 
 const PORT = config.port;
@@ -54,6 +55,7 @@ async function init() {
     client.release();
 
     initEmailQueue();
+    initNotificationService();
     server = app.listen(PORT, () => {
       logger.info(`Server running at http://localhost:${PORT}`);
     });

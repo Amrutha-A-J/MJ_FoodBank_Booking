@@ -33,6 +33,8 @@ Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing 
 
 The frontend registers a Workbox-powered service worker that precaches built assets and caches schedule-related API responses. Offline use is not supported; a network connection is still required.
 
+Push notifications use Firebase Cloud Messaging. Define `VITE_FIREBASE_*` variables in `.env` and ensure the service worker handles FCM messages.
+
 ## Environment Variables
 
 The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with either an absolute or relative URL:

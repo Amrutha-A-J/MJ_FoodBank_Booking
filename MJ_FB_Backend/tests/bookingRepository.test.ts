@@ -128,7 +128,7 @@ describe('bookingRepository', () => {
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(
-      /COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
+      /b.user_id,\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
     );
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.status = 'approved'/);
