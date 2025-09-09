@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import EntitySearch from '../../../components/EntitySearch';
 import {
   getVolunteerRoles,
@@ -13,15 +13,23 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
+  FormControl,
   FormControlLabel,
+  InputLabel,
+  ListItemText,
+  ListSubheader,
+  MenuItem,
+  Select,
   Stack,
   Switch,
   TextField,
   Typography,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
@@ -30,7 +38,7 @@ export default function EditVolunteer() {
   const [volunteer, setVolunteer] =
     useState<VolunteerSearchResult | null>(null);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
-  const [selected, setSelected] = useState<number[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [hasShopper, setHasShopper] = useState(false);
@@ -46,20 +54,62 @@ export default function EditVolunteer() {
       .catch(() => setRoles([]));
   }, []);
 
+  const groupedRoles = useMemo(() => {
+    const groups = new Map<string, { id: number; name: string }[]>();
+    roles.forEach(r => {
+      const arr = groups.get(r.category_name) || [];
+      if (!arr.some(a => a.name === r.name)) {
+        arr.push({ id: r.id, name: r.name });
+      }
+      groups.set(r.category_name, arr);
+    });
+    return Array.from(groups.entries()).map(([category, roles]) => ({
+      category,
+      roles,
+    }));
+  }, [roles]);
+
+  const nameToRoleIds = useMemo(() => {
+    const map = new Map<string, number[]>();
+    roles.forEach(r => {
+      const arr = map.get(r.name) || [];
+      arr.push(r.id);
+      map.set(r.name, arr);
+    });
+    return map;
+  }, [roles]);
+
+  const idToName = useMemo(() => {
+    const map = new Map<number, string>();
+    roles.forEach(r => {
+      map.set(r.id, r.name);
+    });
+    return map;
+  }, [roles]);
+
   function handleSelect(v: VolunteerSearchResult) {
     setVolunteer(v);
-    setSelected(v.trainedAreas);
     setHasShopper(v.hasShopper);
+    const names = v.trainedAreas
+      .map(id => idToName.get(id))
+      .filter((n): n is string => !!n);
+    setSelected(names);
   }
 
-  function toggleRole(id: number, checked: boolean) {
-    setSelected(prev => (checked ? [...prev, id] : prev.filter(r => r !== id)));
+  function handleRoleChange(e: SelectChangeEvent<string[]>) {
+    const value = e.target.value;
+    setSelected(typeof value === 'string' ? value.split(',') : value);
+  }
+
+  function removeRole(name: string) {
+    setSelected(prev => prev.filter(n => n !== name));
   }
 
   async function handleSave() {
     if (!volunteer) return;
     try {
-      await updateVolunteerTrainedAreas(volunteer.id, selected);
+      const roleIds = selected.flatMap(name => nameToRoleIds.get(name) || []);
+      await updateVolunteerTrainedAreas(volunteer.id, roleIds);
       setMessage('Volunteer updated');
       setSeverity('success');
     } catch (err: unknown) {
@@ -72,7 +122,10 @@ export default function EditVolunteer() {
     try {
       const v = await getVolunteerById(id);
       setVolunteer(v);
-      setSelected(v.trainedAreas);
+      const names = v.trainedAreas
+        .map(rid => idToName.get(rid))
+        .filter((n): n is string => !!n);
+      setSelected(names);
       setHasShopper(v.hasShopper);
     } catch {}
   }
@@ -145,18 +198,33 @@ export default function EditVolunteer() {
             }
             label="Shopper Profile"
           />
-          {roles.map(r => (
-            <FormControlLabel
-              key={r.id}
-              control={
-                <Checkbox
-                  checked={selected.includes(r.id)}
-                  onChange={e => toggleRole(r.id, e.target.checked)}
-                />
-              }
-              label={r.name}
-            />
-          ))}
+          <FormControl fullWidth>
+            <InputLabel id="role-select-label">Roles</InputLabel>
+            <Select
+              labelId="role-select-label"
+              multiple
+              value={selected}
+              onChange={handleRoleChange}
+              renderValue={() => 'Select roles'}
+            >
+              {groupedRoles.flatMap(g => [
+                <ListSubheader key={`${g.category}-header`}>
+                  {g.category}
+                </ListSubheader>,
+                ...g.roles.map(r => (
+                  <MenuItem key={r.id} value={r.name}>
+                    <Checkbox checked={selected.includes(r.name)} />
+                    <ListItemText primary={r.name} />
+                  </MenuItem>
+                )),
+              ])}
+            </Select>
+          </FormControl>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {selected.map(name => (
+              <Chip key={name} label={name} onDelete={() => removeRole(name)} />
+            ))}
+          </Stack>
           <Button variant="contained" onClick={handleSave}>
             Save
           </Button>
