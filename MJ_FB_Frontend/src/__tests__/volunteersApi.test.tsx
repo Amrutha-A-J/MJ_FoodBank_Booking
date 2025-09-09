@@ -10,6 +10,7 @@ import {
   cancelVolunteerBooking,
   getUnmarkedVolunteerBookings,
   createVolunteer,
+  getVolunteerById,
   loginVolunteer,
 } from '../api/volunteers';
 
@@ -56,6 +57,11 @@ describe('volunteers api', () => {
         body: JSON.stringify({ roleIds: [1, 3] }),
       }),
     );
+  });
+
+  it('fetches volunteer by id', async () => {
+    await getVolunteerById(7);
+    expect(apiFetch).toHaveBeenCalledWith('/api/volunteers/7');
   });
 
   it('fetches volunteer master roles', async () => {

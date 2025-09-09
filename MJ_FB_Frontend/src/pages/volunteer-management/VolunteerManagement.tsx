@@ -5,6 +5,7 @@ import {
   getVolunteerBookingsByRole,
   cancelRecurringVolunteerBooking,
   searchVolunteers,
+  getVolunteerById,
   getVolunteerBookingHistory,
   createVolunteer,
   updateVolunteerTrainedAreas,
@@ -416,31 +417,33 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     }
   }
 
-  async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
+  async function loadVolunteer(
+    id: number,
+    existing?: VolunteerResult,
+  ): Promise<VolunteerResult> {
+    if (existing) return existing;
     try {
-      const res = await searchVolunteers(name);
-      const found = res.find((v: VolunteerSearchResult) => v.id === id);
-      if (found) {
-        return { ...found, clientId: found.clientId ?? undefined };
-      }
+      const found = await getVolunteerById(id);
+      return { ...found, clientId: found.clientId ?? undefined };
     } catch {
-      // ignore
+      return (
+        existing || {
+          id,
+          name: '',
+          firstName: '',
+          lastName: '',
+          trainedAreas: [],
+          hasShopper: false,
+          hasPassword: false,
+          clientId: undefined,
+        }
+      );
     }
-    const [firstName, ...rest] = name.split(' ');
-    return {
-      id,
-      name,
-      firstName: firstName || '',
-      lastName: rest.join(' '),
-      trainedAreas: [],
-      hasShopper: false,
-      hasPassword: false,
-    };
   }
 
   async function refreshVolunteer() {
     if (!selectedVolunteer) return;
-    const vol = await loadVolunteer(selectedVolunteer.id, selectedVolunteer.name);
+    const vol = await loadVolunteer(selectedVolunteer.id);
     setSelectedVolunteer(vol);
     setTrainedEdit(
       Array.from(
@@ -454,7 +457,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   }
 
   function selectVolunteer(u: VolunteerResult) {
-    loadVolunteer(u.id, u.name)
+    loadVolunteer(u.id, u)
       .then(vol => {
         setSelectedVolunteer(vol);
         setTrainedEdit(
@@ -478,7 +481,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   function toggleTrained(name: string, checked: boolean) {
     setTrainedEdit(prev =>
-      checked ? [...prev, name] : prev.filter(t => t !== name)
+      checked
+        ? Array.from(new Set([...prev, name]))
+        : prev.filter(t => t !== name)
     );
   }
 
@@ -559,6 +564,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       await updateVolunteerTrainedAreas(selectedVolunteer.id, ids);
       setEditSeverity('success');
       setEditMsg('Roles updated');
+      setSelectedVolunteer(prev =>
+        prev ? { ...prev, trainedAreas: ids } : prev
+      );
     } catch (e) {
       setEditSeverity('error');
       setEditMsg(e instanceof Error ? e.message : String(e));

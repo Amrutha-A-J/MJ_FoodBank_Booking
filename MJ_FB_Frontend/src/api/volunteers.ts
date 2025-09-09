@@ -55,6 +55,13 @@ export interface VolunteerSearchResult {
   clientId: number | null;
 }
 
+export async function getVolunteerById(
+  id: number,
+): Promise<VolunteerSearchResult> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}`);
+  return handleResponse(res);
+}
+
 export async function searchVolunteers(
   search: string,
 ): Promise<VolunteerSearchResult[]> {

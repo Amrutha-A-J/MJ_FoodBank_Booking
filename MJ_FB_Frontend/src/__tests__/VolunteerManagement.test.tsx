@@ -7,6 +7,7 @@ import VolunteerManagement from '../pages/volunteer-management/VolunteerManageme
 import {
   getVolunteerRoles,
   searchVolunteers,
+  getVolunteerById,
   getVolunteerBookingHistory,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
@@ -20,6 +21,7 @@ import {
 jest.mock('../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   searchVolunteers: jest.fn(),
+  getVolunteerById: jest.fn(),
   getVolunteerBookingHistory: jest.fn(),
   createVolunteerShopperProfile: jest.fn(),
   removeVolunteerShopperProfile: jest.fn(),
@@ -33,6 +35,8 @@ jest.mock('../api/volunteers', () => ({
 let mockVolunteer: any = {
   id: 1,
   name: 'Test Vol',
+  firstName: 'Test',
+  lastName: 'Vol',
   trainedAreas: [],
   hasShopper: false,
   hasPassword: false,
@@ -54,6 +58,7 @@ beforeEach(() => {
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
   (createVolunteer as jest.Mock).mockResolvedValue(undefined);
+  (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
 });
 
 describe('VolunteerManagement create volunteer', () => {
