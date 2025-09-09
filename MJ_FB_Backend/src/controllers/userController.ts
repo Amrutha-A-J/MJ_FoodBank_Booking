@@ -13,16 +13,150 @@ import { getClientBookingsThisMonth } from './clientVisitController';
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
   const { email, password, clientId } = req.body;
 
+  if (!password) {
+    return res.status(400).json({ message: 'Password required' });
+  }
+
   try {
-    if (clientId) {
-      if (!password) {
-        return res
-          .status(400)
-          .json({ message: 'Client ID and password required' });
+    if (email) {
+      const volunteerQuery = await pool.query(
+        `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
+         FROM volunteers v
+         LEFT JOIN clients u ON v.user_id = u.client_id
+         WHERE v.email = $1`,
+        [email],
+      );
+      if ((volunteerQuery.rowCount ?? 0) > 0) {
+        const volunteer = volunteerQuery.rows[0];
+        if (!volunteer.password) {
+          return res.status(403).json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, volunteer.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const rolesRes = await pool.query(
+          `SELECT vr.name
+           FROM volunteer_trained_roles vtr
+           JOIN volunteer_roles vr ON vtr.role_id = vr.id
+           WHERE vtr.volunteer_id = $1`,
+          [volunteer.id],
+        );
+        const access: string[] = [];
+        if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+          access.push('donation_entry');
+        }
+        const payload: AuthPayload = {
+          id: volunteer.id,
+          role: 'volunteer',
+          type: 'volunteer',
+          ...(access.length && { access }),
+          ...(volunteer.user_id && {
+            userId: volunteer.user_id,
+            userRole: volunteer.user_role || 'shopper',
+          }),
+        };
+        await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
+        return res.json({
+          role: 'volunteer',
+          name: `${volunteer.first_name} ${volunteer.last_name}`,
+          ...(volunteer.user_id && {
+            userRole: volunteer.user_role || 'shopper',
+          }),
+          access,
+          id: volunteer.id,
+        });
       }
+
+      const staffQuery = await pool.query(
+        `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
+        [email],
+      );
+      if ((staffQuery.rowCount ?? 0) > 0) {
+        const staff = staffQuery.rows[0];
+        if (!staff.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, staff.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const role = 'staff';
+        const payload: AuthPayload = {
+          id: staff.id,
+          role,
+          type: 'staff',
+          access: staff.access || [],
+        };
+        await issueAuthTokens(res, payload, `staff:${staff.id}`);
+        return res.json({
+          role,
+          name: `${staff.first_name} ${staff.last_name}`,
+          access: staff.access || [],
+          id: staff.id,
+        });
+      }
+
+      const agency = await getAgencyByEmail(email);
+      if (agency) {
+        if (!agency.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, agency.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const payload: AuthPayload = {
+          id: agency.id,
+          role: 'agency',
+          type: 'agency',
+        };
+        await issueAuthTokens(res, payload, `agency:${agency.id}`);
+        return res.json({
+          role: 'agency',
+          name: agency.name,
+          id: agency.id,
+          access: [],
+        });
+      }
+
+      const clientEmailQuery = await pool.query(
+        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE email = $1 AND online_access = true`,
+        [email],
+      );
+      if ((clientEmailQuery.rowCount ?? 0) > 0) {
+        const userRow = clientEmailQuery.rows[0];
+        if (!userRow.password) {
+          return res.status(403).json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, userRow.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const payload: AuthPayload = {
+          id: userRow.client_id,
+          role: userRow.role,
+          type: 'user',
+        };
+        await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
+        return res.json({
+          role: userRow.role,
+          name: `${userRow.first_name} ${userRow.last_name}`,
+          id: userRow.client_id,
+        });
+      }
+
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (clientId) {
       const userQuery = await pool.query(
         `SELECT client_id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
-        [clientId]
+        [clientId],
       );
       if ((userQuery.rowCount ?? 0) === 0) {
         return res.status(401).json({ message: 'Invalid credentials' });
@@ -35,130 +169,20 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
-      const bookingsThisMonth = await getClientBookingsThisMonth(userRow.client_id);
-      const payload: AuthPayload = { id: userRow.client_id, role: userRow.role, type: 'user' };
+      const payload: AuthPayload = {
+        id: userRow.client_id,
+        role: userRow.role,
+        type: 'user',
+      };
       await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
       return res.json({
         role: userRow.role,
         name: `${userRow.first_name} ${userRow.last_name}`,
-        bookingsThisMonth,
+        id: userRow.client_id,
       });
     }
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password required' });
-    }
-
-    const staffQuery = await pool.query(
-      `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
-      [email]
-    );
-    if ((staffQuery.rowCount ?? 0) > 0) {
-      const staff = staffQuery.rows[0];
-      if (!staff.password) {
-        return res
-          .status(403)
-          .json({ message: 'Password setup link expired' });
-      }
-      const match = await bcrypt.compare(password, staff.password);
-      if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-      const role = 'staff';
-      const payload: AuthPayload = {
-        id: staff.id,
-        role,
-        type: 'staff',
-        access: staff.access || [],
-      };
-      await issueAuthTokens(res, payload, `staff:${staff.id}`);
-      return res.json({
-        role,
-        name: `${staff.first_name} ${staff.last_name}`,
-        access: staff.access || [],
-        id: staff.id,
-      });
-    }
-
-    const volunteerQuery = await pool.query(
-      `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
-         FROM volunteers v
-         LEFT JOIN clients u ON v.user_id = u.client_id
-         WHERE v.email = $1`,
-      [email],
-    );
-    if ((volunteerQuery.rowCount ?? 0) > 0) {
-      const volunteer = volunteerQuery.rows[0];
-      if (!volunteer.password) {
-        return res.status(403).json({ message: 'Password setup link expired' });
-      }
-      const match = await bcrypt.compare(password, volunteer.password);
-      if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-      const rolesRes = await pool.query(
-        `SELECT vr.name
-         FROM volunteer_trained_roles vtr
-         JOIN volunteer_roles vr ON vtr.role_id = vr.id
-         WHERE vtr.volunteer_id = $1`,
-        [volunteer.id],
-      );
-      const access: string[] = [];
-      if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
-        access.push('donation_entry');
-      }
-      const payload: AuthPayload = {
-        id: volunteer.id,
-        role: 'volunteer',
-        type: 'volunteer',
-        ...(access.length && { access }),
-        ...(volunteer.user_id && {
-          userId: volunteer.user_id,
-          userRole: volunteer.user_role || 'shopper',
-        }),
-      };
-      const tokens = await issueAuthTokens(
-        res,
-        payload,
-        `volunteer:${volunteer.id}`,
-      );
-      return res.json({
-        role: 'volunteer',
-        name: `${volunteer.first_name} ${volunteer.last_name}`,
-        ...(volunteer.user_id && {
-          userId: volunteer.user_id,
-          userRole: volunteer.user_role || 'shopper',
-        }),
-        access,
-        ...tokens,
-      });
-    }
-
-    const agency = await getAgencyByEmail(email);
-    if (!agency) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-    if (!agency.password) {
-      return res
-        .status(403)
-        .json({ message: 'Password setup link expired' });
-    }
-    const match = await bcrypt.compare(password, agency.password);
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-    const payload: AuthPayload = {
-      id: agency.id,
-      role: 'agency',
-      type: 'agency',
-    };
-    await issueAuthTokens(res, payload, `agency:${agency.id}`);
-    res.json({
-      role: 'agency',
-      name: agency.name,
-      id: agency.id,
-      access: [],
-    });
+    return res.status(400).json({ message: 'Email or clientId required' });
   } catch (error) {
     logger.error('Error logging in:', error);
     next(error);

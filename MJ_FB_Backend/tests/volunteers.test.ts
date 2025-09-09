@@ -330,11 +330,9 @@ describe('Volunteer login with shopper profile', () => {
     expect(res.body).toEqual({
       role: 'volunteer',
       name: 'John Doe',
-      userId: 9,
       userRole: 'shopper',
-      token: 'token',
-      refreshToken: 'token',
       access: [],
+      id: 1,
     });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
