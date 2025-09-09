@@ -339,6 +339,65 @@ describe('Volunteer badges', () => {
   });
 });
 
+describe('Update volunteer', () => {
+  const staffApp = express();
+  staffApp.use(express.json());
+  staffApp.use((req, _res, next) => {
+    (req as any).user = { role: 'staff' };
+    next();
+  });
+  staffApp.use('/volunteers', volunteersRouter);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('updates volunteer and hashes password', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'A', last_name: 'B', email: 'a@b.c', phone: '123' }],
+      });
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+
+    const res = await request(staffApp).put('/volunteers/1').send({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'a@b.c',
+      phone: '123',
+      onlineAccess: true,
+      password: 'Secret1!',
+    });
+
+    expect(res.status).toBe(200);
+    expect(bcrypt.hash).toHaveBeenCalledWith('Secret1!', 10);
+  });
+
+  it('sends password link when requested', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'A', last_name: 'B', email: 'a@b.c', phone: '123' }],
+      });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok');
+
+    const res = await request(staffApp).put('/volunteers/1').send({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'a@b.c',
+      phone: '123',
+      onlineAccess: true,
+      sendPasswordLink: true,
+    });
+
+    expect(res.status).toBe(200);
+    expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 1);
+    expect(sendTemplatedEmail).toHaveBeenCalled();
+  });
+});
+
 describe('Delete volunteer', () => {
   const staffApp = express();
   staffApp.use(express.json());
