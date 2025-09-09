@@ -18,6 +18,7 @@ export function getHelpContent(
       steps: [
         t('help.login.steps.0'),
         t('help.login.steps.1'),
+        t('help.login.steps.2'),
       ],
     },
   };
