@@ -16,10 +16,12 @@ interface BeforeInstallPromptEvent extends Event {
 export default function InstallAppButton() {
   const { t } = useTranslation();
   const location = useLocation();
-  const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [promptEvent, setPromptEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showIosInstructions, setShowIosInstructions] = useState(false);
+  const [installed, setInstalled] = useState(false);
   const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 
   useEffect(() => {
@@ -32,7 +34,20 @@ export default function InstallAppButton() {
   }, []);
 
   useEffect(() => {
-    if (location.pathname.startsWith('/volunteer') && (promptEvent || isIOS)) {
+    if (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone
+    ) {
+      setInstalled(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      location.pathname.startsWith('/volunteer') &&
+      !installed &&
+      (promptEvent || isIOS)
+    ) {
       setShowPrompt(true);
       if (!localStorage.getItem('pwaPromptShown')) {
         setShowOnboarding(true);
@@ -41,17 +56,19 @@ export default function InstallAppButton() {
     } else {
       setShowPrompt(false);
     }
-  }, [location, promptEvent, isIOS]);
+  }, [location, promptEvent, isIOS, installed]);
 
   useEffect(() => {
     const handler = () => {
       navigator.sendBeacon('/api/pwa-install');
+      setInstalled(true);
+      setShowPrompt(false);
     };
     window.addEventListener('appinstalled', handler);
     return () => window.removeEventListener('appinstalled', handler);
   }, []);
 
-  if (!showPrompt) {
+  if (!showPrompt || installed) {
     return null;
   }
 

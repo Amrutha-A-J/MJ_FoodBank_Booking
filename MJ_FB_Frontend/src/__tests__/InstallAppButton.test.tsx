@@ -64,4 +64,21 @@ describe('InstallAppButton', () => {
     fireEvent(window, new Event('appinstalled'));
     expect(sendBeacon).toHaveBeenCalledWith('/api/pwa-install');
   });
+
+  it('hides button when app already installed', () => {
+    Object.defineProperty(window.navigator, 'standalone', {
+      value: true,
+      configurable: true,
+    });
+    render(
+      <MemoryRouter initialEntries={['/volunteer/dashboard']}>
+        <InstallAppButton />
+      </MemoryRouter>,
+    );
+    const event = new Event('beforeinstallprompt');
+    fireEvent(window, event);
+    expect(screen.queryByText('Install App')).toBeNull();
+    // cleanup
+    delete (window.navigator as any).standalone;
+  });
 });
