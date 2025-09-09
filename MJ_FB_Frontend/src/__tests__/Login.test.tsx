@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/auth/Login';
 import { login, resendPasswordSetup } from '../api/users';
+import * as mui from '@mui/material';
 
 jest.mock('../api/users', () => ({
   login: jest.fn(),
@@ -71,6 +72,32 @@ describe('Login component', () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/email or client id/i)).toBeInTheDocument(),
     );
+  });
+
+  it('hides biometrics button on desktop', () => {
+    const onLogin = jest.fn().mockResolvedValue('/');
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>
+    );
+    expect(
+      screen.queryByRole('button', { name: /use biometrics/i })
+    ).toBeNull();
+  });
+
+  it('shows biometrics button on small screens', () => {
+    const mq = jest.spyOn(mui, 'useMediaQuery').mockReturnValue(true);
+    const onLogin = jest.fn().mockResolvedValue('/');
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>
+    );
+    expect(
+      screen.getByRole('button', { name: /use biometrics/i })
+    ).toBeInTheDocument();
+    mq.mockRestore();
   });
 
 });
