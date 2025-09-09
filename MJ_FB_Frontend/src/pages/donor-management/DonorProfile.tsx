@@ -84,30 +84,50 @@ export default function DonorProfile() {
 
   async function handleSave() {
     try {
-      const payload = { amount: Number(form.amount), date: form.date };
+      const base = { amount: Number(form.amount), date: form.date };
       if (form.id) {
-        await updateMonetaryDonation(donorId, form.id, payload);
-        setSnackbar({ open: true, message: 'Donation updated', severity: 'success' });
+        await updateMonetaryDonation(form.id, { ...base, donorId });
+        setSnackbar({
+          open: true,
+          message: 'Donation updated',
+          severity: 'success',
+        });
       } else {
-        await createMonetaryDonation(donorId, payload);
-        setSnackbar({ open: true, message: 'Donation added', severity: 'success' });
+        await createMonetaryDonation(donorId, base);
+        setSnackbar({
+          open: true,
+          message: 'Donation added',
+          severity: 'success',
+        });
       }
       setFormOpen(false);
       await Promise.all([refetchDonor(), refetchDonations()]);
     } catch {
-      setSnackbar({ open: true, message: 'Failed to save donation', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: 'Failed to save donation',
+        severity: 'error',
+      });
     }
   }
 
   async function handleDelete() {
     if (deleteId === null) return;
     try {
-      await deleteMonetaryDonation(donorId, deleteId);
-      setSnackbar({ open: true, message: 'Donation deleted', severity: 'success' });
+      await deleteMonetaryDonation(deleteId);
+      setSnackbar({
+        open: true,
+        message: 'Donation deleted',
+        severity: 'success',
+      });
       setDeleteId(null);
       await Promise.all([refetchDonor(), refetchDonations()]);
     } catch {
-      setSnackbar({ open: true, message: 'Failed to delete donation', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete donation',
+        severity: 'error',
+      });
     }
   }
 
