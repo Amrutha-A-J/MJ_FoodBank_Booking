@@ -21,6 +21,26 @@ jest.mock('../pages/warehouse-management/WarehouseDashboard', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
+jest.mock('../pages/donor-management/DonorDashboard', () => {
+  const mod = { __esModule: true, default: () => <div>DonorDashboard</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
+jest.mock('../pages/donor-management/DonorManagement', () => {
+  const mod = { __esModule: true, default: () => <div>DonorManagementPage</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
+jest.mock('../pages/donor-management/DonorProfile', () => {
+  const mod = { __esModule: true, default: () => <div>DonorProfilePage</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
+jest.mock('../pages/donor-management/MailLists', () => {
+  const mod = { __esModule: true, default: () => <div>MailLists</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),
@@ -82,5 +102,19 @@ describe('App authentication persistence', () => {
 
   it('computes warehouse path for single warehouse access', () => {
     expect(getStaffRootPath(['warehouse'] as any)).toBe('/warehouse-management');
+  });
+
+  it('shows donor management nav for donor_management access', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['donor_management']));
+    renderWithProviders(<App />);
+    expect(await screen.findByText('Donor Management')).toBeInTheDocument();
+  });
+
+  it('computes donor management path for single donor management access', () => {
+    expect(getStaffRootPath(['donor_management'] as any)).toBe(
+      '/donor-management',
+    );
   });
 });

@@ -107,6 +107,18 @@ const AgencyBookAppointment = React.lazy(() =>
 );
 const CancelBooking = React.lazy(() => import('./pages/CancelBooking'));
 const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
+const DonorDashboard = React.lazy(() =>
+  import('./pages/donor-management/DonorDashboard')
+);
+const DonorManagementPage = React.lazy(() =>
+  import('./pages/donor-management/DonorManagement')
+);
+const DonorProfilePage = React.lazy(() =>
+  import('./pages/donor-management/DonorProfile')
+);
+const MailLists = React.lazy(() =>
+  import('./pages/donor-management/MailLists')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -121,6 +133,7 @@ export default function App() {
   const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
+  const showDonorManagement = isStaff && hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
   const showDonationLog = showWarehouse || showDonationEntry;
@@ -170,6 +183,15 @@ export default function App() {
             to: '/volunteer-management/volunteers',
             badge: pendingReviews,
           },
+        ],
+      });
+    if (showDonorManagement)
+      navGroups.push({
+        label: 'Donor Management',
+        links: [
+          { label: t('dashboard'), to: '/donor-management' },
+          { label: 'Donor Management', to: '/donor-management/manage' },
+          { label: 'Mail Lists', to: '/donor-management/mail-lists' },
         ],
       });
 
@@ -441,6 +463,26 @@ export default function App() {
                   )}
                   {showAdmin && (
                     <Route path="/admin/settings" element={<AdminSettings />} />
+                  )}
+                  {showDonorManagement && (
+                    <>
+                      <Route
+                        path="/donor-management"
+                        element={<DonorDashboard />}
+                      />
+                      <Route
+                        path="/donor-management/manage"
+                        element={<DonorManagementPage />}
+                      />
+                      <Route
+                        path="/donor-management/mail-lists"
+                        element={<MailLists />}
+                      />
+                      <Route
+                        path="/donor-management/donors/:id"
+                        element={<DonorProfilePage />}
+                      />
+                    </>
                   )}
                   {showVolunteerManagement && (
                     <>
