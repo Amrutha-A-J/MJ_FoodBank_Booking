@@ -19,6 +19,8 @@ export default function InstallAppButton() {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showIosInstructions, setShowIosInstructions] = useState(false);
+  const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -30,7 +32,7 @@ export default function InstallAppButton() {
   }, []);
 
   useEffect(() => {
-    if (promptEvent && location.pathname.startsWith('/volunteer')) {
+    if (location.pathname.startsWith('/volunteer') && (promptEvent || isIOS)) {
       setShowPrompt(true);
       if (!localStorage.getItem('pwaPromptShown')) {
         setShowOnboarding(true);
@@ -39,7 +41,7 @@ export default function InstallAppButton() {
     } else {
       setShowPrompt(false);
     }
-  }, [location, promptEvent]);
+  }, [location, promptEvent, isIOS]);
 
   useEffect(() => {
     const handler = () => {
@@ -49,14 +51,18 @@ export default function InstallAppButton() {
     return () => window.removeEventListener('appinstalled', handler);
   }, []);
 
-  if (!showPrompt || !promptEvent) {
+  if (!showPrompt) {
     return null;
   }
 
   const handleClick = async () => {
-    await promptEvent.prompt();
-    setPromptEvent(null);
-    setShowPrompt(false);
+    if (promptEvent) {
+      await promptEvent.prompt();
+      setPromptEvent(null);
+      setShowPrompt(false);
+    } else if (isIOS) {
+      setShowIosInstructions(true);
+    }
   };
 
   return (
@@ -87,6 +93,21 @@ export default function InstallAppButton() {
               sx={{ textTransform: 'none' }}
             >
               {t('install_app')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+      {showIosInstructions && (
+        <Dialog open onClose={() => setShowIosInstructions(false)}>
+          <DialogTitle sx={{ textTransform: 'none' }}>{t('install_app')}</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Open Safari&rsquo;s share menu and tap “Add to Home Screen”.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowIosInstructions(false)} sx={{ textTransform: 'none' }}>
+              Close
             </Button>
           </DialogActions>
         </Dialog>

@@ -18,10 +18,35 @@ describe('InstallAppButton', () => {
     event.prompt = prompt;
     fireEvent(window, event);
 
-    expect(screen.getByText('Install App')).toBeInTheDocument();
+    const buttons = screen.getAllByText('Install App');
+    expect(buttons[0]).toBeInTheDocument();
     expect(
       screen.getByText(/Install this app to access volunteer tools offline./i),
     ).toBeInTheDocument();
+  });
+
+  it('shows instructions on iOS devices', () => {
+    const originalUA = navigator.userAgent;
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value: 'iPhone',
+      configurable: true,
+    });
+    render(
+      <MemoryRouter initialEntries={['/volunteer/dashboard']}>
+        <InstallAppButton />
+      </MemoryRouter>,
+    );
+
+    const buttons = screen.getAllByText('Install App');
+    expect(buttons[0]).toBeInTheDocument();
+    fireEvent.click(buttons[0]);
+    expect(
+      screen.getByText(/Add to Home Screen/i),
+    ).toBeInTheDocument();
+    Object.defineProperty(window.navigator, 'userAgent', {
+      value: originalUA,
+      configurable: true,
+    });
   });
 
   it('tracks app installs', () => {
