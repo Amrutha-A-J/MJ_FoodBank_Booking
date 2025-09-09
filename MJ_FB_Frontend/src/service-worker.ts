@@ -1,3 +1,4 @@
+/// <reference lib="webworker" />
 import { precacheAndRoute } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import {
@@ -7,6 +8,8 @@ import {
 } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
+
+declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: any }
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
@@ -68,11 +71,11 @@ registerRoute(
 // Offline fallback for navigation requests
 registerRoute(
   ({ request }) => request.mode === 'navigate',
-  async ({ event }) => {
+  async ({ request }) => {
     try {
-      return await fetch(event.request)
+      return await fetch(request)
     } catch {
-      return await caches.match('/offline.html')
+      return (await caches.match('/offline.html')) || Response.error()
     }
   },
 )

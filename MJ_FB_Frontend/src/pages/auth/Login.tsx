@@ -110,7 +110,7 @@ export default function Login({
           </Link>
         </FormCard>
       </Box>
-      <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} type="user" />
+      <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
       <Dialog open={noticeOpen} onClose={handleNoticeClose}>
         <DialogContent sx={{ position: 'relative', pt: 4 }}>
