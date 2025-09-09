@@ -1,5 +1,5 @@
 import { apiFetch } from '../client';
-import { deleteUser } from '../users';
+import { deleteUser, login } from '../users';
 
 jest.mock('../client', () => ({
   API_BASE: '/api',
@@ -16,5 +16,17 @@ describe('users api', () => {
   it('calls delete endpoint', async () => {
     await deleteUser(5);
     expect(apiFetch).toHaveBeenCalledWith('/api/users/id/5', expect.objectContaining({ method: 'DELETE' }));
+  });
+
+  it('logs in client with email', async () => {
+    await login('user@example.com', 'secret');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: 'secret', email: 'user@example.com' }),
+      }),
+    );
   });
 });
