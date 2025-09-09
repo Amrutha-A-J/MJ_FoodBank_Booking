@@ -103,11 +103,6 @@ export async function createMonetaryDonation(
   return handleResponse(res);
 }
 
-export async function getMonetaryDonor(id: number): Promise<MonetaryDonor> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`);
-  return handleResponse(res);
-}
-
 export async function updateMonetaryDonation(
   donationId: number,
   data: Pick<MonetaryDonation, 'donorId' | 'amount' | 'date'>,
