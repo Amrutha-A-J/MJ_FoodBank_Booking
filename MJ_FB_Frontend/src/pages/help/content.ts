@@ -153,6 +153,16 @@ export function getHelpContent(
       },
     },
     {
+      title: 'Send messages',
+      body: {
+        description: 'Chat with volunteer coordinators.',
+        steps: [
+          'Open Messages from the bottom navigation.',
+          'Type your note and tap Send.',
+        ],
+      },
+    },
+    {
       title: 'Record donations',
       body: {
         description: 'Log warehouse donations on the Donation Log page.',

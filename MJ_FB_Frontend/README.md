@@ -49,6 +49,8 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
+Set `VITE_VAPID_PUBLIC_KEY` to enable web push subscriptions.
+
 ## Mobile Responsiveness
 
 Layouts are built with Material UI and include CSS adjustments for small screens. Review changes on screens below 600px to ensure components remain usable.

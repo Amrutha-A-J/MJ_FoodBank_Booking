@@ -103,3 +103,15 @@ registerRoute(
   'PATCH',
 )
 
+// Display notifications from push events
+self.addEventListener('push', event => {
+  const data = event.data?.json() as { title?: string; body?: string } | undefined
+  if (data?.title) {
+    event.waitUntil(
+      self.registration.showNotification(data.title, {
+        body: data.body,
+      }),
+    )
+  }
+})
+

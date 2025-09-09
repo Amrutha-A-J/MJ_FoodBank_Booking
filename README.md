@@ -448,6 +448,7 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
+The frontend also accepts `VITE_VAPID_PUBLIC_KEY` for web push subscriptions.
 
 Refer to the submodule repositories for detailed configuration and environment variables.
 
@@ -474,6 +475,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Volunteers see an Install App button on their first visit to volunteer pages. An onboarding modal explains offline benefits, and installs are tracked. iOS users should use Safari's **Add to Home Screen**.
 - An Install App button appears when the app is installable; iOS users should use Safari's **Add to Home Screen**.
 - A Workbox service worker caches built assets plus schedule, booking history, and profile API responses, provides an offline fallback page, and queues offline booking actions for background sync.
+- The service worker also shows push notifications for new messages.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly summary tables, and raw log entries older than one year are deleted each Jan 31.
@@ -499,6 +501,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff can add agencies, assign clients, and book appointments for those clients through the Harvest Pantry → Agency Management page. The **Add Client to Agency** tab initially shows only agency search; selecting an agency reveals a client search column and the agency's client list with Book buttons for scheduling on their behalf.
 - Staff can enter pay period timesheets with daily hour categories, request vacation leave, and submit periods for approval with admin review and processing.
 - Staff can delete client and volunteer accounts from the Client Management and Volunteer Management pages.
+- Volunteers and coordinators can chat via a Messages page.
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.
 - Warehouse pages include quick links for Dashboard, Donation Log, Track Surplus, Track Pigpound, Track Outgoing Donations, Aggregations, and Exports.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
