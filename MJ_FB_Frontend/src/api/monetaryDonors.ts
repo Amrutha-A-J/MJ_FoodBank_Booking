@@ -13,10 +13,18 @@ export interface MonetaryDonation {
   date: string;
 }
 
-export interface MailingList {
+export interface MailListDonor {
   id: number;
-  name: string;
-  donors: MonetaryDonor[];
+  firstName: string;
+  lastName: string;
+  email: string;
+  amount: number;
+}
+
+export interface MailLists {
+  '1-100': MailListDonor[];
+  '101-500': MailListDonor[];
+  '501+': MailListDonor[];
 }
 
 export async function getMonetaryDonors(): Promise<MonetaryDonor[]> {
@@ -107,26 +115,27 @@ export async function deleteMonetaryDonation(
   await handleResponse(res);
 }
 
-export async function getMailingLists(
-  month: number,
+export async function getMailLists(
   year: number,
-): Promise<MailingList[]> {
+  month: number,
+): Promise<MailLists> {
   const res = await apiFetch(
-    `${API_BASE}/monetary-donors/mailing-lists?month=${month}&year=${year}`,
+    `${API_BASE}/monetary-donors/mail-lists?year=${year}&month=${month}`,
   );
   return handleResponse(res);
 }
 
-export async function sendMailingListEmails(
-  month: number,
+export async function sendMailListEmails(
   year: number,
+  month: number,
+  templateId: number,
 ): Promise<void> {
   const res = await apiFetch(
-    `${API_BASE}/monetary-donors/mailing-lists/send`,
+    `${API_BASE}/monetary-donors/mail-lists/send`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ month, year }),
+      body: JSON.stringify({ year, month, templateId }),
     },
   );
   await handleResponse(res);
