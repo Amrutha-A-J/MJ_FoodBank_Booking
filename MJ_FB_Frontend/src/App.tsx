@@ -8,7 +8,7 @@ const Dashboard = React.lazy(
 import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
-import { useAuth, AgencyGuard } from './hooks/useAuth';
+import { useAuth, AgencyGuard, DonorManagementGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 import { getVolunteerBookingsForReview } from './api/volunteers';
 import { getStaffRootPath } from './utils/staffRootPath';
@@ -471,19 +471,35 @@ export default function App() {
                     <>
                       <Route
                         path="/donor-management"
-                        element={<DonorDashboard />}
+                        element={
+                          <DonorManagementGuard>
+                            <DonorDashboard />
+                          </DonorManagementGuard>
+                        }
                       />
                       <Route
                         path="/donor-management/donation-log"
-                        element={<DonorDonationLog />}
+                        element={
+                          <DonorManagementGuard>
+                            <DonorDonationLog />
+                          </DonorManagementGuard>
+                        }
                       />
                       <Route
                         path="/donor-management/mail-lists"
-                        element={<MailLists />}
+                        element={
+                          <DonorManagementGuard>
+                            <MailLists />
+                          </DonorManagementGuard>
+                        }
                       />
                       <Route
                         path="/donor-management/donors/:id"
-                        element={<DonorProfilePage />}
+                        element={
+                          <DonorManagementGuard>
+                            <DonorProfilePage />
+                          </DonorManagementGuard>
+                        }
                       />
                     </>
                   )}

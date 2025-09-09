@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
@@ -132,6 +132,16 @@ describe('App authentication persistence', () => {
     window.history.pushState({}, '', '/donor-management');
     renderWithProviders(<App />);
     expect(await screen.findByText('MailLists')).toBeInTheDocument();
+  });
+
+  it('redirects staff without donor_management access away from donor pages', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['pantry']));
+    window.history.pushState({}, '', '/donor-management/donation-log');
+    renderWithProviders(<App />);
+    await waitFor(() => expect(window.location.pathname).toBe('/'));
+    expect(screen.queryByText('DonationLogPage')).not.toBeInTheDocument();
   });
 
   it('computes donor management path for single donor management access', () => {
