@@ -9,6 +9,10 @@ import './src/i18n';
 (global as any).ReadableStream = ReadableStream as any;
 (global as any).WritableStream = WritableStream as any;
 
+(globalThis as any).clearImmediate ??= () => {};
+(globalThis as any).performance ??= {} as any;
+(globalThis.performance as any).markResourceTiming ??= () => {};
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');
 (Element.prototype as any).scrollIntoView = jest.fn();
