@@ -138,6 +138,19 @@ describe('bookingRepository', () => {
     expect(call[1]).toHaveLength(1);
   });
 
+  it('fetchBookingsForReminder joins user_preferences and filters by email_reminders', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookingsForReminder('2024-01-01');
+    const [sql] = (mockPool.query as jest.Mock).mock.calls[0];
+    expect(sql).toMatch(/LEFT JOIN user_preferences up ON/);
+    expect(sql).toMatch(
+      new RegExp(
+        "\\(up.user_type = 'client' AND up.user_id = b.user_id\\)\\s+OR\\s+\\(up.user_type = 'new_client' AND up.user_id = b.new_client_id\\)",
+      ),
+    );
+    expect(sql).toMatch(/COALESCE\(up.email_reminders, true\)/);
+  });
+
   it('fetchBookingHistory supports arrays and pagination', async () => {
     setQueryResults({ rows: [] });
     await fetchBookingHistory([1, 2], false, undefined, false, 5, 10);

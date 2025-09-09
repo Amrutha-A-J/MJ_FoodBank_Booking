@@ -120,6 +120,16 @@ describe('sendNextDayBookingReminders', () => {
       [1],
     );
   });
+
+  it('does not queue reminders for new clients who disabled email reminders', async () => {
+    (fetchBookingsForReminder as jest.Mock).mockResolvedValue([]);
+    await sendNextDayBookingReminders();
+    expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
+    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(notifyOps).toHaveBeenCalledWith(
+      'sendNextDayBookingReminders queued reminders for 0 emails',
+    );
+  });
 });
 
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
