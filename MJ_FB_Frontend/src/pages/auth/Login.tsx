@@ -105,7 +105,7 @@ export default function Login({
             error={passwordError}
             helperText={passwordError ? t('password_required') : ''}
           />
-          <Link component="button" onClick={() => setResetOpen(true)} underline="hover">
+          <Link component="button" type="button" onClick={() => setResetOpen(true)} underline="hover">
             {t('forgot_password')}
           </Link>
         </FormCard>
