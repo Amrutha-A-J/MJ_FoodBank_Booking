@@ -18,6 +18,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
+- Sunshine bag recipients are tracked separately and excluded from total client counts.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
 - A **Use biometrics** option on the mobile login page lets users sign in with platform authenticators via WebAuthn.
