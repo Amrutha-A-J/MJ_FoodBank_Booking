@@ -29,12 +29,6 @@ export default function PasswordSetup() {
     staff: '/login/staff',
     agency: '/login/agency',
   };
-  const loginMessageMap: Record<string, string> = {
-    client: 'use_client_login',
-    volunteer: 'use_volunteer_login',
-    staff: 'use_staff_login',
-    agency: 'use_agency_login',
-  };
 
   useEffect(() => {
     if (!token) return;
@@ -72,15 +66,6 @@ export default function PasswordSetup() {
           </Button>
         }
       >
-        <PasswordField
-          label={t('password')}
-          name="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          fullWidth
-          required
-        />
         {info?.clientId && (
           <p>
             {t('client_id')}: {info.clientId}
@@ -91,14 +76,20 @@ export default function PasswordSetup() {
             {t('email')}: {info.email}
           </p>
         )}
-        {info?.userType && (
-          <p>{t(loginMessageMap[info.userType])}</p>
-        )}
+        <PasswordField
+          label={t('password')}
+          name="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          fullWidth
+          required
+        />
         <Button
           component={RouterLink}
           to={info ? loginPathMap[info.userType] : '/login'}
           variant="outlined"
-          
+
         >
           {t('back_to_login')}
         </Button>
