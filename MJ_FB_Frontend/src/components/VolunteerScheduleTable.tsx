@@ -35,16 +35,15 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const timeColumnWidth = isSmall ? 100 : 160;
   const slotWidth = `calc((100% - ${timeColumnWidth}px) / ${safeMaxSlots})`;
   return (
-    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
+    <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
         <Table
-          size="small"
           stickyHeader={false}
           sx={{
             tableLayout: 'fixed',
             width: '100%',
             '& .MuiTableCell-root': {
-              p: isSmall ? 0.5 : 1,
-              fontSize: isSmall ? '0.75rem' : 'inherit',
+              p: isSmall ? 1 : 1.5,
+              fontSize: isSmall ? '0.875rem' : 'inherit',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
