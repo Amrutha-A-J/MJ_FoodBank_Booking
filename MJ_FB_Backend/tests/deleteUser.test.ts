@@ -36,4 +36,11 @@ describe('DELETE /users/id/:clientId', () => {
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ message: 'User not found' });
   });
+
+  it('returns 409 when user has related records', async () => {
+    (pool.query as jest.Mock).mockRejectedValue({ code: '23503' });
+    const res = await request(app).delete('/users/id/5');
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ message: 'Cannot delete user with existing records' });
+  });
 });
