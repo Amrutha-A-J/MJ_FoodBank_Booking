@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
+import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function addVolunteerRole(
   req: Request,
@@ -329,6 +330,14 @@ export async function listVolunteerRolesForVolunteer(
       return res.json([]);
     }
     const roleIds = volunteerRes.rows.map(r => r.role_id);
+
+    const reginaDate = formatReginaDate(date);
+    const day = new Date(reginaStartOfDayISO(reginaDate)).getUTCDay();
+    const isWeekend = day === 0 || day === 6;
+    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [reginaDate]);
+    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+
     const result = await pool.query(
         `SELECT vs.slot_id AS id, vs.role_id, vr.name, vs.start_time, vs.end_time,
                 vs.max_volunteers AS max_volunteers, vr.category_id, vs.is_wednesday_slot, vs.is_active,
@@ -347,27 +356,33 @@ export async function listVolunteerRolesForVolunteer(
         AND vs.is_active
         AND (vs.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
        ORDER BY vs.start_time`,
-      [date, roleIds]
+      [reginaDate, roleIds]
     );
-    const roles = result.rows.map((row: any) => ({
-      id: row.id,
-      role_id: row.role_id,
-      name: row.name,
-      start_time: row.start_time,
-      end_time: row.end_time,
-      max_volunteers: Number(row.max_volunteers),
-      category_id: row.category_id,
-      is_wednesday_slot: row.is_wednesday_slot,
-      is_active: row.is_active,
-      category_name: row.category_name,
-      booked: Number(row.booked),
-      available: Number(row.max_volunteers) - Number(row.booked),
-      status:
-        Number(row.booked) >= Number(row.max_volunteers)
-          ? 'booked'
-          : 'available',
-      date: row.date,
-    }));
+
+    const roles = result.rows
+      .filter(
+        (row: any) =>
+          !(isWeekend || isHoliday) || !restrictedCategories.includes(row.category_name),
+      )
+      .map((row: any) => ({
+        id: row.id,
+        role_id: row.role_id,
+        name: row.name,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        max_volunteers: Number(row.max_volunteers),
+        category_id: row.category_id,
+        is_wednesday_slot: row.is_wednesday_slot,
+        is_active: row.is_active,
+        category_name: row.category_name,
+        booked: Number(row.booked),
+        available: Number(row.max_volunteers) - Number(row.booked),
+        status:
+          Number(row.booked) >= Number(row.max_volunteers)
+            ? 'booked'
+            : 'available',
+        date: row.date,
+      }));
     res.json(roles);
   } catch (error) {
     logger.error('Error listing volunteer roles for volunteer:', error);

@@ -314,6 +314,7 @@ export default function VolunteerSchedule() {
   const holidayObj = holidays.find((h) => h.date === dateStr);
   const isHoliday = !!holidayObj;
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
+  const closedReason = holidayObj?.reason || dayName;
   const allowedOnClosed = ["Gardening", "Special Events"];
   const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split("|");
   const selectedCategory = roleGroups.find(
@@ -341,6 +342,10 @@ export default function VolunteerSchedule() {
     : [];
   const maxSlots = Math.max(0, ...roleSlots.map((r) => r.max_volunteers));
   const showClosedMessage = (isHoliday || isWeekend) && roleGroups.length === 0;
+  const pageTitle =
+    showClosedMessage || isClosed
+      ? `Volunteer Schedule - Closed for ${closedReason}`
+      : 'Volunteer Schedule';
   const rows = roleSlots.map((role) => {
     const myBooking = bookings.find((b) => b.role_id === role.id);
     const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
@@ -386,7 +391,7 @@ export default function VolunteerSchedule() {
   });
 
   return (
-    <Page title="Volunteer Schedule" sx={{ pb: 7 }}>
+    <Page title={pageTitle} sx={{ pb: 7 }}>
       <Box>
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -497,7 +502,7 @@ export default function VolunteerSchedule() {
             />
             {isClosed ? (
               <Typography align="center">
-                Moose Jaw food bank is closed for {dayName}
+                Moose Jaw food bank is closed for {closedReason}
               </Typography>
             ) : isSmallScreen ? (
               <ScheduleCards maxSlots={maxSlots} rows={rows} />
@@ -507,7 +512,7 @@ export default function VolunteerSchedule() {
           </>
         ) : showClosedMessage ? (
           <Typography align="center" sx={{ mt: 2 }}>
-            Moose Jaw food bank is closed for {dayName}
+            Moose Jaw food bank is closed for {closedReason}
           </Typography>
         ) : null}
 

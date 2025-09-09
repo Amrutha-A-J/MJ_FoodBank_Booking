@@ -288,4 +288,37 @@ describe("VolunteerSchedule", () => {
       ).toHaveTextContent('2024-01-29'),
     );
   });
+
+  it('shows closed message and title on weekends', async () => {
+    jest.setSystemTime(new Date('2024-02-03T19:00:00Z'));
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+
+    renderWithProviders(<VolunteerSchedule />);
+
+    expect(
+      await screen.findByText('Moose Jaw food bank is closed for Saturday'),
+    ).toBeInTheDocument();
+    expect(document.title).toBe(
+      'MJ Foodbank - Volunteer Schedule - Closed for Saturday',
+    );
+  });
+
+  it('shows closed message and title on holidays', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([
+      { date: '2024-01-29', reason: 'Family Day' },
+    ]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
+
+    renderWithProviders(<VolunteerSchedule />);
+
+    expect(
+      await screen.findByText('Moose Jaw food bank is closed for Family Day'),
+    ).toBeInTheDocument();
+    expect(document.title).toBe(
+      'MJ Foodbank - Volunteer Schedule - Closed for Family Day',
+    );
+  });
 });

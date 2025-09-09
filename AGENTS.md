@@ -7,6 +7,7 @@
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - The pantry schedule receives live updates through an SSE endpoint at `/bookings/stream`.
 - Pantry and volunteer schedules include a Today button and a date picker for jumping directly to specific days.
+- Volunteer schedule marks Moose Jaw Food Bank as closed on weekends and holidays, displaying the reason. Gardening and Special Events roles remain bookable every day.
 - `/slots/range` returns 90 days of availability by default so the pantry schedule can load slots three months ahead.
 - Staff can add existing clients to the app from the pantry schedule's Assign User modal by entering a client ID. The client is created as a shopper with online access disabled and immediately assigned to the selected slot.
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
