@@ -11,6 +11,7 @@ Add the following translation strings to locale files:
 - `client_login_notice_password` – advises clients to use the forgot password link if their password is not working
 - `client_login_notice_volunteer` – tells volunteers who want to shop to email harvestpantry@mjfoodbank.org so booking can be enabled from their volunteer account
 - `client_login_notice_close` – instructs users to close the modal to sign in
+- `use_biometrics` – button text for biometric login
 
 ## Login
 
@@ -21,4 +22,4 @@ Add these translation strings for the unified login page and help content:
 - `help.login.description` – describes the login page
 - `help.login.steps.0` – step to open the login page
 - `help.login.steps.1` – step to enter your client ID or email and password
-- `help.login.steps.2` – step to press **Sign In**
+- `help.login.steps.2` – step to press **Sign In** or **Use biometrics**

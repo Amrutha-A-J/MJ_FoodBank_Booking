@@ -136,7 +136,7 @@
       "steps": [
         "Open the login page.",
         "Enter your client ID or email and password.",
-        "Press Sign In."
+        "Press Sign In or Use biometrics"
       ]
     }
   },
@@ -343,5 +343,6 @@
   "staff_login": "Staff Login",
   "volunteer_login": "Volunteer Login",
   "agency_login": "Agency Login",
-  "client_id_or_email": "Client ID or Email"
+  "client_id_or_email": "Client ID or Email",
+  "use_biometrics": "Use biometrics"
 }

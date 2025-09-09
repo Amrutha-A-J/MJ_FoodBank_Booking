@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
+import { verifyWebAuthn, registerWebAuthnCredential } from '../../api/webauthn';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
@@ -26,12 +27,16 @@ export default function Login({
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
+  const [supportsWebAuthn, setSupportsWebAuthn] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
     const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
     setNoticeOpen(count < 3);
+    if (typeof window !== 'undefined' && 'credentials' in navigator) {
+      setSupportsWebAuthn(true);
+    }
   }, []);
 
   function handleNoticeClose() {
@@ -49,6 +54,25 @@ export default function Login({
     if (identifier === '' || password === '') return;
     try {
       const user = await login(identifier, password);
+      try {
+        if (supportsWebAuthn) {
+          const cred = (await navigator.credentials.create({
+            publicKey: {
+              challenge: new Uint8Array(16),
+              rp: { name: 'MJ Food Bank' },
+              user: {
+                id: new TextEncoder().encode(String(user.id ?? identifier)),
+                name: identifier,
+                displayName: identifier,
+              },
+              pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+            },
+          })) as PublicKeyCredential | null;
+          if (cred) await registerWebAuthnCredential(cred.id);
+        }
+      } catch {
+        /* ignore registration errors */
+      }
       const redirect = await onLogin(user);
       navigate(redirect);
     } catch (err: unknown) {
@@ -64,6 +88,20 @@ export default function Login({
     }
   }
 
+  async function handleBiometricLogin() {
+    try {
+      const cred = (await navigator.credentials.get({
+        publicKey: { challenge: new Uint8Array(16) },
+      })) as PublicKeyCredential | null;
+      if (!cred) return;
+      const user = await verifyWebAuthn(cred.id);
+      const redirect = await onLogin(user);
+      navigate(redirect);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
   return (
     <Page title={t('login')}>
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="80vh" px={2}>
@@ -71,14 +109,26 @@ export default function Login({
           onSubmit={handleSubmit}
           title={t('login')}
           actions={
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-            >
-              {t('login')}
-            </Button>
+            <>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+              >
+                {t('login')}
+              </Button>
+              {supportsWebAuthn && (
+                <Button
+                  onClick={handleBiometricLogin}
+                  variant="outlined"
+                  fullWidth
+                  sx={{ mt: 1 }}
+                >
+                  {t('use_biometrics')}
+                </Button>
+              )}
+            </>
           }
           centered={false}
           boxProps={{ minHeight: 0, px: 0, py: 0 }}

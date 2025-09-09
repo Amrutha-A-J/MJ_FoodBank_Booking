@@ -2,10 +2,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/auth/Login';
 import { login, resendPasswordSetup } from '../api/users';
+import { verifyWebAuthn } from '../api/webauthn';
 
 jest.mock('../api/users', () => ({
   login: jest.fn(),
   resendPasswordSetup: jest.fn(),
+}));
+
+jest.mock('../api/webauthn', () => ({
+  verifyWebAuthn: jest.fn(),
+  registerWebAuthnCredential: jest.fn(),
 }));
 
 describe('Login component', () => {
@@ -71,6 +77,22 @@ describe('Login component', () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/email or client id/i)).toBeInTheDocument(),
     );
+  });
+
+  it('logs in with biometrics', async () => {
+    (verifyWebAuthn as jest.Mock).mockResolvedValue({ role: 'shopper', name: 'Bio', id: 1 });
+    (navigator as any).credentials = {
+      get: jest.fn().mockResolvedValue({ id: 'cred' }),
+      create: jest.fn(),
+    };
+    const onLogin = jest.fn().mockResolvedValue('/');
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>
+    );
+    fireEvent.click(await screen.findByRole('button', { name: /use biometrics/i }));
+    await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
 
 });
