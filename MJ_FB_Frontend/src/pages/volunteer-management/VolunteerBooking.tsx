@@ -29,6 +29,7 @@ import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import useHolidays from '../../hooks/useHolidays';
+import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import type { VolunteerBookingConflict } from '../../types';
 
 function useVolunteerSlots(
@@ -272,6 +273,7 @@ export default function VolunteerBooking() {
           duration={4000}
         />
       </Container>
+      <VolunteerBottomNav />
     </Page>
   );
 }

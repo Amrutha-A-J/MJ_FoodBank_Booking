@@ -4,6 +4,7 @@ import { Typography, Button, Grid } from '@mui/material';
 import Page from '../components/Page';
 import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import ClientBottomNav from '../components/ClientBottomNav';
 import { cancelBookingByToken } from '../api/bookings';
 import { useTranslation } from 'react-i18next';
 
@@ -55,6 +56,7 @@ export default function CancelBooking() {
         message={error || message}
         severity={error ? 'error' : 'success'}
       />
+      <ClientBottomNav />
     </Page>
   );
 }
