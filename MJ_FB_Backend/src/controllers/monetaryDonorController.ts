@@ -154,8 +154,13 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
 export async function getMailLists(req: Request, res: Response, next: NextFunction) {
   try {
     const now = new Date();
-    const year = parseInt((req.query.year as string) ?? '', 10) || now.getUTCFullYear();
-    const month = parseInt((req.query.month as string) ?? '', 10) || now.getUTCMonth() + 1;
+    let year = parseInt((req.query.year as string) ?? '', 10);
+    let month = parseInt((req.query.month as string) ?? '', 10);
+    if (Number.isNaN(year) || Number.isNaN(month)) {
+      now.setUTCMonth(now.getUTCMonth() - 1);
+      year = now.getUTCFullYear();
+      month = now.getUTCMonth() + 1;
+    }
     const donorsRes = await pool.query(
       `SELECT d.id, d.first_name AS "firstName", d.last_name AS "lastName", d.email,
               COALESCE(SUM(n.amount), 0)::int AS amount
@@ -183,8 +188,13 @@ export async function getMailLists(req: Request, res: Response, next: NextFuncti
 export async function sendMailLists(req: Request, res: Response, next: NextFunction) {
   try {
     const now = new Date();
-    const year = parseInt((req.body.year as string) ?? '', 10) || now.getUTCFullYear();
-    const month = parseInt((req.body.month as string) ?? '', 10) || now.getUTCMonth() + 1;
+    let year = parseInt((req.body.year as string) ?? '', 10);
+    let month = parseInt((req.body.month as string) ?? '', 10);
+    if (Number.isNaN(year) || Number.isNaN(month)) {
+      now.setUTCMonth(now.getUTCMonth() - 1);
+      year = now.getUTCFullYear();
+      month = now.getUTCMonth() + 1;
+    }
 
     const donorsRes = await pool.query(
       `SELECT d.first_name, d.email, COALESCE(SUM(n.amount), 0)::int AS amount
@@ -196,31 +206,44 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     );
 
     const statsRes = await pool.query(
-      `SELECT COALESCE(SUM(adults),0)::int AS adults,
+      `SELECT COUNT(DISTINCT client_id)::int AS families,
               COALESCE(SUM(children),0)::int AS children,
-              COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart)),0)::int AS pounds
+              COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)),0)::int AS pounds
        FROM client_visits
        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
       [year, month],
     );
-    const { adults, children, pounds } = statsRes.rows[0];
+    const { families, children, pounds } = statsRes.rows[0];
 
-    for (const donor of donorsRes.rows) {
-      const templateId = donor.amount <= 100 ? 11 : 12;
-      await sendTemplatedEmail({
-        to: donor.email,
-        templateId,
-        params: {
-          firstName: donor.first_name,
-          adults,
-          children,
-          pounds,
-          amount: donor.amount,
-        },
-      });
+    const groups: Record<string, any[]> = { '1-100': [], '101-500': [], '501+': [] };
+    for (const row of donorsRes.rows) {
+      if (row.amount <= 100) groups['1-100'].push(row);
+      else if (row.amount <= 500) groups['101-500'].push(row);
+      else groups['501+'].push(row);
     }
 
-    res.json({ sent: donorsRes.rowCount });
+    const templateMap: Record<string, number> = { '1-100': 11, '101-500': 12, '501+': 13 };
+    let sent = 0;
+    for (const [range, donors] of Object.entries(groups)) {
+      if (donors.length === 0) continue;
+      const templateId = templateMap[range];
+      for (const donor of donors) {
+        await sendTemplatedEmail({
+          to: donor.email,
+          templateId,
+          params: {
+            firstName: donor.first_name,
+            amount: donor.amount,
+            families,
+            children,
+            pounds,
+          },
+        });
+        sent++;
+      }
+    }
+
+    res.json({ sent });
   } catch (error) {
     logger.error('Error sending monetary donor mails:', error);
     next(error);
