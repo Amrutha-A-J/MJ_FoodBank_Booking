@@ -1,8 +1,9 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MailLists from '../pages/donor-management/MailLists';
 import { getMailLists, sendMailListEmails } from '../api/monetaryDonors';
-import { renderWithProviders } from '../testUtils/renderWithProviders';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
+import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 jest.mock('../api/monetaryDonors', () => ({
   getMailLists: jest.fn(),
@@ -10,12 +11,14 @@ jest.mock('../api/monetaryDonors', () => ({
 }));
 
 describe('MailLists', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-07-05T00:00:00Z'));
+    fetchMock = mockFetch();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    restoreFetch();
     jest.clearAllMocks();
   });
 
@@ -31,10 +34,31 @@ describe('MailLists', () => {
     renderWithProviders(<MailLists />);
 
     const btn = await screen.findByRole('button', { name: /send emails/i });
-    expect(btn).toBeEnabled();
+    await waitFor(() => expect(btn).toBeEnabled());
 
     await userEvent.click(btn);
-    expect(sendMailListEmails).toHaveBeenCalledWith(2024, 6);
+    const now = new Date();
+    now.setUTCMonth(now.getUTCMonth() - 1);
+    expect(sendMailListEmails).toHaveBeenCalledWith({
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+    });
+  });
+
+  it('disables send when there are no donors', async () => {
+    (getMailLists as jest.Mock).mockResolvedValue({
+      '1-100': [],
+      '101-500': [],
+      '501+': [],
+    });
+
+    renderWithProviders(<MailLists />);
+
+    const btn = await screen.findByRole('button', { name: /send emails/i });
+    await waitFor(() => expect(btn).toBeDisabled());
+    expect(
+      await screen.findByText('No donors to email for last month')
+    ).toBeInTheDocument();
   });
 });
 

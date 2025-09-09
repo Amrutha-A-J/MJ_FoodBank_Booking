@@ -7,6 +7,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Tooltip,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
@@ -60,19 +61,33 @@ export default function MailLists() {
     }
   }
 
+  const noDonors = Boolean(lists && !RANGES.some(range => lists[range].length > 0));
+
   return (
     <Page title="Mail Lists">
       <Stack spacing={2}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Typography>{`Month: ${month}`}</Typography>
           <Typography>{`Year: ${year}`}</Typography>
-          <Button
-            variant="contained"
-            onClick={handleSend}
-            disabled={!lists || !RANGES.some(range => lists[range].length > 0)}
+          <Tooltip
+            title="No donors to email for last month"
+            disableHoverListener={!noDonors}
+            disableFocusListener={!noDonors}
+            disableTouchListener={!noDonors}
           >
-            Send Emails
-          </Button>
+            <span>
+              <Button
+                variant="contained"
+                onClick={handleSend}
+                disabled={!lists || noDonors}
+              >
+                Send Emails
+              </Button>
+            </span>
+          </Tooltip>
+          {noDonors && (
+            <Typography color="text.secondary">No donors to email for last month</Typography>
+          )}
         </Stack>
         {lists &&
           RANGES.map(range => (
