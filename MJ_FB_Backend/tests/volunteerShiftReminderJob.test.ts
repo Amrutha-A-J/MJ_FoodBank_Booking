@@ -68,7 +68,7 @@ describe('startVolunteerShiftReminderJob/stopVolunteerShiftReminderJob', () => {
   it('schedules and stops the cron job without querying the database', () => {
     startVolunteerShiftReminderJob();
     expect(scheduleMock).toHaveBeenCalledWith(
-      '0 9 * * *',
+      '0 19 * * *',
       expect.any(Function),
       { timezone: 'America/Regina' },
     );
