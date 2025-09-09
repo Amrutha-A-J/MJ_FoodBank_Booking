@@ -41,6 +41,8 @@ import { hasTable } from '../utils/dbUtils';
 import { sendBookingEvent } from '../utils/bookingEvents';
 import { notifyOps } from '../utils/opsAlert';
 
+const NO_SHOW_MESSAGE =
+  'This booking has already expired and was marked as a no-show. Please book a new appointment.';
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
   if (!DATE_REGEX.test(date)) return false;
@@ -513,6 +515,9 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
+    if (booking.status === 'no_show') {
+      return res.status(400).json({ message: NO_SHOW_MESSAGE });
+    }
     if (booking.status !== 'approved') {
       return res.status(400).json({ message: "This booking can't be rescheduled" });
     }
@@ -678,6 +683,32 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     });
   } catch (error: any) {
     logger.error('Error rescheduling booking:', error);
+    next(error);
+  }
+}
+
+export async function getRescheduleBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { token } = req.params;
+  try {
+    const booking = await fetchBookingByToken(token);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    if (booking.status === 'no_show') {
+      return res.status(400).json({ message: NO_SHOW_MESSAGE });
+    }
+    if (booking.status !== 'approved') {
+      return res
+        .status(400)
+        .json({ message: "This booking can't be rescheduled" });
+    }
+    res.json({ message: 'Booking can be rescheduled' });
+  } catch (error) {
+    logger.error('Error validating reschedule booking:', error);
     next(error);
   }
 }

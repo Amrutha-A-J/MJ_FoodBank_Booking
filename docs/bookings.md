@@ -11,5 +11,6 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `add_to_apple_calendar`
 - `booking_rescheduled`
 - `reschedule_failed`
+- `reschedule_no_show_error`
 - `select_date_time`
 - `visits_this_month`

@@ -342,6 +342,13 @@ export async function createBookingForNewClient(
   await handleResponse<void>(res);
 }
 
+export async function validateRescheduleToken(
+  rescheduleToken: string,
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`);
+  await handleResponse<void>(res);
+}
+
 export async function rescheduleBookingByToken(
   rescheduleToken: string,
   slotId: string,
