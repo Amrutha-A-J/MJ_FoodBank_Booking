@@ -44,6 +44,7 @@ import statsRoutes from './routes/stats';
 import timesheetsRoutes from './routes/timesheets';
 import leaveRequestsRoutes from './routes/leaveRequests';
 import sunshineBagsRoutes from './routes/sunshineBags';
+import webauthnRoutes from './routes/webauthn';
 
 const app = express();
 
@@ -97,6 +98,7 @@ api.use('/volunteer-bookings', volunteerBookingsRoutes);
 api.use('/volunteer-master-roles', volunteerMasterRolesRoutes);
 api.use('/volunteer-stats', volunteerStatsRoutes);
 api.use('/auth', authRoutes);
+api.use('/webauthn', webauthnRoutes);
 api.use('/roles', rolesRoutes);
 api.use('/donors', donorsRoutes);
 api.use('/donations', donationsRoutes);
