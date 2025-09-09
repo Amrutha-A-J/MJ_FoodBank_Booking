@@ -55,7 +55,7 @@ describe('POST /staff (first staff member)', () => {
 });
 
 describe('POST /staff with new access roles', () => {
-  it.each(['other', 'payroll_management'])('creates staff with %s access', async role => {
+  it.each(['donor_management', 'payroll_management'])('creates staff with %s access', async role => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ count: '0' }] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
