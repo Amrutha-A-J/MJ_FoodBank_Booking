@@ -2,8 +2,10 @@ import { BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
 import Dashboard from '@mui/icons-material/Dashboard';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import { useTheme } from '@mui/material/styles';
 
 export default function ClientBottomNav() {
+  const theme = useTheme();
   const path = typeof window !== 'undefined' ? window.location.pathname : '/';
   let value: 'dashboard' | 'bookings' | 'profile' = 'dashboard';
   if (path.startsWith('/book-appointment') || path.startsWith('/booking-history')) value = 'bookings';
@@ -11,7 +13,7 @@ export default function ClientBottomNav() {
 
   return (
     <Paper
-      sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: (theme) => theme.zIndex.appBar + 1 }}
+      sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: theme.zIndex.appBar + 1 }}
       elevation={3}
     >
       <BottomNavigation
