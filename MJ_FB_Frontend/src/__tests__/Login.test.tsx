@@ -11,10 +11,10 @@ jest.mock('../api/users', () => ({
 describe('Login component', () => {
   it('submits login credentials and calls onLogin', async () => {
     (login as jest.Mock).mockResolvedValue({
-      role: 'user',
+      role: 'shopper',
       name: 'Test',
     });
-    const onLogin = jest.fn().mockResolvedValue(undefined);
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <Login onLogin={onLogin} />
@@ -29,7 +29,7 @@ describe('Login component', () => {
   it('shows friendly message on unauthorized error', async () => {
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
     (login as jest.Mock).mockRejectedValue(apiErr);
-    const onLogin = jest.fn();
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <Login onLogin={onLogin} />
@@ -52,7 +52,7 @@ describe('Login component', () => {
     const apiErr = Object.assign(new Error('expired'), { status: 403 });
     (login as jest.Mock).mockRejectedValue(apiErr);
     (resendPasswordSetup as jest.Mock).mockResolvedValue(undefined);
-    const onLogin = jest.fn();
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <Login onLogin={onLogin} />
