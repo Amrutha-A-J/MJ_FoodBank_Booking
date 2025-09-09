@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   Stack,
-  TextField,
   Button,
   Paper,
   Typography,
@@ -22,8 +21,9 @@ const RANGES = ['1-100', '101-500', '501+'] as const;
 
 export default function MailLists() {
   const now = new Date();
-  const [year, setYear] = useState(now.getUTCFullYear());
-  const [month, setMonth] = useState(now.getUTCMonth() + 1);
+  now.setUTCMonth(now.getUTCMonth() - 1);
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + 1;
   const [lists, setLists] = useState<MailLists>();
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -47,9 +47,9 @@ export default function MailLists() {
     load();
   }, [year, month]);
 
-  async function handleSend(templateId: number) {
+  async function handleSend() {
     try {
-      await sendMailListEmails(year, month, templateId);
+      await sendMailListEmails(year, month);
       setSnackbar({ open: true, message: 'Emails sent', severity: 'success' });
     } catch (error: any) {
       setSnackbar({
@@ -63,38 +63,21 @@ export default function MailLists() {
   return (
     <Page title="Mail Lists">
       <Stack spacing={2}>
-        <Stack direction="row" spacing={2}>
-          <TextField
-            label="Month"
-            type="number"
-            value={month}
-            onChange={e => setMonth(parseInt(e.target.value, 10) || 0)}
-            inputProps={{ min: 1, max: 12 }}
-          />
-          <TextField
-            label="Year"
-            type="number"
-            value={year}
-            onChange={e => setYear(parseInt(e.target.value, 10) || 0)}
-          />
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Typography>{`Month: ${month}`}</Typography>
+          <Typography>{`Year: ${year}`}</Typography>
+          <Button
+            variant="contained"
+            onClick={handleSend}
+            disabled={!lists || !RANGES.some(range => lists[range].length > 0)}
+          >
+            Send Emails
+          </Button>
         </Stack>
         {lists &&
           RANGES.map(range => (
             <Paper key={range} sx={{ p: 2 }}>
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-                mb={1}
-              >
-                <Typography variant="h6">{`$${range}`}</Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => handleSend(range === '1-100' ? 11 : 12)}
-                >
-                  Send Emails
-                </Button>
-              </Stack>
+              <Typography variant="h6" mb={1}>{`$${range}`}</Typography>
               <List dense>
                 {lists[range].map(donor => (
                   <ListItem
