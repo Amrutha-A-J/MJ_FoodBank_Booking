@@ -1,0 +1,399 @@
+# Feature Log
+
+- f038a6a7 feat: add context to telegram ops alerts
+- 12a59458 feat: default component size to medium
+- 9746858e feat: add offline fallback and booking sync
+- 11b12434 feat: unify login page
+- 0ab1800c feat: add push notification infrastructure
+- ea1f480c feat: improve volunteer mobile navigation
+- 9cde983b feat: unify login endpoint
+- 23658a42 feat(frontend): cache static and schedule data
+- aa7a257d feat: move login endpoint under auth
+- 4983c221 feat: add PWA service worker
+- e2cc0ce0 feat: add role-specific password setup guidance
+- ca94dbc7 feat: add login selection page component
+- c9b6199d feat: enlarge mobile hamburger menu
+- 1ada40fc feat: increase mobile font sizes
+- 373e1a97 feat: add date picker to schedule pages
+- a4eed1c8 feat: clarify client password reset
+- cadbbc39 feat: add existing client assignment
+- b0b087b9 feat(frontend): allow optional user names
+- 2301b02a feat: show upcoming timesheets
+- 9e223a73 feat: show upcoming timesheets
+- 1b1eb227 feat: add agency client search
+- c6c8ad7b feat: add warehouse quick links
+- b6308934 feat: replace tables with responsive tables
+- d12abfd0 feat: use responsive tables for warehouse pages
+- 7c366c96 feat(frontend): add responsive pantry visit cards
+- b5158bb3 feat: add responsive layout for pending reviews
+- d6d33d72 feat: use responsive table for agency client history
+- f017c303 feat(timesheets): add responsive table
+- f95bb36f feat: use responsive table on staff list
+- 07008c02 feat: add responsive table component
+- 93dcaff4 feat: mobile card layout for histories
+- 7b7d7952 feat: make mobile drawer responsive
+- 4a30caae feat: add install app prompt
+- 4bf4d72d feat: allow optional service worker
+- 460c5b91 feat: show volunteer names for coverage
+- bb26615b feat: alert ops on no-show cleanup
+- 4eeee22d feat: add telegram ops alerts
+- 53701605 feat: clean stale email queue jobs nightly
+- 05014369 feat: clean past blocked slots
+- 7cbaefa6 feat: auto refresh pantry schedule on updates
+- 3e4b4301 feat: poll pantry schedule when viewing today's date
+- d4dd53b8 feat: add password option for volunteer creation
+- df518027 feat: allow setting client password on add
+- d412e272 feat: add optional volunteer password setup
+- f2ab76c3 feat(nav): add mobile profile submenu
+- f9f3e9b9 feat: make booking note optional
+- cbaa562c feat: add index for booking reminders
+- ec49000c feat(frontend): load translations on demand
+- 96424a26 feat: prevent duplicate volunteer shopper profiles
+- ce95f836 feat: enforce case-insensitive email uniqueness
+- 3518fac5 feat: include uid and method in calendar ICS
+- 6149925d feat: remove numeric password requirement
+- bbbe0292 feat: add Apple calendar link
+- bdfe25d9 feat(frontend): show login notices above form
+- f5b826c7 feat: update client login notice for volunteer shoppers
+- c8d7ff54 feat: hide pantry quick links for volunteer coordinators
+- ce1a3ee3 feat: add token-based booking cancel and reschedule
+- c21263bb feat: add client login notice
+- cd100f00 feat: add root build script for backend and frontend
+- e4e4a67d feat: migrate volunteers to unique email
+- 56a925be feat: add online access option when creating volunteers
+- 43012be9 feat: add badge milestone email template config
+- 87bf86a1 feat: configurable volunteer no-show email
+- 69924308 feat: add agency client update template
+- 2603d729 feat: include booking type in email params
+- 7f846e69 feat: add calendar links to booking confirmation
+- 5a0af8b4 feat: remove sticky headers from schedule tables
+- 70824c6e feat: add staff leave request endpoint
+- d70cb928 feat(frontend): make table headers sticky
+- efc9c5ab feat: shrink pantry visit buttons
+- b454d59e feat: reorder client management tabs
+- 9122d0e2 feat: add visit import preview
+- 2f255a47 feat: add xlsx import with duplicate handling
+- 7b34c468 feat: allow viewing pantry visits by date
+- a2395a14 feat: import client visits from spreadsheet
+- 8688453d feat: add pantry visit bulk import
+- 4bc2fe5c feat: add sliding mobile navbar
+- 8c437738 feat: add password visibility toggles
+- 9eaa603e feat: track sunshine bag weight
+- 79397713 feat: add pantry visit summaries
+- 0a744c14 feat: make db CA path configurable
+- 3e0a5aa3 feat: add email feature flag
+- 4b7203e6 feat(db): configure SSL root cert
+- 8b60beff feat: centralize id param parsing
+- 202307a0 feat(frontend): restrict notes filter to staff
+- f442c665 feat: add timesheet filtering
+- a44f5820 feat: allow rejecting leave requests
+- e69c6061 feat: log staff leave event
+- 803653c6 feat: display leave requests in table
+- 0d6c7271 feat(events): add start and end dates
+- 00e78813 feat: streamline timesheet editing
+- 1502f8a3 feat: support separate client and staff notes
+- 81e7fb22 feat: add dashboard translation
+- 2c1f998d feat: seed pay periods
+- b77d408b feat: move notices card into metrics grid
+- 52dd1c9b feat(dashboard): prioritize news & events
+- a7d61d5d feat(volunteer-dashboard): move news card to top
+- cf6d855c feat(agency-dashboard): reposition news section
+- 89ebbf28 feat: add admin timesheet endpoints
+- 2a7e1a58 feat: add admin timesheet staff filter
+- 424eab13 feat: add staff timesheet and leave links
+- 1d6b78b2 feat(admin): add tabbed settings page
+- 7654da9c feat: skip timesheet seeding if pay periods missing
+- 6bdc5e68 feat: scaffold leave request API
+- a07b561c feat: add leave request APIs
+- 6ed0e22c feat: add timesheet api and hooks
+- 0123c9f0 feat: add staff timesheets page
+- dc485a18 feat: add timesheet API
+- 1ec8d9b7 feat: add timesheets tables and views
+- 2ed39ea2 feat: support visit notes
+- 6aada54a feat: add helper to set mock DB results
+- 55ee97b0 feat: make daily jobs optionally skip initial run
+- b6cfa70a feat: add type safety for review status filter
+- e210a9f1 feat(types): add RequestUser and type Express request
+- 9af4d94a feat: add email template env vars
+- 42186542 feat: enable warehouse aggregation export
+- 6dcdda92 feat: add password setup template config
+- f70b57d5 feat: secure backend with helmet
+- 32212ffc feat: remove tooltips
+- 0a7ff810 feat: remove tooltip logic
+- 6160f870 feat(volunteer-dashboard): move roles and events cards
+- 0777a3e9 feat(volunteer): add reschedule to booking history
+- 47d54912 feat: localize booking history pages
+- 074c245d feat: add i18n translations for dashboard and tooltips
+- 43a30c58 feat: add translations for help page client content
+- eccc284c feat: internationalize booking ui
+- 11dc1ef5 feat: add translations for all locales
+- bd8f5c6e feat: complete Spanish translations
+- 52f20170 feat: translate login errors
+- 96dda75d feat: localize navigation and navbar
+- 9ecfbd65 feat: add tooltips to volunteer views
+- 08f3681b feat(frontend): move language selector to navbar
+- c8266350 feat(frontend): add dashboard info tooltips
+- da2cbf8d feat: add info tooltips for agency pages
+- 202390e2 feat: expand language support
+- 82f4dd2c feat: move language selector to top left
+- 29dbf9ad feat(agency): show weekday and year in dashboard dates
+- b140ce12 feat: add help steps
+- fa55581d feat: expand volunteer help content
+- 2d1636fc feat(help): expand client guidance
+- 3a79aa80 feat: add client language selector
+- 6777f670 feat: add legend tooltip to schedule table
+- 6fa9ffc6 feat(frontend): use RoleTabs in HelpPage?
+- 4ec9fcb1 feat: add help page filtering and print
+- c44a3cbc feat: add help page with role tabs
+- 83cc991d feat: add staff recurring volunteer booking handlers
+- c753d4ac feat: add info tooltip component
+- 248a4d9c feat: organize volunteers submenu
+- e1888f4a feat(client-management): add weekly no-show tab
+- aed11e9e feat: track separate monthly visit and booking counts
+- 8cdceee5 feat: add nightly no-show cleanup job
+- 92a287db feat: restrict volunteer booking cancel options
+- 467d89a1 feat: add volunteer no-show ranking
+- d97a3bc0 feat: add warehouse settings with cached multipliers
+- 91a2357a feat: add manage volunteer shift dialog
+- 31cee759 feat: remove warehouse rebuild button
+- c44d49a1 feat: add tabs for recurring bookings
+- c1ac73e5 feat: show appreciation messages to volunteers only
+- 29388d73 feat: index new clients by creation date
+- 6f961329 feat: add resend password setup dialog
+- 6175764c feat: configure password setup token expiry
+- 4728850b feat: add volunteer recurring bookings page
+- 5860e766 feat(volunteer): fetch recurring booking series
+- b93f942f feat: lazy load dashboard
+- acbbcf65 feat(email-queue): persist jobs in database
+- 2418bd7c feat: add reusable holidays hook with caching
+- 5f7fe872 feat: unify password reset lookup
+- eb6e1875 feat: add retryable email queue
+- c28e17d7 feat: whitelist booking updates
+- 22edc953 feat: whitelist booking updates
+- 14ec200b feat: debounce entity search input
+- 949a2f5b feat: add generics and error feedback to EntitySearch
+- 3e63617a feat: implement volunteer shift reminder job
+- a440380f feat(frontend): add password setup page
+- 87dbea9d feat: schedule booking reminder emails
+- 4221d5ef feat: allow new client bookings from pantry schedule
+- ef0c11da feat: add Brevo templated email utility
+- 5e648804 feat: show top role lines on volunteer chart
+- e94b09e2 feat: move volunteer leaderboard into stats
+- 0da78aa2 feat: consolidate volunteer stats into single card
+- 73b5f494 feat: show volunteer charts side by side
+- 282c74ab feat: show monthly volunteer impact
+- 9852e3d7 feat: enhance volunteer appreciation
+- 7ce05017 feat: add volunteer badges
+- 2d976d4d feat(frontend): fetch holidays immediately
+- 9e024ef0 feat: hide agency client list until search
+- 70bd56f8 feat: remove agency client and schedule links
+- fc617aff feat: add agency booking navigation
+- 092ae4b8 feat: add agency booking page
+- e92fb3d0 feat: allow custom search functions
+- e92014d2 feat: reveal client search after selecting agency
+- c66df926 feat: improve agency client management
+- 95752906 feat: add confirmation dialogs for volunteer deletions
+- dd2cdf2a feat: allow fetching inactive volunteer roles
+- 2a209658 feat: add sub-role dialog and simplify shift editing
+- f64456ed feat(frontend): add inline validation for role dialog
+- 40be9f83 feat: append master role state
+- 56e66fff feat: simplify pantry capacity setting
+- 540fb53e feat: allow slot creation using existing role or new role
+- 0d1fb579 feat: confirm master role deletion
+- cd6f47af feat: add time picker for volunteer role slots
+- a5946475 feat: mark booking visited when recording client visit
+- c063f5ba feat: support dynamic pantry slot columns
+- b2cc8e7f feat: add agency clients endpoint
+- 9dfc1a85 feat(api): add interfaces for server responses
+- 24c461c6 feat: add visited and no show statuses to booking history
+- 3759c316 feat: add build optimizations
+- 9aa53a64 feat: defer booking UI work to idle
+- b9985e31 feat: sync auth state across tabs
+- 0fab223f feat: manage slots
+- 19860250 feat: manage volunteer master roles
+- d100916a feat: add outlined FormCard with customizable elevation
+- b0a24c31 feat: add main layout with navigation and breadcrumbs
+- 396425d0 feat: add manage booking dialog
+- e4ba6998 feat: manage app configuration in admin panel
+- 0242d838 feat: centralize internal logins
+- 0f2c98ec feat: auto-approve rescheduled bookings
+- 9f1c4133 feat: add no-show and expired booking statuses
+- b0e65a13 feat: enqueue booking emails
+- 3b9403d3 feat: filter bookings by date
+- ea12fad4 feat: validate password requirements
+- e6f78355 feat: specify input types for profile contact fields
+- 598e754f feat: type authenticated user
+- 1b0a604c feat(frontend): export tables with write-excel-file
+- b921aa6d feat(frontend): refresh MUI theme
+- 39a4ef18 feat(theme): unify input heights
+- 28717cbc feat: add single-flight auth refresh
+- 570ae55f feat: add dayjs date helpers
+- 5b280752 feat: enforce volunteer booking uniqueness
+- 3bb23647 feat: allow staff to cancel volunteer bookings
+- fb9d4d7b feat: confirm assigning untrained volunteers
+- 21934586 feat: allow editing client details from history
+- f8a7b468 feat: enable online account activation
+- 193c57de feat: add online access settings in client update
+- e8275ec9 feat: add online access settings in client update
+- 6cdc7d4d feat: add reusable page layout components
+- d7338335 feat: add reasoned volunteer booking modal
+- a0d51f81 feat(frontend): add reusable form component
+- 74808128 feat: add client management page
+- 176c5842 feat: add volunteer profile endpoint
+- e0e469c2 feat(volunteer): show full slot message
+- 45f00841 feat: add csrf protection
+- 0b7d3786 feat: issue refresh tokens with rotation
+- a41c6c70 feat: implement volunteer role booking page
+- 7cf946f8 feat: scroll to slots on mobile date select
+- 6c0c3d99 feat: redesign manage availability page
+- 44740fe2 feat: allow users to cancel from booking history
+- 49e62aef feat: refresh donor aggregates with warehouse updates
+- 689c17ac feat: add exports page
+- 55f9532f feat: add client data update page
+- 97ed2d8f feat: show events on warehouse dashboard
+- 7398bd9f feat: add agency client management and schedule
+- f12934b2 feat: add agency client management and schedule
+- 998596ca feat: add agency booking functionality
+- aa5ec89d feat: add recurring blocked slots
+- 35818758 feat(frontend): add recurring blocked slots API
+- dba6e3f3 feat: add recurring blocked slots API
+- 4b1189e3 feat: add recurring blocked slots table
+- 8ecebd19 feat: show modal when existing booking
+- d2032e08 feat: display slots in am pm format
+- c2e238e7 feat: add recurring volunteer bookings
+- 680fc502 feat: add localization provider for date pickers
+- 87439d85 feat: add dayjs dependency
+- 8a25a864 feat: format dates in Regina timezone
+- 47793dcb feat: add booking UI component
+- 8444bd0a feat: use Regina time for displayed dates
+- cc794038 feat: display event details and allow deletion
+- 6a596c64 feat: limit volunteer coverage to pantry
+- 505889d8 feat: show volunteer coverage on warehouse dashboard
+- 8781fbbb feat: add pantry dashboard route
+- 0f024645 feat: add reschedule dialog component
+- 9cbcef43 feat: move staff events to profile menu
+- 436cb8eb feat: add password validation utility
+- f856899f feat: replace exceljs with sheetjs
+- fbc268d8 feat: add pantry visits component
+- 5af9331c feat: add client visit endpoints
+- 615b2cf7 feat: add event creation form
+- 9082d2d0 feat: create events page and api
+- 2d650e65 feat(navbar): add support for extra profile links
+- cc2dbba2 feat: add admin staff management
+- b85d6d9d feat: freeze donor aggregation table sections
+- 849d6484 feat(auth): add staff access control
+- f9870505 feat: bootstrap first staff as admin
+- 1fd01e4e feat: add staff access permissions
+- 0606d9cb feat: add donor search and profile view
+- 6682107a feat: rotate donor aggregation table
+- 3a939649 feat: add donor aggregation table
+- 8cda2fb4 feat: add aggregations tabs
+- e3a3f5be feat: combine monthly trend lines
+- fdea934c feat: separate incoming and outgoing warehouse trends
+- 45dd5450 feat(frontend): refine outgoing receiver addition
+- f085a15c feat(frontend): improve add receiver flow
+- 3967137d feat: redesign warehouse dashboard
+- 94997efe feat: add week view to pig pound log
+- 1548128d feat: add export option to warehouse aggregations
+- 1938c7f0 feat: improve surplus log date handling
+- 75ca52d0 feat: remove monetary donor logic
+- c8d9af71 feat: switch email service to brevo
+- a8ef58fe feat: add donor management dashboard
+- fd29499b feat: add warehouse management dashboard
+- 2b16e1b1 feat: add warehouse overall aggregation
+- d84df1ae feat: add reusable Excel table export
+- 53a9e6bd feat: filter donor aggregations by year
+- 41791949 feat: add aggregation tabs
+- d7358cd7 feat: add warehouse tracking routes
+- 226771d3 feat: add reject reason prompt for staff booking
+- b5b8c131 feat: add donors API and seed data
+- 873fbef5 feat: parameterize slot filtering
+- df230154 feat: throw on invalid env config
+- fa438399 feat: add basic pwa support
+- aa8a37ed feat: secure PWA and responsive layout
+- 93658f7b feat(pwa): cache assets and api with workbox
+- 477ed870 feat: align slots beside calendar
+- cea2ccb5 feat: add footer to form pages
+- 8df2390f feat: add refresh token secret
+- 97dfb8c8 feat: add refresh token secret
+- b744880c feat: secure cookies based on environment
+- 723f661f feat: implement refresh token flow
+- 99553fe0 feat: show booking confirmation
+- b08ecc18 feat: add reusable entity search
+- 3f216865 feat(frontend): restore staff pending requests page
+- befddb4a feat(navbar): add white hover text for submenus
+- b73a0714 feat: improve invalid role feedback
+- 1f4973ff feat: remove fixed app width
+- 9d9b1db3 feat: add shopper dashboard
+- fb86acaa feat: add volunteer dashboard and routing
+- d4f57f5d feat: load dashboards on home route
+- 0661975b feat: add dashboard theme
+- 4d057ab9 feat: update dashboard titles
+- 29331298 feat: add role schedule endpoints and UI
+- 232cb189 feat: add snackbar feedback for volunteer roles
+- 474c7282 feat: add breadcrumbs to main layout
+- ed619b90 feat: allow calendar-based rescheduling
+- d22e829a feat: add breadcrumb component
+- 346ce836 feat: add role grouping to volunteer roles
+- 1670c275 feat(navbar): add submenu arrows and move logout
+- acceecd3 feat: add dropdown to edit volunteer roles
+- 2574f3d9 feat: add dropdown to edit volunteer roles
+- 2cf4a7d6 feat: add password reset flow
+- 176b1470 feat: allow coordinator to edit volunteer roles
+- 0618b5ab feat: reset volunteer booking status on reschedule
+- fab38d51 feat: create Page layout component
+- dba466cd feat: standardize form layout with reusable container
+- a8c4db9f feat: split volunteer roles into master roles
+- 6ed88106 feat: integrate power automate email flow
+- 64442060 feat: conditionally render greeting in navbar
+- 0c08d45a feat: integrate react-query for API calls
+- 92523050 feat: centralize environment configuration
+- 726bed70 feat: add react router
+- 3c7aeada feat: add request validation with zod
+- 83153048 feat(auth): use secure cookies for auth
+- cb9ea3a1 feat(auth): use secure cookies for auth
+- 63eb19a2 feat: group coordinator schedule roles
+- 0c0cbb95 feat: remove dark mode
+- b47597cf feat: improve dark mode styling
+- 916ebb22 feat: improve dark mode styling
+- 1bc77941 feat: add configurable color theme and font
+- 525dd9e6 feat: add grouped role dropdown
+- ff5a68de feat: add reusable feedback modal
+- 46c1bd9a feat: add reschedule token support
+- 6b0c9a24 feat: group navigation links with responsive menus
+- 7660830d feat: provide configurable mui theme
+- dc2a1a1f feat: show role-based slots for volunteers
+- 9ebe4998 feat: add volunteer schedule component
+- 7fa64e23 feat: show client visits and group volunteer roles
+- 409138b1 feat: enable volunteer schedule assignment
+- 6722a79f feat: reuse schedule table across views
+- 457765cf feat: support multiple volunteer roles
+- 24bdbee9 feat: make server port configurable
+- dea55cb0 feat: initialize database schema and seed data
+- 8573b13b feat: add volunteer roles selection and search
+- 5292ca93 feat: add username for volunteer accounts
+- ba259dc9 feat: add coordinator dashboard component
+- 3eae4a62 feat: add volunteer dashboard booking features
+- 1f96bc46 feat: add volunteer token verification middleware
+- 0e79bc4f feat: add volunteer booking endpoints
+- 3f39f4c2 feat: manage volunteer slots
+- 25dcfc87 feat: show booking history for users
+- 412d5560 feat: separate staff creation endpoint
+- 641ec8bf feat: accept bearer tokens in auth middleware
+- 60e1af41 feat: support new token format
+- 42118ac3 feat: add token prefix for auth
+- d1fe5ba0 feat: allow staff create bookings
+- de51d89e feat: align code with updated bookings schema
+- 9309eaf1 feat: improve user history presentation
+- 85d657f3 feat: add booking cancellation and reschedule flow
+- a1d62f94 feat: improve availability management with reasons and time formatting
+- e7654e3c feat: add routes for blocked slots and breaks
+- f9442762 feat: disable holiday selection
+- 9ff672e5 feat: align staff roles with database
+- b5455cfd feat: improve responsive design
+- ae0225df feat: add staff login and admin setup
+- 7d0cee32 feat: add approval confirmation
+- 67f0e8aa feat: show pending bookings in schedule
+- d504f200 feat: add staff schedule view
+- 2e82227c feat: hash user passwords
+- 2b317fdf feat: allow configuring frontend origin
