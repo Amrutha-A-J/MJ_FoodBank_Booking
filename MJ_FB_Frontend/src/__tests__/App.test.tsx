@@ -41,6 +41,11 @@ jest.mock('../pages/donor-management/MailLists', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
+jest.mock('../pages/donor-management/DonationLog', () => {
+  const mod = { __esModule: true, default: () => <div>DonationLog</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),

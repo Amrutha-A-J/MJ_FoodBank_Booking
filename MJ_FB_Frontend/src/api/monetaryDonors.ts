@@ -2,7 +2,8 @@ import { API_BASE, apiFetch, handleResponse } from './client';
 
 export interface MonetaryDonor {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email?: string;
 }
 
@@ -27,13 +28,14 @@ export interface MailLists {
   '501+': MailListDonor[];
 }
 
-export async function getMonetaryDonors(): Promise<MonetaryDonor[]> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors`);
+export async function getMonetaryDonors(search?: string): Promise<MonetaryDonor[]> {
+  const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  const res = await apiFetch(`${API_BASE}/monetary-donors${query}`);
   return handleResponse(res);
 }
 
 export async function createMonetaryDonor(
-  data: Pick<MonetaryDonor, 'name' | 'email'>,
+  data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
   const res = await apiFetch(`${API_BASE}/monetary-donors`, {
     method: 'POST',
@@ -45,7 +47,7 @@ export async function createMonetaryDonor(
 
 export async function updateMonetaryDonor(
   id: number,
-  data: Pick<MonetaryDonor, 'name' | 'email'>,
+  data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
   const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`, {
     method: 'PUT',

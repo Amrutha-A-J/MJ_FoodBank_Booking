@@ -71,7 +71,7 @@ const VolunteerAdmin = React.lazy(() =>
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
-const DonationLog = React.lazy(() =>
+const WarehouseDonationLog = React.lazy(() =>
   import('./pages/warehouse-management/DonationLog')
 );
 const TrackPigpound = React.lazy(() =>
@@ -119,6 +119,9 @@ const DonorProfilePage = React.lazy(() =>
 const MailLists = React.lazy(() =>
   import('./pages/donor-management/MailLists')
 );
+const DonorDonationLog = React.lazy(() =>
+  import('./pages/donor-management/DonationLog')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -136,7 +139,7 @@ export default function App() {
   const showDonorManagement = isStaff && hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
-  const showDonationLog = showWarehouse || showDonationEntry || showDonorManagement;
+  const showDonationLog = showWarehouse || showDonationEntry;
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
@@ -196,7 +199,7 @@ export default function App() {
       });
 
     const donorLinks = [
-      { label: 'Donation Log', to: '/donor-management' },
+      { label: 'Donation Log', to: '/donor-management/donation-log' },
     ];
     if (showDonorManagement) navGroups.push({ label: 'Donor Management', links: donorLinks });
 
@@ -376,13 +379,19 @@ export default function App() {
                     />
                   )}
                   {showDonorManagement && (
-                    <Route path="/donor-management" element={<DonationLog />} />
+                    <Route
+                      path="/donor-management/donation-log"
+                      element={<DonorDonationLog />}
+                    />
                   )}
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
                   )}
                   {showDonationLog && (
-                    <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
+                    <Route
+                      path="/warehouse-management/donation-log"
+                      element={<WarehouseDonationLog />}
+                    />
                   )}
                   {showWarehouse && (
                     <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
