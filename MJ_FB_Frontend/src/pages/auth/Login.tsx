@@ -76,6 +76,8 @@ export default function Login({
               variant="contained"
               color="primary"
               fullWidth
+              size="medium"
+              sx={{ minHeight: 48 }}
             >
               {t('login')}
             </Button>
@@ -90,6 +92,7 @@ export default function Login({
             name="identifier"
             autoComplete="username"
             fullWidth
+            size="medium"
             required
             error={identifierError}
             helperText={identifierError ? t('client_id_required') : ''}
@@ -101,6 +104,7 @@ export default function Login({
             name="password"
             autoComplete="current-password"
             fullWidth
+            size="medium"
             required
             error={passwordError}
             helperText={passwordError ? t('password_required') : ''}
