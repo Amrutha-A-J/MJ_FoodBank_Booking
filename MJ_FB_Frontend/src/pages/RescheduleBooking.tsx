@@ -4,6 +4,7 @@ import {
   TextField,
   MenuItem,
   Button,
+  Grid,
 } from '@mui/material';
 import Page from '../components/Page';
 import FormCard from '../components/FormCard';
@@ -69,41 +70,45 @@ export default function RescheduleBooking() {
 
   return (
     <Page title={t('reschedule')}>
-      <FormCard
-        title={t('reschedule')}
-        onSubmit={handleSubmit}
-        actions={
-          <Button type="submit" variant="contained">
-            {t('reschedule')}
-          </Button>
-        }
-      >
-        <TextField
-          type="date"
-          label={t('date')}
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          fullWidth
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-          inputProps={{ min: todayStr }}
-        />
-        <TextField
-          select
-          label={t('time')}
-          value={slotId}
-          onChange={e => setSlotId(e.target.value)}
-          fullWidth
-          margin="normal"
-          disabled={!date || slots.length === 0}
-        >
-          {slots.map(s => (
-            <MenuItem key={s.id} value={s.id}>
-              {formatTime(s.startTime)} - {formatTime(s.endTime)}
-            </MenuItem>
-          ))}
-        </TextField>
-      </FormCard>
+      <Grid container spacing={2} justifyContent="center">
+        <Grid xs={12} sm={8} md={6}>
+          <FormCard
+            title={t('reschedule')}
+            onSubmit={handleSubmit}
+            actions={
+              <Button type="submit" variant="contained">
+                {t('reschedule')}
+              </Button>
+            }
+          >
+            <TextField
+              type="date"
+              label={t('date')}
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: todayStr }}
+            />
+            <TextField
+              select
+              label={t('time')}
+              value={slotId}
+              onChange={e => setSlotId(e.target.value)}
+              fullWidth
+              margin="normal"
+              disabled={!date || slots.length === 0}
+            >
+              {slots.map(s => (
+                <MenuItem key={s.id} value={s.id}>
+                  {formatTime(s.startTime)} - {formatTime(s.endTime)}
+                </MenuItem>
+              ))}
+            </TextField>
+          </FormCard>
+        </Grid>
+      </Grid>
       <FeedbackSnackbar
         open={!!error || !!message}
         onClose={() => {

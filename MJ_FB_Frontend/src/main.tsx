@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
 import './index.css';
-import { ThemeProvider, CssBaseline } from '@mui/material';
+import { ThemeProvider, CssBaseline, CircularProgress } from '@mui/material';
 import { theme } from './theme';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './queryClient';
@@ -13,6 +12,8 @@ import dayjs from './utils/date';
 import './i18n';
 import { registerSW } from 'virtual:pwa-register';
 
+const App = React.lazy(() => import('./App'));
+
 function Main() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -20,7 +21,9 @@ function Main() {
         <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <App />
+            <Suspense fallback={<CircularProgress />}>
+              <App />
+            </Suspense>
           </ThemeProvider>
         </LocalizationProvider>
       </AuthProvider>
