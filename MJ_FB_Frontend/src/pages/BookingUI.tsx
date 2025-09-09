@@ -133,6 +133,7 @@ export default function BookingUI({
   const [usage, setUsage] = useState<number | null>(null);
   const [loadingConfirm, setLoadingConfirm] = useState(false);
   const theme = useTheme();
+  const bottomNavOffset = theme.spacing(7);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -496,14 +497,14 @@ export default function BookingUI({
       </Grid>
       <Box
         component={Paper}
-        sx={theme => ({
+        sx={{
           position: 'sticky',
-          bottom: embedded ? 0 : theme.spacing(7),
+          bottom: embedded ? 0 : bottomNavOffset,
           mt: 2,
           p: 2,
           borderRadius: { xs: 0, md: 2 },
           zIndex: theme.zIndex.appBar,
-        })}
+        }}
       >
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
