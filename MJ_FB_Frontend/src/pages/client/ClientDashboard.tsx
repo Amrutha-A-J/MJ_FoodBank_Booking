@@ -19,6 +19,7 @@ import Announcement from '@mui/icons-material/Announcement';
 import History from '@mui/icons-material/History';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import ClientBottomNav from '../../components/ClientBottomNav';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../../api/bookings';
 import { getEvents, type EventGroups } from '../../api/events';
 import type { Slot, Holiday, Booking } from '../../types';
@@ -373,6 +374,7 @@ export default function ClientDashboard() {
         message={message}
         severity={snackbarSeverity}
       />
+      <ClientBottomNav />
     </Page>
   );
 }

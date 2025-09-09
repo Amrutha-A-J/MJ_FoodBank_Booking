@@ -18,6 +18,7 @@ import PageContainer from '../../components/layout/PageContainer';
 import PageCard from '../../components/layout/PageCard';
 import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import ClientBottomNav from '../../components/ClientBottomNav';
 
 export default function Profile({ role }: { role: Role }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -232,6 +233,7 @@ export default function Profile({ role }: { role: Role }) {
         severity={toast.severity}
       />
     </PageContainer>
+    <ClientBottomNav />
     </ErrorBoundary>
   );
 }

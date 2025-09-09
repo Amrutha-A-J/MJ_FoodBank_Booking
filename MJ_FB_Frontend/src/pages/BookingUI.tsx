@@ -38,6 +38,7 @@ import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
+import ClientBottomNav from '../components/ClientBottomNav';
 import type { ApiError } from '../api/client';
 import { useTranslation } from 'react-i18next';
 
@@ -199,22 +200,24 @@ export default function BookingUI({
             <Stack direction="row" spacing={1}>
               {res?.googleCalendarUrl && (
                 <Button
-                  
                   variant="contained"
                   component="a"
                   href={res.googleCalendarUrl}
                   target="_blank"
                   rel="noopener"
+                  size="medium"
+                  sx={{ minHeight: 48 }}
                 >
                   {t('add_to_google_calendar')}
                 </Button>
               )}
               {res?.icsUrl && (
                 <Button
-                  
                   variant="outlined"
                   component="a"
                   href={res.icsUrl}
+                  size="medium"
+                  sx={{ minHeight: 48 }}
                 >
                   {t('add_to_apple_calendar')}
                 </Button>
@@ -487,11 +490,11 @@ export default function BookingUI({
           </Typography>
           <Button
             variant="contained"
-            
             disabled={!selectedSlotId || booking || loadingConfirm}
             onClick={handleOpenConfirm}
             fullWidth
-            sx={{ width: { sm: 'auto' } }}
+            size="medium"
+            sx={{ width: { sm: 'auto' }, minHeight: 48 }}
           >
             {t('book_selected_slot')}
           </Button>
@@ -517,11 +520,14 @@ export default function BookingUI({
             label={t('client_note_label')}
             value={note}
             onChange={e => setNote(e.target.value)}
+            size="medium"
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>{t('cancel')}</Button>
-          <Button onClick={handleBook} variant="contained" disabled={booking}>
+          <Button onClick={() => setConfirmOpen(false)} size="medium" sx={{ minHeight: 48 }}>
+            {t('cancel')}
+          </Button>
+          <Button onClick={handleBook} variant="contained" disabled={booking} size="medium" sx={{ minHeight: 48 }}>
             {t('confirm')}
           </Button>
         </DialogActions>
@@ -544,6 +550,11 @@ export default function BookingUI({
   );
 
   if (embedded) return content;
-  return <Page title={t('book_appointment')}>{content}</Page>;
+  return (
+    <Page title={t('book_appointment')}>
+      {content}
+      <ClientBottomNav />
+    </Page>
+  );
 }
 
