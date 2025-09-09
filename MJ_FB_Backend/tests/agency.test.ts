@@ -77,6 +77,7 @@ jest.mock('bcrypt');
 jest.mock('jsonwebtoken');
 
 const usersRouter = require('../src/routes/users').default;
+const authRouter = require('../src/routes/auth').default;
 const bookingsRouter = require('../src/routes/bookings').default;
 const agenciesRoutes = require('../src/routes/agencies').default;
 const bookingRepository = require('../src/models/bookingRepository');
@@ -100,6 +101,7 @@ test('does not query database on import', () => {
 
 const app = express();
 app.use(express.json());
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/agencies', agenciesRoutes);
@@ -137,7 +139,7 @@ describe('Agency login and token issuance', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/api/auth/login')
       .send({ email: 'a@b.com', password: 'secret' });
 
     expect(res.status).toBe(200);

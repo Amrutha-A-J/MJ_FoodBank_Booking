@@ -1,7 +1,6 @@
 import express from 'express';
 import {
   updateTrainedArea,
-  loginVolunteer,
   getVolunteerProfile,
   createVolunteer,
   searchVolunteers,
@@ -16,8 +15,6 @@ import { validate } from '../../middleware/validate';
 import { createVolunteerSchema } from '../../schemas/volunteer/volunteerSchemas';
 
 const router = express.Router();
-
-router.post('/login', loginVolunteer);
 
 router.get('/me', authMiddleware, getVolunteerProfile);
 

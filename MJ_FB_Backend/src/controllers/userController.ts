@@ -80,6 +80,60 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       });
     }
 
+    const volunteerQuery = await pool.query(
+      `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
+         FROM volunteers v
+         LEFT JOIN clients u ON v.user_id = u.client_id
+         WHERE v.email = $1`,
+      [email],
+    );
+    if ((volunteerQuery.rowCount ?? 0) > 0) {
+      const volunteer = volunteerQuery.rows[0];
+      if (!volunteer.password) {
+        return res.status(403).json({ message: 'Password setup link expired' });
+      }
+      const match = await bcrypt.compare(password, volunteer.password);
+      if (!match) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      const rolesRes = await pool.query(
+        `SELECT vr.name
+         FROM volunteer_trained_roles vtr
+         JOIN volunteer_roles vr ON vtr.role_id = vr.id
+         WHERE vtr.volunteer_id = $1`,
+        [volunteer.id],
+      );
+      const access: string[] = [];
+      if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+        access.push('donation_entry');
+      }
+      const payload: AuthPayload = {
+        id: volunteer.id,
+        role: 'volunteer',
+        type: 'volunteer',
+        ...(access.length && { access }),
+        ...(volunteer.user_id && {
+          userId: volunteer.user_id,
+          userRole: volunteer.user_role || 'shopper',
+        }),
+      };
+      const tokens = await issueAuthTokens(
+        res,
+        payload,
+        `volunteer:${volunteer.id}`,
+      );
+      return res.json({
+        role: 'volunteer',
+        name: `${volunteer.first_name} ${volunteer.last_name}`,
+        ...(volunteer.user_id && {
+          userId: volunteer.user_id,
+          userRole: volunteer.user_role || 'shopper',
+        }),
+        access,
+        ...tokens,
+      });
+    }
+
     const agency = await getAgencyByEmail(email);
     if (!agency) {
       return res.status(401).json({ message: 'Invalid credentials' });

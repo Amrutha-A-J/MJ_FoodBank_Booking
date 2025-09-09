@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import usersRouter from '../src/routes/users';
+import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -12,6 +13,7 @@ jest.mock('../src/utils/bookingUtils', () => ({
 
 const app = express();
 app.use(express.json());
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 
 beforeAll(() => {
@@ -23,9 +25,9 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('POST /api/users/login', () => {
+describe('POST /api/auth/login', () => {
   it('returns 400 when missing credentials', async () => {
-    const res = await request(app).post('/api/users/login').send({});
+    const res = await request(app).post('/api/auth/login').send({});
     expect(res.status).toBe(400);
   });
 
@@ -45,7 +47,7 @@ describe('POST /api/users/login', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/api/auth/login')
       .send({ email: 'john@example.com', password: 'secret' });
 
     expect(res.status).toBe(200);
@@ -61,7 +63,7 @@ describe('POST /api/users/login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app)
-      .post('/api/users/login')
+      .post('/api/auth/login')
       .send({ email: 'john@example.com', password: 'wrong' });
 
     expect(res.status).toBe(401);

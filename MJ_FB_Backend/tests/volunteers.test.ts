@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import volunteersRouter from '../src/routes/volunteer/volunteers';
+import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -34,6 +35,7 @@ app.use((req, _res, next) => {
   (req as any).user = { id: 1, role: 'volunteer' };
   next();
 });
+app.use('/auth', authRouter);
 app.use('/volunteers', volunteersRouter);
 
 describe('Volunteer routes role ID validation', () => {
@@ -321,7 +323,7 @@ describe('Volunteer login with shopper profile', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/volunteers/login')
+      .post('/auth/login')
       .send({ email: 'john@example.com', password: 'Secret1!' });
 
     expect(res.status).toBe(200);

@@ -77,7 +77,7 @@ describe('volunteers api', () => {
 
   it('logs in volunteer with email', async () => {
     await loginVolunteer('user@example.com', 'pass');
-    expect(apiFetch).toHaveBeenCalledWith('/api/volunteers/login', expect.objectContaining({
+    expect(apiFetch).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ email: 'user@example.com', password: 'pass' }),
     }));
