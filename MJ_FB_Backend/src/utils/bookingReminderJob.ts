@@ -52,12 +52,12 @@ export async function sendNextDayBookingReminders(): Promise<void> {
 }
 
 /**
- * Schedule the reminder job to run once a day at 9:00 AM Regina time.
+ * Schedule the reminder job to run once a day at 7:00 PM Regina time.
  */
 const bookingReminderJob = scheduleDailyJob(
   sendNextDayBookingReminders,
-  '0 9 * * *',
-  true,
+  '0 19 * * *',
+  false,
   true,
 );
 

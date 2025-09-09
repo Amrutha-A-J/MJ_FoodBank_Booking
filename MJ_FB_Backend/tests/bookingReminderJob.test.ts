@@ -149,7 +149,7 @@ describe('startBookingReminderJob/stopBookingReminderJob', () => {
   it('schedules and stops the cron job', () => {
     startBookingReminderJob();
     expect(scheduleMock).toHaveBeenCalledWith(
-      '0 9 * * *',
+      '0 19 * * *',
       expect.any(Function),
       { timezone: 'America/Regina' },
     );

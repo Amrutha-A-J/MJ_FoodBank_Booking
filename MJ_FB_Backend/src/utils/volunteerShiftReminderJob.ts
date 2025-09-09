@@ -51,8 +51,8 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
  */
 const volunteerShiftReminderJob = scheduleDailyJob(
   sendNextDayVolunteerShiftReminders,
-  '0 9 * * *',
-  true,
+  '0 19 * * *',
+  false,
   true,
 );
 
