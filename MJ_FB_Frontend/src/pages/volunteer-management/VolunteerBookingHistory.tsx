@@ -12,6 +12,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
+import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -212,6 +213,7 @@ export default function VolunteerBookingHistory() {
         message={message}
         severity={severity}
       />
+      <VolunteerBottomNav />
     </Page>
   );
 }

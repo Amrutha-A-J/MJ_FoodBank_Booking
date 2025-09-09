@@ -9,6 +9,7 @@ import {
 import Page from '../components/Page';
 import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
+import ClientBottomNav from '../components/ClientBottomNav';
 import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
 import { formatReginaDate, toDayjs } from '../utils/date';
@@ -118,6 +119,7 @@ export default function RescheduleBooking() {
         message={error || message}
         severity={error ? 'error' : 'success'}
       />
+      <ClientBottomNav />
     </Page>
   );
 }
