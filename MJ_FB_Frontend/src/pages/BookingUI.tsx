@@ -40,8 +40,10 @@ import DialogCloseButton from '../components/DialogCloseButton';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
 import ClientBottomNav from '../components/ClientBottomNav';
+import VolunteerBottomNav from '../components/VolunteerBottomNav';
 import type { ApiError } from '../api/client';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
 
 // Wrappers to match required signatures
 function useSlots(
@@ -137,6 +139,7 @@ export default function BookingUI({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const { role } = useAuth();
 
   const handleStream = useCallback(
     (data: any) => {
@@ -585,7 +588,7 @@ export default function BookingUI({
   return (
     <Page title={t('book_appointment')}>
       {content}
-      <ClientBottomNav />
+      {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
     </Page>
   );
 }

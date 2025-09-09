@@ -5,14 +5,17 @@ import Page from '../components/Page';
 import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import ClientBottomNav from '../components/ClientBottomNav';
+import VolunteerBottomNav from '../components/VolunteerBottomNav';
 import { cancelBookingByToken } from '../api/bookings';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
 
 export default function CancelBooking() {
   const { token } = useParams();
   const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const { role } = useAuth();
 
   useEffect(() => {
     async function run() {
@@ -56,7 +59,7 @@ export default function CancelBooking() {
         message={error || message}
         severity={error ? 'error' : 'success'}
       />
-      <ClientBottomNav />
+      {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
     </Page>
   );
 }
