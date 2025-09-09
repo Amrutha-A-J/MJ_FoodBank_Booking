@@ -48,6 +48,7 @@ describe('sendNextDayBookingReminders', () => {
   it('fetches next-day bookings and queues reminder emails', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
+        id: 1,
         user_id: 1,
         user_email: 'user@example.com',
         start_time: '09:00:00',
@@ -72,6 +73,10 @@ describe('sendNextDayBookingReminders', () => {
     expect(notifyOps).toHaveBeenCalledWith(
       'sendNextDayBookingReminders queued reminders for user@example.com',
     );
+    expect(db.query).toHaveBeenCalledWith(
+      'UPDATE bookings SET reminder_sent = true WHERE id = $1',
+      [1],
+    );
   });
 
   it('alerts ops and surfaces failures from enqueueEmail', async () => {
@@ -87,6 +92,32 @@ describe('sendNextDayBookingReminders', () => {
     expect(alertOps).toHaveBeenCalledWith(
       'sendNextDayBookingReminders',
       expect.any(Error),
+    );
+  });
+
+  it('marks reminders as sent so bookings are queued only once', async () => {
+    (fetchBookingsForReminder as jest.Mock)
+      .mockResolvedValueOnce([
+        {
+          id: 1,
+          user_id: 1,
+          user_email: 'user@example.com',
+          start_time: '09:00:00',
+          end_time: '10:00:00',
+          reschedule_token: 'tok',
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    (enqueueEmail as jest.Mock).mockResolvedValue(undefined);
+
+    await sendNextDayBookingReminders();
+    await sendNextDayBookingReminders();
+
+    expect(fetchBookingsForReminder).toHaveBeenCalledTimes(2);
+    expect(enqueueEmail).toHaveBeenCalledTimes(1);
+    expect(db.query).toHaveBeenCalledWith(
+      'UPDATE bookings SET reminder_sent = true WHERE id = $1',
+      [1],
     );
   });
 });
