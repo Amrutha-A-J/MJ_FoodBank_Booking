@@ -7,42 +7,18 @@ import type {
 import { API_BASE, apiFetch, handleResponse } from "./client";
 export type { LoginResponse } from "../types";
 
-export async function loginUser(
-  clientId: string,
+export async function login(
+  identifier: string,
   password: string,
 ): Promise<LoginResponse> {
-  const id = Number(clientId);
-  if (!Number.isInteger(id)) {
-    return Promise.reject(new Error("Invalid client ID"));
-  }
+  const body: Record<string, unknown> = { password };
+  const id = Number(identifier);
+  if (Number.isInteger(id)) body.clientId = id;
+  else body.email = identifier;
   const res = await apiFetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientId: id, password }),
-  });
-  return handleResponse(res);
-}
-
-export async function loginStaff(
-  email: string,
-  password: string,
-): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  return handleResponse(res);
-}
-
-export async function loginAgency(
-  email: string,
-  password: string,
-): Promise<LoginResponse> {
-  const res = await apiFetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(body),
   });
   return handleResponse(res);
 }

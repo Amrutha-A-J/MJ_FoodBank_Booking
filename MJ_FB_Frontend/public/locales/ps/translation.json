@@ -22,7 +22,7 @@
   "client_id": "د پېرېدونکي پېژند",
   "password": "پاسورډ",
   "forgot_password": "پاسورډ مو هیر کړی؟",
-  "client_id_required": "د پېرېدونکي پېژند اړینه ده",
+  "client_id_required": "Client ID or email is required",
   "password_required": "پاسورډ اړین دی",
   "show_password": "Show password",
   "hide_password": "Hide password",
@@ -129,11 +129,11 @@
       ]
     },
     "login": {
-      "title": "Log in",
-      "description": "Choose a login type on the selection screen.",
+      "title": "Login",
+      "description": "Sign in with your client ID or email and password.",
       "steps": [
-        "Open the Login page.",
-        "Select Client, Volunteer, Staff, or Agency."
+        "Open the login page.",
+        "Enter your client ID or email and password."
       ]
     }
   },
@@ -323,7 +323,7 @@
   "booking_rescheduled": "Booking rescheduled",
   "reschedule_failed": "Failed to reschedule booking",
   "select_date_time": "Please select date and time",
-  "client_login_notice_id": "Please use your client ID to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created.",
+  "client_login_notice_id": "Please use your client ID or email to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created.",
   "client_login_notice_internal": "If you are staff, volunteer, or agency, use the internal login button in the menu to log in.",
   "client_login_notice_password": "If your password is not working, please use the forgot password link below to set a new password.",
   "client_login_notice_volunteer": "Are you a volunteer looking to shop? Please contact harvestpantry@mjfoodbank.org to enable booking shopping in your volunteer account. After that please login to your volunteer account to book your shopping appointments.",
@@ -332,5 +332,7 @@
   "install_app": "Install App",
   "staff_login": "Staff Login",
   "volunteer_login": "Volunteer Login",
-  "agency_login": "Agency Login"
+  "agency_login": "Agency Login",
+  "client_id_or_email": "Client ID or Email",
+  "incorrect_id_password": "Incorrect ID or email or password"
 }

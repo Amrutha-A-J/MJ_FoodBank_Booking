@@ -1,5 +1,5 @@
 import { apiFetch, handleResponse } from '../api/client';
-import { loginUser, addUser } from '../api/users';
+import { login, addUser } from '../api/users';
 
 jest.mock('../api/client', () => ({
   API_BASE: '/api',
@@ -13,9 +13,23 @@ describe('users api', () => {
     jest.clearAllMocks();
   });
 
-  it('rejects loginUser with invalid clientId', async () => {
-    await expect(loginUser('abc', 'pw')).rejects.toThrow('Invalid client ID');
-    expect(apiFetch).not.toHaveBeenCalled();
+  it('sends clientId or email to login', async () => {
+    await login('123', 'pw');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ clientId: 123, password: 'pw' }),
+      }),
+    );
+    await login('user@example.com', 'pw');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/auth/login',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ email: 'user@example.com', password: 'pw' }),
+      }),
+    );
   });
 
   it('rejects addUser with invalid clientId', async () => {

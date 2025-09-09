@@ -10,14 +10,12 @@ Add the following translation strings to locale files:
 - `client_login_notice_volunteer` – tells volunteers who want to shop to email harvestpantry@mjfoodbank.org so booking can be enabled from their volunteer account
 - `client_login_notice_close` – instructs users to close the modal to sign in
 
-## Login selection
+## Login
 
-Add these translation strings for the login selection page and help content:
+Add these translation strings for the unified login page and help content:
 
-- `staff_login` – button label for staff login
-- `volunteer_login` – button label for volunteer login
-- `agency_login` – button label for agency login
+- `client_id_or_email` – label for the login identifier field
 - `help.login.title` – Help page heading for login instructions
-- `help.login.description` – describes the login selection page
+- `help.login.description` – describes the login page
 - `help.login.steps.0` – step to open the login page
-- `help.login.steps.1` – step to pick a login type
+- `help.login.steps.1` – step to enter your client ID or email and password

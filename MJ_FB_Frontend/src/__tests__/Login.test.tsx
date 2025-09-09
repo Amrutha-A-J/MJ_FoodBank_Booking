@@ -1,16 +1,16 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../pages/auth/Login';
-import { loginUser, resendPasswordSetup } from '../api/users';
+import { login, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
-  loginUser: jest.fn(),
+  login: jest.fn(),
   resendPasswordSetup: jest.fn(),
 }));
 
 describe('Login component', () => {
   it('submits login credentials and calls onLogin', async () => {
-    (loginUser as jest.Mock).mockResolvedValue({
+    (login as jest.Mock).mockResolvedValue({
       role: 'user',
       name: 'Test',
     });
@@ -20,7 +20,7 @@ describe('Login component', () => {
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
+    fireEvent.change(screen.getByLabelText(/client id or email/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
@@ -28,14 +28,14 @@ describe('Login component', () => {
 
   it('shows friendly message on unauthorized error', async () => {
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
-    (loginUser as jest.Mock).mockRejectedValue(apiErr);
+    (login as jest.Mock).mockRejectedValue(apiErr);
     const onLogin = jest.fn();
     render(
       <MemoryRouter>
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), {
+    fireEvent.change(screen.getByLabelText(/client id or email/i), {
       target: { value: '123' },
     });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
@@ -43,14 +43,14 @@ describe('Login component', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     expect(
-      await screen.findByText('Incorrect ID or password')
+      await screen.findByText('Incorrect ID or email or password')
     ).toBeInTheDocument();
     expect(onLogin).not.toHaveBeenCalled();
   });
 
   it('opens resend dialog on expired token error', async () => {
     const apiErr = Object.assign(new Error('expired'), { status: 403 });
-    (loginUser as jest.Mock).mockRejectedValue(apiErr);
+    (login as jest.Mock).mockRejectedValue(apiErr);
     (resendPasswordSetup as jest.Mock).mockResolvedValue(undefined);
     const onLogin = jest.fn();
     render(
@@ -58,7 +58,7 @@ describe('Login component', () => {
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), {
+    fireEvent.change(screen.getByLabelText(/client id or email/i), {
       target: { value: '123' },
     });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
