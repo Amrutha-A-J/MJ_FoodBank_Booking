@@ -14,8 +14,12 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  CircularProgress,
+  Box,
+  Fab,
 } from '@mui/material';
 import Announcement from '@mui/icons-material/Announcement';
+import Add from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -51,6 +55,7 @@ import PersonalContributionChart, {
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import type { ApiError } from '../../api/client';
 import type { VolunteerBookingConflict } from '../../types';
+import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -76,10 +81,15 @@ export default function VolunteerDashboard() {
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
   const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
+  const [loadingCount, setLoadingCount] = useState(0);
+  const startLoading = () => setLoadingCount(c => c + 1);
+  const stopLoading = () => setLoadingCount(c => Math.max(c - 1, 0));
+  const loading = loadingCount > 0;
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
+    startLoading();
     getMyVolunteerBookings()
       .then(data => {
         setBookings(data);
@@ -120,10 +130,12 @@ export default function VolunteerDashboard() {
         setBookings([]);
         setTopRoles([]);
         setContributionData([]);
-      });
+      })
+      .finally(stopLoading);
   }, []);
 
   useEffect(() => {
+    startLoading();
     getEvents()
       .then(data =>
         setEvents(data ?? { today: [], upcoming: [], past: [] }),
@@ -133,10 +145,12 @@ export default function VolunteerDashboard() {
         setEvents({ today: [], upcoming: [], past: [] });
         setSnackbarSeverity('error');
         setMessage('Failed to load events');
-      });
+      })
+      .finally(stopLoading);
   }, []);
 
   useEffect(() => {
+    startLoading();
     getVolunteerStats()
       .then(data => {
         setBadges(data.badges ?? []);
@@ -154,33 +168,41 @@ export default function VolunteerDashboard() {
       .catch(() => {
         setBadges([]);
         setStats(undefined);
-      });
+      })
+      .finally(stopLoading);
   }, []);
 
   useEffect(() => {
+    startLoading();
     getVolunteerLeaderboard()
       .then(setLeaderboard)
-      .catch(() => setLeaderboard(undefined));
+      .catch(() => setLeaderboard(undefined))
+      .finally(stopLoading);
   }, []);
 
   useEffect(() => {
     async function loadAvailability() {
-      const today = toDate();
-      const days =
-        dateMode === 'week'
-          ? Array.from({ length: 7 }, (_, i) => {
-              const d = toDate(today);
-              d.setDate(d.getDate() + i);
-              return d;
-            })
-          : [today];
-      const requests = days.map(day =>
-        getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
-          () => [],
-        ),
-      );
-      const results = await Promise.all(requests);
-      setAvailability(results.flat());
+      startLoading();
+      try {
+        const today = toDate();
+        const days =
+          dateMode === 'week'
+            ? Array.from({ length: 7 }, (_, i) => {
+                const d = toDate(today);
+                d.setDate(d.getDate() + i);
+                return d;
+              })
+            : [today];
+        const requests = days.map(day =>
+          getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
+            () => [],
+          ),
+        );
+        const results = await Promise.all(requests);
+        setAvailability(results.flat());
+      } finally {
+        stopLoading();
+      }
     }
     loadAvailability();
   }, [dateMode]);
@@ -301,7 +323,12 @@ export default function VolunteerDashboard() {
   }
 
   return (
-    <Page title="Volunteer Dashboard">
+    <Page title="Volunteer Dashboard" sx={{ pb: 7 }}>
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <CircularProgress />
+        </Box>
+      )}
       <Grid container spacing={2}>
         {contributionData.length > 0 ? (
           <>
@@ -329,7 +356,7 @@ export default function VolunteerDashboard() {
                   </Typography>
                   <Stack direction="row" spacing={1}>
                     <Button
-                      size="small"
+                      size="large"
                       variant="outlined"
                       sx={{ textTransform: 'none' }}
                       onClick={() => navigate('/volunteer/schedule')}
@@ -337,7 +364,7 @@ export default function VolunteerDashboard() {
                       Reschedule
                     </Button>
                     <Button
-                      size="small"
+                      size="large"
                       variant="contained"
                       sx={{ textTransform: 'none' }}
                       onClick={cancelNext}
@@ -432,7 +459,7 @@ export default function VolunteerDashboard() {
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
-                  size="small"
+                  size="large"
                   variant="contained"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/volunteer/schedule')}
@@ -440,7 +467,7 @@ export default function VolunteerDashboard() {
                   Request a shift
                 </Button>
                 <Button
-                  size="small"
+                  size="large"
                   variant="outlined"
                   sx={{ textTransform: 'none' }}
                   onClick={cancelNext}
@@ -449,7 +476,7 @@ export default function VolunteerDashboard() {
                   Cancel upcoming
                 </Button>
                 <Button
-                  size="small"
+                  size="large"
                   variant="outlined"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/volunteer/schedule')}
@@ -463,7 +490,7 @@ export default function VolunteerDashboard() {
             <SectionCard title="Available in My Roles">
               <Stack direction="row" spacing={1} alignItems="center" mb={2}>
                 <ToggleButtonGroup
-                  size="small"
+                  size="medium"
                   value={dateMode}
                   exclusive
                   onChange={(_, v) => v && setDateMode(v)}
@@ -471,7 +498,7 @@ export default function VolunteerDashboard() {
                   <ToggleButton value="today">Today</ToggleButton>
                   <ToggleButton value="week">Week</ToggleButton>
                 </ToggleButtonGroup>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
+                <FormControl size="medium" sx={{ minWidth: 120 }}>
                   <InputLabel id="role-filter-label">Role</InputLabel>
                   <Select
                     labelId="role-filter-label"
@@ -495,7 +522,7 @@ export default function VolunteerDashboard() {
                     sx={{ pl: 0 }}
                     secondaryAction={
                       <Button
-                        size="small"
+                        size="large"
                         variant="contained"
                         sx={{ textTransform: 'none' }}
                         onClick={() => request(r)}
@@ -540,6 +567,15 @@ export default function VolunteerDashboard() {
         message={message}
         severity={snackbarSeverity}
       />
+      <Fab
+        color="primary"
+        aria-label="request shift"
+        onClick={() => navigate('/volunteer/schedule')}
+        sx={{ position: 'fixed', bottom: 72, right: 16 }}
+      >
+        <Add />
+      </Fab>
+      <VolunteerBottomNav />
     </Page>
   );
 }

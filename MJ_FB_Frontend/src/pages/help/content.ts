@@ -100,7 +100,7 @@ export function getHelpContent(
         description: 'The volunteer schedule shows available shifts for your trained roles.',
         steps: [
           t('help.dashboard_nav_step'),
-          'Open the Volunteer Schedule.',
+          'Tap Schedule in the bottom navigation.',
           'Select a role from the dropdown.',
           'Use the date picker to choose a day.',
           'Review open shifts.',
@@ -112,8 +112,8 @@ export function getHelpContent(
       body: {
         description: 'Manage your volunteer shifts.',
         steps: [
-          'Click an available shift to book.',
-          'Go to Upcoming Shifts on the dashboard.',
+          'Use the + button to request a shift or tap an available shift.',
+          'Open the dashboard from the bottom navigation.',
           'Choose Cancel or Reschedule as needed.',
         ],
       },
