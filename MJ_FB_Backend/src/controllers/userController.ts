@@ -688,6 +688,13 @@ export async function deleteUserByClientId(
     }
     res.json({ message: 'User deleted' });
   } catch (error) {
+    const err = error as { code?: string };
+    if (err.code === '23503') {
+      logger.warn('Cannot delete user with existing references:', error);
+      return res
+        .status(409)
+        .json({ message: 'Cannot delete user with existing records' });
+    }
     logger.error('Error deleting user:', error);
     next(error);
   }
