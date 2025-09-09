@@ -95,6 +95,9 @@ const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
 const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
+const PantryAggregations = React.lazy(() =>
+  import('./pages/staff/PantryAggregations')
+);
 const Timesheets = React.lazy(() => import('./pages/staff/timesheets'));
 const LeaveManagement = React.lazy(
   () => import('./pages/staff/LeaveManagement'),
@@ -363,7 +366,7 @@ export default function App() {
                     <Route path="/pantry/visits" element={<PantryVisits />} />
                   )}
                   {showStaff && (
-                    <Route path="/pantry/aggregations" element={<Aggregations />} />
+                    <Route path="/pantry/aggregations" element={<PantryAggregations />} />
                   )}
                   {isStaff && (
                     <Route path="/timesheet" element={<Timesheets />} />
