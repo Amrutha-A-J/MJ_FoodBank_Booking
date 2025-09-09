@@ -186,6 +186,7 @@ export default function BookingUI({
     try {
       const profile = await getUserProfile();
       setUsage(profile.bookingsThisMonth ?? 0);
+      setNote(profile.defaultBookingNote ?? '');
       setConfirmOpen(true);
     } finally {
       setLoadingConfirm(false);

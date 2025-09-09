@@ -14,6 +14,9 @@ jest.mock('../api/bookings', () => ({
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
 describe('ClientDashboard', () => {
+  beforeEach(() => {
+    localStorage.setItem('clientOnboarding', 'true');
+  });
   it('shows events in News & Events section', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
     (getSlots as jest.Mock).mockResolvedValue([]);

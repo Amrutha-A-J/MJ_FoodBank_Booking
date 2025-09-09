@@ -37,6 +37,12 @@ export function getHelpContent(
       loginSection,
       installAppSection,
       {
+        title: t('help.client.dashboard_tips.title'),
+        body: {
+          description: t('help.client.dashboard_tips.description'),
+        },
+      },
+      {
         title: t('help.client.booking_appointments.title'),
         body: {
           description: t('help.client.booking_appointments.description'),
@@ -95,6 +101,12 @@ export function getHelpContent(
     volunteer: [
       loginSection,
       installAppSection,
+    {
+      title: t('help.volunteer.dashboard_tips.title'),
+      body: {
+        description: t('help.volunteer.dashboard_tips.description'),
+      },
+    },
     {
       title: 'View schedule',
       body: {

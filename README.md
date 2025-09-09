@@ -208,6 +208,7 @@ Before merging a pull request, confirm the following:
 - Volunteer dashboard hides shifts already booked by the volunteer and shows detailed error messages from the server when requests fail.
 - Conflicting volunteer shift requests return a 409 with both the attempted and existing shift details; resolve conflicts via `POST /volunteer-bookings/resolve-conflict` (body: `{ existingBookingId, keep, roleId?, date? }`; `roleId` and `date` are required only when keeping the new booking).
 - Volunteer schedule prevents navigating to past dates and hides shifts that have already started.
+- Volunteer schedule open slots include a **Sign Up** button for one‑tap booking.
 - Staff assigning volunteers can override a full role via a confirmation prompt, which increases that slot's `max_volunteers`.
 - Volunteer badges are calculated from activity and manually awardable. Manual awards are issued via `POST /volunteers/me/badges`. `GET /volunteers/me/stats` returns earned badges along with lifetime hours, this month's hours, total completed shifts, and current streak. Only shifts marked as `completed` contribute to hours and shift totals; `approved` or `no_show` shifts are ignored. The endpoint also flags milestones at 5, 10, and 25 shifts so the dashboard can show a celebration banner.
 - The stats endpoint now provides a milestone message and contribution totals (`familiesServed`, `poundsHandled`) along with current-month figures (`monthFamiliesServed`, `monthPoundsHandled`) so the dashboard can display appreciation.
@@ -242,6 +243,7 @@ Before merging a pull request, confirm the following:
 - Staff can delete visit records from booking history if they were recorded in error; clients cannot remove visits.
 - Booking requests are automatically approved; the submitted state has been removed.
 - Booking confirmations display "Shift booked"; the volunteer dashboard shows only approved bookings.
+- Booking confirmation dialogs prefill notes from the user's profile when available.
 - Booking history endpoint `/bookings/history` accepts `includeVisits=true` to include walk-in visits in results.
 - When `includeStaffNotes=true` or the requester is staff, `/bookings/history` returns both `client_note` and `staff_note` for each entry.
 - Agencies can supply `clientIds`, `limit`, and `offset` to `/bookings/history` for multi-client, paginated booking history.
@@ -472,6 +474,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff dashboard includes a pantry visit trend line chart showing monthly totals for clients, adults, and children.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - Volunteers see an Install App button on their first visit to volunteer pages. An onboarding modal explains offline benefits, and installs are tracked. iOS users should use Safari's **Add to Home Screen**.
+- Client and volunteer dashboards display onboarding tips on first visit and store a local flag to avoid repeat prompts.
 - An Install App button appears when the app is installable; iOS users should use Safari's **Add to Home Screen**.
 - A Workbox service worker caches built assets plus schedule, booking history, and profile API responses, provides an offline fallback page, and queues offline booking actions for background sync.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.

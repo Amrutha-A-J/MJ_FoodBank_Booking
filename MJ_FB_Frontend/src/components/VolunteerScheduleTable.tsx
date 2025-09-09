@@ -8,8 +8,10 @@ import {
   Paper,
   useMediaQuery,
   useTheme,
+  Button,
 } from '@mui/material';
 import type { ReactNode } from 'react';
+import i18n from '../i18n';
 
 interface Cell {
   content: ReactNode;
@@ -85,17 +87,18 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                   <TableCell
                     key={i}
                     colSpan={cell.colSpan}
-                    onClick={cell.onClick}
                     sx={{
                       textAlign: 'center',
-                      cursor: cell.onClick ? 'pointer' : 'default',
                       backgroundColor: cell.backgroundColor,
-                      ...(cell.backgroundColor && {
-                        '&:hover': { backgroundColor: cell.backgroundColor },
-                      }),
                     }}
                   >
-                    {cell.content}
+                    {cell.onClick ? (
+                      <Button size="small" onClick={cell.onClick} variant="outlined">
+                        {cell.content ?? i18n.t('sign_up')}
+                      </Button>
+                    ) : (
+                      cell.content
+                    )}
                   </TableCell>
                 ))}
                 {Array.from({ length: safeMaxSlots - used }).map((_, i) => (

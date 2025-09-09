@@ -97,6 +97,10 @@
           "Review your visit counter.",
           "Check reminders for upcoming bookings."
         ]
+      },
+      "dashboard_tips": {
+        "title": "Dashboard tips",
+        "description": "Review the tips shown on your first visit."
       }
     },
     "pantry": {
@@ -136,6 +140,12 @@
         "Enter your client ID or email and password.",
         "Press Sign In."
       ]
+    },
+    "volunteer": {
+      "dashboard_tips": {
+        "title": "Dashboard tips",
+        "description": "Review the tips shown on your first visit."
+      }
     }
   },
   "logout": "लॉगआउट",
@@ -335,5 +345,17 @@
   "volunteer_login": "Volunteer Login",
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
-  "incorrect_id_password": "Incorrect ID or email or password"
+  "incorrect_id_password": "Incorrect ID or email or password",
+  "sign_up": "Sign Up",
+  "onboarding": {
+    "client": {
+      "title": "Welcome",
+      "body": "Use Book Appointment to schedule visits. Your dashboard shows upcoming bookings."
+    },
+    "volunteer": {
+      "title": "Welcome",
+      "body": "Tap Schedule to sign up for shifts. Install the app for faster access."
+    },
+    "close": "Got it"
+  }
 }

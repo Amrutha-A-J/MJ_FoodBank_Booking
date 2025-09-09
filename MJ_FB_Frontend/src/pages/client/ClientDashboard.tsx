@@ -30,6 +30,7 @@ import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
+import OnboardingModal from '../../components/OnboardingModal';
 
 interface NextSlot {
   date: string;
@@ -139,6 +140,11 @@ export default function ClientDashboard() {
 
   return (
     <Page title={t('client_dashboard')}>
+      <OnboardingModal
+        storageKey="clientOnboarding"
+        title={t('onboarding.client.title')}
+        body={t('onboarding.client.body')}
+      />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>

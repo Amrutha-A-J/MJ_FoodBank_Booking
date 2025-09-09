@@ -10,6 +10,12 @@ describe("Schedule views", () => {
     expect(screen.getByText(i18n.t("no_bookings"))).toBeInTheDocument();
   });
 
+  it('shows Sign Up button for open slots', () => {
+    const handle = jest.fn();
+    render(<VolunteerScheduleTable maxSlots={1} rows={[{ time: '9', cells: [{ onClick: handle }] }]} />);
+    expect(screen.getByRole('button', { name: /sign up/i })).toBeInTheDocument();
+  });
+
   it("handles maxSlots=0 gracefully in card view", () => {
     render(<ScheduleCards maxSlots={0} rows={[]} />);
     expect(screen.getByText(i18n.t("no_bookings"))).toBeInTheDocument();
