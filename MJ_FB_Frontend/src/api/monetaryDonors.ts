@@ -63,6 +63,22 @@ export async function deleteMonetaryDonor(id: number): Promise<void> {
   await handleResponse(res);
 }
 
+export interface MonetaryDonorDetail {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  amount: number;
+  lastDonationISO: string | null;
+}
+
+export async function getMonetaryDonor(
+  id: number,
+): Promise<MonetaryDonorDetail> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`);
+  return handleResponse(res);
+}
+
 export async function getMonetaryDonations(
   donorId: number,
 ): Promise<MonetaryDonation[]> {
