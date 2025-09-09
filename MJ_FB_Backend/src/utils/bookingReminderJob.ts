@@ -5,7 +5,7 @@ import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 import { buildCancelRescheduleLinks } from './emailUtils';
 import config from '../config';
-import { alertOps } from './opsAlert';
+import { alertOps, notifyOps } from './opsAlert';
 
 /**
  * Send reminder emails for bookings scheduled for the next day.
@@ -17,6 +17,7 @@ export async function sendNextDayBookingReminders(): Promise<void> {
   const formattedDate = formatReginaDateWithDay(nextDate);
   try {
     const bookings = await fetchBookingsForReminder(nextDate);
+    const recipients: string[] = [];
     for (const b of bookings) {
       if (!b.user_email) continue;
       const time =
@@ -32,7 +33,13 @@ export async function sendNextDayBookingReminders(): Promise<void> {
         templateId: config.bookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'Shopping Appointment' },
       });
+      recipients.push(b.user_email);
     }
+    await notifyOps(
+      `sendNextDayBookingReminders queued reminders for ${
+        recipients.length ? recipients.join(', ') : '0 emails'
+      }`,
+    );
   } catch (err) {
     logger.error('Failed to send booking reminders', err);
     await alertOps('sendNextDayBookingReminders', err);
