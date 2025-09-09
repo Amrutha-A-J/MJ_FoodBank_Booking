@@ -1,7 +1,7 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
-export async function getPantryWeekly(year: number, week: number) {
-  const res = await apiFetch(`${API_BASE}/pantry-aggregations/weekly?year=${year}&week=${week}`);
+export async function getPantryWeekly(year: number, month: number) {
+  const res = await apiFetch(`${API_BASE}/pantry-aggregations/weekly?year=${year}&month=${month}`);
   return handleResponse(res);
 }
 

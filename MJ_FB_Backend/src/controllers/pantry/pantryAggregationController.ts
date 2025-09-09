@@ -55,15 +55,16 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
-    `INSERT INTO pantry_weekly_overall (year, month, week, clients, adults, children, total_weight, sunshine_bag_weight)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO pantry_weekly_overall (year, month, week, clients, adults, children, total_weight, sunshine_bags, sunshine_bag_weight)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (year, month, week)
        DO UPDATE SET clients = EXCLUDED.clients,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      total_weight = EXCLUDED.total_weight,
+                     sunshine_bags = EXCLUDED.sunshine_bags,
                      sunshine_bag_weight = EXCLUDED.sunshine_bag_weight`,
-    [year, month, week, clients, adults, children, totalWeight, bagWeight],
+    [year, month, week, clients, adults, children, totalWeight, bagClients, bagWeight],
   );
 }
 
@@ -98,15 +99,16 @@ export async function refreshPantryMonthly(year: number, month: number) {
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
-    `INSERT INTO pantry_monthly_overall (year, month, clients, adults, children, total_weight, sunshine_bag_weight)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO pantry_monthly_overall (year, month, clients, adults, children, total_weight, sunshine_bags, sunshine_bag_weight)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (year, month)
        DO UPDATE SET clients = EXCLUDED.clients,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      total_weight = EXCLUDED.total_weight,
+                     sunshine_bags = EXCLUDED.sunshine_bags,
                      sunshine_bag_weight = EXCLUDED.sunshine_bag_weight`,
-    [year, month, clients, adults, children, totalWeight, bagWeight],
+    [year, month, clients, adults, children, totalWeight, bagClients, bagWeight],
   );
 }
 
@@ -141,15 +143,16 @@ export async function refreshPantryYearly(year: number) {
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
-    `INSERT INTO pantry_yearly_overall (year, clients, adults, children, total_weight, sunshine_bag_weight)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO pantry_yearly_overall (year, clients, adults, children, total_weight, sunshine_bags, sunshine_bag_weight)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (year)
        DO UPDATE SET clients = EXCLUDED.clients,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      total_weight = EXCLUDED.total_weight,
+                     sunshine_bags = EXCLUDED.sunshine_bags,
                      sunshine_bag_weight = EXCLUDED.sunshine_bag_weight`,
-    [year, clients, adults, children, totalWeight, bagWeight],
+    [year, clients, adults, children, totalWeight, bagClients, bagWeight],
   );
 }
 
@@ -159,7 +162,7 @@ export async function listPantryWeekly(req: Request, res: Response, next: NextFu
     const month = parseInt((req.query.month as string) ?? '', 10);
     if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
     const result = await pool.query(
-      `SELECT week, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
+      `SELECT week, clients, adults, children, total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
          FROM pantry_weekly_overall
         WHERE year = $1 AND month = $2
         ORDER BY week`,
@@ -178,7 +181,7 @@ export async function listPantryMonthly(req: Request, res: Response, next: NextF
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
-      `SELECT month, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
+      `SELECT month, clients, adults, children, total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
          FROM pantry_monthly_overall
         WHERE year = $1
         ORDER BY month`,
@@ -194,7 +197,7 @@ export async function listPantryMonthly(req: Request, res: Response, next: NextF
 export async function listPantryYearly(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await pool.query(
-      `SELECT year, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
+      `SELECT year, clients, adults, children, total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
          FROM pantry_yearly_overall
         ORDER BY year`,
     );
@@ -219,16 +222,28 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
   try {
     const year = parseInt((req.query.year as string) ?? '', 10);
     const month = parseInt((req.query.month as string) ?? '', 10);
-    if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
+    const week = parseInt((req.query.week as string) ?? '', 10);
+    if (!year || !month || !week)
+      return res.status(400).json({ message: 'Year, month and week required' });
     const result = await pool.query(
-      `SELECT week, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
+      `SELECT start_date as "startDate", end_date as "endDate", clients, adults, children,
+              total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
          FROM pantry_weekly_overall
-        WHERE year = $1 AND month = $2
-        ORDER BY week`,
-      [year, month],
+        WHERE year = $1 AND month = $2 AND week = $3`,
+      [year, month, week],
     );
 
-    const dataByWeek = new Map(result.rows.map(r => [r.week, r]));
+    const row =
+      result.rows[0] || {
+        startDate: null,
+        endDate: null,
+        clients: 0,
+        adults: 0,
+        children: 0,
+        foodWeight: 0,
+        sunshineBags: 0,
+        sunshineWeight: 0,
+      };
 
     const headerStyle = {
       backgroundColor: '#000000',
@@ -238,96 +253,22 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
 
     const rows: Row[] = [
       [
-        { value: 'Week', ...headerStyle },
+        { value: 'Range/Month/Year', ...headerStyle },
         { value: 'Clients', ...headerStyle },
         { value: 'Adults', ...headerStyle },
         { value: 'Children', ...headerStyle },
-        { value: 'Sunshine Bag Weight', ...headerStyle },
-        { value: 'Total Weight', ...headerStyle },
+        { value: 'Food Weight', ...headerStyle },
+        { value: 'Sunshine Bags', ...headerStyle },
+        { value: 'Sunshine Weight', ...headerStyle },
       ],
-    ];
-
-    let totals = { clients: 0, adults: 0, children: 0, sunshineBagWeight: 0, totalWeight: 0 };
-
-    for (let w = 1; w <= 5; w++) {
-      const row =
-        dataByWeek.get(w) ||
-        { clients: 0, adults: 0, children: 0, sunshineBagWeight: 0, totalWeight: 0 };
-      rows.push([
-        { value: `Week ${w}` },
+      [
+        { value: row.startDate && row.endDate ? `${row.startDate} - ${row.endDate}` : `Week ${week}` },
         { value: row.clients },
         { value: row.adults },
         { value: row.children },
-        { value: row.sunshineBagWeight },
-        { value: row.totalWeight },
-      ]);
-      totals = {
-        clients: totals.clients + row.clients,
-        adults: totals.adults + row.adults,
-        children: totals.children + row.children,
-        sunshineBagWeight: totals.sunshineBagWeight + row.sunshineBagWeight,
-        totalWeight: totals.totalWeight + row.totalWeight,
-      };
-    }
-
-    rows.push([
-      { value: 'Total', fontWeight: 'bold' },
-      { value: totals.clients, fontWeight: 'bold' },
-      { value: totals.adults, fontWeight: 'bold' },
-      { value: totals.children, fontWeight: 'bold' },
-      { value: totals.sunshineBagWeight, fontWeight: 'bold' },
-      { value: totals.totalWeight, fontWeight: 'bold' },
-    ]);
-
-    const buffer = await writeXlsxFile(rows, {
-      sheet: `Pantry ${year}-${month}`,
-      buffer: true,
-    });
-    res
-      .setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      )
-      .setHeader(
-        'Content-Disposition',
-        `attachment; filename=${year}_${month}_pantry_weekly_stats.xlsx`,
-      );
-    res.send(buffer);
-  } catch (error) {
-    logger.error('Error exporting pantry weekly:', error);
-    next(error);
-  }
-}
-
-export async function exportPantryMonthly(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const result = await pool.query(
-      `SELECT month, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
-         FROM pantry_monthly_overall
-        WHERE year = $1
-        ORDER BY month`,
-      [year],
-    );
-
-    const dataByMonth = new Map(result.rows.map(r => [r.month, r]));
-
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
-
-    const rows: Row[] = [
-      [
-        { value: 'Month', ...headerStyle },
-        { value: 'Clients', ...headerStyle },
-        { value: 'Adults', ...headerStyle },
-        { value: 'Children', ...headerStyle },
-        { value: 'Sunshine Bag Weight', ...headerStyle },
-        { value: 'Total Weight', ...headerStyle },
+        { value: row.foodWeight },
+        { value: row.sunshineBags },
+        { value: row.sunshineWeight },
       ],
     ];
 
@@ -346,37 +287,157 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
       'December',
     ];
 
-    let totals = { clients: 0, adults: 0, children: 0, sunshineBagWeight: 0, totalWeight: 0 };
+    const buffer = await writeXlsxFile(rows, {
+      sheet: `Pantry ${year}-${month}`,
+      buffer: true,
+    });
+    res
+      .setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      .setHeader(
+        'Content-Disposition',
+        `attachment; filename=${year}_${monthNames[month - 1]}_week${week}_pantry_stats.xlsx`,
+      );
+    res.send(buffer);
+  } catch (error) {
+    logger.error('Error exporting pantry weekly:', error);
+    next(error);
+  }
+}
 
-    for (let m = 1; m <= 12; m++) {
-      const row =
-        dataByMonth.get(m) ||
-        { clients: 0, adults: 0, children: 0, sunshineBagWeight: 0, totalWeight: 0 };
-      rows.push([
-        { value: monthNames[m - 1] },
+export async function exportPantryMonthly(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10);
+    const month = parseInt((req.query.month as string) ?? '', 10);
+    if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
+    const result = await pool.query(
+      `SELECT clients, adults, children, total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
+         FROM pantry_monthly_overall
+        WHERE year = $1 AND month = $2`,
+      [year, month],
+    );
+
+    const row =
+      result.rows[0] || {
+        clients: 0,
+        adults: 0,
+        children: 0,
+        foodWeight: 0,
+        sunshineBags: 0,
+        sunshineWeight: 0,
+      };
+
+    const headerStyle = {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+      fontWeight: 'bold' as const,
+    };
+
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    const rows: Row[] = [
+      [
+        { value: 'Range/Month/Year', ...headerStyle },
+        { value: 'Clients', ...headerStyle },
+        { value: 'Adults', ...headerStyle },
+        { value: 'Children', ...headerStyle },
+        { value: 'Food Weight', ...headerStyle },
+        { value: 'Sunshine Bags', ...headerStyle },
+        { value: 'Sunshine Weight', ...headerStyle },
+      ],
+      [
+        { value: monthNames[month - 1] },
         { value: row.clients },
         { value: row.adults },
         { value: row.children },
-        { value: row.sunshineBagWeight },
-        { value: row.totalWeight },
-      ]);
-      totals = {
-        clients: totals.clients + row.clients,
-        adults: totals.adults + row.adults,
-        children: totals.children + row.children,
-        sunshineBagWeight: totals.sunshineBagWeight + row.sunshineBagWeight,
-        totalWeight: totals.totalWeight + row.totalWeight,
-      };
-    }
+        { value: row.foodWeight },
+        { value: row.sunshineBags },
+        { value: row.sunshineWeight },
+      ],
+    ];
 
-    rows.push([
-      { value: 'Total', fontWeight: 'bold' },
-      { value: totals.clients, fontWeight: 'bold' },
-      { value: totals.adults, fontWeight: 'bold' },
-      { value: totals.children, fontWeight: 'bold' },
-      { value: totals.sunshineBagWeight, fontWeight: 'bold' },
-      { value: totals.totalWeight, fontWeight: 'bold' },
-    ]);
+    const buffer = await writeXlsxFile(rows, {
+      sheet: `Pantry ${year}-${month}`,
+      buffer: true,
+    });
+    res
+      .setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      .setHeader(
+        'Content-Disposition',
+        `attachment; filename=${year}_${monthNames[month - 1]}_pantry_stats.xlsx`,
+      );
+    res.send(buffer);
+  } catch (error) {
+    logger.error('Error exporting pantry monthly:', error);
+    next(error);
+  }
+}
+
+export async function exportPantryYearly(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10);
+    if (!year) return res.status(400).json({ message: 'Year required' });
+    const result = await pool.query(
+      `SELECT clients, adults, children, total_weight as "foodWeight", sunshine_bags as "sunshineBags", sunshine_bag_weight as "sunshineWeight"
+         FROM pantry_yearly_overall
+        WHERE year = $1`,
+      [year],
+    );
+
+    const row =
+      result.rows[0] || {
+        clients: 0,
+        adults: 0,
+        children: 0,
+        foodWeight: 0,
+        sunshineBags: 0,
+        sunshineWeight: 0,
+      };
+
+    const headerStyle = {
+      backgroundColor: '#000000',
+      color: '#FFFFFF',
+      fontWeight: 'bold' as const,
+    };
+
+    const rows: Row[] = [
+      [
+        { value: 'Range/Month/Year', ...headerStyle },
+        { value: 'Clients', ...headerStyle },
+        { value: 'Adults', ...headerStyle },
+        { value: 'Children', ...headerStyle },
+        { value: 'Food Weight', ...headerStyle },
+        { value: 'Sunshine Bags', ...headerStyle },
+        { value: 'Sunshine Weight', ...headerStyle },
+      ],
+      [
+        { value: year },
+        { value: row.clients },
+        { value: row.adults },
+        { value: row.children },
+        { value: row.foodWeight },
+        { value: row.sunshineBags },
+        { value: row.sunshineWeight },
+      ],
+    ];
 
     const buffer = await writeXlsxFile(rows, {
       sheet: `Pantry ${year}`,
@@ -389,81 +450,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
       )
       .setHeader(
         'Content-Disposition',
-        `attachment; filename=${year}_pantry_monthly_stats.xlsx`,
-      );
-    res.send(buffer);
-  } catch (error) {
-    logger.error('Error exporting pantry monthly:', error);
-    next(error);
-  }
-}
-
-export async function exportPantryYearly(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = await pool.query(
-      `SELECT year, clients, adults, children, total_weight as "totalWeight", sunshine_bag_weight as "sunshineBagWeight"
-         FROM pantry_yearly_overall
-        ORDER BY year`,
-    );
-
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
-
-    const rows: Row[] = [
-      [
-        { value: 'Year', ...headerStyle },
-        { value: 'Clients', ...headerStyle },
-        { value: 'Adults', ...headerStyle },
-        { value: 'Children', ...headerStyle },
-        { value: 'Sunshine Bag Weight', ...headerStyle },
-        { value: 'Total Weight', ...headerStyle },
-      ],
-    ];
-
-    let totals = { clients: 0, adults: 0, children: 0, sunshineBagWeight: 0, totalWeight: 0 };
-
-    for (const r of result.rows) {
-      rows.push([
-        { value: r.year },
-        { value: r.clients },
-        { value: r.adults },
-        { value: r.children },
-        { value: r.sunshineBagWeight },
-        { value: r.totalWeight },
-      ]);
-      totals = {
-        clients: totals.clients + r.clients,
-        adults: totals.adults + r.adults,
-        children: totals.children + r.children,
-        sunshineBagWeight: totals.sunshineBagWeight + r.sunshineBagWeight,
-        totalWeight: totals.totalWeight + r.totalWeight,
-      };
-    }
-
-    rows.push([
-      { value: 'Total', fontWeight: 'bold' },
-      { value: totals.clients, fontWeight: 'bold' },
-      { value: totals.adults, fontWeight: 'bold' },
-      { value: totals.children, fontWeight: 'bold' },
-      { value: totals.sunshineBagWeight, fontWeight: 'bold' },
-      { value: totals.totalWeight, fontWeight: 'bold' },
-    ]);
-
-    const buffer = await writeXlsxFile(rows, {
-      sheet: 'Pantry Years',
-      buffer: true,
-    });
-    res
-      .setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      )
-      .setHeader(
-        'Content-Disposition',
-        'attachment; filename=pantry_yearly_stats.xlsx',
+        `attachment; filename=${year}_pantry_yearly_stats.xlsx`,
       );
     res.send(buffer);
   } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   TableContainer,
   FormControl,
@@ -20,8 +20,10 @@ import {
   getPantryYearly,
   getPantryYears,
   exportPantryAggregations,
+  rebuildPantryAggregations,
 } from '../../api/pantryAggregations';
 import { toDate } from '../../utils/date';
+import { exportTableToExcel } from '../../utils/exportTableToExcel';
 
 export default function PantryAggregations() {
   const currentYear = toDate().getFullYear();
@@ -29,19 +31,38 @@ export default function PantryAggregations() {
   const [years, setYears] = useState<number[]>(fallbackYears);
   const [tab, setTab] = useState(0);
 
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
   const [weeklyYear, setWeeklyYear] = useState(fallbackYears[0]);
+  const [weeklyMonth, setWeeklyMonth] = useState(1);
   const [week, setWeek] = useState(1);
   const [weeklyRows, setWeeklyRows] = useState<any[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
+  const weeklyTableRef = useRef<HTMLTableElement>(null);
 
   const [monthlyYear, setMonthlyYear] = useState(fallbackYears[0]);
   const [month, setMonth] = useState(1);
   const [monthlyRows, setMonthlyRows] = useState<any[]>([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
+  const monthlyTableRef = useRef<HTMLTableElement>(null);
 
   const [yearlyYear, setYearlyYear] = useState(fallbackYears[0]);
   const [yearlyRows, setYearlyRows] = useState<any[]>([]);
   const [yearlyLoading, setYearlyLoading] = useState(false);
+  const yearlyTableRef = useRef<HTMLTableElement>(null);
 
   const [exportLoading, setExportLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
@@ -67,11 +88,11 @@ export default function PantryAggregations() {
   useEffect(() => {
     if (tab !== 0) return;
     setWeeklyLoading(true);
-    getPantryWeekly(weeklyYear, week)
+    getPantryWeekly(weeklyYear, weeklyMonth)
       .then(setWeeklyRows)
       .catch(() => setWeeklyRows([]))
       .finally(() => setWeeklyLoading(false));
-  }, [weeklyYear, week, tab]);
+  }, [weeklyYear, weeklyMonth, tab]);
 
   useEffect(() => {
     if (tab !== 1) return;
@@ -94,11 +115,17 @@ export default function PantryAggregations() {
   const handleExportWeekly = async () => {
     setExportLoading(true);
     try {
-      const blob = await exportPantryAggregations({ period: 'weekly', year: weeklyYear, week });
+      await rebuildPantryAggregations();
+      const blob = await exportPantryAggregations({
+        period: 'weekly',
+        year: weeklyYear,
+        month: weeklyMonth,
+        week,
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `pantry-weekly-${weeklyYear}-w${week}.xlsx`;
+      a.download = `${weeklyYear}_${monthNames[weeklyMonth - 1]}_week${week}_pantry_stats.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -111,11 +138,12 @@ export default function PantryAggregations() {
   const handleExportMonthly = async () => {
     setExportLoading(true);
     try {
+      await rebuildPantryAggregations();
       const blob = await exportPantryAggregations({ period: 'monthly', year: monthlyYear, month });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `pantry-monthly-${monthlyYear}-${month}.xlsx`;
+      a.download = `${monthlyYear}_${monthNames[month - 1]}_pantry_stats.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -132,7 +160,7 @@ export default function PantryAggregations() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `pantry-yearly-${yearlyYear}.xlsx`;
+      a.download = `${yearlyYear}_pantry_yearly_stats.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -140,6 +168,45 @@ export default function PantryAggregations() {
     } finally {
       setExportLoading(false);
     }
+  };
+
+  const handleExportWeeklyTable = async () => {
+    if (!weeklyTableRef.current) return;
+    const success = await exportTableToExcel(
+      weeklyTableRef.current,
+      `${weeklyYear}_${monthNames[weeklyMonth - 1]}_weekly_list`,
+    );
+    setSnackbar({
+      open: true,
+      message: success ? 'Export ready' : 'Failed to export',
+      severity: success ? 'success' : 'error',
+    });
+  };
+
+  const handleExportMonthlyTable = async () => {
+    if (!monthlyTableRef.current) return;
+    const success = await exportTableToExcel(
+      monthlyTableRef.current,
+      `${monthlyYear}_${monthNames[month - 1]}_monthly_list`,
+    );
+    setSnackbar({
+      open: true,
+      message: success ? 'Export ready' : 'Failed to export',
+      severity: success ? 'success' : 'error',
+    });
+  };
+
+  const handleExportYearlyTable = async () => {
+    if (!yearlyTableRef.current) return;
+    const success = await exportTableToExcel(
+      yearlyTableRef.current,
+      `${yearlyYear}_yearly_list`,
+    );
+    setSnackbar({
+      open: true,
+      message: success ? 'Export ready' : 'Failed to export',
+      severity: success ? 'success' : 'error',
+    });
   };
 
   const weeklyContent = (
@@ -161,6 +228,21 @@ export default function PantryAggregations() {
           </Select>
         </FormControl>
         <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel id="weekly-month-label">Month</InputLabel>
+          <Select
+            labelId="weekly-month-label"
+            label="Month"
+            value={weeklyMonth}
+            onChange={e => setWeeklyMonth(Number(e.target.value))}
+          >
+            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+              <MenuItem key={m} value={m}>
+                {m}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel id="weekly-week-label">Week</InputLabel>
           <Select
             labelId="weekly-week-label"
@@ -168,7 +250,7 @@ export default function PantryAggregations() {
             value={week}
             onChange={e => setWeek(Number(e.target.value))}
           >
-            {Array.from({ length: 52 }, (_, i) => i + 1).map(w => (
+            {Array.from({ length: 5 }, (_, i) => i + 1).map(w => (
               <MenuItem key={w} value={w}>
                 {w}
               </MenuItem>
@@ -177,6 +259,9 @@ export default function PantryAggregations() {
         </FormControl>
         <Button variant="contained" onClick={handleExportWeekly} disabled={exportLoading}>
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
+        <Button variant="contained" onClick={handleExportWeeklyTable} disabled={exportLoading}>
+          {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
@@ -193,6 +278,7 @@ export default function PantryAggregations() {
             }
             rows={weeklyRows}
             getRowKey={(_r, i) => String(i)}
+            tableRef={weeklyTableRef}
           />
         )}
       </TableContainer>
@@ -235,6 +321,9 @@ export default function PantryAggregations() {
         <Button variant="contained" onClick={handleExportMonthly} disabled={exportLoading}>
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
         </Button>
+        <Button variant="contained" onClick={handleExportMonthlyTable} disabled={exportLoading}>
+          {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
+        </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
         {monthlyLoading ? (
@@ -250,6 +339,7 @@ export default function PantryAggregations() {
             }
             rows={monthlyRows}
             getRowKey={(_r, i) => String(i)}
+            tableRef={monthlyTableRef}
           />
         )}
       </TableContainer>
@@ -277,6 +367,9 @@ export default function PantryAggregations() {
         <Button variant="contained" onClick={handleExportYearly} disabled={exportLoading}>
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
         </Button>
+        <Button variant="contained" onClick={handleExportYearlyTable} disabled={exportLoading}>
+          {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
+        </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
         {yearlyLoading ? (
@@ -292,6 +385,7 @@ export default function PantryAggregations() {
             }
             rows={yearlyRows}
             getRowKey={(_r, i) => String(i)}
+            tableRef={yearlyTableRef}
           />
         )}
       </TableContainer>
