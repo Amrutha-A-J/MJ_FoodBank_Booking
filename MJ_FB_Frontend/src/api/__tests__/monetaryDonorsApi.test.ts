@@ -107,7 +107,7 @@ describe('monetary donor mail lists api', () => {
   });
 
   it('sends mail list emails', async () => {
-    await sendMailListEmails(2024, 5);
+    await sendMailListEmails({ year: 2024, month: 5 });
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/monetary-donors/mail-lists/send',
       expect.objectContaining({
