@@ -10,11 +10,13 @@ import Page from '../components/Page';
 import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import ClientBottomNav from '../components/ClientBottomNav';
+import VolunteerBottomNav from '../components/VolunteerBottomNav';
 import { getSlots, rescheduleBookingByToken } from '../api/bookings';
 import { formatTime } from '../utils/time';
 import { formatReginaDate, toDayjs } from '../utils/date';
 import type { Slot } from '../types';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../hooks/useAuth';
 
 export default function RescheduleBooking() {
   const { token } = useParams();
@@ -25,6 +27,7 @@ export default function RescheduleBooking() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const todayStr = formatReginaDate(new Date());
+  const { role } = useAuth();
 
   useEffect(() => {
     if (date) {
@@ -119,7 +122,7 @@ export default function RescheduleBooking() {
         message={error || message}
         severity={error ? 'error' : 'success'}
       />
-      <ClientBottomNav />
+      {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
     </Page>
   );
 }

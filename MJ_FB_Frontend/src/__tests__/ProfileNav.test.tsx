@@ -1,0 +1,65 @@
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import Profile from '../pages/booking/Profile';
+
+jest.mock('../api/users', () => ({
+  getUserProfile: jest.fn().mockResolvedValue({
+    firstName: 'Test',
+    lastName: 'User',
+    email: 't@e.st',
+    phone: '',
+    role: 'shopper',
+    clientId: 1,
+  }),
+  requestPasswordReset: jest.fn(),
+  updateMyProfile: jest.fn().mockResolvedValue({
+    firstName: 'Test',
+    lastName: 'User',
+    email: 't@e.st',
+    phone: '',
+    role: 'shopper',
+    clientId: 1,
+  }),
+  getUserPreferences: jest.fn().mockResolvedValue({ emailReminders: true }),
+  updateUserPreferences: jest.fn(),
+}));
+
+jest.mock('../api/volunteers', () => ({
+  getVolunteerProfile: jest.fn().mockResolvedValue({
+    firstName: 'Vol',
+    lastName: 'User',
+    email: 'v@e.st',
+    phone: '',
+    role: 'volunteer',
+    clientId: 1,
+  }),
+}));
+
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({ userRole: 'shopper' }),
+}));
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (s: string) => s }),
+}));
+
+describe('Profile bottom nav', () => {
+  it('shows schedule option for volunteers', async () => {
+    render(
+      <MemoryRouter initialEntries={['/profile']}>
+        <Profile role="volunteer" />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('button', { name: /schedule/i })).toBeInTheDocument();
+  });
+
+  it('does not show schedule option for shoppers', () => {
+    render(
+      <MemoryRouter initialEntries={['/profile']}>
+        <Profile role="shopper" />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('button', { name: /schedule/i })).not.toBeInTheDocument();
+  });
+});
+
