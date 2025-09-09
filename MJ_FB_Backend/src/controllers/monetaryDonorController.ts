@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
+import config from '../config';
 import logger from '../utils/logger';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 
@@ -206,7 +207,10 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     const { adults, children, pounds } = statsRes.rows[0];
 
     for (const donor of donorsRes.rows) {
-      const templateId = donor.amount <= 100 ? 11 : 12;
+      let templateId;
+      if (donor.amount <= 100) templateId = config.donorTemplateId1to100;
+      else if (donor.amount <= 500) templateId = config.donorTemplateId101to500;
+      else templateId = config.donorTemplateId501Plus;
       await sendTemplatedEmail({
         to: donor.email,
         templateId,
