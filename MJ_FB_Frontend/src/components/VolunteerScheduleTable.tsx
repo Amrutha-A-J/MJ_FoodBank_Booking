@@ -33,8 +33,10 @@ interface Props {
 export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
   const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
-  const timeColumnWidth = isSmall ? 100 : 160;
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'), { noSsr: true });
+  const cellPadding = isSmall ? 0.5 : 1;
+  const fontSize = isSmall ? '0.75rem' : 'inherit';
+  const timeColumnWidth = isSmall ? 80 : 160;
   const slotWidth = `calc((100% - ${timeColumnWidth}px) / ${safeMaxSlots})`;
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%' }}>
@@ -44,8 +46,8 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
             tableLayout: 'fixed',
             width: '100%',
             '& .MuiTableCell-root': {
-              p: isSmall ? 1 : 1.5,
-              fontSize: isSmall ? '0.875rem' : 'inherit',
+              p: cellPadding,
+              fontSize,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -99,7 +101,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                         sx={{
                           width: '100%',
                           height: '100%',
-                          p: isSmall ? 1 : 1.5,
+                          p: cellPadding,
                           display: 'block',
                         }}
                       >
