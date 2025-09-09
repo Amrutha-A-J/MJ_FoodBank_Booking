@@ -143,6 +143,8 @@ export default function VolunteerSchedule() {
       setBookings(filteredBookings);
     } catch (err) {
       console.error(err);
+      setSnackbarSeverity('error');
+      setMessage('Failed to load schedule');
     } finally {
       setLoading(false);
     }
@@ -151,7 +153,10 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     getHolidays()
       .then(setHolidays)
-      .catch(() => {});
+      .catch(() => {
+        setSnackbarSeverity('error');
+        setMessage('Failed to load holidays');
+      });
   }, []);
 
   useEffect(() => {

@@ -130,6 +130,8 @@ export default function VolunteerDashboard() {
         setBookings([]);
         setTopRoles([]);
         setContributionData([]);
+        setSnackbarSeverity('error');
+        setMessage('Failed to load bookings');
       })
       .finally(stopLoading);
   }, []);
@@ -168,6 +170,8 @@ export default function VolunteerDashboard() {
       .catch(() => {
         setBadges([]);
         setStats(undefined);
+        setSnackbarSeverity('error');
+        setMessage('Failed to load stats');
       })
       .finally(stopLoading);
   }, []);
@@ -176,7 +180,11 @@ export default function VolunteerDashboard() {
     startLoading();
     getVolunteerLeaderboard()
       .then(setLeaderboard)
-      .catch(() => setLeaderboard(undefined))
+      .catch(() => {
+        setLeaderboard(undefined);
+        setSnackbarSeverity('error');
+        setMessage('Failed to load leaderboard');
+      })
       .finally(stopLoading);
   }, []);
 
@@ -195,7 +203,11 @@ export default function VolunteerDashboard() {
             : [today];
         const requests = days.map(day =>
           getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
-            () => [],
+            () => {
+              setSnackbarSeverity('error');
+              setMessage('Failed to load availability');
+              return [];
+            },
           ),
         );
         const results = await Promise.all(requests);

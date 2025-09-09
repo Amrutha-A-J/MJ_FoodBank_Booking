@@ -168,6 +168,17 @@ export default function BookingUI({
       setSelectedSlotId(null);
     }
   }, [selectedSlotId, visibleSlots]);
+
+  useEffect(() => {
+    if (error) {
+      setSnackbar({
+        open: true,
+        message:
+          error instanceof Error ? error.message : t('error_loading_slots'),
+        severity: 'error',
+      });
+    }
+  }, [error, t]);
   async function handleOpenConfirm() {
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
     setLoadingConfirm(true);

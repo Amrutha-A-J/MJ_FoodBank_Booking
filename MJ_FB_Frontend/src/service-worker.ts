@@ -68,6 +68,32 @@ registerRoute(
   'GET',
 )
 
+// Cache volunteer booking data
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/volunteer-bookings'),
+  new StaleWhileRevalidate({
+    cacheName: 'volunteer-bookings-api',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
+    ],
+    fetchOptions: { credentials: 'include' },
+  }),
+  'GET',
+)
+
+// Cache notifications
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/users/me/notifications'),
+  new StaleWhileRevalidate({
+    cacheName: 'notifications-api',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 }),
+    ],
+    fetchOptions: { credentials: 'include' },
+  }),
+  'GET',
+)
+
 // Offline fallback for navigation requests
 registerRoute(
   ({ request }) => request.mode === 'navigate',
@@ -101,5 +127,18 @@ registerRoute(
     plugins: [bookingQueue],
   }),
   'PATCH',
+)
+
+const volunteerBookingQueue = new BackgroundSyncPlugin('volunteer-booking-queue', {
+  maxRetentionTime: 24 * 60,
+})
+
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/volunteer-bookings'),
+  new NetworkOnly({
+    fetchOptions: { credentials: 'include' },
+    plugins: [volunteerBookingQueue],
+  }),
+  'POST',
 )
 
