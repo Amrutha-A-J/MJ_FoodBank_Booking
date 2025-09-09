@@ -16,8 +16,16 @@ export default function VolunteerBottomNav() {
           if (newValue === 'schedule') window.location.assign('/volunteer/schedule');
         }}
       >
-        <BottomNavigationAction label="Dashboard" value="dashboard" icon={<Dashboard />} />
-        <BottomNavigationAction label="Schedule" value="schedule" icon={<CalendarToday />} />
+        <BottomNavigationAction
+          label="Dashboard"
+          value="dashboard"
+          icon={<Dashboard aria-label="dashboard" />}
+        />
+        <BottomNavigationAction
+          label="Schedule"
+          value="schedule"
+          icon={<CalendarToday aria-label="schedule" />}
+        />
       </BottomNavigation>
     </Paper>
   );

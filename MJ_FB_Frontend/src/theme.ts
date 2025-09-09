@@ -1,5 +1,6 @@
 // theme.ts
 import { createTheme, responsiveFontSizes, alpha, darken } from '@mui/material/styles';
+import { getHighContrast, setHighContrast } from './themeConfig';
 import type { Theme } from '@mui/material/styles';
 
 // ---- Brand tokens (sampled from mjfoodbank.org’s vibe) ----
@@ -9,6 +10,7 @@ const BRAND_ERROR   = '#941818';   // brand red CTA / destructive
 const BG_APP        = '#f7f9f7';   // very light, slightly warm background
 const BG_CARD       = '#ffffff';
 const DIVIDER       = '#e6e9e6';
+const isHighContrast = getHighContrast();
 // -----------------------------------------------------------
 
 let theme = createTheme({
@@ -20,8 +22,9 @@ let theme = createTheme({
     success: { main: '#2e7d32', contrastText: '#ffffff' },
     warning: { main: BRAND_ACCENT, contrastText: '#111111' },
     info: { main: '#2563eb', contrastText: '#ffffff' },
-    background: { default: BG_APP, paper: BG_CARD },
+    background: { default: isHighContrast ? '#ffffff' : BG_APP, paper: BG_CARD },
     divider: DIVIDER,
+    ...(isHighContrast ? { text: { primary: '#000000', secondary: '#000000' } } : {}),
     action: {
       hover: alpha(BRAND_PRIMARY, 0.06),
       selected: alpha(BRAND_PRIMARY, 0.12),
@@ -320,3 +323,8 @@ let theme = createTheme({
 theme = responsiveFontSizes(theme);
 
 export { theme };
+
+export function toggleHighContrast() {
+  setHighContrast(!isHighContrast);
+  window.location.reload();
+}
