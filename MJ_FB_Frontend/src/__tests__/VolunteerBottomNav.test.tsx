@@ -3,15 +3,21 @@ import { MemoryRouter } from 'react-router-dom';
 import VolunteerBottomNav from '../components/VolunteerBottomNav';
 
 const mockNavigate = jest.fn();
+const mockUseAuth = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
 
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}));
+
 describe('VolunteerBottomNav', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockUseAuth.mockReturnValue({ userRole: '' });
   });
 
   it('selects schedule tab when on schedule route', () => {
@@ -32,5 +38,29 @@ describe('VolunteerBottomNav', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /dashboard/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/volunteer');
+  });
+
+  it('shows shopper navigation when userRole is shopper', () => {
+    mockUseAuth.mockReturnValue({ userRole: 'shopper' });
+    render(
+      <MemoryRouter initialEntries={['/volunteer']}>
+        <VolunteerBottomNav />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('button', { name: /bookings/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /profile/i })).toBeInTheDocument();
+  });
+
+  it('navigates to shopper pages', () => {
+    mockUseAuth.mockReturnValue({ userRole: 'shopper' });
+    render(
+      <MemoryRouter initialEntries={['/volunteer']}>
+        <VolunteerBottomNav />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /bookings/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/book-appointment');
+    fireEvent.click(screen.getByRole('button', { name: /profile/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/profile');
   });
 });
