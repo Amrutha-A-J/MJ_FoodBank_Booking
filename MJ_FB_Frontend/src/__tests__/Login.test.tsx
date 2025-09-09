@@ -20,10 +20,31 @@ describe('Login component', () => {
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: '123' },
+    });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'pass' } });
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
+  });
+
+  it('allows logging in with email', async () => {
+    (loginUser as jest.Mock).mockResolvedValue({ role: 'user', name: 'Test' });
+    const onLogin = jest.fn().mockResolvedValue(undefined);
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>,
+    );
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'pass' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+    await waitFor(() => expect(onLogin).toHaveBeenCalled());
+    expect(loginUser).toHaveBeenCalledWith('test@example.com', 'pass');
   });
 
   it('shows friendly message on unauthorized error', async () => {
@@ -35,7 +56,7 @@ describe('Login component', () => {
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), {
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
       target: { value: '123' },
     });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
@@ -58,7 +79,7 @@ describe('Login component', () => {
         <Login onLogin={onLogin} />
       </MemoryRouter>
     );
-    fireEvent.change(screen.getByLabelText(/client id/i), {
+    fireEvent.change(screen.getByLabelText(/email or client id/i), {
       target: { value: '123' },
     });
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {

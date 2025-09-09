@@ -41,4 +41,27 @@ describe('Volunteer with shopper profile', () => {
     fireEvent.click(screen.getByRole('link', { name: /Book Appointment/i }));
     expect(screen.getByText(/BookingUI Component/i)).toBeInTheDocument();
   });
+
+  it('hides booking links when volunteer lacks shopper profile', async () => {
+    localStorage.clear();
+    (loginVolunteer as jest.Mock).mockResolvedValue({
+      role: 'volunteer',
+      name: 'Test',
+    });
+
+    renderWithProviders(<App />);
+
+    fireEvent.click(await screen.findByText(/volunteer login/i));
+
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'vol@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
+      target: { value: 'pass' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+
+    await waitFor(() => expect(loginVolunteer).toHaveBeenCalled());
+    expect(screen.queryByRole('link', { name: /Book Appointment/i })).not.toBeInTheDocument();
+  });
 });
