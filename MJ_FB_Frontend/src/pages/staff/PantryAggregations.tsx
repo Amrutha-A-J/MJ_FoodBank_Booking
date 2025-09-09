@@ -88,6 +88,7 @@ export default function PantryAggregations() {
   useEffect(() => {
     if (tab !== 0) return;
     setWeeklyLoading(true);
+    setWeeklyRows([]);
     getPantryWeekly(weeklyYear, weeklyMonth)
       .then(setWeeklyRows)
       .catch(() => setWeeklyRows([]))
@@ -97,6 +98,7 @@ export default function PantryAggregations() {
   useEffect(() => {
     if (tab !== 1) return;
     setMonthlyLoading(true);
+    setMonthlyRows([]);
     getPantryMonthly(monthlyYear, month)
       .then(setMonthlyRows)
       .catch(() => setMonthlyRows([]))
@@ -106,6 +108,7 @@ export default function PantryAggregations() {
   useEffect(() => {
     if (tab !== 2) return;
     setYearlyLoading(true);
+    setYearlyRows([]);
     getPantryYearly(yearlyYear)
       .then(setYearlyRows)
       .catch(() => setYearlyRows([]))
