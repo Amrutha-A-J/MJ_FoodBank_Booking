@@ -130,10 +130,11 @@
     },
     "login": {
       "title": "Log in",
-      "description": "Choose a login type on the selection screen.",
+      "description": "Use your client ID or email and password to sign in.",
       "steps": [
-        "Open the Login page.",
-        "Select Client, Volunteer, Staff, or Agency."
+        "Open the login page.",
+        "Enter your client ID or email.",
+        "Enter your password and tap Log in."
       ]
     }
   },
@@ -160,7 +161,7 @@
   "select_time_slot": "Select {{start}} to {{end}} time slot",
   "email": "Email",
   "resend_password_setup_link": "Resend Password Setup Link",
-  "email_or_client_id": "Email or Client ID",
+  "email_or_client_id": "Client ID or Email",
   "setup_link_sent": "If the account exists, a setup link has been sent.",
   "reset_link_sent": "If the account exists, a reset link has been sent.",
   "password_reset_instructions": "Enter your email or client ID and select submit. You'll get an email with a link to reset your password.",
