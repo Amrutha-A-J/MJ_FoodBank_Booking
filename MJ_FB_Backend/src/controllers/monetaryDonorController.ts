@@ -213,14 +213,14 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     );
 
     const statsRes = await pool.query(
-      `SELECT COUNT(DISTINCT client_id)::int AS families,
-              COALESCE(SUM(children),0)::int AS children,
-              COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart - cart_tare)),0)::int AS pounds
-       FROM client_visits
-       WHERE date >= $1 AND date < $2`,
-      [startDate, endDate],
+      `SELECT clients AS families,
+              children,
+              total_weight AS pounds
+         FROM pantry_monthly_overall
+        WHERE year = $1 AND month = $2`,
+      [year, month],
     );
-    const { families, children, pounds } = statsRes.rows[0];
+    const { families = 0, children = 0, pounds = 0 } = statsRes.rows[0] || {};
 
     const groups: Record<string, any[]> = { '1-100': [], '101-500': [], '501+': [] };
     for (const row of donorsRes.rows) {
