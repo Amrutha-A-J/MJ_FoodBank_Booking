@@ -36,7 +36,7 @@ export default function CancelBooking() {
   return (
     <Page title={t('cancel_booking')}>
       <Grid container spacing={2} justifyContent="center">
-        <Grid xs={12} sm={8} md={6}>
+        <Grid size={{ xs: 12, sm: 8, md: 6 }}>
           <FormCard title={t('cancel_booking')} onSubmit={handleSubmit} actions={
             <Button component={RouterLink} to="/" variant="contained">
               {t('back_to_login')}
