@@ -55,6 +55,12 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `VOLUNTEER_BOOKING_NOTIFICATION_TEMPLATE_ID` – Brevo template ID for volunteer booking notifications (cancellations, coordinator alerts).
 
+`DONOR_TEMPLATE_ID_1_100` – Brevo template ID for 1–100 donor emails (default 11).
+
+`DONOR_TEMPLATE_ID_101_500` – Brevo template ID for 101–500 donor emails (default 12).
+
+`DONOR_TEMPLATE_ID_501_PLUS` – Brevo template ID for 501+ donor emails (default 12).
+
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
 
 `TELEGRAM_BOT_TOKEN` – Telegram bot token for ops alerts (optional).
