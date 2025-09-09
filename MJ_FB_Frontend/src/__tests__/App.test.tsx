@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
@@ -21,11 +21,18 @@ jest.mock('../pages/warehouse-management/WarehouseDashboard', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
+jest.mock('../pages/warehouse-management/DonationLog', () => {
+  const mod = { __esModule: true, default: () => <div>DonationLogPage</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
+
 jest.mock('../pages/donor-management/DonorDashboard', () => {
   const mod = { __esModule: true, default: () => <div>DonorDashboard</div> };
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
+  
 jest.mock('../pages/donor-management/DonorProfile', () => {
   const mod = { __esModule: true, default: () => <div>DonorProfilePage</div> };
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
@@ -72,7 +79,7 @@ describe('App authentication persistence', () => {
       headers: new Headers(),
     });
     renderWithProviders(<App />);
-    expect(await screen.findByText(/client login/i)).toBeInTheDocument();
+    expect(await screen.findByText(/login/i)).toBeInTheDocument();
   });
 
   it('keeps user logged in when role exists', () => {
@@ -99,12 +106,32 @@ describe('App authentication persistence', () => {
     expect(getStaffRootPath(['warehouse'] as any)).toBe('/warehouse-management');
   });
 
-  it('shows donor management nav for donor_management access', async () => {
+  it('shows donor management nav links for donor_management access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
     renderWithProviders(<App />);
-    expect(await screen.findByText('Donor Management')).toBeInTheDocument();
+    fireEvent.click(await screen.findByText('Donor Management'));
+    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(screen.getByText('Mail Lists')).toBeInTheDocument();
+  });
+
+  it('routes to donor donation log page', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['donor_management']));
+    window.history.pushState({}, '', '/donor-management/donation-log');
+    renderWithProviders(<App />);
+    expect(await screen.findByText('DonationLogPage')).toBeInTheDocument();
+  });
+
+  it('routes to donor mail lists page', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['donor_management']));
+    window.history.pushState({}, '', '/donor-management');
+    renderWithProviders(<App />);
+    expect(await screen.findByText('MailLists')).toBeInTheDocument();
   });
 
   it('computes donor management path for single donor management access', () => {
