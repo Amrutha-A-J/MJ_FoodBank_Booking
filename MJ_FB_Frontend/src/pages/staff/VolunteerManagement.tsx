@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import StyledTabs from '../../components/StyledTabs';
 import Page from '../../components/Page';
-import PantryQuickLinks from '../../components/PantryQuickLinks';
 import SearchVolunteer from './volunteer-management/SearchVolunteer';
 import AddVolunteer from './volunteer-management/AddVolunteer';
 import EditVolunteer from './volunteer-management/EditVolunteer';
@@ -40,7 +39,7 @@ export default function VolunteerManagement() {
   ];
 
   return (
-    <Page title="Volunteer Management" header={<PantryQuickLinks />}>
+    <Page title="Volunteer Management">
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
     </Page>
   );
