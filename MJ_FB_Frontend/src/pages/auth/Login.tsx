@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
+import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
@@ -64,6 +64,81 @@ export default function Login({
     }
   }
 
+  async function handleWebAuthn() {
+    setSubmitted(true);
+    if (identifier === '') {
+      return setError(t('client_id_required'));
+    }
+    if (!('credentials' in navigator)) {
+      return setError('WebAuthn not supported');
+    }
+    try {
+      const resp = await fetch('/api/webauthn/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier }),
+      });
+      const options = await resp.json();
+      const challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
+      if (options.registered) {
+        const cred = (await navigator.credentials.get({
+          publicKey: {
+            challenge,
+            ...(options.credentialId && {
+              allowCredentials: [
+                {
+                  id: Uint8Array.from(atob(options.credentialId), c => c.charCodeAt(0)),
+                  type: 'public-key',
+                },
+              ],
+            }),
+          },
+        })) as PublicKeyCredential;
+        const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+        const verifyRes = await fetch('/api/webauthn/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, credentialId: credId }),
+        });
+        if (!verifyRes.ok) {
+          const err = await verifyRes.json();
+          throw new Error(err.message);
+        }
+        const user = await verifyRes.json();
+        const redirect = await onLogin(user);
+        navigate(redirect);
+      } else {
+        const cred = (await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: { name: 'MJ FoodBank' },
+            user: {
+              id: new TextEncoder().encode(identifier),
+              name: identifier,
+              displayName: identifier,
+            },
+            pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+          },
+        })) as PublicKeyCredential;
+        const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+        const regRes = await fetch('/api/webauthn/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, credentialId: credId }),
+        });
+        if (!regRes.ok) {
+          const err = await regRes.json();
+          throw new Error(err.message);
+        }
+        const user = await regRes.json();
+        const redirect = await onLogin(user);
+        navigate(redirect);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
+
   return (
     <Page title={t('login')}>
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="80vh" px={2}>
@@ -71,16 +146,27 @@ export default function Login({
           onSubmit={handleSubmit}
           title={t('login')}
           actions={
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              size="medium"
-              sx={{ minHeight: 48 }}
-            >
-              {t('login')}
-            </Button>
+            <Stack spacing={2}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                size="medium"
+                sx={{ minHeight: 48 }}
+              >
+                {t('login')}
+              </Button>
+              <Button
+                type="button"
+                variant="outlined"
+                fullWidth
+                size="medium"
+                onClick={handleWebAuthn}
+              >
+                {t('use_biometrics')}
+              </Button>
+            </Stack>
           }
           centered={false}
           boxProps={{ minHeight: 0, px: 0, py: 0 }}
