@@ -48,6 +48,7 @@ import {
   FormControlLabel,
   useTheme,
   useMediaQuery,
+  CircularProgress,
 } from "@mui/material";
 import { lighten } from "@mui/material/styles";
 import type { AlertColor } from "@mui/material";
@@ -57,6 +58,7 @@ import {
 } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
+import VolunteerBottomNav from "../../components/VolunteerBottomNav";
 
 const reginaTimeZone = "America/Regina";
 
@@ -86,6 +88,7 @@ export default function VolunteerSchedule() {
   const [message, setMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] =
     useState<AlertColor>("success");
+  const [loading, setLoading] = useState(true);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -93,6 +96,7 @@ export default function VolunteerSchedule() {
   const todayStart = fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
 
   const loadData = useCallback(async () => {
+    setLoading(true);
     const dateStr = formatDate(currentDate);
     const reginaDate = toZonedTime(currentDate, reginaTimeZone);
     const weekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
@@ -139,6 +143,8 @@ export default function VolunteerSchedule() {
       setBookings(filteredBookings);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   }, [currentDate, holidays]);
 
@@ -356,9 +362,14 @@ export default function VolunteerSchedule() {
   });
 
   return (
-    <Page title="Volunteer Schedule">
+    <Page title="Volunteer Schedule" sx={{ pb: 7 }}>
       <Box>
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        <FormControl size="medium" sx={{ minWidth: 200 }}>
           <InputLabel id="role-select-label">Role</InputLabel>
           <Select
             labelId="role-select-label"
@@ -393,6 +404,7 @@ export default function VolunteerSchedule() {
               }}
             >
               <Button
+                size="large"
                 onClick={() => changeDay(-1)}
                 variant="outlined"
                 color="primary"
@@ -430,11 +442,12 @@ export default function VolunteerSchedule() {
                         setCurrentDate(next < todayStart ? todayStart : next);
                       }
                     }}
-                    slotProps={{ textField: { size: "small" } }}
+                    slotProps={{ textField: { size: "medium" } }}
                   />
                 </LocalizationProvider>
               </Stack>
               <Button
+                size="large"
                 onClick={() => changeDay(1)}
                 variant="outlined"
                 color="primary"
@@ -471,7 +484,7 @@ export default function VolunteerSchedule() {
             <Typography sx={{ mb: 2 }}>
               Request booking for {requestRole?.name}?
             </Typography>
-            <FormControl fullWidth size="small">
+            <FormControl fullWidth size="medium">
               <InputLabel id="freq-label">Frequency</InputLabel>
               <Select
                 labelId="freq-label"
@@ -496,7 +509,7 @@ export default function VolunteerSchedule() {
                       key={d}
                       control={
                         <Checkbox
-                          size="small"
+                          size="medium"
                           checked={weekdays.includes(i)}
                           onChange={() =>
                             setWeekdays((prev) =>
@@ -514,10 +527,10 @@ export default function VolunteerSchedule() {
               </Box>
             )}
             {(frequency === "daily" || frequency === "weekly") && (
-              <TextField
+                <TextField
                 label="End date"
                 type="date"
-                size="small"
+                size="medium"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -525,7 +538,12 @@ export default function VolunteerSchedule() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={submitRequest} variant="outlined" color="primary">
+            <Button
+              size="large"
+              onClick={submitRequest}
+              variant="outlined"
+              color="primary"
+            >
               Submit
             </Button>
           </DialogActions>
@@ -559,6 +577,7 @@ export default function VolunteerSchedule() {
           </DialogContent>
           <DialogActions>
             <Button
+              size="large"
               onClick={() => {
                 setRescheduleBooking(decisionBooking);
                 setDecisionBooking(null);
@@ -570,11 +589,21 @@ export default function VolunteerSchedule() {
               Reschedule
             </Button>
             {decisionBooking?.recurring_id && (
-              <Button onClick={cancelSeries} variant="outlined" color="primary">
+              <Button
+                size="large"
+                onClick={cancelSeries}
+                variant="outlined"
+                color="primary"
+              >
                 Cancel All Upcoming
               </Button>
             )}
-            <Button onClick={cancelSelected} variant="outlined" color="primary">
+            <Button
+              size="large"
+              onClick={cancelSelected}
+              variant="outlined"
+              color="primary"
+            >
               Cancel Booking
             </Button>
           </DialogActions>
@@ -594,6 +623,7 @@ export default function VolunteerSchedule() {
           onSubmit={handleReschedule}
         />
       </Box>
+      <VolunteerBottomNav />
     </Page>
   );
 }
