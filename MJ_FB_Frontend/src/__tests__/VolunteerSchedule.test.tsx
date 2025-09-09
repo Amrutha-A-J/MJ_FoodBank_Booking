@@ -29,6 +29,18 @@ jest.mock("../api/volunteers", () => ({
 
 jest.mock("../api/bookings", () => ({ getHolidays: jest.fn() }));
 
+beforeEach(() => {
+  const esInstance: any = { close: jest.fn() };
+  const esConstructor = jest.fn(() => esInstance);
+  // @ts-expect-error mock EventSource
+  global.EventSource = esConstructor;
+});
+
+afterEach(() => {
+  // @ts-expect-error cleanup
+  delete global.EventSource;
+});
+
 describe("VolunteerSchedule", () => {
   beforeEach(() => {
     jest.useFakeTimers();

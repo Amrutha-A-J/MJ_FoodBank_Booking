@@ -33,6 +33,7 @@ import type { Slot, Holiday } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
+import useSlotStream from '../hooks/useSlotStream';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
@@ -115,6 +116,12 @@ export default function BookingUI({
     );
   };
   const { slots, isLoading, refetch, error } = useSlots(date, !isDisabled(date));
+  const { event } = useSlotStream();
+  useEffect(() => {
+    if (event && event.date === date.format('YYYY-MM-DD')) {
+      refetch();
+    }
+  }, [event, date, refetch]);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;

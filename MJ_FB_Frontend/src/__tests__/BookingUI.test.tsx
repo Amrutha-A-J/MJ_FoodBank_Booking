@@ -22,6 +22,18 @@ jest.mock('../api/users', () => ({
 const { getSlots, getHolidays, createBooking } = jest.requireMock('../api/bookings');
 const { getUserProfile } = jest.requireMock('../api/users');
 
+beforeEach(() => {
+  const esInstance: any = { close: jest.fn() };
+  const esConstructor = jest.fn(() => esInstance);
+  // @ts-expect-error mock EventSource
+  global.EventSource = esConstructor;
+});
+
+afterEach(() => {
+  // @ts-expect-error cleanup
+  delete global.EventSource;
+});
+
 describe('BookingUI visible slots', () => {
   beforeAll(() => {
     jest.useFakeTimers();

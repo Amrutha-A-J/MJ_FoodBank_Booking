@@ -59,6 +59,7 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
+import useSlotStream from "../../hooks/useSlotStream";
 
 const reginaTimeZone = "America/Regina";
 
@@ -148,6 +149,8 @@ export default function VolunteerSchedule() {
     }
   }, [currentDate, holidays]);
 
+  const { event } = useSlotStream();
+
   useEffect(() => {
     getHolidays()
       .then(setHolidays)
@@ -157,6 +160,10 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (event) void loadData();
+  }, [event, loadData]);
 
   function changeDay(delta: number) {
     setCurrentDate((d) => {

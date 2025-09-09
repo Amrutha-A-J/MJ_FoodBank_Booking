@@ -22,6 +22,18 @@ jest.mock('../api/bookings', () => ({
   getHolidays: jest.fn(),
 }));
 
+beforeEach(() => {
+  const esInstance: any = { close: jest.fn() };
+  const esConstructor = jest.fn(() => esInstance);
+  // @ts-expect-error mock EventSource
+  global.EventSource = esConstructor;
+});
+
+afterEach(() => {
+  // @ts-expect-error cleanup
+  delete global.EventSource;
+});
+
 describe('VolunteerBooking', () => {
   it('requests a slot and shows confirmation', async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);

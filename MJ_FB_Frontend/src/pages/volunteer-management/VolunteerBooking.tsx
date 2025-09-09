@@ -29,6 +29,7 @@ import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import useHolidays from '../../hooks/useHolidays';
+import useSlotStream from '../../hooks/useSlotStream';
 import type { VolunteerBookingConflict } from '../../types';
 
 function useVolunteerSlots(
@@ -69,6 +70,12 @@ export default function VolunteerBooking() {
     date,
     !isDisabled(date),
   );
+  const { event } = useSlotStream();
+  useEffect(() => {
+    if (event && event.date === date.format('YYYY-MM-DD')) {
+      refetch();
+    }
+  }, [event, date, refetch]);
   const [booking, setBooking] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
