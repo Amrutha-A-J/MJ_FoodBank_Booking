@@ -9,6 +9,7 @@ import {
   Stack,
   FormControlLabel,
   Checkbox,
+  Tooltip,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../components/DialogCloseButton';
@@ -72,7 +73,7 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
     }
   }
 
-  async function handleSendReset() {
+  async function handleSendLink() {
     if (!volunteer) return;
     try {
       await updateVolunteer(volunteer.id, {
@@ -83,7 +84,7 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
         onlineAccess: true,
         sendPasswordLink: true,
       });
-      setSnackbar({ open: true, message: 'Password reset link sent', severity: 'success' });
+      setSnackbar({ open: true, message: 'Password setup link sent', severity: 'success' });
     } catch (err) {
       setSnackbar({ open: true, message: err instanceof Error ? err.message : 'Failed to send link', severity: 'error' });
     }
@@ -95,16 +96,20 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       <DialogTitle>Edit Volunteer</DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={form.onlineAccess}
-                onChange={e => setForm({ ...form, onlineAccess: e.target.checked })}
-                disabled={form.hasPassword}
+          <Tooltip title="Volunteer already has a password" disableHoverListener={!form.hasPassword}>
+            <span>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={form.onlineAccess}
+                    onChange={e => setForm({ ...form, onlineAccess: e.target.checked })}
+                    disabled={form.hasPassword}
+                  />
+                }
+                label="Online Access"
               />
-            }
-            label="Online Access"
-          />
+            </span>
+          </Tooltip>
           <TextField
             label="First Name"
             value={form.firstName}
@@ -140,8 +145,8 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       </DialogContent>
       <DialogActions>
         {form.onlineAccess && (
-          <Button variant="outlined" onClick={handleSendReset}>
-            Send password reset link
+          <Button variant="outlined" onClick={handleSendLink}>
+            Send password setup link
           </Button>
         )}
         <Button onClick={handleSave} disabled={!form.firstName || !form.lastName}>
