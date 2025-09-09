@@ -1,9 +1,20 @@
 import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig(async ({ mode }) => {
-  const plugins: PluginOption[] = [react()]
+  const plugins: PluginOption[] = [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: { runtimeCaching: [], navigateFallback: undefined },
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'service-worker.ts',
+      injectManifest: { globPatterns: [] },
+    }),
+  ]
   if (mode === 'production') {
     try {
       const { visualizer } = await import('rollup-plugin-visualizer')
