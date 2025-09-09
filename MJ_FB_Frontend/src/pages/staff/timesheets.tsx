@@ -215,7 +215,7 @@ export default function Timesheets() {
           <TextField
             type="number"
             value={row.reg}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'reg', e.target.value)}
@@ -231,7 +231,7 @@ export default function Timesheets() {
           <TextField
             type="number"
             value={row.ot}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'ot', e.target.value)}
@@ -247,7 +247,7 @@ export default function Timesheets() {
           <TextField
             type="number"
             value={row.stat}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'stat', e.target.value)}
@@ -263,7 +263,7 @@ export default function Timesheets() {
           <TextField
             type="number"
             value={row.sick}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'sick', e.target.value)}
@@ -279,7 +279,7 @@ export default function Timesheets() {
           <TextField
             type="number"
             value={row.vac}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             error={row.paid > 8}
             onChange={e => handleChange(row.index, 'vac', e.target.value)}
@@ -294,7 +294,7 @@ export default function Timesheets() {
         render: (row: DayRow) => (
           <TextField
             value={row.note}
-            size="small"
+            
             disabled={inputsDisabled || row.lockedLeave}
             onChange={e => handleChange(row.index, 'note', e.target.value)}
             fullWidth
@@ -316,7 +316,7 @@ export default function Timesheets() {
     return (
       <Box>
         <ResponsiveTable columns={columns} rows={rows} getRowKey={r => r.date} />
-        <Table size="small">
+        <Table size="small" >
           <TableFooter>
             <TableRow>
               <TableCell>{t('timesheets.summary.totals')}</TableCell>

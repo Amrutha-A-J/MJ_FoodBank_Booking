@@ -418,7 +418,7 @@ export default function PantrySchedule({
               )
             }
             variant="outlined"
-            size="small"
+            
             color="primary"
           >
             Today
@@ -462,7 +462,7 @@ export default function PantrySchedule({
           <Button
             onClick={retryStream}
             variant="outlined"
-            size="small"
+            
             color="primary"
           >
             Retry
@@ -493,7 +493,7 @@ export default function PantrySchedule({
               <Chip
                 key={item.label}
                 label={item.label}
-                size="small"
+                
                 sx={{
                   bgcolor: item.color,
                   color: theme.palette.getContrastText(item.color),
@@ -537,7 +537,7 @@ export default function PantrySchedule({
                       onClick={() => assignExistingUser(u)}
                       variant="outlined"
                       color="primary"
-                      size="small"
+                      
                       sx={{ ml: 0.5 }}
                     >
                       Assign
@@ -554,7 +554,7 @@ export default function PantrySchedule({
                   </ListItem>
                   <ListItem>
                     <Button
-                      size="small"
+                      
                       variant="text"
                       onClick={addClientAndAssign}
                     >
@@ -569,7 +569,7 @@ export default function PantrySchedule({
                 <Checkbox
                   checked={isNewClient}
                   onChange={(e) => setIsNewClient(e.target.checked)}
-                  size="small"
+                  
                 />
               }
               label="New client"
@@ -600,7 +600,7 @@ export default function PantrySchedule({
                 onClick={assignNewClient}
                 variant="contained"
                 color="primary"
-                size="small"
+                
                 disabled={!newClientName.trim()}
               >
                 Assign new client

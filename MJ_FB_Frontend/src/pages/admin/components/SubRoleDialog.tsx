@@ -106,10 +106,10 @@ function SubRoleDialog({ open, onClose, onSave }: SubRoleDialogProps) {
         />
       </DialogContent>
       <DialogActions>
-        <Button size="small" onClick={onClose}>
+        <Button onClick={onClose}>
           Cancel
         </Button>
-        <Button size="small" variant="contained" onClick={handleSave}>
+        <Button variant="contained" onClick={handleSave}>
           Save
         </Button>
       </DialogActions>

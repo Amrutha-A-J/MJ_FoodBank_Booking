@@ -37,7 +37,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
   return (
     <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
         <Table
-          size="small"
+          
           stickyHeader={false}
           sx={{
             tableLayout: 'fixed',

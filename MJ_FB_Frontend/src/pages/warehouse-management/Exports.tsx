@@ -93,7 +93,7 @@ export default function Exports() {
       <WarehouseQuickLinks />
       <Page title="Exports">
       <Stack spacing={2} sx={{ mb: 2 }} direction="row">
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel id="year-label">Year</InputLabel>
           <Select
             labelId="year-label"
@@ -111,7 +111,7 @@ export default function Exports() {
       </Stack>
       <Stack spacing={2} direction="column" alignItems="flex-start">
         <Button
-          size="small"
+          
           variant="contained"
           onClick={handleDonorExport}
           disabled={donorLoading}
@@ -119,7 +119,7 @@ export default function Exports() {
           {donorLoading ? <CircularProgress size={20} /> : 'Export Donor Aggregations'}
         </Button>
         <Button
-          size="small"
+          
           variant="contained"
           onClick={handleOverallExport}
           disabled={overallLoading}

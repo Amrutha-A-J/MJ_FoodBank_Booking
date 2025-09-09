@@ -65,7 +65,7 @@ export default function AdminLeaveRequests() {
               >
                 <Button
                   variant="contained"
-                  size="small"
+                  
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() =>
                     approve.mutate(
@@ -79,7 +79,7 @@ export default function AdminLeaveRequests() {
                 <Button
                   variant="contained"
                   color="error"
-                  size="small"
+                  
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() =>
                     reject.mutate(

@@ -48,7 +48,7 @@ export default function VolunteerRankings() {
   return (
     <Page title="Volunteer Rankings">
       <PageCard>
-        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+        <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="ranking-select">Ranking</InputLabel>
           <Select
             labelId="ranking-select"

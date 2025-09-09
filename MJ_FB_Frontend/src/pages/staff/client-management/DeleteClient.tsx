@@ -35,7 +35,7 @@ export default function DeleteClient() {
       <EntitySearch type="user" placeholder="Search client" onSelect={c => setClient(c as Client)} />
       {client && (
         <Button
-          size="small"
+          
           variant="contained"
           color="error"
           sx={{ mt: 2 }}

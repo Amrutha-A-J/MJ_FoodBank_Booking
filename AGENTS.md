@@ -33,6 +33,7 @@
 - Use `write-excel-file` for spreadsheet exports instead of `sheetjs` or `exceljs`.
 - Use the shared `PasswordField` component for any password input so users can toggle visibility.
 - Text input fields default to `size="medium"` to improve tap targets on small screens.
+- Buttons default to `size="medium"`; use `size="small"` only when space is constrained.
 - Passwords must be at least 8 characters and include uppercase, lowercase, and special characters; numbers are optional.
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
 - Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page displays a role-specific login reminder and button.

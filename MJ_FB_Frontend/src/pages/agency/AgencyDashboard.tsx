@@ -163,7 +163,7 @@ export default function AgencyDashboard() {
                     />
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Button
-                        size="small"
+                        
                         variant="outlined"
                         sx={{ textTransform: 'none' }}
                         onClick={() => setCancelId(next.id)}
@@ -173,7 +173,7 @@ export default function AgencyDashboard() {
 
                       {next.reschedule_token && (
                         <Button
-                          size="small"
+                          
                           variant="contained"
                           sx={{ textTransform: 'none' }}
                           onClick={() =>
@@ -220,7 +220,7 @@ export default function AgencyDashboard() {
                       secondaryAction={
                         <Stack direction="row" spacing={0.5} alignItems="center">
                           <Button
-                            size="small"
+                            
                             variant="contained"
                             sx={{ textTransform: 'none' }}
                             onClick={() => navigate('/agency/book')}
@@ -249,7 +249,7 @@ export default function AgencyDashboard() {
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
-                  size="small"
+                  
                   variant="contained"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/book')}
@@ -257,7 +257,7 @@ export default function AgencyDashboard() {
                   Book Appointment
                 </Button>
                 <Button
-                  size="small"
+                  
                   variant="outlined"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/history')}
@@ -265,7 +265,7 @@ export default function AgencyDashboard() {
                   Reschedule
                 </Button>
                 <Button
-                  size="small"
+                  
                   variant="outlined"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/history')}
@@ -312,7 +312,7 @@ export default function AgencyDashboard() {
         </DialogContent>
         <DialogActions>
           <Button
-            size="small"
+            
             color="error"
             variant="contained"
             sx={{ textTransform: 'none' }}

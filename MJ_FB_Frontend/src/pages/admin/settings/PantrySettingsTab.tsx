@@ -74,12 +74,12 @@ export default function PantrySettingsTab() {
               <TextField
                 label="Max bookings per slot"
                 type="number"
-                size="small"
+                
                 value={capacity}
                 onChange={e => setCapacity(Number(e.target.value))}
               />
               <Button
-                size="small"
+                
                 sx={{ ml: 2 }}
                 variant="contained"
                 onClick={handleSaveCapacity}
@@ -96,12 +96,12 @@ export default function PantrySettingsTab() {
               <TextField
                 label="Cart Tare (lbs)"
                 type="number"
-                size="small"
+                
                 value={cartTare}
                 onChange={e => setCartTare(Number(e.target.value) || 0)}
               />
               <Button
-                size="small"
+                
                 sx={{ ml: 2 }}
                 variant="contained"
                 onClick={handleSaveCartTare}

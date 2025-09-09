@@ -133,7 +133,7 @@ export default function VolunteerRecurringBookings() {
       </Tabs>
       {tab === 0 && (
         <Box component="form" onSubmit={submit} sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
-          <FormControl size="small">
+          <FormControl>
             <InputLabel id="role-label">Role</InputLabel>
             <Select labelId="role-label" value={selectedRole} label="Role" onChange={e => setSelectedRole(e.target.value as string)}>
               <MenuItem value="">Select role</MenuItem>
@@ -154,12 +154,12 @@ export default function VolunteerRecurringBookings() {
           <TextField
             label="Start date"
             type="date"
-            size="small"
+            
             value={startDate}
             onChange={e => setStartDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
           />
-          <FormControl size="small">
+          <FormControl>
             <InputLabel id="freq-label">Frequency</InputLabel>
             <Select labelId="freq-label" value={frequency} label="Frequency" onChange={e => setFrequency(e.target.value as 'daily' | 'weekly')}>
               <MenuItem value="daily">Daily</MenuItem>
@@ -173,7 +173,6 @@ export default function VolunteerRecurringBookings() {
                   key={d}
                   control={
                     <Checkbox
-                      size="small"
                       checked={weekdays.includes(i)}
                       onChange={() =>
                         setWeekdays(prev =>
@@ -190,7 +189,7 @@ export default function VolunteerRecurringBookings() {
           <TextField
             label="End date"
             type="date"
-            size="small"
+            
             value={endDate}
             onChange={e => setEndDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
@@ -238,7 +237,7 @@ export default function VolunteerRecurringBookings() {
                         onClick={() => cancelOccurrence(o.id)}
                         variant="outlined"
                         color="primary"
-                        size="small"
+                        
                       >
                         Cancel
                       </Button>

@@ -159,7 +159,7 @@ export default function Aggregations() {
   const donorContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel id="donor-year-label">Year</InputLabel>
           <Select
             labelId="donor-year-label"
@@ -175,7 +175,7 @@ export default function Aggregations() {
           </Select>
         </FormControl>
         <Button
-          size="small"
+          
           variant="contained"
           onClick={handleExportDonors}
           disabled={donorExportLoading}
@@ -237,7 +237,7 @@ export default function Aggregations() {
   const overallContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel id="overall-year-label">Year</InputLabel>
           <Select
             labelId="overall-year-label"
@@ -253,7 +253,7 @@ export default function Aggregations() {
           </Select>
         </FormControl>
         <Button
-          size="small"
+          
           variant="contained"
           onClick={handleExportOverall}
           disabled={exportLoading}

@@ -266,7 +266,7 @@ export default function WarehouseDashboard() {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} alignItems="center">
-          <FormControl size="small" sx={{ minWidth: 80 }}>
+          <FormControl sx={{ minWidth: 80 }}>
             <InputLabel id="year-label">Year</InputLabel>
             <Select
               labelId="year-label"
@@ -282,7 +282,7 @@ export default function WarehouseDashboard() {
             </Select>
           </FormControl>
           <Autocomplete
-            size="small"
+            
             options={donorOptions}
             getOptionLabel={o => o.name}
             inputValue={search}
@@ -397,17 +397,17 @@ export default function WarehouseDashboard() {
           <CardHeader title="Quick Actions" />
           <CardContent>
             <Stack spacing={1}>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
+              <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/donation-log')}>
                 Go to Donation Log
               </Button>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
+              <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-surplus')}>
                 Track Surplus
               </Button>
-              <Button size="small" variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
+              <Button variant="contained" fullWidth onClick={() => go('/warehouse-management/track-pigpound')}>
                 Log Pig Pound
               </Button>
               <Button
-                size="small"
+                
                 variant="contained"
                 fullWidth
                 onClick={() => go('/warehouse-management/track-outgoing-donations')}
@@ -466,7 +466,7 @@ export default function WarehouseDashboard() {
           <CardHeader
             title="Top Donors"
             subheader="This year by total lbs"
-            action={<Chip label={filteredDonors.length} size="small" />}
+            action={<Chip label={filteredDonors.length} /}
           />
           <CardContent>
             {filteredDonors.length ? (
@@ -494,7 +494,7 @@ export default function WarehouseDashboard() {
           <CardHeader
             title="Top Receivers"
             subheader="This year by total lbs"
-            action={<Chip label={filteredReceivers.length} size="small" />}
+            action={<Chip label={filteredReceivers.length} /}
           />
           <CardContent>
             {filteredReceivers.length ? (

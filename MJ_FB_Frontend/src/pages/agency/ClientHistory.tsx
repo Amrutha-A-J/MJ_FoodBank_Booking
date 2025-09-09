@@ -207,7 +207,7 @@ export default function ClientHistory() {
         {selected && (
           <div>
             {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
-            <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
+            <FormControl sx={{ minWidth: 160, mb: 1 }}>
               <InputLabel id="filter-label">{t('filter')}</InputLabel>
               <Select
                 labelId="filter-label"

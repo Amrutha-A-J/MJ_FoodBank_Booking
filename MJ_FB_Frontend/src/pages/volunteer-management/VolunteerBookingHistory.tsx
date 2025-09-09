@@ -125,15 +125,15 @@ export default function VolunteerBookingHistory() {
         h.status?.toLowerCase() === 'approved'
           ? isSmall ? (
               <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
-                <Button size="small" onClick={() => setCancelBooking(h)} fullWidth>
+                <Button onClick={() => setCancelBooking(h)} fullWidth>
                   {t('cancel')}
                 </Button>
-                <Button size="small" onClick={() => setRescheduleBooking(h)} fullWidth>
+                <Button onClick={() => setRescheduleBooking(h)} fullWidth>
                   {t('reschedule')}
                 </Button>
                 {h.recurring_id && (
                   <Button
-                    size="small"
+                    
                     onClick={() => setCancelSeriesId(h.recurring_id!)}
                     fullWidth
                   >
@@ -143,15 +143,15 @@ export default function VolunteerBookingHistory() {
               </Stack>
             ) : (
               <>
-                <Button size="small" onClick={() => setCancelBooking(h)}>
+                <Button onClick={() => setCancelBooking(h)}>
                   {t('cancel')}
                 </Button>
-                <Button size="small" onClick={() => setRescheduleBooking(h)}>
+                <Button onClick={() => setRescheduleBooking(h)}>
                   {t('reschedule')}
                 </Button>
                 {h.recurring_id && (
                   <Button
-                    size="small"
+                    
                     onClick={() => setCancelSeriesId(h.recurring_id!)}
                   >
                     {t('cancel_all_upcoming_short')}

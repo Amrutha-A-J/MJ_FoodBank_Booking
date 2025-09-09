@@ -106,7 +106,7 @@ export default function HelpPage() {
                 label={t('help.search')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                size="small"
+                
                 sx={{ '@media print': { display: 'none' } }}
               />
               <Button

@@ -71,7 +71,7 @@ export default function InstallAppButton() {
           </DialogContent>
           <DialogActions>
             <Button
-              size="small"
+              
               onClick={() => setShowOnboarding(false)}
               sx={{ textTransform: 'none' }}
             >
@@ -79,7 +79,7 @@ export default function InstallAppButton() {
             </Button>
             <Button
               variant="contained"
-              size="small"
+              
               onClick={() => {
                 setShowOnboarding(false);
                 handleClick();
@@ -94,7 +94,7 @@ export default function InstallAppButton() {
       <Box sx={{ position: 'fixed', bottom: 16, right: 16 }}>
         <Button
           variant="contained"
-          size="small"
+          
           onClick={handleClick}
           sx={{ textTransform: 'none' }}
         >

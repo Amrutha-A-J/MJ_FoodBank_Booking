@@ -115,7 +115,7 @@ export default function NoShowWeek() {
               {formatDate(d, 'dddd, MMM D, YYYY')}
             </Typography>
             {dateStr === todayStr && (
-              <FormControl size="small">
+              <FormControl>
                 <InputLabel>Status</InputLabel>
                 <Select
                   label="Status"

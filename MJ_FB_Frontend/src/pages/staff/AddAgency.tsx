@@ -60,7 +60,7 @@ export default function AddAgency() {
               fullWidth
               margin="normal"
             />
-            <Button type="submit" variant="contained" size="small" sx={{ mt: 2 }}>
+            <Button type="submit" variant="contained" sx={{ mt: 2 }}>
               Add Agency
             </Button>
           </Box>

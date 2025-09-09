@@ -52,7 +52,7 @@ export default function NewClients() {
         <IconButton
           aria-label="delete"
           onClick={() => handleDelete(c.id)}
-          size="small"
+          
         >
           <DeleteIcon />
         </IconButton>

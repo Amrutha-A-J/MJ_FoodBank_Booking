@@ -117,7 +117,7 @@ export default function TrackPigpound() {
       render: e => (
         <>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setEditing(e);
               setForm({ date: formatDate(e.date), weight: String(e.weight) });
@@ -128,7 +128,7 @@ export default function TrackPigpound() {
             <Edit fontSize="small" />
           </IconButton>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setToDelete(e);
               setDeleteOpen(true);
@@ -164,7 +164,7 @@ export default function TrackPigpound() {
       <WarehouseQuickLinks />
       <Page title="Track Pigpound">
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => {
             setForm({ date: format(selectedDate), weight: '' });

@@ -14,7 +14,7 @@ export default function PantryQuickLinks() {
       sx={{ width: '100%' }}
     >
       <Button
-        size="small"
+        
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
@@ -24,7 +24,7 @@ export default function PantryQuickLinks() {
         Pantry Schedule
       </Button>
       <Button
-        size="small"
+        
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
@@ -34,7 +34,7 @@ export default function PantryQuickLinks() {
         Record a Visit
       </Button>
       <Button
-        size="small"
+        
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
