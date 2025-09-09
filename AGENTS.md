@@ -12,6 +12,7 @@
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
 - The login page offers a **Use biometrics** button for WebAuthn-based sign in.
 - Volunteers see an Install App button on their first visit to volunteer pages with an onboarding modal about offline use; installations are tracked.
+- Volunteers with shopper accounts see Bookings and Profile options in the volunteer bottom navigation for quick access to their shopper features.
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
