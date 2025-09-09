@@ -31,7 +31,7 @@ function Main() {
 const container = document.getElementById('root')!;
 const root = ReactDOM.createRoot(container);
 
-registerSW();
+registerSW({ immediate: true });
 
 root.render(
   <React.StrictMode>
