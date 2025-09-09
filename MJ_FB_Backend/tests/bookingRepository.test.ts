@@ -133,13 +133,25 @@ describe('bookingRepository', () => {
       /b.id,\s+b.user_id,\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
     );
     expect(call[0]).toMatch(/LEFT JOIN user_preferences/);
-    expect(call[0]).toMatch(/COALESCE\(up.email_reminders, true\) = true/);
+    expect(call[0]).toMatch(/up.user_id = b.user_id/);
+    expect(call[0]).toMatch(/up.user_id = b.new_client_id/);
+    expect(call[0]).toMatch(/COALESCE\(up.email_reminders, true\)/);
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.status = 'approved'/);
     expect(call[0]).toMatch(/b.date = \$1/);
     expect(call[0]).toMatch(/b.reminder_sent = false/);
     expect(call[1]).toEqual(expect.arrayContaining(['2024-01-01']));
     expect(call[1]).toHaveLength(1);
+  });
+
+  it('fetchBookingsForReminder omits new clients with email reminders disabled', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [] });
+    const rows = await fetchBookingsForReminder('2024-01-01');
+    expect(rows).toEqual([]);
+    const query = (mockPool.query as jest.Mock).mock.calls[1][0];
+    expect(query).toMatch(/COALESCE\(up.email_reminders, true\)/);
   });
 
   it('fetchBookingHistory supports arrays and pagination', async () => {

@@ -120,6 +120,14 @@ describe('sendNextDayBookingReminders', () => {
       [1],
     );
   });
+
+  it('skips new clients when email reminders are disabled', async () => {
+    (fetchBookingsForReminder as jest.Mock).mockResolvedValue([]);
+    await sendNextDayBookingReminders();
+    expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
+    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(db.query).not.toHaveBeenCalled();
+  });
 });
 
 describe('startBookingReminderJob/stopBookingReminderJob', () => {
@@ -165,7 +173,9 @@ describe('fetchBookingsForReminder', () => {
     await realFetch('2024-01-02');
     const query = (db.query as jest.Mock).mock.calls[1][0];
     expect(query).toContain('LEFT JOIN user_preferences');
-    expect(query).toContain('COALESCE(up.email_reminders, true) = true');
+    expect(query).toContain('up.user_id = b.user_id');
+    expect(query).toContain('up.user_id = b.new_client_id');
+    expect(query).toContain('COALESCE(up.email_reminders, true)');
     expect(query).toContain('LEFT JOIN new_clients');
   });
 

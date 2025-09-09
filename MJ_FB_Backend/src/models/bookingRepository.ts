@@ -168,8 +168,8 @@ export async function fetchBookingsForReminder(
     ? 'LEFT JOIN new_clients nc ON b.new_client_id = nc.id'
     : '';
   const userPrefJoin = hasNewClients
-    ? "LEFT JOIN user_preferences up ON (up.user_id = u.client_id AND up.user_type = 'client') OR (up.user_id = nc.id AND up.user_type = 'new_client')"
-    : "LEFT JOIN user_preferences up ON up.user_id = u.client_id AND up.user_type = 'client'";
+    ? "LEFT JOIN user_preferences up ON (up.user_id = b.user_id AND up.user_type = 'client') OR (up.user_id = b.new_client_id AND up.user_type = 'new_client')"
+    : "LEFT JOIN user_preferences up ON up.user_id = b.user_id AND up.user_type = 'client'";
   const res = await client.query(
     `SELECT
         b.id,
@@ -183,7 +183,7 @@ export async function fetchBookingsForReminder(
        ${newClientJoin}
        ${userPrefJoin}
        INNER JOIN slots s ON b.slot_id = s.id
-       WHERE b.status = 'approved' AND b.date = $1 AND b.reminder_sent = false AND COALESCE(up.email_reminders, true) = true`,
+       WHERE b.status = 'approved' AND b.date = $1 AND b.reminder_sent = false AND COALESCE(up.email_reminders, true)`,
     [formatReginaDate(date)],
   );
   return res.rows;
