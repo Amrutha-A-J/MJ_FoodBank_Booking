@@ -110,9 +110,6 @@ const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
 const DonorDashboard = React.lazy(() =>
   import('./pages/donor-management/DonorDashboard')
 );
-const DonorManagementPage = React.lazy(() =>
-  import('./pages/donor-management/DonorManagement')
-);
 const DonorProfilePage = React.lazy(() =>
   import('./pages/donor-management/DonorProfile')
 );
@@ -190,7 +187,6 @@ export default function App() {
         label: 'Donor Management',
         links: [
           { label: t('dashboard'), to: '/donor-management' },
-          { label: 'Donor Management', to: '/donor-management/manage' },
           { label: 'Mail Lists', to: '/donor-management/mail-lists' },
         ],
       });
@@ -477,10 +473,6 @@ export default function App() {
                       <Route
                         path="/donor-management"
                         element={<DonorDashboard />}
-                      />
-                      <Route
-                        path="/donor-management/manage"
-                        element={<DonorManagementPage />}
                       />
                       <Route
                         path="/donor-management/mail-lists"
