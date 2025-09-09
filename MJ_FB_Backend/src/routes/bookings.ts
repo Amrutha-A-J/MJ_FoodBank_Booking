@@ -15,6 +15,7 @@ import {
   cancelBooking,
   cancelBookingByToken,
   rescheduleBooking,
+  getRescheduleBooking,
   markBookingNoShow,
   markBookingVisited
 } from '../controllers/bookingController';
@@ -87,6 +88,7 @@ router.post(
 );
 
 // Reschedule booking by token
+router.get('/reschedule/:token', optionalAuthMiddleware, getRescheduleBooking);
 router.post('/reschedule/:token', optionalAuthMiddleware, rescheduleBooking);
 
 // Cancel booking by token

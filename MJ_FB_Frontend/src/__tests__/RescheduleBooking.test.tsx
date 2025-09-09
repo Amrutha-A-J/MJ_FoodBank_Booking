@@ -11,6 +11,7 @@ describe('RescheduleBooking page', () => {
       { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1, maxCapacity: 5 },
     ]);
     (bookingsApi.rescheduleBookingByToken as jest.Mock).mockResolvedValue(undefined);
+    (bookingsApi.validateRescheduleToken as jest.Mock).mockResolvedValue(undefined);
 
     renderWithProviders(
       <MemoryRouter initialEntries={['/reschedule/tok123']}>
@@ -34,5 +35,33 @@ describe('RescheduleBooking page', () => {
       '1',
       '2024-01-01',
     );
+  });
+
+  it('shows API error message on submit failure', async () => {
+    (bookingsApi.getSlots as jest.Mock).mockResolvedValue([
+      { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1, maxCapacity: 5 },
+    ]);
+    (bookingsApi.validateRescheduleToken as jest.Mock).mockResolvedValue(undefined);
+    (bookingsApi.rescheduleBookingByToken as jest.Mock).mockRejectedValue(
+      new Error('server says no'),
+    );
+
+    renderWithProviders(
+      <MemoryRouter initialEntries={['/reschedule/tok123']}>
+        <Routes>
+          <Route path="/reschedule/:token" element={<RescheduleBooking />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    const dateInput = screen.getByLabelText('Date');
+    fireEvent.change(dateInput, { target: { value: '2024-01-01' } });
+
+    const timeSelect = await screen.findByLabelText('Time');
+    fireEvent.change(timeSelect, { target: { value: '1' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reschedule' }));
+
+    expect(await screen.findByText('server says no')).toBeInTheDocument();
   });
 });
