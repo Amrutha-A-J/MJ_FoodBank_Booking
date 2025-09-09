@@ -328,12 +328,13 @@ export function getHelpContent(
       title: 'Manage volunteers',
       body: {
         description:
-          'Search, add, delete, and review volunteers. Choose Set Password or Send Setup Link for online access.',
+          'Search, add, edit, and delete volunteers. Choose Set Password or Send Setup Link for online access.',
         steps: [
           'Go to the Volunteers page.',
-          'Search by name.',
-          'View, edit, or delete volunteer information.',
-          'Choose Set Password or Send Setup Link when creating a volunteer.',
+          'Search by name in the Search tab.',
+          'Use Add to create a volunteer.',
+          'Use Edit to adjust trained areas.',
+          'Use Delete to remove a volunteer.',
         ],
       },
     },
