@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
-import { reginaStartOfDayISO } from '../utils/dateUtils';
+import { reginaStartOfDayISO, getWeekForDate } from '../utils/dateUtils';
+import {
+  refreshPantryWeekly,
+  refreshPantryMonthly,
+  refreshPantryYearly,
+} from './pantryStatsController';
 
 export async function refreshSunshineBagOverall(year: number, month: number) {
   const result = await pool.query(
@@ -51,6 +56,12 @@ export async function upsertSunshineBag(req: Request, res: Response, next: NextF
     );
     const dt = new Date(reginaStartOfDayISO(date));
     await refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+    const { week, month, year } = getWeekForDate(date);
+    await Promise.all([
+      refreshPantryWeekly(year, week),
+      refreshPantryMonthly(year, month),
+      refreshPantryYearly(year),
+    ]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     logger.error('Error saving sunshine bag:', err);

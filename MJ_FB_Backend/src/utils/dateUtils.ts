@@ -64,3 +64,13 @@ export function reginaStartOfDayISO(date: string | Date): string {
     REGINA_OFFSET;
   return `${formatReginaDate(d)}T00:00:00${offset}`;
 }
+
+export function getWeekForDate(date: string | Date) {
+  const d = toReginaDate(date);
+  const year = d.getUTCFullYear();
+  const month = d.getUTCMonth() + 1;
+  const startOfYear = new Date(Date.UTC(year, 0, 1));
+  const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000) + 1;
+  const week = Math.ceil(dayOfYear / 7);
+  return { week, month, year };
+}

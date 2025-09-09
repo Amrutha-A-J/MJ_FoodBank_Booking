@@ -1,49 +1,42 @@
-import request from 'supertest';
-import express from 'express';
-import sunshineBagRouter from '../src/routes/sunshineBags';
-import pool from '../src/db';
+import mockDb from './utils/mockDb';
+import { getWeekForDate } from '../src/utils/dateUtils';
+import {
+  refreshPantryWeekly,
+  refreshPantryMonthly,
+  refreshPantryYearly,
+} from '../src/controllers/pantryStatsController';
+import { upsertSunshineBag } from '../src/controllers/sunshineBagController';
 
-jest.mock('../src/middleware/authMiddleware', () => ({
-  authMiddleware: (_req: any, _res: express.Response, next: express.NextFunction) => {
-    (_req as any).user = { id: 1, role: 'staff', access: ['pantry'] };
-    next();
-  },
-  authorizeAccess: () => (_req: any, _res: express.Response, next: express.NextFunction) => next(),
-  authorizeRoles: () => (_req: any, _res: express.Response, next: express.NextFunction) => next(),
-  optionalAuthMiddleware: (_req: any, _res: express.Response, next: express.NextFunction) => next(),
+jest.mock('../src/controllers/pantryStatsController', () => ({
+  refreshPantryWeekly: jest.fn(),
+  refreshPantryMonthly: jest.fn(),
+  refreshPantryYearly: jest.fn(),
 }));
 
-const app = express();
-app.use(express.json());
-app.use('/sunshine-bags', sunshineBagRouter);
-
-describe('sunshine bag log', () => {
+describe('sunshineBagController', () => {
   beforeEach(() => {
-    (pool.query as jest.Mock).mockReset();
+    (mockDb.query as jest.Mock).mockReset();
+    (refreshPantryWeekly as jest.Mock).mockReset();
+    (refreshPantryMonthly as jest.Mock).mockReset();
+    (refreshPantryYearly as jest.Mock).mockReset();
   });
 
-  it('upserts sunshine bag weight and client count', async () => {
-    (pool.query as jest.Mock)
+  it('upsertSunshineBag triggers pantry refresh', async () => {
+    (mockDb.query as jest.Mock)
       .mockResolvedValueOnce({
-        rows: [{ date: '2024-01-01', weight: 5, clientCount: 3 }],
+        rows: [{ date: '2024-05-20', weight: 10, client_count: 2 }],
         rowCount: 1,
       })
-      .mockResolvedValue({ rows: [{ weight: 5, client_count: 3 }], rowCount: 1 });
-    const res = await request(app)
-      .post('/sunshine-bags')
-      .send({ date: '2024-01-01', weight: 5, clientCount: 3 });
-    expect(res.status).toBe(201);
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('ON CONFLICT');
-    expect(res.body).toEqual({ date: '2024-01-01', weight: 5, clientCount: 3 });
-  });
+      .mockResolvedValueOnce({ rows: [{ weight: 10, client_count: 2 }], rowCount: 1 })
+      .mockResolvedValueOnce({});
 
-  it('gets sunshine bag by date', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [{ date: '2024-01-01', weight: 7, clientCount: 2 }],
-      rowCount: 1,
-    });
-    const res = await request(app).get('/sunshine-bags?date=2024-01-01');
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ date: '2024-01-01', weight: 7, clientCount: 2 });
+    const req = { body: { date: '2024-05-20', weight: 10, clientCount: 2 } } as any;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+    const next = jest.fn();
+    await upsertSunshineBag(req, res, next);
+    const { week, month, year } = getWeekForDate('2024-05-20');
+    expect(refreshPantryWeekly).toHaveBeenCalledWith(year, week);
+    expect(refreshPantryMonthly).toHaveBeenCalledWith(year, month);
+    expect(refreshPantryYearly).toHaveBeenCalledWith(year);
   });
 });

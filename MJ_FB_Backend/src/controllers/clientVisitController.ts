@@ -1,13 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
-import { formatReginaDate } from '../utils/dateUtils';
+import { formatReginaDate, reginaStartOfDayISO, getWeekForDate } from '../utils/dateUtils';
 import { Queryable } from '../utils/bookingUtils';
 import { updateBooking } from '../models/bookingRepository';
 import readXlsxFile, { readSheetNames } from 'read-excel-file/node';
 import type { PoolClient } from 'pg';
 import fs from 'fs/promises';
 import { importClientVisitsSchema } from '../schemas/clientVisitSchemas';
+import {
+  refreshPantryWeekly,
+  refreshPantryMonthly,
+  refreshPantryYearly,
+} from './pantryStatsController';
+import { refreshSunshineBagOverall } from './sunshineBagController';
 
 export async function refreshClientVisitCount(
   clientId: number,
@@ -244,6 +250,12 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       }
     }
     await client.query('COMMIT');
+    const { week, month, year } = getWeekForDate(date);
+    await Promise.all([
+      refreshPantryWeekly(year, week),
+      refreshPantryMonthly(year, month),
+      refreshPantryYearly(year),
+    ]);
     res.status(201).json({ ...insertRes.rows[0], clientName });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -268,8 +280,14 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
       adults,
       children,
     } = req.body;
-    const existing = await pool.query('SELECT client_id FROM client_visits WHERE id = $1', [id]);
+    const existing = await pool.query(
+      'SELECT client_id, date FROM client_visits WHERE id = $1',
+      [id],
+    );
     const prevClientId: number | null = existing.rows[0]?.client_id ?? null;
+    const prevDate: string | null = existing.rows[0]?.date
+      ? formatReginaDate(existing.rows[0].date)
+      : null;
     if (clientId) {
       const dup = await pool.query(
         'SELECT 1 FROM client_visits WHERE client_id = $1 AND date = $2 AND id <> $3',
@@ -318,6 +336,20 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     }
     if (prevClientId) await refreshClientVisitCount(prevClientId);
     if (clientId && clientId !== prevClientId) await refreshClientVisitCount(clientId);
+    const { week, month, year } = getWeekForDate(date);
+    await Promise.all([
+      refreshPantryWeekly(year, week),
+      refreshPantryMonthly(year, month),
+      refreshPantryYearly(year),
+    ]);
+    if (prevDate && prevDate !== date) {
+      const prev = getWeekForDate(prevDate);
+      await Promise.all([
+        refreshPantryWeekly(prev.year, prev.week),
+        refreshPantryMonthly(prev.year, prev.month),
+        refreshPantryYearly(prev.year),
+      ]);
+    }
     res.json({ ...result.rows[0], clientName });
   } catch (error) {
     logger.error('Error updating client visit:', error);
@@ -334,7 +366,9 @@ export async function deleteVisit(req: Request, res: Response, next: NextFunctio
     );
     await pool.query('DELETE FROM client_visits WHERE id = $1', [id]);
     const clientId: number | null = existing.rows[0]?.client_id ?? null;
-    const date: string | null = existing.rows[0]?.date ?? null;
+    const date: string | null = existing.rows[0]?.date
+      ? formatReginaDate(existing.rows[0].date)
+      : null;
     if (clientId) await refreshClientVisitCount(clientId);
     if (clientId && date) {
       const bookingRes = await pool.query(
@@ -348,6 +382,14 @@ export async function deleteVisit(req: Request, res: Response, next: NextFunctio
           pool,
         );
       }
+    }
+    if (date) {
+      const { week, month, year } = getWeekForDate(date);
+      await Promise.all([
+        refreshPantryWeekly(year, week),
+        refreshPantryMonthly(year, month),
+        refreshPantryYearly(year),
+      ]);
     }
     res.json({ message: 'Deleted' });
   } catch (error) {
@@ -373,6 +415,8 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
     let imported = 0;
     const errors: Record<string, string[]> = {};
 
+    const dates = new Set<string>();
+
     const addError = (sheet: string, message: string) => {
       if (!errors[sheet]) errors[sheet] = [];
       errors[sheet].push(message);
@@ -384,6 +428,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
         continue;
       }
       const rows = await readXlsxFile(req.file.buffer, { sheet: name });
+      dates.add(formatReginaDate(name));
       for (const [index, row] of rows.slice(1).entries()) {
         const [familySize, weightWithCart, weightWithoutCart, petItem, clientId] = row;
         if (String(clientId).toUpperCase() === 'SUNSHINE') {
@@ -460,6 +505,16 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
       }
     }
     await client.query('COMMIT');
+    for (const d of dates) {
+      const { week, month, year } = getWeekForDate(d);
+      const dt = new Date(reginaStartOfDayISO(d));
+      await Promise.all([
+        refreshPantryWeekly(year, week),
+        refreshPantryMonthly(year, month),
+        refreshPantryYearly(year),
+        refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1),
+      ]);
+    }
     res.json({ imported, newClients: createdClients, errors });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -498,6 +553,7 @@ export async function importVisitsFromXlsx(
     "SELECT value FROM app_config WHERE key = 'cart_tare'",
   );
   const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+  const dates = new Set<string>();
   try {
     const sheetNames = await readSheetNames(req.file.buffer);
     if (!isDryRun) {
@@ -509,6 +565,7 @@ export async function importVisitsFromXlsx(
       const rows = await readXlsxFile(req.file.buffer, { sheet: sheetName });
       const sheetDate = sheetName;
       const formattedDate = formatReginaDate(sheetDate);
+      dates.add(formattedDate);
       const errors: string[] = [];
 
       const dataRows = rows.slice(1);
@@ -632,6 +689,16 @@ export async function importVisitsFromXlsx(
       res.json(summaries);
     } else {
       await client!.query('COMMIT');
+      for (const d of dates) {
+        const { week, month, year } = getWeekForDate(d);
+        const dt = new Date(reginaStartOfDayISO(d));
+        await Promise.all([
+          refreshPantryWeekly(year, week),
+          refreshPantryMonthly(year, month),
+          refreshPantryYearly(year),
+          refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1),
+        ]);
+      }
       res.json({ summary: summaries });
     }
   } catch (error) {
