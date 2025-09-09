@@ -35,12 +35,14 @@ import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
+import FeedbackPrompt from '../components/FeedbackPrompt';
 import DialogCloseButton from '../components/DialogCloseButton';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
 import ClientBottomNav from '../components/ClientBottomNav';
 import type { ApiError } from '../api/client';
 import { useTranslation } from 'react-i18next';
+import { logEvent } from '../utils/analytics';
 
 // Wrappers to match required signatures
 function useSlots(
@@ -131,6 +133,7 @@ export default function BookingUI({
   const [note, setNote] = useState('');
   const [usage, setUsage] = useState<number | null>(null);
   const [loadingConfirm, setLoadingConfirm] = useState(false);
+  const [promptOpen, setPromptOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
@@ -197,6 +200,7 @@ export default function BookingUI({
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
     setBooking(true);
     try {
+      logEvent('booking_attempt');
       const res = await bookSlot({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
@@ -237,6 +241,8 @@ export default function BookingUI({
             </Stack>
           ) : undefined,
       });
+      logEvent('booking_success');
+      setPromptOpen(true);
       setSelectedSlotId(null);
       setNote('');
       refetch();
@@ -297,6 +303,7 @@ export default function BookingUI({
           severity: 'error',
         });
       }
+      logEvent('booking_error');
     } finally {
       setBooking(false);
       setConfirmOpen(false);
@@ -558,6 +565,7 @@ export default function BookingUI({
         message={modal.message}
         severity="warning"
       />
+      <FeedbackPrompt open={promptOpen} onClose={() => setPromptOpen(false)} />
     </Container>
   );
 

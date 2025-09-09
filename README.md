@@ -450,6 +450,8 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
+Optionally set `VITE_FEEDBACK_FORM_URL` in `MJ_FB_Frontend/.env` to display a feedback form link after bookings or shift completions.
+
 
 Refer to the submodule repositories for detailed configuration and environment variables.
 

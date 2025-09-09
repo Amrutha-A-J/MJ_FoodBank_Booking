@@ -49,6 +49,8 @@ VITE_API_BASE=http://localhost:4000/api
 
 The build will fail if this variable is missing.
 
+Set `VITE_FEEDBACK_FORM_URL` to the URL of a feedback form to prompt users after bookings or shift completions. Leaving it unset hides the prompt.
+
 ## Mobile Responsiveness
 
 Layouts are built with Material UI and include CSS adjustments for small screens. Review changes on screens below 600px to ensure components remain usable.

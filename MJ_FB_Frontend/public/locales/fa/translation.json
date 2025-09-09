@@ -361,5 +361,8 @@
       "body": "Tap Schedule to sign up for shifts. Install the app for faster access."
     },
     "close": "Got it"
-  }
+  },
+  "feedback_prompt_title": "Feedback",
+  "feedback_prompt_message": "How was your experience? Share your feedback.",
+  "give_feedback": "Give Feedback"
 }

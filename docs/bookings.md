@@ -14,3 +14,6 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `select_date_time`
 - `help.client.rescheduling_or_canceling.steps.3`
 - `visits_this_month`
+- `feedback_prompt_title`
+- `feedback_prompt_message`
+- `give_feedback`

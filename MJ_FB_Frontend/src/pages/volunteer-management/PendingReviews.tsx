@@ -18,6 +18,7 @@ import Page from '../../components/Page';
 import PageCard from '../../components/layout/PageCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
+import FeedbackPrompt from '../../components/FeedbackPrompt';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import {
   getVolunteerBookingsForReview,
@@ -39,6 +40,7 @@ export default function PendingReviews() {
   const [dialog, setDialog] = useState<VolunteerBookingDetail | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
+  const [promptOpen, setPromptOpen] = useState(false);
   const weekStart = useMemo(() => dayjs().startOf('week'), []);
   const today = dayjs();
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')), [weekStart]);
@@ -91,6 +93,7 @@ export default function PendingReviews() {
       setSelected([]);
       setSeverity('success');
       setMessage('Shifts updated');
+      if (status === 'completed') setPromptOpen(true);
     } catch {
       setSeverity('error');
       setMessage('Update failed');
@@ -103,6 +106,7 @@ export default function PendingReviews() {
     if (dialog) {
       setBookings(b => b.filter(v => v.id !== dialog.id));
     }
+    if (sev === 'success') setPromptOpen(true);
   }
 
   const columns: Column<BookingRow>[] = [
@@ -214,6 +218,7 @@ export default function PendingReviews() {
           severity={severity}
           onClose={() => setMessage('')}
         />
+        <FeedbackPrompt open={promptOpen} onClose={() => setPromptOpen(false)} />
       </PageCard>
     </Page>
   );
