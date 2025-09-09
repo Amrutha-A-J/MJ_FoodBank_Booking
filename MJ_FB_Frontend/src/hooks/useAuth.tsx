@@ -7,6 +7,7 @@ import { logout as apiLogout } from '../api/users';
 import { API_BASE, apiFetch } from '../api/client';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import { getRandomAppreciation } from '../utils/appreciationMessages';
+import { getStaffRootPath } from '../utils/staffRootPath';
 
 interface AuthContextValue {
   token: string;
@@ -15,7 +16,7 @@ interface AuthContextValue {
   userRole: UserRole | '';
   access: StaffAccess[];
   id: number | null;
-  login: (u: LoginResponse) => Promise<void>;
+  login: (u: LoginResponse) => Promise<string>;
   logout: () => Promise<void>;
   cardUrl: string;
   ready: boolean;
@@ -131,23 +132,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
       if (!res.ok && res.status !== 409) throw new Error('Invalid refresh');
       setToken('cookie');
-      setRole(u.role);
-      setName(u.name);
-      setUserRole(u.userRole || '');
-      setAccess(u.access || []);
-      setId(u.id ?? null);
-      localStorage.setItem('role', u.role);
-      localStorage.setItem('name', u.name);
-      if (u.userRole) localStorage.setItem('userRole', u.userRole);
+      const { role, name, userRole: uRole, access: uAccess, id: uId } = u;
+      setRole(role);
+      setName(name);
+      setUserRole(uRole || '');
+      setAccess(uAccess || []);
+      setId(uId ?? null);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      if (uRole) localStorage.setItem('userRole', uRole);
       else localStorage.removeItem('userRole');
-      localStorage.setItem('access', JSON.stringify(u.access || []));
-      if (u.id) localStorage.setItem('id', String(u.id));
+      localStorage.setItem('access', JSON.stringify(uAccess || []));
+      if (uId) localStorage.setItem('id', String(uId));
       else localStorage.removeItem('id');
       localStorage.removeItem('encouragementOrder');
       localStorage.removeItem('encouragementIndex');
-      setSessionMessage(
-        u.role === 'volunteer' ? getRandomAppreciation() : '',
-      );
+      setSessionMessage(role === 'volunteer' ? getRandomAppreciation() : '');
       try {
         const statsRes = await apiFetch(`${API_BASE}/stats`);
         if (statsRes.ok) {
@@ -159,6 +159,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         setCardUrl('');
       }
+      if (role === 'volunteer') {
+        return '/';
+      }
+      if (role === 'staff') {
+        return getStaffRootPath(uAccess || []);
+      }
+      return '/';
     } catch (e) {
       clearAuth();
       throw e;

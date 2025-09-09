@@ -1,18 +1,18 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import AgencyLogin from '../pages/agency/Login';
-import { loginAgency, resendPasswordSetup } from '../api/users';
+import { login, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
-  loginAgency: jest.fn(),
+  login: jest.fn(),
   resendPasswordSetup: jest.fn(),
 }));
 
 describe('AgencyLogin component', () => {
   it('shows friendly message on unauthorized error', async () => {
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
-    (loginAgency as jest.Mock).mockRejectedValue(apiErr);
-    const onLogin = jest.fn();
+    (login as jest.Mock).mockRejectedValue(apiErr);
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <AgencyLogin onLogin={onLogin} />

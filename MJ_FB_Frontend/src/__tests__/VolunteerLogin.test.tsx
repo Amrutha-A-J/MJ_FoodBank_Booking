@@ -16,7 +16,7 @@ describe('VolunteerLogin component', () => {
   it('shows friendly message on unauthorized error', async () => {
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
     (loginVolunteer as jest.Mock).mockRejectedValue(apiErr);
-    const onLogin = jest.fn();
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <VolunteerLogin onLogin={onLogin} />

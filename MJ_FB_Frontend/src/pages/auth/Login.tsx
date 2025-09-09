@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { loginUser } from '../../api/users';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 export default function Login({
   onLogin,
 }: {
-  onLogin: (user: LoginResponse) => Promise<void>;
+  onLogin: (user: LoginResponse) => Promise<string>;
 }) {
   const [clientId, setClientId] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +27,7 @@ export default function Login({
   const [submitted, setSubmitted] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
@@ -46,8 +48,9 @@ export default function Login({
     setSubmitted(true);
     if (clientId === '' || password === '') return;
     try {
-      const user = await loginUser(clientId, password);
-      await onLogin(user);
+      const user = await login({ clientId, password });
+      const path = await onLogin(user);
+      navigate(path);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {

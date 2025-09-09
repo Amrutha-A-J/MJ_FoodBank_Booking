@@ -1,11 +1,11 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
-import { loginAgency } from '../api/users';
+import { login } from '../api/users';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 jest.mock('../api/users', () => ({
-  loginAgency: jest.fn(),
+  login: jest.fn(),
 }));
 
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
@@ -16,12 +16,6 @@ describe('Agency UI access', () => {
 
   beforeEach(() => {
     fetchMock = mockFetch();
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({}),
-      headers: new Headers(),
-    });
     localStorage.clear();
     window.history.pushState({}, '', '/');
   });
@@ -32,10 +26,22 @@ describe('Agency UI access', () => {
   });
 
   it('allows agency login and shows agency links', async () => {
-    (loginAgency as jest.Mock).mockResolvedValue({
+    (login as jest.Mock).mockResolvedValue({
       role: 'agency',
       name: 'Agency',
       id: 1,
+    });
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+      headers: new Headers(),
     });
     renderWithProviders(<App />);
 
@@ -62,6 +68,12 @@ describe('Agency UI access', () => {
   });
 
   it('redirects unauthenticated users away from agency routes', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
     window.history.pushState({}, '', '/agency/book');
     renderWithProviders(<App />);
     await waitFor(() => expect(window.location.pathname).toBe('/login'));

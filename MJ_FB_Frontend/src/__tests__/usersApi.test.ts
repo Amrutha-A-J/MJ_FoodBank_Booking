@@ -1,5 +1,5 @@
 import { apiFetch, handleResponse } from '../api/client';
-import { loginUser, addUser } from '../api/users';
+import { login, addUser } from '../api/users';
 
 jest.mock('../api/client', () => ({
   API_BASE: '/api',
@@ -13,8 +13,10 @@ describe('users api', () => {
     jest.clearAllMocks();
   });
 
-  it('rejects loginUser with invalid clientId', async () => {
-    await expect(loginUser('abc', 'pw')).rejects.toThrow('Invalid client ID');
+  it('rejects login with invalid clientId', async () => {
+    await expect(login({ clientId: 'abc', password: 'pw' })).rejects.toThrow(
+      'Invalid client ID',
+    );
     expect(apiFetch).not.toHaveBeenCalled();
   });
 

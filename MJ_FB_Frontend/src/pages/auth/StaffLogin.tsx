@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { loginStaff, staffExists, createStaff } from '../../api/users';
+import { useNavigate } from 'react-router-dom';
+import { login, staffExists, createStaff } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Typography, TextField, Link, Button } from '@mui/material';
@@ -14,7 +15,7 @@ import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialo
 export default function StaffLogin({
   onLogin,
 }: {
-  onLogin: (u: LoginResponse) => Promise<void>;
+  onLogin: (u: LoginResponse) => Promise<string>;
 }) {
   const [checking, setChecking] = useState(true);
   const [hasStaff, setHasStaff] = useState(false);
@@ -54,7 +55,7 @@ function StaffLoginForm({
   onLogin,
   error: initError,
 }: {
-  onLogin: (u: LoginResponse) => Promise<void>;
+  onLogin: (u: LoginResponse) => Promise<string>;
   error: string;
 }) {
   const [email, setEmail] = useState('');
@@ -67,17 +68,20 @@ function StaffLoginForm({
   const emailError = submitted && email === '';
   const passwordError = submitted && password === '';
 
+  const navigate = useNavigate();
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
     if (email === '' || password === '') return;
     try {
-      const user = await loginStaff(email, password);
+      const user = await login({ email, password });
       if (user.role === 'shopper' || user.role === 'delivery') {
         setError('Not a staff account');
         return;
       }
-      await onLogin(user);
+      const path = await onLogin(user);
+      navigate(path);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {

@@ -1,10 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StaffLogin from '../pages/auth/StaffLogin';
-import { loginStaff, staffExists, createStaff, resendPasswordSetup } from '../api/users';
+import { login, staffExists, createStaff, resendPasswordSetup } from '../api/users';
 
 jest.mock('../api/users', () => ({
-  loginStaff: jest.fn(),
+  login: jest.fn(),
   staffExists: jest.fn(),
   createStaff: jest.fn(),
   resendPasswordSetup: jest.fn(),
@@ -14,8 +14,8 @@ describe('StaffLogin component', () => {
   it('shows friendly message on unauthorized error', async () => {
     (staffExists as jest.Mock).mockResolvedValue(true);
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
-    (loginStaff as jest.Mock).mockRejectedValue(apiErr);
-    const onLogin = jest.fn();
+    (login as jest.Mock).mockRejectedValue(apiErr);
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <StaffLogin onLogin={onLogin} />
@@ -38,7 +38,7 @@ describe('StaffLogin component', () => {
   it('shows account creation message and stays on form', async () => {
     (staffExists as jest.Mock).mockResolvedValue(false);
     (createStaff as jest.Mock).mockResolvedValue(undefined);
-    const onLogin = jest.fn();
+    const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
         <StaffLogin onLogin={onLogin} />

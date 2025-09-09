@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { loginAgency, type LoginResponse } from '../../api/users';
+import { useNavigate } from 'react-router-dom';
+import { login, type LoginResponse } from '../../api/users';
 import { TextField, Button } from '@mui/material';
 import PasswordField from '../../components/PasswordField';
 import FormCard from '../../components/FormCard';
@@ -11,12 +12,13 @@ import type { ApiError } from '../../api/client';
 export default function AgencyLogin({
   onLogin,
 }: {
-  onLogin: (u: LoginResponse) => Promise<void>;
+  onLogin: (u: LoginResponse) => Promise<string>;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resendOpen, setResendOpen] = useState(false);
+  const navigate = useNavigate();
 
   const emailError = email === '';
   const passwordError = password === '';
@@ -25,8 +27,9 @@ export default function AgencyLogin({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const user = await loginAgency(email, password);
-      await onLogin(user);
+      const user = await login({ email, password });
+      const path = await onLogin(user);
+      navigate(path);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {

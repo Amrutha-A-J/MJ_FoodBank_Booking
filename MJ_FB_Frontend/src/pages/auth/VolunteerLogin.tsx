@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { loginVolunteer } from '../../api/volunteers';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
@@ -13,7 +14,7 @@ import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialo
 export default function VolunteerLogin({
   onLogin,
 }: {
-  onLogin: (u: LoginResponse) => Promise<void>;
+  onLogin: (u: LoginResponse) => Promise<string>;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +22,7 @@ export default function VolunteerLogin({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const emailError = submitted && email === '';
   const passwordError = submitted && password === '';
@@ -31,7 +33,8 @@ export default function VolunteerLogin({
     if (email === '' || password === '') return;
     try {
       const user = await loginVolunteer(email, password);
-      await onLogin(user);
+      const path = await onLogin(user);
+      navigate(path);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
