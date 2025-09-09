@@ -49,7 +49,7 @@ export default function MailLists() {
 
   async function handleSend() {
     try {
-      await sendMailListEmails(year, month);
+      await sendMailListEmails({ year, month });
       setSnackbar({ open: true, message: 'Emails sent', severity: 'success' });
     } catch (error: any) {
       setSnackbar({

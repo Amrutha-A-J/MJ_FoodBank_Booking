@@ -140,10 +140,15 @@ export async function getMailLists(
   return handleResponse(res);
 }
 
-export async function sendMailListEmails(
-  year: number,
-  month: number,
-): Promise<void> {
+export interface SendMailListParams {
+  year: number;
+  month: number;
+}
+
+export async function sendMailListEmails({
+  year,
+  month,
+}: SendMailListParams): Promise<void> {
   const res = await apiFetch(`${API_BASE}/monetary-donors/mail-lists/send`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
