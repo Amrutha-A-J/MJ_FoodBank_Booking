@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 
 export interface BookingEvent {
-  action: 'created' | 'cancelled';
+  action: 'created' | 'cancelled' | 'rescheduled';
   name: string;
   role: 'client' | 'volunteer';
   date: string;
