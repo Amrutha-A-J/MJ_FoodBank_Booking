@@ -71,7 +71,7 @@ export default function RescheduleBooking() {
   return (
     <Page title={t('reschedule')}>
       <Grid container spacing={2} justifyContent="center">
-        <Grid xs={12} sm={8} md={6}>
+        <Grid size={{ xs: 12, sm: 8, md: 6 }}>
           <FormCard
             title={t('reschedule')}
             onSubmit={handleSubmit}
