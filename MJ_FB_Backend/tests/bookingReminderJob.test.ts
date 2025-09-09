@@ -29,7 +29,7 @@ const {
   stopBookingReminderJob,
 } = bookingReminder;
 const db = require('../src/db').default;
-import { alertOps } from '../src/utils/opsAlert';
+import { alertOps, notifyOps } from '../src/utils/opsAlert';
 
 test('does not query database on import', () => {
   expect(db.query).not.toHaveBeenCalled();
@@ -68,6 +68,9 @@ describe('sendNextDayBookingReminders', () => {
           body: expect.stringContaining('Tue, Jan 2, 2024'),
         }),
       }),
+    );
+    expect(notifyOps).toHaveBeenCalledWith(
+      'sendNextDayBookingReminders queued reminders for user@example.com',
     );
   });
 
