@@ -11,99 +11,187 @@ import config from '../config';
 import { getClientBookingsThisMonth } from './clientVisitController';
 
 export async function loginUser(req: Request, res: Response, next: NextFunction) {
-  const { email, password, clientId } = req.body;
-
+  const { email, password, clientId } = req.body as {
+    email?: string;
+    password?: string;
+    clientId?: number;
+  };
   try {
-    if (clientId) {
-      if (!password) {
-        return res
-          .status(400)
-          .json({ message: 'Client ID and password required' });
-      }
-      const userQuery = await pool.query(
-        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
-        [clientId]
+    if (!password) {
+      return res.status(400).json({ message: 'Password required' });
+    }
+
+    // Try volunteers first when an email is provided
+    if (email) {
+      const volRes = await pool.query(
+        `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
+         FROM volunteers v
+         LEFT JOIN clients u ON v.user_id = u.client_id
+         WHERE v.email = $1`,
+        [email],
       );
-      if ((userQuery.rowCount ?? 0) === 0) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+      if ((volRes.rowCount ?? 0) > 0) {
+        const volunteer = volRes.rows[0];
+        if (!volunteer.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, volunteer.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const rolesRes = await pool.query(
+          `SELECT vr.name
+             FROM volunteer_trained_roles vtr
+             JOIN volunteer_roles vr ON vtr.role_id = vr.id
+             WHERE vtr.volunteer_id = $1`,
+          [volunteer.id],
+        );
+        const access: string[] = [];
+        if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+          access.push('donation_entry');
+        }
+        const payload: AuthPayload = {
+          id: volunteer.id,
+          role: 'volunteer',
+          type: 'volunteer',
+          ...(access.length && { access }),
+          ...(volunteer.user_id && {
+            userId: volunteer.user_id,
+            userRole: volunteer.user_role || 'shopper',
+          }),
+        };
+        await issueAuthTokens(res, payload, `volunteer:${volunteer.id}`);
+        return res.json({
+          role: 'volunteer',
+          name: `${volunteer.first_name} ${volunteer.last_name}`,
+          ...(volunteer.user_id && {
+            userRole: volunteer.user_role || 'shopper',
+          }),
+          ...(access.length && { access }),
+          id: volunteer.id,
+        });
       }
-      const userRow = userQuery.rows[0];
-      if (!userRow.password) {
-        return res.status(403).json({ message: 'Password setup link expired' });
-      }
-      const match = await bcrypt.compare(password, userRow.password);
-      if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-      const bookingsThisMonth = await getClientBookingsThisMonth(userRow.client_id);
-      const payload: AuthPayload = { id: userRow.client_id, role: userRow.role, type: 'user' };
-      await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
-      return res.json({
-        role: userRow.role,
-        name: `${userRow.first_name} ${userRow.last_name}`,
-        bookingsThisMonth,
-      });
-    }
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password required' });
-    }
-
-    const staffQuery = await pool.query(
-      `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
-      [email]
-    );
-    if ((staffQuery.rowCount ?? 0) > 0) {
-      const staff = staffQuery.rows[0];
-      if (!staff.password) {
-        return res
-          .status(403)
-          .json({ message: 'Password setup link expired' });
+      // Staff login
+      const staffQuery = await pool.query(
+        `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
+        [email],
+      );
+      if ((staffQuery.rowCount ?? 0) > 0) {
+        const staff = staffQuery.rows[0];
+        if (!staff.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, staff.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const role = 'staff';
+        const payload: AuthPayload = {
+          id: staff.id,
+          role,
+          type: 'staff',
+          access: staff.access || [],
+        };
+        await issueAuthTokens(res, payload, `staff:${staff.id}`);
+        return res.json({
+          role,
+          name: `${staff.first_name} ${staff.last_name}`,
+          access: staff.access || [],
+          id: staff.id,
+        });
       }
-      const match = await bcrypt.compare(password, staff.password);
-      if (!match) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-      const role = 'staff';
-      const payload: AuthPayload = {
-        id: staff.id,
-        role,
-        type: 'staff',
-        access: staff.access || [],
-      };
-      await issueAuthTokens(res, payload, `staff:${staff.id}`);
-      return res.json({
-        role,
-        name: `${staff.first_name} ${staff.last_name}`,
-        access: staff.access || [],
-        id: staff.id,
-      });
-    }
 
-    const agency = await getAgencyByEmail(email);
-    if (!agency) {
+      // Agency login
+      const agency = await getAgencyByEmail(email);
+      if (agency) {
+        if (!agency.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, agency.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const payload: AuthPayload = {
+          id: agency.id,
+          role: 'agency',
+          type: 'agency',
+        };
+        await issueAuthTokens(res, payload, `agency:${agency.id}`);
+        return res.json({
+          role: 'agency',
+          name: agency.name,
+          access: [],
+          id: agency.id,
+        });
+      }
+
+      // Client by email
+      const clientByEmail = await pool.query(
+        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE email = $1 AND online_access = true`,
+        [email],
+      );
+      if ((clientByEmail.rowCount ?? 0) > 0) {
+        const userRow = clientByEmail.rows[0];
+        if (!userRow.password) {
+          return res
+            .status(403)
+            .json({ message: 'Password setup link expired' });
+        }
+        const match = await bcrypt.compare(password, userRow.password);
+        if (!match) {
+          return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const payload: AuthPayload = {
+          id: userRow.client_id,
+          role: userRow.role,
+          type: 'user',
+        };
+        await issueAuthTokens(res, payload, `user:${userRow.client_id}`);
+        return res.json({
+          role: userRow.role,
+          name: `${userRow.first_name} ${userRow.last_name}`,
+          id: userRow.client_id,
+        });
+      }
+
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    if (!agency.password) {
+
+    // Client login via clientId
+    const clientRes = await pool.query(
+      `SELECT client_id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
+      [clientId],
+    );
+    if ((clientRes.rowCount ?? 0) === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    const client = clientRes.rows[0];
+    if (!client.password) {
       return res
         .status(403)
         .json({ message: 'Password setup link expired' });
     }
-    const match = await bcrypt.compare(password, agency.password);
+    const match = await bcrypt.compare(password, client.password);
     if (!match) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const payload: AuthPayload = {
-      id: agency.id,
-      role: 'agency',
-      type: 'agency',
+      id: client.client_id,
+      role: client.role,
+      type: 'user',
     };
-    await issueAuthTokens(res, payload, `agency:${agency.id}`);
-    res.json({
-      role: 'agency',
-      name: agency.name,
-      id: agency.id,
-      access: [],
+    await issueAuthTokens(res, payload, `user:${client.client_id}`);
+    return res.json({
+      role: client.role,
+      name: `${client.first_name} ${client.last_name}`,
+      id: client.client_id,
     });
   } catch (error) {
     logger.error('Error logging in:', error);

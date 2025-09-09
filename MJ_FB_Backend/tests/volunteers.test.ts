@@ -1,6 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import volunteersRouter from '../src/routes/volunteer/volunteers';
+import usersRouter from '../src/routes/users';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -30,6 +31,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
 
 const app = express();
 app.use(express.json());
+app.use('/users', usersRouter);
 app.use((req, _res, next) => {
   (req as any).user = { id: 1, role: 'volunteer' };
   next();
@@ -321,18 +323,15 @@ describe('Volunteer login with shopper profile', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/volunteers/login')
+      .post('/users/login')
       .send({ email: 'john@example.com', password: 'Secret1!' });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       role: 'volunteer',
       name: 'John Doe',
-      userId: 9,
       userRole: 'shopper',
-      token: 'token',
-      refreshToken: 'token',
-      access: [],
+      id: 1,
     });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
