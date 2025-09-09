@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from 'react';
 import {
   Box,
   Container,
@@ -28,11 +28,12 @@ import { useTheme } from '@mui/material/styles';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Slot, Holiday } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
+import useSlotStream from '../hooks/useSlotStream';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
@@ -134,6 +135,24 @@ export default function BookingUI({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+
+  const handleStream = useCallback(
+    (data: any) => {
+      const dateStr = date.format('YYYY-MM-DD');
+      if (data?.date !== dateStr || !Array.isArray(data.slots)) return;
+      queryClient.setQueryData<Slot[]>(['slots', dateStr], (prev = []) => {
+        const map = new Map(prev.map(s => [s.id, s]));
+        (data.slots as Slot[]).forEach((s: Slot) => {
+          map.set(s.id, s);
+        });
+        return Array.from(map.values());
+      });
+    },
+    [date, queryClient],
+  );
+
+  useSlotStream(handleStream);
 
   useEffect(() => {
     if (!isDisabled(date)) return;
