@@ -419,13 +419,11 @@ export default function VolunteerSchedule() {
         </FormControl>
         {selectedRoleKey ? (
           <>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-              }}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
             >
               <Button
                 size="large"
@@ -436,19 +434,31 @@ export default function VolunteerSchedule() {
               >
                 Previous
               </Button>
+              <Typography
+                variant="h5"
+                component="h3"
+                sx={{ fontWeight: theme.typography.fontWeightBold }}
+              >
+                {dateStr} - {dayName}
+                {isHoliday
+                  ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
+                  : isWeekend
+                    ? " (Weekend)"
+                    : ""}
+              </Typography>
               <Stack direction="row" spacing={1} alignItems="center">
-                <Typography
-                  variant="h5"
-                  component="h3"
-                  sx={{ fontWeight: theme.typography.fontWeightBold }}
+                <Button
+                  size="large"
+                  onClick={() =>
+                    setCurrentDate(
+                      fromZonedTime(`${formatDate()}T00:00:00`, reginaTimeZone),
+                    )
+                  }
+                  variant="outlined"
+                  color="primary"
                 >
-                  {dateStr} - {dayName}
-                  {isHoliday
-                    ? ` (Holiday${holidayObj?.reason ? ": " + holidayObj.reason : ""})`
-                    : isWeekend
-                      ? " (Weekend)"
-                      : ""}
-                </Typography>
+                  Today
+                </Button>
                 <LocalizationProvider
                   dateAdapter={AdapterDayjs}
                   dateLibInstance={dayjs}
@@ -469,16 +479,16 @@ export default function VolunteerSchedule() {
                     slotProps={{ textField: { size: "medium" } }}
                   />
                 </LocalizationProvider>
+                <Button
+                  size="large"
+                  onClick={() => changeDay(1)}
+                  variant="outlined"
+                  color="primary"
+                >
+                  Next
+                </Button>
               </Stack>
-              <Button
-                size="large"
-                onClick={() => changeDay(1)}
-                variant="outlined"
-                color="primary"
-              >
-                Next
-              </Button>
-            </Box>
+            </Stack>
             <FeedbackSnackbar
               open={!!message}
               onClose={() => setMessage("")}

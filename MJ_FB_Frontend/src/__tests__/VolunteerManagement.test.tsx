@@ -438,3 +438,62 @@ describe('VolunteerManagement schedule statuses', () => {
   });
 });
 
+describe('VolunteerManagement schedule navigation', () => {
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-29T19:00:00Z'));
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 1,
+        category_name: 'Front',
+        shifts: [
+          {
+            id: 10,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('resets to today when Today is clicked', async () => {
+    render(
+      <MemoryRouter initialEntries={['/volunteers/schedule']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText('Role'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+
+    const nextBtn = await screen.findByRole('button', { name: 'Next' });
+    fireEvent.click(nextBtn);
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(
+        '2024-01-30',
+      ),
+    );
+
+    const todayBtn = screen.getByRole('button', { name: 'Today' });
+    fireEvent.click(todayBtn);
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent(
+        '2024-01-29',
+      ),
+    );
+  });
+});
+
