@@ -56,7 +56,7 @@ describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
   it('schedules and stops the cron job', () => {
     startNoShowCleanupJob();
     expect(scheduleMock).toHaveBeenCalledWith(
-      '0 20 * * *',
+      '0 19 * * *',
       expect.any(Function),
       { timezone: 'America/Regina' },
     );

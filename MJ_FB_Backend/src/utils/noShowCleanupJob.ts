@@ -19,12 +19,12 @@ export async function cleanupNoShows(): Promise<void> {
 }
 
 /**
- * Schedule the cleanup job to run nightly at 8:00 PM Regina time.
+ * Schedule the cleanup job to run nightly at 7:00 PM Regina time.
  */
 const noShowCleanupJob = scheduleDailyJob(
   cleanupNoShows,
-  '0 20 * * *',
-  true,
+  '0 19 * * *',
+  false,
   true,
 );
 
