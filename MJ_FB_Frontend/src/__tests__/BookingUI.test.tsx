@@ -48,8 +48,6 @@ describe('BookingUI visible slots', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
-    jest.useFakeTimers();
     jest.setSystemTime(new Date());
     jest.useRealTimers();
   });
@@ -135,6 +133,7 @@ describe('Booking confirmation', () => {
   });
 
   afterAll(() => {
+    jest.setSystemTime(new Date());
     jest.useRealTimers();
   });
 
