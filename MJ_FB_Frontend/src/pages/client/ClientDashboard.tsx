@@ -166,7 +166,7 @@ export default function ClientDashboard() {
                       </Typography>
                       <Stack direction="row" spacing={1}>
                         <Button
-                          size="small"
+                          
                           variant="outlined"
                           sx={{ textTransform: 'none' }}
                           onClick={() => setCancelId(next.id)}
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
                           {t('cancel')}
                         </Button>
                         <Button
-                          size="small"
+                          
                           variant="contained"
                           sx={{ textTransform: 'none' }}
                           onClick={() => navigate('/booking-history')}
@@ -189,7 +189,7 @@ export default function ClientDashboard() {
                 <Typography>
                   {t('no_appointment_booked')}{' '}
                   <Button
-                    size="small"
+                    
                     variant="contained"
                     sx={{ textTransform: 'none' }}
                     onClick={() => navigate('/book-appointment')}
@@ -248,7 +248,7 @@ export default function ClientDashboard() {
                 alignItems={{ xs: 'stretch', sm: 'center' }}
               >
                 <Button
-                  size="small"
+                  
                   variant="contained"
                   sx={{
                     textTransform: 'none',
@@ -259,7 +259,7 @@ export default function ClientDashboard() {
                   {t('book_appointment')}
                 </Button>
                 <Button
-                  size="small"
+                  
                   variant="outlined"
                   sx={{
                     textTransform: 'none',
@@ -270,7 +270,7 @@ export default function ClientDashboard() {
                   {t('reschedule')}
                 </Button>
                 <Button
-                  size="small"
+                  
                   variant="outlined"
                   sx={{
                     textTransform: 'none',
@@ -326,7 +326,7 @@ export default function ClientDashboard() {
                           )}-${formatTime(s.slot.endTime)}`}
                         />
                         <Button
-                          size="small"
+                          
                           variant="contained"
                           sx={{
                             textTransform: 'none',
@@ -357,7 +357,7 @@ export default function ClientDashboard() {
           </DialogContent>
           <DialogActions>
             <Button
-              size="small"
+              
               color="error"
               variant="contained"
               sx={{ textTransform: 'none' }}

@@ -33,10 +33,10 @@ function MasterRoleDialog({ open, role, onClose, onSave }: MasterRoleDialogProps
         />
       </DialogContent>
       <DialogActions>
-        <Button size="small" onClick={onClose}>
+        <Button onClick={onClose}>
           Cancel
         </Button>
-        <Button size="small" variant="contained" onClick={() => onSave(role?.id, name)}>
+        <Button variant="contained" onClick={() => onSave(role?.id, name)}>
           Save
         </Button>
       </DialogActions>

@@ -123,11 +123,11 @@ export default function ClientList() {
           label="Client ID"
           value={newClientId}
           onChange={e => setNewClientId(e.target.value)}
-          size="small"
+          
           fullWidth
           sx={{ mb: 1 }}
         />
-        <Button variant="contained" size="small" onClick={handleAdd}>
+        <Button variant="contained" onClick={handleAdd}>
           Add
         </Button>
       </Grid>

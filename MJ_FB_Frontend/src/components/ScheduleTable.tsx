@@ -35,7 +35,7 @@ export default function ScheduleTable({ shifts }: Props) {
   return (
     <TableContainer sx={{ overflowX: 'auto' }}>
       <Table
-        size="small"
+        
         sx={{
           width: '100%',
           tableLayout: 'fixed',

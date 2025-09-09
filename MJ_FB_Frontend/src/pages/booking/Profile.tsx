@@ -152,7 +152,7 @@ export default function Profile({ role }: { role: Role }) {
               <TextField
                 label={t('email')}
                 type="email"
-                size="small"
+                
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 disabled={!editing}
@@ -161,7 +161,7 @@ export default function Profile({ role }: { role: Role }) {
               <TextField
                 label={profile.role === 'agency' ? t('profile_page.contact_info') : t('profile_page.phone')}
                 type={profile.role === 'agency' ? 'text' : 'tel'}
-                size="small"
+                
                 value={phone}
                 onChange={e => {
                   const val = e.target.value;
@@ -193,7 +193,7 @@ export default function Profile({ role }: { role: Role }) {
 
           <Button
             variant="outlined"
-            size="small"
+            
             startIcon={saving ? <CircularProgress size={20} /> : <AccountCircle />}
             disabled={saving || !profile}
             onClick={handleEdit}
@@ -213,7 +213,7 @@ export default function Profile({ role }: { role: Role }) {
             <Button
               variant="contained"
               color="success"
-              size="small"
+              
               fullWidth
               disabled={submitting || !profile}
               startIcon={submitting ? <CircularProgress size={20} /> : null}

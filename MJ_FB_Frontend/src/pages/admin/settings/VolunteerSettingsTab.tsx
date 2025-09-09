@@ -358,7 +358,7 @@ export default function VolunteerSettingsTab() {
         <Box mb={2}>
           <Stack direction="row" spacing={1}>
             <Button
-              size="small"
+              
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => openMasterDialog()}
@@ -366,7 +366,7 @@ export default function VolunteerSettingsTab() {
               Add Master Role
             </Button>
             <Button
-              size="small"
+              
               variant="outlined"
               onClick={() => setRestoreDialog(true)}
             >
@@ -418,7 +418,7 @@ export default function VolunteerSettingsTab() {
               <AccordionDetails sx={{ borderTop: 1, borderColor: 'divider' }}>
                 <Box mb={2}>
                   <Button
-                    size="small"
+                    
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => openSubRoleDialog(master.id)}
@@ -436,7 +436,7 @@ export default function VolunteerSettingsTab() {
                       </Grid>
                       <Grid>
                         <Button
-                          size="small"
+                          
                           variant="outlined"
                           startIcon={<AddIcon />}
                           onClick={() =>
@@ -528,10 +528,10 @@ export default function VolunteerSettingsTab() {
           <Typography>Deleting this role will remove all shifts. Are you sure?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setRoleToDelete(null)}>
+          <Button onClick={() => setRoleToDelete(null)}>
             Cancel
           </Button>
-          <Button size="small" color="error" variant="contained" onClick={confirmRemoveRole}>
+          <Button color="error" variant="contained" onClick={confirmRemoveRole}>
             Delete
           </Button>
         </DialogActions>
@@ -543,10 +543,10 @@ export default function VolunteerSettingsTab() {
           <Typography>Are you sure you want to delete this shift?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setShiftToDelete(null)}>
+          <Button onClick={() => setShiftToDelete(null)}>
             Cancel
           </Button>
-          <Button size="small" color="error" variant="contained" onClick={confirmRemoveShift}>
+          <Button color="error" variant="contained" onClick={confirmRemoveShift}>
             Delete
           </Button>
         </DialogActions>
@@ -558,10 +558,10 @@ export default function VolunteerSettingsTab() {
           <Typography>Deleting this master role will remove all sub roles and shifts. Are you sure?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setDeleteMasterId(null)}>
+          <Button onClick={() => setDeleteMasterId(null)}>
             Cancel
           </Button>
-          <Button size="small" color="error" variant="contained" onClick={confirmRemoveMasterRole}>
+          <Button color="error" variant="contained" onClick={confirmRemoveMasterRole}>
             Delete
           </Button>
         </DialogActions>
@@ -575,10 +575,10 @@ export default function VolunteerSettingsTab() {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button size="small" onClick={() => setRestoreDialog(false)}>
+          <Button onClick={() => setRestoreDialog(false)}>
             Cancel
           </Button>
-          <Button size="small" variant="contained" onClick={handleRestoreRoles}>
+          <Button variant="contained" onClick={handleRestoreRoles}>
             Restore
           </Button>
         </DialogActions>

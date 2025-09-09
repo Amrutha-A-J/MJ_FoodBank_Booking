@@ -306,7 +306,7 @@ export default function ManageAvailability() {
                 <Button
                   fullWidth
                   variant="contained"
-                  size="small"
+                  
                   startIcon={<Add />}
                   onClick={handleAddHoliday}
                 >
@@ -432,7 +432,7 @@ export default function ManageAvailability() {
               />
               <Button
                 variant="contained"
-                size="small"
+                
                 startIcon={<Add />}
                 onClick={handleAddBlocked}
                 sx={{ alignSelf: 'flex-start' }}
@@ -535,7 +535,7 @@ export default function ManageAvailability() {
               <Grid size={12}>
                 <Button
                   variant="contained"
-                  size="small"
+                  
                   startIcon={<Add />}
                   onClick={handleAddBreak}
                 >

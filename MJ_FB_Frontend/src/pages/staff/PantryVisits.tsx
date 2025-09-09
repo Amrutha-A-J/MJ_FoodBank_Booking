@@ -404,7 +404,7 @@ export default function PantryVisits() {
       render: (v: ClientVisit) => (
         <Stack direction="row" spacing={1}>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setEditing(v);
               setForm({
@@ -429,7 +429,7 @@ export default function PantryVisits() {
             <Edit fontSize="small" />
           </IconButton>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setToDelete(v);
               setDeleteOpen(true);
@@ -500,7 +500,7 @@ export default function PantryVisits() {
         sx={{ mb: 2 }}
       >
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => {
             setForm({
@@ -526,7 +526,7 @@ export default function PantryVisits() {
           Record Visit
         </Button>
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => setImportOpen(true)}
           fullWidth
@@ -534,14 +534,14 @@ export default function PantryVisits() {
           {t('pantry_visits.import_visits')}
         </Button>
         <TextField
-          size="small"
+          
           label="Search"
           value={search}
           onChange={e => setSearch(e.target.value)}
           fullWidth
         />
         <TextField
-          size="small"
+          
           label="Lookup Date"
           type="date"
           value={lookupDate}
@@ -550,7 +550,7 @@ export default function PantryVisits() {
           fullWidth
         />
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => navigate(`/pantry/visits?date=${lookupDate}`)}
           disabled={!lookupDate}
@@ -617,7 +617,7 @@ export default function PantryVisits() {
                     <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
                       Client not present in database
                     </Typography>
-                    <Button size="small" variant="outlined" onClick={handleCreateClient}>
+                    <Button variant="outlined" onClick={handleCreateClient}>
                       Create
                     </Button>
                   </Stack>
@@ -708,7 +708,7 @@ export default function PantryVisits() {
               onChange={handleFileChange}
             />
             {preview.length > 0 && (
-              <Table size="small">
+              <Table size="small" >
                 <TableHead>
                   <TableRow>
                     <TableCell>{t('pantry_visits.sheet_date')}</TableCell>

@@ -36,7 +36,7 @@ export default function CancelBooking() {
   return (
     <Page title={t('cancel_booking')}>
       <FormCard title={t('cancel_booking')} onSubmit={handleSubmit} actions={
-        <Button component={RouterLink} to="/" variant="contained" size="small">
+        <Button component={RouterLink} to="/" variant="contained">
           {t('back_to_login')}
         </Button>
       }>

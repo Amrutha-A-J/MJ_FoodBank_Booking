@@ -65,7 +65,7 @@ export default function AdminStaffList() {
               label="Search"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              size="small"
+              
             />
             <Button variant="contained" component={RouterLink} to="/admin/staff/create">
               Add Staff
@@ -89,10 +89,10 @@ export default function AdminStaffList() {
                 header: 'Actions',
                 render: (row: Staff) => (
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} size="small" aria-label="edit">
+                    <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} aria-label="edit">
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(row.id)} size="small" aria-label="delete">
+                    <IconButton onClick={() => handleDelete(row.id)} aria-label="delete">
                       <DeleteIcon />
                     </IconButton>
                   </Box>

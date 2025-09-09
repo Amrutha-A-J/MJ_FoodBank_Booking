@@ -98,7 +98,7 @@ export default function TrackOutgoingDonations() {
       render: d => (
         <>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setEditing(d);
               setForm({ date: normalize(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
@@ -109,7 +109,7 @@ export default function TrackOutgoingDonations() {
             <Edit fontSize="small" />
           </IconButton>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setToDelete(d);
               setDeleteOpen(true);
@@ -198,7 +198,7 @@ export default function TrackOutgoingDonations() {
       <Page title="Track Outgoing Donations">
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
           <Button
-            size="small"
+            
             variant="contained"
             onClick={() => {
               setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
@@ -209,7 +209,7 @@ export default function TrackOutgoingDonations() {
             Record Outgoing Donation
           </Button>
           <Button
-            size="small"
+            
             variant="outlined"
             onClick={() => {
               setReceiverName('');

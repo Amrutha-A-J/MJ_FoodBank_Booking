@@ -97,7 +97,7 @@ export default function AddClient() {
           {onlineAccess && (
             <>
               <ToggleButtonGroup
-                size="small"
+                
                 value={sendPasswordLink ? 'link' : 'password'}
                 exclusive
                 onChange={(_, v) => v && setSendPasswordLink(v === 'link')}

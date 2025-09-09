@@ -64,7 +64,7 @@ export default function LeaveManagement() {
         <Box sx={{ mt: 2 }}>
           <Button
             variant="contained"
-            size="small"
+            
             onClick={() => setOpen(true)}
             sx={{ mb: 3 }}
           >
@@ -94,7 +94,7 @@ export default function LeaveManagement() {
               <DialogContent
                 sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
               >
-                <FormControl size="small">
+                <FormControl>
                   <InputLabel id="leave-type-label">
                     {t('leave.type_label')}
                   </InputLabel>
@@ -114,27 +114,27 @@ export default function LeaveManagement() {
                 <TextField
                   name="start"
                   type="date"
-                  size="small"
+                  
                   label={t('leave.start_date')}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   name="end"
                   type="date"
-                  size="small"
+                  
                   label={t('leave.end_date')}
                   InputLabelProps={{ shrink: true }}
                 />
               </DialogContent>
               <DialogActions>
                 <Button
-                  size="small"
+                  
                   onClick={() => setOpen(false)}
                   color="inherit"
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" variant="contained" size="small">
+                <Button type="submit" variant="contained">
                   {t('submit')}
                 </Button>
               </DialogActions>

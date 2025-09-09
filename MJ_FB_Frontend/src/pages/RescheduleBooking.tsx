@@ -73,7 +73,7 @@ export default function RescheduleBooking() {
         title={t('reschedule')}
         onSubmit={handleSubmit}
         actions={
-          <Button type="submit" variant="contained" size="small">
+          <Button type="submit" variant="contained">
             {t('reschedule')}
           </Button>
         }

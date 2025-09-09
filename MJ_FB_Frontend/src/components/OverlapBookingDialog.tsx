@@ -53,11 +53,11 @@ export default function OverlapBookingDialog({
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button size="small" onClick={() => onResolve('existing')}>
+        <Button onClick={() => onResolve('existing')}>
           Keep Existing Shift
         </Button>
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => onResolve('new')}
         >

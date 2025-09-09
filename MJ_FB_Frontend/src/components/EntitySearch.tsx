@@ -84,7 +84,7 @@ export default function EntitySearch<T extends SearchResultBase>({
           onChange={e => setQuery(e.target.value)}
           placeholder={placeholder}
           label="Search"
-          size="small"
+          
           fullWidth
         />
       {results.length > 0 ? (

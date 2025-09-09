@@ -189,7 +189,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
           />
           <Stack direction="row" spacing={1}>
             <Button
-              size="small"
+              
               variant={searchType === 'user' ? 'contained' : 'outlined'}
               sx={{ textTransform: 'none' }}
               onClick={() => setSearchType('user')}
@@ -197,7 +197,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
               Find Client
             </Button>
             <Button
-              size="small"
+              
               variant={searchType === 'volunteer' ? 'contained' : 'outlined'}
               sx={{ textTransform: 'none' }}
               onClick={() => setSearchType('volunteer')}
@@ -294,10 +294,10 @@ function UserDashboard() {
                 key={a.id}
                 secondaryAction={
                   <Stack direction="row" spacing={1}>
-                    <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+                    <Button variant="outlined" sx={{ textTransform: 'none' }}>
                       {t('cancel')}
                     </Button>
-                    <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
+                    <Button variant="contained" sx={{ textTransform: 'none' }}>
                       {t('reschedule')}
                     </Button>
                   </Stack>
@@ -331,7 +331,7 @@ function UserDashboard() {
             {slotOptions.map((s, i) => (
               <Button
                 key={i}
-                size="small"
+                
                 variant="contained"
                 sx={{ textTransform: 'none', m: 0.5 }}
               >
@@ -344,13 +344,13 @@ function UserDashboard() {
       <Grid size={12}>
         <SectionCard title={t('quick_actions')}>
           <Stack direction="row" spacing={1}>
-            <Button size="small" variant="contained" sx={{ textTransform: 'none' }}>
+            <Button variant="contained" sx={{ textTransform: 'none' }}>
               {t('book')}
             </Button>
-            <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+            <Button variant="outlined" sx={{ textTransform: 'none' }}>
               {t('reschedule')}
             </Button>
-            <Button size="small" variant="outlined" sx={{ textTransform: 'none' }}>
+            <Button variant="outlined" sx={{ textTransform: 'none' }}>
               {t('cancel')}
             </Button>
           </Stack>

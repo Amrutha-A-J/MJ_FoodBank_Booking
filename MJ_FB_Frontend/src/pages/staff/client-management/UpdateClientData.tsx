@@ -159,7 +159,7 @@ export default function UpdateClientData() {
       field: 'actions' as keyof ClientRow & string,
       header: 'Actions',
       render: c => (
-        <Button size="small" variant="outlined" onClick={() => handleEdit(c)}>
+        <Button variant="outlined" onClick={() => handleEdit(c)}>
           Edit
         </Button>
       ),

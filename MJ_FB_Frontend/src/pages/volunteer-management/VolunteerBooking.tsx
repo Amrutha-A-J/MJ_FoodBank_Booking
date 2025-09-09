@@ -236,7 +236,7 @@ export default function VolunteerBooking() {
           </Stack>
           <Button
             variant="contained"
-            size="small"
+            
             disabled={!selected || booking}
             onClick={handleBook}
           >

@@ -201,7 +201,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 onClick={() => setManageShift(row)}
                 variant="outlined"
                 color="primary"
-                size="small"
+                
               >
                 {t('manage')}
               </Button>
@@ -212,7 +212,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     onClick={() => setCancelRecurringBooking(row)}
                     variant="outlined"
                     color="primary"
-                    size="small"
+                    
                   >
                     {t('cancel_all_upcoming_short')}
                   </Button>
@@ -726,7 +726,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       )}
       {tab === 'schedule' && (
         <div>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          <FormControl sx={{ minWidth: 200 }}>
             <InputLabel id="schedule-role-label">Role</InputLabel>
             <Select
               labelId="schedule-role-label"
@@ -835,7 +835,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         />
                       ))}
                     </Stack>
-                    <FormControl size="small" sx={{ mb: 2, minWidth: 200 }}>
+                    <FormControl sx={{ mb: 2, minWidth: 200 }}>
                       <InputLabel id="add-role-label">Add role</InputLabel>
                       <Select
                         labelId="add-role-label"
@@ -859,7 +859,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         ])}
                       </Select>
                     </FormControl>
-                    <Button variant="contained" size="small" onClick={saveTrainedAreas}>
+                    <Button variant="contained" onClick={saveTrainedAreas}>
                       Save
                     </Button>
                     {editMsg && (
@@ -919,14 +919,14 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               label="First Name"
               value={firstName}
               onChange={e => setFirstName(e.target.value)}
-              size="small"
+              
               fullWidth
             />
             <TextField
               label="Last Name"
               value={lastName}
               onChange={e => setLastName(e.target.value)}
-              size="small"
+              
               fullWidth
             />
             <FormControlLabel
@@ -965,7 +965,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     label="Password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    size="small"
+                    
                     fullWidth
                   />
                 )}
@@ -977,7 +977,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               required={onlineAccess}
               value={email}
               onChange={e => setEmail(e.target.value)}
-              size="small"
+              
               fullWidth
             />
             <TextField
@@ -985,7 +985,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              size="small"
+              
               fullWidth
             />
             <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -1046,7 +1046,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               value={shopperClientId}
               onChange={e => setShopperClientId(e.target.value)}
               fullWidth
-              size="small"
+              
               margin="dense"
             />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -1058,7 +1058,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               value={shopperEmail}
               onChange={e => setShopperEmail(e.target.value)}
               fullWidth
-              size="small"
+              
               margin="dense"
             />
             <TextField
@@ -1067,12 +1067,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               value={shopperPhone}
               onChange={e => setShopperPhone(e.target.value)}
               fullWidth
-              size="small"
+              
               margin="dense"
             />
           </DialogContent>
             <DialogActions>
-              <Button onClick={createShopper} variant="contained" color="primary" size="small">
+              <Button onClick={createShopper} variant="contained" color="primary">
                 Create
               </Button>
             </DialogActions>
@@ -1148,7 +1148,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 value={assignSearch}
                 onChange={e => setAssignSearch(e.target.value)}
                 label="Search"
-                size="small"
+                
                 fullWidth
               />
             <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>

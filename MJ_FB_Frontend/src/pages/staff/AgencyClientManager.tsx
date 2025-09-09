@@ -146,7 +146,7 @@ export default function AgencyClientManager() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span>{`${u.name} (${u.client_id})`}</span>
                       <Button
-                        size="small"
+                        
                         variant="contained"
                         onClick={() => {
                           handleAdd(u);
@@ -174,7 +174,7 @@ export default function AgencyClientManager() {
                       secondaryAction={
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Button
-                            size="small"
+                            
                             variant="contained"
                             onClick={() => handleBook(c)}
                           >

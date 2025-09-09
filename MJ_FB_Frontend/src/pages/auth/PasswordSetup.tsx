@@ -98,7 +98,7 @@ export default function PasswordSetup() {
           component={RouterLink}
           to={info ? loginPathMap[info.userType] : '/login'}
           variant="outlined"
-          size="small"
+          
         >
           {t('back_to_login')}
         </Button>

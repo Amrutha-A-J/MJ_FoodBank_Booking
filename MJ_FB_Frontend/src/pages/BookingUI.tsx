@@ -199,7 +199,7 @@ export default function BookingUI({
             <Stack direction="row" spacing={1}>
               {res?.googleCalendarUrl && (
                 <Button
-                  size="small"
+                  
                   variant="contained"
                   component="a"
                   href={res.googleCalendarUrl}
@@ -211,7 +211,7 @@ export default function BookingUI({
               )}
               {res?.icsUrl && (
                 <Button
-                  size="small"
+                  
                   variant="outlined"
                   component="a"
                   href={res.icsUrl}
@@ -330,7 +330,7 @@ export default function BookingUI({
               : t('available_count', { count: available })
           }
           color={isFull ? 'default' : 'success'}
-          size="small"
+          
         />
       </ListItemButton>
     );
@@ -487,7 +487,7 @@ export default function BookingUI({
           </Typography>
           <Button
             variant="contained"
-            size="small"
+            
             disabled={!selectedSlotId || booking || loadingConfirm}
             onClick={handleOpenConfirm}
             fullWidth

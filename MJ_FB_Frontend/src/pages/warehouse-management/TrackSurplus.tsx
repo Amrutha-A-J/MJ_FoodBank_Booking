@@ -145,7 +145,7 @@ export default function TrackSurplus() {
       render: r => (
         <>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setEditing(r);
               setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
@@ -156,7 +156,7 @@ export default function TrackSurplus() {
             <Edit fontSize="small" />
           </IconButton>
           <IconButton
-            size="small"
+            
             onClick={() => {
               setToDelete(r);
               setDeleteOpen(true);
@@ -192,7 +192,7 @@ export default function TrackSurplus() {
       <WarehouseQuickLinks />
       <Page title="Track Surplus">
         <Button
-          size="small"
+          
           variant="contained"
           onClick={() => {
             setForm({ date: format(selectedDate), type: 'BREAD', count: '' });

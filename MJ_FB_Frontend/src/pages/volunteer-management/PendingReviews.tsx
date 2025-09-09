@@ -153,7 +153,7 @@ export default function PendingReviews() {
             ))}
           </Tabs>
           {isToday && (
-            <FormControl size="small" sx={{ maxWidth: 200 }}>
+            <FormControl sx={{ maxWidth: 200 }}>
               <InputLabel id="status-filter-label">Status</InputLabel>
               <Select
                 labelId="status-filter-label"

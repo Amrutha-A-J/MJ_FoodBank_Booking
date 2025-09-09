@@ -23,7 +23,7 @@ export default function WarehouseQuickLinks() {
       {links.map(link => (
         <Button
           key={link.to}
-          size="small"
+          
           variant="outlined"
           sx={buttonSx}
           component={RouterLink}

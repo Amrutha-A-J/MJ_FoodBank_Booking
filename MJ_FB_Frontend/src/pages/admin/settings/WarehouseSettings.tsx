@@ -59,7 +59,7 @@ export default function WarehouseSettings() {
         title="Warehouse Settings"
         onSubmit={handleSubmit}
         actions={
-          <Button variant="contained" size="small" type="submit">
+          <Button variant="contained" type="submit">
             Save
           </Button>
         }

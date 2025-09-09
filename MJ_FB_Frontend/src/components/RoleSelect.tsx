@@ -51,7 +51,7 @@ export default function RoleSelect({ onChange }: Props) {
   if (error) return <p>{error}</p>;
 
   return (
-    <FormControl size="small" fullWidth>
+    <FormControl fullWidth>
       <InputLabel id="role-select-label">{t('role')}</InputLabel>
       <Select
         labelId="role-select-label"

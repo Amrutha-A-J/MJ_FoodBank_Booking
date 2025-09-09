@@ -33,7 +33,7 @@ export default function DeleteVolunteer() {
       <EntitySearch type="volunteer" placeholder="Search volunteer" onSelect={v => setVolunteer(v as Volunteer)} />
       {volunteer && (
         <Button
-          size="small"
+          
           variant="contained"
           color="error"
           sx={{ mt: 2 }}

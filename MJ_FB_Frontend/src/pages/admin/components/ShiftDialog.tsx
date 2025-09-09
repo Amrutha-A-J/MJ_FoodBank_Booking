@@ -94,10 +94,10 @@ function ShiftDialog({ open, initial, onClose, onSave }: ShiftDialogProps) {
         />
       </DialogContent>
       <DialogActions>
-        <Button size="small" onClick={onClose}>
+        <Button onClick={onClose}>
           Cancel
         </Button>
-        <Button size="small" variant="contained" onClick={handleSave}>
+        <Button variant="contained" onClick={handleSave}>
           Save
         </Button>
       </DialogActions>

@@ -204,7 +204,7 @@ export default function UserHistory({
               onClick={() => setDeleteVisitId(b.id)}
               variant="outlined"
               color="error"
-              size="small"
+              
               sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
             >
               Delete visit
@@ -329,12 +329,12 @@ export default function UserHistory({
             <Stack direction="row" spacing={1} alignItems="center" mb={1}>
               {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
               {!initialUser && (
-                <Button size="small" variant="contained" onClick={handleEditClient}>
+                <Button variant="contained" onClick={handleEditClient}>
                   Edit Client
                 </Button>
               )}
             </Stack>
-            <FormControl size="small" sx={{ minWidth: 160, mb: 1 }}>
+            <FormControl sx={{ minWidth: 160, mb: 1 }}>
               <InputLabel id="filter-label">{t('filter')}</InputLabel>
               <Select
                 labelId="filter-label"
@@ -385,7 +385,7 @@ export default function UserHistory({
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
                   variant="outlined"
-                  size="small"
+                  
                 >
                   {t('prev')}
                 </Button>
@@ -394,7 +394,7 @@ export default function UserHistory({
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
                   variant="outlined"
-                  size="small"
+                  
                 >
                   {t('next')}
                 </Button>

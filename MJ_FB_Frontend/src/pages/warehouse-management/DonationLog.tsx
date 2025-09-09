@@ -86,7 +86,7 @@ export default function DonationLog() {
       render: d => (
         <>
           <IconButton
-            size="small"
+            
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
               setEditing(d);
@@ -98,7 +98,7 @@ export default function DonationLog() {
             <Edit fontSize="small" />
           </IconButton>
           <IconButton
-            size="small"
+            
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
               setToDelete(d);
@@ -183,7 +183,7 @@ export default function DonationLog() {
       <Page title="Donation Log">
         <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
           <Button
-            size="small"
+            
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
@@ -195,7 +195,7 @@ export default function DonationLog() {
             Record Donation
           </Button>
           <Button
-            size="small"
+            
             variant="outlined"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();

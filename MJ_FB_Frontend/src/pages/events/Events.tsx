@@ -44,7 +44,7 @@ export default function Events() {
     <Page
       title="Events"
       header={
-        <Button size="small" variant="contained" onClick={() => setOpen(true)}>
+        <Button variant="contained" onClick={() => setOpen(true)}>
           Create Event
         </Button>
       }

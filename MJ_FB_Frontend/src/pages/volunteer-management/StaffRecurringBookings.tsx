@@ -173,7 +173,7 @@ export default function StaffRecurringBookings() {
               onSubmit={submit}
               sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}
             >
-              <FormControl size="small">
+              <FormControl>
                 <InputLabel id="role-label">Role</InputLabel>
                 <Select
                   labelId="role-label"
@@ -201,12 +201,12 @@ export default function StaffRecurringBookings() {
               <TextField
                 label="Start date"
                 type="date"
-                size="small"
+                
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
-              <FormControl size="small">
+              <FormControl>
                 <InputLabel id="freq-label">Frequency</InputLabel>
                 <Select
                   labelId="freq-label"
@@ -225,7 +225,6 @@ export default function StaffRecurringBookings() {
                       key={d}
                       control={
                         <Checkbox
-                          size="small"
                           checked={weekdays.includes(i)}
                           onChange={() =>
                             setWeekdays(prev =>
@@ -244,7 +243,7 @@ export default function StaffRecurringBookings() {
               <TextField
                 label="End date"
                 type="date"
-                size="small"
+                
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -294,7 +293,7 @@ export default function StaffRecurringBookings() {
                             onClick={() => cancelOccurrence(o.id)}
                             variant="outlined"
                             color="primary"
-                            size="small"
+                            
                           >
                             Cancel
                           </Button>
