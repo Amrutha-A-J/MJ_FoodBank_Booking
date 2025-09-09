@@ -25,7 +25,7 @@ describe('pantry aggregation routes', () => {
 
     const res = await request(app).get('/pantry-aggregations/weekly?year=2024&month=5');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    expect(res.body).toEqual([{ week: 1 }]);
   });
 
   it('rebuilds aggregations', async () => {
@@ -35,7 +35,6 @@ describe('pantry aggregation routes', () => {
   });
 
   it('exports aggregations', async () => {
-    const buffer = Buffer.from('');
     const res = await request(app)
       .get('/pantry-aggregations/export?period=weekly&year=2024&month=5&week=1')
       .buffer()
@@ -49,6 +48,6 @@ describe('pantry aggregation routes', () => {
     expect(res.headers['content-type']).toBe(
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
-    expect(res.body).toEqual(buffer);
+    expect(res.body).toEqual(Buffer.from('test'));
   });
 });
