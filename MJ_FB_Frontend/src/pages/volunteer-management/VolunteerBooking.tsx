@@ -85,6 +85,17 @@ export default function VolunteerBooking() {
     setSelected(null);
   }, [date, holidays]);
 
+  useEffect(() => {
+    if (error) {
+      setSnackbar({
+        open: true,
+        message:
+          error instanceof Error ? error.message : 'Error loading slots',
+        severity: 'error',
+      });
+    }
+  }, [error]);
+
   const groups = slots.reduce<Record<string, VolunteerRole[]>>((acc, s) => {
     acc[s.name] = acc[s.name] ? [...acc[s.name], s] : [s];
     return acc;

@@ -63,6 +63,8 @@ export default function VolunteerRecurringBookings() {
       setBookings(bookingData);
     } catch (err) {
       console.error(err);
+      setSeverity('error');
+      setMessage('Failed to load bookings');
     }
   }, [startDate]);
 

@@ -43,7 +43,10 @@ export default function VolunteerBookingHistory() {
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
       .then(setHistory)
-      .catch(() => {});
+      .catch(() => {
+        setSeverity('error');
+        setMessage('Failed to load booking history');
+      });
   }, []);
 
   useEffect(() => {
