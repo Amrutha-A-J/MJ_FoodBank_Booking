@@ -14,6 +14,7 @@ import type {
 } from '../../types';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import {
   Box,
   FormControl,
@@ -257,6 +258,7 @@ export default function VolunteerRecurringBookings() {
         message={message}
         severity={severity}
       />
+      <VolunteerBottomNav />
     </Page>
   );
 }
