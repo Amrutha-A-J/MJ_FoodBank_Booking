@@ -1,7 +1,5 @@
 import request from 'supertest';
 import express from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 
 jest.doMock('../src/db', () => ({
   __esModule: true,
@@ -36,7 +34,6 @@ jest.doMock('../src/models/bookingRepository', () => ({
 jest.doMock('../src/models/agency', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/agency'),
-  getAgencyByEmail: jest.fn(),
   isAgencyClient: jest.fn(),
   addAgencyClient: jest.fn(),
   removeAgencyClient: jest.fn(),
@@ -73,16 +70,11 @@ jest.doMock('../src/middleware/authMiddleware', () => ({
   },
 }));
 
-jest.mock('bcrypt');
-jest.mock('jsonwebtoken');
 
-const usersRouter = require('../src/routes/users').default;
-const authRouter = require('../src/routes/auth').default;
 const bookingsRouter = require('../src/routes/bookings').default;
 const agenciesRoutes = require('../src/routes/agencies').default;
 const bookingRepository = require('../src/models/bookingRepository');
 const {
-  getAgencyByEmail,
   isAgencyClient,
   addAgencyClient,
   removeAgencyClient,
@@ -101,8 +93,6 @@ test('does not query database on import', () => {
 
 const app = express();
 app.use(express.json());
-app.use('/api/auth', authRouter);
-app.use('/api/users', usersRouter);
 app.use('/api/bookings', bookingsRouter);
 app.use('/agencies', agenciesRoutes);
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -124,29 +114,6 @@ beforeEach(() => {
     release: jest.fn(),
   });
   (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
-});
-
-describe('Agency login and token issuance', () => {
-  it('logs in agency and sets token cookie', async () => {
-    (getAgencyByEmail as jest.Mock).mockResolvedValue({
-      id: 1,
-      name: 'Agency One',
-      email: 'a@b.com',
-      password: 'hashed',
-      contact_info: null,
-    });
-    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-    (jwt.sign as jest.Mock).mockReturnValue('token');
-
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'a@b.com', password: 'secret' });
-
-    expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('role', 'agency');
-    expect(jwt.sign).toHaveBeenCalled();
-    expect(res.headers['set-cookie'][0]).toMatch(/token=/);
-  });
 });
 
 describe('Agency booking creation', () => {

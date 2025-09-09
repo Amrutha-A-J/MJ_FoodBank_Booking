@@ -11,6 +11,16 @@ jest.mock('jsonwebtoken');
 jest.mock('../src/utils/bookingUtils', () => ({
 }));
 
+const volunteerWithShopper = {
+  id: 1,
+  first_name: 'John',
+  last_name: 'Doe',
+  email: 'john@example.com',
+  password: 'hashed',
+  user_id: 9,
+  user_role: 'shopper',
+};
+
 const app = express();
 app.use(express.json());
 app.use('/api/auth', authRouter);
@@ -32,17 +42,22 @@ describe('POST /api/auth/login', () => {
   });
 
   it('logs in staff with valid credentials', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [{
-        id: 1,
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john@example.com',
-        password: 'hashed',
-        role: 'staff',
-      }],
-    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            first_name: 'John',
+            last_name: 'Doe',
+            email: 'john@example.com',
+            password: 'hashed',
+            role: 'staff',
+            access: [],
+          },
+        ],
+      });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
@@ -52,7 +67,37 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('role', 'staff');
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE email = \$1/);
+  });
+
+  it('logs in volunteer with shopper profile and returns both roles', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [volunteerWithShopper],
+    });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    (jwt.sign as jest.Mock).mockReturnValue('token');
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: volunteerWithShopper.email, password: 'secret' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      role: 'volunteer',
+      name: 'John Doe',
+      userRole: 'shopper',
+      access: [],
+      id: 1,
+    });
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
+    expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
+      id: 1,
+      role: 'volunteer',
+      type: 'volunteer',
+      userId: volunteerWithShopper.user_id,
+      userRole: 'shopper',
+    });
   });
 
   it('returns 401 with invalid credentials', async () => {
