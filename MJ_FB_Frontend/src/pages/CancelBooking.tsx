@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
-import { Typography, Button } from '@mui/material';
+import { Typography, Button, Grid } from '@mui/material';
 import Page from '../components/Page';
 import FormCard from '../components/FormCard';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
@@ -35,13 +35,17 @@ export default function CancelBooking() {
 
   return (
     <Page title={t('cancel_booking')}>
-      <FormCard title={t('cancel_booking')} onSubmit={handleSubmit} actions={
-        <Button component={RouterLink} to="/" variant="contained">
-          {t('back_to_login')}
-        </Button>
-      }>
-        <Typography>{message || error || ''}</Typography>
-      </FormCard>
+      <Grid container spacing={2} justifyContent="center">
+        <Grid xs={12} sm={8} md={6}>
+          <FormCard title={t('cancel_booking')} onSubmit={handleSubmit} actions={
+            <Button component={RouterLink} to="/" variant="contained">
+              {t('back_to_login')}
+            </Button>
+          }>
+            <Typography>{message || error || ''}</Typography>
+          </FormCard>
+        </Grid>
+      </Grid>
       <FeedbackSnackbar
         open={!!error || !!message}
         onClose={() => {
