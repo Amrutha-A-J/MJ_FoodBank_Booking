@@ -15,7 +15,6 @@ import { getStaffRootPath } from './utils/staffRootPath';
 import dayjs, { formatDate } from './utils/date';
 import LanguageSelector from './components/LanguageSelector';
 import InstallAppButton from './components/InstallAppButton';
-import usePushNotifications from './hooks/usePushNotifications';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -114,7 +113,6 @@ const Spinner = () => <CircularProgress />;
 
 export default function App() {
   const { token, ready, role, name, userRole, access, login, logout } = useAuth();
-  usePushNotifications(!!token);
   const { t } = useTranslation();
   const [loading] = useState(false);
   const [error, setError] = useState('');

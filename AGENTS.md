@@ -12,8 +12,6 @@
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
 - Volunteers see an Install App button on their first visit to volunteer pages with an onboarding modal about offline use; installations are tracked.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
-- Push notifications use Firebase Cloud Messaging; configure the backend
-  `FCM_SERVICE_ACCOUNT` and frontend `VITE_FIREBASE_*` variables.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.
