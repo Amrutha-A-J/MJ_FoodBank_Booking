@@ -11,6 +11,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from './utils/date';
 import './i18n';
+import { registerSW } from 'virtual:pwa-register';
 
 function Main() {
   return (
@@ -29,6 +30,8 @@ function Main() {
 
 const container = document.getElementById('root')!;
 const root = ReactDOM.createRoot(container);
+
+registerSW();
 
 root.render(
   <React.StrictMode>
