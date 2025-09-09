@@ -149,7 +149,7 @@ describe('Booking confirmation', () => {
     );
   }
 
-  it.skip('opens confirmation dialog before booking', async () => {
+  it('opens confirmation dialog before booking', async () => {
     (getSlots as jest.Mock).mockResolvedValue([
       { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
     ]);
@@ -159,13 +159,16 @@ describe('Booking confirmation', () => {
     renderUI();
 
     await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
+      jest.runAllTimers();
     });
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
     fireEvent.click(screen.getByText(/book selected slot/i));
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
 
     await screen.findByText(/confirm booking/i);
   });
@@ -181,8 +184,7 @@ describe('Booking confirmation', () => {
     renderUI();
 
     await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
+      jest.runAllTimers();
     });
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
@@ -215,8 +217,7 @@ describe('Booking confirmation', () => {
     renderUI();
 
     await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
+      jest.runAllTimers();
     });
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
@@ -243,8 +244,7 @@ describe('Booking confirmation', () => {
     renderUI();
 
     await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
+      jest.runAllTimers();
     });
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
