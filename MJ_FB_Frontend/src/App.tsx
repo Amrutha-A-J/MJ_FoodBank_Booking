@@ -41,10 +41,7 @@ const ClientHistory = React.lazy(() =>
   import('./pages/agency/ClientHistory')
 );
 const Login = React.lazy(() => import('./pages/auth/Login'));
-const StaffLogin = React.lazy(() => import('./pages/auth/StaffLogin'));
-const VolunteerLogin = React.lazy(() => import('./pages/auth/VolunteerLogin'));
 const PasswordSetup = React.lazy(() => import('./pages/auth/PasswordSetup'));
-const LoginSelection = React.lazy(() => import('./pages/auth/LoginSelection'));
 const VolunteerDashboard = React.lazy(() =>
   import('./pages/volunteer-management/VolunteerDashboard')
 );
@@ -106,7 +103,6 @@ const LeaveManagement = React.lazy(
 const AdminLeaveRequests = React.lazy(
   () => import('./pages/admin/LeaveRequests'),
 );
-const AgencyLogin = React.lazy(() => import('./pages/agency/Login'));
 const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
 );
@@ -154,17 +150,7 @@ export default function App() {
       ]
     : undefined;
   if (!role) {
-    navGroups.push(
-      { label: t('login'), links: [{ label: t('login'), to: '/login' }] },
-      {
-        label: 'Internal Login',
-        links: [
-          { label: 'Staff Login', to: '/login/staff' },
-          { label: 'Volunteer Login', to: '/login/volunteer' },
-          { label: 'Agency Login', to: '/login/agency' },
-        ],
-      },
-    );
+    navGroups.push({ label: t('login'), links: [{ label: t('login'), to: '/login' }] });
   } else if (isStaff) {
     const staffLinks = [
       { label: t('dashboard'), to: '/pantry' },
@@ -535,12 +521,8 @@ export default function App() {
               <main>
                 <Suspense fallback={<Spinner />}>
                   <Routes>
-                    <Route path="/login/user" element={<Login onLogin={login} />} />
-                    <Route path="/login/staff" element={<StaffLogin onLogin={login} />} />
-                    <Route path="/login/volunteer" element={<VolunteerLogin onLogin={login} />} />
-                    <Route path="/login/agency" element={<AgencyLogin onLogin={login} />} />
+                    <Route path="/login" element={<Login onLogin={login} />} />
                     <Route path="/set-password" element={<PasswordSetup />} />
-                    <Route path="/login" element={<LoginSelection />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                   </Routes>
                 </Suspense>

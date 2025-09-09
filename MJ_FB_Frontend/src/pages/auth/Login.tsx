@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { loginUser } from '../../api/users';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
@@ -18,7 +19,7 @@ export default function Login({
 }: {
   onLogin: (user: LoginResponse) => Promise<void>;
 }) {
-  const [clientId, setClientId] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
@@ -26,6 +27,7 @@ export default function Login({
   const [submitted, setSubmitted] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
@@ -38,16 +40,17 @@ export default function Login({
     setNoticeOpen(false);
   }
 
-  const clientIdError = submitted && clientId === '';
+  const identifierError = submitted && identifier === '';
   const passwordError = submitted && password === '';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
-    if (clientId === '' || password === '') return;
+    if (identifier === '' || password === '') return;
     try {
-      const user = await loginUser(clientId, password);
+      const user = await login(identifier, password);
       await onLogin(user);
+      navigate('/');
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
@@ -62,11 +65,11 @@ export default function Login({
   }
 
   return (
-    <Page title={t('client_login')}>
+    <Page title={t('login')}>
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="80vh" px={2}>
         <FormCard
           onSubmit={handleSubmit}
-          title={t('client_login')}
+          title={t('login')}
           actions={
             <Button
               type="submit"
@@ -81,15 +84,15 @@ export default function Login({
           boxProps={{ minHeight: 0, px: 0, py: 0 }}
         >
           <TextField
-            value={clientId}
-            onChange={e => setClientId(e.target.value)}
-            label={t('client_id')}
-            name="clientId"
+            value={identifier}
+            onChange={e => setIdentifier(e.target.value)}
+            label={t('client_id_or_email')}
+            name="identifier"
             autoComplete="username"
             fullWidth
             required
-            error={clientIdError}
-            helperText={clientIdError ? t('client_id_required') : ''}
+            error={identifierError}
+            helperText={identifierError ? t('client_id_required') : ''}
           />
           <PasswordField
             value={password}

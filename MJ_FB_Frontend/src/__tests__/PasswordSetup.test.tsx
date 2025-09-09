@@ -26,7 +26,7 @@ describe('PasswordSetup', () => {
     (getPasswordSetupInfo as jest.Mock).mockResolvedValue({});
   });
   it('submits password with token from query and redirects', async () => {
-    (setPassword as jest.Mock).mockResolvedValue('/login/user');
+    (setPassword as jest.Mock).mockResolvedValue('/login');
     render(
       <MemoryRouter initialEntries={["/set-password?token=abc123"]}>
         <Routes>
@@ -39,7 +39,7 @@ describe('PasswordSetup', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /set password/i }));
     await waitFor(() => expect(setPassword).toHaveBeenCalledWith('abc123', 'Passw0rd!'));
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login/user'));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'));
   });
 
   it('toggles password visibility', () => {
@@ -129,6 +129,6 @@ describe('PasswordSetup', () => {
       await screen.findByText(/use the volunteer login/i),
     ).toBeInTheDocument();
     const btn = screen.getByRole('button', { name: /back to login/i });
-    expect(btn).toHaveAttribute('href', '/login/volunteer');
+    expect(btn).toHaveAttribute('href', '/login');
   });
 });

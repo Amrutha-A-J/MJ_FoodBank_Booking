@@ -30,7 +30,7 @@ describe('Language selector visibility', () => {
       json: async () => ({}),
       headers: new Headers(),
     });
-    window.history.pushState({}, '', '/login/user');
+    window.history.pushState({}, '', '/login');
     renderWithProviders(<App />);
     expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
   });
