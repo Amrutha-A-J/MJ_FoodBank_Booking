@@ -243,4 +243,49 @@ describe("VolunteerSchedule", () => {
 
     await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   });
+
+  it('jumps to today when Today is clicked', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '9:00:00',
+        end_time: '12:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+
+    renderWithProviders(<VolunteerSchedule />);
+
+    fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
+    fireEvent.click(await screen.findByText('Greeter'));
+
+    const nextBtn = await screen.findByRole('button', { name: 'Next' });
+    fireEvent.click(nextBtn);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { level: 3 }),
+      ).toHaveTextContent('2024-01-30'),
+    );
+
+    const todayBtn = screen.getByRole('button', { name: 'Today' });
+    fireEvent.click(todayBtn);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('heading', { level: 3 }),
+      ).toHaveTextContent('2024-01-29'),
+    );
+  });
 });

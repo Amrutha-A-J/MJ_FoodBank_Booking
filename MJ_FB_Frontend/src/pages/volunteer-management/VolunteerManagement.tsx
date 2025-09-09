@@ -46,6 +46,8 @@ import {
   Chip,
   CircularProgress,
 } from '@mui/material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { lighten } from '@mui/material/styles';
 const Dashboard = React.lazy(
   () => import('../../components/dashboard/Dashboard')
@@ -53,6 +55,7 @@ const Dashboard = React.lazy(
 import EntitySearch from '../../components/EntitySearch';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
+import dayjs from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
 import EditVolunteerDialog from './EditVolunteerDialog';
@@ -237,6 +240,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     const todayStr = formatDate();
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
+  const todayStart = fromZonedTime(
+    `${formatDate()}T00:00:00`,
+    reginaTimeZone,
+  );
 
   function changeDay(delta: number) {
     setCurrentDate(d => addDays(d, delta));
@@ -763,13 +770,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           </FormControl>
           {selectedRole && roleInfos.length > 0 ? (
             <>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mt: 2,
-                }}
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mt={2}
               >
                 <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
                   Previous
@@ -781,10 +786,39 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 >
                   {formatDate(currentDate)}
                 </Typography>
-                <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
-                  Next
-                </Button>
-              </Box>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Button
+                    onClick={() => setCurrentDate(todayStart)}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Today
+                  </Button>
+                  <LocalizationProvider
+                    dateAdapter={AdapterDayjs}
+                    dateLibInstance={dayjs}
+                  >
+                    <DatePicker
+                      value={dayjs(currentDate)}
+                      format="YYYY-MM-DD"
+                      onChange={(d) => {
+                        if (d) {
+                          setCurrentDate(
+                            fromZonedTime(
+                              `${formatDate(d)}T00:00:00`,
+                              reginaTimeZone,
+                            ),
+                          );
+                        }
+                      }}
+                      slotProps={{ textField: { size: 'medium' } }}
+                    />
+                  </LocalizationProvider>
+                  <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
+                    Next
+                  </Button>
+                </Stack>
+              </Stack>
               <VolunteerScheduleTable
                 maxSlots={maxSlots}
                 rows={rows}
