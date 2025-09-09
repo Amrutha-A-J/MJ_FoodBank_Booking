@@ -187,7 +187,7 @@ Before merging a pull request, confirm the following:
 - Client visit records include an optional **staff note** field. Staff users automatically see these notes via `/bookings/history`, while agency users can retrieve them by adding `includeStaffNotes=true`.
 - Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
-- Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
+- Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for. Updating trained roles requires sending the complete array of role IDs to `PUT /volunteers/:id/trained-areas` so existing roles are preserved.
 - Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
 - Staff can manage recurring volunteer shift series from the **Recurring Shifts** page under Volunteer Management.
 - Only staff can update volunteer trained roles; volunteers may view but not modify their assigned roles from the dashboard.

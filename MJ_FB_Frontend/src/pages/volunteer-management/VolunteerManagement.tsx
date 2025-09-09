@@ -410,22 +410,33 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     }
   }
 
-  async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
+  async function loadVolunteer(
+    id: number,
+    current?: VolunteerResult,
+  ): Promise<VolunteerResult> {
     try {
-    const res = await searchVolunteers(name);
-    const found = res.find((v: VolunteerSearchResult) => v.id === id);
-    if (found) {
-      return { ...found, clientId: found.clientId ?? undefined };
-    }
+      const res = await searchVolunteers(String(id));
+      const found = res.find((v: VolunteerSearchResult) => v.id === id);
+      if (found) {
+        return { ...found, clientId: found.clientId ?? undefined };
+      }
     } catch {
       // ignore
     }
-    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false };
+    if (current) return current;
+    return {
+      id,
+      name: current?.name ?? '',
+      trainedAreas: current?.trainedAreas ?? [],
+      hasShopper: current?.hasShopper ?? false,
+      hasPassword: current?.hasPassword ?? false,
+      clientId: current?.clientId,
+    };
   }
 
   async function refreshVolunteer() {
     if (!selectedVolunteer) return;
-    const vol = await loadVolunteer(selectedVolunteer.id, selectedVolunteer.name);
+    const vol = await loadVolunteer(selectedVolunteer.id, selectedVolunteer);
     setSelectedVolunteer(vol);
     setTrainedEdit(
       Array.from(
@@ -439,7 +450,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   }
 
   function selectVolunteer(u: VolunteerResult) {
-    loadVolunteer(u.id, u.name)
+    loadVolunteer(u.id, u)
       .then(vol => {
         setSelectedVolunteer(vol);
         setTrainedEdit(
@@ -542,6 +553,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         new Set(trainedEdit.flatMap(name => nameToRoleIds.get(name) || []))
       );
       await updateVolunteerTrainedAreas(selectedVolunteer.id, ids);
+      setSelectedVolunteer({ ...selectedVolunteer, trainedAreas: ids });
       setEditSeverity('success');
       setEditMsg('Roles updated');
     } catch (e) {
@@ -843,7 +855,9 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         label="Add role"
                         onChange={e => {
                           const val = e.target.value as string;
-                          toggleTrained(val, true);
+                          setTrainedEdit(prev =>
+                            prev.includes(val) ? prev : [...prev, val]
+                          );
                           setNewTrainedRole('');
                         }}
                       >

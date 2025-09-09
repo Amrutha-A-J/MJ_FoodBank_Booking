@@ -7,6 +7,10 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../..
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
+/**
+ * Replace a volunteer's trained role assignments.
+ * `roleIds` must include the complete set of roles; any omitted IDs are removed.
+ */
 export async function updateTrainedArea(
   req: Request,
   res: Response,

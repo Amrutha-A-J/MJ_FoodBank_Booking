@@ -272,13 +272,29 @@ describe('VolunteerManagement role updates', () => {
     mockVolunteer = {
       id: 1,
       name: 'Test Vol',
-      trainedAreas: [],
+      trainedAreas: [3],
       hasShopper: false,
       hasPassword: false,
       clientId: null,
     };
     (searchVolunteers as jest.Mock).mockResolvedValue([mockVolunteer]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 3,
+        category_id: 1,
+        name: 'Loader',
+        max_volunteers: 2,
+        category_name: 'Front',
+        shifts: [
+          {
+            id: 8,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
+      },
       {
         id: 5,
         category_id: 1,
@@ -312,7 +328,7 @@ describe('VolunteerManagement role updates', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
-      expect(updateVolunteerTrainedAreas).toHaveBeenCalledWith(1, [5]),
+      expect(updateVolunteerTrainedAreas).toHaveBeenCalledWith(1, [3, 5]),
     );
     await waitFor(() =>
       expect(screen.getByText('Roles updated')).toBeInTheDocument(),
