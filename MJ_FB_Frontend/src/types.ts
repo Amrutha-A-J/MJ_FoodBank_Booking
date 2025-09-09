@@ -184,7 +184,6 @@ export interface UserProfile {
 
 export interface UserPreferences {
   emailReminders: boolean;
-  pushNotifications: boolean;
 }
 
 export interface RoleOption {

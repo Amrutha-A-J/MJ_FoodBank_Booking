@@ -17,8 +17,7 @@ async function sendTelegram(message: string): Promise<void> {
 export async function alertOps(job: string, err: unknown): Promise<void> {
   const subject = `[MJFB] ${job} failed`;
   const time = new Date().toISOString();
-  const details =
-    err instanceof Error ? err.stack ?? err.message : String(err);
+  const details = err instanceof Error ? err.stack ?? err.message : String(err);
   const body = `Time: ${time}\n${details}`;
   await sendTelegram(`${subject}\n${body}`);
 }
