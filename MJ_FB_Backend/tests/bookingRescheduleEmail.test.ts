@@ -11,6 +11,7 @@ import {
   isDateWithinCurrentOrNextMonth,
   countVisitsAndBookingsForMonth,
 } from '../src/utils/bookingUtils';
+import { notifyOps } from '../src/utils/opsAlert';
 
 jest.mock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
@@ -80,6 +81,7 @@ describe('rescheduleBooking', () => {
     expect(params.oldTime).toBe('9:00 AM to 10:00 AM');
     expect(params.newDate).toBe('Sun, Jan 5, 2025');
     expect(params.newTime).toBe('11:00 AM to 12:00 PM');
+    expect(notifyOps).toHaveBeenCalled();
   });
 
   it('fetches email without joining new_clients when table is missing', async () => {

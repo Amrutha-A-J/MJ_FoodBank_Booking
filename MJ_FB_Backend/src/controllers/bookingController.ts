@@ -39,6 +39,7 @@ import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
 import { sendBookingEvent } from '../utils/bookingEvents';
+import { notifyOps } from '../utils/opsAlert';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -146,6 +147,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         date,
         time: start_time,
       });
+      await notifyOps(
+        `${user.name || 'Client'} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+      );
     }
     const {
       googleCalendarLink,
@@ -327,6 +331,9 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
         date: booking.date,
         time: start_time,
       });
+      await notifyOps(
+        `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
+      );
     }
     if (bookingUserId !== undefined) {
       const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
@@ -396,6 +403,9 @@ export async function cancelBookingByToken(
         date: booking.date,
         time: start_time,
       });
+      await notifyOps(
+        `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
+      );
     }
     if (booking.user_id) {
       const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
@@ -552,7 +562,8 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     const hasNewClients = await hasTable('new_clients');
     const emailRes = hasNewClients
       ? await pool.query(
-          `SELECT COALESCE(u.email, nc.email) AS email
+          `SELECT COALESCE(u.email, nc.email) AS email,
+                  COALESCE(u.first_name || ' ' || u.last_name, nc.name) AS name
            FROM bookings b
            LEFT JOIN clients u ON b.user_id = u.client_id
            LEFT JOIN new_clients nc ON b.new_client_id = nc.id
@@ -560,7 +571,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
           [booking.id],
         )
       : await pool.query(
-          `SELECT u.email AS email
+          `SELECT u.email AS email, u.first_name, u.last_name
            FROM bookings b
            LEFT JOIN clients u ON b.user_id = u.client_id
            WHERE b.id=$1`,
@@ -569,7 +580,8 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
 
     await updateBooking(booking.id, updateFields);
 
-    const email = emailRes.rows[0]?.email;
+    const { email, name: nameRes, first_name, last_name } = emailRes.rows[0] || {};
+    const name = nameRes || (first_name && last_name ? `${first_name} ${last_name}` : 'Client');
     if (email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
       const oldTime = oldSlotRes.rows[0]
@@ -637,8 +649,25 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
     }
 
+    const oldStart = oldSlotRes.rows[0]?.start_time;
+    const newStart = newSlotRes.rows[0]?.start_time;
+    if (newStart) {
+      sendBookingEvent({
+        action: 'rescheduled',
+        name,
+        role: 'client',
+        date,
+        time: newStart,
+      });
+    }
+    await notifyOps(
+      `${name} (client) rescheduled booking from ${formatReginaDateWithDay(booking.date)} ${
+        oldStart ? formatTimeToAmPm(oldStart) : ''
+      } to ${formatReginaDateWithDay(date)} ${newStart ? formatTimeToAmPm(newStart) : ''}`,
+    );
+
     const notifyTime = newSlotRes.rows[0]
-      ? ` from ${formatTimeToAmPm(newSlotRes.rows[0].start_time)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
+      ? ` from ${formatTimeToAmPm(newStart)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
       : '';
     const notifyBody = `Date: ${formatReginaDateWithDay(date)}${notifyTime}`;
 
@@ -733,6 +762,9 @@ export async function createPreapprovedBooking(
         date,
         time: start_time,
       });
+      await notifyOps(
+        `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+      );
     }
     res.status(201).json({ message: 'Walk-in booking created', rescheduleToken: token });
   } catch (error: any) {
@@ -841,6 +873,9 @@ export async function createBookingForUser(
         date,
         time: start_time,
       });
+      await notifyOps(
+        `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+      );
     }
     if (clientEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
@@ -950,6 +985,9 @@ export async function createBookingForNewClient(
           date,
           time: start_time,
         });
+        await notifyOps(
+          `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+        );
       }
       res
         .status(201)
