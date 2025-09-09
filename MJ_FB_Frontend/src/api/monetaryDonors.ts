@@ -143,14 +143,13 @@ export async function getMailLists(
 export async function sendMailListEmails(
   year: number,
   month: number,
-  templateId: number,
 ): Promise<void> {
   const res = await apiFetch(
     `${API_BASE}/monetary-donors/mail-lists/send`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ year, month, templateId }),
+      body: JSON.stringify({ year, month }),
     },
   );
   await handleResponse(res);

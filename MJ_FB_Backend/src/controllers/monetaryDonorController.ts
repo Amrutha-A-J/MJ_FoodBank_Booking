@@ -151,11 +151,17 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
   }
 }
 
+function getDefaultYearMonth() {
+  const d = new Date();
+  d.setUTCMonth(d.getUTCMonth() - 1);
+  return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1 };
+}
+
 export async function getMailLists(req: Request, res: Response, next: NextFunction) {
   try {
-    const now = new Date();
-    const year = parseInt((req.query.year as string) ?? '', 10) || now.getUTCFullYear();
-    const month = parseInt((req.query.month as string) ?? '', 10) || now.getUTCMonth() + 1;
+    const { year: defYear, month: defMonth } = getDefaultYearMonth();
+    const year = parseInt((req.query.year as string) ?? '', 10) || defYear;
+    const month = parseInt((req.query.month as string) ?? '', 10) || defMonth;
     const donorsRes = await pool.query(
       `SELECT d.id, d.first_name AS "firstName", d.last_name AS "lastName", d.email,
               COALESCE(SUM(n.amount), 0)::int AS amount
@@ -182,9 +188,9 @@ export async function getMailLists(req: Request, res: Response, next: NextFuncti
 
 export async function sendMailLists(req: Request, res: Response, next: NextFunction) {
   try {
-    const now = new Date();
-    const year = parseInt((req.body.year as string) ?? '', 10) || now.getUTCFullYear();
-    const month = parseInt((req.body.month as string) ?? '', 10) || now.getUTCMonth() + 1;
+    const { year: defYear, month: defMonth } = getDefaultYearMonth();
+    const year = parseInt((req.body.year as string) ?? '', 10) || defYear;
+    const month = parseInt((req.body.month as string) ?? '', 10) || defMonth;
 
     const donorsRes = await pool.query(
       `SELECT d.first_name, d.email, COALESCE(SUM(n.amount), 0)::int AS amount
@@ -196,23 +202,25 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     );
 
     const statsRes = await pool.query(
-      `SELECT COALESCE(SUM(adults),0)::int AS adults,
+      `SELECT COUNT(DISTINCT client_id)::int AS families,
               COALESCE(SUM(children),0)::int AS children,
               COALESCE(SUM(COALESCE(weight_without_cart, weight_with_cart)),0)::int AS pounds
        FROM client_visits
        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
       [year, month],
     );
-    const { adults, children, pounds } = statsRes.rows[0];
+    const { families, children, pounds } = statsRes.rows[0];
 
     for (const donor of donorsRes.rows) {
-      const templateId = donor.amount <= 100 ? 11 : 12;
+      let templateId = 13;
+      if (donor.amount <= 100) templateId = 11;
+      else if (donor.amount <= 500) templateId = 12;
       await sendTemplatedEmail({
         to: donor.email,
         templateId,
         params: {
           firstName: donor.first_name,
-          adults,
+          families,
           children,
           pounds,
           amount: donor.amount,

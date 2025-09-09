@@ -130,7 +130,8 @@ describe('Mailing list generation', () => {
     expect(res.body['501+']).toHaveLength(1);
   });
 
-  it('sends mailing lists', async () => {
+  it('sends mailing lists with default month and stats', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2024-07-05T00:00:00Z'));
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
@@ -138,30 +139,42 @@ describe('Mailing list generation', () => {
         rows: [
           { first_name: 'A', email: 'a@example.com', amount: 50 },
           { first_name: 'B', email: 'b@example.com', amount: 150 },
+          { first_name: 'C', email: 'c@example.com', amount: 600 },
         ],
-        rowCount: 2,
+        rowCount: 3,
       })
       .mockResolvedValueOnce({
-        rows: [{ adults: 10, children: 5, pounds: 100 }],
+        rows: [{ families: 3, children: 5, pounds: 100 }],
       });
 
     const res = await request(app)
       .post('/monetary-donors/mail-lists/send')
-      .send({ year: 2024, month: 5 })
+      .send({ year: 2024 })
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
-    expect(sendTemplatedEmail).toHaveBeenCalledTimes(2);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      [2024, 6],
+    );
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
       templateId: 11,
-      params: { firstName: 'A', adults: 10, children: 5, pounds: 100, amount: 50 },
+      params: { firstName: 'A', families: 3, children: 5, pounds: 100, amount: 50 },
     });
     expect((sendTemplatedEmail as jest.Mock).mock.calls[1][0]).toEqual({
       to: 'b@example.com',
       templateId: 12,
-      params: { firstName: 'B', adults: 10, children: 5, pounds: 100, amount: 150 },
+      params: { firstName: 'B', families: 3, children: 5, pounds: 100, amount: 150 },
     });
-    expect(res.body).toEqual({ sent: 2 });
+    expect((sendTemplatedEmail as jest.Mock).mock.calls[2][0]).toEqual({
+      to: 'c@example.com',
+      templateId: 13,
+      params: { firstName: 'C', families: 3, children: 5, pounds: 100, amount: 600 },
+    });
+    expect(res.body).toEqual({ sent: 3 });
+    jest.useRealTimers();
   });
 });

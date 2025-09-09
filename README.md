@@ -242,6 +242,9 @@ npm run test:frontend  # frontend tests
 - Staff can create recurring volunteer booking series for volunteers via `POST /volunteer-bookings/recurring/staff` and list active series with `GET /volunteer-bookings/recurring/volunteer/:volunteer_id`.
 - Recurring volunteer bookings and recurring blocked slots handled by [volunteerBookingController](MJ_FB_Backend/src/controllers/volunteer/volunteerBookingController.ts) and [recurringBlockedSlots routes](MJ_FB_Backend/src/routes/recurringBlockedSlots.ts). Volunteers can create new series and manage existing ones from separate tabs on the **Recurring Bookings** page.
 - Donor and event management modules ([donorController](MJ_FB_Backend/src/controllers/donorController.ts), [eventController](MJ_FB_Backend/src/controllers/eventController.ts)) with multi-day events supported via start and end dates.
+- Monthly monetary donor mail lists at `/donor-management/mail-lists` group donors by yearly total ($1‑100, $101‑500, $501+)
+  and send tiered Brevo templates (IDs 11, 12, 13) populated with `families`, `children`, and `pounds` served. Year and month
+  default to the previous month when omitted.
 - Events are visible to all staff by default; the former "Staff Involved" selector has been removed.
 - Self-service client registration with email OTP verification (currently disabled pending further testing).
 - Warehouse management pages for donations, surplus, pig pound, and exports using `write-excel-file`.
