@@ -44,7 +44,7 @@
 - In the frontend, favor composition of reusable components and keep pages focused on layout and data flow.
 - Use `FeedbackSnackbar` for user feedback instead of custom alert implementations.
 - Admin settings: use Admin → Settings for configuration—Pantry tab manages cart tare and pantry slot capacity, Warehouse tab handles bread/can weight multipliers, and Volunteer tab manages volunteer roles. Fetch these values from the backend rather than hard-coding or using environment variables.
-- The frontend requires a live internet connection; offline caching or offline-first optimizations must not be added.
+- A service worker caches static assets and schedule-related API responses for performance, but a live internet connection is still required; full offline use is not supported.
 
 ## UI Rules & Design System
 ### Tech & Theme
