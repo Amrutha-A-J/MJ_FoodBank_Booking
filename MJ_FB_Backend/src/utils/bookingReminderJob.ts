@@ -1,3 +1,4 @@
+import pool from '../db';
 import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
 import { formatReginaDate, formatReginaDateWithDay, formatTimeToAmPm } from './dateUtils';
@@ -33,6 +34,9 @@ export async function sendNextDayBookingReminders(): Promise<void> {
         templateId: config.bookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'Shopping Appointment' },
       });
+      await pool.query('UPDATE bookings SET reminder_sent = true WHERE id = $1', [
+        b.id,
+      ]);
       recipients.push(b.user_email);
     }
     await notifyOps(

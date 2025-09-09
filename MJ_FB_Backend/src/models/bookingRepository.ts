@@ -161,6 +161,7 @@ export async function fetchBookingsForReminder(
 ) {
   const res = await client.query(
     `SELECT
+        b.id,
         b.user_id,
         COALESCE(u.email, nc.email) as user_email,
         s.start_time,
@@ -170,7 +171,7 @@ export async function fetchBookingsForReminder(
        LEFT JOIN clients u ON b.user_id = u.client_id
        LEFT JOIN new_clients nc ON b.new_client_id = nc.id
        INNER JOIN slots s ON b.slot_id = s.id
-       WHERE b.status = 'approved' AND b.date = $1`,
+       WHERE b.status = 'approved' AND b.date = $1 AND b.reminder_sent = false`,
     [formatReginaDate(date)],
   );
   return res.rows;
