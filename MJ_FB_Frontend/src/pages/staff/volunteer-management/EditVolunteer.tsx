@@ -6,9 +6,9 @@ import {
   getVolunteerById,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
-  type VolunteerRoleWithShifts,
   type VolunteerSearchResult,
 } from '../../../api/volunteers';
+import type { VolunteerRoleWithShifts } from '../../../types';
 import {
   Box,
   Button,

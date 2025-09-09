@@ -77,18 +77,9 @@ interface RoleOption {
   has_shifts: boolean;
 }
 
-interface VolunteerResult {
-  id: number;
-  name: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  trainedAreas: number[];
-  hasShopper: boolean;
-  hasPassword: boolean;
+type VolunteerResult = Omit<VolunteerSearchResult, 'clientId'> & {
   clientId?: number;
-}
+};
 
 interface VolunteerManagementProps {
   initialTab?: 'dashboard' | 'schedule' | 'search' | 'create';
@@ -118,8 +109,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
-  const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
-  const [editVolunteer, setEditVolunteer] = useState<VolunteerResult | null>(null);
+  const [selectedVolunteer, setSelectedVolunteer] =
+    useState<VolunteerResult | null>(null);
+  const [editVolunteer, setEditVolunteer] =
+    useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
   const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
@@ -176,7 +169,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [assignSearch, setAssignSearch] = useState('');
   const [assignResults, setAssignResults] = useState<VolunteerResult[]>([]);
   const [assignMsg, setAssignMsg] = useState('');
-  const [confirmAssign, setConfirmAssign] = useState<VolunteerResult | null>(null);
+  const [confirmAssign, setConfirmAssign] =
+    useState<VolunteerResult | null>(null);
   const [manageShift, setManageShift] =
     useState<VolunteerBookingDetail | null>(null);
   const [cancelRecurringBooking, setCancelRecurringBooking] =
@@ -373,7 +367,16 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     const id = searchParams.get('id');
     const name = searchParams.get('name');
     if (id && name) {
-      selectVolunteer({ id: Number(id), name, trainedAreas: [], hasShopper: false, hasPassword: false });
+      selectVolunteer({
+        id: Number(id),
+        name,
+        firstName: name.split(' ')[0] || '',
+        lastName: name.split(' ').slice(1).join(' ') || '',
+        trainedAreas: [],
+        hasShopper: false,
+        hasPassword: false,
+        clientId: undefined,
+      });
     }
   }, [tab, searchParams, selectedVolunteer]);
 
@@ -1256,7 +1259,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         onUpdated={handleManageUpdated}
       />
       <EditVolunteerDialog
-        volunteer={editVolunteer}
+        volunteer={editVolunteer ? { ...editVolunteer, clientId: editVolunteer.clientId ?? null } : null}
         onClose={() => setEditVolunteer(null)}
         onSaved={() => {
           setEditVolunteer(null);

@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
-import {
-  createVolunteer,
-  getVolunteerRoles,
-  type VolunteerRoleWithShifts,
-} from '../../../api/volunteers';
+import { createVolunteer, getVolunteerRoles } from '../../../api/volunteers';
+import type { VolunteerRoleWithShifts } from '../../../types';
 import {
   Box,
   Button,
