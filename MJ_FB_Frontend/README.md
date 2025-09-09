@@ -31,8 +31,7 @@ Run tests with `npm test` so `.env.test` and `jest.setup.ts` execute, providing 
 
 ## Service Worker
 
-The frontend registers a Workbox-powered service worker that precaches built assets and caches schedule-related API responses. Offline use is not supported; a network connection is still required.
-
+The frontend registers a Workbox-powered service worker that precaches built assets, caches schedule, booking history, and profile API responses, and serves an offline fallback page when navigation fails. Booking actions made while offline are queued and retried in the background once connectivity returns. A network connection is still recommended for full functionality.
 
 ## Environment Variables
 
