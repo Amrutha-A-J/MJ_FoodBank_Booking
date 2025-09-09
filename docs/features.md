@@ -1,5 +1,7 @@
 # Feature Log
 
+- feat: remove help page and navigation
+- f038a6a7 feat: add context to telegram ops alerts
 - 12a59458 feat: default component size to medium
 - 9746858e feat: add offline fallback and booking sync
 - 11b12434 feat: unify login page

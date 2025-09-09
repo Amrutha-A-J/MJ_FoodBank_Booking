@@ -168,24 +168,11 @@ npm run test:frontend  # frontend tests
 - Document new environment variables in this `README.md` and the relevant `.env.example` files when introducing them.
 - Backend tests use `tests/setupTests.ts` to polyfill `global.fetch` with `undici` and mock the database. Environment variables come from `.env.test`, which Jest loads automatically. If you run a test file directly instead of through Jest, manually import `'../setupTests'` so these helpers are initialized.
 
-## Help Page Updates
-
-Keep the Help page current whenever user-facing features change. Update
-`MJ_FB_Frontend/src/pages/help/content.ts` whenever you add or modify a
-route or UI element so users see accurate guidance.
-
-Before merging a pull request, confirm the following:
-
-- [ ] Added or changed a user-facing route or UI element?
-- [ ] Updated `src/pages/help/content.ts` with the new information?
-- [ ] Viewed the Help page to ensure the change appears?
-
 ## Features
 
 - Appointment booking workflow for clients with automatic approval and rescheduling.
 - Bookings support an optional **client note** field. Clients can add a note during booking, and staff see it in booking dialogs. Client notes are stored and returned via `/bookings` endpoints.
 - Client visit records include an optional **staff note** field. Staff users automatically see these notes via `/bookings/history`, while agency users can retrieve them by adding `includeStaffNotes=true`.
-- Help page offers role-specific guidance with real-time search and a printable view. Admins can view all help topics, including client and volunteer guidance.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
 - Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
@@ -468,7 +455,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 ### Frontend features
 
 - Pages are organized into feature-based directories (e.g., booking, staff, volunteer-management, warehouse-management).
-- A language selector lets users switch languages on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages.
+- A language selector lets users switch languages on the login, forgot password, set password, client dashboard, book appointment, booking history, and profile pages.
 - Profile pages provide a button to email a password reset link instead of changing passwords directly.
 - Profile pages let clients and volunteers opt in or out of email reminders.
 - A shared dashboard component lives in `src/components/dashboard`.

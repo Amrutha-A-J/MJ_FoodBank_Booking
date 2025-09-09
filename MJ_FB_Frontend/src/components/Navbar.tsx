@@ -131,7 +131,6 @@ export default function Navbar({
           links: [
             ...(role === 'staff' ? profileLinks ?? [] : []),
             { label: t('profile'), to: '/profile' },
-            { label: t('help.title'), to: '/help' },
             { label: t('logout'), onClick: () => onLogout?.() },
           ],
         }
@@ -445,15 +444,6 @@ export default function Navbar({
                     sx={DROPDOWN_ITEM_SX}
                   >
                     {t('profile')}
-                  </MenuItem>
-                  <MenuItem
-                    component={RouterLink}
-                    to="/help"
-                    onClick={closeProfileMenu}
-                    disabled={loading}
-                    sx={DROPDOWN_ITEM_SX}
-                  >
-                    {t('help.title')}
                   </MenuItem>
                   <MenuItem
                     onClick={() => {

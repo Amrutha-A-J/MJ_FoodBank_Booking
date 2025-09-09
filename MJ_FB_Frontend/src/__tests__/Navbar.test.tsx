@@ -19,7 +19,6 @@ describe('Navbar component', () => {
     expect(screen.getByText(/Hello, Tester/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/Hello, Tester/i));
     expect(screen.getByText(/Profile/i)).toBeInTheDocument();
-    expect(screen.getByText(/Help/i)).toBeInTheDocument();
     expect(screen.getByText(/Logout/i)).toBeInTheDocument();
   });
 
@@ -91,7 +90,6 @@ describe('Navbar component', () => {
       expect(screen.queryByText(/Profile/i)).toBeNull();
       fireEvent.click(screen.getByText(/Hello, Tester/i));
       expect(screen.getByText(/Profile/i)).toBeInTheDocument();
-      expect(screen.getByText(/Help/i)).toBeInTheDocument();
       expect(screen.getByText(/Logout/i)).toBeInTheDocument();
     } finally {
       window.matchMedia = originalMatchMedia;

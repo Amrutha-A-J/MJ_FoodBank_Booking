@@ -13,4 +13,3 @@ Add these translation keys to locale files:
 - `profile_page.notifications`
 - `profile_page.email_reminders`
 - `profile_page.preferences_saved`
-- `help.client.manage_profile_and_password.steps.1`

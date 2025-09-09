@@ -18,7 +18,6 @@ This feature does not require any additional environment variables.
 
 Add the following translation strings to locale files:
 
-- `help.client.booking_appointments.steps.2`
 - `dashboard`
 - `client_note_label`
  
