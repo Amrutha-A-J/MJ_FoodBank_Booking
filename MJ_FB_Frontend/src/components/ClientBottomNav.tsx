@@ -3,13 +3,15 @@ import Dashboard from '@mui/icons-material/Dashboard';
 import CalendarToday from '@mui/icons-material/CalendarToday';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useTheme } from '@mui/material/styles';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function ClientBottomNav() {
   const theme = useTheme();
-  const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   let value: 'dashboard' | 'bookings' | 'profile' = 'dashboard';
-  if (path.startsWith('/book-appointment') || path.startsWith('/booking-history')) value = 'bookings';
-  else if (path.startsWith('/profile')) value = 'profile';
+  if (pathname.startsWith('/book-appointment') || pathname.startsWith('/booking-history')) value = 'bookings';
+  else if (pathname.startsWith('/profile')) value = 'profile';
 
   return (
     <Paper
@@ -20,9 +22,9 @@ export default function ClientBottomNav() {
         showLabels
         value={value}
         onChange={(_, newValue) => {
-          if (newValue === 'dashboard') window.location.assign('/');
-          if (newValue === 'bookings') window.location.assign('/book-appointment');
-          if (newValue === 'profile') window.location.assign('/profile');
+          if (newValue === 'dashboard') navigate('/');
+          if (newValue === 'bookings') navigate('/book-appointment');
+          if (newValue === 'profile') navigate('/profile');
         }}
       >
         <BottomNavigationAction label="Dashboard" value="dashboard" icon={<Dashboard />} aria-label="dashboard" />
