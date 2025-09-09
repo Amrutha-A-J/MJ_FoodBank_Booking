@@ -50,7 +50,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             },
-            '& tbody tr:hover td, & tbody tr:hover th': {
+            '& tbody tr:hover': {
               backgroundColor: 'inherit',
             },
           }}
