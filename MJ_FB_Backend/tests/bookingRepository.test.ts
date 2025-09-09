@@ -123,13 +123,17 @@ describe('bookingRepository', () => {
   });
 
   it('fetchBookingsForReminder selects only necessary fields', async () => {
-    setQueryResults({ rows: [] });
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [] });
     await fetchBookingsForReminder('2024-01-01');
-    const call = (mockPool.query as jest.Mock).mock.calls[0];
+    const call = (mockPool.query as jest.Mock).mock.calls[1];
     expect(call[0]).toMatch(/SELECT/);
     expect(call[0]).toMatch(
       /b.id,\s+b.user_id,\s+COALESCE\(u.email, nc.email\) as user_email,\s+s.start_time,\s+s.end_time,\s+b.reschedule_token/,
     );
+    expect(call[0]).toMatch(/LEFT JOIN user_preferences/);
+    expect(call[0]).toMatch(/COALESCE\(up.email_reminders, true\) = true/);
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.status = 'approved'/);
     expect(call[0]).toMatch(/b.date = \$1/);

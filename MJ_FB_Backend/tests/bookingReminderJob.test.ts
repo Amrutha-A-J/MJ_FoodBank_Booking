@@ -150,3 +150,35 @@ describe('startBookingReminderJob/stopBookingReminderJob', () => {
   });
 });
 
+describe('fetchBookingsForReminder', () => {
+  afterEach(() => {
+    (db.query as jest.Mock).mockReset();
+  });
+
+  it('joins user_preferences and filters out disabled reminders', async () => {
+    const { fetchBookingsForReminder: realFetch } = jest.requireActual(
+      '../src/models/bookingRepository',
+    );
+    (db.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await realFetch('2024-01-02');
+    const query = (db.query as jest.Mock).mock.calls[1][0];
+    expect(query).toContain('LEFT JOIN user_preferences');
+    expect(query).toContain('COALESCE(up.email_reminders, true) = true');
+    expect(query).toContain('LEFT JOIN new_clients');
+  });
+
+  it('omits new_clients join when table is missing', async () => {
+    const { fetchBookingsForReminder: realFetch } = jest.requireActual(
+      '../src/models/bookingRepository',
+    );
+    (db.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [{ exists: false }] })
+      .mockResolvedValueOnce({ rows: [] });
+    await realFetch('2024-01-02');
+    const query = (db.query as jest.Mock).mock.calls[1][0];
+    expect(query).not.toContain('new_clients');
+  });
+});
+

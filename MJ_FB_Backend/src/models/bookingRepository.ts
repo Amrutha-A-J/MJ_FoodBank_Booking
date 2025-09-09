@@ -1,6 +1,7 @@
 import pool from '../db';
 import { Pool, PoolClient } from 'pg';
 import { formatReginaDate } from '../utils/dateUtils';
+import { hasTable } from '../utils/dbUtils';
 
 export type Queryable = Pool | PoolClient;
 
@@ -159,19 +160,30 @@ export async function fetchBookingsForReminder(
   date: string,
   client: Queryable = pool,
 ) {
+  const hasNewClients = await hasTable('new_clients', client);
+  const emailField = hasNewClients
+    ? 'COALESCE(u.email, nc.email)'
+    : 'u.email';
+  const newClientJoin = hasNewClients
+    ? 'LEFT JOIN new_clients nc ON b.new_client_id = nc.id'
+    : '';
+  const userPrefJoin = hasNewClients
+    ? "LEFT JOIN user_preferences up ON (up.user_id = u.client_id AND up.user_type = 'client') OR (up.user_id = nc.id AND up.user_type = 'new_client')"
+    : "LEFT JOIN user_preferences up ON up.user_id = u.client_id AND up.user_type = 'client'";
   const res = await client.query(
     `SELECT
         b.id,
         b.user_id,
-        COALESCE(u.email, nc.email) as user_email,
+        ${emailField} as user_email,
         s.start_time,
         s.end_time,
         b.reschedule_token
        FROM bookings b
        LEFT JOIN clients u ON b.user_id = u.client_id
-       LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+       ${newClientJoin}
+       ${userPrefJoin}
        INNER JOIN slots s ON b.slot_id = s.id
-       WHERE b.status = 'approved' AND b.date = $1 AND b.reminder_sent = false`,
+       WHERE b.status = 'approved' AND b.date = $1 AND b.reminder_sent = false AND COALESCE(up.email_reminders, true) = true`,
     [formatReginaDate(date)],
   );
   return res.rows;
