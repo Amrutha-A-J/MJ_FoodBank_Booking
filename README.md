@@ -12,6 +12,9 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Password fields include a visibility toggle so users can verify what they type.
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
+- Donor Management → Mail Lists groups monetary donors by monthly contribution and
+  lets staff email each group a summary of families, children, and pounds served. Month
+  defaults to the previous month when unspecified.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
