@@ -25,9 +25,15 @@ describe('alertOps telegram', () => {
     process.env.TELEGRAM_ALERT_CHAT_ID = '123';
     jest.resetModules();
     const { alertOps } = await import('../src/utils/opsAlert');
-    const fetchMock = jest.spyOn(global, 'fetch' as any).mockResolvedValue({ ok: true } as any);
+    const fetchMock = jest
+      .spyOn(global, 'fetch' as any)
+      .mockResolvedValue({ ok: true } as any);
     await alertOps('job', new Error('oops'));
     expect(fetchMock).toHaveBeenCalled();
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.text).toContain('[MJFB] job failed');
+    expect(body.text).toContain('Time:');
+    expect(body.text).toContain('Error: oops');
     fetchMock.mockRestore();
   });
 

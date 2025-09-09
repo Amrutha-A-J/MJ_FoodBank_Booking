@@ -136,7 +136,7 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 Booking confirmation, reminder, and reschedule templates can surface "Add to Calendar" buttons by referencing
 `{{ params.googleCalendarLink }}` and `{{ params.appleCalendarLink }}` in the Brevo templates.
 The backend supplies these URLs automatically; no extra environment variables are required.
-Ops alerts include the failing job or API route and are forwarded to a Telegram chat when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
+Ops alerts include the failing job or API route along with a timestamp and stack trace, and are forwarded to a Telegram chat when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
 Calendar emails attach an `.ics` file. If `ICS_BASE_URL` is configured, `appleCalendarLink`
 points to the hosted file; otherwise it falls back to a base64 `data:` URI.
 
