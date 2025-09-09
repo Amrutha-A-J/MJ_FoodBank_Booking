@@ -466,7 +466,7 @@ export default function WarehouseDashboard() {
           <CardHeader
             title="Top Donors"
             subheader="This year by total lbs"
-            action={<Chip label={filteredDonors.length} /}
+            action={<Chip label={filteredDonors.length} />}
           />
           <CardContent>
             {filteredDonors.length ? (
@@ -494,7 +494,7 @@ export default function WarehouseDashboard() {
           <CardHeader
             title="Top Receivers"
             subheader="This year by total lbs"
-            action={<Chip label={filteredReceivers.length} /}
+            action={<Chip label={filteredReceivers.length} />}
           />
           <CardContent>
             {filteredReceivers.length ? (
