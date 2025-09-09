@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import { UserRole } from '../models/user';
+import type { UserPreferences } from '../models/userPreferences';
 import bcrypt from 'bcrypt';
 import logger from '../utils/logger';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
@@ -732,6 +733,59 @@ export async function deleteUserByClientId(
         .json({ message: 'Cannot delete user with existing records' });
     }
     logger.error('Error deleting user:', error);
+    next(error);
+  }
+}
+
+
+export async function getMyPreferences(req: Request, res: Response, next: NextFunction) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (user.type !== 'client' && user.type !== 'volunteer') {
+    return res.status(403).json({ message: 'Unsupported user type' });
+  }
+  try {
+    const result = await pool.query(
+      `SELECT email_reminders, push_notifications FROM user_preferences WHERE user_id = $1 AND user_type = $2`,
+      [user.id, user.type],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.json({ emailReminders: true, pushNotifications: true });
+    }
+    const row = result.rows[0];
+    res.json({
+      emailReminders: row.email_reminders,
+      pushNotifications: row.push_notifications,
+    });
+  } catch (error) {
+    logger.error('Error fetching user preferences:', error);
+    next(error);
+  }
+}
+
+export async function updateMyPreferences(req: Request, res: Response, next: NextFunction) {
+  const user = req.user;
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (user.type !== 'client' && user.type !== 'volunteer') {
+    return res.status(403).json({ message: 'Unsupported user type' });
+  }
+  const { emailReminders, pushNotifications } = req.body as UserPreferences;
+  try {
+    const result = await pool.query(
+      `INSERT INTO user_preferences (user_id, user_type, email_reminders, push_notifications)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (user_id, user_type)
+       DO UPDATE SET email_reminders = EXCLUDED.email_reminders, push_notifications = EXCLUDED.push_notifications
+       RETURNING email_reminders, push_notifications`,
+      [user.id, user.type, emailReminders, pushNotifications],
+    );
+    const row = result.rows[0];
+    res.json({
+      emailReminders: row.email_reminders,
+      pushNotifications: row.push_notifications,
+    });
+  } catch (error) {
+    logger.error('Error updating user preferences:', error);
     next(error);
   }
 }

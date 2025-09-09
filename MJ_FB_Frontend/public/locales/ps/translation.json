@@ -85,7 +85,7 @@
         "description": "Update contact information or change your password.",
         "steps": [
           "Navigate to the Profile page.",
-          "Edit your information.",
+          "Edit your information or notification preferences.",
           "Save changes."
         ]
       },
@@ -187,7 +187,11 @@
     "password_updated": "Password updated.",
     "password_min_length": "Password must be at least 8 characters.",
     "password_number": "Password must include uppercase and lowercase letters.",
-    "password_symbol": "Password must include a symbol."
+    "password_symbol": "Password must include a symbol.",
+    "notifications": "Notifications",
+    "email_reminders": "Email reminders",
+    "push_notifications": "Push notifications",
+    "preferences_saved": "Preferences saved."
   },
   "my_upcoming_appointment": "My Upcoming Appointment",
   "my_upcoming_appointments": "My Upcoming Appointments",

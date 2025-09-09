@@ -181,6 +181,11 @@ export interface UserProfile {
   trainedAreas?: string[];
 }
 
+export interface UserPreferences {
+  emailReminders: boolean;
+  pushNotifications: boolean;
+}
+
 export interface RoleOption {
   categoryId: number;
   categoryName: string;
