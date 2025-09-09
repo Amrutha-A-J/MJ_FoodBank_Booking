@@ -2,8 +2,9 @@ import { API_BASE, apiFetch, handleResponse } from './client';
 
 export interface MonetaryDonor {
   id: number;
-  name: string;
-  email?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export interface MonetaryDonation {
@@ -33,7 +34,7 @@ export async function getMonetaryDonors(): Promise<MonetaryDonor[]> {
 }
 
 export async function createMonetaryDonor(
-  data: Pick<MonetaryDonor, 'name' | 'email'>,
+  data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
   const res = await apiFetch(`${API_BASE}/monetary-donors`, {
     method: 'POST',
@@ -45,7 +46,7 @@ export async function createMonetaryDonor(
 
 export async function updateMonetaryDonor(
   id: number,
-  data: Pick<MonetaryDonor, 'name' | 'email'>,
+  data: Pick<MonetaryDonor, 'firstName' | 'lastName' | 'email'>,
 ): Promise<MonetaryDonor> {
   const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`, {
     method: 'PUT',
@@ -60,6 +61,22 @@ export async function deleteMonetaryDonor(id: number): Promise<void> {
     method: 'DELETE',
   });
   await handleResponse(res);
+}
+
+export interface MonetaryDonorDetail {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  amount: number;
+  lastDonationISO: string | null;
+}
+
+export async function getMonetaryDonor(
+  id: number,
+): Promise<MonetaryDonorDetail> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`);
+  return handleResponse(res);
 }
 
 export async function getMonetaryDonations(
@@ -86,13 +103,17 @@ export async function createMonetaryDonation(
   return handleResponse(res);
 }
 
+export async function getMonetaryDonor(id: number): Promise<MonetaryDonor> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/${id}`);
+  return handleResponse(res);
+}
+
 export async function updateMonetaryDonation(
-  donorId: number,
   donationId: number,
-  data: Pick<MonetaryDonation, 'amount' | 'date'>,
+  data: Pick<MonetaryDonation, 'donorId' | 'amount' | 'date'>,
 ): Promise<MonetaryDonation> {
   const res = await apiFetch(
-    `${API_BASE}/monetary-donors/${donorId}/donations/${donationId}`,
+    `${API_BASE}/monetary-donors/donations/${donationId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -103,11 +124,10 @@ export async function updateMonetaryDonation(
 }
 
 export async function deleteMonetaryDonation(
-  donorId: number,
   donationId: number,
 ): Promise<void> {
   const res = await apiFetch(
-    `${API_BASE}/monetary-donors/${donorId}/donations/${donationId}`,
+    `${API_BASE}/monetary-donors/donations/${donationId}`,
     {
       method: 'DELETE',
     },

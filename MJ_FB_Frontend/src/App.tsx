@@ -71,7 +71,7 @@ const VolunteerAdmin = React.lazy(() =>
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
-const DonationLog = React.lazy(() =>
+const WarehouseDonationLog = React.lazy(() =>
   import('./pages/warehouse-management/DonationLog')
 );
 const TrackPigpound = React.lazy(() =>
@@ -110,14 +110,14 @@ const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
 const DonorDashboard = React.lazy(() =>
   import('./pages/donor-management/DonorDashboard')
 );
-const DonorManagementPage = React.lazy(() =>
-  import('./pages/donor-management/DonorManagement')
-);
 const DonorProfilePage = React.lazy(() =>
   import('./pages/donor-management/DonorProfile')
 );
 const MailLists = React.lazy(() =>
   import('./pages/donor-management/MailLists')
+);
+const DonorDonationLog = React.lazy(() =>
+  import('./pages/donor-management/DonationLog')
 );
 
 const Spinner = () => <CircularProgress />;
@@ -136,7 +136,7 @@ export default function App() {
   const showDonorManagement = isStaff && hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
-  const showDonationLog = showWarehouse || showDonationEntry || showDonorManagement;
+  const showDonationLog = showWarehouse || showDonationEntry;
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
@@ -190,15 +190,10 @@ export default function App() {
         label: 'Donor Management',
         links: [
           { label: t('dashboard'), to: '/donor-management' },
-          { label: 'Donor Management', to: '/donor-management/manage' },
+          { label: 'Donation Log', to: '/donor-management/donation-log' },
           { label: 'Mail Lists', to: '/donor-management/mail-lists' },
         ],
       });
-
-    const donorLinks = [
-      { label: 'Donation Log', to: '/donor-management' },
-    ];
-    if (showDonorManagement) navGroups.push({ label: 'Donor Management', links: donorLinks });
 
     const warehouseLinks = [
       { label: t('dashboard'), to: '/warehouse-management' },
@@ -375,14 +370,14 @@ export default function App() {
                       element={<LeaveManagement />}
                     />
                   )}
-                  {showDonorManagement && (
-                    <Route path="/donor-management" element={<DonationLog />} />
-                  )}
                   {showWarehouse && (
                     <Route path="/warehouse-management" element={<WarehouseDashboard />} />
                   )}
                   {showDonationLog && (
-                    <Route path="/warehouse-management/donation-log" element={<DonationLog />} />
+                    <Route
+                      path="/warehouse-management/donation-log"
+                      element={<WarehouseDonationLog />}
+                    />
                   )}
                   {showWarehouse && (
                     <Route path="/warehouse-management/donors/:id" element={<DonorProfile />} />
@@ -479,8 +474,8 @@ export default function App() {
                         element={<DonorDashboard />}
                       />
                       <Route
-                        path="/donor-management/manage"
-                        element={<DonorManagementPage />}
+                        path="/donor-management/donation-log"
+                        element={<DonorDonationLog />}
                       />
                       <Route
                         path="/donor-management/mail-lists"
