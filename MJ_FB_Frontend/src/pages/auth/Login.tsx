@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 export default function Login({
   onLogin,
 }: {
-  onLogin: (user: LoginResponse) => Promise<void>;
+  onLogin: (user: LoginResponse) => Promise<string>;
 }) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -49,8 +49,8 @@ export default function Login({
     if (identifier === '' || password === '') return;
     try {
       const user = await login(identifier, password);
-      await onLogin(user);
-      navigate('/');
+      const redirect = await onLogin(user);
+      navigate(redirect);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {

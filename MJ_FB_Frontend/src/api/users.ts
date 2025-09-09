@@ -20,7 +20,7 @@ export async function login(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return handleResponse(res);
+  return handleResponse<LoginResponse>(res);
 }
 
 export async function logout(): Promise<void> {

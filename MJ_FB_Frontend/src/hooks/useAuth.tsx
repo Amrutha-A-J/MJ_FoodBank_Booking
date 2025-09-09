@@ -15,7 +15,7 @@ interface AuthContextValue {
   userRole: UserRole | '';
   access: StaffAccess[];
   id: number | null;
-  login: (u: LoginResponse) => Promise<void>;
+  login: (u: LoginResponse) => Promise<string>;
   logout: () => Promise<void>;
   cardUrl: string;
   ready: boolean;
@@ -126,28 +126,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [clearAuth]);
 
-  async function login(u: LoginResponse) {
+  async function login(u: LoginResponse): Promise<string> {
     try {
       const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
       if (!res.ok && res.status !== 409) throw new Error('Invalid refresh');
+      const { role, name, userRole, access, id } = u;
       setToken('cookie');
-      setRole(u.role);
-      setName(u.name);
-      setUserRole(u.userRole || '');
-      setAccess(u.access || []);
-      setId(u.id ?? null);
-      localStorage.setItem('role', u.role);
-      localStorage.setItem('name', u.name);
-      if (u.userRole) localStorage.setItem('userRole', u.userRole);
+      setRole(role);
+      setName(name);
+      setUserRole(userRole || '');
+      setAccess(access || []);
+      setId(id ?? null);
+      localStorage.setItem('role', role);
+      localStorage.setItem('name', name);
+      if (userRole) localStorage.setItem('userRole', userRole);
       else localStorage.removeItem('userRole');
-      localStorage.setItem('access', JSON.stringify(u.access || []));
-      if (u.id) localStorage.setItem('id', String(u.id));
+      localStorage.setItem('access', JSON.stringify(access || []));
+      if (id) localStorage.setItem('id', String(id));
       else localStorage.removeItem('id');
       localStorage.removeItem('encouragementOrder');
       localStorage.removeItem('encouragementIndex');
-      setSessionMessage(
-        u.role === 'volunteer' ? getRandomAppreciation() : '',
-      );
+      setSessionMessage(role === 'volunteer' ? getRandomAppreciation() : '');
       try {
         const statsRes = await apiFetch(`${API_BASE}/stats`);
         if (statsRes.ok) {
@@ -159,6 +158,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         setCardUrl('');
       }
+
+      let redirect = '/';
+      if (role === 'volunteer') redirect = '/volunteer-management';
+      return redirect;
     } catch (e) {
       clearAuth();
       throw e;

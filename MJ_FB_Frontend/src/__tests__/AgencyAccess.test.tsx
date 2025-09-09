@@ -1,11 +1,11 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
-import { loginAgency } from '../api/users';
+import { login } from '../api/users';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 jest.mock('../api/users', () => ({
-  loginAgency: jest.fn(),
+  login: jest.fn(),
 }));
 
 jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAppointment</div>);
@@ -32,7 +32,7 @@ describe('Agency UI access', () => {
   });
 
   it('allows agency login and shows agency links', async () => {
-    (loginAgency as jest.Mock).mockResolvedValue({
+    (login as jest.Mock).mockResolvedValue({
       role: 'agency',
       name: 'Agency',
       id: 1,
