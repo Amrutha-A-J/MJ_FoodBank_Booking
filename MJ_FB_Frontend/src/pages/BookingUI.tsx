@@ -36,6 +36,8 @@ import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
+import FeedbackPrompt from '../components/FeedbackPrompt';
+import { logEvent } from '../analytics';
 import { Link as RouterLink } from 'react-router-dom';
 import Page from '../components/Page';
 import type { ApiError } from '../api/client';
@@ -125,6 +127,7 @@ export default function BookingUI({
     open: false,
     message: null,
   });
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [booking, setBooking] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [note, setNote] = useState('');
@@ -172,6 +175,7 @@ export default function BookingUI({
     setLoadingConfirm(true);
     setNote('');
     try {
+      logEvent('booking_start');
       const profile = await getUserProfile();
       setUsage(profile.bookingsThisMonth ?? 0);
       setConfirmOpen(true);
@@ -225,7 +229,10 @@ export default function BookingUI({
       setSelectedSlotId(null);
       setNote('');
       refetch();
+      setFeedbackOpen(true);
+      logEvent('booking_complete');
     } catch (err: unknown) {
+      logEvent('booking_error');
       if (
         err &&
         typeof err === 'object' &&
@@ -539,6 +546,10 @@ export default function BookingUI({
         onClose={() => setModal(m => ({ ...m, open: false }))}
         message={modal.message}
         severity="warning"
+      />
+      <FeedbackPrompt
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
       />
     </Container>
   );

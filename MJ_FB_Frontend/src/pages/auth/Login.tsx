@@ -13,6 +13,7 @@ import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
 import { useTranslation } from 'react-i18next';
+import { logEvent } from '../../analytics';
 
 export default function Login({
   onLogin,
@@ -48,11 +49,14 @@ export default function Login({
     setSubmitted(true);
     if (identifier === '' || password === '') return;
     try {
+      logEvent('login_attempt');
       const user = await login(identifier, password);
       const redirect = await onLogin(user);
+      logEvent('login_success');
       navigate(redirect);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
+      logEvent('login_error', { status: apiErr?.status });
       if (apiErr?.status === 401) {
         setError(t('incorrect_id_password'));
       } else if (apiErr?.status === 403) {

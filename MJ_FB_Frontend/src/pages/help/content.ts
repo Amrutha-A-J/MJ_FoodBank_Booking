@@ -91,6 +91,12 @@ export function getHelpContent(
           ],
         },
       },
+      {
+        title: t('help.client.feedback.title'),
+        body: {
+          description: t('help.client.feedback.description'),
+        },
+      },
     ],
     volunteer: [
       loginSection,

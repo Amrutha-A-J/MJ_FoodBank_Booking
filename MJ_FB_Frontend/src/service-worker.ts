@@ -8,11 +8,13 @@ import {
 } from 'workbox-strategies'
 import { ExpirationPlugin } from 'workbox-expiration'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
+import { initialize as initGoogleAnalytics } from 'workbox-google-analytics'
 
 declare let self: ServiceWorkerGlobalScope & { __WB_MANIFEST: any }
 
 // self.__WB_MANIFEST is injected at build time
 precacheAndRoute(self.__WB_MANIFEST)
+initGoogleAnalytics()
 
 // Cache static assets
 registerRoute(

@@ -35,7 +35,8 @@
     "react-i18next": "^15.7.3",
     "react-router-dom": "^7",
     "recharts": "^3",
-    "write-excel-file": "^2"
+    "write-excel-file": "^2",
+    "workbox-google-analytics": "^7.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9",

@@ -30,6 +30,8 @@ import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import useHolidays from '../../hooks/useHolidays';
 import type { VolunteerBookingConflict } from '../../types';
+import FeedbackPrompt from '../../components/FeedbackPrompt';
+import { logEvent } from '../../analytics';
 
 function useVolunteerSlots(
   date: Dayjs,
@@ -77,6 +79,7 @@ export default function VolunteerBooking() {
   }>({ open: false, message: '', severity: 'success' });
   const [conflict, setConflict] = useState<VolunteerBookingConflict | null>(null);
   const slotsRef = useRef<HTMLDivElement>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   useEffect(() => {
     if (!isDisabled(date)) return;
     let next = date;
@@ -95,11 +98,15 @@ export default function VolunteerBooking() {
     if (!selected) return;
     setBooking(true);
     try {
+      logEvent('volunteer_booking_start');
       await requestVolunteerBooking(selected.id, selected.date);
       setSnackbar({ open: true, message: 'Shift booked', severity: 'success' });
       setSelected(null);
       refetch();
+      setFeedbackOpen(true);
+      logEvent('volunteer_booking_complete');
     } catch (e) {
+      logEvent('volunteer_booking_error');
       const err = e as ApiError;
       const details = err.details as VolunteerBookingConflict | undefined;
       if (err.status === 409 && details?.attempted && details?.existing) {
@@ -259,6 +266,10 @@ export default function VolunteerBooking() {
           message={snackbar.message}
           severity={snackbar.severity}
           duration={4000}
+        />
+        <FeedbackPrompt
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
         />
       </Container>
     </Page>

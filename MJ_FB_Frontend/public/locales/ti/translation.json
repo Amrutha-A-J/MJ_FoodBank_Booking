@@ -97,6 +97,10 @@
           "Review your visit counter.",
           "Check reminders for upcoming bookings."
         ]
+      },
+      "feedback": {
+        "title": "Give feedback",
+        "description": "After bookings or shifts, share how it went."
       }
     },
     "pantry": {
@@ -335,5 +339,11 @@
   "volunteer_login": "Volunteer Login",
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
-  "incorrect_id_password": "Incorrect ID or email or password"
+  "incorrect_id_password": "Incorrect ID or email or password",
+  "feedback_prompt": {
+    "title": "How was your experience?",
+    "placeholder": "Share your feedback",
+    "submit": "Submit",
+    "thanks": "Thanks for your feedback!"
+  }
 }
