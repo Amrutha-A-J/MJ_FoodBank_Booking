@@ -292,6 +292,8 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
       return res.json([]); // short input: skip query
     }
 
+    const searchPattern = `%${search.replace(/\s+/g, '%')}%`;
+
     const usersResult = await pool.query(
       `SELECT client_id, first_name, last_name, email, phone, password
        FROM clients
@@ -301,7 +303,7 @@ export async function searchUsers(req: Request, res: Response, next: NextFunctio
           OR CAST(client_id AS TEXT) ILIKE $1
        ORDER BY first_name, last_name ASC
        LIMIT 5`,
-      [`%${search}%`]
+      [searchPattern]
     );
 
     const formatted = usersResult.rows.map(u => ({
