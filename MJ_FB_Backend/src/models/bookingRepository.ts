@@ -168,9 +168,11 @@ export async function fetchBookingsForReminder(
         b.reschedule_token
        FROM bookings b
        LEFT JOIN clients u ON b.user_id = u.client_id
+       LEFT JOIN user_preferences up ON up.user_id = b.user_id AND up.user_type = 'client'
        LEFT JOIN new_clients nc ON b.new_client_id = nc.id
        INNER JOIN slots s ON b.slot_id = s.id
-       WHERE b.status = 'approved' AND b.date = $1`,
+       WHERE b.status = 'approved' AND b.date = $1
+         AND COALESCE(up.email_reminders, true)`,
     [formatReginaDate(date)],
   );
   return res.rows;

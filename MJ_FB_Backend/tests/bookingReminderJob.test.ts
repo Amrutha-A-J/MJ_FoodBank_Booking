@@ -74,6 +74,17 @@ describe('sendNextDayBookingReminders', () => {
     );
   });
 
+  it('excludes users with email reminders disabled', async () => {
+    (fetchBookingsForReminder as jest.Mock).mockResolvedValue([]);
+
+    await sendNextDayBookingReminders();
+
+    expect(enqueueEmail).not.toHaveBeenCalled();
+    expect(notifyOps).toHaveBeenCalledWith(
+      'sendNextDayBookingReminders queued reminders for 0 emails',
+    );
+  });
+
   it('alerts ops and surfaces failures from enqueueEmail', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {

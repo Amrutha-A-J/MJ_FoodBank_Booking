@@ -133,6 +133,10 @@ describe('bookingRepository', () => {
     expect(call[0]).toMatch(/WHERE/);
     expect(call[0]).toMatch(/b.status = 'approved'/);
     expect(call[0]).toMatch(/b.date = \$1/);
+    expect(call[0]).toMatch(
+      /LEFT JOIN user_preferences up ON up.user_id = b.user_id AND up.user_type = 'client'/,
+    );
+    expect(call[0]).toMatch(/COALESCE\(up.email_reminders, true\)/);
     expect(call[1]).toEqual(expect.arrayContaining(['2024-01-01']));
     expect(call[1]).toHaveLength(1);
   });
