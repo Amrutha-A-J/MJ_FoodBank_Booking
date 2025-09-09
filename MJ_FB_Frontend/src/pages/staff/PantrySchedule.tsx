@@ -10,7 +10,7 @@ import { searchUsers, addClientById, type UserSearchResult } from "../../api/use
 import type { Slot, Holiday, Booking } from "../../types";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { formatTime } from "../../utils/time";
-import { formatDate, addDays } from "../../utils/date";
+import { formatDate, addDays, reginaStartOfDay } from "../../utils/date";
 import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
 import ScheduleCards from "../../components/ScheduleCards";
 import FeedbackSnackbar from "../../components/FeedbackSnackbar";
@@ -203,7 +203,9 @@ export default function PantrySchedule({
   }, [searchTerm, assignSlot]);
 
   function changeDay(delta: number) {
-    setCurrentDate((d) => addDays(d, delta));
+    setCurrentDate((d) =>
+      reginaStartOfDay(addDays(d, delta)).toDate()
+    );
   }
 
   function retryStream() {
