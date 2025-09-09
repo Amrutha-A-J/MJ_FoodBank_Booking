@@ -45,6 +45,10 @@ export async function getVolunteerProfile(): Promise<UserProfile> {
 export interface VolunteerSearchResult {
   id: number;
   name: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
   trainedAreas: number[];
   hasShopper: boolean;
   hasPassword: boolean;
@@ -58,6 +62,26 @@ export async function searchVolunteers(
     `${API_BASE}/volunteers/search?search=${encodeURIComponent(search)}`,
   );
   return handleResponse(res);
+}
+
+export async function updateVolunteer(
+  id: number,
+  data: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    onlineAccess?: boolean;
+    password?: string;
+    sendPasswordLink?: boolean;
+  },
+): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/volunteers/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
 }
 
 export async function getRoles(): Promise<RoleOption[]> {

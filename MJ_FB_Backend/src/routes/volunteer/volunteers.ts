@@ -3,6 +3,7 @@ import {
   updateTrainedArea,
   getVolunteerProfile,
   createVolunteer,
+  updateVolunteer,
   searchVolunteers,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
@@ -12,7 +13,7 @@ import {
 } from '../../controllers/volunteer/volunteerController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
 import { validate } from '../../middleware/validate';
-import { createVolunteerSchema } from '../../schemas/volunteer/volunteerSchemas';
+import { createVolunteerSchema, updateVolunteerSchema } from '../../schemas/volunteer/volunteerSchemas';
 
 const router = express.Router();
 
@@ -28,6 +29,14 @@ router.post(
   authorizeRoles('staff'),
   validate(createVolunteerSchema),
   createVolunteer
+);
+
+router.put(
+  '/:id',
+  authMiddleware,
+  authorizeRoles('staff'),
+  validate(updateVolunteerSchema),
+  updateVolunteer,
 );
 
 router.get(

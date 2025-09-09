@@ -175,6 +175,92 @@ export async function createVolunteer(
   }
 }
 
+export async function updateVolunteer(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.user || req.user.role !== 'staff') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  const { id } = req.params;
+  const {
+    firstName,
+    lastName,
+    email,
+    phone,
+    onlineAccess,
+    password,
+    sendPasswordLink,
+  } = req.body as {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    onlineAccess?: boolean;
+    password?: string;
+    sendPasswordLink?: boolean;
+  };
+  try {
+    if (email) {
+      const emailCheck = await pool.query(
+        'SELECT id FROM volunteers WHERE LOWER(email) = LOWER($1) AND id <> $2',
+        [email, id],
+      );
+      if ((emailCheck.rowCount ?? 0) > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+
+    const result = await pool.query(
+      `UPDATE volunteers
+       SET first_name = $1, last_name = $2, email = $3, phone = $4,
+           password = CASE
+             WHEN $5::boolean = false THEN NULL
+             ELSE COALESCE($6, password)
+           END
+       WHERE id = $7
+       RETURNING id, first_name, last_name, email, phone`,
+      [
+        firstName,
+        lastName,
+        email || null,
+        phone || null,
+        onlineAccess,
+        hashedPassword,
+        id,
+      ],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Volunteer not found' });
+    }
+    const row = result.rows[0];
+
+    if (sendPasswordLink && email) {
+      const token = await generatePasswordSetupToken('volunteers', Number(id));
+      const params = buildPasswordSetupEmailParams('volunteers', token);
+      await sendTemplatedEmail({
+        to: email,
+        templateId: config.passwordSetupTemplateId,
+        params,
+      });
+    }
+
+    res.json({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      phone: row.phone,
+    });
+  } catch (error) {
+    logger.error('Error updating volunteer:', error);
+    next(error);
+  }
+}
+
 export async function createVolunteerShopperProfile(
   req: Request,
   res: Response,
@@ -296,7 +382,7 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
     }
 
     const result = await pool.query(
-      `SELECT v.id, v.first_name, v.last_name, v.user_id, v.password,
+      `SELECT v.id, v.first_name, v.last_name, v.email, v.phone, v.user_id, v.password,
               ARRAY_REMOVE(ARRAY_AGG(vtr.role_id), NULL) AS role_ids
        FROM volunteers v
        LEFT JOIN volunteer_trained_roles vtr ON v.id = vtr.volunteer_id
@@ -312,6 +398,10 @@ export async function searchVolunteers(req: Request, res: Response, next: NextFu
     const formatted = result.rows.map(v => ({
       id: v.id,
       name: `${v.first_name} ${v.last_name}`.trim(),
+      firstName: v.first_name,
+      lastName: v.last_name,
+      email: v.email,
+      phone: v.phone,
       trainedAreas: (v.role_ids || []).map(Number),
       hasShopper: Boolean(v.user_id),
       hasPassword: v.password != null,

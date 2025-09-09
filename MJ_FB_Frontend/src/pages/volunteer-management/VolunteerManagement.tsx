@@ -54,6 +54,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
+import EditVolunteerDialog from './EditVolunteerDialog';
 
 
 
@@ -75,6 +76,10 @@ interface RoleOption {
 interface VolunteerResult {
   id: number;
   name: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
   trainedAreas: number[];
   hasShopper: boolean;
   hasPassword: boolean;
@@ -110,6 +115,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
   const [selectedVolunteer, setSelectedVolunteer] = useState<VolunteerResult | null>(null);
+  const [editVolunteer, setEditVolunteer] = useState<VolunteerResult | null>(null);
   const [trainedEdit, setTrainedEdit] = useState<string[]>([]);
   const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
@@ -412,15 +418,24 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   async function loadVolunteer(id: number, name: string): Promise<VolunteerResult> {
     try {
-    const res = await searchVolunteers(name);
-    const found = res.find((v: VolunteerSearchResult) => v.id === id);
-    if (found) {
-      return { ...found, clientId: found.clientId ?? undefined };
-    }
+      const res = await searchVolunteers(name);
+      const found = res.find((v: VolunteerSearchResult) => v.id === id);
+      if (found) {
+        return { ...found, clientId: found.clientId ?? undefined };
+      }
     } catch {
       // ignore
     }
-    return { id, name, trainedAreas: [], hasShopper: false, hasPassword: false };
+    const [firstName, ...rest] = name.split(' ');
+    return {
+      id,
+      name,
+      firstName: firstName || '',
+      lastName: rest.join(' '),
+      trainedAreas: [],
+      hasShopper: false,
+      hasPassword: false,
+    };
   }
 
   async function refreshVolunteer() {
@@ -816,6 +831,13 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                       }
                       label="Shopper Profile"
                     />
+                    <Button
+                      variant="outlined"
+                      onClick={() => setEditVolunteer(selectedVolunteer)}
+                      sx={{ mt: 1 }}
+                    >
+                      Edit
+                    </Button>
                   </PageCard>
                   <PageCard sx={{ width: 1 }}>
                     <Typography variant="h6" gutterBottom>
@@ -1190,6 +1212,14 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         booking={manageShift}
         onClose={() => setManageShift(null)}
         onUpdated={handleManageUpdated}
+      />
+      <EditVolunteerDialog
+        volunteer={editVolunteer}
+        onClose={() => setEditVolunteer(null)}
+        onSaved={() => {
+          setEditVolunteer(null);
+          refreshVolunteer();
+        }}
       />
     </Page>
   );
