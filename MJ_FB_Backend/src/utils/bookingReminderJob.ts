@@ -1,5 +1,6 @@
 import { fetchBookingsForReminder } from '../models/bookingRepository';
 import { enqueueEmail } from './emailQueue';
+import { sendPushToUser } from './notificationService';
 import { formatReginaDate, formatReginaDateWithDay, formatTimeToAmPm } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
@@ -32,6 +33,12 @@ export async function sendNextDayBookingReminders(): Promise<void> {
         templateId: config.bookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'Shopping Appointment' },
       });
+      if (b.user_id) {
+        sendPushToUser(b.user_id, 'user', {
+          title: 'Booking Reminder',
+          body,
+        });
+      }
     }
   } catch (err) {
     logger.error('Failed to send booking reminders', err);

@@ -20,6 +20,7 @@
 - Booking emails are sent through Brevo; configure `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, and `BREVO_FROM_NAME`.
 - Booking confirmation and reminder emails include Cancel and Reschedule links generated from each booking's reschedule token.
 - Email queue retries failed sends with exponential backoff and persists jobs in the `email_queue` table so retries survive restarts. Configure `EMAIL_QUEUE_MAX_RETRIES` and `EMAIL_QUEUE_BACKOFF_MS` to adjust retry behavior.
+- Push notifications use Firebase Cloud Messaging. Configure `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` and register device tokens via `/api/notifications/register`.
 - Password setup token expiry is configurable via `PASSWORD_SETUP_TOKEN_TTL_HOURS` (default 24 hours).
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
 - `POST /auth/resend-password-setup` regenerates password setup links using `generatePasswordSetupToken`; requests are rate limited per email or client ID.

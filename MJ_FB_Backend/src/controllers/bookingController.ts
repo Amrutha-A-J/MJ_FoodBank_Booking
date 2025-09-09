@@ -39,6 +39,7 @@ import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
 import { sendBookingEvent } from '../utils/bookingEvents';
+import { sendPushToUser } from '../utils/notificationService';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -180,6 +181,10 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           type: emailType,
         },
         attachments,
+      });
+      sendPushToUser(userId, 'user', {
+        title: 'Booking Confirmed',
+        body,
       });
     } else {
       logger.warn(
@@ -328,6 +333,12 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
         time: start_time,
       });
     }
+    if (booking.user_id) {
+      sendPushToUser(Number(booking.user_id), 'user', {
+        title: 'Booking Cancelled',
+        body: formatReginaDateWithDay(booking.date),
+      });
+    }
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
     logger.error('Error cancelling booking:', error);
@@ -392,6 +403,12 @@ export async function cancelBookingByToken(
         role: 'client',
         date: booking.date,
         time: start_time,
+      });
+    }
+    if (booking.user_id) {
+      sendPushToUser(Number(booking.user_id), 'user', {
+        title: 'Booking Cancelled',
+        body: formatReginaDateWithDay(booking.date),
       });
     }
     res.json({ message: 'Booking cancelled' });
@@ -627,6 +644,15 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         },
         attachments,
       });
+      if (booking.user_id) {
+        const body = `New date: ${formatReginaDateWithDay(date)}${
+          newTime ? ` from ${newTime}` : ''
+        }`;
+        sendPushToUser(Number(booking.user_id), 'user', {
+          title: 'Booking Rescheduled',
+          body,
+        });
+      }
     } else {
       logger.warn('Booking %s has no email. Skipping reschedule email.', booking.id);
     }

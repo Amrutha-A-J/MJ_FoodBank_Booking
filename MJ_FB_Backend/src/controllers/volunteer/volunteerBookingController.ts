@@ -22,6 +22,7 @@ import {
   } from '../../utils/dateUtils';
 import config from '../../config';
 import { sendBookingEvent } from '../../utils/bookingEvents';
+import { sendPushToUser } from '../../utils/notificationService';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -225,6 +226,10 @@ export async function createVolunteerBooking(
             type: emailType,
           },
           attachments,
+        });
+        sendPushToUser(Number(user.id), 'volunteer', {
+          title: 'Shift Confirmed',
+          body,
         });
       } else {
         logger.warn(
@@ -622,6 +627,10 @@ export async function resolveVolunteerBookingConflict(
         },
         attachments,
       });
+      sendPushToUser(Number(user.id), 'volunteer', {
+        title: 'Shift Confirmed',
+        body,
+      });
     } else {
       logger.warn(
         'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
@@ -879,6 +888,12 @@ export async function updateVolunteerBookingStatus(
     updated.role_id = updated.slot_id;
     delete updated.slot_id;
     updated.status_color = statusColor(updated.status);
+    if (status === 'cancelled') {
+      sendPushToUser(updated.volunteer_id, 'volunteer', {
+        title: 'Shift Cancelled',
+        body: formatReginaDateWithDay(updated.date),
+      });
+    }
     updated.date =
       updated.date instanceof Date
         ? formatReginaDate(updated.date)
@@ -1046,6 +1061,10 @@ export async function rescheduleVolunteerBooking(
           type: 'Volunteer Shift',
         },
         attachments,
+      });
+      sendPushToUser(booking.volunteer_id, 'volunteer', {
+        title: 'Shift Rescheduled',
+        body: `New date: ${formatReginaDateWithDay(date)}`,
       });
     } else {
       logger.warn(

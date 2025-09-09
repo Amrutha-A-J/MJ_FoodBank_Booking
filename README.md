@@ -17,6 +17,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - A login selection page links to client, volunteer, staff, and agency login screens. The client login still reminds users to sign in with their client ID, provides contact and password reset guidance, and directs staff, volunteers, and agencies accordingly.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Input fields feature larger touch targets on mobile devices for easier tapping.
+- Push notifications alert users before bookings and volunteer shifts when enabled.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
@@ -138,6 +139,9 @@ Booking confirmation, reminder, and reschedule templates can surface "Add to Cal
 The backend supplies these URLs automatically; no extra environment variables are required.
 Ops alerts include the failing job or API route and are forwarded to a Telegram chat when `TELEGRAM_BOT_TOKEN` and `TELEGRAM_ALERT_CHAT_ID` are configured.
 Calendar emails attach an `.ics` file. If `ICS_BASE_URL` is configured, `appleCalendarLink`
+                                                |
+                                                |
+                                                |
 points to the hosted file; otherwise it falls back to a base64 `data:` URI.
 
 Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
@@ -315,6 +319,12 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `TELEGRAM_BOT_TOKEN`       | Telegram bot token used for ops alerts (optional)                                                                                         |
 | `TELEGRAM_ALERT_CHAT_ID`   | Telegram chat ID that receives ops alerts (optional)                                                                                      |
 
+| `FIREBASE_PROJECT_ID`      | Firebase project ID for push notifications |
+                                                 |
+| `FIREBASE_CLIENT_EMAIL`    | Firebase service account email |
+                                                 |
+| `FIREBASE_PRIVATE_KEY`     | Firebase service account private key (escape newlines) |
+                                                 |
 | Template reference                           | Purpose                                       | Params                                                                                    |
 | -------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `PASSWORD_SETUP_TEMPLATE_ID`                 | Account invitations and password reset emails | `link`, `token`, `clientId`, `role`, `loginLink`                                           |
@@ -449,6 +459,17 @@ VITE_API_BASE=http://localhost:4000/api
 The build will fail if this variable is missing.
 
 
+To enable push notifications, also configure the following Firebase Cloud Messaging variables in `MJ_FB_Frontend/.env`:
+
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_VAPID_KEY=
+```
+
+
 Refer to the submodule repositories for detailed configuration and environment variables.
 
 The backend surplus tracking feature uses two optional environment variables to
@@ -472,6 +493,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff dashboard includes a pantry visit trend line chart showing monthly totals for clients, adults, and children.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
 - An Install App button appears when the app is installable; iOS users should use Safari's **Add to Home Screen**.
+- Push notifications remind users about upcoming bookings and volunteer shifts.
 - Booking confirmations include links to add appointments to Google Calendar or download an ICS file.
 - Warehouse dashboard aggregates donations and shipments in real time, so manual rebuilds are no longer needed.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly summary tables, and raw log entries older than one year are deleted each Jan 31.

@@ -15,6 +15,7 @@ import { getStaffRootPath } from './utils/staffRootPath';
 import dayjs, { formatDate } from './utils/date';
 import LanguageSelector from './components/LanguageSelector';
 import InstallAppButton from './components/InstallAppButton';
+import { initNotifications } from './utils/notifications';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -132,6 +133,12 @@ export default function App() {
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
+
+  useEffect(() => {
+    if (token) {
+      initNotifications().catch(console.error);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (showVolunteerManagement) {

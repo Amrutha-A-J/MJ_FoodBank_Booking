@@ -161,6 +161,7 @@ export async function fetchBookingsForReminder(
 ) {
   const res = await client.query(
     `SELECT
+        b.user_id,
         COALESCE(u.email, nc.email) as user_email,
         s.start_time,
         s.end_time,

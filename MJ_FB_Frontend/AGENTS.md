@@ -16,6 +16,7 @@
 
 ## Environment
 - Requires Node.js 22+; run `nvm use` to match the version in `.nvmrc`.
+- Configure Firebase Cloud Messaging keys in `.env` to enable push notifications.
 
 ## Project Layout
 - React app built with Vite.

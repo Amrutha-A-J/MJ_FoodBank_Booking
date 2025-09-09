@@ -1,5 +1,6 @@
 import pool from '../db';
 import { enqueueEmail } from './emailQueue';
+import { sendPushToUser } from './notificationService';
 import { formatReginaDate, formatReginaDateWithDay, formatTimeToAmPm } from './dateUtils';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
@@ -17,7 +18,7 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
   const formattedDate = formatReginaDateWithDay(nextDate);
   try {
     const res = await pool.query(
-      `SELECT v.email, vs.start_time, vs.end_time, vb.reschedule_token
+      `SELECT v.id, v.email, vs.start_time, vs.end_time, vb.reschedule_token
        FROM volunteer_bookings vb
        JOIN volunteers v ON vb.volunteer_id = v.id
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
@@ -38,6 +39,10 @@ export async function sendNextDayVolunteerShiftReminders(): Promise<void> {
         to: row.email,
         templateId: config.volunteerBookingReminderTemplateId,
         params: { body, cancelLink, rescheduleLink, type: 'Volunteer Shift' },
+      });
+      sendPushToUser(row.id, 'volunteer', {
+        title: 'Shift Reminder',
+        body,
       });
     }
   } catch (err) {
