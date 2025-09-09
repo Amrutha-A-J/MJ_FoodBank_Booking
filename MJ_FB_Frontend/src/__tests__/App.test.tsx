@@ -21,11 +21,6 @@ jest.mock('../pages/warehouse-management/WarehouseDashboard', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
-jest.mock('../pages/help/HelpPage', () => {
-  const mod = { __esModule: true, default: () => <div>HelpPage</div> };
-  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
-  return mod;
-});
 
 jest.mock('../api/bookings', () => ({
   getBookingHistory: jest.fn().mockResolvedValue([]),

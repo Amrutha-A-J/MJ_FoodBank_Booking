@@ -44,7 +44,7 @@
 - Clients reset passwords by entering their client ID and receive an email with a link to finish the reset.
 - Password setup emails mention the user's role and include a direct link to the appropriate login page. The password setup page displays a role-specific login reminder and button.
 - Profile pages let clients and volunteers toggle email reminders and push notifications from `/users/me/preferences`.
-- Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
+- Staff can delete client and volunteer accounts from their respective management pages.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
 

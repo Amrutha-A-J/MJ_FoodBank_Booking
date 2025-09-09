@@ -1,13 +1,5 @@
 # Frontend Development Guide
 
-## Help Page Maintenance
-- Update `src/pages/help/content.ts` whenever user-facing features or routes change so the Help page remains accurate.
-- Before merging a pull request, ensure new routes and UI elements are reflected in the Help page:
-  - [ ] Added or modified a user-facing route or UI element?
-  - [ ] Updated `src/pages/help/content.ts` accordingly?
-  - [ ] Verified that the Help page renders the change?
-- Admins can view all help sections, including client and volunteer topics.
-
 ## Testing
 - Run `npm test` from the `MJ_FB_Frontend` directory for frontend changes.
 - Always run tests through `npm test` so `jest.setup.ts` applies required polyfills and sets a default `VITE_API_BASE`; invoking Jest directly can skip this setup.
@@ -28,7 +20,7 @@
 - Volunteer Settings provides separate dialogs for creating sub-roles (with an initial shift) and for adding or editing shifts.
 - Deleting sub-roles and shifts prompts confirmation dialogs to prevent accidental removal.
 - Users complete initial password creation at `/set-password` using a token from the setup email.
-- A language selector is available on the login, forgot password, set password, client dashboard, book appointment, booking history, profile, and help pages; avoid adding page-specific selectors elsewhere.
+- A language selector is available on the login, forgot password, set password, client dashboard, book appointment, booking history, and profile pages; avoid adding page-specific selectors elsewhere.
 - After setting a password, users are redirected to `/login`.
 - The password setup page shows a role-specific login reminder and a button linking to the login page.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.

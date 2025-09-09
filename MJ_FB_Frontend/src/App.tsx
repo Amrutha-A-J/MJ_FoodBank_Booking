@@ -105,7 +105,6 @@ const AdminLeaveRequests = React.lazy(
 const AgencyBookAppointment = React.lazy(() =>
   import('./pages/agency/AgencyBookAppointment')
 );
-const HelpPage = React.lazy(() => import('./pages/help/HelpPage'));
 const CancelBooking = React.lazy(() => import('./pages/CancelBooking'));
 const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
 
@@ -266,7 +265,6 @@ export default function App() {
       path.startsWith('/book-appointment') ||
       path.startsWith('/booking-history') ||
       path.startsWith('/profile') ||
-      path.startsWith('/help') ||
       (path === '/' && role === 'shopper');
 
     return (
@@ -322,7 +320,6 @@ export default function App() {
                     }
                   />
                   <Route path="/profile" element={<Profile role={role} />} />
-                  <Route path="/help" element={<HelpPage />} />
                   {showStaff && (
                     <Route
                       path="/pantry"

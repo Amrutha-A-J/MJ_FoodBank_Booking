@@ -7,4 +7,3 @@ Clients can access the dashboard from the navigation menu.
 Only client-facing navigation items require translation. Add the following translation strings to locale files:
 
 - `dashboard`
-- `help.dashboard_nav_step`
