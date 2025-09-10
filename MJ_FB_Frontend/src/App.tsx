@@ -144,7 +144,11 @@ export default function App() {
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
   const showDonationLog = showWarehouse || showDonationEntry;
   const showAggregations =
-    isStaff && (hasAccess('aggregations') || hasAccess('pantry') || hasAccess('warehouse'));
+    isStaff &&
+    (hasAccess('aggregations') ||
+      hasAccess('pantry') ||
+      hasAccess('warehouse') ||
+      hasAccess('donor_management'));
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
