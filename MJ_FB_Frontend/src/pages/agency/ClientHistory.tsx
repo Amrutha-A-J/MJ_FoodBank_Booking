@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import EntitySearch from '../../components/EntitySearch';
 import { toDate } from '../../utils/date';
 import { formatDate } from '../../utils/date';
@@ -34,6 +35,9 @@ export default function ClientHistory() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(
+    null,
+  );
+  const [cancelBookingItem, setCancelBookingItem] = useState<Booking | null>(
     null,
   );
   const [clients, setClients] = useState<User[]>([]);
@@ -169,7 +173,7 @@ export default function ClientHistory() {
               {t('reschedule')}
             </Button>
             <Button
-              onClick={() => handleCancel(b)}
+              onClick={() => setCancelBookingItem(b)}
               variant="outlined"
               color="error"
             >
@@ -180,18 +184,19 @@ export default function ClientHistory() {
     },
   ];
 
-  const handleCancel = async (b: Booking) => {
-    if (!window.confirm('Cancel this booking?')) return;
+  const handleCancel = async () => {
+    if (!cancelBookingItem) return;
     try {
-      await cancelBooking(String(b.id));
-      setSnackbar({ message: 'Booking cancelled', severity: 'success' });
+      await cancelBooking(String(cancelBookingItem.id));
+      setSnackbar({ message: t('booking_cancelled'), severity: 'success' });
       loadBookings();
     } catch (err: any) {
       setSnackbar({
-        message: err.message || 'Failed to cancel booking',
+        message: err.message || t('cancel_booking_failed'),
         severity: 'error',
       });
     }
+    setCancelBookingItem(null);
   };
 
   return (
@@ -272,6 +277,13 @@ export default function ClientHistory() {
             onRescheduled={() => {
               loadBookings();
             }}
+          />
+        )}
+        {cancelBookingItem && (
+          <ConfirmDialog
+            message={t('cancel_booking_question')}
+            onConfirm={handleCancel}
+            onCancel={() => setCancelBookingItem(null)}
           />
         )}
         <FeedbackSnackbar
