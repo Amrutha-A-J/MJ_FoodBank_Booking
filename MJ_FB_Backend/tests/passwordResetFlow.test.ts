@@ -11,6 +11,7 @@ import {
 } from '../src/utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import config from '../src/config';
+import { resendLimit, RESEND_WINDOW_MS } from '../src/controllers/authController';
 
 jest.mock('../src/utils/passwordSetupUtils', () => {
   const actual = jest.requireActual('../src/utils/passwordSetupUtils');
@@ -142,6 +143,13 @@ describe('setPassword', () => {
 describe('resendPasswordSetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resendLimit.clear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('generates a new token when looked up by email', async () => {
@@ -173,6 +181,24 @@ describe('resendPasswordSetup', () => {
       .post('/auth/resend-password-setup')
       .send({});
     expect(res.status).toBe(400);
+  });
+
+  it('clears rate limit after window', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 9, email: 'resend@example.com', user_type: 'staff' }],
+    });
+    (generatePasswordSetupToken as jest.Mock).mockResolvedValue('tok2');
+
+    await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ email: 'resend@example.com' });
+    expect(resendLimit.has('resend@example.com')).toBe(true);
+
+    jest.advanceTimersByTime(RESEND_WINDOW_MS);
+    jest.runOnlyPendingTimers();
+
+    expect(resendLimit.has('resend@example.com')).toBe(false);
   });
 });
 
