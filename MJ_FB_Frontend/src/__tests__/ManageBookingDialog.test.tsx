@@ -80,6 +80,7 @@ describe('ManageBookingDialog', () => {
         children: 2,
         petItem: 1,
         note: 'bring ID',
+        verified: false,
       })
     );
     expect(onUpdated).toHaveBeenCalledWith('Visit recorded', 'success');

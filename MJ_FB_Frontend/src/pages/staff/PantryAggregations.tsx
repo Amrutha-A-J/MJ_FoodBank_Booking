@@ -199,9 +199,9 @@ export default function PantryAggregations() {
           .filter((r): r is { week: number; label: string } => r !== null);
         const map = new Map(ranges.map(r => [r.week, r.label]));
         setWeeklyRows(
-          rows.map(({ week, ...rest }) => ({
-            ...rest,
-            week: map.get(week) ?? `Week ${week}`,
+          rows.map((r: any) => ({
+            ...r,
+            week: map.get(r.week) ?? `Week ${r.week}`,
           })),
         );
       })
@@ -215,7 +215,10 @@ export default function PantryAggregations() {
     getPantryMonthly(monthlyYear, month)
       .then(rows =>
         setMonthlyRows(
-          rows.map(r => ({ ...r, month: monthNames[r.month - 1] ?? r.month })),
+          rows.map((r: any) => ({
+            ...r,
+            month: monthNames[r.month - 1] ?? r.month,
+          })),
         ),
       )
       .catch(() => setMonthlyRows([]))
