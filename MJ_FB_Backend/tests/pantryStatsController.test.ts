@@ -11,8 +11,8 @@ describe('pantryStatsController', () => {
   });
 
   it('refreshPantryWeekly calls stored procedure', async () => {
-    await refreshPantryWeekly(2024, 10);
-    expect(mockDb.query).toHaveBeenCalledWith('SELECT refresh_pantry_weekly($1,$2)', [2024, 10]);
+    await refreshPantryWeekly(2024, 5, 10);
+    expect(mockDb.query).toHaveBeenCalledWith('SELECT refresh_pantry_weekly($1,$2,$3)', [2024, 5, 10]);
   });
 
   it('refreshPantryMonthly calls stored procedure', async () => {

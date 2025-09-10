@@ -252,7 +252,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
     await client.query('COMMIT');
     const { week, month, year } = getWeekForDate(date);
     await Promise.all([
-      refreshPantryWeekly(year, week),
+      refreshPantryWeekly(year, month, week),
       refreshPantryMonthly(year, month),
       refreshPantryYearly(year),
     ]);
@@ -338,14 +338,14 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     if (clientId && clientId !== prevClientId) await refreshClientVisitCount(clientId);
     const { week, month, year } = getWeekForDate(date);
     await Promise.all([
-      refreshPantryWeekly(year, week),
+      refreshPantryWeekly(year, month, week),
       refreshPantryMonthly(year, month),
       refreshPantryYearly(year),
     ]);
     if (prevDate && prevDate !== date) {
       const prev = getWeekForDate(prevDate);
       await Promise.all([
-        refreshPantryWeekly(prev.year, prev.week),
+        refreshPantryWeekly(prev.year, prev.month, prev.week),
         refreshPantryMonthly(prev.year, prev.month),
         refreshPantryYearly(prev.year),
       ]);
@@ -386,7 +386,7 @@ export async function deleteVisit(req: Request, res: Response, next: NextFunctio
     if (date) {
       const { week, month, year } = getWeekForDate(date);
       await Promise.all([
-        refreshPantryWeekly(year, week),
+        refreshPantryWeekly(year, month, week),
         refreshPantryMonthly(year, month),
         refreshPantryYearly(year),
       ]);
@@ -509,7 +509,7 @@ export async function bulkImportVisits(req: Request, res: Response, next: NextFu
       const { week, month, year } = getWeekForDate(d);
       const dt = new Date(reginaStartOfDayISO(d));
       await Promise.all([
-        refreshPantryWeekly(year, week),
+        refreshPantryWeekly(year, month, week),
         refreshPantryMonthly(year, month),
         refreshPantryYearly(year),
         refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1),
@@ -693,7 +693,7 @@ export async function importVisitsFromXlsx(
         const { week, month, year } = getWeekForDate(d);
         const dt = new Date(reginaStartOfDayISO(d));
         await Promise.all([
-          refreshPantryWeekly(year, week),
+          refreshPantryWeekly(year, month, week),
           refreshPantryMonthly(year, month),
           refreshPantryYearly(year),
           refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1),

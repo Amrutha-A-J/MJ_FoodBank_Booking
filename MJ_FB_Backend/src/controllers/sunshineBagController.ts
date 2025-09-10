@@ -58,7 +58,7 @@ export async function upsertSunshineBag(req: Request, res: Response, next: NextF
     await refreshSunshineBagOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
     const { week, month, year } = getWeekForDate(date);
     await Promise.all([
-      refreshPantryWeekly(year, week),
+      refreshPantryWeekly(year, month, week),
       refreshPantryMonthly(year, month),
       refreshPantryYearly(year),
     ]);
