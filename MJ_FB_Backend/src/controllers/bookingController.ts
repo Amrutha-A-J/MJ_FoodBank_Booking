@@ -521,7 +521,7 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     if (booking.status !== 'approved') {
       return res.status(400).json({ message: "This booking can't be rescheduled" });
     }
-    if (!isDateWithinCurrentOrNextMonth(date)) {
+    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
     await checkSlotCapacity(slotId, date);
@@ -733,9 +733,6 @@ export async function createPreapprovedBooking(
     return res.status(400).json({ message: 'Please choose a valid date' });
   }
 
-  if (!isDateWithinCurrentOrNextMonth(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
-  }
 
   const client = await pool.connect();
   try {
@@ -843,7 +840,7 @@ export async function createBookingForUser(
           .json({ message: 'Client not linked to your agency' });
       }
     }
-    if (!isDateWithinCurrentOrNextMonth(date)) {
+    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
     const usage = await countVisitsAndBookingsForMonth(userId, date);
@@ -974,7 +971,7 @@ export async function createBookingForNewClient(
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    if (!isDateWithinCurrentOrNextMonth(date)) {
+    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 

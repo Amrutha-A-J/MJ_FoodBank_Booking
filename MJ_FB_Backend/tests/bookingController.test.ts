@@ -7,6 +7,7 @@ describe('createBookingForUser', () => {
   let pool: any;
   let checkSlotCapacity: jest.Mock;
   let insertBooking: jest.Mock;
+  let bookingUtils: any;
 
   beforeEach(() => {
     jest.resetModules();
@@ -27,6 +28,11 @@ describe('createBookingForUser', () => {
         insertBooking: jest.fn().mockResolvedValue(undefined),
         checkSlotCapacity: jest.fn().mockResolvedValue(undefined),
       }));
+      jest.doMock('../src/models/agency', () => ({
+        __esModule: true,
+        isAgencyClient: jest.fn().mockResolvedValue(true),
+        getAgencyClientSet: jest.fn(),
+      }));
       jest.doMock('../src/db', () => ({
         __esModule: true,
         default: { query: jest.fn(), connect: jest.fn() },
@@ -36,6 +42,7 @@ describe('createBookingForUser', () => {
       pool = require('../src/db').default;
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
       insertBooking = require('../src/models/bookingRepository').insertBooking;
+      bookingUtils = require('../src/utils/bookingUtils');
     });
   });
 
@@ -111,6 +118,42 @@ describe('createBookingForUser', () => {
       null,
       'bring ID',
     );
+  });
+
+  it('allows staff to book outside allowed months', async () => {
+    (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
+      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }] })
+      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
+    const req = {
+      user: { role: 'staff', id: 99 },
+      body: { userId: 1, slotId: 2, date: '2030-01-15' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(insertBooking).toHaveBeenCalled();
+  });
+
+  it('rejects agency bookings outside allowed months', async () => {
+    (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
+    const req = {
+      user: { role: 'agency', id: 77 },
+      body: { userId: 1, slotId: 2, date: '2030-01-15' },
+    } as unknown as Request;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+    const next = jest.fn() as NextFunction;
+
+    await createBookingForUser(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Please choose a valid date' });
+    expect(insertBooking).not.toHaveBeenCalled();
   });
 });
 
