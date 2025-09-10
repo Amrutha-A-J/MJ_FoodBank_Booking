@@ -25,7 +25,7 @@ import {
   rebuildPantryAggregations,
 } from '../../api/pantryAggregations';
 import dayjs, { formatDate } from '../../utils/date';
-import { getWeekRanges } from '../../utils/pantryWeek';
+import { getWeekRanges, getWeekForDate } from '../../utils/pantryWeek';
 
 export default function PantryAggregations() {
   const [years, setYears] = useState<number[]>([]);
@@ -99,8 +99,17 @@ export default function PantryAggregations() {
           r !== null && weeklyWeeks.includes(r.week),
       );
 
+    const today = dayjs();
+    const current = getWeekForDate(today);
+    const defaultWeek =
+      weeklyYear === today.year() &&
+      Number(weeklyMonth) - 1 === current.month &&
+      weeklyWeeks.includes(current.week)
+        ? current.week
+        : ranges[0]?.week ?? '';
+
     setWeekRanges(ranges);
-    setWeek(ranges[0]?.week ?? '');
+    setWeek(defaultWeek);
   }, [weeklyYear, weeklyMonth, weeklyWeeks]);
 
   useEffect(() => {
@@ -108,9 +117,11 @@ export default function PantryAggregations() {
       .then(ys => {
         setYears(ys);
         if (ys.length) {
-          setWeeklyYear(ys[0]);
-          setMonthlyYear(ys[0]);
-          setYearlyYear(ys[0]);
+          const currentYear = dayjs().year();
+          const defaultYear = ys.includes(currentYear) ? currentYear : ys[0];
+          setWeeklyYear(defaultYear);
+          setMonthlyYear(defaultYear);
+          setYearlyYear(defaultYear);
         }
       })
       .catch(() => {
@@ -127,7 +138,8 @@ export default function PantryAggregations() {
     getPantryMonths(weeklyYear)
       .then(ms => {
         setWeeklyMonths(ms);
-        setWeeklyMonth(ms[0] ?? '');
+        const currentMonth = dayjs().month() + 1;
+        setWeeklyMonth(ms.includes(currentMonth) ? currentMonth : ms[0] ?? '');
       })
       .catch(() => {
         setWeeklyMonths([]);
@@ -144,7 +156,8 @@ export default function PantryAggregations() {
     getPantryMonths(monthlyYear)
       .then(ms => {
         setMonthlyMonths(ms);
-        setMonth(ms[0] ?? '');
+        const currentMonth = dayjs().month() + 1;
+        setMonth(ms.includes(currentMonth) ? currentMonth : ms[0] ?? '');
       })
       .catch(() => {
         setMonthlyMonths([]);
