@@ -4,6 +4,11 @@ import ClientManagement from '../ClientManagement';
 import { getNewClients, deleteNewClient } from '../../../api/users';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 
+(global as any).clearImmediate = (global as any).clearImmediate || ((id: number) => clearTimeout(id));
+(global as any).performance = (global as any).performance || ({} as any);
+(global as any).performance.markResourceTiming = (global as any).performance.markResourceTiming || (() => {});
+(global as any).fetch = jest.fn();
+
 jest.mock('../../../api/users', () => ({
   ...jest.requireActual('../../../api/users'),
   getNewClients: jest.fn(),
@@ -39,11 +44,12 @@ describe('ClientManagement New Clients tab', () => {
 
     const deleteBtn = await screen.findByLabelText('delete');
     fireEvent.click(deleteBtn);
+    fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
 
     await waitFor(() => {
       expect(deleteNewClient).toHaveBeenCalledWith(1);
+      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
     });
-    expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
   });
 });
 
