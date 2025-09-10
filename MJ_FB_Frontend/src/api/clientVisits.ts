@@ -60,16 +60,6 @@ export async function toggleClientVisitVerification(
   return handleResponse(res);
 }
 
-export interface VisitImportSheet {
-  date: string;
-  rows: number;
-  errors: string[];
-}
-
-export interface VisitImportPreview {
-  sheets: VisitImportSheet[];
-}
-
 export interface VisitStat {
   month: string;
   clients: number;
@@ -89,20 +79,6 @@ export async function getVisitStats(
   if (params.months != null) url.searchParams.set('months', String(params.months));
   if (params.group != null) url.searchParams.set('group', params.group);
   const res = await apiFetch(url.toString());
-  return handleResponse(res);
-}
-
-export async function importVisitsXlsx(
-  formData: FormData,
-  dryRun?: boolean,
-): Promise<VisitImportPreview | void> {
-  let url = `${API_BASE}/visits/import/xlsx`;
-  if (dryRun) url += '?dryRun=true';
-
-  const res = await apiFetch(url, {
-    method: 'POST',
-    body: formData,
-  });
   return handleResponse(res);
 }
 

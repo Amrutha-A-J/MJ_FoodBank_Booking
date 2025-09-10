@@ -22,24 +22,3 @@ Staff can record only one visit per client per day. Attempts to add a second vis
 Anonymous visits display `(ANONYMOUS)` after the client ID in the Pantry Visits table, and their adults and children counts are excluded from summary totals.
 
 
-## Bulk import format
- 
-Pantry visits support bulk importing from an `.xlsx` spreadsheet. Upload the file via `POST /client-visits/import` (also available at `/visits/import`). Each sheet represents visits for a single day and must be named using the visit date in `YYYY-MM-DD` format. Because the sheet name holds the date, rows omit a `date` column.
-
-Include a header row on every sheet and use the following column order:
-
-1. Client ID
-2. Weight With Cart
-3. Weight Without Cart
-4. Adults
-5. Children
-6. Pet Item (`0` or `1`)
-7. Note (optional)
-
-### Duplicate handling
-
-If a visit already exists for the same client on a given date, the importer overwrites it with the new data.
-
-### Dry run
-
-Append `dryRun=true` to validate the spreadsheet and preview counts without creating any visits. After reviewing the response, rerun the request without `dryRun` to perform the import.
