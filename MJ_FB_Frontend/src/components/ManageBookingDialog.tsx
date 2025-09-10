@@ -152,6 +152,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
             children: Number(children || 0),
             petItem: Number(petItem || 0),
             note: note.trim() || undefined,
+            verified: false,
           });
           onUpdated('Visit recorded', 'success');
           onClose();
