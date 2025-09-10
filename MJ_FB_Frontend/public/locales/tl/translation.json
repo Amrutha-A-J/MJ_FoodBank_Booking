@@ -245,6 +245,7 @@
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "Wala kang account sa aming sistema. Mangyaring mag-email sa harvestpantry@mjfoodbank.org kasama ang iyong buong pangalan upang makagawa ng account.",
   "sign_up": "Sign Up",
   "onboarding": {
     "client": {

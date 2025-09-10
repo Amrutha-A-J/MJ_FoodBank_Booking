@@ -245,6 +245,7 @@
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "ليس لديك حساب في نظامنا. يرجى إرسال بريد إلكتروني إلى harvestpantry@mjfoodbank.org مع اسمك الكامل لإنشاء حساب.",
   "sign_up": "Sign Up",
   "onboarding": {
     "client": {

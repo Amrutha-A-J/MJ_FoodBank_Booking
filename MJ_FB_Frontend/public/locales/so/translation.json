@@ -245,6 +245,7 @@
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "Aad kuma lihid xisaab nidaamkeenna. Fadlan magacaa buuxa u soo dir harvestpantry@mjfoodbank.org si xisaab loo sameeyo.",
   "sign_up": "Sign Up",
   "onboarding": {
     "client": {

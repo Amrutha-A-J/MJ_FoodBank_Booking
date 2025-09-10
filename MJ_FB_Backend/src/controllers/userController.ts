@@ -151,7 +151,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         });
       }
 
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(404).json({ message: 'Account not found' });
     }
 
     if (clientId) {

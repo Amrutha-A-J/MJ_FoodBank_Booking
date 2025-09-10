@@ -158,6 +158,13 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(401);
   });
+
+  it('returns 404 when account is not found', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'missing@example.com', password: 'secret' });
+    expect(res.status).toBe(404);
+  });
 });
 
 describe('GET /api/users/me', () => {

@@ -250,6 +250,7 @@
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "നിങ്ങൾക്ക് ഞങ്ങളുടെ സിസ്റ്റത്തിൽ ഒരു അക്കൗണ്ടില്ല. ദയവായി harvestpantry@mjfoodbank.org വിലാസത്തിൽ നിങ്ങളുടെ പൂർണ്ണ പേരോടെ ഇമെയിൽ അയച്ച് ഒരു അക്കൗണ്ട് സൃഷ്ടിക്കുക.",
   "sign_up": "Sign Up",
   "onboarding": {
     "client": {
