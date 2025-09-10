@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import PantryQuickLinks from '../components/PantryQuickLinks';
 
 describe('PantryQuickLinks', () => {
-  it('renders links to pantry routes including aggregations', () => {
+  it('renders pantry links only', () => {
     render(
       <MemoryRouter>
         <PantryQuickLinks />
@@ -21,9 +21,8 @@ describe('PantryQuickLinks', () => {
       'href',
       '/pantry/client-management?tab=history',
     );
-    expect(screen.getByRole('link', { name: /Aggregations/i })).toHaveAttribute(
-      'href',
-      '/aggregations/pantry',
-    );
+    expect(
+      screen.queryByRole('link', { name: /Aggregations/i }),
+    ).not.toBeInTheDocument();
   });
 });
