@@ -5,6 +5,7 @@ import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FormCard from '../../components/FormCard';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import PasswordChecklist from '../../components/PasswordChecklist';
 import {
   setPassword as setPasswordApi,
   getPasswordSetupInfo,
@@ -41,6 +42,18 @@ export default function PasswordSetup() {
     e.preventDefault();
     if (!token) {
       setError(t('invalid_or_expired_token'));
+      return;
+    }
+    if (password.length < 8) {
+      setError(t('profile_page.password_min_length'));
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+      setError(t('profile_page.password_number'));
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError(t('profile_page.password_symbol'));
       return;
     }
     try {
@@ -84,7 +97,9 @@ export default function PasswordSetup() {
           onChange={e => setPassword(e.target.value)}
           fullWidth
           required
+          helperText={t('profile_page.password_requirements')}
         />
+        <PasswordChecklist password={password} />
         <Button
           component={RouterLink}
           to={info ? loginPathMap[info.userType] : '/login'}

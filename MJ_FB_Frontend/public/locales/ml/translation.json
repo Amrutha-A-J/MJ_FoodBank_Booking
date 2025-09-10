@@ -98,7 +98,13 @@
     "password_symbol": "Password must include a symbol.",
     "notifications": "Notifications",
     "email_reminders": "Email reminders",
-    "preferences_saved": "Preferences saved."
+    "preferences_saved": "Preferences saved.",
+    "password_checklist": {
+      "min_length": "≥8 characters",
+      "uppercase": "Uppercase letter",
+      "lowercase": "Lowercase letter",
+      "symbol": "Symbol"
+    }
   },
   "my_upcoming_appointment": "എന്റെ വരാനിരിക്കുന്ന അപ്പോയിന്റ്മെന്റ്",
   "my_upcoming_appointments": "എന്റെ വരാനിരിക്കുന്ന അപ്പോയിന്റ്മെന്റുകൾ",

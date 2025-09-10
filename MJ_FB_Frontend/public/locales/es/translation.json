@@ -100,7 +100,13 @@
     "password_symbol": "Password must include a symbol.",
     "notifications": "Notifications",
     "email_reminders": "Email reminders",
-    "preferences_saved": "Preferences saved."
+    "preferences_saved": "Preferences saved.",
+    "password_checklist": {
+      "min_length": "≥8 characters",
+      "uppercase": "Uppercase letter",
+      "lowercase": "Lowercase letter",
+      "symbol": "Symbol"
+    }
   },
   "my_upcoming_appointment": "My Upcoming Appointment",
   "my_upcoming_appointments": "My Upcoming Appointments",
