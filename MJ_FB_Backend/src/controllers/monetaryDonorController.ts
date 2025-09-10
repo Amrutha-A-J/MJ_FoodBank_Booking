@@ -215,7 +215,7 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     const statsRes = await pool.query(
       `SELECT clients AS families,
               children,
-              total_weight AS pounds
+              weight AS pounds
          FROM pantry_monthly_overall
         WHERE year = $1 AND month = $2`,
       [year, month],
