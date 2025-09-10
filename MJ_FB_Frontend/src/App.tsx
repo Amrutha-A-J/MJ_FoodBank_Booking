@@ -134,12 +134,12 @@ export default function App() {
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const [pendingReviews, setPendingReviews] = useState(0);
-  const isStaff = role === 'staff';
+  const isStaff = role === 'staff' || access.includes('admin');
   const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
   const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
-  const showDonorManagement = isStaff && hasAccess('donor_management');
+  const showDonorManagement = hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
   const showDonationLog = showWarehouse || showDonationEntry;
