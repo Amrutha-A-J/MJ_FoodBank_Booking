@@ -136,7 +136,7 @@ export default function App() {
   const showStaff = isStaff && hasAccess('pantry');
   const showVolunteerManagement = isStaff && hasAccess('volunteer_management');
   const showWarehouse = isStaff && hasAccess('warehouse');
-  const showDonorManagement = isStaff && access.includes('donor_management');
+  const showDonorManagement = isStaff && hasAccess('donor_management');
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
   const showDonationLog = showWarehouse || showDonationEntry;
