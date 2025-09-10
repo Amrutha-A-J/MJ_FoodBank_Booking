@@ -14,6 +14,8 @@ import {
 import { formatLocaleDate } from '../../utils/date';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import type { LeaveRequest } from '../../api/leaveRequests';
 
 export default function AdminLeaveRequests() {
   const { t } = useTranslation();
@@ -21,6 +23,7 @@ export default function AdminLeaveRequests() {
   const [requests, setRequests] = useState(fetched);
   const approve = useApproveLeaveRequest();
   const reject = useRejectLeaveRequest();
+  const [rejecting, setRejecting] = useState<LeaveRequest | null>(null);
 
   useEffect(() => setRequests(fetched), [fetched]);
 
@@ -79,14 +82,9 @@ export default function AdminLeaveRequests() {
                 <Button
                   variant="contained"
                   color="error"
-                  
+
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
-                  onClick={() =>
-                    reject.mutate(
-                      { requestId: r.id },
-                      { onSuccess: () => removeRequest(r.id) },
-                    )
-                  }
+                  onClick={() => setRejecting(r)}
                 >
                   {t('timesheets.reject_leave')}
                 </Button>
@@ -95,6 +93,19 @@ export default function AdminLeaveRequests() {
           </Card>
         );
       })}
+      {rejecting && (
+        <ConfirmDialog
+          message={`Reject leave request for ${rejecting.requester_name}?`}
+          onConfirm={() => {
+            reject.mutate(
+              { requestId: rejecting.id },
+              { onSuccess: () => removeRequest(rejecting.id) },
+            );
+            setRejecting(null);
+          }}
+          onCancel={() => setRejecting(null)}
+        />
+      )}
     </Page>
   );
 }
