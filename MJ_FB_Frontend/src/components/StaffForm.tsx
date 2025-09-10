@@ -117,17 +117,13 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           label="Warehouse"
         />
         <FormControlLabel
-          control={<Checkbox checked={access.includes('aggregations')} onChange={() => toggleAccess('aggregations')} />}
-          label="Aggregations"
-        />
-        <FormControlLabel
           control={
             <Checkbox
-              checked={access.includes('payroll_management')}
-              onChange={() => toggleAccess('payroll_management')}
+              checked={access.includes('admin')}
+              onChange={() => toggleAccess('admin')}
             />
           }
-          label="Payroll Management"
+          label="Admin"
         />
         <FormControlLabel
           control={
@@ -141,15 +137,20 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
         <FormControlLabel
           control={
             <Checkbox
+              checked={access.includes('payroll_management')}
+              onChange={() => toggleAccess('payroll_management')}
+            />
+          }
+          label="Payroll Management"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
               checked={access.includes('aggregations')}
               onChange={() => toggleAccess('aggregations')}
             />
           }
           label="Aggregations"
-        />
-        <FormControlLabel
-          control={<Checkbox checked={access.includes('admin')} onChange={() => toggleAccess('admin')} />}
-          label="Admin"
         />
       </FormCard>
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
