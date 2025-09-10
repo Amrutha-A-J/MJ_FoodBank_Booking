@@ -29,6 +29,7 @@ import {
   stopTimesheetSeedJob,
 } from './utils/timesheetSeedJob';
 import { startRetentionJob, stopRetentionJob } from './utils/bookingRetentionJob';
+import { startPantryRetentionJob, stopPantryRetentionJob } from './utils/pantryRetentionJob';
 import {
   startPasswordTokenCleanupJob,
   stopPasswordTokenCleanupJob,
@@ -68,6 +69,7 @@ async function init() {
     await seedTimesheets();
     startTimesheetSeedJob();
     startRetentionJob();
+    startPantryRetentionJob();
     startPasswordTokenCleanupJob();
     startLogCleanupJob();
     startBlockedSlotCleanupJob();
@@ -90,6 +92,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopTimesheetSeedJob();
   stopPayPeriodCronJob();
   stopRetentionJob();
+  stopPantryRetentionJob();
   stopPasswordTokenCleanupJob();
   stopLogCleanupJob();
   stopBlockedSlotCleanupJob();

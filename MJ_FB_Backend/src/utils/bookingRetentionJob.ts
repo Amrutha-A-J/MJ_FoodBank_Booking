@@ -2,7 +2,7 @@ import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';
 
-const RETENTION_YEARS = 2;
+const RETENTION_YEARS = 1;
 
 export async function cleanupOldRecords(): Promise<void> {
   const client = await pool.connect();
