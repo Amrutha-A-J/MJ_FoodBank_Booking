@@ -6,7 +6,7 @@ import {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
-} from './pantryStatsController';
+} from './pantryAggregationController';
 
 export async function refreshSunshineBagOverall(year: number, month: number) {
   const result = await pool.query(

@@ -4,10 +4,10 @@ import {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
-} from '../src/controllers/pantryStatsController';
+} from '../src/controllers/pantryAggregationController';
 import { upsertSunshineBag } from '../src/controllers/sunshineBagController';
 
-jest.mock('../src/controllers/pantryStatsController', () => ({
+jest.mock('../src/controllers/pantryAggregationController', () => ({
   refreshPantryWeekly: jest.fn(),
   refreshPantryMonthly: jest.fn(),
   refreshPantryYearly: jest.fn(),
