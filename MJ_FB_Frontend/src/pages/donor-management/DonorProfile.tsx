@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useQuery } from '@tanstack/react-query';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import DonorQuickLinks from '../../components/DonorQuickLinks';
 import {
   getMonetaryDonor,
   getMonetaryDonations,
@@ -132,8 +133,10 @@ export default function DonorProfile() {
   }
 
   return (
-    <Page title="Donor Profile">
-      <Stack spacing={2}>
+    <>
+      <DonorQuickLinks />
+      <Page title="Donor Profile">
+        <Stack spacing={2}>
         {donor && (
           <Stack spacing={0.5}>
             <Typography variant="h5">
@@ -234,5 +237,6 @@ export default function DonorProfile() {
         />
       </Stack>
     </Page>
+    </>
   );
 }

@@ -15,6 +15,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
+import DonorQuickLinks from '../../components/DonorQuickLinks';
 import {
   getMonetaryDonors,
   createMonetaryDonor,
@@ -201,36 +202,39 @@ export default function DonationLog() {
   }));
 
   return (
-    <Page title="Donation Log">
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        <Button
-          variant="contained"
-          onClick={e => {
-            (e.currentTarget as HTMLButtonElement).blur();
-            setForm({ date: format(selectedDate), donorId: null, amount: '' });
-            setRecordOpen(true);
-          }}
-        >
-          Record Donation
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={e => {
-            (e.currentTarget as HTMLButtonElement).blur();
-            setNewDonorOpen(true);
-          }}
-        >
-          Add Donor
-        </Button>
-      </Stack>
-      <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+    <>
+      <DonorQuickLinks />
+      <Page title="Donation Log">
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setForm({ date: format(selectedDate), donorId: null, amount: '' });
+              setRecordOpen(true);
+            }}
+          >
+            Record Donation
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setNewDonorOpen(true);
+            }}
+          >
+            Add Donor
+          </Button>
+        </Stack>
 
-      <Dialog
-        open={recordOpen}
-        onClose={() => setRecordOpen(false)}
-      >
-        <DialogCloseButton onClose={() => setRecordOpen(false)} />
-        <DialogTitle>Record Donation</DialogTitle>
+        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+
+        <Dialog
+          open={recordOpen}
+          onClose={() => setRecordOpen(false)}
+        >
+          <DialogCloseButton onClose={() => setRecordOpen(false)} />
+          <DialogTitle>Record Donation</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -261,47 +265,48 @@ export default function DonationLog() {
             Save
           </Button>
         </DialogActions>
-      </Dialog>
+        </Dialog>
 
-      <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
-        <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
-        <DialogTitle>Add Donor</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2} mt={1}>
-            <TextField
-              label="First Name"
-              value={donorForm.firstName}
-              onChange={e => setDonorForm({ ...donorForm, firstName: e.target.value })}
-            />
-            <TextField
-              label="Last Name"
-              value={donorForm.lastName}
-              onChange={e => setDonorForm({ ...donorForm, lastName: e.target.value })}
-            />
-            <TextField
-              label="Email"
-              type="email"
-              value={donorForm.email}
-              onChange={e => setDonorForm({ ...donorForm, email: e.target.value })}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleAddDonor}
-            disabled={!donorForm.firstName || !donorForm.lastName || !donorForm.email}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>
+          <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
+          <DialogTitle>Add Donor</DialogTitle>
+          <DialogContent sx={{ pt: 2 }}>
+            <Stack spacing={2} mt={1}>
+              <TextField
+                label="First Name"
+                value={donorForm.firstName}
+                onChange={e => setDonorForm({ ...donorForm, firstName: e.target.value })}
+              />
+              <TextField
+                label="Last Name"
+                value={donorForm.lastName}
+                onChange={e => setDonorForm({ ...donorForm, lastName: e.target.value })}
+              />
+              <TextField
+                label="Email"
+                type="email"
+                value={donorForm.email}
+                onChange={e => setDonorForm({ ...donorForm, email: e.target.value })}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleAddDonor}
+              disabled={!donorForm.firstName || !donorForm.lastName || !donorForm.email}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ open: false, message: '' })}
-        message={snackbar.message}
-      />
-    </Page>
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ open: false, message: '' })}
+          message={snackbar.message}
+        />
+      </Page>
+    </>
   );
 }
 

@@ -12,6 +12,7 @@ import {
 import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import DonorQuickLinks from '../../components/DonorQuickLinks';
 import {
   getMailLists,
   sendMailListEmails,
@@ -64,8 +65,10 @@ export default function MailLists() {
   const noDonors = Boolean(lists && !RANGES.some(range => lists[range].length > 0));
 
   return (
-    <Page title="Mail Lists">
-      <Stack spacing={2}>
+    <>
+      <DonorQuickLinks />
+      <Page title="Mail Lists">
+        <Stack spacing={2}>
         <Stack direction="row" spacing={2} alignItems="center">
           <Typography>{`Month: ${month}`}</Typography>
           <Typography>{`Year: ${year}`}</Typography>
@@ -113,14 +116,15 @@ export default function MailLists() {
               </List>
             </Paper>
           ))}
-        <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-          message={snackbar.message}
-          severity={snackbar.severity}
-        />
-      </Stack>
-    </Page>
+          <FeedbackSnackbar
+            open={snackbar.open}
+            onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+            message={snackbar.message}
+            severity={snackbar.severity}
+          />
+        </Stack>
+      </Page>
+    </>
   );
 }
 
