@@ -115,13 +115,22 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
   return (
     <Box
       sx={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gridAutoFlow: 'row dense',
+        display: 'flex',
         gap: 2,
+        flexWrap: { xs: 'wrap', md: 'nowrap' },
+        alignItems: 'flex-start',
       }}
     >
-      <SectionCard title="Today at a Glance" sx={{ order: 0 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gridAutoFlow: 'row dense',
+          gap: 2,
+          flex: 1,
+        }}
+      >
+        <SectionCard title="Today at a Glance" sx={{ order: 0 }}>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Stat
@@ -153,13 +162,6 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         }
         sx={{ order: 0 }}
       />
-      <SectionCard
-        title="News & Events"
-        icon={<Announcement color="primary" />}
-        sx={{ order: 0 }}
-      >
-        <EventList events={[...events.today, ...events.upcoming]} limit={5} />
-      </SectionCard>
       <SectionCard title="Total Clients" sx={{ order: 1 }}>
         <ClientVisitTrendChart data={visitStats} />
       </SectionCard>
@@ -234,6 +236,16 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         </List>
       </SectionCard>
     </Box>
+    <Box sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0 }}>
+      <SectionCard
+        title="News & Events"
+        icon={<Announcement color="primary" />}
+        sx={{ height: '100%' }}
+      >
+        <EventList events={[...events.today, ...events.upcoming]} limit={5} />
+      </SectionCard>
+    </Box>
+  </Box>
   );
 }
 
