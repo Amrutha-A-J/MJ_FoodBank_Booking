@@ -11,6 +11,7 @@ describe('StaffForm', () => {
     fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Smith' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a@example.com' } });
     fireEvent.click(screen.getByLabelText(/pantry/i));
+    fireEvent.click(screen.getByLabelText(/aggregations/i));
     fireEvent.click(screen.getByRole('button', { name: /Add/i }));
 
     await waitFor(() =>
@@ -18,7 +19,7 @@ describe('StaffForm', () => {
         firstName: 'Alice',
         lastName: 'Smith',
         email: 'a@example.com',
-        access: ['pantry'],
+        access: ['pantry', 'aggregations'],
       }),
     );
     expect(screen.getByText(/email invitation/i)).toBeInTheDocument();
@@ -30,7 +31,7 @@ describe('StaffForm', () => {
       firstName: 'Jane',
       lastName: 'Doe',
       email: 'jane@example.com',
-      access: ['pantry', 'warehouse'] as const,
+      access: ['pantry', 'warehouse', 'aggregations'] as const,
     };
     const onSubmit = jest.fn().mockResolvedValue(undefined);
     render(<StaffForm initial={initial} submitLabel="Save" onSubmit={onSubmit} />);
@@ -40,5 +41,6 @@ describe('StaffForm', () => {
     expect(screen.getByLabelText(/email/i)).toHaveValue('jane@example.com');
     expect(screen.getByLabelText(/pantry/i)).toBeChecked();
     expect(screen.getByLabelText(/warehouse/i)).toBeChecked();
+    expect(screen.getByLabelText(/aggregations/i)).toBeChecked();
   });
 });
