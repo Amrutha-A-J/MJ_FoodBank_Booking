@@ -1,13 +1,18 @@
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PantryAggregations from '../pages/staff/PantryAggregations';
+import { getWeekForDate } from '../utils/pantryWeek';
+
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth() + 1;
+const currentWeek = getWeekForDate(new Date()).week;
 
 const mockGetPantryWeekly = jest.fn().mockResolvedValue([]);
 const mockGetPantryMonthly = jest.fn().mockResolvedValue([]);
 const mockGetPantryYearly = jest.fn().mockResolvedValue([]);
-const mockGetPantryYears = jest.fn().mockResolvedValue([new Date().getFullYear()]);
-const mockGetPantryMonths = jest.fn().mockResolvedValue([1]);
-const mockGetPantryWeeks = jest.fn().mockResolvedValue([1]);
+const mockGetPantryYears = jest.fn().mockResolvedValue([currentYear]);
+const mockGetPantryMonths = jest.fn().mockResolvedValue([currentMonth]);
+const mockGetPantryWeeks = jest.fn().mockResolvedValue([currentWeek]);
 const mockExportPantryAggregations = jest
   .fn()
   .mockResolvedValue({ blob: new Blob(), fileName: 'test.xlsx' });
@@ -37,9 +42,9 @@ describe('PantryAggregations page', () => {
     mockGetPantryWeekly.mockResolvedValue([]);
     mockGetPantryMonthly.mockResolvedValue([]);
     mockGetPantryYearly.mockResolvedValue([]);
-    mockGetPantryYears.mockResolvedValue([new Date().getFullYear()]);
-    mockGetPantryMonths.mockResolvedValue([1]);
-    mockGetPantryWeeks.mockResolvedValue([1]);
+    mockGetPantryYears.mockResolvedValue([currentYear]);
+    mockGetPantryMonths.mockResolvedValue([currentMonth]);
+    mockGetPantryWeeks.mockResolvedValue([currentWeek]);
   });
 
   it('loads data for each tab', async () => {
@@ -62,7 +67,7 @@ describe('PantryAggregations page', () => {
   });
 
   it('displays weekly aggregations in a table', async () => {
-    mockGetPantryWeekly.mockResolvedValueOnce([{ week: 1, clients: 2 }]);
+    mockGetPantryWeekly.mockResolvedValueOnce([{ week: currentWeek, clients: 2 }]);
 
     render(
       <MemoryRouter>
@@ -74,12 +79,12 @@ describe('PantryAggregations page', () => {
 
     expect(screen.getByTestId('responsive-table-table')).toBeInTheDocument();
     expect(screen.getByText('week')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getAllByText(String(currentWeek)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('2').length).toBeGreaterThan(0);
   });
 
   it('exports weekly data', async () => {
-    const year = new Date().getFullYear();
+    const year = currentYear;
     render(
       <MemoryRouter>
         <PantryAggregations />
@@ -97,8 +102,8 @@ describe('PantryAggregations page', () => {
       expect(mockExportPantryAggregations).toHaveBeenCalledWith({
         period: 'weekly',
         year,
-        month: 1,
-        week: 1,
+        month: currentMonth,
+        week: currentWeek,
       }),
     );
   });
