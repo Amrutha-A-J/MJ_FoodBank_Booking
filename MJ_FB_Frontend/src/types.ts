@@ -126,6 +126,7 @@ export interface VolunteerBooking {
   start_time: string;
   end_time: string;
   role_name: string;
+  category_name?: string;
   volunteer_id?: number;
   volunteer_name?: string;
   status_color?: string;

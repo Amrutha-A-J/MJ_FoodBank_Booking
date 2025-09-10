@@ -15,6 +15,7 @@ import {
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { formatDate } from '../../utils/date';
+import type { Dayjs } from 'dayjs';
 import { formatTime } from '../../utils/time';
 import {
   getVolunteerBookingsByDate,
@@ -28,7 +29,7 @@ import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
 type Grouped = Map<string, Map<string, Map<string, VolunteerBooking[]>>>;
 
 export default function VolunteerDailyBookings() {
-  const [date, setDate] = useState(dayjs());
+  const [date, setDate] = useState<Dayjs>(dayjs());
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [message, setMessage] = useState('');
   const [reschedule, setReschedule] = useState<VolunteerBooking | null>(null);
@@ -106,7 +107,7 @@ export default function VolunteerDailyBookings() {
       <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
         <DatePicker
           value={date}
-          onChange={d => d && setDate(d)}
+          onChange={d => d && setDate(d as Dayjs)}
           slotProps={{ textField: { fullWidth: true } }}
         />
       </LocalizationProvider>
