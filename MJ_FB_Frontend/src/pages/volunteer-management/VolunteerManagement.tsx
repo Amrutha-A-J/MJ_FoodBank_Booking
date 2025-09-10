@@ -175,6 +175,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     useState<VolunteerBookingDetail | null>(null);
   const [cancelRecurringBooking, setCancelRecurringBooking] =
     useState<VolunteerBookingDetail | null>(null);
+  const [forceAssign, setForceAssign] = useState<{
+    vol: VolunteerResult;
+    addTraining: boolean;
+  } | null>(null);
 
   const historyColumns: Column<HistoryRow>[] = useMemo(
     () => [
@@ -510,6 +514,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   async function completeAssignment(
     vol: VolunteerResult,
     addTraining: boolean,
+    force = false,
   ) {
     if (!assignSlot || !selectedRole) return;
     const slotBookings = bookingsForDate.filter(
@@ -527,26 +532,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         );
         await updateVolunteerTrainedAreas(vol.id, newRoles);
       }
-      try {
-        await createVolunteerBookingForVolunteer(
-          vol.id,
-          assignSlot.id,
-          formatDate(currentDate),
-        );
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg === 'Role is full' &&
-            window.confirm('Role is full. Force booking and increase capacity?')) {
-          await createVolunteerBookingForVolunteer(
-            vol.id,
-            assignSlot.id,
-            formatDate(currentDate),
-            true,
-          );
-        } else {
-          throw err;
-        }
-      }
+      await createVolunteerBookingForVolunteer(
+        vol.id,
+        assignSlot.id,
+        formatDate(currentDate),
+        force,
+      );
       setAssignSlot(null);
       setAssignSearch('');
       setAssignResults([]);
@@ -555,8 +546,13 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         ids.map(id => getVolunteerBookingsByRole(id)),
       );
       setBookings(data.flat());
-    } catch (e) {
-      setAssignMsg(e instanceof Error ? e.message : String(e));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg === 'Role is full' && !force) {
+        setForceAssign({ vol, addTraining });
+      } else {
+        setAssignMsg(msg);
+      }
     }
   }
 
@@ -1162,6 +1158,18 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             setConfirmAssign(null);
           }}
           onCancel={() => setConfirmAssign(null)}
+        />
+      )}
+
+      {forceAssign && (
+        <ConfirmDialog
+          message="Role is full. Force booking and increase capacity?"
+          onConfirm={() => {
+            const { vol, addTraining } = forceAssign;
+            setForceAssign(null);
+            completeAssignment(vol, addTraining, true);
+          }}
+          onCancel={() => setForceAssign(null)}
         />
       )}
 
