@@ -213,7 +213,7 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     );
 
     const statsRes = await pool.query(
-      `SELECT clients AS families,
+      `SELECT orders AS families,
               children,
               weight AS pounds
          FROM pantry_monthly_overall

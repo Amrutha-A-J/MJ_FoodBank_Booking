@@ -68,7 +68,7 @@ describe('PantryAggregations page', () => {
   });
 
   it('displays weekly aggregations in a table', async () => {
-    mockGetPantryWeekly.mockResolvedValueOnce([{ week: currentWeek, clients: 2, people: 4 }]);
+    mockGetPantryWeekly.mockResolvedValueOnce([{ week: currentWeek, orders: 2, people: 4 }]);
 
     render(
       <MemoryRouter>
