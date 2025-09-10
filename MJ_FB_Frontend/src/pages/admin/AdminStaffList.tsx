@@ -55,8 +55,9 @@ export default function AdminStaffList() {
       load();
     } catch (err: any) {
       setError(err.message || String(err));
+    } finally {
+      setToDelete(null);
     }
-    setToDelete(null);
   }
 
   return (
