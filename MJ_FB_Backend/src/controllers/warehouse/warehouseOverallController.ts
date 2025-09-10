@@ -143,29 +143,32 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
         { value: 'Surplus', ...headerStyle },
         { value: 'Pig Pound', ...headerStyle },
         { value: 'Outgoing Donations', ...headerStyle },
-        { value: 'Total', ...headerStyle },
       ],
     ];
 
-    let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0, total: 0 };
+    let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
 
     for (let m = 1; m <= 12; m++) {
-      const row = dataByMonth.get(m) || { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
-      const monthTotal = row.donations + row.surplus + row.pigPound + row.outgoingDonations;
+      const row =
+        dataByMonth.get(m) || {
+          donations: 0,
+          surplus: 0,
+          pigPound: 0,
+          outgoingDonations: 0,
+        };
       rows.push([
         { value: monthNames[m - 1] },
         { value: row.donations },
         { value: row.surplus },
         { value: row.pigPound },
         { value: row.outgoingDonations },
-        { value: monthTotal },
       ]);
       totals = {
         donations: totals.donations + row.donations,
         surplus: totals.surplus + row.surplus,
         pigPound: totals.pigPound + row.pigPound,
-        outgoingDonations: totals.outgoingDonations + row.outgoingDonations,
-        total: totals.total + monthTotal,
+        outgoingDonations:
+          totals.outgoingDonations + row.outgoingDonations,
       };
     }
 
@@ -175,7 +178,6 @@ export async function exportWarehouseOverall(req: Request, res: Response, next: 
       { value: totals.surplus, fontWeight: 'bold' },
       { value: totals.pigPound, fontWeight: 'bold' },
       { value: totals.outgoingDonations, fontWeight: 'bold' },
-      { value: totals.total, fontWeight: 'bold' },
     ]);
 
     const buffer = await writeXlsxFile(rows, {
