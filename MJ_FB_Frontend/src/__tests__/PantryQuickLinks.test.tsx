@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import PantryQuickLinks from '../components/PantryQuickLinks';
 
 describe('PantryQuickLinks', () => {
-  it('renders links to pantry routes', () => {
+  it('renders links to pantry routes including aggregations', () => {
     render(
       <MemoryRouter>
         <PantryQuickLinks />

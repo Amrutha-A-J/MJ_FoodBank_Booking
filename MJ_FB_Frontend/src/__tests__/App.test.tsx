@@ -120,6 +120,16 @@ describe('App authentication persistence', () => {
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
+  it('shows aggregations nav links for aggregations access', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['aggregations']));
+    renderWithProviders(<App />);
+    fireEvent.click(await screen.findByText('Aggregations'));
+    expect(await screen.findByText('Pantry Aggregations')).toBeInTheDocument();
+    expect(screen.getByText('Warehouse Aggregations')).toBeInTheDocument();
+  });
+
   it('routes to donor donation log page', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
@@ -151,12 +161,6 @@ describe('App authentication persistence', () => {
   it('computes donor management path for single donor management access', () => {
     expect(getStaffRootPath(['donor_management'] as any)).toBe(
       '/donor-management',
-    );
-  });
-
-  it('computes aggregations path for single aggregations access', () => {
-    expect(getStaffRootPath(['aggregations'] as any)).toBe(
-      '/pantry/aggregations',
     );
   });
 });
