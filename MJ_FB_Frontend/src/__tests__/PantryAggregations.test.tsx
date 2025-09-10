@@ -152,3 +152,41 @@ describe('PantryAggregations page', () => {
     expect(exportBtn).toBeDisabled();
   });
 });
+
+describe('exportPantryAggregations fallback filename', () => {
+  it('derives filenames when header is missing', async () => {
+    jest.resetModules();
+    const mockApiFetch = jest
+      .fn()
+      .mockResolvedValueOnce(new Response('data'))
+      .mockResolvedValueOnce(new Response('data'))
+      .mockResolvedValueOnce(new Response('data'));
+    jest.doMock('../api/client', () => ({
+      apiFetch: mockApiFetch,
+      API_BASE: '',
+      handleResponse: jest.fn(),
+    }));
+    jest.unmock('../api/pantryAggregations');
+    const { exportPantryAggregations } = await import('../api/pantryAggregations');
+
+    const weekly = await exportPantryAggregations({
+      period: 'weekly',
+      year: 2024,
+      month: 5,
+      week: 1,
+    });
+    expect(weekly.fileName).toBe(
+      '2024_05_2024-04-29_to_2024-05-03_week_1_agggregation.xlsx',
+    );
+
+    const monthly = await exportPantryAggregations({
+      period: 'monthly',
+      year: 2024,
+      month: 5,
+    });
+    expect(monthly.fileName).toBe('2024_05_monthly_pantry_aggregation.xlsx');
+
+    const yearly = await exportPantryAggregations({ period: 'yearly', year: 2024 });
+    expect(yearly.fileName).toBe('2024_yearly_pantry_aggregation.xlsx');
+  });
+});
