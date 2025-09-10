@@ -165,4 +165,83 @@ describe('clientVisitController', () => {
     expect(sql).toMatch(/SUM\(adults\) FILTER \(WHERE NOT is_anonymous\)/);
     expect(sql).toMatch(/SUM\(children\) FILTER \(WHERE NOT is_anonymous\)/);
   });
+
+  it('returns 409 on concurrent duplicate visits', async () => {
+    const defer = () => {
+      let resolve: () => void;
+      const promise = new Promise<void>(r => (resolve = r));
+      return { promise, resolve: resolve! };
+    };
+    const insertGate = defer();
+
+    const query1 = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '0' }], rowCount: 1 }) // cart tare
+      .mockImplementationOnce(() =>
+        insertGate.promise.then(() => ({
+          rows: [
+            {
+              id: 1,
+              date: '2024-05-20',
+              clientId: 1,
+              weightWithCart: 10,
+              weightWithoutCart: 8,
+              petItem: 0,
+              anonymous: false,
+              note: null,
+              adults: 1,
+              children: 0,
+              verified: false,
+            },
+          ],
+          rowCount: 1,
+        })),
+      )
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}) // refreshClientVisitCount
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // same day booking
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // other bookings
+      .mockResolvedValueOnce({}); // COMMIT
+
+    const query2 = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockImplementationOnce(() => {
+        insertGate.resolve();
+        return Promise.resolve({ rowCount: 0 });
+      }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '0' }], rowCount: 1 }) // cart tare
+      .mockRejectedValueOnce({ code: '23505' }) // insert fails
+      .mockResolvedValueOnce({}); // ROLLBACK
+
+    (mockDb.connect as jest.Mock)
+      .mockResolvedValueOnce({ query: query1, release: jest.fn() })
+      .mockResolvedValueOnce({ query: query2, release: jest.fn() });
+
+    const req = {
+      body: {
+        date: '2024-05-20',
+        clientId: 1,
+        weightWithCart: 10,
+        weightWithoutCart: 8,
+        petItem: 0,
+        anonymous: false,
+        adults: 1,
+        children: 0,
+      },
+    } as any;
+
+    const res1 = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+    const res2 = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+    const next1 = jest.fn();
+    const next2 = jest.fn();
+
+    await Promise.all([addVisit(req, res1, next1), addVisit(req, res2, next2)]);
+
+    expect(res1.status).toHaveBeenCalledWith(201);
+    expect(res2.status).toHaveBeenCalledWith(409);
+    expect(res2.json).toHaveBeenCalledWith({ message: 'Duplicate visit' });
+  });
 });

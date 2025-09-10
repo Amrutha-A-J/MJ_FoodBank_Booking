@@ -187,24 +187,33 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
     if (weightWithCart != null && weightWithoutCart == null) {
       weightWithoutCartAdjusted = weightWithCart - cartTare;
     }
-    const insertRes = await client.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children, verified)
-       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9, $10)
-       RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
-      [
-        date,
-        clientId ?? null,
-        weightWithCart ?? null,
-        weightWithoutCartAdjusted ?? null,
-        petItem ?? 0,
-        anonymous ?? false,
-        note ?? null,
-        adults,
-        children,
-        verified ?? false,
-      ]
-    );
+    let insertRes;
+    try {
+      insertRes = await client.query(
+        `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children, verified)
+         VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9, $10)
+         RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
+                   weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
+        [
+          date,
+          clientId ?? null,
+          weightWithCart ?? null,
+          weightWithoutCartAdjusted ?? null,
+          petItem ?? 0,
+          anonymous ?? false,
+          note ?? null,
+          adults,
+          children,
+          verified ?? false,
+        ]
+      );
+    } catch (err: any) {
+      if (err.code === '23505') {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ message: 'Duplicate visit' });
+      }
+      throw err;
+    }
     let clientName: string | null = null;
     if (clientId) {
       const clientRes = await client.query(
