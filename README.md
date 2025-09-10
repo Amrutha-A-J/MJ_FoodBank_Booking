@@ -513,6 +513,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff can delete client and volunteer accounts from the Client Management and Volunteer Management pages.
 - Pantry pages include quick links for Pantry Schedule, Record a Visit, and Search Client.
 - Warehouse pages include quick links for Dashboard, Donation Log, Track Surplus, Track Pigpound, Track Outgoing Donations, Aggregations, and Exports.
+- Donation Log lists donations for the selected month using a month picker, defaulting to the current month.
 - Pantry Visits page includes a search field to filter visits by client name or ID.
 - Pantry Visits can log daily sunshine bag weights, shown in the summary above the visit table.
 - Anonymous Pantry Visits show "(ANONYMOUS)" after the client ID and their family size is excluded from summary counts.
