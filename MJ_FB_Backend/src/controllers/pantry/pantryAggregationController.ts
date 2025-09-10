@@ -14,6 +14,12 @@ function startOfWeek(date: Date) {
   return d;
 }
 
+const headerStyle = {
+  backgroundColor: '#000000',
+  color: '#FFFFFF',
+  fontWeight: 'bold' as const,
+};
+
 export async function refreshPantryWeekly(year: number, month: number, week: number) {
   const monthStart = new Date(Date.UTC(year, month - 1, 1));
   const firstMonday = startOfWeek(monthStart);
@@ -262,11 +268,17 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
         sunshineWeight: 0,
       };
 
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
+    let { startDate, endDate } = row;
+    if (!startDate || !endDate) {
+      const monthStart = new Date(Date.UTC(year, month - 1, 1));
+      const firstMonday = startOfWeek(monthStart);
+      const start = new Date(firstMonday);
+      start.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
+      const end = new Date(start);
+      end.setUTCDate(start.getUTCDate() + 4);
+      startDate = start.toISOString().slice(0, 10);
+      endDate = end.toISOString().slice(0, 10);
+    }
 
     const rows: Row[] = [
       [
@@ -279,7 +291,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
         { value: 'Sunshine Weight', ...headerStyle },
       ],
       [
-        { value: row.startDate && row.endDate ? `${row.startDate} - ${row.endDate}` : `Week ${week}` },
+        { value: startDate && endDate ? `${startDate} - ${endDate}` : `Week ${week}` },
         { value: row.clients },
         { value: row.adults },
         { value: row.children },
@@ -289,20 +301,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
       ],
     ];
 
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+    const monthPadded = String(month).padStart(2, '0');
 
     const buffer = await writeXlsxFile(rows, {
       sheet: `Pantry ${year}-${month}`,
@@ -315,7 +314,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
       )
       .setHeader(
         'Content-Disposition',
-        `attachment; filename=${year}_${monthNames[month - 1]}_week${week}_pantry_stats.xlsx`,
+        `attachment; filename=${year}_${monthPadded}_${startDate}_to_${endDate}_week_${week}_agggregation.xlsx`,
       );
     res.send(buffer);
   } catch (error) {
@@ -345,12 +344,6 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
         sunshineBags: 0,
         sunshineWeight: 0,
       };
-
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
 
     const monthNames = [
       'January',
@@ -388,6 +381,8 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
       ],
     ];
 
+    const monthPadded = String(month).padStart(2, '0');
+
     const buffer = await writeXlsxFile(rows, {
       sheet: `Pantry ${year}-${month}`,
       buffer: true,
@@ -399,7 +394,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
       )
       .setHeader(
         'Content-Disposition',
-        `attachment; filename=${year}_${monthNames[month - 1]}_pantry_stats.xlsx`,
+        `attachment; filename=${year}_${monthPadded}_monthly_pantry_aggregation.xlsx`,
       );
     res.send(buffer);
   } catch (error) {
@@ -428,12 +423,6 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
         sunshineBags: 0,
         sunshineWeight: 0,
       };
-
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
 
     const rows: Row[] = [
       [
@@ -467,7 +456,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
       )
       .setHeader(
         'Content-Disposition',
-        `attachment; filename=${year}_pantry_yearly_stats.xlsx`,
+        `attachment; filename=${year}_yearly_pantry_aggregation.xlsx`,
       );
     res.send(buffer);
   } catch (error) {
