@@ -3,26 +3,49 @@ import express from 'express';
 import warehouseOverallRoutes from '../src/routes/warehouse/warehouseOverall';
 import pool from '../src/db';
 import writeXlsxFile from 'write-excel-file/node';
+import jwt from 'jsonwebtoken';
 
 jest.mock('write-excel-file/node', () => jest.fn().mockResolvedValue(Buffer.from('test')));
+jest.mock('jsonwebtoken');
 
 const app = express();
 app.use('/warehouse-overall', warehouseOverallRoutes);
 
+beforeAll(() => {
+  process.env.JWT_SECRET = 'testsecret';
+  process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('GET /warehouse-overall/export', () => {
   it('returns an excel file for the specified year', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rows: [
-        { month: 1, donations: 10, surplus: 2, pigPound: 1, outgoingDonations: 0 },
-        { month: 2, donations: 5, surplus: 3, pigPound: 0, outgoingDonations: 1 },
-      ],
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse'],
     });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
+      })
+      .mockResolvedValueOnce({
+        rows: [
+          { month: 1, donations: 10, surplus: 2, pigPound: 1, outgoingDonations: 0 },
+          { month: 2, donations: 5, surplus: 3, pigPound: 0, outgoingDonations: 1 },
+        ],
+      });
 
     const buffer = Buffer.from('test');
     (writeXlsxFile as jest.Mock).mockResolvedValueOnce(buffer);
 
     const res = await request(app)
       .get('/warehouse-overall/export?year=2024')
+      .set('Authorization', 'Bearer token')
       .buffer()
       .parse((res, cb) => {
         const data: Buffer[] = [];

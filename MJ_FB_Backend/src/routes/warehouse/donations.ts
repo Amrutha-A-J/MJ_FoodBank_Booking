@@ -20,7 +20,12 @@ router.get(
   authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
   donorAggregations,
 );
-router.get('/aggregations/export', exportDonorAggregations);
+router.get(
+  '/aggregations/export',
+  authMiddleware,
+  authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
+  exportDonorAggregations,
+);
 router.post('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(addDonationSchema), addDonation);
 router.put('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(updateDonationSchema), updateDonation);
 router.delete('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), deleteDonation);

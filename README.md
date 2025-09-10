@@ -22,10 +22,12 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Pantry stats can be recomputed for all historical data via `POST /api/pantry-aggregations/rebuild`.
 - Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
-- A **Use biometrics** option on the mobile login page lets users sign in with platform authenticators via WebAuthn.
+- The login page automatically surfaces passkey prompts via WebAuthn on supported devices.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
+
+- Staff with `aggregations` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see
@@ -43,8 +45,9 @@ Staff accounts may include any of the following access roles:
 - `volunteer_management`
 - `warehouse`
 - `admin`
-- `other`
+- `donor_management`
 - `payroll_management`
+- `aggregations`
 - `donation_entry` – volunteer-only access for the warehouse donation log
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
