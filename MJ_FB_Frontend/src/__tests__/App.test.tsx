@@ -156,7 +156,7 @@ describe('App authentication persistence', () => {
 
   it('computes aggregations path for single aggregations access', () => {
     expect(getStaffRootPath(['aggregations'] as any)).toBe(
-      '/pantry/aggregations',
+      '/aggregations/pantry',
     );
   });
 });

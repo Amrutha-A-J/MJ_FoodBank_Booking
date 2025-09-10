@@ -1,4 +1,4 @@
-import { Stack, Button } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 
 export default function PantryQuickLinks() {
