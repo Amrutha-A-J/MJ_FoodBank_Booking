@@ -9,6 +9,7 @@ import {
   Button,
   CircularProgress,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import Page from '../../components/Page';
 import StyledTabs from '../../components/StyledTabs';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
@@ -310,10 +311,11 @@ export default function PantryAggregations() {
           <Select
             labelId="weekly-week-label"
             label="Week"
-            value={week}
-            onChange={e =>
-              setWeek(e.target.value === '' ? '' : Number(e.target.value))
-            }
+            value={week === '' ? '' : String(week)}
+            onChange={(e: SelectChangeEvent) => {
+              const value = e.target.value;
+              setWeek(value === '' ? '' : Number(value));
+            }}
             disabled={!weekRanges.length}
           >
             {weekRanges.map(range => (
