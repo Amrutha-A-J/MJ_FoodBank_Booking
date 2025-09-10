@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { EventSource } from 'undici';
+import request from 'supertest';
 import bookingsRouter from '../src/routes/bookings';
 import { sendBookingEvent } from '../src/utils/bookingEvents';
 
@@ -28,20 +29,54 @@ describe('GET /bookings/stream', () => {
   });
 
   afterAll((done) => {
+    server.closeAllConnections();
     server.close(done);
   });
 
   it('receives booking events via SSE', async () => {
-    const es = new EventSource(`${baseUrl}/bookings/stream`);
+    await new Promise<void>((resolve, reject) => {
+      const req = request(baseUrl).head('/bookings/stream');
+      req.on('response', (res) => {
+        try {
+          expect(res.statusCode).toBe(200);
+          expect(res.headers['content-type']).toMatch(/text\/event-stream/);
+        } catch (err) {
+          reject(err);
+          return;
+        }
+        req.abort();
+        resolve();
+      });
+      req.on('error', reject);
+      req.end();
+    });
+
+    const ac = new AbortController();
+    const es = new EventSource(`${baseUrl}/bookings/stream`, { signal: ac.signal });
 
     try {
       await new Promise<void>((resolve, reject) => {
-        es.onopen = () => resolve();
-        es.onerror = (err) => reject(err);
+        const timeout = setTimeout(() => reject(new Error('onopen timeout')), 1000);
+        es.onopen = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        es.onerror = (err) => {
+          clearTimeout(timeout);
+          reject(err);
+        };
       });
 
-      const messagePromise = new Promise<MessageEvent>((resolve) => {
-        es.onmessage = (event) => resolve(event);
+      const messagePromise = new Promise<MessageEvent>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('message timeout')), 1000);
+        es.onmessage = (event) => {
+          clearTimeout(timeout);
+          resolve(event);
+        };
+        es.onerror = (err) => {
+          clearTimeout(timeout);
+          reject(err);
+        };
       });
 
       const event = {
@@ -57,7 +92,7 @@ describe('GET /bookings/stream', () => {
       const message = await messagePromise;
       expect(message.data).toBe(JSON.stringify(event));
     } finally {
-      es.close();
+      ac.abort();
     }
   });
 });
