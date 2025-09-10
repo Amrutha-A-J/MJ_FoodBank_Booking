@@ -48,7 +48,7 @@ export default function PantryQuickLinks() {
         variant="outlined"
         sx={buttonSx}
         component={RouterLink}
-        to="/pantry/aggregations"
+        to="/aggregations/pantry"
         fullWidth
       >
         Aggregations
