@@ -153,4 +153,10 @@ describe('App authentication persistence', () => {
       '/donor-management',
     );
   });
+
+  it('computes aggregations path for single aggregations access', () => {
+    expect(getStaffRootPath(['aggregations'] as any)).toBe(
+      '/pantry/aggregations',
+    );
+  });
 });

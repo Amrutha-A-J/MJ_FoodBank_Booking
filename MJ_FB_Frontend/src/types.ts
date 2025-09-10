@@ -8,8 +8,8 @@ export type StaffAccess =
   | 'admin'
   | 'donor_management'
   | 'payroll_management'
-  | 'aggregations'
-  | 'donation_entry';
+  | 'donation_entry'
+  | 'aggregations';
 
 export interface Staff {
   id: number;

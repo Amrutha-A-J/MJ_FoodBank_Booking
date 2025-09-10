@@ -8,6 +8,7 @@ export const staffAccessEnum = z.enum([
   'admin',
   'donor_management',
   'payroll_management',
+  'aggregations',
 ]);
 
 export const createStaffSchema = z.object({
