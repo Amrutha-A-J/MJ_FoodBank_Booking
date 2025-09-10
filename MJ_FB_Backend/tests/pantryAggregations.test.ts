@@ -45,7 +45,28 @@ describe('pantry aggregation routes', () => {
   });
 
   it('lists available months', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ month: 5 }] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          month: 4,
+          clients: 0,
+          adults: 0,
+          children: 0,
+          weight: 0,
+          sunshineBags: 0,
+          sunshineWeight: 0,
+        },
+        {
+          month: 5,
+          clients: 1,
+          adults: 0,
+          children: 0,
+          weight: 0,
+          sunshineBags: 0,
+          sunshineWeight: 0,
+        },
+      ],
+    });
 
     const res = await request(app).get('/pantry-aggregations/months?year=2024');
     expect(res.status).toBe(200);
@@ -53,11 +74,32 @@ describe('pantry aggregation routes', () => {
   });
 
   it('lists available weeks', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ week: 1 }] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          week: 1,
+          clients: 0,
+          adults: 0,
+          children: 0,
+          weight: 0,
+          sunshineBags: 0,
+          sunshineWeight: 0,
+        },
+        {
+          week: 2,
+          clients: 1,
+          adults: 0,
+          children: 0,
+          weight: 0,
+          sunshineBags: 0,
+          sunshineWeight: 0,
+        },
+      ],
+    });
 
     const res = await request(app).get('/pantry-aggregations/weeks?year=2024&month=5');
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([1]);
+    expect(res.body).toEqual([2]);
   });
 
   it('rebuilds aggregations', async () => {
