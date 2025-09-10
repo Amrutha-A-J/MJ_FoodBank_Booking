@@ -4,7 +4,7 @@ import {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
-} from '../src/controllers/pantryStatsController';
+} from '../src/controllers/pantryAggregationController';
 import {
   addVisit,
   deleteVisit,
@@ -12,7 +12,7 @@ import {
   getVisitStats,
 } from '../src/controllers/clientVisitController';
 
-jest.mock('../src/controllers/pantryStatsController', () => ({
+jest.mock('../src/controllers/pantryAggregationController', () => ({
   refreshPantryWeekly: jest.fn(),
   refreshPantryMonthly: jest.fn(),
   refreshPantryYearly: jest.fn(),
