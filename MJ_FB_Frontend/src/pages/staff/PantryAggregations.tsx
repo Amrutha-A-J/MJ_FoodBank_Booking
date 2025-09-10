@@ -330,7 +330,7 @@ export default function PantryAggregations() {
           onClick={handleExportWeekly}
           disabled={exportLoading || !weekRanges.length}
           fullWidth
-          sx={{ width: { sm: 160 } }}
+          sx={{ minWidth: { sm: 160 }, flexShrink: 0, textTransform: 'none' }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
@@ -394,7 +394,7 @@ export default function PantryAggregations() {
           onClick={handleExportMonthly}
           disabled={exportLoading || !month}
           fullWidth
-          sx={{ width: { sm: 160 } }}
+          sx={{ minWidth: { sm: 160 }, flexShrink: 0, textTransform: 'none' }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
@@ -442,7 +442,7 @@ export default function PantryAggregations() {
           onClick={handleExportYearly}
           disabled={exportLoading || !yearlyYear}
           fullWidth
-          sx={{ width: { sm: 160 } }}
+          sx={{ minWidth: { sm: 160 }, flexShrink: 0, textTransform: 'none' }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
