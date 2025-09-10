@@ -59,7 +59,7 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
 
   const orders = visitOrders + bagOrders;
   const adults = visitAdults + bagOrders;
-  const people = adults + children;
+  const people = visitAdults + children;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
@@ -121,7 +121,7 @@ export async function refreshPantryMonthly(year: number, month: number) {
 
   const orders = visitOrders + bagOrders;
   const adults = visitAdults + bagOrders;
-  const people = adults + children;
+  const people = visitAdults + children;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
@@ -168,7 +168,7 @@ export async function refreshPantryYearly(year: number) {
 
   const orders = visitOrders + bagOrders;
   const adults = visitAdults + bagOrders;
-  const people = adults + children;
+  const people = visitAdults + children;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
