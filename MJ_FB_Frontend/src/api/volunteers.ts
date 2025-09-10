@@ -370,6 +370,16 @@ export async function getVolunteerBookings(): Promise<VolunteerBooking[]> {
   return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
+export async function getVolunteerBookingsByDate(
+  date: string,
+): Promise<VolunteerBooking[]> {
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings/by-date?date=${date}`,
+  );
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
+}
+
 export async function getUnmarkedVolunteerBookings(): Promise<VolunteerBooking[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/unmarked`);
   const data = await handleResponse(res);
