@@ -67,7 +67,7 @@ describe('Events page', () => {
     expect(screen.getByText(/Details today/)).toBeInTheDocument();
   });
 
-  it('deletes an event', async () => {
+  it('deletes an event after confirmation', async () => {
     const getEventsMock = getEvents as jest.Mock;
     const deleteEventMock = deleteEvent as jest.Mock;
     getEventsMock.mockResolvedValue({
@@ -93,6 +93,40 @@ describe('Events page', () => {
     const delButton = screen.getByLabelText(/delete/i);
     fireEvent.click(delButton);
 
+    expect(screen.getByText(/Delete Delete Me/)).toBeInTheDocument();
+    expect(deleteEventMock).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+
     await waitFor(() => expect(deleteEventMock).toHaveBeenCalledWith(1));
+  });
+
+  it('cancels deletion when dialog is closed', async () => {
+    const getEventsMock = getEvents as jest.Mock;
+    const deleteEventMock = deleteEvent as jest.Mock;
+    getEventsMock.mockResolvedValue({
+      today: [
+        {
+          id: 1,
+          title: 'Delete Me',
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
+          createdBy: 1,
+          createdByName: 'Alice Smith',
+        },
+      ],
+      upcoming: [],
+      past: [],
+    });
+    deleteEventMock.mockResolvedValue({ message: 'Deleted' });
+
+    render(<Events />);
+
+    await waitFor(() => expect(getEventsMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByLabelText(/delete/i));
+    fireEvent.click(screen.getByLabelText(/close/i));
+
+    expect(deleteEventMock).not.toHaveBeenCalled();
   });
 });
