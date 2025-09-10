@@ -6,6 +6,11 @@ jest.mock('../src/utils/opsAlert', () => ({
   alertOps: jest.fn(),
   notifyOps: jest.fn(),
 }));
+jest.mock('../src/controllers/pantryAggregationController', () => ({
+  refreshPantryWeekly: jest.fn(),
+  refreshPantryMonthly: jest.fn(),
+  refreshPantryYearly: jest.fn(),
+}));
 import { notifyOps } from '../src/utils/opsAlert';
 
 beforeEach(() => {
