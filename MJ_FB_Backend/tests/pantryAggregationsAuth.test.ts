@@ -11,6 +11,16 @@ describe('pantry aggregations auth', () => {
     expect(res.status).toBe(401);
   });
 
+  it('requires auth for available months', async () => {
+    const res = await request(app).get('/pantry-aggregations/months');
+    expect(res.status).toBe(401);
+  });
+
+  it('requires auth for available weeks', async () => {
+    const res = await request(app).get('/pantry-aggregations/weeks');
+    expect(res.status).toBe(401);
+  });
+
   it('requires auth for export', async () => {
     const res = await request(app).get('/pantry-aggregations/export');
     expect(res.status).toBe(401);

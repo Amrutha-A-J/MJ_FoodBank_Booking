@@ -44,6 +44,22 @@ describe('pantry aggregation routes', () => {
     expect(res.body).toEqual([{ week: 1 }]);
   });
 
+  it('lists available months', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ month: 5 }] });
+
+    const res = await request(app).get('/pantry-aggregations/months?year=2024');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([5]);
+  });
+
+  it('lists available weeks', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ week: 1 }] });
+
+    const res = await request(app).get('/pantry-aggregations/weeks?year=2024&month=5');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([1]);
+  });
+
   it('rebuilds aggregations', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ min_year: 2024, max_year: 2024 }] });
 

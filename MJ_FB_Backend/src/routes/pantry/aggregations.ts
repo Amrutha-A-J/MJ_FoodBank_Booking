@@ -4,6 +4,8 @@ import {
   listMonthlyAggregations,
   listYearlyAggregations,
   listAvailableYears,
+  listAvailableMonths,
+  listAvailableWeeks,
   exportAggregations,
   rebuildAggregations,
 } from '../../controllers/pantryAggregationController';
@@ -34,6 +36,18 @@ router.get(
   authMiddleware,
   authorizeAccess('pantry', 'aggregations'),
   listAvailableYears,
+);
+router.get(
+  '/months',
+  authMiddleware,
+  authorizeAccess('pantry', 'aggregations'),
+  listAvailableMonths,
+);
+router.get(
+  '/weeks',
+  authMiddleware,
+  authorizeAccess('pantry', 'aggregations'),
+  listAvailableWeeks,
 );
 router.get(
   '/export',

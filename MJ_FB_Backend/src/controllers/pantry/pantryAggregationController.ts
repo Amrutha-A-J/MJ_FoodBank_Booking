@@ -241,6 +241,38 @@ export async function listAvailableYears(req: Request, res: Response, next: Next
   }
 }
 
+export async function listAvailableMonths(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10);
+    if (!year) return res.status(400).json({ message: 'Year required' });
+    const result = await pool.query(
+      'SELECT DISTINCT month FROM pantry_monthly_overall WHERE year = $1 ORDER BY month',
+      [year],
+    );
+    res.json(result.rows.map(r => r.month));
+  } catch (error) {
+    logger.error('Error listing pantry months:', error);
+    next(error);
+  }
+}
+
+export async function listAvailableWeeks(req: Request, res: Response, next: NextFunction) {
+  try {
+    const year = parseInt((req.query.year as string) ?? '', 10);
+    const month = parseInt((req.query.month as string) ?? '', 10);
+    if (!year || !month)
+      return res.status(400).json({ message: 'Year and month required' });
+    const result = await pool.query(
+      'SELECT DISTINCT week FROM pantry_weekly_overall WHERE year = $1 AND month = $2 ORDER BY week',
+      [year, month],
+    );
+    res.json(result.rows.map(r => r.week));
+  } catch (error) {
+    logger.error('Error listing pantry weeks:', error);
+    next(error);
+  }
+}
+
 export async function exportPantryWeekly(req: Request, res: Response, next: NextFunction) {
   try {
     const year = parseInt((req.query.year as string) ?? '', 10);
