@@ -242,6 +242,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
     const week = parseInt((req.query.week as string) ?? '', 10);
     if (!year || !month || !week)
       return res.status(400).json({ message: 'Year, month and week required' });
+    await refreshPantryWeekly(year, month, week);
     const result = await pool.query(
       `SELECT start_date AS "startDate", end_date AS "endDate", clients, adults, children,
               weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
@@ -329,6 +330,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
     const year = parseInt((req.query.year as string) ?? '', 10);
     const month = parseInt((req.query.month as string) ?? '', 10);
     if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
+    await refreshPantryMonthly(year, month);
     const result = await pool.query(
       `SELECT clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_monthly_overall
@@ -412,6 +414,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
   try {
     const year = parseInt((req.query.year as string) ?? '', 10);
     if (!year) return res.status(400).json({ message: 'Year required' });
+    await refreshPantryYearly(year);
     const result = await pool.query(
       `SELECT clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_yearly_overall
