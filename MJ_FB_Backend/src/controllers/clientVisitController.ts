@@ -12,7 +12,7 @@ import {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
-} from './pantryAggregationController';
+} from './pantry/pantryAggregationController';
 import { refreshSunshineBagOverall } from './sunshineBagController';
 
 export async function refreshClientVisitCount(

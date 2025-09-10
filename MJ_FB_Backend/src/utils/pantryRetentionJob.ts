@@ -1,4 +1,4 @@
-import { refreshPantryMonthly, refreshPantryYearly } from '../controllers/pantryAggregationController';
+import { refreshPantryMonthly, refreshPantryYearly } from '../controllers/pantry/pantryAggregationController';
 import pool from '../db';
 import logger from './logger';
 import scheduleDailyJob from './scheduleDailyJob';

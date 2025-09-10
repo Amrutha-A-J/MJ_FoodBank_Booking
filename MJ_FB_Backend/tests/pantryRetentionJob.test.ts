@@ -1,8 +1,8 @@
 import mockPool from './utils/mockDb';
 import { cleanupOldPantryData } from '../src/utils/pantryRetentionJob';
-import { refreshPantryMonthly, refreshPantryYearly } from '../src/controllers/pantryAggregationController';
+import { refreshPantryMonthly, refreshPantryYearly } from '../src/controllers/pantry/pantryAggregationController';
 
-jest.mock('../src/controllers/pantryAggregationController');
+jest.mock('../src/controllers/pantry/pantryAggregationController');
 
 describe('cleanupOldPantryData', () => {
   beforeEach(() => {
