@@ -4,17 +4,12 @@ import {
   addVisit,
   updateVisit,
   deleteVisit,
-  bulkImportVisits,
-  importVisitsFromXlsx,
   getVisitStats,
   toggleVisitVerification,
 } from '../controllers/clientVisitController';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import { addVisitSchema, updateVisitSchema } from '../schemas/clientVisitSchemas';
-import multer from 'multer';
-
-const upload = multer();
 
 const router = Router();
 
@@ -26,13 +21,4 @@ router.post('/', authMiddleware, authorizeAccess('pantry'), validate(addVisitSch
 router.put('/:id', authMiddleware, authorizeAccess('pantry'), validate(updateVisitSchema), updateVisit);
 router.patch('/:id/verify', authMiddleware, authorizeAccess('pantry'), toggleVisitVerification);
 router.delete('/:id', authMiddleware, authorizeAccess('pantry'), deleteVisit);
-router.post('/import', authMiddleware, authorizeAccess('pantry'), upload.single('file'), bulkImportVisits);
-router.post(
-  '/import/xlsx',
-  authMiddleware,
-  authorizeAccess('pantry'),
-  upload.single('file'),
-  importVisitsFromXlsx,
-);
-
 export default router;
