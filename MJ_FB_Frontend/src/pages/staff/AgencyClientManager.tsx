@@ -20,6 +20,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EntitySearch from '../../components/EntitySearch';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
   addAgencyClient,
   removeAgencyClient,
@@ -42,6 +43,7 @@ export default function AgencyClientManager() {
   const [conflictAgency, setConflictAgency] = useState<string | null>(null);
   const [bookingClient, setBookingClient] = useState<AgencyClient | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [removeClient, setRemoveClient] = useState<AgencyClient | null>(null);
 
   const load = async (id: number) => {
     try {
@@ -97,11 +99,14 @@ export default function AgencyClientManager() {
     }
   };
 
-  const handleRemove = async (clientId: number) => {
-    if (!agency) return;
-    if (!window.confirm('Remove this client from the agency?')) return;
+  const handleRemove = (client: AgencyClient) => {
+    setRemoveClient(client);
+  };
+
+  const confirmRemove = async () => {
+    if (!agency || !removeClient) return;
     try {
-      await removeAgencyClient(agency.id, clientId);
+      await removeAgencyClient(agency.id, removeClient.clientId);
       setSnackbar({ message: 'Client removed', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
@@ -110,6 +115,7 @@ export default function AgencyClientManager() {
         severity: 'error',
       });
     }
+    setRemoveClient(null);
   };
   const handleBook = (client: AgencyClient) => {
     setBookingClient(client);
@@ -183,7 +189,7 @@ export default function AgencyClientManager() {
                           <IconButton
                             edge="end"
                             aria-label="remove"
-                            onClick={() => handleRemove(c.clientId)}
+                            onClick={() => handleRemove(c)}
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -199,6 +205,13 @@ export default function AgencyClientManager() {
             </Card>
           </Grid>
         </Grid>
+      )}
+      {removeClient && (
+        <ConfirmDialog
+          message="Remove this client from the agency?"
+          onConfirm={confirmRemove}
+          onCancel={() => setRemoveClient(null)}
+        />
       )}
       <FeedbackSnackbar
         open={!!snackbar}
