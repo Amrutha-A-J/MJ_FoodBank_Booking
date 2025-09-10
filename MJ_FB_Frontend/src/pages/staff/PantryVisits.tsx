@@ -20,6 +20,7 @@ import {
   Radio,
   RadioGroup,
   Typography,
+  Checkbox,
 } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
@@ -35,6 +36,7 @@ import {
   updateClientVisit,
   deleteClientVisit,
   importVisitsXlsx,
+  toggleClientVisitVerification,
   type ClientVisit,
   type VisitImportSheet,
 } from '../../api/clientVisits';
@@ -310,6 +312,7 @@ export default function PantryVisits() {
       children: Number(form.children || 0),
       petItem: Number(form.petItem || 0),
       note: form.note.trim() || undefined,
+      verified: editing?.verified ?? false,
     };
     const action = editing
       ? updateClientVisit(editing.id, payload)
@@ -398,14 +401,40 @@ export default function PantryVisits() {
     { field: 'petItem', header: 'Pet Item', render: (v: ClientVisit) => v.petItem },
     { field: 'note', header: 'Note', render: (v: ClientVisit) => v.note || '' },
     {
+      field: 'verified',
+      header: 'Verified',
+      render: (v: ClientVisit) => (
+        <Checkbox
+          checked={v.verified}
+          onChange={() => {
+            toggleClientVisitVerification(v.id)
+              .then(u =>
+                setVisits(prev =>
+                  prev.map(vis => (vis.id === u.id ? u : vis)),
+                ),
+              )
+              .catch(() =>
+                setSnackbar({
+                  open: true,
+                  message: 'Error updating verification',
+                  severity: 'error',
+                }),
+              );
+          }}
+          inputProps={{ 'aria-label': 'Verify visit' }}
+        />
+      ),
+    },
+    {
       field: 'actions',
       header: 'Actions',
-      render: (v: ClientVisit) => (
-        <Stack direction="row" spacing={1}>
-          <IconButton
-            
-            onClick={() => {
-              setEditing(v);
+      render: (v: ClientVisit) =>
+        !v.verified && (
+          <Stack direction="row" spacing={1}>
+            <IconButton
+
+              onClick={() => {
+                setEditing(v);
               setForm({
                 date: formatDate(v.date),
                 anonymous: v.anonymous,
@@ -438,7 +467,7 @@ export default function PantryVisits() {
             <Delete fontSize="small" />
           </IconButton>
         </Stack>
-      ),
+        ),
     },
   ];
 

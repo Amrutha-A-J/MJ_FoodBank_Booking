@@ -280,6 +280,7 @@ export interface ClientVisit {
   adults: number;
   children: number;
   petItem: number;
+  verified: boolean;
   note?: string;
 }
 

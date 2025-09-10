@@ -18,6 +18,7 @@ jest.mock('../../../api/clientVisits', () => ({
   updateClientVisit: jest.fn(),
   deleteClientVisit: jest.fn(),
   importVisitsXlsx: jest.fn(),
+  toggleClientVisitVerification: jest.fn(),
 }));
 
 jest.mock('../../../api/users', () => ({
@@ -34,7 +35,8 @@ jest.mock('../../../api/sunshineBags', () => ({
   saveSunshineBag: jest.fn(),
 }));
 
-const { getClientVisits, importVisitsXlsx } = jest.requireMock('../../../api/clientVisits');
+const { getClientVisits, importVisitsXlsx, toggleClientVisitVerification } =
+  jest.requireMock('../../../api/clientVisits');
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
@@ -147,6 +149,7 @@ describe('PantryVisits', () => {
         petItem: 0,
         adults: 1,
         children: 2,
+        verified: false,
       },
       {
         id: 2,
@@ -159,6 +162,7 @@ describe('PantryVisits', () => {
         petItem: 1,
         adults: 3,
         children: 4,
+        verified: false,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -192,6 +196,7 @@ describe('PantryVisits', () => {
         petItem: 2,
         adults: 1,
         children: 2,
+        verified: false,
       },
       {
         id: 2,
@@ -204,6 +209,7 @@ describe('PantryVisits', () => {
         petItem: 1,
         adults: 3,
         children: 4,
+        verified: false,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
@@ -221,6 +227,82 @@ describe('PantryVisits', () => {
     expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
+  it('toggles verification and hides actions', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+        verified: false,
+      },
+    ]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+    (toggleClientVisitVerification as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+        verified: true,
+      })
+      .mockResolvedValueOnce({
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+        verified: false,
+      });
+
+    renderVisits();
+
+    await screen.findByText('Alice');
+    const checkbox = screen.getByRole('checkbox', { name: /verify visit/i });
+    expect(screen.getByLabelText('Edit visit')).toBeInTheDocument();
+    expect(screen.getByLabelText('Delete visit')).toBeInTheDocument();
+
+    fireEvent.click(checkbox);
+    await waitFor(() =>
+      expect(toggleClientVisitVerification).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Edit visit')).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Delete visit')).not.toBeInTheDocument(),
+    );
+
+    fireEvent.click(checkbox);
+    await waitFor(() =>
+      expect(toggleClientVisitVerification).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('Edit visit')).toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('Delete visit')).toBeInTheDocument(),
+    );
+  });
+
   it('displays visit dates without timezone shift', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-05-13T12:00:00Z'));
     (getClientVisits as jest.Mock).mockResolvedValue([
@@ -235,6 +317,7 @@ describe('PantryVisits', () => {
         petItem: 0,
         adults: 1,
         children: 0,
+        verified: false,
       },
     ]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });

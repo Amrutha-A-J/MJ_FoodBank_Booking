@@ -135,6 +135,7 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
               v.pet_item as "petItem",
               v.is_anonymous as "anonymous",
               v.note as "note",
+              v.verified as "verified",
               v.adults,
               v.children,
               COALESCE(c.first_name || ' ' || c.last_name, '') as "clientName"
@@ -164,6 +165,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       note,
       adults,
       children,
+      verified,
     } = req.body;
     await client.query('BEGIN');
     if (clientId) {
@@ -185,10 +187,10 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       weightWithoutCartAdjusted = weightWithCart - cartTare;
     }
     const insertRes = await client.query(
-      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
-       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9)
+      `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children, verified)
+       VALUES ($1, $2, $3, $4, COALESCE($5,0), $6, $7, $8, $9, $10)
        RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children`,
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
       [
         date,
         clientId ?? null,
@@ -199,6 +201,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         note ?? null,
         adults,
         children,
+        verified ?? false,
       ]
     );
     let clientName: string | null = null;
@@ -279,6 +282,7 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
       note,
       adults,
       children,
+      verified,
     } = req.body;
     const existing = await pool.query(
       'SELECT client_id, date FROM client_visits WHERE id = $1',
@@ -307,10 +311,10 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     }
     const result = await pool.query(
       `UPDATE client_visits
-       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7, adults = $8, children = $9
-       WHERE id = $10
+       SET date = $1, client_id = $2, weight_with_cart = $3, weight_without_cart = $4, pet_item = COALESCE($5,0), is_anonymous = $6, note = $7, adults = $8, children = $9, verified = COALESCE($10, verified)
+       WHERE id = $11
        RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children`,
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
       [
         date,
         clientId ?? null,
@@ -321,6 +325,7 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         note ?? null,
         adults,
         children,
+        verified ?? null,
         id,
       ]
     );
@@ -394,6 +399,30 @@ export async function deleteVisit(req: Request, res: Response, next: NextFunctio
     res.json({ message: 'Deleted' });
   } catch (error) {
     logger.error('Error deleting client visit:', error);
+    next(error);
+  }
+}
+
+export async function toggleVisitVerification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE client_visits
+       SET verified = NOT verified
+       WHERE id = $1
+       RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
+                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
+      [id],
+    );
+    if ((result.rowCount ?? 0) === 0)
+      return res.status(404).json({ message: 'Not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error toggling client visit verification:', error);
     next(error);
   }
 }

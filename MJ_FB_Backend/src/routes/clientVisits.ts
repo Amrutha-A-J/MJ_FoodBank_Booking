@@ -7,6 +7,7 @@ import {
   bulkImportVisits,
   importVisitsFromXlsx,
   getVisitStats,
+  toggleVisitVerification,
 } from '../controllers/clientVisitController';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
@@ -23,6 +24,7 @@ router.get('/', authMiddleware, authorizeAccess('pantry'), listVisits);
 router.get('/stats', authMiddleware, authorizeAccess('pantry'), getVisitStats);
 router.post('/', authMiddleware, authorizeAccess('pantry'), validate(addVisitSchema), addVisit);
 router.put('/:id', authMiddleware, authorizeAccess('pantry'), validate(updateVisitSchema), updateVisit);
+router.patch('/:id/verify', authMiddleware, authorizeAccess('pantry'), toggleVisitVerification);
 router.delete('/:id', authMiddleware, authorizeAccess('pantry'), deleteVisit);
 router.post('/import', authMiddleware, authorizeAccess('pantry'), upload.single('file'), bulkImportVisits);
 router.post(

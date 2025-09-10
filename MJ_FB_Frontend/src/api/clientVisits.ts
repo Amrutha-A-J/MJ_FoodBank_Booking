@@ -19,6 +19,7 @@ export async function createClientVisit(
       ...payload,
       adults: payload.adults,
       children: payload.children,
+      verified: payload.verified,
       note: payload.note ?? undefined,
     }),
   });
@@ -36,6 +37,7 @@ export async function updateClientVisit(
       ...payload,
       adults: payload.adults ?? undefined,
       children: payload.children ?? undefined,
+      verified: payload.verified ?? undefined,
       note: payload.note ?? undefined,
     }),
   });
@@ -47,6 +49,15 @@ export async function deleteClientVisit(id: number): Promise<void> {
     method: 'DELETE',
   });
   await handleResponse(res);
+}
+
+export async function toggleClientVisitVerification(
+  id: number,
+): Promise<ClientVisit> {
+  const res = await apiFetch(`${API_BASE}/client-visits/${id}/verify`, {
+    method: 'PATCH',
+  });
+  return handleResponse(res);
 }
 
 export interface VisitImportSheet {
