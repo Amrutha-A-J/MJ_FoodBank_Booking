@@ -47,4 +47,24 @@ describe('AdminStaffList', () => {
       expect(deleteStaff).toHaveBeenCalledWith(1);
     });
   });
+
+  it('does not delete staff when dialog is dismissed', async () => {
+    renderWithProviders(
+      <MemoryRouter>
+        <AdminStaffList />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('John Doe')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('delete'));
+    expect(await screen.findByText('Delete John Doe?')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText(/close/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Delete John Doe?')).not.toBeInTheDocument();
+    });
+    expect(deleteStaff).not.toHaveBeenCalled();
+  });
 });
