@@ -53,8 +53,6 @@ describe('pantry aggregation routes', () => {
           adults: 0,
           children: 0,
           weight: 0,
-          sunshineBags: 0,
-          sunshineWeight: 0,
         },
         {
           month: 5,
@@ -62,8 +60,6 @@ describe('pantry aggregation routes', () => {
           adults: 0,
           children: 0,
           weight: 0,
-          sunshineBags: 0,
-          sunshineWeight: 0,
         },
       ],
     });
@@ -82,8 +78,6 @@ describe('pantry aggregation routes', () => {
           adults: 0,
           children: 0,
           weight: 0,
-          sunshineBags: 0,
-          sunshineWeight: 0,
         },
         {
           week: 2,
@@ -91,8 +85,6 @@ describe('pantry aggregation routes', () => {
           adults: 0,
           children: 0,
           weight: 0,
-          sunshineBags: 0,
-          sunshineWeight: 0,
         },
       ],
     });
