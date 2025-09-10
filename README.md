@@ -27,6 +27,8 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
 
+- Staff with `aggregations` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
+
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see
 **Timesheets** at `/admin/timesheet` and **Leave Requests** at
@@ -45,6 +47,7 @@ Staff accounts may include any of the following access roles:
 - `admin`
 - `other`
 - `payroll_management`
+- `aggregations`
 - `donation_entry` – volunteer-only access for the warehouse donation log
 
 This repository uses Git submodules for the backend and frontend components. After cloning, pull in the submodules and install their dependencies.
