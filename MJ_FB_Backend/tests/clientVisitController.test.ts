@@ -58,6 +58,7 @@ describe('clientVisitController', () => {
             id: 1,
             date: '2024-05-20',
             clientId: 1,
+            clientName: 'Ann Client',
             weightWithCart: 0,
             weightWithoutCart: 0,
             petItem: 0,
@@ -76,6 +77,7 @@ describe('clientVisitController', () => {
             id: 1,
             date: '2024-05-20',
             clientId: 1,
+            clientName: 'Ann Client',
             weightWithCart: 0,
             weightWithoutCart: 0,
             petItem: 0,
@@ -94,12 +96,12 @@ describe('clientVisitController', () => {
 
     await toggleVisitVerification(req, res, next);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ verified: true }),
+      expect.objectContaining({ verified: true, clientName: 'Ann Client' }),
     );
 
     await toggleVisitVerification(req, res, next);
     expect(res.json).toHaveBeenLastCalledWith(
-      expect.objectContaining({ verified: false }),
+      expect.objectContaining({ verified: false, clientName: 'Ann Client' }),
     );
   });
 

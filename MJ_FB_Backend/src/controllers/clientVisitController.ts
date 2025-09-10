@@ -428,11 +428,22 @@ export async function toggleVisitVerification(
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `UPDATE client_visits
+      `UPDATE client_visits v
        SET verified = NOT verified
-       WHERE id = $1
-       RETURNING id, to_char(date, 'YYYY-MM-DD') as date, client_id as "clientId", weight_with_cart as "weightWithCart",
-                 weight_without_cart as "weightWithoutCart", pet_item as "petItem", is_anonymous as "anonymous", note, adults, children, verified`,
+       FROM clients c
+       WHERE v.id = $1 AND v.client_id = c.client_id
+       RETURNING v.id,
+                 to_char(v.date, 'YYYY-MM-DD') as date,
+                 v.client_id as "clientId",
+                 c.first_name || ' ' || c.last_name as "clientName",
+                 v.weight_with_cart as "weightWithCart",
+                 v.weight_without_cart as "weightWithoutCart",
+                 v.pet_item as "petItem",
+                 v.is_anonymous as "anonymous",
+                 v.note,
+                 v.adults,
+                 v.children,
+                 v.verified`,
       [id],
     );
     if ((result.rowCount ?? 0) === 0)

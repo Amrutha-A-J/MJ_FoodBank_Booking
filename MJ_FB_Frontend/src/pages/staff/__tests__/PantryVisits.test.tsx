@@ -284,6 +284,7 @@ describe('PantryVisits', () => {
     await waitFor(() =>
       expect(toggleClientVisitVerification).toHaveBeenCalledTimes(1),
     );
+    await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
     await waitFor(() =>
       expect(screen.queryByLabelText('Edit visit')).not.toBeInTheDocument(),
     );
