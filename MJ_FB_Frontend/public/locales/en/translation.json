@@ -237,15 +237,7 @@
       "adults": "Adults",
       "children": "Children",
       "sunshine_bag_weight": "Sunshine Bag Weight"
-    },
-    "import_visits": "Import Visits",
-    "import": "Import",
-    "import_success": "Visits imported",
-    "import_error": "Import failed",
-    "dry_run": "Dry-run",
-    "sheet_date": "Date",
-    "sheet_rows": "Rows",
-    "sheet_errors": "Errors"
+    }
   },
   "booking_rescheduled": "Booking rescheduled",
   "reschedule_failed": "Failed to reschedule booking",

@@ -35,10 +35,8 @@ import {
   createClientVisit,
   updateClientVisit,
   deleteClientVisit,
-  importVisitsXlsx,
   toggleClientVisitVerification,
   type ClientVisit,
-  type VisitImportSheet,
 } from '../../api/clientVisits';
 import { getSunshineBag, saveSunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
@@ -87,10 +85,6 @@ export default function PantryVisits() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ClientVisit | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor } | null>(null);
-  const [importOpen, setImportOpen] = useState(false);
-  const [importFile, setImportFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<VisitImportSheet[]>([]);
-
   const [saving, setSaving] = useState(false);
 
   const [cartTare, setCartTare] = useState(0);
@@ -202,52 +196,6 @@ export default function PantryVisits() {
         );
     }
   }, [form.sunshineBag, form.date]);
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] || null;
-    setImportFile(file);
-    setPreview([]);
-  }
-
-  function handleDryRun() {
-    if (!importFile) return;
-    const formData = new FormData();
-    formData.append('file', importFile);
-    importVisitsXlsx(formData, true)
-      .then(res => setPreview(res?.sheets || []))
-      .catch(err =>
-        setSnackbar({
-          open: true,
-          message: err.message || t('pantry_visits.import_error'),
-          severity: 'error',
-        }),
-      );
-  }
-
-  function handleImport() {
-    if (!importFile) return;
-    const formData = new FormData();
-    formData.append('file', importFile);
-    importVisitsXlsx(formData)
-      .then(() => {
-        setSnackbar({
-          open: true,
-          message: t('pantry_visits.import_success'),
-          severity: 'success',
-        });
-        setImportOpen(false);
-        setImportFile(null);
-        setPreview([]);
-        loadVisits();
-      })
-      .catch(err =>
-        setSnackbar({
-          open: true,
-          message: err.message || t('pantry_visits.import_error'),
-          severity: 'error',
-        }),
-      );
-  }
 
   const summary = useMemo(() => {
     const clients = visits.filter(v => !v.anonymous).length;
@@ -572,14 +520,6 @@ export default function PantryVisits() {
         >
           Record Visit
         </Button>
-        <Button
-          
-          variant="contained"
-          onClick={() => setImportOpen(true)}
-          fullWidth
-        >
-          {t('pantry_visits.import_visits')}
-        </Button>
         <TextField
           
           label="Search"
@@ -727,62 +667,6 @@ export default function PantryVisits() {
             }
           >
             Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={importOpen}
-        onClose={() => {
-          setImportOpen(false);
-          setImportFile(null);
-          setPreview([]);
-        }}
-      >
-        <DialogCloseButton
-          onClose={() => {
-            setImportOpen(false);
-            setImportFile(null);
-            setPreview([]);
-          }}
-        />
-        <DialogTitle>{t('pantry_visits.import_visits')}</DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Stack spacing={2} mt={1}>
-            <input
-              type="file"
-              accept=".xlsx"
-              data-testid="import-input"
-              onChange={handleFileChange}
-            />
-            {preview.length > 0 && (
-              <Table size="small" >
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{t('pantry_visits.sheet_date')}</TableCell>
-                    <TableCell>{t('pantry_visits.sheet_rows')}</TableCell>
-                    <TableCell>{t('pantry_visits.sheet_errors')}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {preview.map((s, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{formatDisplay(s.date)}</TableCell>
-                      <TableCell>{s.rows}</TableCell>
-                      <TableCell>{s.errors.join(', ')}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDryRun} disabled={!importFile}>
-            {t('pantry_visits.dry_run')}
-          </Button>
-          <Button onClick={handleImport} disabled={!importFile}>
-            {t('pantry_visits.import')}
           </Button>
         </DialogActions>
       </Dialog>
