@@ -10,6 +10,11 @@ Add the following translation strings to locale files:
 - `hide_password`
 - `email_or_client_id` – label for the password reset field
 - `password_reset_instructions` – instructs users to enter their email or client ID and submit to receive a reset link via email
+- `profile_page.password_requirements` – helper text describing password rules
+- `profile_page.password_checklist.min_length` – checklist item for minimum length
+- `profile_page.password_checklist.uppercase` – checklist item for an uppercase letter
+- `profile_page.password_checklist.lowercase` – checklist item for a lowercase letter
+- `profile_page.password_checklist.symbol` – checklist item for a symbol
 
 ## Password setup identifier
 
