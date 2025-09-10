@@ -243,7 +243,7 @@ export default function PantryAggregations() {
   const weeklyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="weekly-year-label">Year</InputLabel>
           <Select
             labelId="weekly-year-label"
@@ -258,7 +258,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="weekly-month-label">Month</InputLabel>
           <Select
             labelId="weekly-month-label"
@@ -273,7 +273,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="weekly-week-label">Week</InputLabel>
           <Select
             labelId="weekly-week-label"
@@ -319,7 +319,7 @@ export default function PantryAggregations() {
   const monthlyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="monthly-year-label">Year</InputLabel>
           <Select
             labelId="monthly-year-label"
@@ -334,7 +334,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="monthly-month-label">Month</InputLabel>
           <Select
             labelId="monthly-month-label"
@@ -380,7 +380,7 @@ export default function PantryAggregations() {
   const yearlyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 90 }}>
           <InputLabel id="yearly-year-label">Year</InputLabel>
           <Select
             labelId="yearly-year-label"
