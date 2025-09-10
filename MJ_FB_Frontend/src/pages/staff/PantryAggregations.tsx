@@ -273,8 +273,8 @@ export default function PantryAggregations() {
 
   const weeklyContent = (
     <>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 80 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 80 } }}>
           <InputLabel id="weekly-year-label">Year</InputLabel>
           <Select
             labelId="weekly-year-label"
@@ -289,7 +289,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 90 } }}>
           <InputLabel id="weekly-month-label">Month</InputLabel>
           <Select
             labelId="weekly-month-label"
@@ -305,7 +305,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 90 } }}>
           <InputLabel id="weekly-week-label">Week</InputLabel>
           <Select
             labelId="weekly-week-label"
@@ -327,6 +327,8 @@ export default function PantryAggregations() {
           variant="contained"
           onClick={handleExportWeekly}
           disabled={exportLoading || !weekRanges.length}
+          fullWidth
+          sx={{ width: { sm: 'auto' } }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
@@ -353,8 +355,8 @@ export default function PantryAggregations() {
 
   const monthlyContent = (
     <>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 80 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 80 } }}>
           <InputLabel id="monthly-year-label">Year</InputLabel>
           <Select
             labelId="monthly-year-label"
@@ -369,7 +371,7 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 90 } }}>
           <InputLabel id="monthly-month-label">Month</InputLabel>
           <Select
             labelId="monthly-month-label"
@@ -389,6 +391,8 @@ export default function PantryAggregations() {
           variant="contained"
           onClick={handleExportMonthly}
           disabled={exportLoading || !month}
+          fullWidth
+          sx={{ width: { sm: 'auto' } }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
@@ -415,8 +419,8 @@ export default function PantryAggregations() {
 
   const yearlyContent = (
     <>
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 80 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+        <FormControl size="medium" fullWidth sx={{ minWidth: { sm: 80 } }}>
           <InputLabel id="yearly-year-label">Year</InputLabel>
           <Select
             labelId="yearly-year-label"
@@ -435,6 +439,8 @@ export default function PantryAggregations() {
           variant="contained"
           onClick={handleExportYearly}
           disabled={exportLoading || !yearlyYear}
+          fullWidth
+          sx={{ width: { sm: 'auto' } }}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
