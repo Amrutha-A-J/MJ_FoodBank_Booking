@@ -55,4 +55,30 @@ describe('AgencyClientManager', () => {
       expect.objectContaining({ shopperName: 'Client One', userId: 5 }),
     );
   });
+
+  it('removes a client after confirmation', async () => {
+    const { getAgencyClients, removeAgencyClient } =
+      require('../../../api/agencies');
+    (getAgencyClients as jest.Mock)
+      .mockResolvedValueOnce([
+        { client_id: 5, first_name: 'Client', last_name: 'One' },
+      ])
+      .mockResolvedValueOnce([]);
+
+    render(<AgencyClientManager />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Select Agency' }));
+    await screen.findByText('Client One');
+
+    await userEvent.click(screen.getByLabelText('remove'));
+
+    expect(
+      await screen.findByText('Remove this client from the agency?'),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    expect(removeAgencyClient).toHaveBeenCalledWith(1, 5);
+    await screen.findByText('No clients assigned.');
+  });
 });
