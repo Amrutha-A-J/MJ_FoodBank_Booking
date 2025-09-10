@@ -245,6 +245,7 @@
   "agency_login": "Agency Login",
   "client_id_or_email": "Client ID or Email",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "ਸਾਡੇ ਸਿਸਟਮ ਵਿੱਚ ਤੁਹਾਡਾ ਖਾਤਾ ਨਹੀਂ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਪੂਰਾ ਨਾਮ ਲਿਖ ਕੇ harvestpantry@mjfoodbank.org 'ਤੇ ਈਮੇਲ ਕਰੋ ਤਾਂ ਜੋ ਖਾਤਾ ਬਣਾਇਆ ਜਾ ਸਕੇ।",
   "sign_up": "Sign Up",
   "onboarding": {
     "client": {

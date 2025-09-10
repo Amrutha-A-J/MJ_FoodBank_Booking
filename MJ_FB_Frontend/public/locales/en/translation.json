@@ -27,6 +27,7 @@
   "show_password": "Show password",
   "hide_password": "Hide password",
   "incorrect_id_password": "Incorrect ID or email or password",
+  "account_not_found": "You don’t have an account in our system. Please email harvestpantry@mjfoodbank.org with your full name to create an account.",
   "password_setup_expired": "Password setup link expired",
   "set_password": "Set Password",
   "back_to_login": "Back to login",

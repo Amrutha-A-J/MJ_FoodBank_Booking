@@ -58,6 +58,8 @@ export default function Login({
       } else if (apiErr?.status === 403) {
         setError(t('password_setup_expired'));
         setResendOpen(true);
+      } else if (apiErr?.status === 404) {
+        setError(t('account_not_found'));
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
