@@ -17,7 +17,13 @@ describe('VolunteerCoverageCard', () => {
   it('counts bookings for today without timezone shift', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      { id: 1, name: 'Greeter', category_name: 'Front', max_volunteers: 2 },
+      {
+        id: 1,
+        name: 'Greeter',
+        category_name: 'Front',
+        max_volunteers: 2,
+        shifts: [{ id: 1 }],
+      },
     ]);
     (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
       { status: 'approved', date: '2024-01-15' },
@@ -33,7 +39,13 @@ describe('VolunteerCoverageCard', () => {
   it('shows volunteers when a coverage entry is clicked', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
-      { id: 1, name: 'Greeter', category_name: 'Front', max_volunteers: 2 },
+      {
+        id: 1,
+        name: 'Greeter',
+        category_name: 'Front',
+        max_volunteers: 2,
+        shifts: [{ id: 1 }],
+      },
     ]);
     (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
       { status: 'approved', date: '2024-01-15', volunteer_name: 'Alice' },

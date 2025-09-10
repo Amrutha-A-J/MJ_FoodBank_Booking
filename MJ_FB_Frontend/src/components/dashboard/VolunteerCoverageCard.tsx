@@ -53,7 +53,12 @@ export default function VolunteerCoverageCard({
       .then(roles =>
         Promise.all(
           roles.map(async r => {
-            const bookings = await getVolunteerBookingsByRole(r.id);
+            const shiftIds = (r.shifts ?? []).map((s: any) => s.id);
+            const bookings = (
+              await Promise.all(
+                shiftIds.map((id: number) => getVolunteerBookingsByRole(id)),
+              )
+            ).flat();
             const todayBookings = bookings.filter(
               (b: any) =>
                 b.status === 'approved' &&
@@ -67,7 +72,7 @@ export default function VolunteerCoverageCard({
               roleName: r.name,
               masterRole: r.category_name,
               filled,
-              total: r.max_volunteers,
+              total: r.max_volunteers * shiftIds.length,
               volunteers,
             };
           }),
