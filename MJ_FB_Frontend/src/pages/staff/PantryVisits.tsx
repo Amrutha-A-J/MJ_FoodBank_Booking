@@ -91,6 +91,8 @@ export default function PantryVisits() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<VisitImportSheet[]>([]);
 
+  const [saving, setSaving] = useState(false);
+
   const [cartTare, setCartTare] = useState(0);
   const [search, setSearch] = useState('');
 
@@ -260,9 +262,11 @@ export default function PantryVisits() {
   }, [visits, sunshineBagWeight]);
 
   function handleSaveVisit() {
+    setSaving(true);
     if (form.sunshineBag) {
       if (!form.sunshineWeight || !form.sunshineClients) {
         setSnackbar({ open: true, message: 'Weight and clients required', severity: 'error' });
+        setSaving(false);
         return;
       }
       saveSunshineBag({
@@ -291,15 +295,24 @@ export default function PantryVisits() {
           loadVisits();
           setSnackbar({ open: true, message: 'Sunshine bag saved', severity: 'success' });
         })
-        .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save sunshine bag', severity: 'error' }));
+        .catch(err =>
+          setSnackbar({
+            open: true,
+            message: err.message || 'Failed to save sunshine bag',
+            severity: 'error',
+          }),
+        )
+        .finally(() => setSaving(false));
       return;
     }
     if (!form.date || !form.weightWithCart || !form.weightWithoutCart) {
       setSnackbar({ open: true, message: 'Date and weights required', severity: 'error' });
+      setSaving(false);
       return;
     }
     if (!form.clientId) {
       setSnackbar({ open: true, message: 'Client ID required', severity: 'error' });
+      setSaving(false);
       return;
     }
     const payload = {
@@ -339,7 +352,10 @@ export default function PantryVisits() {
         loadVisits();
         setSnackbar({ open: true, message: editing ? 'Visit updated' : 'Visit recorded', severity: 'success' });
       })
-      .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save visit', severity: 'error' }));
+      .catch(err =>
+        setSnackbar({ open: true, message: err.message || 'Failed to save visit', severity: 'error' }),
+      )
+      .finally(() => setSaving(false));
   }
 
   async function handleCreateClient() {
@@ -704,9 +720,10 @@ export default function PantryVisits() {
           <Button
             onClick={handleSaveVisit}
             disabled={
-              form.sunshineBag
+              saving ||
+              (form.sunshineBag
                 ? !form.sunshineWeight || !form.sunshineClients
-                : !form.weightWithCart || !form.weightWithoutCart || !form.clientId
+                : !form.weightWithCart || !form.weightWithoutCart || !form.clientId)
             }
           >
             Save
