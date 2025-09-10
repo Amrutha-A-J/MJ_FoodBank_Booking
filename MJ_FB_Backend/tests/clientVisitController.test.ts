@@ -153,6 +153,58 @@ describe('clientVisitController', () => {
     expect(sqls.some((s: string) => /SELECT 1 FROM client_visits/.test(s))).toBe(false);
   });
 
+  it('clamps negative weightWithoutCart to zero', async () => {
+    const queryMock = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
+      .mockResolvedValueOnce({ rows: [{ value: '10' }], rowCount: 1 }) // cart tare
+      .mockImplementationOnce((sql: string, params: any[]) => {
+        expect(params[3]).toBe(0);
+        return {
+          rows: [
+            {
+              id: 1,
+              date: '2024-05-20',
+              clientId: 1,
+              weightWithCart: 5,
+              weightWithoutCart: 0,
+              petItem: 0,
+              anonymous: false,
+              note: null,
+              adults: 1,
+              children: 0,
+              verified: false,
+            },
+          ],
+          rowCount: 1,
+        };
+      }) // insert
+      .mockResolvedValueOnce({ rows: [{ first_name: 'Ann', last_name: 'Client' }], rowCount: 1 }) // select client
+      .mockResolvedValueOnce({}) // refreshClientVisitCount
+      .mockResolvedValueOnce({ rowCount: 0 }) // sameDayRes
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // otherRes
+      .mockResolvedValueOnce({}); // COMMIT
+
+    (mockDb.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+
+    const req = {
+      body: {
+        date: '2024-05-20',
+        clientId: 1,
+        weightWithCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+      },
+    } as any;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+    const next = jest.fn();
+
+    await addVisit(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
   it('excludes anonymous visits from stats', async () => {
     (mockDb.query as jest.Mock).mockResolvedValueOnce({ rows: [], rowCount: 0 });
     const req = { query: { group: 'month', months: '1' } } as any;
