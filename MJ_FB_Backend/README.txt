@@ -95,6 +95,12 @@ Authorization: Bearer <token>
 
 The token payload includes the user's `id`, `role`, and `type` and expires after one hour.
 
+## Volunteer Bookings by Day Endpoint
+
+`GET /volunteer-bookings/day?date=YYYY-MM-DD`
+
+Returns all volunteer bookings for the specified date. Requires staff authentication.
+
 ## Donation Aggregations Endpoint
 
 `GET /donations/aggregations?year=YYYY`

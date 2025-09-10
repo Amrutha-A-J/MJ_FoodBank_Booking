@@ -18,3 +18,22 @@ export const recurringBookingForVolunteerSchema = recurringBookingSchema.extend(
 export type RecurringBookingForVolunteerSchema = z.infer<
   typeof recurringBookingForVolunteerSchema
 >;
+
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+export const volunteerBookingsByDateSchema = z.object({
+  date: z
+    .string()
+    .regex(DATE_REGEX, { message: 'Invalid date format' })
+    .refine((val) => {
+      const parsed = new Date(val);
+      return (
+        !Number.isNaN(parsed.getTime()) &&
+        parsed.toISOString().slice(0, 10) === val
+      );
+    }, 'Invalid date'),
+});
+
+export type VolunteerBookingsByDateSchema = z.infer<
+  typeof volunteerBookingsByDateSchema
+>;
