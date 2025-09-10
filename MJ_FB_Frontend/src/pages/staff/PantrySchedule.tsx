@@ -544,7 +544,7 @@ export default function PantrySchedule({
                     </Button>
                   }
                 >
-                  <ListItemText primary={`${u.name} (${u.email})`} />
+                  <ListItemText primary={`${u.name} (${u.client_id})`} />
                 </ListItem>
               ))}
               {searchTerm.length >= 3 && userResults.length === 0 && (

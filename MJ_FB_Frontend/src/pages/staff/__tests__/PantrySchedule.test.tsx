@@ -56,6 +56,37 @@ describe('PantrySchedule add existing client workflow', () => {
     expect(await screen.findByText('[NEW CLIENT] New Person')).toBeInTheDocument();
   });
 
+  it('shows client ID in search results', async () => {
+    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
+    const searchUsersMock = jest
+      .fn()
+      .mockResolvedValueOnce([
+        {
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: null,
+          client_id: 123,
+          hasPassword: false,
+        },
+      ]);
+    render(
+      <MemoryRouter>
+        <PantrySchedule searchUsersFn={searchUsersMock} />
+      </MemoryRouter>,
+    );
+
+    const rows = await screen.findAllByRole('row');
+    const cells = within(rows[1]).getAllByRole('cell');
+    fireEvent.click(cells[1]);
+
+    fireEvent.change(
+      screen.getByLabelText('Search users by name/email/phone/client ID'),
+      { target: { value: 'Tes' } },
+    );
+
+    expect(await screen.findByText('Test User (123)')).toBeInTheDocument();
+  });
+
   it('adds existing client to the app when search returns none', async () => {
     (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
     (usersApi.addClientById as jest.Mock).mockResolvedValue(undefined);
