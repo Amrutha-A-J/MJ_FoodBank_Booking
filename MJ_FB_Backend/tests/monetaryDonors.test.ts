@@ -189,17 +189,41 @@ describe('Mailing list generation', () => {
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
       templateId: 11,
-      params: { firstName: 'A', amount: 50, families: 4, children: 7, pounds: 120 },
+      params: {
+        firstName: 'A',
+        amount: 50,
+        families: 4,
+        children: 7,
+        pounds: 120,
+        month: 'June',
+        year: 2024,
+      },
     });
     expect((sendTemplatedEmail as jest.Mock).mock.calls[1][0]).toEqual({
       to: 'b@example.com',
       templateId: 12,
-      params: { firstName: 'B', amount: 150, families: 4, children: 7, pounds: 120 },
+      params: {
+        firstName: 'B',
+        amount: 150,
+        families: 4,
+        children: 7,
+        pounds: 120,
+        month: 'June',
+        year: 2024,
+      },
     });
     expect((sendTemplatedEmail as jest.Mock).mock.calls[2][0]).toEqual({
       to: 'c@example.com',
       templateId: 12,
-      params: { firstName: 'C', amount: 600, families: 4, children: 7, pounds: 120 },
+      params: {
+        firstName: 'C',
+        amount: 600,
+        families: 4,
+        children: 7,
+        pounds: 120,
+        month: 'June',
+        year: 2024,
+      },
     });
     expect(res.body).toEqual({ sent: 3 });
   });

@@ -234,6 +234,9 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
       '101-500': config.donorTemplateId101To500,
       '501+': config.donorTemplateId501Plus,
     };
+    const monthName = new Date(Date.UTC(year, month - 1)).toLocaleString('en-CA', {
+      month: 'long',
+    });
     let sent = 0;
     for (const [range, donors] of Object.entries(groups)) {
       if (donors.length === 0) continue;
@@ -248,6 +251,8 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
             families,
             children,
             pounds,
+            month: monthName,
+            year,
           },
         });
         sent++;
