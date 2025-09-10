@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import SectionCard from './SectionCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../../api/volunteers';
-import { formatReginaDate } from '../../utils/time';
+import { formatReginaDate, formatTime } from '../../utils/time';
 import { toDate } from '../../utils/date';
 import FeedbackSnackbar from '../FeedbackSnackbar';
 import DialogCloseButton from '../DialogCloseButton';
@@ -50,34 +50,33 @@ export default function VolunteerCoverageCard({
           ? roles.filter(r => masterRoleFilter.includes(r.category_name))
           : roles,
       )
-      .then(roles =>
-        Promise.all(
-          roles.map(async r => {
-            const shiftIds = (r.shifts ?? []).map((s: any) => s.id);
-            const bookings = (
-              await Promise.all(
-                shiftIds.map((id: number) => getVolunteerBookingsByRole(id)),
-              )
-            ).flat();
-            const todayBookings = bookings.filter(
-              (b: any) =>
-                b.status === 'approved' &&
-                formatReginaDate(toDate(b.date)) === todayStr,
-            );
-            const volunteers = todayBookings
-              .map((b: any) => b.volunteer_name)
-              .filter(Boolean);
-            const filled = todayBookings.length;
-            return {
-              roleName: r.name,
-              masterRole: r.category_name,
-              filled,
-              total: r.max_volunteers * shiftIds.length,
-              volunteers,
-            };
-          }),
-        ),
-      )
+      .then(async roles => {
+        const data = await Promise.all(
+          roles.flatMap(r =>
+            (r.shifts ?? []).map(async s => {
+              const bookings = await getVolunteerBookingsByRole(s.id);
+              const todayBookings = bookings.filter(
+                (b: any) =>
+                  b.status === 'approved' &&
+                  formatReginaDate(toDate(b.date)) === todayStr,
+              );
+              const volunteers = todayBookings
+                .map((b: any) => b.volunteer_name)
+                .filter(Boolean);
+              return {
+                roleName: `${r.name} ${formatTime(s.start_time)}–${formatTime(
+                  s.end_time,
+                )}`,
+                masterRole: r.category_name,
+                filled: todayBookings.length,
+                total: r.max_volunteers,
+                volunteers,
+              };
+            }),
+          ),
+        );
+        return data;
+      })
       .then(data => {
         setCoverage(data);
         onCoverageLoaded?.(data);
