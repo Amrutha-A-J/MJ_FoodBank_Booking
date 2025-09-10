@@ -85,10 +85,10 @@ describe('PantryAggregations page', () => {
     const range = ranges.find(r => r.week === currentWeek)!;
     let start = dayjs(range.startDate);
     let end = dayjs(range.endDate);
-    while (start.day() !== 1 && start.isBefore(end)) {
+    while ([0, 6].includes(start.day()) && start.isBefore(end)) {
       start = start.add(1, 'day');
     }
-    while (end.day() !== 5 && end.isAfter(start)) {
+    while ([0, 6].includes(end.day()) && end.isAfter(start)) {
       end = end.subtract(1, 'day');
     }
     const expectedLabel = start.isSame(end, 'day')
@@ -152,6 +152,24 @@ describe('PantryAggregations page', () => {
     await waitFor(() => expect(mockGetPantryWeeks).toHaveBeenCalled());
     const exportBtn = await screen.findByRole('button', { name: /export table/i });
     expect(exportBtn).toBeDisabled();
+  });
+
+  it('formats partial weeks with remaining weekdays', () => {
+    const ranges = getWeekRanges(2025, 8);
+    const range = ranges.find(r => r.week === 5)!;
+    let start = dayjs(range.startDate);
+    let end = dayjs(range.endDate);
+    while ([0, 6].includes(start.day()) && start.isBefore(end)) {
+      start = start.add(1, 'day');
+    }
+    while ([0, 6].includes(end.day()) && end.isAfter(start)) {
+      end = end.subtract(1, 'day');
+    }
+    const label = start.isSame(end, 'day')
+      ? formatDate(start)
+      : `${formatDate(start)} - ${formatDate(end)}`;
+    const expectedLabel = `${formatDate(start)} - ${formatDate(end)}`;
+    expect(label).toBe(expectedLabel);
   });
 });
 

@@ -79,10 +79,10 @@ export default function PantryAggregations() {
         let start = dayjs(r.startDate);
         let end = dayjs(r.endDate);
 
-        while (start.day() !== 1 && start.isBefore(end)) {
+        while ([0, 6].includes(start.day()) && start.isBefore(end)) {
           start = start.add(1, 'day');
         }
-        while (end.day() !== 5 && end.isAfter(start)) {
+        while ([0, 6].includes(end.day()) && end.isAfter(start)) {
           end = end.subtract(1, 'day');
         }
 
@@ -184,10 +184,10 @@ export default function PantryAggregations() {
           .map(r => {
             let start = dayjs(r.startDate);
             let end = dayjs(r.endDate);
-            while (start.day() !== 1 && start.isBefore(end)) {
+            while ([0, 6].includes(start.day()) && start.isBefore(end)) {
               start = start.add(1, 'day');
             }
-            while (end.day() !== 5 && end.isAfter(start)) {
+            while ([0, 6].includes(end.day()) && end.isAfter(start)) {
               end = end.subtract(1, 'day');
             }
             if (start.isAfter(end)) return null;
