@@ -58,6 +58,7 @@ app.use(
   cors({
     origin: config.frontendOrigins,
     credentials: true,
+    exposedHeaders: ['Content-Disposition'],
   })
 );
 
