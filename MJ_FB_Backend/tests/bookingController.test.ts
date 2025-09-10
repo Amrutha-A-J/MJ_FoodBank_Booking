@@ -410,4 +410,44 @@ describe('markBookingVisited', () => {
       "SELECT value FROM app_config WHERE key = 'cart_tare'",
     );
   });
+
+  describe('validation', () => {
+    it.each([
+      ['weightWithCart'],
+      ['weightWithoutCart'],
+      ['petItem'],
+      ['adults'],
+      ['children'],
+    ])('returns 400 for negative %s', async (field) => {
+      const req = { params: { id: '123' }, body: { [field]: -1 } } as unknown as Request;
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+      const next = jest.fn() as NextFunction;
+
+      await markBookingVisited(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: `${field} must be a non-negative number` });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(updateBooking).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['weightWithCart'],
+      ['weightWithoutCart'],
+      ['petItem'],
+      ['adults'],
+      ['children'],
+    ])('returns 400 for non-numeric %s', async (field) => {
+      const req = { params: { id: '123' }, body: { [field]: 'abc' } } as unknown as Request;
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
+      const next = jest.fn() as NextFunction;
+
+      await markBookingVisited(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: `${field} must be a non-negative number` });
+      expect(pool.query).not.toHaveBeenCalled();
+      expect(updateBooking).not.toHaveBeenCalled();
+    });
+  });
 });

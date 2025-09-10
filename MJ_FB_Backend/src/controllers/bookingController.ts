@@ -447,6 +447,20 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
   const note = req.body?.note as string | undefined;
   const adults = req.body?.adults as number | undefined;
   const children = req.body?.children as number | undefined;
+  const fields: [string, number | undefined | null][] = [
+    ['weightWithCart', weightWithCart],
+    ['weightWithoutCart', weightWithoutCart],
+    ['petItem', petItem],
+    ['adults', adults],
+    ['children', children],
+  ];
+  for (const [name, value] of fields) {
+    if (value !== undefined && value !== null) {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        return res.status(400).json({ message: `${name} must be a non-negative number` });
+      }
+    }
+  }
   try {
     const dup = await pool.query(
       `SELECT 1 FROM client_visits v
