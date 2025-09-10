@@ -21,6 +21,7 @@ export default function PasswordSetup() {
   const [error, setError] = useState('');
   const [resendOpen, setResendOpen] = useState(false);
   const [info, setInfo] = useState<PasswordSetupInfo | null>(null);
+  const [tokenInvalid, setTokenInvalid] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -32,15 +33,23 @@ export default function PasswordSetup() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setError(t('invalid_or_expired_token'));
+      setTokenInvalid(true);
+      return;
+    }
     getPasswordSetupInfo(token)
       .then(data => setInfo(data))
-      .catch(() => undefined);
-  }, [token]);
+      .catch(err => {
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+        setTokenInvalid(true);
+      });
+  }, [token, t]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!token) {
+    if (!token || tokenInvalid) {
       setError(t('invalid_or_expired_token'));
       return;
     }
@@ -74,9 +83,11 @@ export default function PasswordSetup() {
         onSubmit={handleSubmit}
         title={t('set_password')}
         actions={
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            {t('set_password')}
-          </Button>
+          !tokenInvalid && (
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              {t('set_password')}
+            </Button>
+          )
         }
       >
         {info?.clientId && (
@@ -89,37 +100,48 @@ export default function PasswordSetup() {
             {t('email')}: {info.email}
           </p>
         )}
-        <PasswordField
-          label={t('password')}
-          name="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          fullWidth
-          required
-          helperText={t('profile_page.password_requirements')}
-        />
-        <PasswordChecklist password={password} />
-        <Button
-          component={RouterLink}
-          to={info ? loginPathMap[info.userType] : '/login'}
-          variant="outlined"
-
-        >
-          {t('back_to_login')}
-        </Button>
-        {error.toLowerCase().includes('expired token') && (
-          <Link component="button" onClick={() => setResendOpen(true)} underline="hover">
-            {t('resend_link')}
-          </Link>
+        {tokenInvalid ? (
+          <>
+            <p>{t('invalid_or_expired_token')}</p>
+            <Link
+              component="button"
+              onClick={() => setResendOpen(true)}
+              underline="hover"
+            >
+              {t('resend_link')}
+            </Link>
+          </>
+        ) : (
+          <>
+            <PasswordField
+              label={t('password')}
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              fullWidth
+              required
+              helperText={t('profile_page.password_requirements')}
+            />
+            <PasswordChecklist password={password} />
+            <Button
+              component={RouterLink}
+              to={info ? loginPathMap[info.userType] : '/login'}
+              variant="outlined"
+            >
+              {t('back_to_login')}
+            </Button>
+          </>
         )}
       </FormCard>
-      <FeedbackSnackbar
-        open={!!error}
-        onClose={() => setError('')}
-        message={error}
-        severity="error"
-      />
+      {!tokenInvalid && (
+        <FeedbackSnackbar
+          open={!!error}
+          onClose={() => setError('')}
+          message={error}
+          severity="error"
+        />
+      )}
       <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );
