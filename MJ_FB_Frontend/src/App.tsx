@@ -68,6 +68,9 @@ const VolunteerRankings = React.lazy(() =>
 const VolunteerAdmin = React.lazy(() =>
   import('./pages/staff/VolunteerManagement')
 );
+const VolunteerDailyBookings = React.lazy(() =>
+  import('./pages/staff/VolunteerDailyBookings')
+);
 const WarehouseDashboard = React.lazy(() =>
   import('./pages/warehouse-management/WarehouseDashboard')
 );
@@ -182,6 +185,7 @@ export default function App() {
         links: [
           { label: t('dashboard'), to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
+          { label: 'Daily Bookings', to: '/volunteer-management/daily' },
           { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
           {
             label: 'Volunteers',
@@ -533,6 +537,10 @@ export default function App() {
                       <Route
                         path="/volunteer-management/volunteers"
                         element={<VolunteerAdmin />}
+                      />
+                      <Route
+                        path="/volunteer-management/daily"
+                        element={<VolunteerDailyBookings />}
                       />
                       <Route
                         path="/volunteer-management/rankings"
