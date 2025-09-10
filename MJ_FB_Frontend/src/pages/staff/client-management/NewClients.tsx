@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ResponsiveTable, { type Column } from '../../../components/ResponsiveTable';
 import { getNewClients, deleteNewClient, type NewClient } from '../../../api/users';
@@ -13,6 +14,7 @@ export default function NewClients() {
     message: string;
     severity: AlertColor;
   } | null>(null);
+  const [confirm, setConfirm] = useState<NewClient | null>(null);
 
   useEffect(() => {
     load();
@@ -51,8 +53,7 @@ export default function NewClients() {
       render: c => (
         <IconButton
           aria-label="delete"
-          onClick={() => handleDelete(c.id)}
-          
+          onClick={() => setConfirm(c)}
         >
           <DeleteIcon />
         </IconButton>
@@ -66,6 +67,16 @@ export default function NewClients() {
         New Clients
       </Typography>
       <ResponsiveTable columns={columns} rows={clients} getRowKey={c => c.id} />
+      {confirm && (
+        <ConfirmDialog
+          message={`Delete ${confirm.name}?`}
+          onConfirm={async () => {
+            await handleDelete(confirm.id);
+            setConfirm(null);
+          }}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
       <FeedbackSnackbar
         open={!!snackbar}
         onClose={() => setSnackbar(null)}
