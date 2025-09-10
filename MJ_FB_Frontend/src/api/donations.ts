@@ -8,8 +8,8 @@ export interface Donation {
   weight: number;
 }
 
-export async function getDonations(date: string): Promise<Donation[]> {
-  const res = await apiFetch(`${API_BASE}/donations?date=${date}`);
+export async function getDonations(month: string): Promise<Donation[]> {
+  const res = await apiFetch(`${API_BASE}/donations?month=${month}`);
   return handleResponse(res);
 }
 

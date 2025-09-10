@@ -8,15 +8,41 @@ import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
 export async function listDonations(req: Request, res: Response, next: NextFunction) {
   try {
-    const date = req.query.date as string;
-    if (!date) return res.status(400).json({ message: 'Date required' });
-    const result = await pool.query(
-      `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
-       FROM donations d JOIN donors o ON d.donor_id = o.id
-       WHERE d.date = $1 ORDER BY d.id`,
-      [date],
-    );
-    res.json(result.rows);
+    const date = req.query.date as string | undefined;
+    const month = req.query.month as string | undefined;
+
+    if (month) {
+      const [yearStr, monthStr] = month.split('-');
+      const year = parseInt(yearStr, 10);
+      const m = parseInt(monthStr, 10);
+      if (Number.isNaN(year) || Number.isNaN(m)) {
+        return res.status(400).json({ message: 'Invalid month' });
+      }
+      const startDate = new Date(Date.UTC(year, m - 1, 1)).toISOString().slice(0, 10);
+      const endDate = new Date(Date.UTC(year, m, 1)).toISOString().slice(0, 10);
+      const result = await pool.query(
+        `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
+         FROM donations d JOIN donors o ON d.donor_id = o.id
+         WHERE d.date >= $1 AND d.date < $2
+         ORDER BY d.date, d.id`,
+        [startDate, endDate],
+      );
+      res.json(result.rows);
+      return;
+    }
+
+    if (date) {
+      const result = await pool.query(
+        `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
+         FROM donations d JOIN donors o ON d.donor_id = o.id
+         WHERE d.date = $1 ORDER BY d.id`,
+        [date],
+      );
+      res.json(result.rows);
+      return;
+    }
+
+    res.status(400).json({ message: 'Date or month required' });
   } catch (error) {
     logger.error('Error listing donations:', error);
     next(error);

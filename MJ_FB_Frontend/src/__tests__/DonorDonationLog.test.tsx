@@ -25,7 +25,7 @@ describe('Donor Donation Log', () => {
     jest.clearAllMocks();
   });
 
-  it('loads donations for the selected date', async () => {
+  it('loads donations for the selected month', async () => {
     (getMonetaryDonors as jest.Mock).mockResolvedValue([
       { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
     ]);

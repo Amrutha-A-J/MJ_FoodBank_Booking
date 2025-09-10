@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -17,47 +17,29 @@ import Delete from '@mui/icons-material/Delete';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
-import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import { getDonors, createDonor } from '../../api/donors';
 import { getDonations, createDonation, updateDonation, deleteDonation } from '../../api/donations';
 import type { Donor } from '../../api/donors';
 import type { Donation } from '../../api/donations';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, formatDate } from '../../utils/date';
 
-function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function format(date: Date) {
-  return formatDate(date);
+function getDefaultDate(month: string) {
+  const today = formatDate();
+  return today.startsWith(month) ? today : `${month}-01`;
 }
 
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [donors, setDonors] = useState<Donor[]>([]);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
-  });
+  const [month, setMonth] = useState(() => formatDate(undefined, 'YYYY-MM'));
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<Donation | null>(null);
   const [newDonorOpen, setNewDonorOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Donation | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
-
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
 
   const [form, setForm] = useState<{ date: string; donorId: number | null; weight: string }>({
     date: formatDate(),
@@ -119,13 +101,11 @@ export default function DonationLog() {
       .catch(() => setDonors([]));
   }, []);
 
-  const selectedDate = weekDates[tab];
-
   const loadDonations = useCallback(() => {
-    getDonations(format(selectedDate))
+    getDonations(month)
       .then(setDonations)
       .catch(() => setDonations([]));
-  }, [selectedDate]);
+  }, [month]);
 
   useEffect(() => {
     loadDonations();
@@ -140,7 +120,7 @@ export default function DonationLog() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: format(selectedDate), donorId: null, weight: '' });
+        setForm({ date: getDefaultDate(month), donorId: null, weight: '' });
         loadDonations();
         setSnackbar({ open: true, message: editing ? 'Donation updated' : 'Donation recorded' });
       })
@@ -162,32 +142,24 @@ export default function DonationLog() {
     setNewDonorOpen(false);
   }
 
-  const table = (
-    <TableContainer sx={{ overflowX: 'auto' }}>
-      <ResponsiveTable
-        columns={columns}
-        rows={donations}
-        getRowKey={r => r.id}
-      />
-    </TableContainer>
-  );
-
-  const tabs = weekDates.map(d => ({
-    label: formatLocaleDate(d, { weekday: 'short' }),
-    content: table,
-  }));
-
   return (
     <>
       <WarehouseQuickLinks />
       <Page title="Donation Log">
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center">
+          <TextField
+            label="Month"
+            type="month"
+            value={month}
+            onChange={e => setMonth(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ maxWidth: 160 }}
+          />
           <Button
-            
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: format(selectedDate), donorId: null, weight: '' });
+              setForm({ date: getDefaultDate(month), donorId: null, weight: '' });
               setEditing(null);
               setRecordOpen(true);
             }}
@@ -195,7 +167,6 @@ export default function DonationLog() {
             Record Donation
           </Button>
           <Button
-            
             variant="outlined"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
@@ -205,7 +176,13 @@ export default function DonationLog() {
             Add Donor
           </Button>
         </Stack>
-        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+        <TableContainer sx={{ overflowX: 'auto' }}>
+          <ResponsiveTable
+            columns={columns}
+            rows={donations}
+            getRowKey={r => r.id}
+          />
+        </TableContainer>
 
       <Dialog open={recordOpen} onClose={() => { setRecordOpen(false); setEditing(null); }}>
         <DialogCloseButton onClose={() => { setRecordOpen(false); setEditing(null); }} />
