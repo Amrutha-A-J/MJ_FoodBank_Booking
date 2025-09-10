@@ -228,14 +228,14 @@ export async function fetchBookingHistory(
             v.note AS staff_note
        FROM bookings b
        LEFT JOIN slots s ON b.slot_id = s.id
-       LEFT JOIN client_visits v ON v.client_id = b.user_id AND v.date = b.date
+       LEFT JOIN client_visits v ON v.client_id = b.user_id AND v.date = b.date AND v.is_anonymous = false
        WHERE ${where}
        ORDER BY (b.status='approved' AND b.date >= CURRENT_DATE) DESC, b.date DESC${limitOffset}`,
     params,
   );
   let rows = res.rows;
   if (includeVisits && (!status || status === 'visited')) {
-    const visitWhere = ['c.client_id = ANY($1)'];
+    const visitWhere = ['c.client_id = ANY($1)', 'v.is_anonymous = false'];
     if (past) {
       visitWhere.push('v.date < CURRENT_DATE');
     }
