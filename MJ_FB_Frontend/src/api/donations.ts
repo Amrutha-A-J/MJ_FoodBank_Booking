@@ -13,6 +13,11 @@ export async function getDonations(date: string): Promise<Donation[]> {
   return handleResponse(res);
 }
 
+export async function getDonationsByMonth(month: string): Promise<Donation[]> {
+  const res = await apiFetch(`${API_BASE}/donations?month=${month}`);
+  return handleResponse(res);
+}
+
 export async function createDonation(data: { date: string; donorId: number; weight: number }): Promise<Donation> {
   const res = await apiFetch(`${API_BASE}/donations`, {
     method: 'POST',

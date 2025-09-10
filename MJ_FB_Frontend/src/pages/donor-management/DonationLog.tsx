@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import DonorQuickLinks from '../../components/DonorQuickLinks';
@@ -24,24 +23,10 @@ import {
   type MonetaryDonor,
   type MonetaryDonation,
 } from '../../api/monetaryDonors';
-import {
-  formatLocaleDate,
-  toDate,
-  formatDate,
-  addDays,
-} from '../../utils/date';
+import { formatLocaleDate } from '../../utils/date';
 
-function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday first
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function format(date: Date) {
-  return formatDate(date);
+function formatMonth(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
 type DonationRow = MonetaryDonation & {
@@ -53,13 +38,7 @@ type DonationRow = MonetaryDonation & {
 export default function DonationLog() {
   const [donations, setDonations] = useState<DonationRow[]>([]);
   const [donors, setDonors] = useState<MonetaryDonor[]>([]);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor(
-      (today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000),
-    );
-  });
+  const [month, setMonth] = useState(formatMonth());
   const [recordOpen, setRecordOpen] = useState(false);
   const [newDonorOpen, setNewDonorOpen] = useState(false);
   const [form, setForm] = useState<{
@@ -67,7 +46,7 @@ export default function DonationLog() {
     donorId: number | null;
     amount: string;
   }>({
-    date: formatDate(),
+    date: `${month}-01`,
     donorId: null,
     amount: '',
   });
@@ -86,11 +65,6 @@ export default function DonationLog() {
     [],
   );
 
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
-
   useEffect(() => {
     getMonetaryDonors()
       .then(d =>
@@ -105,10 +79,7 @@ export default function DonationLog() {
       .catch(() => setDonors([]));
   }, []);
 
-  const selectedDate = weekDates[tab];
-
   const loadDonations = useCallback(() => {
-    const dateStr = format(selectedDate);
     if (donors.length === 0) {
       setDonations([]);
       return;
@@ -118,7 +89,7 @@ export default function DonationLog() {
         getMonetaryDonations(d.id)
           .then(list =>
             list
-              .filter(n => n.date === dateStr)
+              .filter(n => n.date.startsWith(`${month}-`))
               .map(n => ({
                 ...n,
                 firstName: d.firstName,
@@ -129,9 +100,15 @@ export default function DonationLog() {
           .catch(() => []),
       ),
     )
-      .then(res => setDonations(res.flat()))
+      .then(res =>
+        setDonations(
+          res
+            .flat()
+            .sort((a, b) => a.date.localeCompare(b.date)),
+        ),
+      )
       .catch(() => setDonations([]));
-  }, [donors, selectedDate]);
+  }, [donors, month]);
 
   useEffect(() => {
     loadDonations();
@@ -145,7 +122,7 @@ export default function DonationLog() {
     })
       .then(() => {
         setRecordOpen(false);
-        setForm({ date: format(selectedDate), donorId: null, amount: '' });
+        setForm({ date: `${month}-01`, donorId: null, amount: '' });
         loadDonations();
         setSnackbar({ open: true, message: 'Donation recorded' });
       })
@@ -196,11 +173,6 @@ export default function DonationLog() {
     </TableContainer>
   );
 
-  const tabs = weekDates.map(d => ({
-    label: formatLocaleDate(d, { weekday: 'short' }),
-    content: table,
-  }));
-
   return (
     <>
       <DonorQuickLinks />
@@ -210,7 +182,7 @@ export default function DonationLog() {
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
-              setForm({ date: format(selectedDate), donorId: null, amount: '' });
+              setForm({ date: `${month}-01`, donorId: null, amount: '' });
               setRecordOpen(true);
             }}
           >
@@ -225,9 +197,16 @@ export default function DonationLog() {
           >
             Add Donor
           </Button>
+          <TextField
+            label="Month"
+            type="month"
+            value={month}
+            onChange={e => setMonth(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
         </Stack>
 
-        <StyledTabs tabs={tabs} value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }} />
+        {table}
 
         <Dialog
           open={recordOpen}

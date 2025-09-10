@@ -25,18 +25,20 @@ describe('Donor Donation Log', () => {
     jest.clearAllMocks();
   });
 
-  it('loads donations for the selected date', async () => {
+  it('loads donations for the current month', async () => {
     (getMonetaryDonors as jest.Mock).mockResolvedValue([
       { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
     ]);
     (getMonetaryDonations as jest.Mock).mockImplementation(async () => [
-      { id: 1, donorId: 1, amount: 50, date: '2024-01-01' },
+      { id: 1, donorId: 1, amount: 50, date: '2024-01-10' },
+      { id: 2, donorId: 1, amount: 75, date: '2024-02-05' },
     ]);
 
     renderWithProviders(<DonationLog />);
 
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
     expect(screen.getByText('$50.00')).toBeInTheDocument();
+    expect(screen.queryByText('$75.00')).not.toBeInTheDocument();
   });
 });
 

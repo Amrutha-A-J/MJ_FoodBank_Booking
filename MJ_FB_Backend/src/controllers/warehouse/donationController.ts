@@ -6,15 +6,41 @@ import type { Row } from 'write-excel-file';
 import { refreshWarehouseOverall } from './warehouseOverallController';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
 
-export async function listDonations(req: Request, res: Response, next: NextFunction) {
+export async function listDonations(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const date = req.query.date as string;
-    if (!date) return res.status(400).json({ message: 'Date required' });
+    const date = req.query.date as string | undefined;
+    const month = req.query.month as string | undefined;
+    if (!date && !month)
+      return res.status(400).json({ message: 'Date or month required' });
+
+    if (month) {
+      const [yearStr, monthStr] = month.split('-');
+      const year = parseInt(yearStr, 10);
+      const monthNum = parseInt(monthStr, 10);
+      if (!year || !monthNum || monthNum < 1 || monthNum > 12) {
+        return res.status(400).json({ message: 'Invalid month' });
+      }
+      const start = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+      const endDate = new Date(Date.UTC(year, monthNum, 1));
+      const end = endDate.toISOString().slice(0, 10);
+      const result = await pool.query(
+        `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
+       FROM donations d JOIN donors o ON d.donor_id = o.id
+       WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
+        [start, end],
+      );
+      return res.json(result.rows);
+    }
+
     const result = await pool.query(
       `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
        FROM donations d JOIN donors o ON d.donor_id = o.id
        WHERE d.date = $1 ORDER BY d.id`,
-      [date],
+      [date!],
     );
     res.json(result.rows);
   } catch (error) {
