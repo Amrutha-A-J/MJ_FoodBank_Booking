@@ -35,7 +35,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual(['13:30:00']);
   });
@@ -63,7 +63,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app)
-      .get('/slots/range')
+      .get('/api/slots/range')
       .query({ start: '2024-06-18', days: 2 });
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-18');
@@ -85,7 +85,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app)
-      .get('/slots')
+      .get('/api/slots')
       .query({ date: '2024-06-18', includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual([
@@ -117,7 +117,7 @@ jest.mock('../src/middleware/authMiddleware', () => ({
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app)
-      .get('/slots/range')
+      .get('/api/slots/range')
       .query({ start: '2024-06-18', days: 2, includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-18');
