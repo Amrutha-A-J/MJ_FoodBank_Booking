@@ -67,11 +67,10 @@ describe('GET /warehouse-overall/export', () => {
       'Surplus',
       'Pig Pound',
       'Outgoing Donations',
-      'Total',
     ]);
-    expect(values[1]).toEqual(['January', 10, 2, 1, 0, 13]);
-    expect(values[2]).toEqual(['February', 5, 3, 0, 1, 9]);
-    expect(values[3]).toEqual(['March', 0, 0, 0, 0, 0]);
-    expect(values[13]).toEqual(['Total', 15, 5, 1, 1, 22]);
+    expect(values[1]).toEqual(['January', 10, 2, 1, 0]);
+    expect(values[2]).toEqual(['February', 5, 3, 0, 1]);
+    expect(values[3]).toEqual(['March', 0, 0, 0, 0]);
+    expect(values[13]).toEqual(['Total', 15, 5, 1, 1]);
   });
 });
