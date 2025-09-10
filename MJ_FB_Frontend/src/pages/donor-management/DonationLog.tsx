@@ -5,11 +5,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  DialogContentText,
   TextField,
   TableContainer,
   Stack,
   Autocomplete,
+  IconButton,
 } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
@@ -20,6 +23,8 @@ import {
   createMonetaryDonor,
   getMonetaryDonations,
   createMonetaryDonation,
+  updateMonetaryDonation,
+  deleteMonetaryDonation,
   type MonetaryDonor,
   type MonetaryDonation,
 } from '../../api/monetaryDonors';
@@ -40,6 +45,9 @@ export default function DonationLog() {
   const [donors, setDonors] = useState<MonetaryDonor[]>([]);
   const [month, setMonth] = useState(formatMonth());
   const [recordOpen, setRecordOpen] = useState(false);
+  const [editing, setEditing] = useState<DonationRow | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<DonationRow | null>(null);
   const [newDonorOpen, setNewDonorOpen] = useState(false);
   const [form, setForm] = useState<{
     date: string;
@@ -116,18 +124,37 @@ export default function DonationLog() {
 
   function handleSaveDonation() {
     if (!form.donorId || !form.amount) return;
-    createMonetaryDonation(form.donorId, {
-      date: form.date,
-      amount: Number(form.amount),
-    })
+    const base = { date: form.date, amount: Number(form.amount) };
+    const action = editing
+      ? updateMonetaryDonation(editing.id, { ...base, donorId: form.donorId })
+      : createMonetaryDonation(form.donorId, base);
+    action
       .then(() => {
         setRecordOpen(false);
+        setEditing(null);
         setForm({ date: `${month}-01`, donorId: null, amount: '' });
         loadDonations();
-        setSnackbar({ open: true, message: 'Donation recorded' });
+        setSnackbar({
+          open: true,
+          message: editing ? 'Donation updated' : 'Donation recorded',
+        });
       })
       .catch(() =>
         setSnackbar({ open: true, message: 'Failed to save donation' }),
+      );
+  }
+
+  function handleDeleteDonation() {
+    if (!toDelete) return;
+    deleteMonetaryDonation(toDelete.id)
+      .then(() => {
+        setSnackbar({ open: true, message: 'Donation deleted' });
+        setDeleteOpen(false);
+        setToDelete(null);
+        loadDonations();
+      })
+      .catch(() =>
+        setSnackbar({ open: true, message: 'Failed to delete donation' }),
       );
   }
 
@@ -165,6 +192,35 @@ export default function DonationLog() {
       header: 'Amount',
       render: d => currency.format(d.amount),
     },
+    {
+      field: 'actions' as keyof DonationRow & string,
+      header: 'Actions',
+      render: d => (
+        <>
+          <IconButton
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setEditing(d);
+              setForm({ date: d.date, donorId: d.donorId, amount: String(d.amount) });
+              setRecordOpen(true);
+            }}
+            aria-label="Edit donation"
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            onClick={e => {
+              (e.currentTarget as HTMLButtonElement).blur();
+              setToDelete(d);
+              setDeleteOpen(true);
+            }}
+            aria-label="Delete donation"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+    },
   ];
 
   const table = (
@@ -182,6 +238,7 @@ export default function DonationLog() {
             variant="contained"
             onClick={e => {
               (e.currentTarget as HTMLButtonElement).blur();
+              setEditing(null);
               setForm({ date: `${month}-01`, donorId: null, amount: '' });
               setRecordOpen(true);
             }}
@@ -210,10 +267,18 @@ export default function DonationLog() {
 
         <Dialog
           open={recordOpen}
-          onClose={() => setRecordOpen(false)}
+          onClose={() => {
+            setRecordOpen(false);
+            setEditing(null);
+          }}
         >
-          <DialogCloseButton onClose={() => setRecordOpen(false)} />
-          <DialogTitle>Record Donation</DialogTitle>
+          <DialogCloseButton
+            onClose={() => {
+              setRecordOpen(false);
+              setEditing(null);
+            }}
+          />
+          <DialogTitle>{editing ? 'Edit Donation' : 'Record Donation'}</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -244,6 +309,32 @@ export default function DonationLog() {
             Save
           </Button>
         </DialogActions>
+        </Dialog>
+
+        <Dialog
+          open={deleteOpen}
+          onClose={() => {
+            setDeleteOpen(false);
+            setToDelete(null);
+          }}
+        >
+          <DialogCloseButton
+            onClose={() => {
+              setDeleteOpen(false);
+              setToDelete(null);
+            }}
+          />
+          <DialogTitle>Delete Donation</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this donation?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteDonation} autoFocus>
+              Delete
+            </Button>
+          </DialogActions>
         </Dialog>
 
         <Dialog open={newDonorOpen} onClose={() => setNewDonorOpen(false)}>

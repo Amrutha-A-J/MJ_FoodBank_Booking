@@ -1,9 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../testUtils/renderWithProviders';
 import DonationLog from '../pages/donor-management/DonationLog';
 import {
   getMonetaryDonors,
   getMonetaryDonations,
+  updateMonetaryDonation,
+  deleteMonetaryDonation,
 } from '../api/monetaryDonors';
 
 jest.mock('../api/monetaryDonors', () => ({
@@ -39,6 +41,39 @@ describe('Donor Donation Log', () => {
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
     expect(screen.getByText('$50.00')).toBeInTheDocument();
     expect(screen.queryByText('$75.00')).not.toBeInTheDocument();
+  });
+
+  it('edits and deletes a donation', async () => {
+    (getMonetaryDonors as jest.Mock).mockResolvedValue([
+      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+    ]);
+    (getMonetaryDonations as jest.Mock).mockResolvedValue([
+      { id: 1, donorId: 1, amount: 50, date: '2024-01-10' },
+    ]);
+    (updateMonetaryDonation as jest.Mock).mockResolvedValue({});
+    (deleteMonetaryDonation as jest.Mock).mockResolvedValue({});
+
+    renderWithProviders(<DonationLog />);
+
+    await screen.findByText('$50.00');
+
+    fireEvent.click(screen.getByLabelText('Edit donation'));
+    const amountField = screen.getByLabelText('Amount');
+    fireEvent.change(amountField, { target: { value: '75' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(updateMonetaryDonation).toHaveBeenCalledWith(1, {
+        donorId: 1,
+        amount: 75,
+        date: '2024-01-10',
+      }),
+    );
+
+    fireEvent.click(screen.getByLabelText('Delete donation'));
+    fireEvent.click(screen.getByText('Delete'));
+
+    await waitFor(() => expect(deleteMonetaryDonation).toHaveBeenCalledWith(1));
   });
 });
 
