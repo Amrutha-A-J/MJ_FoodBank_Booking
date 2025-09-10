@@ -140,6 +140,8 @@ export default function App() {
   const showAdmin = isStaff && access.includes('admin');
   const showDonationEntry = role === 'volunteer' && access.includes('donation_entry');
   const showDonationLog = showWarehouse || showDonationEntry;
+  const showAggregations =
+    isStaff && (hasAccess('aggregations') || hasAccess('pantry') || hasAccess('warehouse'));
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
@@ -172,7 +174,6 @@ export default function App() {
       { label: 'Pantry Visits', to: '/pantry/visits' },
       { label: 'Client Management', to: '/pantry/client-management' },
       { label: 'Agency Management', to: '/pantry/agency-management' },
-      { label: 'Aggregations', to: '/pantry/aggregations' },
     ];
     if (showStaff) navGroups.push({ label: 'Harvest Pantry', links: staffLinks });
     if (showVolunteerManagement)
@@ -208,10 +209,17 @@ export default function App() {
         to: '/warehouse-management/track-outgoing-donations',
       },
       { label: 'Track Surplus', to: '/warehouse-management/track-surplus' },
-      { label: 'Aggregations', to: '/warehouse-management/aggregations' },
       { label: 'Exports', to: '/warehouse-management/exports' },
     ];
     if (showWarehouse) navGroups.push({ label: 'Warehouse Management', links: warehouseLinks });
+    if (showAggregations)
+      navGroups.push({
+        label: 'Aggregations',
+        links: [
+          { label: 'Pantry Aggregations', to: '/aggregations/pantry' },
+          { label: 'Warehouse Aggregations', to: '/aggregations/warehouse' },
+        ],
+      });
     if (showAdmin)
       navGroups.push({
         label: 'Admin',
@@ -365,8 +373,14 @@ export default function App() {
                   {showStaff && (
                     <Route path="/pantry/visits" element={<PantryVisits />} />
                   )}
-                  {showStaff && (
-                    <Route path="/pantry/aggregations" element={<PantryAggregations />} />
+                  {showAggregations && (
+                    <Route path="/aggregations/pantry" element={<PantryAggregations />} />
+                  )}
+                  {showAggregations && (
+                    <Route
+                      path="/pantry/aggregations"
+                      element={<Navigate to="/aggregations/pantry" replace />}
+                    />
                   )}
                   {isStaff && (
                     <Route path="/timesheet" element={<Timesheets />} />
@@ -407,10 +421,16 @@ export default function App() {
                       element={<TrackSurplus />}
                     />
                   )}
-                  {showWarehouse && (
+                  {showAggregations && (
+                    <Route
+                      path="/aggregations/warehouse"
+                      element={<Aggregations />}
+                    />
+                  )}
+                  {showAggregations && (
                     <Route
                       path="/warehouse-management/aggregations"
-                      element={<Aggregations />}
+                      element={<Navigate to="/aggregations/warehouse" replace />}
                     />
                   )}
                   {showWarehouse && (

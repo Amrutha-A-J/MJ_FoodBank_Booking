@@ -106,6 +106,10 @@ describe('App authentication persistence', () => {
     expect(getStaffRootPath(['warehouse'] as any)).toBe('/warehouse-management');
   });
 
+  it('computes aggregations path for single aggregations access', () => {
+    expect(getStaffRootPath(['aggregations'] as any)).toBe('/aggregations/pantry');
+  });
+
   it('shows donor management nav links for donor_management access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
