@@ -376,12 +376,6 @@ export default function App() {
                   {showAggregations && (
                     <Route path="/aggregations/pantry" element={<PantryAggregations />} />
                   )}
-                  {showAggregations && (
-                    <Route
-                      path="/pantry/aggregations"
-                      element={<Navigate to="/aggregations/pantry" replace />}
-                    />
-                  )}
                   {isStaff && (
                     <Route path="/timesheet" element={<Timesheets />} />
                   )}

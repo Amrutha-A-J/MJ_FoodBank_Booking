@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PantryQuickLinks from '../components/PantryQuickLinks';
 
