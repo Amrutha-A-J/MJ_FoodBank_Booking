@@ -30,6 +30,7 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import Page from '../../components/Page';
 import PantryQuickLinks from '../../components/PantryQuickLinks';
@@ -101,6 +102,11 @@ export default function ManageAvailability() {
     setSnackbar({ open: true, message, severity });
   };
 
+  const [confirm, setConfirm] = useState<{
+    message: string;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -164,14 +170,21 @@ export default function ManageAvailability() {
     }
   };
 
-  const handleRemoveHoliday = async (date: string) => {
-    try {
-      await removeHoliday(formatReginaDate(date));
-      setHolidays(prev => prev.filter(h => h.date !== date));
-      showSnackbar('Holiday removed', 'success');
-    } catch {
-      showSnackbar('Failed to remove holiday', 'error');
-    }
+  const handleRemoveHoliday = (date: string) => {
+    setConfirm({
+      message: 'Remove holiday?',
+      onConfirm: async () => {
+        try {
+          await removeHoliday(formatReginaDate(date));
+          setHolidays(prev => prev.filter(h => h.date !== date));
+          showSnackbar('Holiday removed', 'success');
+        } catch {
+          showSnackbar('Failed to remove holiday', 'error');
+        } finally {
+          setConfirm(null);
+        }
+      },
+    });
   };
 
   const handleAddBlocked = async () => {
@@ -218,23 +231,30 @@ export default function ManageAvailability() {
     }
   };
 
-  const handleRemoveBlocked = async (id: number) => {
+  const handleRemoveBlocked = (id: number) => {
     const slot = blockedSlots.find(b => b.id === id);
     if (!slot) return;
-    try {
-      if (slot.date) {
-        await removeBlockedSlot(
-          formatReginaDate(slot.date),
-          slot.slotId,
-        );
-      } else {
-        await removeRecurringBlockedSlot(slot.id);
-      }
-      setBlockedSlots(prev => prev.filter(b => b.id !== id));
-      showSnackbar('Blocked slot removed', 'success');
-    } catch {
-      showSnackbar('Failed to remove blocked slot', 'error');
-    }
+    setConfirm({
+      message: 'Remove blocked slot?',
+      onConfirm: async () => {
+        try {
+          if (slot.date) {
+            await removeBlockedSlot(
+              formatReginaDate(slot.date),
+              slot.slotId,
+            );
+          } else {
+            await removeRecurringBlockedSlot(slot.id);
+          }
+          setBlockedSlots(prev => prev.filter(b => b.id !== id));
+          showSnackbar('Blocked slot removed', 'success');
+        } catch {
+          showSnackbar('Failed to remove blocked slot', 'error');
+        } finally {
+          setConfirm(null);
+        }
+      },
+    });
   };
 
   const handleAddBreak = async () => {
@@ -261,16 +281,23 @@ export default function ManageAvailability() {
     }
   };
 
-  const handleRemoveBreak = async (id: number) => {
+  const handleRemoveBreak = (id: number) => {
     const brk = breaks.find(b => b.id === id);
     if (!brk) return;
-    try {
-      await removeBreak(brk.day, brk.slotId);
-      setBreaks(prev => prev.filter(b => b.id !== id));
-      showSnackbar('Break removed', 'success');
-    } catch {
-      showSnackbar('Failed to remove break', 'error');
-    }
+    setConfirm({
+      message: 'Remove break?',
+      onConfirm: async () => {
+        try {
+          await removeBreak(brk.day, brk.slotId);
+          setBreaks(prev => prev.filter(b => b.id !== id));
+          showSnackbar('Break removed', 'success');
+        } catch {
+          showSnackbar('Failed to remove break', 'error');
+        } finally {
+          setConfirm(null);
+        }
+      },
+    });
   };
   const tabs: TabItem[] = [
     {
@@ -581,6 +608,15 @@ export default function ManageAvailability() {
             severity={snackbar.severity}
             onClose={() => setSnackbar(s => ({ ...s, open: false }))}
           />
+          {confirm && (
+            <ConfirmDialog
+              message={confirm.message}
+              onConfirm={() => {
+                void confirm.onConfirm();
+              }}
+              onCancel={() => setConfirm(null)}
+            />
+          )}
         </Box>
       </Page>
     </LocalizationProvider>
