@@ -120,12 +120,14 @@ describe('App authentication persistence', () => {
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
-  it('does not show donor management nav links for admin without donor_management', async () => {
+  it('shows donor management nav links for admin without donor_management', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['admin']));
     renderWithProviders(<App />);
-    expect(screen.queryByText('Donor Management')).not.toBeInTheDocument();
+    fireEvent.click(await screen.findByText('Donor Management'));
+    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
   it('shows aggregations nav links for aggregations access', async () => {
@@ -154,6 +156,15 @@ describe('App authentication persistence', () => {
     window.history.pushState({}, '', '/donor-management');
     renderWithProviders(<App />);
     expect(await screen.findByText('MailLists')).toBeInTheDocument();
+  });
+
+  it('routes admin without donor_management to donor pages', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['admin']));
+    window.history.pushState({}, '', '/donor-management/donation-log');
+    renderWithProviders(<App />);
+    expect(await screen.findByText('DonationLogPage')).toBeInTheDocument();
   });
 
   it('redirects staff without donor_management access away from donor pages', async () => {
