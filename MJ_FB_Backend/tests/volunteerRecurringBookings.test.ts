@@ -1,8 +1,30 @@
 import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
+import {
+  cancelRecurringVolunteerBooking,
+} from '../src/controllers/volunteer/volunteerBookingController';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+
+const formatDate = (d: Date) => d.toISOString().split('T')[0];
+const addDays = (d: Date, days: number) => {
+  const copy = new Date(d);
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+};
+const getNextMonday = () => {
+  const d = new Date();
+  const delta = (8 - d.getUTCDay()) % 7;
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d;
+};
+const getNextFriday = () => {
+  const d = new Date();
+  const delta = (5 - d.getUTCDay() + 7) % 7;
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d;
+};
 
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
@@ -38,52 +60,77 @@ describe('recurring volunteer bookings', () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ role_id: 2, max_volunteers: 3, category_name: 'Pantry' }],
+        rows: [
+          {
+            role_id: 2,
+            max_volunteers: 3,
+            category_name: 'Pantry',
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+          },
+        ],
       })
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 10 }] })
       .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
 
+    const start = getNextMonday();
+    const end = addDays(start, 2);
     const res = await request(app)
       .post('/volunteer-bookings/recurring')
-      .send({ roleId: 2, startDate: '2025-01-01', endDate: '2025-01-03', pattern: 'daily' });
+      .send({
+        roleId: 2,
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+        pattern: 'daily',
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.recurringId).toBe(10);
     expect(res.body.successes).toEqual([
-      '2025-01-01',
-      '2025-01-02',
-      '2025-01-03',
+      formatDate(start),
+      formatDate(addDays(start, 1)),
+      formatDate(end),
     ]);
-      expect(res.body.skipped).toEqual([]);
+    expect(res.body.skipped).toEqual([]);
   });
 
   it('skips dates that fail validation', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ role_id: 2, max_volunteers: 3, category_name: 'Pantry' }],
+        rows: [
+          {
+            role_id: 2,
+            max_volunteers: 3,
+            category_name: 'Pantry',
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+          },
+        ],
       })
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 20 }] })
       .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
 
+    const start = getNextFriday();
+    const end = addDays(start, 2);
     const res = await request(app)
       .post('/volunteer-bookings/recurring')
       .send({
         roleId: 2,
-        startDate: '2025-01-03',
-        endDate: '2025-01-05',
+        startDate: formatDate(start),
+        endDate: formatDate(end),
         pattern: 'daily',
       });
 
     expect(res.status).toBe(201);
     expect(res.body.recurringId).toBe(20);
-    expect(res.body.successes).toEqual(['2025-01-03']);
-      expect(res.body.skipped).toEqual([
-        { date: '2025-01-04', reason: 'Role not bookable on holidays or weekends' },
-        { date: '2025-01-05', reason: 'Role not bookable on holidays or weekends' },
-      ]);
+    expect(res.body.successes).toEqual([formatDate(start)]);
+    expect(res.body.skipped).toEqual([
+      { date: formatDate(addDays(start, 1)), reason: 'Role not bookable on holidays or weekends' },
+      { date: formatDate(end), reason: 'Role not bookable on holidays or weekends' },
+    ]);
   });
 
   it('cancels future recurring bookings', async () => {
@@ -101,21 +148,31 @@ describe('recurring volunteer bookings', () => {
         ],
       })
       .mockResolvedValue({});
-    const res = await request(app).delete(
-      '/volunteer-bookings/recurring/10?from=2025-01-02',
-    );
-      expect(res.status).toBe(200);
-      expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
+    const from = formatDate(addDays(getNextMonday(), 1));
+    const req = {
+      params: { id: '10' },
+      query: { from },
+      body: {},
+      user: { role: 'volunteer' },
+    } as any;
+    const json = jest.fn();
+    const res: any = { json };
+    const next = jest.fn();
+    await cancelRecurringVolunteerBooking(req, res, next);
+    expect(json).toHaveBeenCalledWith({ message: 'Recurring bookings cancelled' });
+    expect(sendTemplatedEmailMock).not.toHaveBeenCalled();
   });
 
   it('lists recurring bookings', async () => {
+    const start = getNextMonday();
+    const end = addDays(start, 9);
     (pool.query as jest.Mock).mockResolvedValue({
       rows: [
         {
           id: 1,
           role_id: 2,
-          start_date: '2025-01-01',
-          end_date: '2025-01-10',
+          start_date: formatDate(start),
+          end_date: formatDate(end),
           pattern: 'daily',
           days_of_week: [],
         },
@@ -127,8 +184,8 @@ describe('recurring volunteer bookings', () => {
       {
         id: 1,
         role_id: 2,
-        start_date: '2025-01-01',
-        end_date: '2025-01-10',
+        start_date: formatDate(start),
+        end_date: formatDate(end),
         pattern: 'daily',
         days_of_week: [],
       },
