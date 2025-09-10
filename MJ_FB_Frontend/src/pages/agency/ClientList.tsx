@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
   getMyAgencyClients,
   addAgencyClient,
@@ -32,6 +33,7 @@ export default function ClientList() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
   >(null);
+  const [confirmClient, setConfirmClient] = useState<AgencyClient | null>(null);
   useAuth(); // ensure auth context
 
   const load = async () => {
@@ -73,9 +75,10 @@ export default function ClientList() {
     }
   };
 
-  const handleRemove = async (id: number) => {
+  const handleRemove = async () => {
+    if (!confirmClient) return;
     try {
-      await removeAgencyClient('me', id);
+      await removeAgencyClient('me', confirmClient.id);
       setSnackbar({ message: 'Client removed', severity: 'success' });
       load();
     } catch (err: any) {
@@ -84,6 +87,7 @@ export default function ClientList() {
         severity: 'error',
       });
     }
+    setConfirmClient(null);
   };
 
   return (
@@ -101,7 +105,7 @@ export default function ClientList() {
                 <IconButton
                   edge="end"
                   aria-label="remove"
-                  onClick={() => handleRemove(c.id)}
+                  onClick={() => setConfirmClient(c)}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -137,6 +141,13 @@ export default function ClientList() {
         message={snackbar?.message || ''}
         severity={snackbar?.severity}
       />
+      {confirmClient && (
+        <ConfirmDialog
+          message={`Remove ${confirmClient.name}?`}
+          onConfirm={handleRemove}
+          onCancel={() => setConfirmClient(null)}
+        />
+      )}
     </Grid>
     </Page>
   );
