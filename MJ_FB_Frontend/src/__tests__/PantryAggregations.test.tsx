@@ -1,7 +1,8 @@
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PantryAggregations from '../pages/staff/PantryAggregations';
-import { getWeekForDate } from '../utils/pantryWeek';
+import { getWeekForDate, getWeekRanges } from '../utils/pantryWeek';
+import dayjs, { formatDate } from '../utils/date';
 
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
@@ -79,7 +80,20 @@ describe('PantryAggregations page', () => {
 
     expect(screen.getByTestId('responsive-table-table')).toBeInTheDocument();
     expect(screen.getByText('week')).toBeInTheDocument();
-    expect(screen.getAllByText(String(currentWeek)).length).toBeGreaterThan(0);
+    const ranges = getWeekRanges(currentYear, currentMonth - 1);
+    const range = ranges.find(r => r.week === currentWeek)!;
+    let start = dayjs(range.startDate);
+    let end = dayjs(range.endDate);
+    while (start.day() !== 1 && start.isBefore(end)) {
+      start = start.add(1, 'day');
+    }
+    while (end.day() !== 5 && end.isAfter(start)) {
+      end = end.subtract(1, 'day');
+    }
+    const expectedLabel = start.isSame(end, 'day')
+      ? formatDate(start)
+      : `${formatDate(start)} - ${formatDate(end)}`;
+    expect(screen.getByText(expectedLabel)).toBeInTheDocument();
     expect(screen.getAllByText('2').length).toBeGreaterThan(0);
   });
 

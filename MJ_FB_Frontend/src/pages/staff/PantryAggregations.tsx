@@ -180,7 +180,32 @@ export default function PantryAggregations() {
     if (tab !== 0 || weeklyYear === '' || weeklyMonth === '') return;
     setWeeklyLoading(true);
     getPantryWeekly(weeklyYear, weeklyMonth)
-      .then(setWeeklyRows)
+      .then(rows => {
+        const ranges = getWeekRanges(weeklyYear, Number(weeklyMonth) - 1)
+          .map(r => {
+            let start = dayjs(r.startDate);
+            let end = dayjs(r.endDate);
+            while (start.day() !== 1 && start.isBefore(end)) {
+              start = start.add(1, 'day');
+            }
+            while (end.day() !== 5 && end.isAfter(start)) {
+              end = end.subtract(1, 'day');
+            }
+            if (start.isAfter(end)) return null;
+            const label = start.isSame(end, 'day')
+              ? formatDate(start)
+              : `${formatDate(start)} - ${formatDate(end)}`;
+            return { week: r.week, label };
+          })
+          .filter((r): r is { week: number; label: string } => r !== null);
+        const map = new Map(ranges.map(r => [r.week, r.label]));
+        setWeeklyRows(
+          rows.map(({ week, ...rest }) => ({
+            ...rest,
+            week: map.get(week) ?? `Week ${week}`,
+          })),
+        );
+      })
       .catch(() => setWeeklyRows([]))
       .finally(() => setWeeklyLoading(false));
   }, [weeklyYear, weeklyMonth, tab]);
@@ -189,7 +214,11 @@ export default function PantryAggregations() {
     if (tab !== 1 || monthlyYear === '' || month === '') return;
     setMonthlyLoading(true);
     getPantryMonthly(monthlyYear, month)
-      .then(setMonthlyRows)
+      .then(rows =>
+        setMonthlyRows(
+          rows.map(r => ({ ...r, month: monthNames[r.month - 1] ?? r.month })),
+        ),
+      )
       .catch(() => setMonthlyRows([]))
       .finally(() => setMonthlyLoading(false));
   }, [monthlyYear, month, tab]);
