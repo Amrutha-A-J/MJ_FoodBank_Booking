@@ -69,6 +69,9 @@ describe('pantry aggregation routes', () => {
     expect(res.headers['content-type']).toBe(
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
+    expect(res.headers['content-disposition']).toBe(
+      'attachment; filename=2024_05_2024-04-29_to_2024-05-03_week_1_agggregation.xlsx',
+    );
     expect(res.body).toEqual(Buffer.from('test'));
   });
 });
