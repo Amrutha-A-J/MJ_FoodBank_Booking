@@ -182,6 +182,9 @@ describe('Mailing list generation', () => {
       expect.stringContaining('FROM pantry_monthly_overall'),
       [2024, 6],
     );
+    expect(pool.query.mock.calls[2][0]).toEqual(
+      expect.stringContaining('weight AS pounds'),
+    );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
