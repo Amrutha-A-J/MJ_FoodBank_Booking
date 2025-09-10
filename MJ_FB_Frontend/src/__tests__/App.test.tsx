@@ -120,6 +120,14 @@ describe('App authentication persistence', () => {
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
+  it('does not show donor management nav links for admin without donor_management', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['admin']));
+    renderWithProviders(<App />);
+    expect(screen.queryByText('Donor Management')).not.toBeInTheDocument();
+  });
+
   it('shows aggregations nav links for aggregations access', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
