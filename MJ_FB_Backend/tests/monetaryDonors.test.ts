@@ -185,6 +185,9 @@ describe('Mailing list generation', () => {
     expect(pool.query.mock.calls[2][0]).toEqual(
       expect.stringContaining('weight AS pounds'),
     );
+    expect(pool.query.mock.calls[2][0]).toEqual(
+      expect.stringContaining('orders AS families'),
+    );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
