@@ -7,6 +7,7 @@ import {
   MenuItem,
   Button,
   CircularProgress,
+  Typography,
 } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -17,13 +18,10 @@ import {
   exportWarehouseOverall,
 } from '../../api/warehouseOverall';
 import { exportDonorAggregations } from '../../api/donations';
-import { toDate } from '../../utils/date';
 
 export default function Exports() {
-  const currentYear = toDate().getFullYear();
-  const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const [years, setYears] = useState<number[]>(fallbackYears);
-  const [year, setYear] = useState(fallbackYears[0]);
+  const [years, setYears] = useState<number[]>([]);
+  const [year, setYear] = useState<number | ''>('');
   const [donorLoading, setDonorLoading] = useState(false);
   const [overallLoading, setOverallLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -36,18 +34,19 @@ export default function Exports() {
     async function loadYears() {
       try {
         const ys = await getWarehouseOverallYears();
+        setYears(ys);
         if (ys.length) {
-          setYears(ys);
           setYear(ys[0]);
         }
       } catch {
-        // ignore, fallback already set
+        setYears([]);
       }
     }
     loadYears();
   }, []);
 
   const handleDonorExport = async () => {
+    if (!year) return;
     setDonorLoading(true);
     try {
       const blob = await exportDonorAggregations(year);
@@ -68,6 +67,7 @@ export default function Exports() {
   };
 
   const handleOverallExport = async () => {
+    if (!year) return;
     setOverallLoading(true);
     try {
       await rebuildWarehouseOverall(year);
@@ -100,29 +100,39 @@ export default function Exports() {
             label="Year"
             value={year}
             onChange={e => setYear(Number(e.target.value))}
+            disabled={!years.length}
           >
-            {years.map(y => (
-              <MenuItem key={y} value={y}>
-                {y}
+            {years.length ? (
+              years.map(y => (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem value="" disabled>
+                No years available
               </MenuItem>
-            ))}
+            )}
           </Select>
         </FormControl>
       </Stack>
+      {!years.length && (
+        <Typography sx={{ mb: 2 }}>No years available</Typography>
+      )}
       <Stack spacing={2} direction="column" alignItems="flex-start">
         <Button
-          
+
           variant="contained"
           onClick={handleDonorExport}
-          disabled={donorLoading}
+          disabled={donorLoading || !year}
         >
           {donorLoading ? <CircularProgress size={20} /> : 'Export Donor Aggregations'}
         </Button>
         <Button
-          
+
           variant="contained"
           onClick={handleOverallExport}
-          disabled={overallLoading}
+          disabled={overallLoading || !year}
         >
           {overallLoading ? <CircularProgress size={20} /> : 'Export Warehouse Overall Stats'}
         </Button>
