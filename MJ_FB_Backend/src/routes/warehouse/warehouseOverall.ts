@@ -9,14 +9,29 @@ import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware
 
 const router = Router();
 
-router.get('/', listWarehouseOverall);
+router.get(
+  '/',
+  authMiddleware,
+  authorizeAccess('warehouse', 'aggregations'),
+  listWarehouseOverall,
+);
 router.post(
   '/rebuild',
   authMiddleware,
   authorizeAccess('warehouse', 'aggregations'),
   rebuildWarehouseOverall,
 );
-router.get('/export', exportWarehouseOverall);
-router.get('/years', listAvailableYears);
+router.get(
+  '/export',
+  authMiddleware,
+  authorizeAccess('warehouse', 'aggregations'),
+  exportWarehouseOverall,
+);
+router.get(
+  '/years',
+  authMiddleware,
+  authorizeAccess('warehouse', 'aggregations'),
+  listAvailableYears,
+);
 
 export default router;
