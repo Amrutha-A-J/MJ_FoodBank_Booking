@@ -203,7 +203,7 @@ export default function PantryAggregations() {
   const weeklyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="small" sx={{ minWidth: 80 }}>
           <InputLabel id="weekly-year-label">Year</InputLabel>
           <Select
             labelId="weekly-year-label"
@@ -282,7 +282,7 @@ export default function PantryAggregations() {
   const monthlyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="small" sx={{ minWidth: 80 }}>
           <InputLabel id="monthly-year-label">Year</InputLabel>
           <Select
             labelId="monthly-year-label"
@@ -339,7 +339,7 @@ export default function PantryAggregations() {
   const yearlyContent = (
     <>
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" sx={{ minWidth: 90 }}>
+        <FormControl size="small" sx={{ minWidth: 80 }}>
           <InputLabel id="yearly-year-label">Year</InputLabel>
           <Select
             labelId="yearly-year-label"
