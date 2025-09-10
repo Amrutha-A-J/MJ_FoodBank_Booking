@@ -23,7 +23,7 @@ describe('PantryQuickLinks', () => {
     );
     expect(screen.getByRole('link', { name: /Aggregations/i })).toHaveAttribute(
       'href',
-      '/pantry/aggregations',
+      '/aggregations/pantry',
     );
   });
 });
