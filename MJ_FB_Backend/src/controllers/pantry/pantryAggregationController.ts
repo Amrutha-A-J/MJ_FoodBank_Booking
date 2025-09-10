@@ -45,13 +45,14 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
   ]);
 
   const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
-  const adults = Number(visitsRes.rows[0]?.adults ?? 0);
+  const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients;
+  const clients = visitClients + bagClients;
+  const adults = visitAdults + bagClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
@@ -89,13 +90,14 @@ export async function refreshPantryMonthly(year: number, month: number) {
   ]);
 
   const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
-  const adults = Number(visitsRes.rows[0]?.adults ?? 0);
+  const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients;
+  const clients = visitClients + bagClients;
+  const adults = visitAdults + bagClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
@@ -133,13 +135,14 @@ export async function refreshPantryYearly(year: number) {
   ]);
 
   const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
-  const adults = Number(visitsRes.rows[0]?.adults ?? 0);
+  const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
   const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
   const bagWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients;
+  const clients = visitClients + bagClients;
+  const adults = visitAdults + bagClients;
   const totalWeight = visitWeight + bagWeight;
 
   await pool.query(
