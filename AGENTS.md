@@ -44,6 +44,7 @@
 - Profile pages let clients and volunteers toggle email reminders from `/users/me/preferences`.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
 - Donation management pages are accessible only to staff with donor_management access.
+- Aggregations pages are accessible only to staff with aggregations access.
 
 See `MJ_FB_Backend/AGENTS.md` for backend-specific guidance and `MJ_FB_Frontend/AGENTS.md` for frontend-specific guidance.
 
