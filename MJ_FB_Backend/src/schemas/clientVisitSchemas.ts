@@ -9,6 +9,7 @@ export const clientVisitSchema = z.object({
   adults: z.number().int().min(0),
   children: z.number().int().min(0),
   petItem: z.number().int().optional(),
+  verified: z.boolean().optional(),
   note: z.string().optional(),
 });
 

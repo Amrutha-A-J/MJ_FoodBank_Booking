@@ -5,7 +5,7 @@ import {
   refreshPantryMonthly,
   refreshPantryYearly,
 } from '../src/controllers/pantryStatsController';
-import { deleteVisit } from '../src/controllers/clientVisitController';
+import { deleteVisit, toggleVisitVerification } from '../src/controllers/clientVisitController';
 
 jest.mock('../src/controllers/pantryStatsController', () => ({
   refreshPantryWeekly: jest.fn(),
@@ -41,5 +41,59 @@ describe('clientVisitController', () => {
     expect(refreshPantryWeekly).toHaveBeenCalledWith(year, month, week);
     expect(refreshPantryMonthly).toHaveBeenCalledWith(year, month);
     expect(refreshPantryYearly).toHaveBeenCalledWith(year);
+  });
+
+  it('toggles visit verification', async () => {
+    (mockDb.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            date: '2024-05-20',
+            clientId: 1,
+            weightWithCart: 0,
+            weightWithoutCart: 0,
+            petItem: 0,
+            anonymous: false,
+            note: null,
+            adults: 0,
+            children: 0,
+            verified: true,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 1,
+            date: '2024-05-20',
+            clientId: 1,
+            weightWithCart: 0,
+            weightWithoutCart: 0,
+            petItem: 0,
+            anonymous: false,
+            note: null,
+            adults: 0,
+            children: 0,
+            verified: false,
+          },
+        ],
+      });
+
+    const req = { params: { id: '1' } } as any;
+    const res = { json: jest.fn() } as any;
+    const next = jest.fn();
+
+    await toggleVisitVerification(req, res, next);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ verified: true }),
+    );
+
+    await toggleVisitVerification(req, res, next);
+    expect(res.json).toHaveBeenLastCalledWith(
+      expect.objectContaining({ verified: false }),
+    );
   });
 });
