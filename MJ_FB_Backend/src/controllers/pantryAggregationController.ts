@@ -16,7 +16,14 @@ import {
   refreshPantryYearly,
 } from './pantry/pantryAggregationController';
 
-export { listAvailableYears, listAvailableMonths, listAvailableWeeks };
+export {
+  listAvailableYears,
+  listAvailableMonths,
+  listAvailableWeeks,
+  refreshPantryWeekly,
+  refreshPantryMonthly,
+  refreshPantryYearly,
+};
 
 export async function listWeeklyAggregations(req: Request, res: Response, next: NextFunction) {
   return listPantryWeekly(req, res, next);
