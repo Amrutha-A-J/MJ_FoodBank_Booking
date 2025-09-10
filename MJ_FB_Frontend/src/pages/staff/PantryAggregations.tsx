@@ -19,16 +19,16 @@ import {
   getPantryMonthly,
   getPantryYearly,
   getPantryYears,
+  getPantryMonths,
+  getPantryWeeks,
   exportPantryAggregations,
   rebuildPantryAggregations,
 } from '../../api/pantryAggregations';
-import dayjs, { formatDate, toDate } from '../../utils/date';
+import dayjs, { formatDate } from '../../utils/date';
 import { getWeekRanges } from '../../utils/pantryWeek';
 
 export default function PantryAggregations() {
-  const currentYear = toDate().getFullYear();
-  const fallbackYears = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const [years, setYears] = useState<number[]>(fallbackYears);
+  const [years, setYears] = useState<number[]>([]);
   const [tab, setTab] = useState(0);
 
   const monthNames = [
@@ -46,19 +46,22 @@ export default function PantryAggregations() {
     'December',
   ];
 
-  const [weeklyYear, setWeeklyYear] = useState(fallbackYears[0]);
-  const [weeklyMonth, setWeeklyMonth] = useState(1);
+  const [weeklyYear, setWeeklyYear] = useState<number | ''>('');
+  const [weeklyMonths, setWeeklyMonths] = useState<number[]>([]);
+  const [weeklyMonth, setWeeklyMonth] = useState<number | ''>('');
+  const [weeklyWeeks, setWeeklyWeeks] = useState<number[]>([]);
   const [week, setWeek] = useState<number | ''>('');
   const [weekRanges, setWeekRanges] = useState<{ week: number; label: string }[]>([]);
   const [weeklyRows, setWeeklyRows] = useState<any[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
 
-  const [monthlyYear, setMonthlyYear] = useState(fallbackYears[0]);
-  const [month, setMonth] = useState(1);
+  const [monthlyYear, setMonthlyYear] = useState<number | ''>('');
+  const [monthlyMonths, setMonthlyMonths] = useState<number[]>([]);
+  const [month, setMonth] = useState<number | ''>('');
   const [monthlyRows, setMonthlyRows] = useState<any[]>([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
 
-  const [yearlyYear, setYearlyYear] = useState(fallbackYears[0]);
+  const [yearlyYear, setYearlyYear] = useState<number | ''>('');
   const [yearlyRows, setYearlyRows] = useState<any[]>([]);
   const [yearlyLoading, setYearlyLoading] = useState(false);
 
@@ -66,7 +69,12 @@ export default function PantryAggregations() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
 
   useEffect(() => {
-    const ranges = getWeekRanges(weeklyYear, weeklyMonth - 1)
+    if (weeklyYear === '' || weeklyMonth === '') {
+      setWeekRanges([]);
+      setWeek('');
+      return;
+    }
+    const ranges = getWeekRanges(weeklyYear, Number(weeklyMonth) - 1)
       .map(r => {
         let start = dayjs(r.startDate);
         let end = dayjs(r.endDate);
@@ -86,36 +94,76 @@ export default function PantryAggregations() {
 
         return { week: r.week, label };
       })
-      .filter((r): r is { week: number; label: string } => r !== null);
+      .filter(
+        (r): r is { week: number; label: string } =>
+          r !== null && weeklyWeeks.includes(r.week),
+      );
 
     setWeekRanges(ranges);
-    if (ranges.length) {
-      setWeek(ranges[0].week);
-    } else {
-      setWeek('');
-    }
-  }, [weeklyYear, weeklyMonth]);
+    setWeek(ranges[0]?.week ?? '');
+  }, [weeklyYear, weeklyMonth, weeklyWeeks]);
 
   useEffect(() => {
     getPantryYears()
       .then(ys => {
+        setYears(ys);
         if (ys.length) {
-          setYears(ys);
           setWeeklyYear(ys[0]);
           setMonthlyYear(ys[0]);
           setYearlyYear(ys[0]);
         }
       })
       .catch(() => {
-        setYears(fallbackYears);
-        setWeeklyYear(fallbackYears[0]);
-        setMonthlyYear(fallbackYears[0]);
-        setYearlyYear(fallbackYears[0]);
+        setYears([]);
       });
   }, []);
 
   useEffect(() => {
-    if (tab !== 0) return;
+    if (weeklyYear === '') {
+      setWeeklyMonths([]);
+      setWeeklyMonth('');
+      return;
+    }
+    getPantryMonths(weeklyYear)
+      .then(ms => {
+        setWeeklyMonths(ms);
+        setWeeklyMonth(ms[0] ?? '');
+      })
+      .catch(() => {
+        setWeeklyMonths([]);
+        setWeeklyMonth('');
+      });
+  }, [weeklyYear]);
+
+  useEffect(() => {
+    if (monthlyYear === '') {
+      setMonthlyMonths([]);
+      setMonth('');
+      return;
+    }
+    getPantryMonths(monthlyYear)
+      .then(ms => {
+        setMonthlyMonths(ms);
+        setMonth(ms[0] ?? '');
+      })
+      .catch(() => {
+        setMonthlyMonths([]);
+        setMonth('');
+      });
+  }, [monthlyYear]);
+
+  useEffect(() => {
+    if (weeklyYear === '' || weeklyMonth === '') {
+      setWeeklyWeeks([]);
+      return;
+    }
+    getPantryWeeks(weeklyYear, weeklyMonth)
+      .then(ws => setWeeklyWeeks(ws))
+      .catch(() => setWeeklyWeeks([]));
+  }, [weeklyYear, weeklyMonth]);
+
+  useEffect(() => {
+    if (tab !== 0 || weeklyYear === '' || weeklyMonth === '') return;
     setWeeklyLoading(true);
     getPantryWeekly(weeklyYear, weeklyMonth)
       .then(setWeeklyRows)
@@ -124,7 +172,7 @@ export default function PantryAggregations() {
   }, [weeklyYear, weeklyMonth, tab]);
 
   useEffect(() => {
-    if (tab !== 1) return;
+    if (tab !== 1 || monthlyYear === '' || month === '') return;
     setMonthlyLoading(true);
     getPantryMonthly(monthlyYear, month)
       .then(setMonthlyRows)
@@ -133,7 +181,7 @@ export default function PantryAggregations() {
   }, [monthlyYear, month, tab]);
 
   useEffect(() => {
-    if (tab !== 2) return;
+    if (tab !== 2 || yearlyYear === '') return;
     setYearlyLoading(true);
     getPantryYearly(yearlyYear)
       .then(setYearlyRows)
@@ -142,6 +190,7 @@ export default function PantryAggregations() {
   }, [yearlyYear, tab]);
 
   const handleExportWeekly = async () => {
+    if (weeklyYear === '' || weeklyMonth === '' || week === '') return;
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
@@ -149,7 +198,7 @@ export default function PantryAggregations() {
         period: 'weekly',
         year: weeklyYear,
         month: weeklyMonth,
-        week: week as number,
+        week: week,
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -165,10 +214,15 @@ export default function PantryAggregations() {
   };
 
   const handleExportMonthly = async () => {
+    if (monthlyYear === '' || month === '') return;
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
-      const { blob, fileName } = await exportPantryAggregations({ period: 'monthly', year: monthlyYear, month });
+      const { blob, fileName } = await exportPantryAggregations({
+        period: 'monthly',
+        year: monthlyYear,
+        month,
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -183,10 +237,14 @@ export default function PantryAggregations() {
   };
 
   const handleExportYearly = async () => {
+    if (yearlyYear === '') return;
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
-      const { blob, fileName } = await exportPantryAggregations({ period: 'yearly', year: yearlyYear });
+      const { blob, fileName } = await exportPantryAggregations({
+        period: 'yearly',
+        year: yearlyYear,
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -225,8 +283,9 @@ export default function PantryAggregations() {
             label="Month"
             value={weeklyMonth}
             onChange={e => setWeeklyMonth(Number(e.target.value))}
+            disabled={!weeklyMonths.length}
           >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+            {weeklyMonths.map(m => (
               <MenuItem key={m} value={m}>
                 {monthNames[m - 1]}
               </MenuItem>
@@ -254,7 +313,7 @@ export default function PantryAggregations() {
         <Button
           variant="contained"
           onClick={handleExportWeekly}
-          disabled={exportLoading || week === ''}
+          disabled={exportLoading || !weekRanges.length}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
@@ -304,15 +363,20 @@ export default function PantryAggregations() {
             label="Month"
             value={month}
             onChange={e => setMonth(Number(e.target.value))}
+            disabled={!monthlyMonths.length}
           >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+            {monthlyMonths.map(m => (
               <MenuItem key={m} value={m}>
                 {monthNames[m - 1]}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleExportMonthly} disabled={exportLoading}>
+        <Button
+          variant="contained"
+          onClick={handleExportMonthly}
+          disabled={exportLoading || !month}
+        >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
       </Stack>
@@ -354,7 +418,11 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleExportYearly} disabled={exportLoading}>
+        <Button
+          variant="contained"
+          onClick={handleExportYearly}
+          disabled={exportLoading || !yearlyYear}
+        >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
       </Stack>

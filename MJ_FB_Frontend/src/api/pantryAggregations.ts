@@ -20,6 +20,16 @@ export async function getPantryYears() {
   return handleResponse(res);
 }
 
+export async function getPantryMonths(year: number) {
+  const res = await apiFetch(`${API_BASE}/pantry-aggregations/months?year=${year}`);
+  return handleResponse(res);
+}
+
+export async function getPantryWeeks(year: number, month: number) {
+  const res = await apiFetch(`${API_BASE}/pantry-aggregations/weeks?year=${year}&month=${month}`);
+  return handleResponse(res);
+}
+
 export async function exportPantryAggregations(params: {
   period: 'weekly' | 'monthly' | 'yearly';
   year: number;
