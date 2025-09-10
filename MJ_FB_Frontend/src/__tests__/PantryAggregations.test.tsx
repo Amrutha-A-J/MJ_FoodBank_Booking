@@ -6,7 +6,10 @@ const mockGetPantryWeekly = jest.fn().mockResolvedValue([]);
 const mockGetPantryMonthly = jest.fn().mockResolvedValue([]);
 const mockGetPantryYearly = jest.fn().mockResolvedValue([]);
 const mockGetPantryYears = jest.fn().mockResolvedValue([new Date().getFullYear()]);
-const mockExportPantryAggregations = jest.fn().mockResolvedValue(new Blob());
+const mockExportPantryAggregations = jest.fn().mockResolvedValue({
+  blob: new Blob(),
+  fileName: 'test.xlsx',
+});
 const mockRebuildPantryAggregations = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../api/pantryAggregations', () => ({

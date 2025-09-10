@@ -147,7 +147,7 @@ export default function PantryAggregations() {
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
-      const blob = await exportPantryAggregations({
+      const { blob, fileName } = await exportPantryAggregations({
         period: 'weekly',
         year: weeklyYear,
         month: weeklyMonth,
@@ -156,7 +156,7 @@ export default function PantryAggregations() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${weeklyYear}_${monthNames[weeklyMonth - 1]}_week${week}_pantry_stats.xlsx`;
+      a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -170,11 +170,11 @@ export default function PantryAggregations() {
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
-      const blob = await exportPantryAggregations({ period: 'monthly', year: monthlyYear, month });
+      const { blob, fileName } = await exportPantryAggregations({ period: 'monthly', year: monthlyYear, month });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${monthlyYear}_${monthNames[month - 1]}_pantry_stats.xlsx`;
+      a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -187,11 +187,11 @@ export default function PantryAggregations() {
   const handleExportYearly = async () => {
     setExportLoading(true);
     try {
-      const blob = await exportPantryAggregations({ period: 'yearly', year: yearlyYear });
+      const { blob, fileName } = await exportPantryAggregations({ period: 'yearly', year: yearlyYear });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${yearlyYear}_pantry_yearly_stats.xlsx`;
+      a.download = fileName;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
