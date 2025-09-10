@@ -75,6 +75,30 @@ describe('PasswordSetup', () => {
     await waitFor(() =>
       expect(screen.getByText(/invalid or expired token/i)).toBeInTheDocument(),
     );
+    const input = await screen.findByLabelText(/email or client id/i);
+    fireEvent.change(input, { target: { value: 'user@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+    await waitFor(() =>
+      expect(resendPasswordSetup).toHaveBeenCalledWith({ email: 'user@example.com' }),
+    );
+  });
+
+  it('shows expired token message without password field', async () => {
+    (getPasswordSetupInfo as jest.Mock).mockRejectedValue(
+      new Error('Invalid or expired token'),
+    );
+    (resendPasswordSetup as jest.Mock).mockResolvedValue(undefined);
+    render(
+      <MemoryRouter initialEntries={["/set-password?token=bad"]}>
+        <Routes>
+          <Route path="/set-password" element={<PasswordSetup />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(
+      await screen.findByText(/invalid or expired token/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText(/password/i, { selector: 'input' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /resend link/i }));
     const input = await screen.findByLabelText(/email or client id/i);
     fireEvent.change(input, { target: { value: 'user@example.com' } });
@@ -97,7 +121,7 @@ describe('PasswordSetup', () => {
       </MemoryRouter>
     );
     expect(await screen.findByText(/client id/i)).toBeInTheDocument();
-    expect(screen.getByText('123')).toBeInTheDocument();
+    expect(screen.getByText(/123/)).toBeInTheDocument();
   });
 
   it('shows email from token info', async () => {
@@ -113,7 +137,7 @@ describe('PasswordSetup', () => {
       </MemoryRouter>
     );
     expect(await screen.findByText(/email/i)).toBeInTheDocument();
-    expect(screen.getByText('staff@example.com')).toBeInTheDocument();
+    expect(await screen.findByText(/staff@example.com/)).toBeInTheDocument();
   });
 
   it('shows role-specific login button', async () => {
@@ -125,7 +149,11 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
-    const btn = await screen.findByRole('button', { name: /back to login/i });
-    expect(btn).toHaveAttribute('href', '/login/volunteer');
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.getByRole('link', { name: /back to login/i }),
+      ).toHaveAttribute('href', '/login/volunteer'),
+    );
   });
 });
