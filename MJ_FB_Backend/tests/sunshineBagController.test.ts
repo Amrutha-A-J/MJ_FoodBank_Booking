@@ -35,7 +35,7 @@ describe('sunshineBagController', () => {
     const next = jest.fn();
     await upsertSunshineBag(req, res, next);
     const { week, month, year } = getWeekForDate('2024-05-20');
-    expect(refreshPantryWeekly).toHaveBeenCalledWith(year, week);
+    expect(refreshPantryWeekly).toHaveBeenCalledWith(year, month, week);
     expect(refreshPantryMonthly).toHaveBeenCalledWith(year, month);
     expect(refreshPantryYearly).toHaveBeenCalledWith(year);
   });
