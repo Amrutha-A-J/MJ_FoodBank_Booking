@@ -49,7 +49,7 @@ describe('pantry aggregation routes', () => {
       rows: [
         {
           month: 4,
-          clients: 0,
+          orders: 0,
           adults: 0,
           children: 0,
           weight: 0,
@@ -58,7 +58,7 @@ describe('pantry aggregation routes', () => {
         },
         {
           month: 5,
-          clients: 1,
+          orders: 1,
           adults: 0,
           children: 0,
           weight: 0,
@@ -78,7 +78,7 @@ describe('pantry aggregation routes', () => {
       rows: [
         {
           week: 1,
-          clients: 0,
+          orders: 0,
           adults: 0,
           children: 0,
           weight: 0,
@@ -87,7 +87,7 @@ describe('pantry aggregation routes', () => {
         },
         {
           week: 2,
-          clients: 1,
+          orders: 1,
           adults: 0,
           children: 0,
           weight: 0,
