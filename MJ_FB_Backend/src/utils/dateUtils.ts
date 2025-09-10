@@ -68,9 +68,39 @@ export function reginaStartOfDayISO(date: string | Date): string {
 export function getWeekForDate(date: string | Date) {
   const d = toReginaDate(date);
   const year = d.getUTCFullYear();
-  const month = d.getUTCMonth() + 1;
-  const startOfYear = new Date(Date.UTC(year, 0, 1));
-  const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000) + 1;
-  const week = Math.ceil(dayOfYear / 7);
-  return { week, month, year };
+  const monthIndex = d.getUTCMonth(); // 0-based
+  const month = monthIndex + 1;
+
+  // Determine week ranges for the month using Monday as the first day of the week
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+  const startOfMonth = toReginaDate(`${year}-${pad(month)}-01`);
+  const endOfMonth = toReginaDate(`${year}-${pad(month)}-${pad(daysInMonth)}`);
+  const dayOfWeek = startOfMonth.getUTCDay(); // 0=Sun..6=Sat
+  const diff = (dayOfWeek + 6) % 7; // days to subtract to reach Monday
+  let current = new Date(startOfMonth);
+  current.setUTCDate(current.getUTCDate() - diff);
+
+  let week = 1;
+  while (current <= endOfMonth) {
+    const start = current < startOfMonth ? startOfMonth : current;
+    const endCandidate = new Date(current);
+    endCandidate.setUTCDate(endCandidate.getUTCDate() + 6);
+    const end = endCandidate > endOfMonth ? endOfMonth : endCandidate;
+
+    if (d >= start && d <= end) {
+      return {
+        week,
+        month,
+        year,
+        startDate: formatReginaDate(start),
+        endDate: formatReginaDate(end),
+      };
+    }
+
+    current.setUTCDate(current.getUTCDate() + 7);
+    week += 1;
+  }
+
+  throw new Error('Date out of range');
 }
