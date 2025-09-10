@@ -18,7 +18,6 @@ import {
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
@@ -308,17 +307,14 @@ export default function Aggregations() {
   ];
 
     return (
-      <>
-        <WarehouseQuickLinks />
-        <Page title="Aggregations">
-          <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-          <FeedbackSnackbar
-            open={snackbar.open}
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            message={snackbar.message}
-            severity={snackbar.severity}
-          />
-        </Page>
-      </>
+      <Page title="Warehouse Aggregations">
+        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+        <FeedbackSnackbar
+          open={snackbar.open}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          message={snackbar.message}
+          severity={snackbar.severity}
+        />
+      </Page>
     );
-}
+  }
