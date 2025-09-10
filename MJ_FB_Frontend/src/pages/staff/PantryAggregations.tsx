@@ -49,7 +49,7 @@ export default function PantryAggregations() {
 
   const [weeklyYear, setWeeklyYear] = useState(fallbackYears[0]);
   const [weeklyMonth, setWeeklyMonth] = useState(1);
-  const [week, setWeek] = useState(1);
+  const [week, setWeek] = useState<number | ''>('');
   const [weekRanges, setWeekRanges] = useState<{ week: number; label: string }[]>([]);
   const [weeklyRows, setWeeklyRows] = useState<any[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
@@ -95,6 +95,8 @@ export default function PantryAggregations() {
     setWeekRanges(ranges);
     if (ranges.length) {
       setWeek(ranges[0].week);
+    } else {
+      setWeek('');
     }
   }, [weeklyYear, weeklyMonth]);
 
@@ -144,6 +146,7 @@ export default function PantryAggregations() {
   }, [yearlyYear, tab]);
 
   const handleExportWeekly = async () => {
+    if (week === '') return;
     setExportLoading(true);
     try {
       await rebuildPantryAggregations();
@@ -202,7 +205,7 @@ export default function PantryAggregations() {
   };
 
   const handleExportWeeklyTable = async () => {
-    if (!weeklyTableRef.current) return;
+    if (week === '' || !weeklyTableRef.current) return;
     const success = await exportTableToExcel(
       weeklyTableRef.current,
       `${weeklyYear}_${monthNames[weeklyMonth - 1]}_weekly_list`,
@@ -279,8 +282,14 @@ export default function PantryAggregations() {
             labelId="weekly-week-label"
             label="Week"
             value={week}
-            onChange={e => setWeek(Number(e.target.value))}
+            onChange={e =>
+              setWeek(e.target.value === '' ? '' : Number(e.target.value))
+            }
+            displayEmpty
           >
+            <MenuItem value="" disabled>
+              <em>Week</em>
+            </MenuItem>
             {weekRanges.map(range => (
               <MenuItem key={range.week} value={range.week}>
                 {range.label}
@@ -288,10 +297,18 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleExportWeekly} disabled={exportLoading}>
+        <Button
+          variant="contained"
+          onClick={handleExportWeekly}
+          disabled={exportLoading || week === ''}
+        >
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
         </Button>
-        <Button variant="contained" onClick={handleExportWeeklyTable} disabled={exportLoading}>
+        <Button
+          variant="contained"
+          onClick={handleExportWeeklyTable}
+          disabled={exportLoading || week === ''}
+        >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
       </Stack>
