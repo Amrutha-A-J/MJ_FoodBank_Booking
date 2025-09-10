@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
+import { ZodError } from 'zod';
 import pool from '../../db';
 import {
   sendTemplatedEmail,
@@ -14,15 +15,16 @@ import {
   CreateRecurringVolunteerBookingRequest,
   CreateRecurringVolunteerBookingForVolunteerRequest,
 } from '../../types/volunteerBooking';
-  import {
-    formatReginaDate,
-    formatReginaDateWithDay,
-    reginaStartOfDayISO,
-    formatTimeToAmPm,
-  } from '../../utils/dateUtils';
+import {
+  formatReginaDate,
+  formatReginaDateWithDay,
+  reginaStartOfDayISO,
+  formatTimeToAmPm,
+} from '../../utils/dateUtils';
 import config from '../../config';
 import { sendBookingEvent } from '../../utils/bookingEvents';
 import { notifyOps } from '../../utils/opsAlert';
+import { volunteerBookingsByDateSchema } from '../../schemas/volunteer/volunteerBookingSchemas';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -744,6 +746,38 @@ export async function listVolunteerBookings(
     res.json(bookings);
   } catch (error) {
     logger.error('Error listing volunteer bookings:', error);
+    next(error);
+  }
+}
+
+export async function listVolunteerBookingsByDate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { date } = volunteerBookingsByDateSchema.parse(req.query);
+    const result = await pool.query(
+      `SELECT vb.id, vb.status, vb.slot_id AS role_id, vb.volunteer_id, vb.date,
+              vb.reschedule_token, vb.recurring_id,
+              vs.start_time, vs.end_time, vs.max_volunteers, vr.name AS role_name, vmr.name AS category_name,
+              v.first_name || ' ' || v.last_name AS volunteer_name
+       FROM volunteer_bookings vb
+       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+       JOIN volunteer_roles vr ON vs.role_id = vr.id
+       JOIN volunteer_master_roles vmr ON vr.category_id = vmr.id
+       JOIN volunteers v ON vb.volunteer_id = v.id
+       WHERE vb.date = $1
+       ORDER BY vs.start_time`,
+      [date],
+    );
+    const bookings = result.rows.map(mapBookingRow);
+    res.json(bookings);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ errors: error.issues });
+    }
+    logger.error('Error listing volunteer bookings by date:', error);
     next(error);
   }
 }
