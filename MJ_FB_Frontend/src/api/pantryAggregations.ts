@@ -1,5 +1,14 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
+function startOfWeek(date: Date) {
+  const d = new Date(date);
+  const day = d.getUTCDay();
+  const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+  d.setUTCDate(diff);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
 export async function getPantryWeekly(year: number, month: number) {
   const res = await apiFetch(`${API_BASE}/pantry-aggregations/weekly?year=${year}&month=${month}`);
   return handleResponse(res);
@@ -44,7 +53,30 @@ export async function exportPantryAggregations(params: {
   const blob = await res.blob();
   const disposition = res.headers.get('Content-Disposition') ?? '';
   const match = disposition.match(/filename="?([^";]+)"?/i);
-  const fileName = match ? match[1] : 'pantry_aggregations.xlsx';
+  let fileName: string;
+  if (match) {
+    fileName = match[1];
+  } else {
+    if (params.period === 'weekly' && params.month != null && params.week != null) {
+      const monthStart = new Date(Date.UTC(params.year, params.month - 1, 1));
+      const firstMonday = startOfWeek(monthStart);
+      const start = new Date(firstMonday);
+      start.setUTCDate(firstMonday.getUTCDate() + (params.week - 1) * 7);
+      const end = new Date(start);
+      end.setUTCDate(start.getUTCDate() + 4);
+      const startDate = start.toISOString().slice(0, 10);
+      const endDate = end.toISOString().slice(0, 10);
+      const monthPadded = String(params.month).padStart(2, '0');
+      fileName = `${params.year}_${monthPadded}_${startDate}_to_${endDate}_week_${params.week}_agggregation.xlsx`;
+    } else if (params.period === 'monthly' && params.month != null) {
+      const monthPadded = String(params.month).padStart(2, '0');
+      fileName = `${params.year}_${monthPadded}_monthly_pantry_aggregation.xlsx`;
+    } else if (params.period === 'yearly') {
+      fileName = `${params.year}_yearly_pantry_aggregation.xlsx`;
+    } else {
+      fileName = 'pantry_aggregations.xlsx';
+    }
+  }
   return { blob, fileName };
 }
 
