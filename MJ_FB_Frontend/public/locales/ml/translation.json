@@ -228,15 +228,7 @@
       "sunshine_bag_weight": "Sunshine Bag Weight",
       "adults": "Adults",
       "children": "Children"
-    },
-    "import_visits": "Import Visits",
-    "import": "Import",
-    "import_success": "Visits imported",
-    "import_error": "Import failed",
-    "dry_run": "Dry-run",
-    "sheet_date": "Date",
-    "sheet_rows": "Rows",
-    "sheet_errors": "Errors"
+    }
   },
   "sunshine_bag_label": "Sunshine bag?",
   "sunshine_bag_weight_label": "Sunshine Bag Weight",

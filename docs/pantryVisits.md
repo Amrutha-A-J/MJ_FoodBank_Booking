@@ -12,14 +12,6 @@ Add the following translation strings to locale files:
 - `pantry_visits.summary.sunshine_bag_weight`
 - `pantry_visits.summary.adults`
 - `pantry_visits.summary.children`
-- `pantry_visits.import_visits`
-- `pantry_visits.import`
-- `pantry_visits.import_success`
-- `pantry_visits.import_error`
-- `pantry_visits.dry_run`
-- `pantry_visits.sheet_date`
-- `pantry_visits.sheet_rows`
-- `pantry_visits.sheet_errors`
 
 ## Visit limits
 
@@ -51,5 +43,3 @@ If a visit already exists for the same client on a given date, the importer over
 ### Dry run
 
 Append `dryRun=true` to validate the spreadsheet and preview counts without creating any visits. After reviewing the response, rerun the request without `dryRun` to perform the import.
-
-Save the file as `.xlsx` and upload it using the **Import Visits** button on the Pantry Visits page. Use **Dry-run** to preview sheets before finalizing the import.

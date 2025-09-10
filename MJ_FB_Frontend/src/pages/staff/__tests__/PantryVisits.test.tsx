@@ -17,7 +17,6 @@ jest.mock('../../../api/clientVisits', () => ({
   createClientVisit: jest.fn(),
   updateClientVisit: jest.fn(),
   deleteClientVisit: jest.fn(),
-  importVisitsXlsx: jest.fn(),
   toggleClientVisitVerification: jest.fn(),
 }));
 
@@ -35,7 +34,7 @@ jest.mock('../../../api/sunshineBags', () => ({
   saveSunshineBag: jest.fn(),
 }));
 
-const { getClientVisits, importVisitsXlsx, toggleClientVisitVerification } =
+const { getClientVisits, toggleClientVisitVerification } =
   jest.requireMock('../../../api/clientVisits');
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
@@ -341,62 +340,6 @@ describe('PantryVisits', () => {
     renderVisits();
 
     expect(await screen.findByText('No records')).toBeInTheDocument();
-  });
-
-  it('shows preview after dry-run', async () => {
-    (getClientVisits as jest.Mock).mockResolvedValue([]);
-    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
-    (getSunshineBag as jest.Mock).mockResolvedValue(null);
-    (importVisitsXlsx as jest.Mock).mockResolvedValue({
-      sheets: [{ date: '2024-02-01', rows: 2, errors: ['bad row'] }],
-    });
-
-    renderVisits();
-
-    await screen.findByText('Record Visit');
-
-    fireEvent.click(screen.getByText('Import Visits'));
-    const input = screen.getByTestId('import-input') as HTMLInputElement;
-    const file = new File(['1'], 'visits.xlsx', {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    fireEvent.change(input, { target: { files: [file] } });
-
-    fireEvent.click(screen.getByText('Dry-run'));
-
-    await waitFor(() =>
-      expect(importVisitsXlsx).toHaveBeenCalledWith(
-        expect.any(FormData),
-        true,
-      ),
-    );
-
-    expect(await screen.findByText('bad row')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-  });
-
-  it('imports visits after selecting file', async () => {
-    (getClientVisits as jest.Mock).mockResolvedValue([]);
-    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
-    (getSunshineBag as jest.Mock).mockResolvedValue(null);
-    (importVisitsXlsx as jest.Mock).mockResolvedValue(undefined);
-
-    renderVisits();
-
-    await screen.findByText('Record Visit');
-
-    fireEvent.click(screen.getByText('Import Visits'));
-    const input = screen.getByTestId('import-input') as HTMLInputElement;
-    const file = new File(['1'], 'visits.xlsx', {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    fireEvent.change(input, { target: { files: [file] } });
-
-    fireEvent.click(screen.getByText('Import'));
-
-    await waitFor(() =>
-      expect(importVisitsXlsx).toHaveBeenCalledWith(expect.any(FormData)),
-    );
   });
 
   it('navigates to selected date', async () => {
