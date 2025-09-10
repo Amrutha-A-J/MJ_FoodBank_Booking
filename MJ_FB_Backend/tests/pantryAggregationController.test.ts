@@ -12,10 +12,10 @@ describe('pantryAggregationController totals', () => {
     (mockDb.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
   });
 
-  it('includes sunshine bag clients in total client and adult counts', async () => {
+  it('includes sunshine bag orders in total order and adult counts', async () => {
     (mockDb.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ visits: 5, adults: 3, children: 2, weight: 100 }] })
-      .mockResolvedValueOnce({ rows: [{ clients: 2, weight: 30 }] })
+      .mockResolvedValueOnce({ rows: [{ orders: 2, weight: 30 }] })
       .mockResolvedValueOnce({});
 
     await refreshPantryMonthly(2024, 5);

@@ -42,7 +42,7 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
       [startStr, endStr],
     ),
     pool.query(
-      `SELECT COALESCE(SUM(client_count)::int,0) AS clients,
+      `SELECT COALESCE(SUM(client_count)::int,0) AS orders,
               COALESCE(SUM(weight)::int,0) AS weight
          FROM sunshine_bag_log
         WHERE date >= $1 AND date <= $2`,
@@ -50,24 +50,24 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
     ),
   ]);
 
-  const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
+  const visitOrders = Number(visitsRes.rows[0]?.visits ?? 0);
   const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
-  const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
+  const bagOrders = Number(bagRes.rows[0]?.orders ?? 0);
   const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
-  const adults = visitAdults + bagClients;
+  const orders = visitOrders + bagOrders;
+  const adults = visitAdults + bagOrders;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
-    `INSERT INTO pantry_weekly_overall (year, month, week, start_date, end_date, clients, adults, children, weight, sunshine_bags, sunshine_weight)
+    `INSERT INTO pantry_weekly_overall (year, month, week, start_date, end_date, orders, adults, children, weight, sunshine_bags, sunshine_weight)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (year, month, week)
        DO UPDATE SET start_date = EXCLUDED.start_date,
                      end_date = EXCLUDED.end_date,
-                     clients = EXCLUDED.clients,
+                     orders = EXCLUDED.orders,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      weight = EXCLUDED.weight,
@@ -79,11 +79,11 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
       week,
       startStr,
       endStr,
-      clients,
+      orders,
       adults,
       children,
       weight,
-      bagClients,
+      bagOrders,
       sunshineWeight,
     ],
   );
@@ -101,7 +101,7 @@ export async function refreshPantryMonthly(year: number, month: number) {
       [year, month],
     ),
     pool.query(
-      `SELECT COALESCE(SUM(client_count)::int,0) AS clients,
+      `SELECT COALESCE(SUM(client_count)::int,0) AS orders,
               COALESCE(SUM(weight)::int,0) AS weight
          FROM sunshine_bag_log
         WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
@@ -109,28 +109,28 @@ export async function refreshPantryMonthly(year: number, month: number) {
     ),
   ]);
 
-  const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
+  const visitOrders = Number(visitsRes.rows[0]?.visits ?? 0);
   const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
-  const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
+  const bagOrders = Number(bagRes.rows[0]?.orders ?? 0);
   const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
-  const adults = visitAdults + bagClients;
+  const orders = visitOrders + bagOrders;
+  const adults = visitAdults + bagOrders;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
-    `INSERT INTO pantry_monthly_overall (year, month, clients, adults, children, weight, sunshine_bags, sunshine_weight)
+    `INSERT INTO pantry_monthly_overall (year, month, orders, adults, children, weight, sunshine_bags, sunshine_weight)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (year, month)
-       DO UPDATE SET clients = EXCLUDED.clients,
+       DO UPDATE SET orders = EXCLUDED.orders,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      weight = EXCLUDED.weight,
                      sunshine_bags = EXCLUDED.sunshine_bags,
                      sunshine_weight = EXCLUDED.sunshine_weight`,
-    [year, month, clients, adults, children, weight, bagClients, sunshineWeight],
+    [year, month, orders, adults, children, weight, bagOrders, sunshineWeight],
   );
 }
 
@@ -146,7 +146,7 @@ export async function refreshPantryYearly(year: number) {
       [year],
     ),
     pool.query(
-      `SELECT COALESCE(SUM(client_count)::int,0) AS clients,
+      `SELECT COALESCE(SUM(client_count)::int,0) AS orders,
               COALESCE(SUM(weight)::int,0) AS weight
          FROM sunshine_bag_log
         WHERE EXTRACT(YEAR FROM date) = $1`,
@@ -154,28 +154,28 @@ export async function refreshPantryYearly(year: number) {
     ),
   ]);
 
-  const visitClients = Number(visitsRes.rows[0]?.visits ?? 0);
+  const visitOrders = Number(visitsRes.rows[0]?.visits ?? 0);
   const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
   const children = Number(visitsRes.rows[0]?.children ?? 0);
   const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
-  const bagClients = Number(bagRes.rows[0]?.clients ?? 0);
+  const bagOrders = Number(bagRes.rows[0]?.orders ?? 0);
   const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
-  const clients = visitClients + bagClients;
-  const adults = visitAdults + bagClients;
+  const orders = visitOrders + bagOrders;
+  const adults = visitAdults + bagOrders;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
-    `INSERT INTO pantry_yearly_overall (year, clients, adults, children, weight, sunshine_bags, sunshine_weight)
+    `INSERT INTO pantry_yearly_overall (year, orders, adults, children, weight, sunshine_bags, sunshine_weight)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (year)
-       DO UPDATE SET clients = EXCLUDED.clients,
+       DO UPDATE SET orders = EXCLUDED.orders,
                      adults = EXCLUDED.adults,
                      children = EXCLUDED.children,
                      weight = EXCLUDED.weight,
                      sunshine_bags = EXCLUDED.sunshine_bags,
                      sunshine_weight = EXCLUDED.sunshine_weight`,
-    [year, clients, adults, children, weight, bagClients, sunshineWeight],
+    [year, orders, adults, children, weight, bagOrders, sunshineWeight],
   );
 }
 
@@ -185,7 +185,7 @@ export async function listPantryWeekly(req: Request, res: Response, next: NextFu
     const month = parseInt((req.query.month as string) ?? '', 10);
     if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
     const result = await pool.query(
-      `SELECT week, clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
+      `SELECT week, orders, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_weekly_overall
         WHERE year = $1 AND month = $2
         ORDER BY week`,
@@ -204,7 +204,7 @@ export async function listPantryMonthly(req: Request, res: Response, next: NextF
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
-      `SELECT month, clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
+      `SELECT month, orders, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_monthly_overall
         WHERE year = $1
         ORDER BY month`,
@@ -220,7 +220,7 @@ export async function listPantryMonthly(req: Request, res: Response, next: NextF
 export async function listPantryYearly(req: Request, res: Response, next: NextFunction) {
   try {
     const result = await pool.query(
-      `SELECT year, clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
+      `SELECT year, orders, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_yearly_overall
         ORDER BY year`,
     );
@@ -246,7 +246,7 @@ export async function listAvailableMonths(req: Request, res: Response, next: Nex
     const year = parseInt((req.query.year as string) ?? '', 10);
     if (!year) return res.status(400).json({ message: 'Year required' });
     const result = await pool.query(
-      `SELECT month, clients, adults, children, weight,
+      `SELECT month, orders, adults, children, weight,
               sunshine_bags AS "sunshineBags",
               sunshine_weight AS "sunshineWeight"
          FROM pantry_monthly_overall
@@ -257,7 +257,7 @@ export async function listAvailableMonths(req: Request, res: Response, next: Nex
     const months = result.rows
       .filter(
         r =>
-          r.clients > 0 ||
+          r.orders > 0 ||
           r.adults > 0 ||
           r.children > 0 ||
           r.weight > 0 ||
@@ -279,7 +279,7 @@ export async function listAvailableWeeks(req: Request, res: Response, next: Next
     if (!year || !month)
       return res.status(400).json({ message: 'Year and month required' });
     const result = await pool.query(
-      `SELECT week, clients, adults, children, weight,
+      `SELECT week, orders, adults, children, weight,
               sunshine_bags AS "sunshineBags",
               sunshine_weight AS "sunshineWeight"
          FROM pantry_weekly_overall
@@ -290,7 +290,7 @@ export async function listAvailableWeeks(req: Request, res: Response, next: Next
     const weeks = result.rows
       .filter(
         r =>
-          r.clients > 0 ||
+          r.orders > 0 ||
           r.adults > 0 ||
           r.children > 0 ||
           r.weight > 0 ||
@@ -314,7 +314,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
       return res.status(400).json({ message: 'Year, month and week required' });
     await refreshPantryWeekly(year, month, week);
     const result = await pool.query(
-      `SELECT start_date AS "startDate", end_date AS "endDate", clients, adults, children,
+      `SELECT start_date AS "startDate", end_date AS "endDate", orders, adults, children,
               weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_weekly_overall
         WHERE year = $1 AND month = $2 AND week = $3`,
@@ -325,7 +325,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
       result.rows[0] || {
         startDate: null,
         endDate: null,
-        clients: 0,
+        orders: 0,
         adults: 0,
         children: 0,
         foodWeight: 0,
@@ -348,7 +348,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
     const rows: Row[] = [
       [
         { value: 'Range/Month/Year', ...headerStyle },
-        { value: 'Clients', ...headerStyle },
+        { value: 'Orders', ...headerStyle },
         { value: 'Adults', ...headerStyle },
         { value: 'Children', ...headerStyle },
         { value: 'Food Weight', ...headerStyle },
@@ -357,7 +357,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
       ],
       [
         { value: startDate && endDate ? `${startDate} - ${endDate}` : `Week ${week}` },
-        { value: row.clients },
+        { value: row.orders },
         { value: row.adults },
         { value: row.children },
         { value: row.foodWeight },
@@ -395,7 +395,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
     if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
     await refreshPantryMonthly(year, month);
     const result = await pool.query(
-      `SELECT clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
+      `SELECT orders, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_monthly_overall
         WHERE year = $1 AND month = $2`,
       [year, month],
@@ -403,7 +403,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
 
     const row =
       result.rows[0] || {
-        clients: 0,
+        orders: 0,
         adults: 0,
         children: 0,
         foodWeight: 0,
@@ -429,7 +429,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
     const rows: Row[] = [
       [
         { value: 'Range/Month/Year', ...headerStyle },
-        { value: 'Clients', ...headerStyle },
+        { value: 'Orders', ...headerStyle },
         { value: 'Adults', ...headerStyle },
         { value: 'Children', ...headerStyle },
         { value: 'Food Weight', ...headerStyle },
@@ -438,7 +438,7 @@ export async function exportPantryMonthly(req: Request, res: Response, next: Nex
       ],
       [
         { value: monthNames[month - 1] },
-        { value: row.clients },
+        { value: row.orders },
         { value: row.adults },
         { value: row.children },
         { value: row.foodWeight },
@@ -475,7 +475,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
     if (!year) return res.status(400).json({ message: 'Year required' });
     await refreshPantryYearly(year);
     const result = await pool.query(
-      `SELECT clients, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
+      `SELECT orders, adults, children, weight AS "foodWeight", sunshine_bags AS "sunshineBags", sunshine_weight AS "sunshineWeight"
          FROM pantry_yearly_overall
         WHERE year = $1`,
       [year],
@@ -483,7 +483,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
 
     const row =
       result.rows[0] || {
-        clients: 0,
+        orders: 0,
         adults: 0,
         children: 0,
         foodWeight: 0,
@@ -494,7 +494,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
     const rows: Row[] = [
       [
         { value: 'Range/Month/Year', ...headerStyle },
-        { value: 'Clients', ...headerStyle },
+        { value: 'Orders', ...headerStyle },
         { value: 'Adults', ...headerStyle },
         { value: 'Children', ...headerStyle },
         { value: 'Food Weight', ...headerStyle },
@@ -503,7 +503,7 @@ export async function exportPantryYearly(req: Request, res: Response, next: Next
       ],
       [
         { value: year },
-        { value: row.clients },
+        { value: row.orders },
         { value: row.adults },
         { value: row.children },
         { value: row.foodWeight },
