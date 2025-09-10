@@ -10,27 +10,27 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
 
-describe('GET /slots with invalid dates', () => {
+describe('GET /api/slots with invalid dates', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns 400 for malformed date string', async () => {
-    const res = await request(app).get('/slots').query({ date: 'not-a-date' });
+    const res = await request(app).get('/api/slots').query({ date: 'not-a-date' });
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Invalid date');
     expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
   });
 
   it('returns 400 for invalid date format', async () => {
-    const res = await request(app).get('/slots').query({ date: '2024-02-30abc' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-02-30abc' });
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Invalid date');
     expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
   });
 });
 
-describe('GET /slots applies slot rules', () => {
+describe('GET /api/slots applies slot rules', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -53,7 +53,7 @@ describe('GET /slots applies slot rules', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const res = await request(app).get('/slots').query({ date: '2024-06-17' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-17' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual([
       '09:30:00',
@@ -77,7 +77,7 @@ describe('GET /slots applies slot rules', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const res = await request(app).get('/slots').query({ date: '2024-06-19' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-19' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual([
       '09:30:00',
@@ -99,7 +99,7 @@ describe('GET /slots applies slot rules', () => {
       .mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app)
-      .get('/slots/range')
+      .get('/api/slots/range')
       .query({ start: '2024-06-19', days: 1, includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-19');
@@ -122,7 +122,7 @@ describe('GET /slots applies slot rules', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
-    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
@@ -151,7 +151,7 @@ describe('GET /slots applies slot rules', () => {
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ slot_id: 1, approved_count: 7 }] });
 
-    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
@@ -166,14 +166,14 @@ describe('GET /slots applies slot rules', () => {
   });
 });
 
-describe('GET /slots closed days', () => {
+describe('GET /api/slots closed days', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns empty array on weekends', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
-    const res = await request(app).get('/slots').query({ date: '2024-06-16' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-16' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
     expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
@@ -181,22 +181,60 @@ describe('GET /slots closed days', () => {
 
   it('returns empty array on holidays', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ reason: 'Holiday' }] });
-    const res = await request(app).get('/slots').query({ date: '2024-06-18' });
+    const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
     expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 });
 
-describe('GET /slots/range default length', () => {
+describe('GET /api/slots/range default length', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
   });
 
   it('returns 90 days when days param omitted', async () => {
-    const res = await request(app).get('/slots/range');
+    const res = await request(app).get('/api/slots/range');
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(90);
   });
+});
+
+describe('GET /api/slots/range days param validation', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
+  });
+
+  it('accepts days=1', async () => {
+    const res = await request(app)
+      .get('/api/slots/range')
+      .query({ start: '2099-01-01', days: 1 });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+  });
+
+  it('accepts days=120', async () => {
+    const res = await request(app)
+      .get('/api/slots/range')
+      .query({ start: '2099-01-01', days: 120 });
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(120);
+  });
+
+  it.each(['0', '-1', '121', '1.5', 'abc'])(
+    'returns 400 for invalid days=%p',
+    async invalid => {
+      const res = await request(app)
+        .get('/api/slots/range')
+        .query({ start: '2099-01-01', days: invalid });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty(
+        'message',
+        'days must be an integer between 1 and 120',
+      );
+      expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
+    },
+  );
 });

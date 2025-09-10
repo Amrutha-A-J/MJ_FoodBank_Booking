@@ -183,7 +183,13 @@ export async function listSlotsRange(
   res: Response,
   next: NextFunction,
 ) {
-  const days = Number(req.query.days) || 90;
+  const daysParam = req.query.days;
+  const days = daysParam === undefined ? 90 : Number(daysParam);
+  if (!Number.isInteger(days) || days < 1 || days > 120) {
+    return res
+      .status(400)
+      .json({ message: 'days must be an integer between 1 and 120' });
+  }
   const start = (req.query.start as string) || formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
