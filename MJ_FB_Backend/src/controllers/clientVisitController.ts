@@ -187,6 +187,9 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
     if (weightWithCart != null && weightWithoutCart == null) {
       weightWithoutCartAdjusted = weightWithCart - cartTare;
     }
+    if (weightWithoutCartAdjusted != null && weightWithoutCartAdjusted < 0) {
+      weightWithoutCartAdjusted = 0;
+    }
     let insertRes;
     try {
       insertRes = await client.query(
@@ -319,6 +322,9 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     let weightWithoutCartAdjusted = weightWithoutCart;
     if (weightWithCart != null && weightWithoutCart == null) {
       weightWithoutCartAdjusted = weightWithCart - cartTare;
+    }
+    if (weightWithoutCartAdjusted != null && weightWithoutCartAdjusted < 0) {
+      weightWithoutCartAdjusted = 0;
     }
     const result = await pool.query(
       `UPDATE client_visits

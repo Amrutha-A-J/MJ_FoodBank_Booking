@@ -483,6 +483,9 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
     if (weightWithoutCartVal == null && weightWithCartVal != null) {
       weightWithoutCartVal = weightWithCartVal - cartTare;
     }
+    if (weightWithoutCartVal != null && weightWithoutCartVal < 0) {
+      weightWithoutCartVal = 0;
+    }
     const insertRes = await pool.query(
       `INSERT INTO client_visits (date, client_id, weight_with_cart, weight_without_cart, pet_item, is_anonymous, note, adults, children)
        SELECT b.date, b.user_id, $1, $2, COALESCE($3,0), false, $4, COALESCE($5,0), COALESCE($6,0)
