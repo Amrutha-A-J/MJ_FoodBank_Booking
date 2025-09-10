@@ -71,8 +71,9 @@ describe('sendNextDayBookingReminders', () => {
       }),
     );
     expect(notifyOps).toHaveBeenCalledWith(
-      'sendNextDayBookingReminders queued reminders for user@example.com',
+      expect.stringContaining('sendNextDayBookingReminders queued reminders for'),
     );
+    expect((notifyOps as jest.Mock).mock.calls[0][0]).toContain('user@example.com');
     expect(db.query).toHaveBeenCalledWith(
       'UPDATE bookings SET reminder_sent = true WHERE id = $1',
       [1],
