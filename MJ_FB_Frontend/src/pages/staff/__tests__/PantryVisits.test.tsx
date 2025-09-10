@@ -214,6 +214,7 @@ describe('PantryVisits', () => {
     expect(await screen.findByText('111')).toBeInTheDocument();
     expect(screen.getByText('222 (ANONYMOUS)')).toBeInTheDocument();
     expect(screen.getByText('Clients: 1')).toBeInTheDocument();
+    expect(screen.getByText('Sunshine Bag Clients: 2')).toBeInTheDocument();
     expect(screen.getByText('Total Weight: 32')).toBeInTheDocument();
     expect(screen.getByText('Adults: 1')).toBeInTheDocument();
     expect(screen.getByText('Children: 2')).toBeInTheDocument();
