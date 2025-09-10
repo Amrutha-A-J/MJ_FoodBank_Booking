@@ -4,7 +4,8 @@ import Page from '../../components/Page';
 import EventForm from '../../components/EventForm';
 import EventList from '../../components/EventList';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import { getEvents, deleteEvent, type EventGroups } from '../../api/events';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { getEvents, deleteEvent, type EventGroups, type Event } from '../../api/events';
 
 export default function Events() {
   const [events, setEvents] = useState<EventGroups>({
@@ -15,6 +16,7 @@ export default function Events() {
   const [open, setOpen] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   function fetchEvents() {
     getEvents()
@@ -26,14 +28,25 @@ export default function Events() {
       .catch(() => setEvents({ today: [], upcoming: [], past: [] }));
   }
 
-  async function handleDelete(id: number) {
+  function confirmDelete(id: number) {
+    const ev =
+      events.today.find(e => e.id === id) ??
+      events.upcoming.find(e => e.id === id) ??
+      events.past.find(e => e.id === id) ??
+      null;
+    setEventToDelete(ev);
+  }
+
+  async function handleDelete() {
+    if (!eventToDelete) return;
     try {
-      await deleteEvent(id);
+      await deleteEvent(eventToDelete.id);
       setSuccess('Event deleted');
       fetchEvents();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
+    setEventToDelete(null);
   }
 
   useEffect(() => {
@@ -54,7 +67,7 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Today</Typography>
-              <EventList events={events.today} onDelete={handleDelete} />
+              <EventList events={events.today} onDelete={confirmDelete} />
             </CardContent>
           </Card>
         </Grid>
@@ -62,7 +75,7 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Upcoming</Typography>
-              <EventList events={events.upcoming} onDelete={handleDelete} />
+              <EventList events={events.upcoming} onDelete={confirmDelete} />
             </CardContent>
           </Card>
         </Grid>
@@ -70,7 +83,7 @@ export default function Events() {
           <Card sx={{ maxHeight: 200, overflowY: 'auto' }}>
             <CardContent>
               <Typography variant="h6">Past</Typography>
-              <EventList events={events.past} onDelete={handleDelete} />
+              <EventList events={events.past} onDelete={confirmDelete} />
             </CardContent>
           </Card>
         </Grid>
@@ -80,6 +93,13 @@ export default function Events() {
         onClose={() => setOpen(false)}
         onCreated={fetchEvents}
       />
+      {eventToDelete && (
+        <ConfirmDialog
+          message={`Delete ${eventToDelete.title}?`}
+          onConfirm={handleDelete}
+          onCancel={() => setEventToDelete(null)}
+        />
+      )}
       <FeedbackSnackbar
         open={!!success}
         message={success}
