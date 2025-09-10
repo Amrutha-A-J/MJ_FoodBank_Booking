@@ -16,7 +16,7 @@ router.get('/monthly', listMonthlyAggregations);
 router.get('/yearly', listYearlyAggregations);
 router.get('/years', listAvailableYears);
 router.get('/export', exportAggregations);
-router.post('/rebuild', authMiddleware, authorizeAccess('pantry'), rebuildAggregations);
+router.post('/rebuild', authMiddleware, authorizeAccess('pantry', 'aggregations'), rebuildAggregations);
 
 export default router;
 

@@ -135,6 +135,15 @@ export default function StaffForm({ initial, submitLabel, onSubmit }: StaffFormP
           label="Donor Management"
         />
         <FormControlLabel
+          control={
+            <Checkbox
+              checked={access.includes('aggregations')}
+              onChange={() => toggleAccess('aggregations')}
+            />
+          }
+          label="Aggregations"
+        />
+        <FormControlLabel
           control={<Checkbox checked={access.includes('admin')} onChange={() => toggleAccess('admin')} />}
           label="Admin"
         />
