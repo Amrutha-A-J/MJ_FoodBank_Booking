@@ -16,8 +16,10 @@ import {
 } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
 
-const resendLimit = new Map<string, number>();
-const RESEND_WINDOW_MS = 60_000;
+// Map of identifier -> timeout. Each entry schedules its own cleanup via
+// setTimeout so the cache doesn't grow indefinitely.
+export const resendLimit = new Map<string, ReturnType<typeof setTimeout>>();
+export const RESEND_WINDOW_MS = 60_000;
 
 export async function requestPasswordReset(
   req: Request,
@@ -98,12 +100,13 @@ export async function resendPasswordSetup(
   }
   try {
     const key = email ?? String(clientId);
-    const now = Date.now();
-    const last = resendLimit.get(key!);
-    if (last && now - last < RESEND_WINDOW_MS) {
+    if (resendLimit.has(key!)) {
       return res.status(429).json({ message: 'Too many requests' });
     }
-    resendLimit.set(key!, now);
+    resendLimit.set(
+      key!,
+      setTimeout(() => resendLimit.delete(key!), RESEND_WINDOW_MS),
+    );
 
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
     if (email) {
