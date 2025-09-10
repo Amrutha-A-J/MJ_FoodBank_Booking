@@ -37,17 +37,14 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   if (csrf) headers.set('X-CSRF-Token', csrf);
   init.headers = headers;
 
-  const urlString =
-    typeof input === 'string'
-      ? input
-      : input instanceof URL
-      ? input.toString()
-      : (input as Request).url;
+  const request = new Request(input, { credentials: 'include', ...init });
+  const retryRequest = request.clone();
+  const urlString = request.url;
   const isRefreshCall = urlString.includes('/auth/refresh');
 
   let res: Response;
   try {
-    res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1, 300);
+    res = await fetchWithRetry(request, {}, 1, 300);
   } catch (e) {
     // network failure; propagate without clearing auth
     throw e;
@@ -71,7 +68,7 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
       refreshPromise = null;
       if ([200, 204, 409].includes(refreshRes.status)) {
         // 409 indicates another request already refreshed the tokens
-        res = await fetchWithRetry(input, { credentials: 'include', ...init }, 1, 300);
+        res = await fetchWithRetry(retryRequest, {}, 1, 300);
       } else {
         clearAuthAndRedirect();
       }
