@@ -237,7 +237,7 @@ export default function PantryAggregations() {
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
               <MenuItem key={m} value={m}>
-                {m}
+                {monthNames[m - 1]}
               </MenuItem>
             ))}
           </Select>
@@ -313,7 +313,7 @@ export default function PantryAggregations() {
           >
             {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
               <MenuItem key={m} value={m}>
-                {m}
+                {monthNames[m - 1]}
               </MenuItem>
             ))}
           </Select>
