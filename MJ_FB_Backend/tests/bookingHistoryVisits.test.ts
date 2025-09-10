@@ -77,5 +77,17 @@ describe('fetchBookingHistory includeVisits', () => {
     expect(visitQuery).toMatch(/LEFT JOIN bookings b/);
     expect(visitQuery).toMatch(/b\.id IS NULL/);
   });
+
+  it('excludes anonymous visits', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+
+    await fetchBookingHistory([1], false, undefined, true);
+    const bookingsQuery = (mockPool.query as jest.Mock).mock.calls[0][0];
+    const visitQuery = (mockPool.query as jest.Mock).mock.calls[1][0];
+    expect(bookingsQuery).toMatch(/v\.is_anonymous = false/);
+    expect(visitQuery).toMatch(/v\.is_anonymous = false/);
+  });
 });
 

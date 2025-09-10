@@ -12,6 +12,7 @@ describe('refreshClientVisitCount', () => {
     const sql = (mockDb.query as jest.Mock).mock.calls[0][0] as string;
     expect(sql).toContain("v.date >= DATE_TRUNC('month', CURRENT_DATE)");
     expect(sql).toContain("v.date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'");
+    expect(sql).toContain('v.is_anonymous = false');
     expect((mockDb.query as jest.Mock).mock.calls[0][1]).toEqual([1]);
   });
 });

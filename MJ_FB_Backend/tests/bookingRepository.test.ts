@@ -188,7 +188,7 @@ describe('bookingRepository', () => {
     await fetchBookingHistory([1], false, undefined, false);
     const call = (mockPool.query as jest.Mock).mock.calls[0];
     expect(call[0]).toMatch(
-      /LEFT JOIN\s+client_visits\s+v\s+ON v.client_id = b.user_id AND v.date = b.date/,
+      /LEFT JOIN\s+client_visits\s+v\s+ON v.client_id = b.user_id AND v.date = b.date AND v.is_anonymous = false/,
     );
     expect(call[0]).toMatch(/v.note AS staff_note/);
   });

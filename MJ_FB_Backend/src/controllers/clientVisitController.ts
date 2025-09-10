@@ -24,6 +24,7 @@ export async function refreshClientVisitCount(
      SET bookings_this_month = (
        SELECT COUNT(*) FROM client_visits v
        WHERE v.client_id = c.client_id
+         AND v.is_anonymous = false
          AND v.date >= DATE_TRUNC('month', CURRENT_DATE)
          AND v.date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
      ),
@@ -74,9 +75,9 @@ export async function getVisitStats(
       }
       const result = await pool.query(
         `SELECT DATE_TRUNC('month', date) AS month,
-                COUNT(DISTINCT client_id)::int AS clients,
-                COALESCE(SUM(adults),0)::int AS adults,
-                COALESCE(SUM(children),0)::int AS children
+                COUNT(DISTINCT CASE WHEN NOT is_anonymous THEN client_id END)::int AS clients,
+                COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
+                COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children
            FROM client_visits
           WHERE date >= DATE_TRUNC('month', CURRENT_DATE) - (($1::int - 1) * INTERVAL '1 month')
           GROUP BY DATE_TRUNC('month', date)
@@ -101,8 +102,8 @@ export async function getVisitStats(
     const result = await pool.query(
       `SELECT date,
               COUNT(*)::int AS total,
-              COALESCE(SUM(adults),0)::int AS adults,
-              COALESCE(SUM(children),0)::int AS children
+              COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
+              COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children
          FROM client_visits
         WHERE date >= CURRENT_DATE - ($1::int - 1)
         GROUP BY date
@@ -168,7 +169,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
       verified,
     } = req.body;
     await client.query('BEGIN');
-    if (clientId) {
+    if (clientId && !anonymous) {
       const dup = await client.query(
         'SELECT 1 FROM client_visits WHERE client_id = $1 AND date = $2',
         [clientId, date],
@@ -214,41 +215,42 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         clientName = `${clientRes.rows[0].first_name ?? ''} ${clientRes.rows[0].last_name ?? ''}`.trim();
       }
       await refreshClientVisitCount(clientId, client);
+      if (!anonymous) {
+        // If the client had an approved booking on this date, mark it visited
+        const sameDayRes = await client.query(
+          `SELECT b.id
+             FROM bookings b
+             INNER JOIN clients c ON b.user_id = c.client_id
+             WHERE c.client_id = $1 AND b.date = $2 AND b.status = 'approved'`,
+          [clientId, formatReginaDate(date)]
+        );
+        if ((sameDayRes.rowCount ?? 0) > 0) {
+          await updateBooking(sameDayRes.rows[0].id, { status: 'visited', note: null }, client);
+        }
 
-      // If the client had an approved booking on this date, mark it visited
-      const sameDayRes = await client.query(
-        `SELECT b.id
-           FROM bookings b
-           INNER JOIN clients c ON b.user_id = c.client_id
-           WHERE c.client_id = $1 AND b.date = $2 AND b.status = 'approved'`,
-        [clientId, formatReginaDate(date)]
-      );
-      if ((sameDayRes.rowCount ?? 0) > 0) {
-        await updateBooking(sameDayRes.rows[0].id, { status: 'visited', note: null }, client);
-      }
-
-      // Handle other approved bookings in the month
-      const otherRes = await client.query(
-        `SELECT b.id, b.date
-           FROM bookings b
-           INNER JOIN clients c ON b.user_id = c.client_id
-           WHERE c.client_id = $1
-             AND b.status = 'approved'
-             AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', $2::date)
-             AND b.date <> $2`,
-        [clientId, formatReginaDate(date)]
-      );
-      const visitDate = new Date(formatReginaDate(date));
-      for (const row of otherRes.rows) {
-        const bookingDate = new Date(row.date);
-        if (bookingDate > visitDate) {
-          await updateBooking(
-            row.id,
-            { status: 'visited', slot_id: null, date: formatReginaDate(date), note: null },
-            client,
-          );
-        } else {
-          await updateBooking(row.id, { status: 'no_show', note: null }, client);
+        // Handle other approved bookings in the month
+        const otherRes = await client.query(
+          `SELECT b.id, b.date
+             FROM bookings b
+             INNER JOIN clients c ON b.user_id = c.client_id
+             WHERE c.client_id = $1
+               AND b.status = 'approved'
+               AND DATE_TRUNC('month', b.date) = DATE_TRUNC('month', $2::date)
+               AND b.date <> $2`,
+          [clientId, formatReginaDate(date)]
+        );
+        const visitDate = new Date(formatReginaDate(date));
+        for (const row of otherRes.rows) {
+          const bookingDate = new Date(row.date);
+          if (bookingDate > visitDate) {
+            await updateBooking(
+              row.id,
+              { status: 'visited', slot_id: null, date: formatReginaDate(date), note: null },
+              client,
+            );
+          } else {
+            await updateBooking(row.id, { status: 'no_show', note: null }, client);
+          }
         }
       }
     }
@@ -292,7 +294,7 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
     const prevDate: string | null = existing.rows[0]?.date
       ? formatReginaDate(existing.rows[0].date)
       : null;
-    if (clientId) {
+    if (clientId && !anonymous) {
       const dup = await pool.query(
         'SELECT 1 FROM client_visits WHERE client_id = $1 AND date = $2 AND id <> $3',
         [clientId, date, id],
