@@ -80,7 +80,7 @@ describe('PantryAggregations page', () => {
 
     await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
 
-    const exportBtn = await screen.findByRole('button', { name: /export table/i });
+    const exportBtn = await screen.findByRole('button', { name: 'Export Table' });
     fireEvent.click(exportBtn);
 
     await waitFor(() => expect(mockRebuildPantryAggregations).toHaveBeenCalled());
