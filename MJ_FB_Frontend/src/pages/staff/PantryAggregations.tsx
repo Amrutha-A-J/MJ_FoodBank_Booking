@@ -14,7 +14,6 @@ import Page from '../../components/Page';
 import StyledTabs from '../../components/StyledTabs';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import PantryQuickLinks from '../../components/PantryQuickLinks';
 import {
   getPantryWeekly,
   getPantryMonthly,
@@ -474,17 +473,14 @@ export default function PantryAggregations() {
   ];
 
   return (
-    <>
-      <PantryQuickLinks />
-      <Page title="Aggregations">
-        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-        <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          message={snackbar.message}
-          severity={snackbar.severity}
-        />
-      </Page>
-    </>
+    <Page title="Pantry Aggregations">
+      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
+    </Page>
   );
 }
