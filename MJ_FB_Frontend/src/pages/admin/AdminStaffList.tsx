@@ -14,12 +14,14 @@ import ResponsiveTable from '../../components/ResponsiveTable';
 import { listStaff, deleteStaff, searchStaff } from '../../api/adminStaff';
 import type { Staff, StaffAccess } from '../../types';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function AdminStaffList() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [toDelete, setToDelete] = useState<Staff | null>(null);
 
   const accessLabels: Record<StaffAccess, string> = {
     pantry: 'Pantry',
@@ -45,14 +47,16 @@ export default function AdminStaffList() {
     load();
   }, [search]);
 
-  async function handleDelete(id: number) {
+  async function handleDelete() {
+    if (!toDelete) return;
     try {
-      await deleteStaff(id);
+      await deleteStaff(toDelete.id);
       setSuccess('Staff deleted');
       load();
     } catch (err: any) {
       setError(err.message || String(err));
     }
+    setToDelete(null);
   }
 
   return (
@@ -93,7 +97,7 @@ export default function AdminStaffList() {
                     <IconButton component={RouterLink} to={`/admin/staff/${row.id}`} aria-label="edit">
                       <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(row.id)} aria-label="delete">
+                    <IconButton onClick={() => setToDelete(row)} aria-label="delete">
                       <DeleteIcon />
                     </IconButton>
                   </Box>
@@ -103,6 +107,13 @@ export default function AdminStaffList() {
             rows={staff}
             getRowKey={row => row.id}
           />
+          {toDelete && (
+            <ConfirmDialog
+              message={`Delete ${toDelete.firstName} ${toDelete.lastName}?`}
+              onConfirm={handleDelete}
+              onCancel={() => setToDelete(null)}
+            />
+          )}
         </Box>
       </Page>
     </ErrorBoundary>
