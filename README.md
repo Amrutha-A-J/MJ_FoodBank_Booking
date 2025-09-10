@@ -27,7 +27,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
 
-- Staff with `aggregations` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
+- Staff with `aggregations` or `donor_management` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
 
 Staff can reach **Timesheets** at `/timesheet` and **Leave Management** at
 `/leave-requests` from the profile menu once logged in. Admin users also see

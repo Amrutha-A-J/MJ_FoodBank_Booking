@@ -140,6 +140,16 @@ describe('App authentication persistence', () => {
     expect(screen.getByText('Warehouse Aggregations')).toBeInTheDocument();
   });
 
+  it('shows aggregations nav links for donor management access', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['donor_management']));
+    renderWithProviders(<App />);
+    fireEvent.click(await screen.findByText('Aggregations'));
+    expect(await screen.findByText('Pantry Aggregations')).toBeInTheDocument();
+    expect(screen.getByText('Warehouse Aggregations')).toBeInTheDocument();
+  });
+
   it('routes to donor donation log page', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
