@@ -43,16 +43,6 @@ export default function PantryQuickLinks() {
       >
         Search Client
       </Button>
-      <Button
-
-        variant="outlined"
-        sx={buttonSx}
-        component={RouterLink}
-        to="/aggregations/pantry"
-        fullWidth
-      >
-        Aggregations
-      </Button>
     </Stack>
   );
 }
