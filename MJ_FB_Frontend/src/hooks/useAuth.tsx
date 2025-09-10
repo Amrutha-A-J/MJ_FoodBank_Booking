@@ -222,9 +222,8 @@ export function AgencyGuard({ children }: { children: React.ReactNode }) {
 }
 
 export function DonorManagementGuard({ children }: { children: React.ReactNode }) {
-  const { role, access } = useAuth();
-  const allowed =
-    role === 'staff' && (access.includes('donor_management') || access.includes('admin'));
+  const { access } = useAuth();
+  const allowed = access.includes('donor_management') || access.includes('admin');
   if (!allowed) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
