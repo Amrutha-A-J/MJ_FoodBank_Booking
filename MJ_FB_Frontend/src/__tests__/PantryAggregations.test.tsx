@@ -6,7 +6,9 @@ const mockGetPantryWeekly = jest.fn().mockResolvedValue([]);
 const mockGetPantryMonthly = jest.fn().mockResolvedValue([]);
 const mockGetPantryYearly = jest.fn().mockResolvedValue([]);
 const mockGetPantryYears = jest.fn().mockResolvedValue([new Date().getFullYear()]);
-const mockExportPantryAggregations = jest.fn().mockResolvedValue(new Blob());
+const mockExportPantryAggregations = jest
+  .fn()
+  .mockResolvedValue({ blob: new Blob(), fileName: 'test.xlsx' });
 const mockRebuildPantryAggregations = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../api/pantryAggregations', () => ({
@@ -78,7 +80,7 @@ describe('PantryAggregations page', () => {
 
     await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
 
-    const exportBtn = (await screen.findAllByRole('button', { name: /export/i }))[0];
+    const exportBtn = await screen.findByRole('button', { name: /export table/i });
     fireEvent.click(exportBtn);
 
     await waitFor(() => expect(mockRebuildPantryAggregations).toHaveBeenCalled());
