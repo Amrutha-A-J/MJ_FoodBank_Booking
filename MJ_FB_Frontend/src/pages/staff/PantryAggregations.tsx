@@ -22,7 +22,8 @@ import {
   exportPantryAggregations,
   rebuildPantryAggregations,
 } from '../../api/pantryAggregations';
-import { toDate } from '../../utils/date';
+import dayjs, { formatDate, toDate } from '../../utils/date';
+import { getWeekRanges } from '../../utils/pantryWeek';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
 
 export default function PantryAggregations() {
@@ -49,6 +50,7 @@ export default function PantryAggregations() {
   const [weeklyYear, setWeeklyYear] = useState(fallbackYears[0]);
   const [weeklyMonth, setWeeklyMonth] = useState(1);
   const [week, setWeek] = useState(1);
+  const [weekRanges, setWeekRanges] = useState<{ week: number; label: string }[]>([]);
   const [weeklyRows, setWeeklyRows] = useState<any[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
   const weeklyTableRef = useRef<HTMLTableElement>(null);
@@ -66,6 +68,35 @@ export default function PantryAggregations() {
 
   const [exportLoading, setExportLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+
+  useEffect(() => {
+    const ranges = getWeekRanges(weeklyYear, weeklyMonth - 1)
+      .map(r => {
+        let start = dayjs(r.startDate);
+        let end = dayjs(r.endDate);
+
+        while (start.day() !== 1 && start.isBefore(end)) {
+          start = start.add(1, 'day');
+        }
+        while (end.day() !== 5 && end.isAfter(start)) {
+          end = end.subtract(1, 'day');
+        }
+
+        if (start.isAfter(end)) return null;
+
+        const label = start.isSame(end, 'day')
+          ? formatDate(start)
+          : `${formatDate(start)} - ${formatDate(end)}`;
+
+        return { week: r.week, label };
+      })
+      .filter((r): r is { week: number; label: string } => r !== null);
+
+    setWeekRanges(ranges);
+    if (ranges.length) {
+      setWeek(ranges[0].week);
+    }
+  }, [weeklyYear, weeklyMonth]);
 
   useEffect(() => {
     getPantryYears()
@@ -250,9 +281,9 @@ export default function PantryAggregations() {
             value={week}
             onChange={e => setWeek(Number(e.target.value))}
           >
-            {Array.from({ length: 5 }, (_, i) => i + 1).map(w => (
-              <MenuItem key={w} value={w}>
-                {w}
+            {weekRanges.map(range => (
+              <MenuItem key={range.week} value={range.week}>
+                {range.label}
               </MenuItem>
             ))}
           </Select>
