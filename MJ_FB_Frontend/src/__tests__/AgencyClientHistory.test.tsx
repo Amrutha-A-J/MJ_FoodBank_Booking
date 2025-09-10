@@ -60,7 +60,6 @@ describe('Agency ClientHistory', () => {
       },
     ]);
     (cancelBooking as jest.Mock).mockResolvedValue(undefined);
-    window.confirm = jest.fn(() => true);
 
     render(<ClientHistory />);
 
@@ -68,6 +67,7 @@ describe('Agency ClientHistory', () => {
     await screen.findByText(/Client One/);
     await screen.findByText('Cancel');
     fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
 
     await waitFor(() => expect(cancelBooking).toHaveBeenCalledWith('10'));
     expect(getBookingHistory).toHaveBeenCalledTimes(2);
