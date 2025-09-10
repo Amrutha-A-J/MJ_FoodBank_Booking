@@ -3,9 +3,11 @@ import dayjs from 'dayjs';
 import type { ConfigType } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import objectSupport from 'dayjs/plugin/objectSupport';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(objectSupport);
 
 export const REGINA_TIMEZONE = 'America/Regina';
 

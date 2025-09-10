@@ -48,7 +48,7 @@ export default function PantryAggregations() {
 
   const [weeklyYear, setWeeklyYear] = useState(fallbackYears[0]);
   const [weeklyMonth, setWeeklyMonth] = useState(1);
-  const [week, setWeek] = useState(1);
+  const [week, setWeek] = useState<number | ''>('');
   const [weekRanges, setWeekRanges] = useState<{ week: number; label: string }[]>([]);
   const [weeklyRows, setWeeklyRows] = useState<any[]>([]);
   const [weeklyLoading, setWeeklyLoading] = useState(false);
@@ -91,6 +91,8 @@ export default function PantryAggregations() {
     setWeekRanges(ranges);
     if (ranges.length) {
       setWeek(ranges[0].week);
+    } else {
+      setWeek('');
     }
   }, [weeklyYear, weeklyMonth]);
 
@@ -147,7 +149,7 @@ export default function PantryAggregations() {
         period: 'weekly',
         year: weeklyYear,
         month: weeklyMonth,
-        week,
+        week: week as number,
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -237,7 +239,10 @@ export default function PantryAggregations() {
             labelId="weekly-week-label"
             label="Week"
             value={week}
-            onChange={e => setWeek(Number(e.target.value))}
+            onChange={e =>
+              setWeek(e.target.value === '' ? '' : Number(e.target.value))
+            }
+            disabled={!weekRanges.length}
           >
             {weekRanges.map(range => (
               <MenuItem key={range.week} value={range.week}>
@@ -246,7 +251,11 @@ export default function PantryAggregations() {
             ))}
           </Select>
         </FormControl>
-        <Button variant="contained" onClick={handleExportWeekly} disabled={exportLoading}>
+        <Button
+          variant="contained"
+          onClick={handleExportWeekly}
+          disabled={exportLoading || week === ''}
+        >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
       </Stack>
