@@ -11,7 +11,7 @@
 - `/slots/range` returns 90 days of availability by default so the pantry schedule can load slots three months ahead.
 - Staff can add existing clients to the app from the pantry schedule's Assign User modal by entering a client ID. The client is created as a shopper with online access disabled and immediately assigned to the selected slot.
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
-- The login page on mobile offers a **Use biometrics** button for WebAuthn-based sign in.
+- The login page automatically prompts for passkeys via WebAuthn on supported devices.
 - Volunteers see an Install App button on their first visit to volunteer pages when the app isn't already installed. An onboarding modal explains offline use, and installations are tracked.
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.

@@ -1,15 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
 import pool from '../db';
-import { getCredential, saveCredential } from '../models/webauthn';
+import { getCredential, saveCredential, getCredentialById } from '../models/webauthn';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
 
 export async function generateChallenge(req: Request, res: Response) {
-  const { identifier } = req.body as { identifier: string };
-  const credential = await getCredential(identifier);
+  const { identifier } = req.body as { identifier?: string };
   const challenge = randomBytes(32).toString('base64');
-  res.json({ challenge, registered: !!credential, credentialId: credential?.credentialId });
+  if (identifier) {
+    const credential = await getCredential(identifier);
+    return res.json({ challenge, registered: !!credential, credentialId: credential?.credentialId });
+  }
+  res.json({ challenge });
 }
 
 export async function registerCredential(
@@ -35,16 +38,13 @@ export async function verifyCredential(
   res: Response,
   next: NextFunction,
 ) {
-  const { identifier, credentialId } = req.body as {
-    identifier: string;
-    credentialId: string;
-  };
+  const { credentialId } = req.body as { credentialId: string };
   try {
-    const stored = await getCredential(identifier);
-    if (!stored || stored.credentialId !== credentialId) {
+    const stored = await getCredentialById(credentialId);
+    if (!stored) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
-    const data = await loginByIdentifier(identifier, res);
+    const data = await loginByIdentifier(stored.userIdentifier, res);
     res.json(data);
   } catch (error) {
     next(error);

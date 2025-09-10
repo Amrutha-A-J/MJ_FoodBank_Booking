@@ -6,8 +6,6 @@ import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
 import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -30,8 +28,6 @@ export default function Login({
   const [noticeOpen, setNoticeOpen] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
@@ -68,41 +64,27 @@ export default function Login({
     }
   }
 
-  async function handleWebAuthn() {
-    setSubmitted(true);
-    if (identifier === '') {
-      return setError(t('client_id_required'));
-    }
-    if (!('credentials' in navigator)) {
-      return setError('WebAuthn not supported');
-    }
-    try {
-      const resp = await fetch('/api/webauthn/challenge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier }),
-      });
-      const options = await resp.json();
-      const challenge = Uint8Array.from(atob(options.challenge), c => c.charCodeAt(0));
-      if (options.registered) {
+  useEffect(() => {
+    async function attemptPasskey() {
+      if (!('credentials' in navigator)) return;
+      try {
+        const resp = await fetch('/api/webauthn/challenge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const { challenge } = await resp.json();
         const cred = (await navigator.credentials.get({
           publicKey: {
-            challenge,
-            ...(options.credentialId && {
-              allowCredentials: [
-                {
-                  id: Uint8Array.from(atob(options.credentialId), c => c.charCodeAt(0)),
-                  type: 'public-key',
-                },
-              ],
-            }),
+            challenge: Uint8Array.from(atob(challenge), c => c.charCodeAt(0)),
           },
-        })) as PublicKeyCredential;
+          mediation: 'conditional',
+        })) as PublicKeyCredential | null;
+        if (!cred) return;
         const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
         const verifyRes = await fetch('/api/webauthn/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, credentialId: credId }),
+          body: JSON.stringify({ credentialId: credId }),
         });
         if (!verifyRes.ok) {
           const err = await verifyRes.json();
@@ -111,37 +93,12 @@ export default function Login({
         const user = await verifyRes.json();
         const redirect = await onLogin(user);
         navigate(redirect);
-      } else {
-        const cred = (await navigator.credentials.create({
-          publicKey: {
-            challenge,
-            rp: { name: 'MJ FoodBank' },
-            user: {
-              id: new TextEncoder().encode(identifier),
-              name: identifier,
-              displayName: identifier,
-            },
-            pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
-          },
-        })) as PublicKeyCredential;
-        const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
-        const regRes = await fetch('/api/webauthn/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier, credentialId: credId }),
-        });
-        if (!regRes.ok) {
-          const err = await regRes.json();
-          throw new Error(err.message);
-        }
-        const user = await regRes.json();
-        const redirect = await onLogin(user);
-        navigate(redirect);
+      } catch {
+        /* ignore */
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
     }
-  }
+    attemptPasskey();
+  }, [navigate, onLogin]);
 
   return (
     <Page title={t('login')}>
@@ -161,17 +118,6 @@ export default function Login({
               >
                 {t('login')}
               </Button>
-              {isMobile && (
-                <Button
-                  type="button"
-                  variant="outlined"
-                  fullWidth
-                  size="medium"
-                  onClick={handleWebAuthn}
-                >
-                  {t('use_biometrics')}
-                </Button>
-              )}
             </Stack>
           }
           centered={false}
@@ -182,7 +128,7 @@ export default function Login({
             onChange={e => setIdentifier(e.target.value)}
             label={t('client_id_or_email')}
             name="identifier"
-            autoComplete="username"
+            autoComplete="username webauthn"
             fullWidth
             size="medium"
             required
