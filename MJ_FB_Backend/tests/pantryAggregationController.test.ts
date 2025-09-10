@@ -23,7 +23,7 @@ describe('pantryAggregationController totals', () => {
     expect(mockDb.query).toHaveBeenNthCalledWith(
       3,
       expect.stringContaining('INSERT INTO pantry_monthly_overall'),
-      [2024, 5, 7, 5, 2, 130, 2, 30],
+      [2024, 5, 7, 5, 2, 7, 130, 2, 30],
     );
   });
 });

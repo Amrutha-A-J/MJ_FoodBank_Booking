@@ -68,7 +68,7 @@ describe('PantryAggregations page', () => {
   });
 
   it('displays weekly aggregations in a table', async () => {
-    mockGetPantryWeekly.mockResolvedValueOnce([{ week: currentWeek, clients: 2 }]);
+    mockGetPantryWeekly.mockResolvedValueOnce([{ week: currentWeek, clients: 2, people: 4 }]);
 
     render(
       <MemoryRouter>
@@ -80,6 +80,7 @@ describe('PantryAggregations page', () => {
 
     expect(screen.getByTestId('responsive-table-table')).toBeInTheDocument();
     expect(screen.getByText('week')).toBeInTheDocument();
+    expect(screen.getByText('people')).toBeInTheDocument();
     const ranges = getWeekRanges(currentYear, currentMonth - 1);
     const range = ranges.find(r => r.week === currentWeek)!;
     let start = dayjs(range.startDate);
@@ -95,6 +96,7 @@ describe('PantryAggregations page', () => {
       : `${formatDate(start)} - ${formatDate(end)}`;
     expect(screen.getByText(expectedLabel)).toBeInTheDocument();
     expect(screen.getAllByText('2').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('4').length).toBeGreaterThan(0);
   });
 
   it('exports weekly data', async () => {
