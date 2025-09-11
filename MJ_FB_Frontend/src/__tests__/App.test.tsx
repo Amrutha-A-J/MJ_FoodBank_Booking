@@ -116,7 +116,8 @@ describe('App authentication persistence', () => {
     localStorage.setItem('access', JSON.stringify(['donor_management']));
     renderWithProviders(<App />);
     fireEvent.click(await screen.findByText('Donor Management'));
-    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(await screen.findByText('Donors')).toBeInTheDocument();
+    expect(screen.getByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
@@ -126,7 +127,8 @@ describe('App authentication persistence', () => {
     localStorage.setItem('access', JSON.stringify(['admin']));
     renderWithProviders(<App />);
     fireEvent.click(await screen.findByText('Donor Management'));
-    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(await screen.findByText('Donors')).toBeInTheDocument();
+    expect(screen.getByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 

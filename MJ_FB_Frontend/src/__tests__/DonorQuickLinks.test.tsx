@@ -10,6 +10,9 @@ describe('DonorQuickLinks', () => {
       </MemoryRouter>
     );
     expect(
+      screen.getByRole('link', { name: /Donors/i })
+    ).toHaveAttribute('href', '/donor-management/donors');
+    expect(
       screen.getByRole('link', { name: /Donor Log/i })
     ).toHaveAttribute('href', '/donor-management/donation-log');
     expect(
@@ -18,6 +21,7 @@ describe('DonorQuickLinks', () => {
   });
 
   it.each([
+    ['/donor-management/donors', /Donors/i],
     ['/donor-management/donation-log', /Donor Log/i],
     ['/donor-management/mail-lists', /Mail Lists/i],
   ])('disables current page link %s', (path, label) => {
