@@ -5,6 +5,7 @@ import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
 import { getVisitStats } from '../api/clientVisits';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
+import { formatReginaDate } from '../utils/time';
 
 const mockUseBreadcrumbActions = jest.fn();
 jest.mock('../components/layout/MainLayout', () => ({
@@ -91,5 +92,46 @@ describe('StaffDashboard', () => {
     );
 
     expect(mockUseBreadcrumbActions).toHaveBeenCalledWith(null);
+  });
+
+  it('shows only today\'s cancellations', async () => {
+    const today = formatReginaDate(new Date());
+    const yesterday = formatReginaDate(
+      new Date(Date.now() - 24 * 60 * 60 * 1000),
+    );
+    (getBookings as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'cancelled',
+        date: today,
+        start_time: '09:00:00',
+        user_name: 'Alice',
+      },
+      {
+        id: 2,
+        status: 'cancelled',
+        date: yesterday,
+        start_time: '10:00:00',
+        user_name: 'Bob',
+      },
+    ]);
+    (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVisitStats as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({
+      today: [],
+      upcoming: [],
+      past: [],
+    });
+
+    render(
+      <MemoryRouter>
+        <Dashboard role="staff" />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('Recent Cancellations')).toBeInTheDocument();
+    expect(screen.getByText(/Alice/)).toBeInTheDocument();
+    expect(screen.queryByText(/Bob/)).toBeNull();
   });
 });

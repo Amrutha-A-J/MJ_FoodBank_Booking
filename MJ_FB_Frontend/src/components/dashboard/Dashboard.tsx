@@ -211,15 +211,18 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
       </SectionCard>
       <SectionCard title="Recent Cancellations" sx={{ order: 3 }}>
         <List>
-          {cancellations.slice(0, 5).map(c => (
-            <ListItem key={c.id}>
-              <ListItemText
-                primary={`${c.user_name || 'Unknown'} - ${formatTime(
-                  c.start_time || '',
-                )}`}
-              />
-            </ListItem>
-          ))}
+          {cancellations
+            .filter(c => formatReginaDate(toDate(c.date)) === todayStr)
+            .slice(0, 5)
+            .map(c => (
+              <ListItem key={c.id}>
+                <ListItemText
+                  primary={`${c.user_name || 'Unknown'} - ${formatTime(
+                    c.start_time || '',
+                  )}`}
+                />
+              </ListItem>
+            ))}
         </List>
       </SectionCard>
       <SectionCard title="Volunteer Shift Changes" sx={{ order: 4 }}>
