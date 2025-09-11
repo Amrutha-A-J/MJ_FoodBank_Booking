@@ -22,6 +22,13 @@ import { findUserByEmail } from '../models/userLookup';
 export const resendLimit = new Map<string, ReturnType<typeof setTimeout>>();
 export const RESEND_WINDOW_MS = 60_000;
 
+export const TABLE_MAP = {
+  staff: { table: 'staff', idColumn: 'id' },
+  volunteer: { table: 'volunteers', idColumn: 'id' },
+  agency: { table: 'agencies', idColumn: 'id' },
+  client: { table: 'clients', idColumn: 'client_id' },
+} as const;
+
 export async function requestPasswordReset(
   req: Request,
   res: Response,
@@ -288,11 +295,11 @@ export async function changePassword(
     return res.status(400).json({ message: pwError });
   }
   try {
-    let table = 'clients';
-    if (user.type === 'staff') table = 'staff';
-    else if (user.type === 'volunteer') table = 'volunteers';
-    else if (user.type === 'agency') table = 'agencies';
-    const idColumn = table === 'clients' ? 'client_id' : 'id';
+    const mapping = TABLE_MAP[user.type as keyof typeof TABLE_MAP];
+    if (!mapping) {
+      return res.status(400).json({ message: 'Invalid user type' });
+    }
+    const { table, idColumn } = mapping;
     const result = await pool.query(
       `SELECT password FROM ${table} WHERE ${idColumn}=$1`,
       [user.id],
