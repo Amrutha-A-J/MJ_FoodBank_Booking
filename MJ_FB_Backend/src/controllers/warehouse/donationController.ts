@@ -1,233 +1,200 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import pool from '../../db';
-import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 import type { Row } from 'write-excel-file';
 import { refreshWarehouseOverall } from './warehouseOverallController';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
+import asyncHandler from '../../middleware/asyncHandler';
 
-export async function listDonations(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const date = req.query.date as string | undefined;
-    const month = req.query.month as string | undefined;
-    if (!date && !month)
-      return res.status(400).json({ message: 'Date or month required' });
+export const listDonations = asyncHandler(async (req: Request, res: Response) => {
+  const date = req.query.date as string | undefined;
+  const month = req.query.month as string | undefined;
+  if (!date && !month)
+    return res.status(400).json({ message: 'Date or month required' });
 
-    if (month) {
-      const [yearStr, monthStr] = month.split('-');
-      const year = parseInt(yearStr, 10);
-      const monthNum = parseInt(monthStr, 10);
-      if (!year || !monthNum || monthNum < 1 || monthNum > 12) {
-        return res.status(400).json({ message: 'Invalid month' });
-      }
-      const start = `${year}-${String(monthNum).padStart(2, '0')}-01`;
-      const endDate = new Date(Date.UTC(year, monthNum, 1));
-      const end = endDate.toISOString().slice(0, 10);
-      const result = await pool.query(
-        `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
-       FROM donations d JOIN donors o ON d.donor_id = o.id
-       WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
-        [start, end],
-      );
-      return res.json(result.rows);
+  if (month) {
+    const [yearStr, monthStr] = month.split('-');
+    const year = parseInt(yearStr, 10);
+    const monthNum = parseInt(monthStr, 10);
+    if (!year || !monthNum || monthNum < 1 || monthNum > 12) {
+      return res.status(400).json({ message: 'Invalid month' });
     }
-
+    const start = `${year}-${String(monthNum).padStart(2, '0')}-01`;
+    const endDate = new Date(Date.UTC(year, monthNum, 1));
+    const end = endDate.toISOString().slice(0, 10);
     const result = await pool.query(
       `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
        FROM donations d JOIN donors o ON d.donor_id = o.id
+       WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
+      [start, end],
+    );
+    return res.json(result.rows);
+  }
+
+  const result = await pool.query(
+    `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
+       FROM donations d JOIN donors o ON d.donor_id = o.id
        WHERE d.date = $1 ORDER BY d.id`,
-      [date!],
-    );
-    res.json(result.rows);
-  } catch (error) {
-    logger.error('Error listing donations:', error);
-    next(error);
-  }
-}
+    [date!],
+  );
+  res.json(result.rows);
+});
 
-export async function addDonation(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { date, donorId, weight } = req.body;
-    const result = await pool.query(
-      'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, donor_id as "donorId", weight',
-      [date, donorId, weight],
-    );
-    const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
-    const dt = new Date(reginaStartOfDayISO(date));
+export const addDonation = asyncHandler(async (req: Request, res: Response) => {
+  const { date, donorId, weight } = req.body;
+  const result = await pool.query(
+    'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, donor_id as "donorId", weight',
+    [date, donorId, weight],
+  );
+  const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+  const dt = new Date(reginaStartOfDayISO(date));
+  await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
+  res.status(201).json({ ...result.rows[0], donor: donorRes.rows[0].name });
+});
+
+export const updateDonation = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { date, donorId, weight } = req.body;
+  const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
+  const oldDate = existing.rows[0]?.date as string | undefined;
+  const result = await pool.query(
+    'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, donor_id as "donorId", weight',
+    [date, donorId, weight, id],
+  );
+  const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+  const newDt = new Date(reginaStartOfDayISO(date));
+  await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
+  if (oldDate) {
+    const oldDt = new Date(reginaStartOfDayISO(oldDate));
+    if (
+      oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
+      oldDt.getUTCMonth() !== newDt.getUTCMonth()
+    ) {
+      await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
+    }
+  }
+  res.json({ ...result.rows[0], donor: donorRes.rows[0].name });
+});
+
+export const deleteDonation = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
+  await pool.query('DELETE FROM donations WHERE id = $1', [id]);
+  if (existing.rows[0]) {
+    const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
     await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
-    res.status(201).json({ ...result.rows[0], donor: donorRes.rows[0].name });
-  } catch (error) {
-    logger.error('Error adding donation:', error);
-    next(error);
   }
-}
+  res.json({ message: 'Deleted' });
+});
 
-export async function updateDonation(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { id } = req.params;
-    const { date, donorId, weight } = req.body;
-    const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
-    const oldDate = existing.rows[0]?.date as string | undefined;
-    const result = await pool.query(
-      'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, donor_id as "donorId", weight',
-      [date, donorId, weight, id],
-    );
-    const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
-    const newDt = new Date(reginaStartOfDayISO(date));
-    await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
-    if (oldDate) {
-      const oldDt = new Date(reginaStartOfDayISO(oldDate));
-      if (
-        oldDt.getUTCFullYear() !== newDt.getUTCFullYear() ||
-        oldDt.getUTCMonth() !== newDt.getUTCMonth()
-      ) {
-        await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
-      }
-    }
-    res.json({ ...result.rows[0], donor: donorRes.rows[0].name });
-  } catch (error) {
-    logger.error('Error updating donation:', error);
-    next(error);
-  }
-}
-
-export async function deleteDonation(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { id } = req.params;
-    const existing = await pool.query('SELECT date FROM donations WHERE id = $1', [id]);
-    await pool.query('DELETE FROM donations WHERE id = $1', [id]);
-    if (existing.rows[0]) {
-      const dt = new Date(reginaStartOfDayISO(existing.rows[0].date));
-      await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
-    }
-    res.json({ message: 'Deleted' });
-  } catch (error) {
-    logger.error('Error deleting donation:', error);
-    next(error);
-  }
-}
-
-export async function donorAggregations(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const result = await pool.query(
-      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
+export const donorAggregations = asyncHandler(async (req: Request, res: Response) => {
+  const year =
+    parseInt((req.query.year as string) ?? '', 10) ||
+    new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+  const result = await pool.query(
+    `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
        LEFT JOIN donor_aggregations a ON a.donor_id = o.id
          AND a.year = $1
          AND a.month = m.month
        ORDER BY o.name, m.month`,
-      [year],
-    );
+    [year],
+  );
 
-    const donorMap = new Map<string, { donor: string; monthlyTotals: number[]; total: number }>();
-    for (const { donor, month, total } of result.rows as {
-      donor: string;
-      month: number;
-      total: number;
-    }[]) {
-      if (!donorMap.has(donor)) {
-        donorMap.set(donor, { donor, monthlyTotals: Array(12).fill(0), total: 0 });
-      }
-      const entry = donorMap.get(donor)!;
-      entry.monthlyTotals[month - 1] = total ?? 0;
-      entry.total += total ?? 0;
+  const donorMap = new Map<string, { donor: string; monthlyTotals: number[]; total: number }>();
+  for (const { donor, month, total } of result.rows as {
+    donor: string;
+    month: number;
+    total: number;
+  }[]) {
+    if (!donorMap.has(donor)) {
+      donorMap.set(donor, { donor, monthlyTotals: Array(12).fill(0), total: 0 });
     }
-
-    res.json(Array.from(donorMap.values()));
-  } catch (error) {
-    logger.error('Error listing donor aggregations:', error);
-    next(error);
+    const entry = donorMap.get(donor)!;
+    entry.monthlyTotals[month - 1] = total ?? 0;
+    entry.total += total ?? 0;
   }
-}
 
-export async function exportDonorAggregations(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const result = await pool.query(
-      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
+  res.json(Array.from(donorMap.values()));
+});
+
+export const exportDonorAggregations = asyncHandler(async (req: Request, res: Response) => {
+  const year =
+    parseInt((req.query.year as string) ?? '', 10) ||
+    new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+  const result = await pool.query(
+    `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
        LEFT JOIN donor_aggregations a ON a.donor_id = o.id
          AND a.year = $1
          AND a.month = m.month
        ORDER BY o.name, m.month`,
-      [year],
+    [year],
+  );
+
+  const headerStyle = {
+    backgroundColor: '#000000',
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  } as const;
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const donorMap = new Map<string, number[]>();
+  for (const { donor, month, total } of result.rows as {
+    donor: string;
+    month: number;
+    total: number;
+  }[]) {
+    if (!donorMap.has(donor)) {
+      donorMap.set(donor, Array(12).fill(0));
+    }
+    donorMap.get(donor)![month - 1] = total ?? 0;
+  }
+
+  const headerRow: Row = [
+    { value: 'Donor', ...headerStyle },
+    ...monthNames.map(m => ({ value: m, ...headerStyle })),
+    { value: 'Total', ...headerStyle },
+  ];
+
+  const dataRows: Row[] = Array.from(donorMap.entries()).map(([donor, monthly]) => [
+    { value: donor },
+    ...monthly.map(total => ({ value: total })),
+    { value: monthly.reduce((a, b) => a + b, 0) },
+  ]);
+
+  const rows: Row[] = [headerRow, ...dataRows];
+
+  const buffer = await writeXlsxFile(rows, {
+    sheet: `Donor Aggregations ${year}`,
+    buffer: true,
+  });
+
+  res
+    .setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    .setHeader(
+      'Content-Disposition',
+      `attachment; filename=${year}_donor_aggregations.xlsx`,
     );
 
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold',
-    } as const;
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+  res.send(buffer);
+});
 
-    const donorMap = new Map<string, number[]>();
-    for (const { donor, month, total } of result.rows as {
-      donor: string;
-      month: number;
-      total: number;
-    }[]) {
-      if (!donorMap.has(donor)) {
-        donorMap.set(donor, Array(12).fill(0));
-      }
-      donorMap.get(donor)![month - 1] = total ?? 0;
-    }
-
-    const headerRow: Row = [
-      { value: 'Donor', ...headerStyle },
-      ...monthNames.map(m => ({ value: m, ...headerStyle })),
-      { value: 'Total', ...headerStyle },
-    ];
-
-    const dataRows: Row[] = Array.from(donorMap.entries()).map(([donor, monthly]) => [
-      { value: donor },
-      ...monthly.map(total => ({ value: total })),
-      { value: monthly.reduce((a, b) => a + b, 0) },
-    ]);
-
-    const rows: Row[] = [headerRow, ...dataRows];
-
-    const buffer = await writeXlsxFile(rows, {
-      sheet: `Donor Aggregations ${year}`,
-      buffer: true,
-    });
-
-    res
-      .setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      )
-      .setHeader(
-        'Content-Disposition',
-        `attachment; filename=${year}_donor_aggregations.xlsx`,
-      );
-
-    res.send(buffer);
-  } catch (error) {
-    logger.error('Error exporting donor aggregations:', error);
-    next(error);
-  }
-}

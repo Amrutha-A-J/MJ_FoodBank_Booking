@@ -1,4 +1,3 @@
-import logger from './logger';
 
 export interface ErrorResponse {
   status: number;
@@ -38,8 +37,6 @@ export function buildErrorResponse(err: unknown): ErrorResponse {
     typeof (err as any).code === 'string'
       ? (err as any).code
       : 'UNKNOWN';
-
-  logger.error('Unhandled error:', originalMessage, err);
 
   const safeMessage = status === 500 ? 'Internal Server Error' : originalMessage;
 
