@@ -74,7 +74,7 @@ describe('fetchWithRetry', () => {
     await Promise.resolve();
 
     await expect(promise).rejects.toThrow(
-      'Failed to fetch after 2 attempts',
+      'Failed to fetch /test (last status 0) after 2 attempts',
     );
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });

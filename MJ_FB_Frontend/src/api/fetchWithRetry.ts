@@ -5,19 +5,39 @@ export async function fetchWithRetry(
   backoff = 300,
   retryStatusCodes: number[] = [],
 ): Promise<Response> {
+  const url =
+    typeof resource === 'string' || resource instanceof URL
+      ? resource.toString()
+      : resource.url;
+  let lastResponse: Response | undefined;
+  let lastStatus = 0;
+
   for (let i = 0; i <= retries; i++) {
     try {
       const res = await fetch(resource, options);
+      lastResponse = res;
+      lastStatus = res.status;
       const shouldRetry =
         res.status >= 500 || retryStatusCodes.includes(res.status);
-      if (!shouldRetry || i === retries) {
+      if (!shouldRetry) {
         return res;
       }
     } catch (e) {
-      if (i === retries)
-        throw new Error(`Failed to fetch after ${retries + 1} attempts`);
+      lastResponse = undefined;
+      lastStatus = 0;
+      if (i === retries) break;
     }
-    await new Promise(res => setTimeout(res, backoff * 2 ** i));
+    if (i < retries)
+      await new Promise(res => setTimeout(res, backoff * 2 ** i));
   }
-  throw new Error(`Failed to fetch after ${retries + 1} attempts`);
+
+  const error: any = new Error(
+    `Failed to fetch ${url} (last status ${lastStatus}) after ${
+      retries + 1
+    } attempts`,
+  );
+  error.url = url;
+  error.status = lastStatus;
+  error.response = lastResponse;
+  throw error;
 }
