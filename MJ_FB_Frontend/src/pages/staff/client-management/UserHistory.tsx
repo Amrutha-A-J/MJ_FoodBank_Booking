@@ -9,7 +9,6 @@ import {
 } from '../../../api/users';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 import { useAuth } from '../../../hooks/useAuth';
-import { formatTime } from '../../../utils/time';
 import {
   Box,
   Button,
@@ -28,8 +27,6 @@ import {
   Tooltip,
   TableContainer,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import RescheduleDialog from '../../../components/RescheduleDialog';
@@ -40,7 +37,7 @@ import PasswordField from '../../../components/PasswordField';
 import { useTranslation } from 'react-i18next';
 import { toDate, formatDate } from '../../../utils/date';
 import type { Booking } from '../../../types';
-import ResponsiveTable, { type Column } from '../../../components/ResponsiveTable';
+import BookingHistoryTable from '../../../components/BookingHistoryTable';
 
 interface User {
   name: string;
@@ -144,84 +141,6 @@ export default function UserHistory({
     : bookings;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
-
-  const columns: Column<Booking>[] = [
-    {
-      field: 'date',
-      header: t('date'),
-      render: b =>
-        b.date && !isNaN(toDate(b.date).getTime())
-          ? formatDate(b.date, 'MMM D, YYYY')
-          : 'N/A',
-    },
-    {
-      field: 'time' as keyof Booking & string,
-      header: t('time'),
-      render: b => {
-        const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-        const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-        return startTime !== 'N/A' && endTime !== 'N/A'
-          ? `${startTime} - ${endTime}`
-          : 'N/A';
-      },
-    },
-    { field: 'status', header: t('status'), render: b => t(b.status) },
-    { field: 'reason', header: t('reason'), render: b => b.reason || '' },
-    ...(showNotes
-      ? ([
-          {
-            field: 'staff_note' as keyof Booking & string,
-            header: t('staff_note_label'),
-            render: b =>
-              b.staff_note ? <Typography variant="body2">{b.staff_note}</Typography> : '',
-          },
-        ] as Column<Booking>[])
-      : []),
-    {
-      field: 'actions' as keyof Booking & string,
-      header: t('actions'),
-      render: b => (
-        <>
-          {['approved'].includes(b.status.toLowerCase()) && (
-            <Stack
-              direction={isSmall ? 'column' : 'row'}
-              spacing={1}
-              alignItems={isSmall ? 'stretch' : 'center'}
-            >
-              <Button
-                onClick={() => setCancelId(b.id)}
-                variant="outlined"
-                color="primary"
-              >
-                {t('cancel')}
-              </Button>
-              <Button
-                onClick={() => setRescheduleBooking(b)}
-                variant="outlined"
-                color="primary"
-              >
-                {t('reschedule')}
-              </Button>
-            </Stack>
-          )}
-          {role === 'staff' && b.status === 'visited' && !b.slot_id && (
-            <Button
-              onClick={() => setDeleteVisitId(b.id)}
-              variant="outlined"
-              color="error"
-              
-              sx={{ mt: ['approved'].includes(b.status.toLowerCase()) ? 1 : 0 }}
-            >
-              Delete visit
-            </Button>
-          )}
-        </>
-      ),
-    },
-  ];
-
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   async function confirmCancel() {
     if (cancelId == null) return;
@@ -369,9 +288,24 @@ export default function UserHistory({
               <Typography align="center">{t('no_bookings')}</Typography>
             ) : (
               <TableContainer sx={{ overflowX: 'auto' }}>
-                <ResponsiveTable
-                  columns={columns}
+                <BookingHistoryTable
                   rows={paginated}
+                  showReason
+                  showStaffNotes={showNotes}
+                  onCancel={b => setCancelId(b.id)}
+                  onReschedule={b => setRescheduleBooking(b)}
+                  renderExtraActions={(b, isSmall) =>
+                    role === 'staff' && b.status === 'visited' && !b.slot_id ? (
+                      <Button
+                        onClick={() => setDeleteVisitId(b.id)}
+                        variant="outlined"
+                        color="error"
+                        fullWidth={isSmall}
+                      >
+                        Delete visit
+                      </Button>
+                    ) : null
+                  }
                   getRowKey={b => `${b.id}-${b.date}`}
                 />
               </TableContainer>

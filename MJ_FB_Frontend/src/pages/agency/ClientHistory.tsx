@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getBookingHistory, cancelBooking } from '../../api/bookings';
 import { getMyAgencyClients } from '../../api/agencies';
-import { formatTime } from '../../utils/time';
 import {
   Box,
   Button,
@@ -21,7 +20,7 @@ import { formatDate } from '../../utils/date';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import ResponsiveTable from '../../components/ResponsiveTable';
+import BookingHistoryTable from '../../components/BookingHistoryTable';
 import type { Booking } from '../../types';
 
 interface User {
@@ -111,79 +110,6 @@ export default function ClientHistory() {
   const totalPages = Math.max(1, Math.ceil(bookings.length / pageSize));
   const paginated = bookings.slice((page - 1) * pageSize, page * pageSize);
 
-  const columns: {
-    field: keyof Booking & string;
-    header: string;
-    render?: (row: Booking) => ReactNode;
-  }[] = [
-    {
-      field: 'date',
-      header: t('date'),
-      render: b =>
-        b.date && !isNaN(toDate(b.date).getTime())
-          ? formatDate(b.date, 'MMM D, YYYY')
-          : 'N/A',
-    },
-    {
-      field: 'start_time',
-      header: t('time'),
-      render: b => {
-        const startTime = b.start_time ? formatTime(b.start_time) : 'N/A';
-        const endTime = b.end_time ? formatTime(b.end_time) : 'N/A';
-        return startTime !== 'N/A' && endTime !== 'N/A'
-          ? `${startTime} - ${endTime}`
-          : 'N/A';
-      },
-    },
-    {
-      field: 'status',
-      header: t('status'),
-      render: b => t(b.status),
-    },
-    {
-      field: 'reason',
-      header: t('reason'),
-      render: b => b.reason || '',
-    },
-    {
-      field: 'staff_note',
-      header: t('staff_note_label'),
-      render: b =>
-        b.staff_note ? (
-          <Typography variant="body2">{b.staff_note}</Typography>
-        ) : (
-          ''
-        ),
-    },
-    {
-      field: 'id',
-      header: t('actions'),
-      render: b =>
-        ['approved'].includes(b.status.toLowerCase()) && (
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={1}
-            alignItems={{ xs: 'stretch', sm: 'center' }}
-          >
-            <Button
-              onClick={() => setRescheduleBooking(b)}
-              variant="outlined"
-              color="primary"
-            >
-              {t('reschedule')}
-            </Button>
-            <Button
-              onClick={() => setCancelBookingItem(b)}
-              variant="outlined"
-              color="error"
-            >
-              {t('cancel')}
-            </Button>
-          </Stack>
-        ),
-    },
-  ];
-
   const handleCancel = async () => {
     if (!cancelBookingItem) return;
     try {
@@ -229,9 +155,12 @@ export default function ClientHistory() {
               <Typography align="center">{t('no_bookings')}</Typography>
             ) : (
               <TableContainer sx={{ overflowX: 'auto' }}>
-                <ResponsiveTable
-                  columns={columns}
+                <BookingHistoryTable
                   rows={paginated}
+                  showReason
+                  showStaffNotes
+                  onCancel={b => setCancelBookingItem(b)}
+                  onReschedule={b => setRescheduleBooking(b)}
                   getRowKey={b => `${b.id}-${b.date}`}
                 />
               </TableContainer>

@@ -6,13 +6,12 @@ import {
   rescheduleVolunteerBookingByToken,
 } from '../../api/volunteers';
 import type { VolunteerBooking } from '../../types';
-import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
-import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
+import BookingHistoryTable from '../../components/BookingHistoryTable';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -20,10 +19,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Stack,
   Typography,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 
@@ -37,9 +33,6 @@ export default function VolunteerBookingHistory() {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
   const { t } = useTranslation();
-
-  const theme = useTheme();
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
@@ -113,66 +106,19 @@ export default function VolunteerBookingHistory() {
     }
   }
 
-  const columns: Column<VolunteerBooking>[] = [
-    { field: 'role_name', header: t('role') },
-    { field: 'date', header: t('date') },
-    {
-      field: 'time' as keyof VolunteerBooking & string,
-      header: t('time'),
-      render: h => `${formatTime(h.start_time ?? '')} - ${formatTime(h.end_time ?? '')}`,
-    },
-    { field: 'status', header: t('status'), render: h => t(h.status ?? '') },
-    {
-      field: 'actions' as keyof VolunteerBooking & string,
-      header: t('actions'),
-      render: h =>
-        h.status?.toLowerCase() === 'approved'
-          ? isSmall ? (
-              <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
-                <Button onClick={() => setCancelBooking(h)} fullWidth>
-                  {t('cancel')}
-                </Button>
-                <Button onClick={() => setRescheduleBooking(h)} fullWidth>
-                  {t('reschedule')}
-                </Button>
-                {h.recurring_id && (
-                  <Button
-                    
-                    onClick={() => setCancelSeriesId(h.recurring_id!)}
-                    fullWidth
-                  >
-                    {t('cancel_all_upcoming_short')}
-                  </Button>
-                )}
-              </Stack>
-            ) : (
-              <>
-                <Button onClick={() => setCancelBooking(h)}>
-                  {t('cancel')}
-                </Button>
-                <Button onClick={() => setRescheduleBooking(h)}>
-                  {t('reschedule')}
-                </Button>
-                {h.recurring_id && (
-                  <Button
-                    
-                    onClick={() => setCancelSeriesId(h.recurring_id!)}
-                  >
-                    {t('cancel_all_upcoming_short')}
-                  </Button>
-                )}
-              </>
-            )
-          : null,
-    },
-  ];
-
   return (
     <Page title={t('booking_history')}>
       {rows.length === 0 ? (
         <Typography align="center">{t('no_bookings')}</Typography>
       ) : (
-        <ResponsiveTable columns={columns} rows={rows} getRowKey={h => h.id} />
+        <BookingHistoryTable
+          rows={rows}
+          showRole
+          onCancel={b => setCancelBooking(b)}
+          onReschedule={b => setRescheduleBooking(b)}
+          onCancelSeries={id => setCancelSeriesId(id)}
+          getRowKey={h => h.id}
+        />
       )}
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
