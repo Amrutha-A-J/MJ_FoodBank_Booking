@@ -16,6 +16,7 @@ import DialogCloseButton from '../../components/DialogCloseButton';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PasswordField from '../../components/PasswordField';
 import { updateVolunteer, type VolunteerSearchResult } from '../../api/volunteers';
+import { getApiErrorMessage } from '../../api/helpers';
 
 interface EditVolunteerDialogProps {
   volunteer: VolunteerSearchResult | null;
@@ -69,7 +70,11 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       setSnackbar({ open: true, message: 'Volunteer updated', severity: 'success' });
       onSaved();
     } catch (err) {
-      setSnackbar({ open: true, message: err instanceof Error ? err.message : 'Update failed', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: getApiErrorMessage(err, 'Unable to update volunteer'),
+        severity: 'error',
+      });
     }
   }
 
@@ -86,7 +91,11 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       });
       setSnackbar({ open: true, message: 'Password setup link sent', severity: 'success' });
     } catch (err) {
-      setSnackbar({ open: true, message: err instanceof Error ? err.message : 'Failed to send link', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: getApiErrorMessage(err, 'Unable to send password setup link'),
+        severity: 'error',
+      });
     }
   }
 

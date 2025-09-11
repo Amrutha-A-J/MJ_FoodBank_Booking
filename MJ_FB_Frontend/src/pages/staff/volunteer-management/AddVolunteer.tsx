@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createVolunteer, getVolunteerRoles } from '../../../api/volunteers';
+import { getApiErrorMessage } from '../../../api/helpers';
 import type { VolunteerRoleWithShifts } from '../../../types';
 import {
   Box,
@@ -68,7 +69,7 @@ export default function AddVolunteer() {
       setPassword('');
       setSelectedRoles([]);
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : 'Create failed');
+      setMessage(getApiErrorMessage(err, 'Unable to create volunteer'));
       setSeverity('error');
     }
   }
