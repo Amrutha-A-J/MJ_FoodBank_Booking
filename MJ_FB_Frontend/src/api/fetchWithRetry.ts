@@ -14,9 +14,10 @@ export async function fetchWithRetry(
         return res;
       }
     } catch (e) {
-      if (i === retries) throw e;
+      if (i === retries)
+        throw new Error(`Failed to fetch after ${retries + 1} attempts`);
     }
     await new Promise(res => setTimeout(res, backoff * 2 ** i));
   }
-  throw new Error('Unreachable');
+  throw new Error(`Failed to fetch after ${retries + 1} attempts`);
 }
