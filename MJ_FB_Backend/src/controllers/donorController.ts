@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { reginaStartOfDayISO } from '../utils/dateUtils';
+import { parsePaginationParams } from '../utils/parsePaginationParams';
 
 export async function listDonors(req: Request, res: Response, next: NextFunction) {
   try {
@@ -37,14 +38,11 @@ export async function topDonors(req: Request, res: Response, next: NextFunction)
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
 
-    const limitParam = req.query.limit as string | undefined;
-    let limit = 7;
-    if (limitParam !== undefined) {
-      const parsed = Number(limitParam);
-      if (!Number.isInteger(parsed) || parsed < 1) {
-        return res.status(400).json({ message: 'Invalid limit parameter' });
-      }
-      limit = Math.min(parsed, 100);
+    let limit: number;
+    try {
+      ({ limit } = parsePaginationParams(req, 7, 100));
+    } catch (err) {
+      return res.status(400).json({ message: (err as Error).message });
     }
 
     const result = await pool.query(
