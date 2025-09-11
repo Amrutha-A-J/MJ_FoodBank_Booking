@@ -4,6 +4,7 @@ import EntitySearch from '../../../components/EntitySearch';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import { deleteVolunteer, type VolunteerSearchResult } from '../../../api/volunteers';
+import { getApiErrorMessage } from '../../../api/helpers';
 
 export default function DeleteVolunteer() {
   const [volunteer, setVolunteer] =
@@ -19,8 +20,8 @@ export default function DeleteVolunteer() {
       setMessage('Volunteer deleted');
       setSeverity('success');
       setVolunteer(null);
-    } catch {
-      setMessage('Delete failed');
+    } catch (err) {
+      setMessage(getApiErrorMessage(err, 'Unable to delete volunteer'));
       setSeverity('error');
     }
     setConfirm(false);

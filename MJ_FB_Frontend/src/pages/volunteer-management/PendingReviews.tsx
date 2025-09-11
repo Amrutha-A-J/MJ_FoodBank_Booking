@@ -23,6 +23,7 @@ import {
   getVolunteerBookingsForReview,
   updateVolunteerBookingStatus,
 } from '../../api/volunteers';
+import { getApiErrorMessage } from '../../api/helpers';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
 import dayjs from '../../utils/date';
@@ -91,9 +92,9 @@ export default function PendingReviews() {
       setSelected([]);
       setSeverity('success');
       setMessage('Shifts updated');
-    } catch {
+    } catch (err) {
       setSeverity('error');
-      setMessage('Update failed');
+      setMessage(getApiErrorMessage(err, 'Unable to update shifts'));
     }
   }
 

@@ -8,6 +8,7 @@ import {
   removeVolunteerShopperProfile,
   type VolunteerSearchResult,
 } from '../../../api/volunteers';
+import { getApiErrorMessage } from '../../../api/helpers';
 import type { VolunteerRoleWithShifts } from '../../../types';
 import {
   Box,
@@ -113,7 +114,7 @@ export default function EditVolunteer() {
       setMessage('Volunteer updated');
       setSeverity('success');
     } catch (err: unknown) {
-      setMessage(err instanceof Error ? err.message : 'Update failed');
+      setMessage(getApiErrorMessage(err, 'Unable to update volunteer'));
       setSeverity('error');
     }
   }
@@ -156,7 +157,7 @@ export default function EditVolunteer() {
       setShopperPhone('');
       await refreshVolunteer(volunteer.id);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Update failed');
+      setMessage(getApiErrorMessage(err, 'Unable to create shopper profile'));
       setSeverity('error');
     }
   }
@@ -170,7 +171,7 @@ export default function EditVolunteer() {
       setRemoveShopperOpen(false);
       await refreshVolunteer(volunteer.id);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Update failed');
+      setMessage(getApiErrorMessage(err, 'Unable to remove shopper profile'));
       setSeverity('error');
     }
   }
