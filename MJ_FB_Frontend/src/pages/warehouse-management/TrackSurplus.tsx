@@ -25,7 +25,7 @@ import {
   deleteSurplus,
   type Surplus,
 } from '../../api/surplus';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, toDate, formatDate, addDays, normalizeDate } from '../../utils/date';
 import {
   getWarehouseSettings,
   type WarehouseSettings,
@@ -43,10 +43,6 @@ function startOfWeek(date: Date) {
 
 function format(date: Date) {
   return formatDate(date);
-}
-
-function normalize(date: string) {
-  return date.split('T')[0];
 }
 
 export default function TrackSurplus() {
@@ -100,7 +96,7 @@ export default function TrackSurplus() {
 
   const filteredRecords = useMemo(() => {
     const dateStr = format(selectedDate);
-    return records.filter(r => normalize(r.date) === dateStr);
+    return records.filter(r => normalizeDate(r.date) === dateStr);
   }, [records, selectedDate]);
 
   function handleSave() {
@@ -148,7 +144,7 @@ export default function TrackSurplus() {
             
             onClick={() => {
               setEditing(r);
-              setForm({ date: normalize(r.date), type: r.type, count: String(r.count) });
+              setForm({ date: normalizeDate(r.date), type: r.type, count: String(r.count) });
               setRecordOpen(true);
             }}
             aria-label="Edit surplus"
