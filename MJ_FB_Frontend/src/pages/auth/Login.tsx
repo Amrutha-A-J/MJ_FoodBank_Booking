@@ -62,7 +62,7 @@ export default function Login({
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
         setError(t('incorrect_id_password'));
-      } else if (apiErr?.status === 403) {
+      } else if (apiErr?.status === 410) {
         setError(t('password_setup_expired'));
         setResendOpen(true);
       } else if (apiErr?.status === 404) {
