@@ -5,6 +5,19 @@ import { hasTable } from '../utils/dbUtils';
 
 export type Queryable = Pool | PoolClient;
 
+export interface BookingRow {
+  id: number;
+  user_id: number | null;
+  new_client_id: number | null;
+  slot_id: number;
+  status: string;
+  request_data: string | null;
+  note: string | null;
+  date: string;
+  is_staff_booking: boolean;
+  reschedule_token: string;
+}
+
 export class SlotCapacityError extends Error {
   status: number;
   constructor(message: string, status = 400) {
@@ -68,7 +81,11 @@ export async function insertBooking(
 }
 
 export async function fetchBookingById(id: number, client: Queryable = pool) {
-  const res = await client.query('SELECT * FROM bookings WHERE id = $1', [id]);
+  const res = await client.query<BookingRow>(
+    `SELECT id, user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token
+     FROM bookings WHERE id = $1`,
+    [id],
+  );
   return res.rows[0];
 }
 
@@ -77,10 +94,9 @@ export async function fetchBookingByToken(
   client: Queryable = pool,
   forUpdate = false,
 ) {
-  const res = await client.query(
-    `SELECT * FROM bookings WHERE reschedule_token = $1${
-      forUpdate ? ' FOR UPDATE' : ''
-    }`,
+  const res = await client.query<BookingRow>(
+    `SELECT id, user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token
+       FROM bookings WHERE reschedule_token = $1${forUpdate ? ' FOR UPDATE' : ''}`,
     [token],
   );
   return res.rows[0];

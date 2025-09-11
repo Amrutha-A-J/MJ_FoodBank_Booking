@@ -938,8 +938,8 @@ export async function updateVolunteerBookingStatus(
 
   try {
     const bookingRes = await pool.query(
-      'SELECT * FROM volunteer_bookings WHERE id=$1',
-      [id]
+      'SELECT id, volunteer_id, slot_id, date, status FROM volunteer_bookings WHERE id=$1',
+      [id],
     );
     if ((bookingRes.rowCount ?? 0) === 0) {
       return res.status(404).json({ message: 'Booking not found' });
@@ -992,7 +992,7 @@ export async function rescheduleVolunteerBooking(
   }
   try {
     const bookingRes = await pool.query(
-      'SELECT * FROM volunteer_bookings WHERE reschedule_token = $1',
+      'SELECT id, volunteer_id, slot_id, date, status FROM volunteer_bookings WHERE reschedule_token = $1',
       [token],
     );
     if ((bookingRes.rowCount ?? 0) === 0) {
