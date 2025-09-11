@@ -35,7 +35,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  ListSubheader,
   Button,
   Dialog,
   DialogTitle,
@@ -72,7 +71,7 @@ export default function VolunteerSchedule() {
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [roleGroups, setRoleGroups] = useState<VolunteerRoleGroup[]>([]);
-  const [selectedRoleKey, setSelectedRoleKey] = useState<string>("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [requestRole, setRequestRole] = useState<VolunteerRole | null>(null);
   const [decisionBooking, setDecisionBooking] =
     useState<VolunteerBooking | null>(null);
@@ -130,10 +129,8 @@ export default function VolunteerSchedule() {
       });
       const groups = Array.from(map.values());
       setRoleGroups(groups);
-      const keys = new Set(
-        groups.flatMap((g) => g.roles.map((r) => `${g.category_id}|${r.id}`)),
-      );
-      setSelectedRoleKey((prev) => (prev && keys.has(prev) ? prev : ""));
+      const categoryIds = new Set(groups.map((g) => g.category_id.toString()));
+      setSelectedCategoryId((prev) => (prev && categoryIds.has(prev) ? prev : ""));
 
       const allowedIds = new Set(filteredRoles.map((r) => r.id));
       const filteredBookings = bookingData.filter(
@@ -332,20 +329,17 @@ export default function VolunteerSchedule() {
   const isWeekend = reginaDate.getDay() === 0 || reginaDate.getDay() === 6;
   const closedReason = holidayObj?.reason || dayName;
   const allowedOnClosed = ["Gardening", "Special Events"];
-  const [selectedCategoryId, selectedRoleId] = selectedRoleKey.split("|");
-  const selectedCategory = roleGroups.find(
+  const selectedGroup = roleGroups.find(
     (g) => g.category_id === Number(selectedCategoryId),
-  )?.category;
+  );
+  const selectedCategory = selectedGroup?.category;
   const isClosed =
     (isHoliday || isWeekend) &&
     (!selectedCategory || !allowedOnClosed.includes(selectedCategory));
 
-  const roleSlots = selectedRoleKey
-    ? (() => {
-        let slots =
-          roleGroups
-            .find((g) => g.category_id === Number(selectedCategoryId))
-            ?.roles.find((r) => r.id === Number(selectedRoleId))?.slots || [];
+  const roleTables = selectedGroup
+    ? selectedGroup.roles.map((r) => {
+        let slots = r.slots;
         if (isToday) {
           const nowMinutes = today.getHours() * 60 + today.getMinutes();
           slots = slots.filter((s) => {
@@ -353,58 +347,59 @@ export default function VolunteerSchedule() {
             return h * 60 + m > nowMinutes;
           });
         }
-        return slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
-      })()
+        slots = slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+        const maxSlots = Math.max(0, ...slots.map((s) => s.max_volunteers));
+        const rows = slots.map((slot) => {
+          const myBooking = bookings.find((b) => b.role_id === slot.id);
+          const othersBooked = Math.max(0, slot.booked - (myBooking ? 1 : 0));
+          const cells: {
+            content: ReactNode;
+            backgroundColor?: string;
+            onClick?: () => void;
+          }[] = [];
+          if (myBooking) {
+            cells.push({
+              content: "My Booking",
+              backgroundColor: approvedColor,
+              onClick: () => {
+                setDecisionBooking(myBooking);
+                setDecisionReason("");
+              },
+            });
+          }
+          for (let i = cells.length; i < slot.max_volunteers; i++) {
+            if (i - (myBooking ? 1 : 0) < othersBooked) {
+              cells.push({
+                content: "Booked",
+                backgroundColor: theme.palette.grey[200],
+              });
+            } else {
+              cells.push({
+                content: "",
+                onClick: () => {
+                  if (!isClosed) {
+                    quickBook(slot);
+                  } else {
+                    setSnackbarSeverity("error");
+                    setMessage("Booking not allowed on weekends or holidays");
+                  }
+                },
+              });
+            }
+          }
+          return {
+            time: `${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}`,
+            cells,
+          };
+        });
+        return { roleName: r.name, maxSlots, rows };
+      })
     : [];
-  const maxSlots = Math.max(0, ...roleSlots.map((r) => r.max_volunteers));
   const showClosedMessage = (isHoliday || isWeekend) && roleGroups.length === 0;
   const pageTitle =
     showClosedMessage || isClosed
       ? `Volunteer Schedule - Closed for ${closedReason}`
       : 'Volunteer Schedule';
-  const rows = roleSlots.map((role) => {
-    const myBooking = bookings.find((b) => b.role_id === role.id);
-    const othersBooked = Math.max(0, role.booked - (myBooking ? 1 : 0));
-    const cells: {
-      content: ReactNode;
-      backgroundColor?: string;
-      onClick?: () => void;
-    }[] = [];
-    if (myBooking) {
-      cells.push({
-        content: "My Booking",
-        backgroundColor: approvedColor,
-        onClick: () => {
-          setDecisionBooking(myBooking);
-          setDecisionReason("");
-        },
-      });
-    }
-    for (let i = cells.length; i < role.max_volunteers; i++) {
-      if (i - (myBooking ? 1 : 0) < othersBooked) {
-        cells.push({
-          content: "Booked",
-          backgroundColor: theme.palette.grey[200],
-        });
-      } else {
-        cells.push({
-          content: "",
-          onClick: () => {
-            if (!isClosed) {
-              quickBook(role);
-            } else {
-              setSnackbarSeverity("error");
-              setMessage("Booking not allowed on weekends or holidays");
-            }
-          },
-        });
-      }
-    }
-    return {
-      time: `${formatTime(role.start_time)} - ${formatTime(role.end_time)}`,
-      cells,
-    };
-  });
 
   return (
     <Page title={pageTitle} sx={{ pb: 7 }}>
@@ -415,30 +410,22 @@ export default function VolunteerSchedule() {
           </Box>
         )}
         <FormControl size="medium" sx={{ minWidth: 200 }}>
-          <InputLabel id="role-select-label">Role</InputLabel>
+          <InputLabel id="department-select-label">Department</InputLabel>
           <Select
-            labelId="role-select-label"
-            value={selectedRoleKey}
-            label="Role"
-            onChange={(e) => setSelectedRoleKey(e.target.value)}
+            labelId="department-select-label"
+            value={selectedCategoryId}
+            label="Department"
+            onChange={(e) => setSelectedCategoryId(e.target.value)}
           >
-            <MenuItem value="">Select role</MenuItem>
-            {roleGroups.flatMap((g) => [
-              <ListSubheader key={`${g.category_id}-header`}>
+            <MenuItem value="">Select department</MenuItem>
+            {roleGroups.map((g) => (
+              <MenuItem key={g.category_id} value={g.category_id.toString()}>
                 {g.category}
-              </ListSubheader>,
-              ...g.roles.map((r) => (
-                <MenuItem
-                  key={`${g.category_id}-${r.id}`}
-                  value={`${g.category_id}|${r.id}`}
-                >
-                  {r.name}
-                </MenuItem>
-              )),
-            ])}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
-        {selectedRoleKey ? (
+        {selectedCategoryId ? (
           <>
             <Stack
               direction="row"
@@ -520,10 +507,26 @@ export default function VolunteerSchedule() {
               <Typography align="center">
                 Moose Jaw food bank is closed for {closedReason}
               </Typography>
-            ) : isSmallScreen ? (
-              <ScheduleCards maxSlots={maxSlots} rows={rows} />
             ) : (
-              <VolunteerScheduleTable maxSlots={maxSlots} rows={rows} />
+              roleTables.map((t) => (
+                <Box key={t.roleName} sx={{ mb: 4 }}>
+                  <Typography
+                    variant="h6"
+                    component="h4"
+                    sx={{ fontWeight: theme.typography.fontWeightBold }}
+                  >
+                    {t.roleName}
+                  </Typography>
+                  {isSmallScreen ? (
+                    <ScheduleCards maxSlots={t.maxSlots} rows={t.rows} />
+                  ) : (
+                    <VolunteerScheduleTable
+                      maxSlots={t.maxSlots}
+                      rows={t.rows}
+                    />
+                  )}
+                </Box>
+              ))
             )}
           </>
         ) : showClosedMessage ? (

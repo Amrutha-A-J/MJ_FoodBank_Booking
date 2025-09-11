@@ -56,6 +56,51 @@ describe("VolunteerSchedule", () => {
     jest.useRealTimers();
   });
 
+  it('renders a table for each role in the selected department', async () => {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        name: 'Greeter',
+        start_time: '14:00:00',
+        end_time: '16:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+      {
+        id: 2,
+        role_id: 2,
+        name: 'Cleaner',
+        start_time: '16:00:00',
+        end_time: '18:00:00',
+        max_volunteers: 1,
+        booked: 0,
+        available: 1,
+        status: 'available',
+        date: '2024-01-29',
+        category_id: 1,
+        category_name: 'Front',
+        is_wednesday_slot: false,
+      },
+    ]);
+
+    renderWithProviders(<VolunteerSchedule />);
+
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
+
+    expect(await screen.findByText('Greeter')).toBeInTheDocument();
+    expect(await screen.findByText('Cleaner')).toBeInTheDocument();
+  });
+
   it("disables past days and hides past slots", async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -79,8 +124,10 @@ describe("VolunteerSchedule", () => {
 
     renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText(i18n.t("role")));
-    fireEvent.click(await screen.findByText("Greeter"));
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
+
+    expect(await screen.findByText('Greeter')).toBeInTheDocument();
 
     const prev = await screen.findByRole("button", {
       name: i18n.t("previous"),
@@ -98,8 +145,8 @@ describe("VolunteerSchedule", () => {
         role_id: 1,
         status: "approved",
         date: "2024-01-29",
-        start_time: "09:00:00",
-        end_time: "12:00:00",
+        start_time: "18:00:00",
+        end_time: "20:00:00",
         role_name: "Greeter",
       },
     ]);
@@ -109,8 +156,8 @@ describe("VolunteerSchedule", () => {
           id: 1,
           role_id: 1,
           name: "Greeter",
-          start_time: "09:00:00",
-          end_time: "12:00:00",
+          start_time: "18:00:00",
+          end_time: "20:00:00",
           max_volunteers: 1,
           booked: 1,
           available: 0,
@@ -156,8 +203,8 @@ describe("VolunteerSchedule", () => {
 
     renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText(i18n.t("role")));
-    fireEvent.click(await screen.findByText("Greeter"));
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
 
     fireEvent.click(await screen.findByText("My Booking"));
     fireEvent.click(await screen.findByRole("button", { name: /reschedule/i }));
@@ -204,8 +251,8 @@ describe("VolunteerSchedule", () => {
     const mq = jest.spyOn(mui, "useMediaQuery").mockReturnValue(true);
     renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText(i18n.t("role")));
-    fireEvent.click(await screen.findByText("Greeter"));
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
 
     expect(await screen.findByText(i18n.t("no_bookings"))).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
@@ -220,8 +267,8 @@ describe("VolunteerSchedule", () => {
         id: 1,
         role_id: 1,
         name: 'Greeter',
-        start_time: '09:00:00',
-        end_time: '12:00:00',
+        start_time: '18:00:00',
+        end_time: '20:00:00',
         max_volunteers: 1,
         booked: 0,
         available: 1,
@@ -236,8 +283,8 @@ describe("VolunteerSchedule", () => {
 
     renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
-    fireEvent.click(await screen.findByText('Greeter'));
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
 
     fireEvent.click(await screen.findByRole('button', { name: /sign up/i }));
 
@@ -267,8 +314,8 @@ describe("VolunteerSchedule", () => {
 
     renderWithProviders(<VolunteerSchedule />);
 
-    fireEvent.mouseDown(screen.getByLabelText(i18n.t('role')));
-    fireEvent.click(await screen.findByText('Greeter'));
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByText('Front'));
 
     const nextBtn = await screen.findByRole('button', { name: 'Next' });
     fireEvent.click(nextBtn);
