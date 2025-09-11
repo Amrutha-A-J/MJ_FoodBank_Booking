@@ -1,11 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import VolunteerManagement from '../volunteer-management/VolunteerManagement';
-import {
-  getVolunteerRoles,
-  searchVolunteers,
-  getVolunteerBookingHistory,
-} from '../../api/volunteers';
+import { getVolunteerRoles, searchVolunteers } from '../../api/volunteers';
+import { getVolunteerBookingHistory } from '../../api/volunteerBookings';
 
 const mockVolunteer = {
   id: 2,
@@ -19,6 +16,9 @@ const mockVolunteer = {
 jest.mock('../../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   searchVolunteers: jest.fn(),
+}));
+
+jest.mock('../../api/volunteerBookings', () => ({
   getVolunteerBookingHistory: jest.fn(),
 }));
 
