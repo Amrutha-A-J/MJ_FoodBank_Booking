@@ -1249,99 +1249,136 @@ export async function createRecurringVolunteerBooking(
         dates.push(formatReginaDate(d));
       }
     }
+
+    const [holidayRes, capacityRes, existingRes, overlapRes] = await Promise.all([
+      pool.query(
+        'SELECT date FROM holidays WHERE date BETWEEN $1 AND $2',
+        [startDate, endDate],
+      ),
+      pool.query(
+        `SELECT date, COUNT(*)
+         FROM volunteer_bookings
+         WHERE slot_id=$1 AND date BETWEEN $2 AND $3 AND status='approved'
+         GROUP BY date`,
+        [roleId, startDate, endDate],
+      ),
+      pool.query(
+        `SELECT date FROM volunteer_bookings
+         WHERE slot_id=$1 AND volunteer_id=$2 AND date BETWEEN $3 AND $4 AND status='approved'`,
+        [roleId, user.id, startDate, endDate],
+      ),
+      pool.query(
+        `SELECT vb.date
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.volunteer_id=$1 AND vb.date BETWEEN $2 AND $3 AND vb.status='approved'
+           AND NOT (vs.end_time <= $4 OR vs.start_time >= $5)`,
+        [user.id, startDate, endDate, slot.start_time, slot.end_time],
+      ),
+    ]);
+
+    const holidaySet = new Set(
+      holidayRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+    const capacityMap = new Map<string, number>();
+    for (const row of capacityRes.rows) {
+      const key = row.date instanceof Date ? formatReginaDate(row.date) : row.date;
+      capacityMap.set(key, Number(row.count));
+    }
+    const existingSet = new Set(
+      existingRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+    const overlapSet = new Set(
+      overlapRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+
     const successes: string[] = [];
     const skipped: { date: string; reason: string }[] = [];
+    const inserts: { date: string; token: string }[] = [];
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+
     for (const date of dates) {
       const isWeekend = [0, 6].includes(
         new Date(reginaStartOfDayISO(date)).getUTCDay(),
       );
-      const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
-        date,
-      ]);
-      const isHoliday = (holidayRes.rowCount ?? 0) > 0;
-      const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
       if (
-        (isWeekend || isHoliday) &&
+        (isWeekend || holidaySet.has(date)) &&
         restrictedCategories.includes(slot.category_name)
       ) {
-        skipped.push({ date, reason: 'Role not bookable on holidays or weekends' });
+        skipped.push({
+          date,
+          reason: 'Role not bookable on holidays or weekends',
+        });
         continue;
       }
 
-      const countRes = await pool.query(
-        `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
-        [roleId, date],
-      );
-      if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
+      if ((capacityMap.get(date) ?? 0) >= Number(slot.max_volunteers)) {
         skipped.push({ date, reason: 'Role is full' });
         continue;
       }
 
-      const existingRes = await pool.query(
-        `SELECT 1 FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
-        [roleId, date, user.id],
-      );
-      if ((existingRes.rowCount ?? 0) > 0) {
+      if (existingSet.has(date)) {
         skipped.push({ date, reason: 'Already booked' });
         continue;
       }
 
-      const overlapRes = await pool.query(
-        `SELECT vb.id, vs.start_time, vs.end_time
-         FROM volunteer_bookings vb
-         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-         WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
-           AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
-        [user.id, date, slot.start_time, slot.end_time],
-      );
-      if ((overlapRes.rowCount ?? 0) > 0) {
+      if (overlapSet.has(date)) {
         skipped.push({ date, reason: 'Overlapping booking' });
         continue;
       }
 
       const token = randomUUID();
-      try {
-        await pool.query(
-          `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
-           VALUES ($1,$2,$3,'approved',$4,$5)`,
-          [roleId, user.id, date, token, recurringId],
-        );
-      } catch (err: any) {
-        if (err.code === '23505') {
-          skipped.push({ date, reason: 'Already booked' });
-          continue;
-        }
-        throw err;
-      }
+      inserts.push({ date, token });
       successes.push(date);
+    }
 
-      const subject = `Volunteer booking confirmed for ${formatReginaDateWithDay(
-        date,
-      )} ${formatTimeToAmPm(slot.start_time)}-${formatTimeToAmPm(slot.end_time)}`;
-      const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
-        slot.start_time,
-      )} to ${formatTimeToAmPm(slot.end_time)}`;
+    if (inserts.length) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const params: any[] = [roleId, user.id, recurringId];
+        const values = inserts
+          .map((_, i) => `($${i * 2 + 4}, $${i * 2 + 5})`)
+          .join(', ');
+        params.push(...inserts.flatMap((i) => [i.date, i.token]));
+        const sql = `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+                     SELECT $1, $2, v.date, 'approved', v.token, $3
+                     FROM (VALUES ${values}) AS v(date, token)`;
+        await client.query(sql, params);
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+
       if (user.email) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-        await sendTemplatedEmail({
-          to: user.email,
-          templateId: config.volunteerBookingReminderTemplateId,
-          params: {
-            body,
-            cancelLink,
-            rescheduleLink,
-            type: 'Volunteer Shift',
-          },
-        });
-      } else {
+        for (const { date, token } of inserts) {
+          const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
+            slot.start_time,
+          )} to ${formatTimeToAmPm(slot.end_time)}`;
+          const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+          await sendTemplatedEmail({
+            to: user.email!,
+            templateId: config.volunteerBookingReminderTemplateId,
+            params: { body, cancelLink, rescheduleLink, type: 'Volunteer Shift' },
+          });
+        }
+      } else if (successes.length) {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
           user.id,
         );
       }
     }
+
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
     logger.error('Error creating recurring volunteer bookings:', error);
@@ -1417,107 +1454,148 @@ export async function createRecurringVolunteerBookingForVolunteer(
         dates.push(formatReginaDate(d));
       }
     }
+
+    const [holidayRes, capacityRes, existingRes, overlapRes] = await Promise.all([
+      pool.query(
+        'SELECT date FROM holidays WHERE date BETWEEN $1 AND $2',
+        [startDate, endDate],
+      ),
+      pool.query(
+        `SELECT date, COUNT(*)
+         FROM volunteer_bookings
+         WHERE slot_id=$1 AND date BETWEEN $2 AND $3 AND status='approved'
+         GROUP BY date`,
+        [roleId, startDate, endDate],
+      ),
+      pool.query(
+        `SELECT date FROM volunteer_bookings
+         WHERE slot_id=$1 AND volunteer_id=$2 AND date BETWEEN $3 AND $4 AND status='approved'`,
+        [roleId, volunteerId, startDate, endDate],
+      ),
+      pool.query(
+        `SELECT vb.date
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         WHERE vb.volunteer_id=$1 AND vb.date BETWEEN $2 AND $3 AND vb.status='approved'
+           AND NOT (vs.end_time <= $4 OR vs.start_time >= $5)`,
+        [volunteerId, startDate, endDate, slot.start_time, slot.end_time],
+      ),
+    ]);
+
+    const holidaySet = new Set(
+      holidayRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+    const capacityMap = new Map<string, number>();
+    for (const row of capacityRes.rows) {
+      const key = row.date instanceof Date ? formatReginaDate(row.date) : row.date;
+      capacityMap.set(key, Number(row.count));
+    }
+    const existingSet = new Set(
+      existingRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+    const overlapSet = new Set(
+      overlapRes.rows.map((r: any) =>
+        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
+      ),
+    );
+
     const successes: string[] = [];
     const skipped: { date: string; reason: string }[] = [];
+    const inserts: { date: string; token: string }[] = [];
+    const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
+    let newCapacity = Number(slot.max_volunteers);
+
     for (const date of dates) {
       const isWeekend = [0, 6].includes(
         new Date(reginaStartOfDayISO(date)).getUTCDay(),
       );
-      const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [
-        date,
-      ]);
-      const isHoliday = (holidayRes.rowCount ?? 0) > 0;
-      const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
       if (
-        (isWeekend || isHoliday) &&
+        (isWeekend || holidaySet.has(date)) &&
         restrictedCategories.includes(slot.category_name)
       ) {
-        skipped.push({ date, reason: 'Role not bookable on holidays or weekends' });
+        skipped.push({
+          date,
+          reason: 'Role not bookable on holidays or weekends',
+        });
         continue;
       }
 
-      const countRes = await pool.query(
-        `SELECT COUNT(*) FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND status='approved'`,
-        [roleId, date],
-      );
-      if (Number(countRes.rows[0].count) >= slot.max_volunteers) {
+      const count = capacityMap.get(date) ?? 0;
+      if (count >= Number(slot.max_volunteers)) {
         if (force) {
-          await pool.query(
-            'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
-            [Number(countRes.rows[0].count) + 1, roleId],
-          );
+          newCapacity = Math.max(newCapacity, count + 1);
         } else {
           skipped.push({ date, reason: 'Role is full' });
           continue;
         }
       }
 
-      const existingRes = await pool.query(
-        `SELECT 1 FROM volunteer_bookings
-         WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
-        [roleId, date, volunteerId],
-      );
-      if ((existingRes.rowCount ?? 0) > 0) {
+      if (existingSet.has(date)) {
         skipped.push({ date, reason: 'Already booked' });
         continue;
       }
 
-      const overlapRes = await pool.query(
-        `SELECT vb.id, vs.start_time, vs.end_time
-         FROM volunteer_bookings vb
-         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-         WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
-           AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
-        [volunteerId, date, slot.start_time, slot.end_time],
-      );
-      if ((overlapRes.rowCount ?? 0) > 0) {
+      if (overlapSet.has(date)) {
         skipped.push({ date, reason: 'Overlapping booking' });
         continue;
       }
 
       const token = randomUUID();
-      try {
-        await pool.query(
-          `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
-           VALUES ($1,$2,$3,'approved',$4,$5)`,
-          [roleId, volunteerId, date, token, recurringId],
-        );
-      } catch (err: any) {
-        if (err.code === '23505') {
-          skipped.push({ date, reason: 'Already booked' });
-          continue;
-        }
-        throw err;
-      }
+      inserts.push({ date, token });
       successes.push(date);
+    }
 
-      const formatted = formatReginaDateWithDay(date);
-      const subject = `Volunteer booking confirmed for ${formatted} ${formatTimeToAmPm(
-        slot.start_time,
-      )}-${formatTimeToAmPm(slot.end_time)}`;
-      const body = `Date: ${formatted} from ${formatTimeToAmPm(
-        slot.start_time,
-      )} to ${formatTimeToAmPm(slot.end_time)}`;
+    if (inserts.length) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        if (force && newCapacity > Number(slot.max_volunteers)) {
+          await client.query(
+            'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
+            [newCapacity, roleId],
+          );
+        }
+        const params: any[] = [roleId, volunteerId, recurringId];
+        const values = inserts
+          .map((_, i) => `($${i * 2 + 4}, $${i * 2 + 5})`)
+          .join(', ');
+        params.push(...inserts.flatMap((i) => [i.date, i.token]));
+        const sql = `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, recurring_id)
+                     SELECT $1, $2, v.date, 'approved', v.token, $3
+                     FROM (VALUES ${values}) AS v(date, token)`;
+        await client.query(sql, params);
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+
       if (volunteerEmail) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-        await sendTemplatedEmail({
-          to: volunteerEmail,
-          templateId: config.volunteerBookingReminderTemplateId,
-          params: {
-            body,
-            cancelLink,
-            rescheduleLink,
-            type: 'Volunteer Shift',
-          },
-        });
-      } else {
+        for (const { date, token } of inserts) {
+          const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
+            slot.start_time,
+          )} to ${formatTimeToAmPm(slot.end_time)}`;
+          const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
+          await sendTemplatedEmail({
+            to: volunteerEmail,
+            templateId: config.volunteerBookingReminderTemplateId,
+            params: { body, cancelLink, rescheduleLink, type: 'Volunteer Shift' },
+          });
+        }
+      } else if (successes.length) {
         logger.warn(
           'Volunteer booking confirmation email not sent. Volunteer %s has no email.',
           volunteerId,
         );
       }
     }
+
     res.status(201).json({ recurringId, successes, skipped });
   } catch (error) {
     logger.error('Error creating recurring volunteer bookings for volunteer:', error);
