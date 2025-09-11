@@ -15,6 +15,7 @@ import {
   buildPasswordSetupEmailParams,
 } from '../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import { findUserByEmail } from '../models/userLookup';
 
 // Map of identifier -> timeout. Each entry schedules its own cleanup via
 // setTimeout so the cache doesn't grow indefinitely.
@@ -34,25 +35,12 @@ export async function requestPasswordReset(
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
 
     if (email) {
-      const result = await pool.query(
-        `SELECT id, email, user_type FROM (
-          SELECT id, email, 'staff' AS user_type, 1 AS ord FROM staff WHERE email=$1
-          UNION ALL
-          SELECT id, email, 'volunteers' AS user_type, 2 AS ord FROM volunteers WHERE email=$1
-          UNION ALL
-          SELECT id, email, 'agencies' AS user_type, 3 AS ord FROM agencies WHERE email=$1
-          UNION ALL
-          SELECT client_id AS id, email, 'clients' AS user_type, 4 AS ord FROM clients WHERE email=$1
-        ) AS combined
-        ORDER BY ord
-        LIMIT 1`,
-        [email],
-      );
-      if ((result.rowCount ?? 0) > 0) {
+      const result = await findUserByEmail(email);
+      if (result) {
         user = {
-          id: result.rows[0].id,
-          email: result.rows[0].email,
-          table: result.rows[0].user_type,
+          id: result.id,
+          email: result.email,
+          table: result.userType,
         };
       }
     } else if (clientId) {
@@ -116,25 +104,12 @@ export async function resendPasswordSetup(
 
     let user: { id: number; email: string; table: 'staff' | 'volunteers' | 'clients' | 'agencies' } | null = null;
     if (email) {
-      const result = await pool.query(
-        `SELECT id, email, user_type FROM (
-          SELECT id, email, 'staff' AS user_type, 1 AS ord FROM staff WHERE email=$1
-          UNION ALL
-          SELECT id, email, 'volunteers' AS user_type, 2 AS ord FROM volunteers WHERE email=$1
-          UNION ALL
-          SELECT id, email, 'agencies' AS user_type, 3 AS ord FROM agencies WHERE email=$1
-          UNION ALL
-          SELECT client_id AS id, email, 'clients' AS user_type, 4 AS ord FROM clients WHERE email=$1
-        ) AS combined
-        ORDER BY ord
-        LIMIT 1`,
-        [email],
-      );
-      if ((result.rowCount ?? 0) > 0) {
+      const result = await findUserByEmail(email);
+      if (result) {
         user = {
-          id: result.rows[0].id,
-          email: result.rows[0].email,
-          table: result.rows[0].user_type,
+          id: result.id,
+          email: result.email,
+          table: result.userType,
         };
       }
     } else if (clientId) {
