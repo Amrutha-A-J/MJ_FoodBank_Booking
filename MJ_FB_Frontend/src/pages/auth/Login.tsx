@@ -1,10 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
+import { Link, TextField, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
@@ -26,6 +27,8 @@ export default function Login({
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const identifierRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -47,6 +50,7 @@ export default function Login({
     e.preventDefault();
     setSubmitted(true);
     if (identifier === '' || password === '') return;
+    setLoading(true);
     try {
       const user = await login(identifier, password);
       const redirect = await onLogin(user);
@@ -63,6 +67,9 @@ export default function Login({
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
+    } finally {
+      setLoading(false);
+      identifierRef.current?.focus();
     }
   }
 
@@ -110,16 +117,18 @@ export default function Login({
           title={t('login')}
           actions={
             <Stack spacing={2}>
-              <Button
+              <LoadingButton
                 type="submit"
                 variant="contained"
                 color="primary"
                 fullWidth
                 size="medium"
                 sx={{ minHeight: 48 }}
+                loading={loading}
+                disabled={loading}
               >
                 {t('login')}
-              </Button>
+              </LoadingButton>
             </Stack>
           }
           centered={false}
@@ -131,6 +140,8 @@ export default function Login({
             label={t('client_id_or_email')}
             name="identifier"
             autoComplete="username webauthn"
+            autoFocus
+            inputRef={identifierRef}
             fullWidth
             size="medium"
             required
