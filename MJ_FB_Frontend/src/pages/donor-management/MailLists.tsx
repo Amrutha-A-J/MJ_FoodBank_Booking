@@ -20,7 +20,7 @@ import {
   type MailLists,
 } from '../../api/monetaryDonors';
 
-const RANGES = ['1-100', '101-500', '501+'] as const;
+const RANGES = ['1-100', '101-500', '501-1000', '1001-10000', '10001-30000'] as const;
 
 export default function MailLists() {
   const now = new Date();

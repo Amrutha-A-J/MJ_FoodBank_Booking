@@ -176,11 +176,19 @@ export async function getMailLists(req: Request, res: Response, next: NextFuncti
       [startDate, endDate],
     );
 
-    const groups: Record<string, any[]> = { '1-100': [], '101-500': [], '501+': [] };
+    const groups: Record<string, any[]> = {
+      '1-100': [],
+      '101-500': [],
+      '501-1000': [],
+      '1001-10000': [],
+      '10001-30000': [],
+    };
     for (const row of donorsRes.rows) {
       if (row.amount <= 100) groups['1-100'].push(row);
       else if (row.amount <= 500) groups['101-500'].push(row);
-      else groups['501+'].push(row);
+      else if (row.amount <= 1000) groups['501-1000'].push(row);
+      else if (row.amount <= 10000) groups['1001-10000'].push(row);
+      else groups['10001-30000'].push(row);
     }
 
     res.json(groups);
@@ -223,17 +231,27 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     );
     const { families = 0, children = 0, pounds = 0 } = statsRes.rows[0] || {};
 
-    const groups: Record<string, any[]> = { '1-100': [], '101-500': [], '501+': [] };
+    const groups: Record<string, any[]> = {
+      '1-100': [],
+      '101-500': [],
+      '501-1000': [],
+      '1001-10000': [],
+      '10001-30000': [],
+    };
     for (const row of donorsRes.rows) {
       if (row.amount <= 100) groups['1-100'].push(row);
       else if (row.amount <= 500) groups['101-500'].push(row);
-      else groups['501+'].push(row);
+      else if (row.amount <= 1000) groups['501-1000'].push(row);
+      else if (row.amount <= 10000) groups['1001-10000'].push(row);
+      else groups['10001-30000'].push(row);
     }
 
     const templateMap: Record<string, number> = {
       '1-100': config.donorTemplateId1To100,
       '101-500': config.donorTemplateId101To500,
-      '501+': config.donorTemplateId501Plus,
+      '501-1000': config.donorTemplateId501To1000,
+      '1001-10000': config.donorTemplateId1001To10000,
+      '10001-30000': config.donorTemplateId10001To30000,
     };
     const monthName = new Date(Date.UTC(year, month - 1)).toLocaleString('en-CA', {
       month: 'long',

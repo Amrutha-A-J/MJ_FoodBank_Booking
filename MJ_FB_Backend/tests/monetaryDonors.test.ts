@@ -120,7 +120,9 @@ describe('Mailing list generation', () => {
         rows: [
           { id: 1, firstName: 'A', lastName: 'A', email: 'a@example.com', amount: 50 },
           { id: 2, firstName: 'B', lastName: 'B', email: 'b@example.com', amount: 200 },
-          { id: 3, firstName: 'C', lastName: 'C', email: 'c@example.com', amount: 600 },
+          { id: 3, firstName: 'C', lastName: 'C', email: 'c@example.com', amount: 700 },
+          { id: 4, firstName: 'D', lastName: 'D', email: 'd@example.com', amount: 5000 },
+          { id: 5, firstName: 'E', lastName: 'E', email: 'e@example.com', amount: 20000 },
         ],
       });
 
@@ -131,7 +133,9 @@ describe('Mailing list generation', () => {
     expect(res.status).toBe(200);
     expect(res.body['1-100']).toHaveLength(1);
     expect(res.body['101-500']).toHaveLength(1);
-    expect(res.body['501+']).toHaveLength(1);
+    expect(res.body['501-1000']).toHaveLength(1);
+    expect(res.body['1001-10000']).toHaveLength(1);
+    expect(res.body['10001-30000']).toHaveLength(1);
   });
 
   it('uses previous month by default', async () => {
@@ -162,9 +166,11 @@ describe('Mailing list generation', () => {
         rows: [
           { first_name: 'A', email: 'a@example.com', amount: 50 },
           { first_name: 'B', email: 'b@example.com', amount: 150 },
-          { first_name: 'C', email: 'c@example.com', amount: 600 },
+          { first_name: 'C', email: 'c@example.com', amount: 700 },
+          { first_name: 'D', email: 'd@example.com', amount: 5000 },
+          { first_name: 'E', email: 'e@example.com', amount: 20000 },
         ],
-        rowCount: 3,
+        rowCount: 5,
       })
       .mockResolvedValueOnce({
         rows: [{ families: 4, children: 7, pounds: 120 }],
@@ -192,7 +198,7 @@ describe('Mailing list generation', () => {
     expect(pool.query.mock.calls[2][0]).toEqual(
       expect.stringContaining('orders AS families'),
     );
-    expect(sendTemplatedEmail).toHaveBeenCalledTimes(3);
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(5);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
       templateId: 11,
@@ -221,10 +227,36 @@ describe('Mailing list generation', () => {
     });
     expect((sendTemplatedEmail as jest.Mock).mock.calls[2][0]).toEqual({
       to: 'c@example.com',
-      templateId: 12,
+      templateId: 13,
       params: {
         firstName: 'C',
-        amount: 600,
+        amount: 700,
+        families: 4,
+        children: 7,
+        pounds: 120,
+        month: 'June',
+        year: 2024,
+      },
+    });
+    expect((sendTemplatedEmail as jest.Mock).mock.calls[3][0]).toEqual({
+      to: 'd@example.com',
+      templateId: 14,
+      params: {
+        firstName: 'D',
+        amount: 5000,
+        families: 4,
+        children: 7,
+        pounds: 120,
+        month: 'June',
+        year: 2024,
+      },
+    });
+    expect((sendTemplatedEmail as jest.Mock).mock.calls[4][0]).toEqual({
+      to: 'e@example.com',
+      templateId: 15,
+      params: {
+        firstName: 'E',
+        amount: 20000,
         families: 4,
         children: 7,
         pounds: 120,
@@ -235,8 +267,10 @@ describe('Mailing list generation', () => {
     expect((notifyOps as jest.Mock).mock.calls).toEqual([
       ['Monetary donor emails sent for 1-100: a@example.com'],
       ['Monetary donor emails sent for 101-500: b@example.com'],
-      ['Monetary donor emails sent for 501+: c@example.com'],
+      ['Monetary donor emails sent for 501-1000: c@example.com'],
+      ['Monetary donor emails sent for 1001-10000: d@example.com'],
+      ['Monetary donor emails sent for 10001-30000: e@example.com'],
     ]);
-    expect(res.body).toEqual({ sent: 3 });
+    expect(res.body).toEqual({ sent: 5 });
   });
 });
