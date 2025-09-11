@@ -193,17 +193,17 @@ export default function ClientDashboard() {
                   </ListItem>
                 </List>
               ) : (
-                <Typography>
-                  {t('no_appointment_booked')}{' '}
+                <Stack spacing={1} alignItems="flex-start">
+                  <Typography>{t('no_appointment_booked')}</Typography>
                   <Button
-                    
+
                     variant="contained"
                     sx={{ textTransform: 'none' }}
                     onClick={() => navigate('/book-appointment')}
                   >
                     {t('book_now')}
                   </Button>
-                </Typography>
+                </Stack>
               )}
             </SectionCard>
             <SectionCard
