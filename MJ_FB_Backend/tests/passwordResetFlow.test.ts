@@ -63,7 +63,7 @@ describe('requestPasswordReset', () => {
       .send({ email: 'vol@example.com' });
     expect(res.status).toBe(204);
     expect(pool.query).toHaveBeenCalledTimes(1);
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/UNION ALL/);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/user_lookup/);
     expect(generatePasswordSetupToken).toHaveBeenCalledWith('volunteers', 7);
     expect(sendTemplatedEmail).toHaveBeenCalledWith(
       expect.objectContaining({
