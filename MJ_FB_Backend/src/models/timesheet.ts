@@ -101,7 +101,10 @@ export async function getTimesheetSummary(
 }
 
 export async function getTimesheetById(id: number): Promise<Timesheet | undefined> {
-  const res = await pool.query('SELECT * FROM timesheets WHERE id = $1', [id]);
+  const res = await pool.query<Timesheet>(
+    'SELECT id, staff_id, start_date, end_date, submitted_at, approved_at FROM timesheets WHERE id = $1',
+    [id],
+  );
   return res.rows[0];
 }
 

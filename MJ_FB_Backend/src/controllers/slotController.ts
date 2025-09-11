@@ -236,7 +236,9 @@ export async function listAllSlots(
   next: NextFunction,
 ) {
   try {
-    const result = await pool.query<SlotRow>('SELECT * FROM slots ORDER BY start_time');
+    const result = await pool.query<SlotRow>(
+      'SELECT id, start_time, end_time, max_capacity FROM slots ORDER BY start_time',
+    );
     const slots = result.rows.map(slot => ({
       id: slot.id.toString(),
       startTime: slot.start_time,
