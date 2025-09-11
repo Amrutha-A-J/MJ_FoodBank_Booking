@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getBookingHistory, cancelBooking } from '../../../api/bookings';
+import {
+  getBookingHistory,
+  cancelBooking,
+  getSlots,
+  rescheduleBookingByToken,
+} from '../../../api/bookings';
 import { deleteClientVisit } from '../../../api/clientVisits';
 import {
   getUserByClientId,
@@ -35,7 +40,8 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import PasswordField from '../../../components/PasswordField';
 import { useTranslation } from 'react-i18next';
-import { toDate, formatDate } from '../../../utils/date';
+import { toDate, formatDate, formatReginaDate, toDayjs } from '../../../utils/date';
+import { formatTime } from '../../../utils/time';
 import type { Booking } from '../../../types';
 import BookingHistoryTable from '../../../components/BookingHistoryTable';
 
@@ -169,6 +175,51 @@ export default function UserHistory({
       setMessage(getApiErrorMessage(err, 'Unable to delete visit'));
     } finally {
       setDeleteVisitId(null);
+    }
+  }
+
+  async function loadSlotOptions(date: string) {
+    const todayStr = formatReginaDate(toDayjs());
+    try {
+      let slots = await getSlots(date);
+      if (date === todayStr) {
+        const now = toDayjs();
+        slots = slots.filter(s =>
+          toDayjs(`${date}T${s.startTime}`).isAfter(now),
+        );
+      }
+      return slots
+        .filter(
+          s =>
+            (s.available ?? 0) > 0 &&
+            s.status !== 'blocked' &&
+            s.status !== 'break',
+        )
+        .map(s => ({
+          id: s.id,
+          label: `${formatTime(s.startTime)} - ${formatTime(s.endTime)}`,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  async function handleReschedule(date: string, slotId: string) {
+    if (!rescheduleBooking) return;
+    try {
+      await rescheduleBookingByToken(
+        rescheduleBooking.reschedule_token!,
+        slotId,
+        date,
+      );
+      setSeverity('success');
+      setMessage('Booking rescheduled');
+      loadBookings();
+    } catch (err: any) {
+      setSeverity('error');
+      setMessage(err.message || 'Failed to reschedule booking');
+    } finally {
+      setRescheduleBooking(null);
     }
   }
 
@@ -344,11 +395,11 @@ export default function UserHistory({
         {rescheduleBooking && (
           <RescheduleDialog
             open={!!rescheduleBooking}
-            rescheduleToken={rescheduleBooking.reschedule_token!}
             onClose={() => setRescheduleBooking(null)}
-            onRescheduled={() => {
-              loadBookings();
-            }}
+            loadOptions={loadSlotOptions}
+            onSubmit={handleReschedule}
+            optionLabel="Time"
+            submitLabel="Reschedule"
           />
         )}
           {editOpen && (

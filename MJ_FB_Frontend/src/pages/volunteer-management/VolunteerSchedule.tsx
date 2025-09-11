@@ -24,7 +24,7 @@ import Page from "../../components/Page";
 import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
 import ScheduleCards from "../../components/ScheduleCards";
 import FeedbackSnackbar from "../../components/FeedbackSnackbar";
-import RescheduleDialog from "../../components/VolunteerRescheduleDialog";
+import RescheduleDialog from "../../components/RescheduleDialog";
 import DialogCloseButton from "../../components/DialogCloseButton";
 import OverlapBookingDialog from "../../components/OverlapBookingDialog";
 import type { ApiError } from "../../api/client";
@@ -288,12 +288,12 @@ export default function VolunteerSchedule() {
     }
   }
 
-  async function handleReschedule(date: string, roleId: number) {
+  async function handleReschedule(date: string, roleId: string) {
     if (!rescheduleBooking) return;
     try {
       await rescheduleVolunteerBookingByToken(
         rescheduleBooking.reschedule_token || "",
-        roleId,
+        Number(roleId),
         date,
       );
       setMessage("Booking rescheduled");
@@ -303,6 +303,22 @@ export default function VolunteerSchedule() {
       setMessage("Failed to reschedule booking");
     } finally {
       setRescheduleBooking(null);
+    }
+  }
+
+  async function loadRoleOptions(date: string) {
+    try {
+      const roles = await getVolunteerRolesForVolunteer(date);
+      return roles
+        .filter(r => r.available > 0)
+        .map(r => ({
+          id: r.id.toString(),
+          label: `${r.name} ${formatTime(r.start_time)}–${formatTime(
+            r.end_time,
+          )}`,
+        }));
+    } catch {
+      return [];
     }
   }
 
@@ -659,7 +675,10 @@ export default function VolunteerSchedule() {
         <RescheduleDialog
           open={!!rescheduleBooking}
           onClose={() => setRescheduleBooking(null)}
+          loadOptions={loadRoleOptions}
           onSubmit={handleReschedule}
+          optionLabel="Role"
+          submitLabel="Submit"
         />
       </Box>
       <VolunteerBottomNav />
