@@ -131,21 +131,18 @@ export default function NoShowWeek() {
               </FormControl>
             )}
           </Stack>
-          {list.length === 0 ? (
-            <Typography>No bookings</Typography>
-          ) : (
-            <TableContainer
-              data-testid={
-                dateStr === todayStr ? 'today-bookings' : undefined
-              }
-            >
-              <ResponsiveTable
-                columns={columns}
-                rows={list}
-                getRowKey={b => b.id}
-              />
-            </TableContainer>
-          )}
+          <TableContainer
+            data-testid={
+              dateStr === todayStr ? 'today-bookings' : undefined
+            }
+          >
+            <ResponsiveTable
+              columns={columns}
+              rows={list}
+              getRowKey={b => b.id}
+              emptyMessage="No bookings"
+            />
+          </TableContainer>
         </Box>
       ),
     };
