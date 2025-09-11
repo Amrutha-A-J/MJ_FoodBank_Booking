@@ -33,7 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
   const [access, setAccess] = useState<StaffAccess[]>(() => {
     const stored = localStorage.getItem('access');
-    return stored ? JSON.parse(stored) : [];
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.warn('Failed to parse access from localStorage', e);
+      }
+    }
+    return [];
   });
   const [id, setId] = useState<number | null>(() => {
     const stored = localStorage.getItem('id');
@@ -76,7 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRole(newRole as Role);
         setName(newName);
         setUserRole((newUserRole as UserRole) || '');
-        setAccess(newAccess ? JSON.parse(newAccess) : []);
+        if (newAccess) {
+          try {
+            setAccess(JSON.parse(newAccess));
+          } catch (e) {
+            console.warn('Failed to parse access from storage event', e);
+            setAccess([]);
+          }
+        } else {
+          setAccess([]);
+        }
         setId(newId ? Number(newId) : null);
         setSessionMessage('Session updated in another tab');
       }
