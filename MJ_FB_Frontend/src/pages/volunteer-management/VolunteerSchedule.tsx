@@ -60,7 +60,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
 import i18n from "../../i18n";
-import useSlotStream from "../../hooks/useSlotStream";
+import useSlotStream, {
+  type SlotStreamMessage,
+} from "../../hooks/useSlotStream";
 import { useAuth } from "../../hooks/useAuth";
 
 const reginaTimeZone = "America/Regina";
@@ -152,7 +154,7 @@ export default function VolunteerSchedule() {
   }, [currentDate, holidays]);
 
   const handleStream = useCallback(
-    (data: any) => {
+    (data: SlotStreamMessage) => {
       if (data?.date === formatDate(currentDate)) {
         void loadData();
       }
@@ -206,9 +208,10 @@ export default function VolunteerSchedule() {
       setSnackbarSeverity('success');
       setMessage(i18n.t('slot_booked_success'));
       await loadData();
-    } catch (err: any) {
-      if (err?.conflict) {
-        setConflict(err.conflict);
+    } catch (err: unknown) {
+      const e = err as { conflict?: VolunteerBookingConflict };
+      if (e?.conflict) {
+        setConflict(e.conflict);
       } else {
         setSnackbarSeverity('error');
         setMessage(i18n.t('booking_failed'));

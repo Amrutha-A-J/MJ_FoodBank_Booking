@@ -36,11 +36,11 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Slot, Holiday } from '../types';
+import type { Slot, Holiday, BookingActionResponse } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
-import useSlotStream from '../hooks/useSlotStream';
+import useSlotStream, { type SlotStreamMessage } from '../hooks/useSlotStream';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
@@ -52,11 +52,11 @@ import type { ApiError } from '../api/client';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
-function useSlots(
+function useSlots<T>(
   date: Dayjs,
   enabled: boolean,
-  fetchSlots: (date: string) => Promise<any[]>,
-  mapSlot: (s: any) => Slot,
+  fetchSlots: (date: string) => Promise<T[]>,
+  mapSlot: (s: T) => Slot,
   staleTime = 5 * 60 * 1000,
   gcTime = 30 * 60 * 1000,
 ) {
@@ -79,40 +79,40 @@ function defaultBookSlot(payload: {
   slotId: string;
   note: string;
   userId?: number;
-}): Promise<any> {
+}): Promise<BookingActionResponse> {
   return createBooking(payload.slotId, payload.date, payload.note, payload.userId);
 }
 
-export type BookingUIProps = {
+export type BookingUIProps<T = Slot> = {
   shopperName?: string;
   initialDate?: Dayjs;
   userId?: number;
   embedded?: boolean;
   onLoadingChange?: (loading: boolean) => void;
-  slotFetcher?: (date: string) => Promise<any[]>;
-  mapSlot?: (s: any) => Slot;
+  slotFetcher?: (date: string) => Promise<T[]>;
+  mapSlot?: (s: T) => Slot;
   bookingAction?: (payload: {
     date: string;
     slotId: string;
     note: string;
     userId?: number;
-  }) => Promise<any>;
+  }) => Promise<BookingActionResponse>;
   groupSlots?: (slots: Slot[]) => Record<string, Slot[]>;
   showUsageNotes?: boolean;
 };
 
-export default function BookingUI({
+export default function BookingUI<T = Slot>({
   shopperName,
   initialDate = dayjs(),
   userId,
   embedded = false,
   onLoadingChange,
-  slotFetcher = getSlots,
-  mapSlot = (s: any) => s as Slot,
+  slotFetcher = getSlots as unknown as (date: string) => Promise<T[]>,
+  mapSlot = ((s: T) => s as unknown as Slot) as (s: T) => Slot,
   bookingAction = defaultBookSlot,
   groupSlots,
   showUsageNotes = true,
-}: BookingUIProps) {
+}: BookingUIProps<T>) {
   const { t } = useTranslation();
   const { role, name: authName } = useAuth();
   const displayName = shopperName ?? authName ?? 'John Shopper';
@@ -175,16 +175,19 @@ export default function BookingUI({
   const queryClient = useQueryClient();
 
   const handleStream = useCallback(
-    (data: any) => {
+    (data: SlotStreamMessage<T>) => {
       const dateStr = date.format('YYYY-MM-DD');
       if (data?.date !== dateStr || !Array.isArray(data.slots)) return;
-      queryClient.setQueryData<Slot[]>(['slots', dateStr, slotFetcher], (prev = []) => {
-        const map = new Map(prev.map(s => [s.id, s]));
-        (data.slots as any[]).map(mapSlot).forEach((s: Slot) => {
-          map.set(s.id, s);
-        });
-        return Array.from(map.values());
-      });
+      queryClient.setQueryData<Slot[]>(
+        ['slots', dateStr, slotFetcher],
+        (prev = []) => {
+          const map = new Map(prev.map(s => [s.id, s]));
+          (data.slots ?? []).map(mapSlot).forEach((s: Slot) => {
+            map.set(s.id, s);
+          });
+          return Array.from(map.values());
+        },
+      );
     },
     [date, queryClient, mapSlot, slotFetcher],
   );

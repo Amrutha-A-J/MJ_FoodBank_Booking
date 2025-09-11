@@ -37,9 +37,18 @@ export default function AgencyBookAppointment() {
     searchAgencyClients(search)
       .then(data => {
         if (!active) return;
+        interface AgencyClientData {
+          id?: number;
+          client_id?: number;
+          name?: string;
+          client_name?: string;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+        }
         const mapped = Array.isArray(data)
-          ? data.map((c: any) => ({
-              id: c.id ?? c.client_id,
+          ? data.map((c: AgencyClientData) => ({
+              id: c.id ?? c.client_id!,
               name:
                 c.name ??
                 c.client_name ??

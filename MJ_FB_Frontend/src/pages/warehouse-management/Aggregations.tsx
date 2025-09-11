@@ -184,8 +184,14 @@ export default function Aggregations() {
       </Stack>
       <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
         {(() => {
-          const donorRowsData = donorRows.map(d => {
-            const row: any = { donor: d.donor, total: d.total };
+          interface DonorRow {
+            donor: string;
+            total: number;
+            [key: `m${number}`]: number;
+          }
+
+          const donorRowsData: DonorRow[] = donorRows.map(d => {
+            const row: DonorRow = { donor: d.donor, total: d.total };
             monthNames.forEach((_, idx) => {
               row[`m${idx}`] = d.monthlyTotals[idx];
             });
@@ -197,19 +203,20 @@ export default function Aggregations() {
               monthTotals[i] += v;
             }),
           );
-          const totalsRow: any = { donor: 'Total', total: monthTotals.reduce((a, b) => a + b, 0) };
+          const totalsRow: DonorRow = {
+            donor: 'Total',
+            total: monthTotals.reduce((a, b) => a + b, 0),
+          };
           monthNames.forEach((_, idx) => {
             totalsRow[`m${idx}`] = monthTotals[idx];
           });
-
-          type DonorRow = typeof donorRowsData[number];
 
           const columns: Column<DonorRow>[] = [
             { field: 'donor', header: 'Donor' },
             ...monthNames.map((name, idx) => ({
               field: `m${idx}` as keyof DonorRow & string,
               header: name,
-              render: (r: any) => r[`m${idx}`],
+              render: (r: DonorRow) => r[`m${idx}`],
             })),
             { field: 'total', header: 'Total' },
           ];
@@ -267,7 +274,8 @@ export default function Aggregations() {
           </Stack>
         ) : (
           (() => {
-            const columns: Column<WarehouseOverall & { monthName: string }>[] = [
+            type OverallRow = WarehouseOverall & { monthName: string };
+            const columns: Column<OverallRow>[] = [
               { field: 'monthName', header: 'Month' },
               { field: 'donations', header: 'Donations' },
               { field: 'surplus', header: 'Surplus' },
@@ -275,7 +283,7 @@ export default function Aggregations() {
               { field: 'outgoingDonations', header: 'Outgoing Donations' },
             ];
 
-            const rows = overallData.map(r => ({
+            const rows: OverallRow[] = overallData.map(r => ({
               ...r,
               monthName: monthNames[r.month - 1],
             }));
@@ -286,7 +294,7 @@ export default function Aggregations() {
               surplus: totals.surplus,
               pigPound: totals.pigPound,
               outgoingDonations: totals.outgoingDonations,
-            } as any);
+            });
 
             return (
               <ResponsiveTable

@@ -85,8 +85,12 @@ export default function AgencyDashboard() {
   useEffect(() => {
     getMyAgencyClients()
       .then(data => {
+        interface AgencyClientData {
+          id?: number;
+          client_id?: number;
+        }
         const ids = Array.isArray(data)
-          ? data.map((c: any) => c.id ?? c.client_id)
+          ? data.map((c: AgencyClientData) => c.id ?? c.client_id!)
           : [];
         if (!ids.length) return [];
         return getBookings({ clientIds: ids });
@@ -141,8 +145,9 @@ export default function AgencyDashboard() {
       setBookings(b => b.filter(x => x.id !== cancelId));
       setMessage('Booking cancelled');
       setSnackbarSeverity('success');
-    } catch (err: any) {
-      setMessage(err.message || 'Failed to cancel booking');
+    } catch (err: unknown) {
+      const e = err as ApiError | undefined;
+      setMessage(e?.message || 'Failed to cancel booking');
       setSnackbarSeverity('error');
     }
     setCancelId(null);

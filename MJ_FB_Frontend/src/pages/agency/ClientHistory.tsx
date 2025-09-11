@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import BookingHistoryTable from '../../components/BookingHistoryTable';
 import type { Booking } from '../../types';
+import type { ApiError } from '../../api/client';
 
 interface User {
   name: string;
@@ -54,9 +55,16 @@ export default function ClientHistory() {
   useEffect(() => {
     getMyAgencyClients()
       .then(data => {
+        interface AgencyClientData {
+          client_id?: number;
+          name?: string;
+          client_name?: string;
+          first_name?: string;
+          last_name?: string;
+        }
         const mapped = Array.isArray(data)
-          ? data.map((c: any) => ({
-              client_id: c.client_id,
+          ? data.map((c: AgencyClientData) => ({
+              client_id: c.client_id!,
               name:
                 c.name ??
                 c.client_name ??
@@ -120,9 +128,10 @@ export default function ClientHistory() {
       await cancelBooking(String(cancelBookingItem.id));
       setSnackbar({ message: t('booking_cancelled'), severity: 'success' });
       loadBookings();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as ApiError | undefined;
       setSnackbar({
-        message: err.message || t('cancel_booking_failed'),
+        message: e?.message || t('cancel_booking_failed'),
         severity: 'error',
       });
     }
@@ -165,9 +174,10 @@ export default function ClientHistory() {
       );
       setSnackbar({ message: 'Booking rescheduled', severity: 'success' });
       await loadBookings();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as ApiError | undefined;
       setSnackbar({
-        message: err.message || 'Failed to reschedule booking',
+        message: e?.message || 'Failed to reschedule booking',
         severity: 'error',
       });
     } finally {
