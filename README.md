@@ -16,6 +16,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   $501–$1,000, $1,001–$10,000, $10,001–$30,000) and lets staff email each group a
   summary of families, children, and pounds served. Month defaults to the previous month
   when unspecified.
+- Donor Management → Donors lists existing donors and lets staff edit donor details.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
