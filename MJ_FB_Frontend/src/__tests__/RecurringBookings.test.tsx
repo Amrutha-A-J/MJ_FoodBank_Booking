@@ -1,4 +1,12 @@
-import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
+import {
+  renderWithProviders,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+  act,
+} from '../../testUtils/renderWithProviders';
+import { MemoryRouter } from 'react-router-dom';
 import VolunteerSchedule from '../pages/volunteer-management/VolunteerSchedule';
 import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBookingHistory';
 import VolunteerRecurringBookings from '../pages/volunteer-management/VolunteerRecurringBookings';
@@ -72,7 +80,11 @@ afterEach(async () => {
 });
 
 test('submits weekly recurring booking', async () => {
-  render(<VolunteerSchedule />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerSchedule />
+    </MemoryRouter>,
+  );
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
@@ -104,7 +116,11 @@ test('submits weekly recurring booking', async () => {
 });
 
 test('submits daily recurring booking with end date', async () => {
-  render(<VolunteerSchedule />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerSchedule />
+    </MemoryRouter>,
+  );
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
@@ -132,7 +148,11 @@ test('submits daily recurring booking with end date', async () => {
 });
 
 test('submits one-time booking', async () => {
-  render(<VolunteerSchedule />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerSchedule />
+    </MemoryRouter>,
+  );
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Test Role'));
@@ -174,7 +194,11 @@ test('cancels single and recurring bookings', async () => {
       status: 'approved',
     },
   ]);
-  render(<VolunteerBookingHistory />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerBookingHistory />
+    </MemoryRouter>,
+  );
   const cancelButtons = await screen.findAllByText('Cancel');
   fireEvent.click(cancelButtons[2]);
   fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
@@ -205,7 +229,11 @@ test('reschedules booking', async () => {
   (getRoles as jest.Mock).mockResolvedValue([
     { roleId: 1, roleName: 'Role1', categoryName: 'Cat' },
   ]);
-  render(<VolunteerBookingHistory />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerBookingHistory />
+    </MemoryRouter>,
+  );
   fireEvent.click(await screen.findByText('Reschedule'));
   fireEvent.change(await screen.findByLabelText(/date/i), {
     target: { value: '2024-05-02' },
@@ -263,7 +291,11 @@ test('hides cancel options for non-approved bookings', async () => {
     },
   ]);
 
-  render(<VolunteerBookingHistory />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerBookingHistory />
+    </MemoryRouter>,
+  );
   await screen.findByText('Approved Role');
   expect(screen.getAllByText('Cancel')).toHaveLength(1);
   const completedRow = screen.getByText('Completed Role').closest('tr')!;
@@ -297,7 +329,11 @@ test('formats recurring booking dates', async () => {
       recurring_id: 1,
     },
   ]);
-  render(<VolunteerRecurringBookings />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerRecurringBookings />
+    </MemoryRouter>,
+  );
   fireEvent.click(
     screen.getByRole('tab', { name: /manage recurring shifts/i }),
   );
@@ -313,7 +349,11 @@ test('formats recurring booking dates', async () => {
 });
 
 test('shows message when no recurring shifts', async () => {
-  render(<VolunteerRecurringBookings />);
+  renderWithProviders(
+    <MemoryRouter>
+      <VolunteerRecurringBookings />
+    </MemoryRouter>,
+  );
   fireEvent.click(
     screen.getByRole('tab', { name: /manage recurring shifts/i }),
   );

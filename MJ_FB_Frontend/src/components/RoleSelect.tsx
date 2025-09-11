@@ -1,36 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem, ListSubheader } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { RoleOption } from '../types';
-import { getRoles } from '../api/volunteers';
+import useVolunteerRoles from '../hooks/useVolunteerRoles';
 
 interface Props {
   onChange: (roleId: number) => void;
 }
 
 export default function RoleSelect({ onChange }: Props) {
-  const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState('');
   const { t } = useTranslation();
-
-  useEffect(() => {
-    const fetchRoles = async () => {
-      setLoading(true);
-      try {
-        const data = await getRoles();
-        setRoles(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRoles();
-  }, []);
+  const { roles, isLoading, error } = useVolunteerRoles();
 
   const handleChange = (e: SelectChangeEvent) => {
     const value = e.target.value;
@@ -47,8 +29,8 @@ export default function RoleSelect({ onChange }: Props) {
     return acc;
   }, {} as Record<string, RoleOption[]>);
 
-  if (loading) return <p>{t('loading')}</p>;
-  if (error) return <p>{error}</p>;
+  if (isLoading) return <p>{t('loading')}</p>;
+  if (error) return <p>{(error as Error).message}</p>;
 
   return (
     <FormControl fullWidth>
