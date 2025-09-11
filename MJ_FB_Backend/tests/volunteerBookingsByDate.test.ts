@@ -67,7 +67,7 @@ describe('listVolunteerBookingsByDate', () => {
     });
 
     const res = await request(app)
-      .get('/volunteer-bookings/day')
+      .get('/volunteer-bookings/by-date')
       .query({ date: '2025-01-01' });
 
     expect(res.status).toBe(200);
@@ -79,7 +79,7 @@ describe('listVolunteerBookingsByDate', () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
 
     const res = await request(app)
-      .get('/volunteer-bookings/day')
+      .get('/volunteer-bookings/by-date')
       .query({ date: '2025-01-02' });
 
     expect(res.status).toBe(200);
@@ -88,7 +88,7 @@ describe('listVolunteerBookingsByDate', () => {
 
   it('rejects invalid date format', async () => {
     const res = await request(app)
-      .get('/volunteer-bookings/day')
+      .get('/volunteer-bookings/by-date')
       .query({ date: 'invalid-date' });
 
     expect(res.status).toBe(400);
