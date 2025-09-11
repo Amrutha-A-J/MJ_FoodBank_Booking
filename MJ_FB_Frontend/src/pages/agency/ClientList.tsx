@@ -20,6 +20,7 @@ import {
 } from '../../api/agencies';
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
+import type { ApiError } from '../../api/client';
 
 interface AgencyClient {
   id: number;
@@ -39,9 +40,18 @@ export default function ClientList() {
   const load = async () => {
     try {
       const data = await getMyAgencyClients();
+      interface AgencyClientData {
+        id?: number;
+        client_id?: number;
+        name?: string;
+        client_name?: string;
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+      }
       const mapped = Array.isArray(data)
-        ? data.map((c: any) => ({
-            id: c.id ?? c.client_id,
+        ? data.map((c: AgencyClientData) => ({
+            id: c.id ?? c.client_id!,
             name:
               c.name ??
               c.client_name ??
@@ -67,9 +77,10 @@ export default function ClientList() {
       setNewClientId('');
       setSnackbar({ message: 'Client added', severity: 'success' });
       load();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as ApiError | undefined;
       setSnackbar({
-        message: err.message || 'Failed to add client',
+        message: e?.message || 'Failed to add client',
         severity: 'error',
       });
     }
@@ -81,9 +92,10 @@ export default function ClientList() {
       await removeAgencyClient('me', confirmClient.id);
       setSnackbar({ message: 'Client removed', severity: 'success' });
       load();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as ApiError | undefined;
       setSnackbar({
-        message: err.message || 'Failed to remove client',
+        message: e?.message || 'Failed to remove client',
         severity: 'error',
       });
     }

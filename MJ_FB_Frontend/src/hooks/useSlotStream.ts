@@ -1,9 +1,14 @@
 import { useEffect } from 'react';
 import { API_BASE } from '../api/client';
 
-export type SlotStreamMessage = any;
+export interface SlotStreamMessage<T = unknown> {
+  date?: string;
+  slots?: T[];
+}
 
-export default function useSlotStream(onMessage: (data: SlotStreamMessage) => void) {
+export default function useSlotStream<T = unknown>(
+  onMessage: (data: SlotStreamMessage<T>) => void,
+) {
   useEffect(() => {
     if (typeof EventSource === 'undefined') return;
     const es = new EventSource(`${API_BASE}/bookings/stream`, {
