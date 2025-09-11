@@ -48,6 +48,7 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import { getNextEncouragement } from '../../utils/appreciationMessages';
+import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
 import VolunteerGroupStatsCard from '../../components/dashboard/VolunteerGroupStatsCard';
 import PersonalContributionChart, {
   type ContributionDatum,
@@ -127,12 +128,12 @@ export default function VolunteerDashboard() {
         setTopRoles(top);
         setContributionData(agg);
       })
-      .catch(() => {
+      .catch(err => {
         setBookings([]);
         setTopRoles([]);
         setContributionData([]);
         setSnackbarSeverity('error');
-        setMessage('Failed to load bookings');
+        setMessage(getApiErrorMessage(err, 'Failed to load bookings'));
       })
       .finally(stopLoading);
   }, []);
@@ -147,7 +148,7 @@ export default function VolunteerDashboard() {
         console.error('Failed to load events', err);
         setEvents({ today: [], upcoming: [], past: [] });
         setSnackbarSeverity('error');
-        setMessage('Failed to load events');
+        setMessage(getApiErrorMessage(err, 'Failed to load events'));
       })
       .finally(stopLoading);
   }, []);
@@ -168,11 +169,11 @@ export default function VolunteerDashboard() {
           setMessage('');
         }
       })
-      .catch(() => {
+      .catch(err => {
         setBadges([]);
         setStats(undefined);
         setSnackbarSeverity('error');
-        setMessage('Failed to load stats');
+        setMessage(getApiErrorMessage(err, 'Failed to load stats'));
       })
       .finally(stopLoading);
   }, []);
@@ -181,10 +182,10 @@ export default function VolunteerDashboard() {
     startLoading();
     getVolunteerLeaderboard()
       .then(setLeaderboard)
-      .catch(() => {
+      .catch(err => {
         setLeaderboard(undefined);
         setSnackbarSeverity('error');
-        setMessage('Failed to load leaderboard');
+        setMessage(getApiErrorMessage(err, 'Failed to load leaderboard'));
       })
       .finally(stopLoading);
   }, []);
@@ -204,9 +205,11 @@ export default function VolunteerDashboard() {
             : [today];
         const requests = days.map(day =>
           getVolunteerRolesForVolunteer(formatRegina(day, 'yyyy-MM-dd')).catch(
-            () => {
+            err => {
               setSnackbarSeverity('error');
-              setMessage('Failed to load availability');
+              setMessage(
+                getApiErrorMessage(err, 'Failed to load availability'),
+              );
               return [];
             },
           ),
@@ -282,7 +285,7 @@ export default function VolunteerDashboard() {
         setConflict(details);
       } else {
         setSnackbarSeverity('error');
-        setMessage(err.message ?? 'Failed to request shift');
+        setMessage(getApiErrorMessage(err, 'Failed to request shift'));
       }
     }
   }
@@ -313,9 +316,9 @@ export default function VolunteerDashboard() {
             }),
         );
       }
-    } catch {
+    } catch (err) {
       setSnackbarSeverity('error');
-      setMessage('Failed to resolve conflict');
+      setMessage(getApiErrorMessage(err, 'Failed to resolve conflict'));
     } finally {
       setConflict(null);
     }
@@ -329,9 +332,9 @@ export default function VolunteerDashboard() {
       setMessage('Booking cancelled');
       const data = await getMyVolunteerBookings();
       setBookings(data);
-    } catch {
+    } catch (err) {
       setSnackbarSeverity('error');
-      setMessage('Failed to cancel booking');
+      setMessage(getApiErrorMessage(err, 'Failed to cancel booking'));
     }
   }
 

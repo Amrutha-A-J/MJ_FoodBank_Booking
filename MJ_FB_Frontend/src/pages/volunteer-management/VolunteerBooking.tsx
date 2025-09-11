@@ -26,6 +26,7 @@ import {
 import type { ApiError } from '../../api/client';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import { formatTime } from '../../utils/time';
+import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
 import Page from '../../components/Page';
 import OverlapBookingDialog from '../../components/OverlapBookingDialog';
 import useHolidays from '../../hooks/useHolidays';
@@ -119,7 +120,7 @@ export default function VolunteerBooking() {
       } else {
         setSnackbar({
           open: true,
-          message: err.message || 'Failed to request slot',
+          message: getApiErrorMessage(err, 'Failed to request slot'),
           severity: 'error',
         });
       }
@@ -146,10 +147,10 @@ export default function VolunteerBooking() {
         severity: 'success',
       });
       refetch();
-    } catch {
+    } catch (err) {
       setSnackbar({
         open: true,
-        message: 'Failed to resolve conflict',
+        message: getApiErrorMessage(err, 'Failed to resolve conflict'),
         severity: 'error',
       });
     } finally {

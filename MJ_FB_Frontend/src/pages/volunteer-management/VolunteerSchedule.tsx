@@ -20,6 +20,7 @@ import type {
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { formatTime } from "../../utils/time";
 import { formatDate, addDays } from "../../utils/date";
+import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 import Page from "../../components/Page";
 import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
 import ScheduleCards from "../../components/ScheduleCards";
@@ -146,7 +147,7 @@ export default function VolunteerSchedule() {
     } catch (err) {
       console.error(err);
       setSnackbarSeverity('error');
-      setMessage('Failed to load schedule');
+      setMessage(getApiErrorMessage(err, 'Failed to load schedule'));
     } finally {
       setLoading(false);
     }
@@ -166,9 +167,9 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     getHolidays()
       .then(setHolidays)
-      .catch(() => {
+      .catch(err => {
         setSnackbarSeverity('error');
-        setMessage('Failed to load holidays');
+        setMessage(getApiErrorMessage(err, 'Failed to load holidays'));
       });
   }, []);
 
@@ -228,7 +229,7 @@ export default function VolunteerSchedule() {
         setConflict(details);
       } else {
         setSnackbarSeverity("error");
-        setMessage(apiErr.message);
+        setMessage(getApiErrorMessage(apiErr, "Failed to book shift"));
       }
     }
   }
@@ -247,9 +248,9 @@ export default function VolunteerSchedule() {
         choice === "new" ? "Booking replaced" : "Existing booking kept",
       );
       await loadData();
-    } catch {
+    } catch (err) {
       setSnackbarSeverity("error");
-      setMessage("Failed to resolve conflict");
+      setMessage(getApiErrorMessage(err, "Failed to resolve conflict"));
     } finally {
       setConflict(null);
       setRequestRole(null);
@@ -263,9 +264,9 @@ export default function VolunteerSchedule() {
       setSnackbarSeverity("success");
       setMessage("Booking cancelled");
       await loadData();
-    } catch {
+    } catch (err) {
       setSnackbarSeverity("error");
-      setMessage("Failed to cancel booking");
+      setMessage(getApiErrorMessage(err, "Failed to cancel booking"));
     } finally {
       setDecisionBooking(null);
       setDecisionReason("");
@@ -279,9 +280,9 @@ export default function VolunteerSchedule() {
       setSnackbarSeverity("success");
       setMessage("Series cancelled");
       await loadData();
-    } catch {
+    } catch (err) {
       setSnackbarSeverity("error");
-      setMessage("Failed to cancel series");
+      setMessage(getApiErrorMessage(err, "Failed to cancel series"));
     } finally {
       setDecisionBooking(null);
       setDecisionReason("");
@@ -298,9 +299,9 @@ export default function VolunteerSchedule() {
       );
       setMessage("Booking rescheduled");
       await loadData();
-    } catch {
+    } catch (err) {
       setSnackbarSeverity("error");
-      setMessage("Failed to reschedule booking");
+      setMessage(getApiErrorMessage(err, "Failed to reschedule booking"));
     } finally {
       setRescheduleBooking(null);
     }

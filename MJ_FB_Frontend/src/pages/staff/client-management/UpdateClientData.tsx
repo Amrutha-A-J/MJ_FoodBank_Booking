@@ -25,9 +25,9 @@ import {
   requestPasswordReset,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
-import type { ApiError } from "../../../api/client";
 import PasswordField from "../../../components/PasswordField";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
+import { getApiErrorMessage } from "../../../utils/getApiErrorMessage";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
@@ -105,17 +105,9 @@ export default function UpdateClientData() {
       loadClients();
       return true;
     } catch (err: unknown) {
-      let message = "Update failed";
-      const apiErr = err as ApiError;
-      const details = apiErr?.details as any;
-      if (details?.errors?.[0]?.message) {
-        message = details.errors[0].message as string;
-      } else if (err instanceof Error && err.message) {
-        message = err.message;
-      }
       setSnackbar({
         open: true,
-        message,
+        message: getApiErrorMessage(err, "Update failed"),
         severity: "error",
       });
       return false;
@@ -133,11 +125,11 @@ export default function UpdateClientData() {
         message: "Password reset link sent",
         severity: "success",
       });
-    } catch {
+    } catch (err) {
       setSnackbar({
         open: true,
-        message: "Failed to send password reset link",
-        severity: "error",
+        message: getApiErrorMessage(err, 'Failed to send password reset link'),
+        severity: 'error',
       });
     }
   }

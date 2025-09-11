@@ -23,6 +23,7 @@ import type { VolunteerBookingDetail, Shift, VolunteerBookingStatus } from '../t
 import type { ApiError } from '../api/client';
 import { formatTime } from '../utils/time';
 import { formatReginaDate } from '../utils/date';
+import { getApiErrorMessage } from '../utils/getApiErrorMessage';
 
 interface ManageVolunteerShiftDialogProps {
   open: boolean;
@@ -154,9 +155,8 @@ export default function ManageVolunteerShiftDialog({
           return;
       }
     } catch (e) {
-      const err = e as ApiError;
       setSeverity('error');
-      setMessage(err.message || 'Action failed');
+      setMessage(getApiErrorMessage(e, 'Action failed'));
     }
   }
 

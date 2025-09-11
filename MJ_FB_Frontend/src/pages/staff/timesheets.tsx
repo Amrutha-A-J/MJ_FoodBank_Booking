@@ -22,6 +22,7 @@ import Page from '../../components/Page';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
 import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
+import { getApiErrorMessage } from '../../utils/getApiErrorMessage';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import type { ApiError } from '../../api/client';
@@ -153,7 +154,7 @@ export default function Timesheets() {
 
   useEffect(() => {
     const err = sheetsError || daysError;
-    if (err) setMessage((err as ApiError).message || 'Error');
+    if (err) setMessage(getApiErrorMessage(err, 'Error'));
   }, [sheetsError, daysError]);
 
   function renderTable() {
@@ -360,7 +361,7 @@ export default function Timesheets() {
       );
       await submitMutation.mutateAsync(current.id);
     } catch (e) {
-      setMessage((e as ApiError).message || 'Failed to submit timesheet');
+      setMessage(getApiErrorMessage(e, 'Failed to submit timesheet'));
     }
   };
 
