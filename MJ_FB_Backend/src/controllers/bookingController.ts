@@ -338,9 +338,6 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
         `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
       );
     }
-    if (bookingUserId !== undefined) {
-      const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
-    }
     res.json({ message: 'Booking cancelled' });
   } catch (error: any) {
     logger.error('Error cancelling booking:', error);
@@ -409,9 +406,6 @@ export async function cancelBookingByToken(
       await notifyOps(
         `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
       );
-    }
-    if (booking.user_id) {
-      const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
     }
     res.json({ message: 'Booking cancelled' });
   } catch (error) {
@@ -710,13 +704,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
         newStart ? formatTimeToAmPm(newStart) : ''
       }`,
     );
-
-    const notifyTime = newSlotRes.rows[0]
-      ? ` from ${formatTimeToAmPm(newStart)} to ${formatTimeToAmPm(
-          newSlotRes.rows[0].end_time,
-        )}`
-      : '';
-    const notifyBody = `Date: ${formatReginaDateWithDay(date)}${notifyTime}`;
 
     res.json({
       message: 'Booking rescheduled',
