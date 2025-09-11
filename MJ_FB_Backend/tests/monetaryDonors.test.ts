@@ -4,10 +4,14 @@ import monetaryDonorsRoutes from '../src/routes/monetaryDonors';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { notifyOps } from '../src/utils/opsAlert';
 
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/emailUtils', () => ({
   sendTemplatedEmail: jest.fn(),
+}));
+jest.mock('../src/utils/opsAlert', () => ({
+  notifyOps: jest.fn(),
 }));
 
 const app = express();
@@ -228,6 +232,11 @@ describe('Mailing list generation', () => {
         year: 2024,
       },
     });
+    expect((notifyOps as jest.Mock).mock.calls).toEqual([
+      ['Monetary donor emails sent for 1-100: a@example.com'],
+      ['Monetary donor emails sent for 101-500: b@example.com'],
+      ['Monetary donor emails sent for 501+: c@example.com'],
+    ]);
     expect(res.body).toEqual({ sent: 3 });
   });
 });

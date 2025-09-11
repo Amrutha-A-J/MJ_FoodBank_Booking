@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { sendTemplatedEmail } from '../utils/emailUtils';
+import { notifyOps } from '../utils/opsAlert';
 import config from '../config';
 
 export async function listDonors(req: Request, res: Response, next: NextFunction) {
@@ -241,6 +242,7 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     for (const [range, donors] of Object.entries(groups)) {
       if (donors.length === 0) continue;
       const templateId = templateMap[range];
+      const emails: string[] = [];
       for (const donor of donors) {
         await sendTemplatedEmail({
           to: donor.email,
@@ -256,7 +258,9 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
           },
         });
         sent++;
+        emails.push(donor.email);
       }
+      await notifyOps(`Monetary donor emails sent for ${range}: ${emails.join(', ')}`);
     }
 
     res.json({ sent });
