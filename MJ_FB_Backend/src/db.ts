@@ -18,19 +18,27 @@ const CA_PATH = process.env.PG_CA_CERT || DEFAULT_CA;
 let ssl: any | undefined;
 
 if (!isLocal) {
-  if (!fs.existsSync(CA_PATH)) {
-    throw new Error(`[PG TLS] CA bundle not found at ${CA_PATH}. Set PG_CA_CERT to override.`);
+  try {
+    if (!fs.existsSync(CA_PATH)) {
+      throw new Error('CA bundle missing');
+    }
+
+    const ca = fs.readFileSync(CA_PATH, 'utf8');
+
+    ssl = {
+      ca,                          // use the custom CA bundle
+      rejectUnauthorized: true as const,
+      servername: config.pgHost,   // must match your RDS endpoint DNS
+    };
+
+    logger.info(`[PG TLS] Using custom CA at ${CA_PATH}, host=${config.pgHost}, port=${config.pgPort}`);
+  } catch (err) {
+    logger.error(
+      `[PG TLS] Failed to load CA bundle at ${CA_PATH}. Set PG_CA_CERT to the path of a valid certificate bundle.`,
+      err,
+    );
+    process.exit(1);
   }
-
-  const ca = fs.readFileSync(CA_PATH, 'utf8');
-
-  ssl = {
-    ca,                          // use the custom CA bundle
-    rejectUnauthorized: true as const,
-    servername: config.pgHost,   // must match your RDS endpoint DNS
-  };
-
-  logger.info(`[PG TLS] Using custom CA at ${CA_PATH}, host=${config.pgHost}, port=${config.pgPort}`);
 } else {
   logger.info('[PG TLS] Local development: plaintext connection');
 }
