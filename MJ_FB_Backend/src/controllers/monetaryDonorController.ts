@@ -223,13 +223,15 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
 
     const statsRes = await pool.query(
       `SELECT orders AS families,
+              adults,
               children,
               weight AS pounds
          FROM pantry_monthly_overall
         WHERE year = $1 AND month = $2`,
       [year, month],
     );
-    const { families = 0, children = 0, pounds = 0 } = statsRes.rows[0] || {};
+    const { families = 0, adults = 0, children = 0, pounds = 0 } =
+      statsRes.rows[0] || {};
 
     const groups: Record<string, any[]> = {
       '1-100': [],
@@ -269,6 +271,7 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
             firstName: donor.first_name,
             amount: donor.amount,
             families,
+            adults,
             children,
             pounds,
             month: monthName,

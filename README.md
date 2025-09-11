@@ -329,11 +329,11 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Volunteer shift reminder emails               | `body`, `cancelLink`, `rescheduleLink`, `type`                                            |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Booking reschedule notifications for clients  | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Volunteer shift reschedule emails             | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
-| `DONOR_TEMPLATE_ID_1_100`                    | Monetary donor emails for $1–$100             | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_101_500`                  | Monetary donor emails for $101–$500           | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_501_1000`                 | Monetary donor emails for $501–$1,000         | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_1001_10000`               | Monetary donor emails for $1,001–$10,000      | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_10001_30000`              | Monetary donor emails for $10,001–$30,000     | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_1_100`                    | Monetary donor emails for $1–$100             | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
+| `DONOR_TEMPLATE_ID_101_500`                  | Monetary donor emails for $101–$500           | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
+| `DONOR_TEMPLATE_ID_501_1000`                 | Monetary donor emails for $501–$1,000         | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
+| `DONOR_TEMPLATE_ID_1001_10000`               | Monetary donor emails for $1,001–$10,000      | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
+| `DONOR_TEMPLATE_ID_10001_30000`              | Monetary donor emails for $10,001–$30,000     | `firstName`, `amount`, `families`, `adults`, `children`, `pounds`, `month`, `year`                                   |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
