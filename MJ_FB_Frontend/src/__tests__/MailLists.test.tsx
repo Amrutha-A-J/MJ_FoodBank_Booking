@@ -37,6 +37,7 @@ describe('MailLists', () => {
     await waitFor(() => expect(btn).toBeEnabled());
 
     await userEvent.click(btn);
+    await userEvent.click(await screen.findByRole('button', { name: /confirm/i }));
     const now = new Date();
     now.setUTCMonth(now.getUTCMonth() - 1);
     expect(sendMailListEmails).toHaveBeenCalledWith({

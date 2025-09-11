@@ -13,6 +13,7 @@ import type { AlertColor } from '@mui/material';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DonorQuickLinks from '../../components/DonorQuickLinks';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
   getMailLists,
   sendMailListEmails,
@@ -32,6 +33,7 @@ export default function MailLists() {
     message: '',
     severity: 'success' as AlertColor,
   });
+  const [confirmSend, setConfirmSend] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -50,6 +52,7 @@ export default function MailLists() {
   }, [year, month]);
 
   async function handleSend() {
+    setConfirmSend(false);
     try {
       await sendMailListEmails({ year, month });
       setSnackbar({ open: true, message: 'Emails sent', severity: 'success' });
@@ -81,12 +84,12 @@ export default function MailLists() {
             <span>
               <Button
                 variant="contained"
-                onClick={handleSend}
+                onClick={() => setConfirmSend(true)}
                 disabled={!lists || noDonors}
               >
-                Send Emails
+                Send emails
               </Button>
-            </span>
+              </span>
           </Tooltip>
           {noDonors && (
             <Typography color="text.secondary">No donors to email for last month</Typography>
@@ -122,6 +125,13 @@ export default function MailLists() {
             message={snackbar.message}
             severity={snackbar.severity}
           />
+          {confirmSend && (
+            <ConfirmDialog
+              message="Send emails?"
+              onConfirm={handleSend}
+              onCancel={() => setConfirmSend(false)}
+            />
+          )}
         </Stack>
       </Page>
     </>
