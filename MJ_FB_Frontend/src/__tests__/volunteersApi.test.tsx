@@ -12,6 +12,7 @@ import {
   createVolunteer,
   getVolunteerById,
   loginVolunteer,
+  getVolunteerBookingsByRoles,
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
@@ -115,6 +116,13 @@ describe('volunteers api', () => {
           sendPasswordLink: false,
         }),
       }),
+    );
+  });
+
+  it('fetches volunteer bookings by roles', async () => {
+    await getVolunteerBookingsByRoles([1, 2, 3]);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings?roleIds=1,2,3',
     );
   });
 

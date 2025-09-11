@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
-  getVolunteerBookingsByRole,
+  getVolunteerBookingsByRoles,
   searchVolunteers,
   getVolunteerById,
   createVolunteer,
@@ -299,15 +299,15 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     if (tab !== 'schedule') return;
     if (selectedRole) {
       const ids = nameToSlotIds.get(selectedRole) || [];
-      Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
-        .then(data => setBookings(data.flat()))
+      getVolunteerBookingsByRoles(ids)
+        .then(setBookings)
         .catch(() => {});
     } else if (selectedDepartment) {
       const roles =
         groupedRoles.find(g => g.category === selectedDepartment)?.roles || [];
       const ids = roles.flatMap(r => nameToSlotIds.get(r.name) || []);
-      Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
-        .then(data => setBookings(data.flat()))
+      getVolunteerBookingsByRoles(ids)
+        .then(setBookings)
         .catch(() => {});
     } else {
       setBookings([]);
@@ -345,10 +345,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     if (selectedRole) {
       try {
         const ids = nameToSlotIds.get(selectedRole) || [];
-        const data = await Promise.all(
-          ids.map(rid => getVolunteerBookingsByRole(rid)),
-        );
-        setBookings(data.flat());
+        const data = await getVolunteerBookingsByRoles(ids);
+        setBookings(data);
       } catch {
         // ignore
       }
@@ -459,10 +457,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       setAssignSearch('');
       setAssignResults([]);
       const ids = nameToSlotIds.get(selectedRole) || [];
-      const data = await Promise.all(
-        ids.map(id => getVolunteerBookingsByRole(id)),
-      );
-      setBookings(data.flat());
+      const data = await getVolunteerBookingsByRoles(ids);
+      setBookings(data);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg === 'Role is full' && !force) {

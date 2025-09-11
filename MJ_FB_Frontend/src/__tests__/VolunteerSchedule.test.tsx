@@ -6,6 +6,7 @@ import { renderWithProviders } from "../../testUtils/renderWithProviders";
 import {
   getVolunteerRolesForVolunteer,
   getMyVolunteerBookings,
+  getVolunteerBookingsByRoles,
   requestVolunteerBooking,
   createRecurringVolunteerBooking,
   cancelVolunteerBooking,
@@ -33,6 +34,7 @@ afterEach(() => {
 jest.mock("../api/volunteers", () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   getMyVolunteerBookings: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   createRecurringVolunteerBooking: jest.fn(),
   cancelVolunteerBooking: jest.fn(),
@@ -47,6 +49,7 @@ describe("VolunteerSchedule", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2024-01-29T19:00:00Z"));
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {
