@@ -1,5 +1,6 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { renderWithProviders } from '../testUtils/renderWithProviders';
+import { MemoryRouter } from 'react-router-dom';
+import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import DonationLog from '../pages/donor-management/DonationLog';
 import {
   getMonetaryDonors,
@@ -36,7 +37,11 @@ describe('Donor Donation Log', () => {
       { id: 2, donorId: 1, amount: 75, date: '2024-02-05' },
     ]);
 
-    renderWithProviders(<DonationLog />);
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
 
     expect(await screen.findByText('john@example.com')).toBeInTheDocument();
     expect(screen.getByText('$50.00')).toBeInTheDocument();
@@ -53,7 +58,11 @@ describe('Donor Donation Log', () => {
     (updateMonetaryDonation as jest.Mock).mockResolvedValue({});
     (deleteMonetaryDonation as jest.Mock).mockResolvedValue({});
 
-    renderWithProviders(<DonationLog />);
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
 
     await screen.findByText('$50.00');
 
@@ -74,6 +83,45 @@ describe('Donor Donation Log', () => {
     fireEvent.click(screen.getByText('Delete'));
 
     await waitFor(() => expect(deleteMonetaryDonation).toHaveBeenCalledWith(1));
+  });
+
+  it('filters donations by search', async () => {
+    (getMonetaryDonors as jest.Mock).mockResolvedValue([
+      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' },
+    ]);
+    (getMonetaryDonations as jest.Mock).mockImplementation(async (donorId: number) => {
+      if (donorId === 1) return [{ id: 1, donorId: 1, amount: 50, date: '2024-01-10' }];
+      if (donorId === 2) return [{ id: 2, donorId: 2, amount: 100, date: '2024-01-15' }];
+      return [];
+    });
+
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+
+    const searchField = screen.getByLabelText('Search');
+
+    fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: 'john' } });
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: '100' } });
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: '' } });
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 });
 

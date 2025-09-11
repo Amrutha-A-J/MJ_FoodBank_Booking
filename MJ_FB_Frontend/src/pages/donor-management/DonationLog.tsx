@@ -67,10 +67,25 @@ export default function DonationLog() {
     open: false,
     message: '',
   });
+  const [search, setSearch] = useState('');
 
   const currency = useMemo(
     () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
     [],
+  );
+
+  const filteredDonations = useMemo(
+    () => {
+      const s = search.toLowerCase();
+      return donations.filter(
+        d =>
+          d.firstName.toLowerCase().includes(s) ||
+          d.lastName.toLowerCase().includes(s) ||
+          d.email.toLowerCase().includes(s) ||
+          d.amount.toString().includes(s),
+      );
+    },
+    [donations, search],
   );
 
   useEffect(() => {
@@ -225,7 +240,7 @@ export default function DonationLog() {
 
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <ResponsiveTable columns={columns} rows={donations} getRowKey={r => r.id} />
+      <ResponsiveTable columns={columns} rows={filteredDonations} getRowKey={r => r.id} />
     </TableContainer>
   );
 
@@ -260,6 +275,11 @@ export default function DonationLog() {
             value={month}
             onChange={e => setMonth(e.target.value)}
             InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
           />
         </Stack>
 
