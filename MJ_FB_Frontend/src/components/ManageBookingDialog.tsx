@@ -89,7 +89,12 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
           );
           setSlots(s);
         })
-        .catch(() => setSlots([]));
+        .catch(err => {
+          console.error(err);
+          setSeverity('error');
+          setMessage('Failed to load available slots');
+          setSlots([]);
+        });
     } else {
       setSlots([]);
       setSlotId('');
