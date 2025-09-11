@@ -30,8 +30,14 @@ export interface MailLists {
   '10001-30000': MailListDonor[];
 }
 
-export async function getMonetaryDonors(): Promise<MonetaryDonor[]> {
-  const res = await apiFetch(`${API_BASE}/monetary-donors`);
+export async function getMonetaryDonors(
+  search?: string,
+): Promise<MonetaryDonor[]> {
+  const res = await apiFetch(
+    search
+      ? `${API_BASE}/monetary-donors?search=${encodeURIComponent(search)}`
+      : `${API_BASE}/monetary-donors`,
+  );
   return handleResponse(res);
 }
 
