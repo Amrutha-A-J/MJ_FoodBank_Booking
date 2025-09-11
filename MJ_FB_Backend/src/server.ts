@@ -40,6 +40,7 @@ import {
   stopBlockedSlotCleanupJob,
 } from './utils/blockedSlotCleanupJob';
 import { startDbBloatMonitorJob, stopDbBloatMonitorJob } from './utils/dbBloatMonitorJob';
+import { startVacuumJob, stopVacuumJob } from './utils/vacuumJob';
 
 
 const PORT = config.port;
@@ -74,6 +75,7 @@ async function init() {
     startLogCleanupJob();
     startBlockedSlotCleanupJob();
     startDbBloatMonitorJob();
+    startVacuumJob();
   } catch (err) {
     logger.error('❌ Failed to connect to the database:', err);
     await alertOps('Server startup', err);
@@ -97,6 +99,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopLogCleanupJob();
   stopBlockedSlotCleanupJob();
   stopDbBloatMonitorJob();
+  stopVacuumJob();
   shutdownQueue();
   if (server) {
     server.close();
