@@ -14,7 +14,9 @@ export async function fetchWithRetry(
 
   for (let i = 0; i <= retries; i++) {
     try {
-      const res = await fetch(resource, options);
+      const req =
+        resource instanceof Request ? resource.clone() : resource;
+      const res = await fetch(req, options);
       lastResponse = res;
       lastStatus = res.status;
       const shouldRetry =

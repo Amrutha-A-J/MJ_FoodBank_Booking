@@ -78,5 +78,35 @@ describe('fetchWithRetry', () => {
     );
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it('clones Request for each retry', async () => {
+    const timeoutSpy = jest.spyOn(global, 'setTimeout');
+    const resource = new Request('http://localhost/test', {
+      method: 'POST',
+      body: JSON.stringify({ a: 1 }),
+    });
+    fetchMock
+      .mockRejectedValueOnce(new Error('net'))
+      .mockResolvedValueOnce(new Response('ok'));
+
+    const promise = fetchWithRetry(resource, {}, 1, 100);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await Promise.resolve();
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+    const res = await promise;
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    const firstReq = fetchMock.mock.calls[0][0];
+    const secondReq = fetchMock.mock.calls[1][0];
+    expect(firstReq).not.toBe(secondReq);
+    expect(await firstReq.clone().text()).toBe(
+      await secondReq.clone().text(),
+    );
+    expect(resource.bodyUsed).toBe(false);
+  });
 });
 
