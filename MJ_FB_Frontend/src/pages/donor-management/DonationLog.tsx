@@ -89,7 +89,8 @@ export default function DonationLog() {
   );
 
   useEffect(() => {
-    getMonetaryDonors()
+    const donorSearch = search && isNaN(Number(search)) ? search : undefined;
+    getMonetaryDonors(donorSearch)
       .then(d =>
         setDonors(
           d.sort((a, b) =>
@@ -100,7 +101,7 @@ export default function DonationLog() {
         ),
       )
       .catch(() => setDonors([]));
-  }, []);
+  }, [search]);
 
   const loadDonations = useCallback(() => {
     if (donors.length === 0) {
