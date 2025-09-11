@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import pool from '../../db';
-import logger from '../../utils/logger';
 import writeXlsxFile from 'write-excel-file/node';
 import type { Row } from 'write-excel-file';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
+import asyncHandler from '../../middleware/asyncHandler';
 
 export async function refreshWarehouseOverall(year: number, month: number) {
   const [donationsRes, surplusRes, pigRes, outgoingRes, donorAggRes] = await Promise.all([
@@ -71,148 +71,127 @@ export async function refreshWarehouseOverall(year: number, month: number) {
   }
 }
 
-export async function listWarehouseOverall(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const result = await pool.query(
-      `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
+export const listWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
+  const year =
+    parseInt((req.query.year as string) ?? '', 10) ||
+    new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+  const result = await pool.query(
+    `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
        WHERE year = $1
        ORDER BY month`,
-      [year],
-    );
-    res.json(result.rows);
-  } catch (error) {
-    logger.error('Error listing warehouse overall:', error);
-    next(error);
-  }
-}
+    [year],
+  );
+  res.json(result.rows);
+});
 
-export async function listAvailableYears(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = await pool.query('SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC');
-    res.json(result.rows.map(r => r.year));
-  } catch (error) {
-    logger.error('Error listing warehouse overall years:', error);
-    next(error);
-  }
-}
+export const listAvailableYears = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await pool.query('SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC');
+  res.json(result.rows.map(r => r.year));
+});
 
-export async function exportWarehouseOverall(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    const result = await pool.query(
-      `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
+export const exportWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
+  const year =
+    parseInt((req.query.year as string) ?? '', 10) ||
+    new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+  const result = await pool.query(
+    `SELECT month, donations, surplus, pig_pound as "pigPound", outgoing_donations as "outgoingDonations"
        FROM warehouse_overall
        WHERE year = $1
        ORDER BY month`,
-      [year],
-    );
+    [year],
+  );
 
-    const monthNames = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+  const monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
 
-    const dataByMonth = new Map(result.rows.map(r => [r.month, r]));
+  const dataByMonth = new Map(result.rows.map(r => [r.month, r]));
 
-    const headerStyle = {
-      backgroundColor: '#000000',
-      color: '#FFFFFF',
-      fontWeight: 'bold' as const,
-    };
+  const headerStyle = {
+    backgroundColor: '#000000',
+    color: '#FFFFFF',
+    fontWeight: 'bold' as const,
+  };
 
-    const rows: Row[] = [
-      [
-        { value: 'Month', ...headerStyle },
-        { value: 'Donations', ...headerStyle },
-        { value: 'Surplus', ...headerStyle },
-        { value: 'Pig Pound', ...headerStyle },
-        { value: 'Outgoing Donations', ...headerStyle },
-      ],
-    ];
+  const rows: Row[] = [
+    [
+      { value: 'Month', ...headerStyle },
+      { value: 'Donations', ...headerStyle },
+      { value: 'Surplus', ...headerStyle },
+      { value: 'Pig Pound', ...headerStyle },
+      { value: 'Outgoing Donations', ...headerStyle },
+    ],
+  ];
 
-    let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
+  let totals = { donations: 0, surplus: 0, pigPound: 0, outgoingDonations: 0 };
 
-    for (let m = 1; m <= 12; m++) {
-      const row =
-        dataByMonth.get(m) || {
-          donations: 0,
-          surplus: 0,
-          pigPound: 0,
-          outgoingDonations: 0,
-        };
-      rows.push([
-        { value: monthNames[m - 1] },
-        { value: row.donations },
-        { value: row.surplus },
-        { value: row.pigPound },
-        { value: row.outgoingDonations },
-      ]);
-      totals = {
-        donations: totals.donations + row.donations,
-        surplus: totals.surplus + row.surplus,
-        pigPound: totals.pigPound + row.pigPound,
-        outgoingDonations:
-          totals.outgoingDonations + row.outgoingDonations,
+  for (let m = 1; m <= 12; m++) {
+    const row =
+      dataByMonth.get(m) || {
+        donations: 0,
+        surplus: 0,
+        pigPound: 0,
+        outgoingDonations: 0,
       };
-    }
-
     rows.push([
-      { value: 'Total', fontWeight: 'bold' },
-      { value: totals.donations, fontWeight: 'bold' },
-      { value: totals.surplus, fontWeight: 'bold' },
-      { value: totals.pigPound, fontWeight: 'bold' },
-      { value: totals.outgoingDonations, fontWeight: 'bold' },
+      { value: monthNames[m - 1] },
+      { value: row.donations },
+      { value: row.surplus },
+      { value: row.pigPound },
+      { value: row.outgoingDonations },
     ]);
-
-    const buffer = await writeXlsxFile(rows, {
-      sheet: `Warehouse ${year}`,
-      buffer: true,
-    });
-    res
-      .setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      )
-      .setHeader(
-        'Content-Disposition',
-        `attachment; filename=${year}_warehouse_overall_stats.xlsx`,
-      );
-
-    res.send(buffer);
-  } catch (error) {
-    logger.error('Error exporting warehouse overall:', error);
-    next(error);
+    totals = {
+      donations: totals.donations + row.donations,
+      surplus: totals.surplus + row.surplus,
+      pigPound: totals.pigPound + row.pigPound,
+      outgoingDonations: totals.outgoingDonations + row.outgoingDonations,
+    };
   }
-}
 
-export async function rebuildWarehouseOverall(req: Request, res: Response, next: NextFunction) {
-  try {
-    const year =
-      parseInt((req.query.year as string) ?? '', 10) ||
-      new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
-    for (let m = 1; m <= 12; m++) {
-      await refreshWarehouseOverall(year, m);
-    }
+  rows.push([
+    { value: 'Total', fontWeight: 'bold' },
+    { value: totals.donations, fontWeight: 'bold' },
+    { value: totals.surplus, fontWeight: 'bold' },
+    { value: totals.pigPound, fontWeight: 'bold' },
+    { value: totals.outgoingDonations, fontWeight: 'bold' },
+  ]);
 
-    res.json({ message: 'Rebuilt' });
-  } catch (error) {
-    logger.error('Error rebuilding warehouse overall:', error);
-    next(error);
+  const buffer = await writeXlsxFile(rows, {
+    sheet: `Warehouse ${year}`,
+    buffer: true,
+  });
+  res
+    .setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    .setHeader(
+      'Content-Disposition',
+      `attachment; filename=${year}_warehouse_overall_stats.xlsx`,
+    );
+
+  res.send(buffer);
+});
+
+export const rebuildWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
+  const year =
+    parseInt((req.query.year as string) ?? '', 10) ||
+    new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
+  for (let m = 1; m <= 12; m++) {
+    await refreshWarehouseOverall(year, m);
   }
-}
+  res.json({ message: 'Rebuilt' });
+});
+
