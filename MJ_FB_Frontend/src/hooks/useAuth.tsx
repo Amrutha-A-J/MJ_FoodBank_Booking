@@ -9,7 +9,7 @@ import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import { getRandomAppreciation } from '../utils/appreciationMessages';
 
 interface AuthContextValue {
-  token: string;
+  isAuthenticated: boolean;
   role: Role;
   name: string;
   userRole: UserRole | '';
@@ -46,13 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem('id');
     return stored ? Number(stored) : null;
   });
-  const [token, setToken] = useState('');
+  const [isAuthenticated, setAuthenticated] = useState(false);
   const [sessionMessage, setSessionMessage] = useState('');
   const [cardUrl, setCardUrl] = useState('');
   const [ready, setReady] = useState(false);
 
   const clearAuth = useCallback(() => {
-    setToken('');
+    setAuthenticated(false);
     setRole('' as Role);
     setName('');
     setUserRole('');
@@ -115,10 +115,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         const hasRole = !!localStorage.getItem('role');
         if (res.ok) {
-          if (active && hasRole) setToken('cookie');
+          if (active && hasRole) setAuthenticated(true);
         } else if (res.status === 409) {
           // Another tab already refreshed; token cookie is still valid
-          if (active && hasRole) setToken('cookie');
+          if (active && hasRole) setAuthenticated(true);
         } else if (res.status === 401) {
           if (active) handleExpired();
         } else if (tries < 1) {
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch(`${API_BASE}/auth/refresh`, { method: 'POST' });
       if (!res.ok && res.status !== 409) throw new Error('Invalid refresh');
       const { role, name, userRole, access, id } = u;
-      setToken('cookie');
+      setAuthenticated(true);
       setRole(role);
       setName(name);
       setUserRole(userRole || '');
@@ -192,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const value: AuthContextValue = {
-    token,
+    isAuthenticated,
     role,
     name,
     userRole,

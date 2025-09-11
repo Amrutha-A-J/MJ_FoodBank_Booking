@@ -30,13 +30,13 @@ describe('AuthProvider refresh handling', () => {
     fetchMock.mockResolvedValue({ ok: false, status: 409 });
 
     function Child() {
-      const { token, ready } = useAuth();
-      return <div>{ready ? token : ''}</div>;
+      const { isAuthenticated, ready } = useAuth();
+      return <div>{ready ? String(isAuthenticated) : ''}</div>;
     }
 
     renderWithProviders(<Child />);
 
-    await waitFor(() => expect(screen.getByText('cookie')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('true')).toBeInTheDocument());
     expect(localStorage.getItem('role')).toBe('staff');
   });
 });
@@ -63,17 +63,17 @@ describe('AuthProvider with no prior session', () => {
     expect(screen.queryByText('Session expired')).toBeNull();
   });
 
-  it('does not set token when refresh succeeds without auth', async () => {
+  it('does not authenticate when refresh succeeds without auth', async () => {
     fetchMock.mockResolvedValue({ ok: true, status: 200 });
 
     function Child() {
-      const { token, ready } = useAuth();
-      return <div>{ready ? token : ''}</div>;
+      const { isAuthenticated, ready } = useAuth();
+      return <div>{ready ? String(isAuthenticated) : ''}</div>;
     }
 
     renderWithProviders(<Child />);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
-    expect(screen.queryByText('cookie')).toBeNull();
+    expect(screen.queryByText('true')).toBeNull();
   });
 });
