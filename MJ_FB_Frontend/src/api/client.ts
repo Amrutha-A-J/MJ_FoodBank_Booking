@@ -85,6 +85,21 @@ export interface ApiError extends Error {
   status?: number;
 }
 
+export function getApiErrorMessage(err: unknown, fallback: string) {
+  const apiErr = err as ApiError;
+  const details = apiErr?.details as any;
+  if (details?.errors?.[0]?.message) {
+    return details.errors[0].message as string;
+  }
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  if (typeof err === 'string') {
+    return err;
+  }
+  return fallback;
+}
+
 export async function handleResponse<T = any>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = res.statusText;

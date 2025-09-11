@@ -25,7 +25,7 @@ import {
   requestPasswordReset,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
-import type { ApiError } from "../../../api/client";
+import { getApiErrorMessage } from "../../../api/client";
 import PasswordField from "../../../components/PasswordField";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
 
@@ -50,7 +50,14 @@ export default function UpdateClientData() {
   function loadClients() {
     getIncompleteUsers()
       .then(setClients)
-      .catch(() => setClients([]));
+      .catch(err => {
+        setClients([]);
+        setSnackbar({
+          open: true,
+          message: getApiErrorMessage(err, 'Failed to load clients'),
+          severity: 'error',
+        });
+      });
   }
 
   useEffect(() => {
@@ -70,7 +77,7 @@ export default function UpdateClientData() {
         password: "",
         hasPassword: data.hasPassword,
       });
-    } catch {
+    } catch (err: unknown) {
       setForm({
         firstName: client.firstName || "",
         lastName: client.lastName || "",
@@ -79,6 +86,11 @@ export default function UpdateClientData() {
         onlineAccess: false,
         password: "",
         hasPassword: false,
+      });
+      setSnackbar({
+        open: true,
+        message: getApiErrorMessage(err, 'Failed to load client details'),
+        severity: 'error',
       });
     }
   }
@@ -105,18 +117,10 @@ export default function UpdateClientData() {
       loadClients();
       return true;
     } catch (err: unknown) {
-      let message = "Update failed";
-      const apiErr = err as ApiError;
-      const details = apiErr?.details as any;
-      if (details?.errors?.[0]?.message) {
-        message = details.errors[0].message as string;
-      } else if (err instanceof Error && err.message) {
-        message = err.message;
-      }
       setSnackbar({
         open: true,
-        message,
-        severity: "error",
+        message: getApiErrorMessage(err, 'Unable to update client'),
+        severity: 'error',
       });
       return false;
     }
@@ -133,11 +137,11 @@ export default function UpdateClientData() {
         message: "Password reset link sent",
         severity: "success",
       });
-    } catch {
+    } catch (err: unknown) {
       setSnackbar({
         open: true,
-        message: "Failed to send password reset link",
-        severity: "error",
+        message: getApiErrorMessage(err, 'Failed to send password reset link'),
+        severity: 'error',
       });
     }
   }
