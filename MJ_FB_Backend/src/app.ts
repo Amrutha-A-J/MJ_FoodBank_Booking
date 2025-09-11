@@ -106,8 +106,11 @@ api.use('/roles', rolesRoutes);
 api.use('/donors', donorsRoutes);
 api.use('/monetary-donors', monetaryDonorsRoutes);
 api.use('/donations', donationsRoutes);
-  api.use('/client-visits', clientVisitsRoutes);
-  api.use('/visits', clientVisitsRoutes);
+api.use('/client-visits', clientVisitsRoutes);
+// Redirect legacy /visits routes to /client-visits
+api.use('/visits', (req, res) =>
+  res.redirect(308, req.originalUrl.replace('/visits', '/client-visits'))
+);
 api.use('/surplus', surplusRoutes);
 api.use('/pig-pounds', pigPoundsRoutes);
 api.use('/outgoing-receivers', outgoingReceiversRoutes);
