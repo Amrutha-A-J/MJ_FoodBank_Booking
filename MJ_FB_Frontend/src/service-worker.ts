@@ -68,6 +68,19 @@ registerRoute(
   'GET',
 )
 
+// Cache warehouse settings
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/warehouse-settings'),
+  new StaleWhileRevalidate({
+    cacheName: 'warehouse-settings-api',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 60 * 60 }),
+    ],
+    fetchOptions: { credentials: 'include' },
+  }),
+  'GET',
+)
+
 // Cache volunteer booking data
 registerRoute(
   ({ url }) => url.pathname.startsWith('/api/volunteer-bookings'),
