@@ -50,14 +50,23 @@ describe('DonorProfile', () => {
   });
 
   it('edits donor info', async () => {
-    (getMonetaryDonor as jest.Mock).mockResolvedValue({
-      id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john@example.com',
-      amount: 100,
-      lastDonationISO: null,
-    });
+    (getMonetaryDonor as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 1,
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        amount: 100,
+        lastDonationISO: null,
+      })
+      .mockResolvedValueOnce({
+        id: 1,
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'jane@example.com',
+        amount: 100,
+        lastDonationISO: null,
+      });
     (getMonetaryDonations as jest.Mock).mockResolvedValue([]);
     (updateMonetaryDonor as jest.Mock).mockResolvedValue({});
 
@@ -92,9 +101,9 @@ describe('DonorProfile', () => {
       lastName: 'Smith',
       email: 'jane@example.com',
     });
-    expect(
-      await screen.findByText('Donor updated'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Donor updated')).toBeInTheDocument();
+    expect(await screen.findByText('Jane Smith')).toBeInTheDocument();
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
 });
 

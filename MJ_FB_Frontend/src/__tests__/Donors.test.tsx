@@ -1,5 +1,5 @@
 import { screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import Donors from '../pages/donor-management/Donors';
 import { getMonetaryDonors } from '../api/monetaryDonors';
@@ -26,8 +26,14 @@ describe('Donors page', () => {
       ]);
 
     renderWithProviders(
-      <MemoryRouter>
-        <Donors />
+      <MemoryRouter initialEntries={["/donor-management/donors"]}>
+        <Routes>
+          <Route path="/donor-management/donors" element={<Donors />} />
+          <Route
+            path="/donor-management/donors/:id"
+            element={<div>Donor Profile</div>}
+          />
+        </Routes>
       </MemoryRouter>,
     );
 
@@ -41,9 +47,12 @@ describe('Donors page', () => {
       expect(getMonetaryDonors).toHaveBeenLastCalledWith('Jane'),
     );
 
-    expect(await screen.findByText('jane@example.com')).toBeInTheDocument();
-    const link = screen.getByText('jane@example.com').closest('a');
-    expect(link).toHaveAttribute('href', '/donor-management/donors/1');
+    const link = await screen.findByText('jane@example.com');
+    const anchor = link.closest('a');
+    expect(anchor).toHaveAttribute('href', '/donor-management/donors/1');
+
+    fireEvent.click(anchor!);
+    expect(await screen.findByText('Donor Profile')).toBeInTheDocument();
   });
 });
 
