@@ -302,6 +302,8 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `PG_HOST`                  | PostgreSQL host                                                                                                                           |
 | `PG_PORT`                  | PostgreSQL port                                                                                                                           |
+| `PG_POOL_MAX`              | Max connections in the PostgreSQL pool (default 10)
+                                         |
 | `PG_USER`                  | PostgreSQL username                                                                                                                       |
 | `PG_PASSWORD`              | PostgreSQL password                                                                                                                       |
 | `PG_DATABASE`              | PostgreSQL database name                                                                                                                  |

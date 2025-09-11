@@ -49,6 +49,7 @@ const pool = new Pool({
   user: config.pgUser,
   password: config.pgPassword,
   database: config.pgDatabase,
+  max: config.pgPoolMax,
   ssl, // always require SSL with the CA bundle in non-local env
   // Avoid connectionString so PG* env vars can’t override sslmode
 });
