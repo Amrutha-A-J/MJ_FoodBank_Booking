@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Button,
   Dialog,
@@ -25,41 +25,20 @@ import {
   deleteSurplus,
   type Surplus,
 } from '../../api/surplus';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, formatDate } from '../../utils/date';
 import {
   getWarehouseSettings,
   type WarehouseSettings,
 } from '../../api/warehouseSettings';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-
-function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function format(date: Date) {
-  return formatDate(date);
-}
+import useWeekTabs from '../../components/useWeekTabs';
 
 function normalize(date: string) {
   return date.split('T')[0];
 }
 
 export default function TrackSurplus() {
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
-  });
-  const selectedDate = weekDates[tab];
+  const { weekDates, tab, setTab, selectedDate } = useWeekTabs();
 
   const [records, setRecords] = useState<Surplus[]>([]);
   const [recordOpen, setRecordOpen] = useState(false);
@@ -73,7 +52,7 @@ export default function TrackSurplus() {
   });
 
   const [form, setForm] = useState<{ date: string; type: 'BREAD' | 'CANS'; count: string }>({
-    date: format(selectedDate),
+    date: formatDate(selectedDate),
     type: 'BREAD',
     count: '',
   });
@@ -99,7 +78,7 @@ export default function TrackSurplus() {
   }, []);
 
   const filteredRecords = useMemo(() => {
-    const dateStr = format(selectedDate);
+    const dateStr = formatDate(selectedDate);
     return records.filter(r => normalize(r.date) === dateStr);
   }, [records, selectedDate]);
 
@@ -111,7 +90,7 @@ export default function TrackSurplus() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
+        setForm({ date: formatDate(selectedDate), type: 'BREAD', count: '' });
         load();
         setSnackbar({ open: true, message: editing ? 'Surplus updated' : 'Surplus recorded' });
       })
@@ -195,7 +174,7 @@ export default function TrackSurplus() {
           
           variant="contained"
           onClick={() => {
-            setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
+            setForm({ date: formatDate(selectedDate), type: 'BREAD', count: '' });
             setEditing(null);
             setRecordOpen(true);
           }}

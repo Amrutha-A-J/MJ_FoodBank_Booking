@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -25,34 +25,13 @@ import {
   deletePigPound,
   type PigPound,
 } from '../../api/pigPounds';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, formatDate } from '../../utils/date';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-
-function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function format(date: Date) {
-  return formatDate(date);
-}
+import useWeekTabs from '../../components/useWeekTabs';
 
 export default function TrackPigpound() {
   const [entries, setEntries] = useState<PigPound[]>([]);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
-  });
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
-  const selectedDate = weekDates[tab];
+  const { weekDates, tab, setTab, selectedDate } = useWeekTabs();
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<PigPound | null>(null);
   const [form, setForm] = useState<{ date: string; weight: string }>({
@@ -70,7 +49,7 @@ export default function TrackPigpound() {
 
   const load = useCallback((date: Date) => {
     const id = ++fetchId.current;
-    const dateStr = format(date);
+    const dateStr = formatDate(date);
     getPigPounds(dateStr)
       .then(data => {
         if (fetchId.current === id) setEntries(data);
@@ -93,7 +72,7 @@ export default function TrackPigpound() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: format(selectedDate), weight: '' });
+        setForm({ date: formatDate(selectedDate), weight: '' });
         load(selectedDate);
         setSnackbar({ open: true, message: editing ? 'Entry updated' : 'Entry recorded' });
       })
@@ -167,7 +146,7 @@ export default function TrackPigpound() {
           
           variant="contained"
           onClick={() => {
-            setForm({ date: format(selectedDate), weight: '' });
+            setForm({ date: formatDate(selectedDate), weight: '' });
             setEditing(null);
             setRecordOpen(true);
           }}
