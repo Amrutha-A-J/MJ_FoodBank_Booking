@@ -6,6 +6,7 @@ The `/login` page is shared by clients, staff, volunteers, and agencies.
 
 Add the following translation strings to locale files:
 
+- `login_notice_title` – title for the login notice dialog
 - `client_login_notice_id` – instructs clients to email harvestpantry@mjfoodbank.org if they don't know their client ID or need an account created
 - `client_login_notice_internal` – reminds staff, volunteers, and agencies they also sign in here with their email
 - `client_login_notice_password` – advises clients to use the forgot password link if their password is not working

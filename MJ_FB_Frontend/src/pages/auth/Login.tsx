@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Button, Box, Dialog, DialogContent, IconButton, Typography, Stack } from '@mui/material';
+import { Link, TextField, Button, Box, Dialog, DialogContent, DialogTitle, IconButton, Typography, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
@@ -156,7 +156,8 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <Dialog open={noticeOpen} onClose={handleNoticeClose}>
+      <Dialog open={noticeOpen} onClose={handleNoticeClose} aria-labelledby="login-notice-title">
+        <DialogTitle id="login-notice-title">{t('login_notice_title')}</DialogTitle>
         <DialogContent sx={{ position: 'relative', pt: 4 }}>
           <IconButton
             aria-label="close"
