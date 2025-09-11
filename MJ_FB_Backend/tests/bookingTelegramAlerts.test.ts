@@ -23,6 +23,7 @@ describe('booking telegram alerts', () => {
         __esModule: true,
         insertBooking: jest.fn().mockResolvedValue(undefined),
         checkSlotCapacity: jest.fn().mockResolvedValue(undefined),
+        SlotCapacityError: class extends Error {},
       }));
       jest.doMock('../src/db', () => ({
         __esModule: true,
@@ -35,10 +36,13 @@ describe('booking telegram alerts', () => {
   });
 
   it('notifies via telegram when booking is created', async () => {
+    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }] })
+      .mockResolvedValueOnce({
+        rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }],
+      })
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },

@@ -27,6 +27,7 @@ describe('createBookingForUser', () => {
         __esModule: true,
         insertBooking: jest.fn().mockResolvedValue(undefined),
         checkSlotCapacity: jest.fn().mockResolvedValue(undefined),
+        SlotCapacityError: class extends Error {},
       }));
       jest.doMock('../src/models/agency', () => ({
         __esModule: true,
@@ -47,8 +48,9 @@ describe('createBookingForUser', () => {
   });
 
   it('enqueues confirmation email after booking creation', async () => {
+    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
       .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] })
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
@@ -75,7 +77,14 @@ describe('createBookingForUser', () => {
   });
 
   it('returns 400 if booking date is a holiday', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 });
+    const client = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [], rowCount: 0 })
+        .mockResolvedValueOnce({ rowCount: 1 }),
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-12-25' },
@@ -93,8 +102,9 @@ describe('createBookingForUser', () => {
   });
 
   it('passes note to insertBooking', async () => {
+    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
@@ -117,15 +127,19 @@ describe('createBookingForUser', () => {
       expect.any(String),
       null,
       'bring ID',
+      expect.any(Object),
     );
   });
 
   it('allows staff to book outside allowed months', async () => {
     (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
+    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }] })
+      .mockResolvedValueOnce({
+        rows: [{ email: 'client@example.com', first_name: 'A', last_name: 'B' }],
+      })
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },
