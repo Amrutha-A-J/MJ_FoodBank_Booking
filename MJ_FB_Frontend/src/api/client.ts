@@ -1,4 +1,5 @@
 import { fetchWithRetry } from './fetchWithRetry';
+import getApiErrorMessage from '../utils/getApiErrorMessage';
 
 let API_BASE =
   (typeof process !== 'undefined' ? process.env?.VITE_API_BASE : undefined) ??
@@ -85,21 +86,6 @@ export interface ApiError extends Error {
   status?: number;
 }
 
-export function getApiErrorMessage(err: unknown, fallback: string) {
-  const apiErr = err as ApiError;
-  const details = apiErr?.details as any;
-  if (details?.errors?.[0]?.message) {
-    return details.errors[0].message as string;
-  }
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  if (typeof err === 'string') {
-    return err;
-  }
-  return fallback;
-}
-
 export async function handleResponse<T = any>(res: Response): Promise<T> {
   if (!res.ok) {
     let message = res.statusText;
@@ -144,7 +130,7 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
   return (await res.text()) as any;
 }
 
-export { API_BASE };
+export { API_BASE, getApiErrorMessage };
 
 function clearAuthAndRedirect() {
   localStorage.removeItem('role');
