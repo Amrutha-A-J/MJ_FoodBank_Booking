@@ -103,11 +103,25 @@ describe('requestPasswordReset', () => {
       }),
     );
   });
+
+  it('skips sending email when client lacks email', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ client_id: 4, email: null }],
+    });
+    const res = await request(app)
+      .post('/auth/request-password-reset')
+      .send({ clientId: 4 });
+    expect(res.status).toBe(204);
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
+  });
 });
 
 describe('setPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resendLimit.clear();
   });
 
   it('verifies token, hashes password, and marks token used', async () => {
@@ -174,6 +188,19 @@ describe('resendPasswordSetup', () => {
         }),
       }),
     );
+  });
+
+  it('does not send email when clientId has no email', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ client_id: 5, email: null }],
+    });
+    const res = await request(app)
+      .post('/auth/resend-password-setup')
+      .send({ clientId: 5 });
+    expect(res.status).toBe(204);
+    expect(generatePasswordSetupToken).not.toHaveBeenCalled();
+    expect(sendTemplatedEmail).not.toHaveBeenCalled();
   });
 
   it('requires an identifier', async () => {

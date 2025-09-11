@@ -67,18 +67,24 @@ export async function requestPasswordReset(
     }
 
     if (user) {
-      const token = await generatePasswordSetupToken(user.table, user.id);
-      const params = buildPasswordSetupEmailParams(
-        user.table,
-        token,
-        user.table === 'clients' ? user.id : undefined,
-      );
-      await sendTemplatedEmail({
-        to: user.email,
-        templateId: config.passwordSetupTemplateId,
-        params,
-      });
-      logger.info(`Password reset requested for ${user.email}`);
+      if (typeof user.email === 'string' && user.email.trim() !== '') {
+        const token = await generatePasswordSetupToken(user.table, user.id);
+        const params = buildPasswordSetupEmailParams(
+          user.table,
+          token,
+          user.table === 'clients' ? user.id : undefined,
+        );
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: config.passwordSetupTemplateId,
+          params,
+        });
+        logger.info(`Password reset requested for ${user.email}`);
+      } else {
+        logger.warn(
+          `Password reset requested for user without email (id=${user.id}, table=${user.table})`,
+        );
+      }
     }
     res.status(204).send();
   } catch (err) {
@@ -143,18 +149,24 @@ export async function resendPasswordSetup(
     }
 
     if (user) {
-      const token = await generatePasswordSetupToken(user.table, user.id);
-      const params = buildPasswordSetupEmailParams(
-        user.table,
-        token,
-        user.table === 'clients' ? user.id : undefined,
-      );
-      await sendTemplatedEmail({
-        to: user.email,
-        templateId: config.passwordSetupTemplateId,
-        params,
-      });
-      logger.info(`Password setup link resent for ${user.email}`);
+      if (typeof user.email === 'string' && user.email.trim() !== '') {
+        const token = await generatePasswordSetupToken(user.table, user.id);
+        const params = buildPasswordSetupEmailParams(
+          user.table,
+          token,
+          user.table === 'clients' ? user.id : undefined,
+        );
+        await sendTemplatedEmail({
+          to: user.email,
+          templateId: config.passwordSetupTemplateId,
+          params,
+        });
+        logger.info(`Password setup link resent for ${user.email}`);
+      } else {
+        logger.warn(
+          `Password setup link requested for user without email (id=${user.id}, table=${user.table})`,
+        );
+      }
     }
     res.status(204).send();
   } catch (err) {
