@@ -1,5 +1,12 @@
 
-import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  type ReactNode,
+} from 'react';
 import {
   Box,
   Container,
@@ -45,17 +52,21 @@ import type { ApiError } from '../api/client';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
-// Wrappers to match required signatures
 function useSlots(
   date: Dayjs,
   enabled: boolean,
+  fetchSlots: (date: string) => Promise<any[]>,
+  mapSlot: (s: any) => Slot,
   staleTime = 5 * 60 * 1000,
   gcTime = 30 * 60 * 1000,
 ) {
   const dateStr = date.format('YYYY-MM-DD');
   const { data, isFetching, refetch, error } = useQuery<Slot[]>({
-    queryKey: ['slots', dateStr],
-    queryFn: () => getSlots(dateStr),
+    queryKey: ['slots', dateStr, fetchSlots],
+    queryFn: async () => {
+      const raw = await fetchSlots(dateStr);
+      return raw.map(mapSlot);
+    },
     enabled,
     staleTime,
     gcTime,
@@ -63,7 +74,7 @@ function useSlots(
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-function bookSlot(payload: {
+function defaultBookSlot(payload: {
   date: string;
   slotId: string;
   note: string;
@@ -78,16 +89,32 @@ export type BookingUIProps = {
   userId?: number;
   embedded?: boolean;
   onLoadingChange?: (loading: boolean) => void;
+  slotFetcher?: (date: string) => Promise<any[]>;
+  mapSlot?: (s: any) => Slot;
+  bookingAction?: (payload: {
+    date: string;
+    slotId: string;
+    note: string;
+    userId?: number;
+  }) => Promise<any>;
+  groupSlots?: (slots: Slot[]) => Record<string, Slot[]>;
 };
 
 export default function BookingUI({
-  shopperName = 'John Shopper',
+  shopperName,
   initialDate = dayjs(),
   userId,
   embedded = false,
   onLoadingChange,
+  slotFetcher = getSlots,
+  mapSlot = (s: any) => s as Slot,
+  bookingAction = defaultBookSlot,
+  groupSlots,
 }: BookingUIProps) {
   const { t } = useTranslation();
+  const { role, name: authName } = useAuth();
+  const displayName = shopperName ?? authName ?? 'John Shopper';
+
   const [date, setDate] = useState<Dayjs>(() => {
     let d = initialDate;
     const today = dayjs();
@@ -118,7 +145,12 @@ export default function BookingUI({
       holidaySet.has(day.format('YYYY-MM-DD'))
     );
   };
-  const { slots, isLoading, refetch, error } = useSlots(date, !isDisabled(date));
+  const { slots, isLoading, refetch, error } = useSlots(
+    date,
+    !isDisabled(date),
+    slotFetcher,
+    mapSlot,
+  );
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -139,21 +171,20 @@ export default function BookingUI({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
-  const { role } = useAuth();
 
   const handleStream = useCallback(
     (data: any) => {
       const dateStr = date.format('YYYY-MM-DD');
       if (data?.date !== dateStr || !Array.isArray(data.slots)) return;
-      queryClient.setQueryData<Slot[]>(['slots', dateStr], (prev = []) => {
+      queryClient.setQueryData<Slot[]>(['slots', dateStr, slotFetcher], (prev = []) => {
         const map = new Map(prev.map(s => [s.id, s]));
-        (data.slots as Slot[]).forEach((s: Slot) => {
+        (data.slots as any[]).map(mapSlot).forEach((s: Slot) => {
           map.set(s.id, s);
         });
         return Array.from(map.values());
       });
     },
-    [date, queryClient],
+    [date, queryClient, mapSlot, slotFetcher],
   );
 
   useSlotStream(handleStream);
@@ -174,14 +205,19 @@ export default function BookingUI({
       ? slots
       : slots.filter(s => !dayjs(s.startTime, 'HH:mm:ss').isBefore(now));
   }, [slots, date]);
-  const morningSlots = useMemo(
-    () => visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() < 12),
-    [visibleSlots],
-  );
-  const afternoonSlots = useMemo(
-    () => visibleSlots.filter(s => dayjs(s.startTime, 'HH:mm:ss').hour() >= 12),
-    [visibleSlots],
-  );
+  const groupedSlots = useMemo(() => {
+    if (groupSlots) return groupSlots(visibleSlots);
+    const morning = visibleSlots.filter(s =>
+      dayjs(s.startTime, 'HH:mm:ss').hour() < 12,
+    );
+    const afternoon = visibleSlots.filter(s =>
+      dayjs(s.startTime, 'HH:mm:ss').hour() >= 12,
+    );
+    const res: Record<string, Slot[]> = {};
+    if (morning.length) res[t('morning')] = morning;
+    if (afternoon.length) res[t('afternoon')] = afternoon;
+    return res;
+  }, [visibleSlots, groupSlots, t]);
   useEffect(() => {
     onLoadingChange?.(isLoading || !holidaysReady);
   }, [isLoading, holidaysReady, onLoadingChange]);
@@ -220,7 +256,7 @@ export default function BookingUI({
     if (!selectedSlotId || !visibleSlots.some(s => s.id === selectedSlotId)) return;
     setBooking(true);
     try {
-      const res = await bookSlot({
+      const res = await bookingAction({
         date: date.format('YYYY-MM-DD'),
         slotId: selectedSlotId,
         note,
@@ -386,7 +422,7 @@ export default function BookingUI({
       <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
-        {t('booking_for', { name: shopperName })}
+        {t('booking_for', { name: displayName })}
       </Typography>
       <Typography
         variant="subtitle1"
@@ -480,19 +516,13 @@ export default function BookingUI({
               </Box>
             ) : (
               <List disablePadding>
-                {morningSlots.length > 0 && (
-                  <>
-                    <ListSubheader disableSticky>{t('morning')}</ListSubheader>
-                    {morningSlots.map(renderSlot)}
-                    {afternoonSlots.length > 0 && <Divider />}
-                  </>
-                )}
-                {afternoonSlots.length > 0 && (
-                  <>
-                    <ListSubheader disableSticky>{t('afternoon')}</ListSubheader>
-                    {afternoonSlots.map(renderSlot)}
-                  </>
-                )}
+                {Object.entries(groupedSlots).map(([label, group], idx, arr) => (
+                  <Box key={label}>
+                    <ListSubheader disableSticky>{label}</ListSubheader>
+                    {group.map(renderSlot)}
+                    {idx < arr.length - 1 && <Divider />}
+                  </Box>
+                ))}
               </List>
             )}
           </Paper>
