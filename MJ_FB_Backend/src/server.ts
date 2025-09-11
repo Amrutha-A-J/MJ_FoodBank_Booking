@@ -66,8 +66,13 @@ async function init() {
     startExpiredTokenCleanupJob();
     startEmailQueueCleanupJob();
     startPayPeriodCronJob();
-    await seedPayPeriods('2025-08-03', '2025-12-31');
-    await seedTimesheets();
+    if (process.env.NODE_ENV === 'development') {
+      const now = new Date();
+      const start = `${now.getFullYear()}-01-01`;
+      const end = `${now.getFullYear() + 1}-12-31`;
+      await seedPayPeriods(start, end);
+      await seedTimesheets();
+    }
     startTimesheetSeedJob();
     startRetentionJob();
     startPantryRetentionJob();
