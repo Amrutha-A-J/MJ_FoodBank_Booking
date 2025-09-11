@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Button,
   Dialog,
@@ -23,41 +23,20 @@ import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoing
 import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../api/outgoingDonations';
 import type { OutgoingReceiver } from '../../api/outgoingReceivers';
 import type { OutgoingDonation } from '../../api/outgoingDonations';
-import { formatLocaleDate, toDate, formatDate, addDays, normalizeDate } from '../../utils/date';
+import { formatLocaleDate, formatDate, normalizeDate } from '../../utils/date';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-
-function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function format(date: Date) {
-  return formatDate(date);
-}
+import { useWeekTabs } from '../../components/useWeekTabs';
 
 export default function TrackOutgoingDonations() {
   const [donations, setDonations] = useState<OutgoingDonation[]>([]);
   const [receivers, setReceivers] = useState<OutgoingReceiver[]>([]);
-  const [tab, setTab] = useState(() => {
-    const week = startOfWeek(toDate());
-    const today = toDate();
-    return Math.floor((today.getTime() - week.getTime()) / (24 * 60 * 60 * 1000));
-  });
+  const { tab, setTab, selectedDate, getTabs } = useWeekTabs();
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<OutgoingDonation | null>(null);
   const [newReceiverOpen, setNewReceiverOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<OutgoingDonation | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
-
-  const weekDates = useMemo(() => {
-    const start = startOfWeek(toDate());
-    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
-  }, []);
 
   const [form, setForm] = useState<{ date: string; receiverId: number | null; weight: string; note: string }>({
     date: formatDate(),
@@ -125,10 +104,8 @@ export default function TrackOutgoingDonations() {
       .catch(() => setReceivers([]));
   }, []);
 
-  const selectedDate = weekDates[tab];
-
   const loadDonations = useCallback(() => {
-    getOutgoingDonations(format(selectedDate))
+    getOutgoingDonations(formatDate(selectedDate))
       .then(setDonations)
       .catch(() => setDonations([]));
   }, [selectedDate]);
@@ -146,7 +123,7 @@ export default function TrackOutgoingDonations() {
       .then(() => {
         setRecordOpen(false);
         setEditing(null);
-        setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
+        setForm({ date: formatDate(selectedDate), receiverId: null, weight: '', note: '' });
         loadDonations();
         setSnackbar({ open: true, message: editing ? 'Outgoing donation updated' : 'Outgoing donation recorded' });
       })
@@ -183,10 +160,7 @@ export default function TrackOutgoingDonations() {
     </TableContainer>
   );
 
-  const tabs = weekDates.map(d => ({
-    label: formatLocaleDate(d, { weekday: 'short' }),
-    content: table,
-  }));
+  const tabs = getTabs(() => table);
 
   return (
     <>
@@ -197,7 +171,7 @@ export default function TrackOutgoingDonations() {
             
             variant="contained"
             onClick={() => {
-              setForm({ date: format(selectedDate), receiverId: null, weight: '', note: '' });
+              setForm({ date: formatDate(selectedDate), receiverId: null, weight: '', note: '' });
               setEditing(null);
               setRecordOpen(true);
             }}
