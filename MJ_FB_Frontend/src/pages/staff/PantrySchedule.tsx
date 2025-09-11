@@ -32,6 +32,7 @@ import {
   ListItemText,
   Checkbox,
   FormControlLabel,
+  Alert,
 } from "@mui/material";
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
@@ -457,17 +458,17 @@ export default function PantrySchedule({
         action={snackbar?.action}
       />
       {streamError && (
-        <Typography color="error" align="center">
-          Live updates unavailable{" "}
-          <Button
-            onClick={retryStream}
-            variant="outlined"
-            
-            color="primary"
-          >
-            Retry
-          </Button>
-        </Typography>
+        <Alert
+          severity="error"
+          action={
+            <Button onClick={retryStream} variant="outlined" color="primary">
+              Retry
+            </Button>
+          }
+          sx={{ alignItems: 'center' }}
+        >
+          Live updates unavailable
+        </Alert>
       )}
       {isClosed ? (
         <Typography align="center">

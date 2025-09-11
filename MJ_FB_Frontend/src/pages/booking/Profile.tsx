@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Stack,
   Typography,
+  Alert,
   FormControlLabel,
   Switch,
   Avatar,
@@ -161,7 +162,7 @@ export default function Profile({ role }: { role: Role }) {
           </Stack>
 
           {/* Profile info */}
-          {error && <Typography color="error">{error}</Typography>}
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           {!profile && !error && <Typography>{t('profile_page.loading')}</Typography>}
           {profile && (
             <Stack spacing={1}>

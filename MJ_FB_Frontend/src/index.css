@@ -150,7 +150,7 @@ p {
 
 .slot-item.selected {
   border: 2px solid var(--e-global-color-accent);
-  background-color: #fbeaea;
+  background-color: var(--mui-palette-warning-light);
 }
 
 .slot-item.disabled {
@@ -158,13 +158,8 @@ p {
 }
 
 .holiday-tile {
-  background-color: #e0e0e0 !important;
-  color: #666 !important;
-}
-
-.error-message {
-  color: red;
-  margin-bottom: 1rem;
+  background-color: var(--mui-palette-grey-300) !important;
+  color: var(--mui-palette-text-secondary) !important;
 }
 
 .success-message {
