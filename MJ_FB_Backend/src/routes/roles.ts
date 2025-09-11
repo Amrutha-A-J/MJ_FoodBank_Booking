@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { parseIdParam } from '../utils/parseIdParam';
@@ -6,7 +6,7 @@ import { parseIdParam } from '../utils/parseIdParam';
 const router = Router();
 
 // GET /api/roles - returns unique roles grouped by category
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const query = `
       SELECT
@@ -34,45 +34,48 @@ router.get('/', async (req: Request, res: Response) => {
       query: req.query,
       error: err,
     });
-    res.status(500).json({ message: 'Internal server error' });
+    next(err);
   }
 });
 
 // GET /api/roles/:roleId/shifts - returns all shifts for a role
-router.get('/:roleId/shifts', async (req: Request, res: Response) => {
-  const roleId = parseIdParam(req.params.roleId);
-  if (roleId === null) {
-    return res.status(400).json({ message: 'Invalid roleId' });
+router.get(
+  '/:roleId/shifts',
+  async (req: Request, res: Response, next: NextFunction) => {
+    const roleId = parseIdParam(req.params.roleId);
+    if (roleId === null) {
+      return res.status(400).json({ message: 'Invalid roleId' });
+    }
+    try {
+      const query = `
+        SELECT
+          s.slot_id AS shift_id,
+          s.start_time,
+          s.end_time,
+          s.max_volunteers
+        FROM volunteer_slots s
+        WHERE s.is_active = TRUE
+          AND s.role_id = $1
+        ORDER BY s.start_time;
+      `;
+      const { rows } = await pool.query(query, [roleId]);
+      const result = rows.map((row) => ({
+        shiftId: row.shift_id,
+        startTime: row.start_time,
+        endTime: row.end_time,
+        maxVolunteers: row.max_volunteers,
+      }));
+      res.json(result);
+    } catch (err) {
+      logger.error('GET /roles/:roleId/shifts - Failed to fetch shifts', {
+        params: req.params,
+        query: req.query,
+        error: err,
+      });
+      next(err);
+    }
   }
-  try {
-    const query = `
-      SELECT
-        s.slot_id AS shift_id,
-        s.start_time,
-        s.end_time,
-        s.max_volunteers
-      FROM volunteer_slots s
-      WHERE s.is_active = TRUE
-        AND s.role_id = $1
-      ORDER BY s.start_time;
-    `;
-    const { rows } = await pool.query(query, [roleId]);
-    const result = rows.map((row) => ({
-      shiftId: row.shift_id,
-      startTime: row.start_time,
-      endTime: row.end_time,
-      maxVolunteers: row.max_volunteers,
-    }));
-    res.json(result);
-  } catch (err) {
-    logger.error('GET /roles/:roleId/shifts - Failed to fetch shifts', {
-      params: req.params,
-      query: req.query,
-      error: err,
-    });
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+);
 
 export default router;
 
