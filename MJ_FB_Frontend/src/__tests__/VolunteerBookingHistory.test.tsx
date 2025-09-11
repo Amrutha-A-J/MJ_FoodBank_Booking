@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { renderWithProviders, screen, fireEvent } from '../../testUtils/renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBookingHistory';
 import { getMyVolunteerBookings, getVolunteerRolesForVolunteer } from '../api/volunteers';
@@ -79,7 +79,7 @@ describe('VolunteerBookingHistory', () => {
 
   it('renders table on large screens', async () => {
     setScreen(false);
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <VolunteerBookingHistory />
       </MemoryRouter>,
@@ -89,7 +89,7 @@ describe('VolunteerBookingHistory', () => {
 
   it('renders cards on small screens', async () => {
     setScreen(true);
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <VolunteerBookingHistory />
       </MemoryRouter>,
@@ -99,7 +99,7 @@ describe('VolunteerBookingHistory', () => {
   });
 
   it('shows only available slots in reschedule dialog', async () => {
-    render(
+    renderWithProviders(
       <MemoryRouter>
         <VolunteerBookingHistory />
       </MemoryRouter>,
