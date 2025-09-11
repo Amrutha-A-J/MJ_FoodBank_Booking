@@ -30,7 +30,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if ((volunteerQuery.rowCount ?? 0) > 0) {
         const volunteer = volunteerQuery.rows[0];
         if (!volunteer.password) {
-          return res.status(403).json({ message: 'Password setup link expired' });
+          return res.status(410).json({ message: 'Password setup link expired' });
         }
         const match = await bcrypt.compare(password, volunteer.password);
         if (!match) {
@@ -77,7 +77,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const staff = staffQuery.rows[0];
         if (!staff.password) {
           return res
-            .status(403)
+            .status(410)
             .json({ message: 'Password setup link expired' });
         }
         const match = await bcrypt.compare(password, staff.password);
@@ -104,7 +104,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if (agency) {
         if (!agency.password) {
           return res
-            .status(403)
+            .status(410)
             .json({ message: 'Password setup link expired' });
         }
         const match = await bcrypt.compare(password, agency.password);
@@ -132,7 +132,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       if ((clientEmailQuery.rowCount ?? 0) > 0) {
         const userRow = clientEmailQuery.rows[0];
         if (!userRow.password) {
-          return res.status(403).json({ message: 'Password setup link expired' });
+          return res.status(410).json({ message: 'Password setup link expired' });
         }
         const match = await bcrypt.compare(password, userRow.password);
         if (!match) {
@@ -164,7 +164,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
       const userRow = userQuery.rows[0];
       if (!userRow.password) {
-        return res.status(403).json({ message: 'Password setup link expired' });
+        return res.status(410).json({ message: 'Password setup link expired' });
       }
       const match = await bcrypt.compare(password, userRow.password);
       if (!match) {

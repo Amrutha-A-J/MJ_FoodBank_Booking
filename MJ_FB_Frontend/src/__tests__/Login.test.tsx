@@ -4,12 +4,23 @@ import Login from '../pages/auth/Login';
 import { login, resendPasswordSetup } from '../api/users';
 import * as mui from '@mui/material';
 
+jest.mock('@mui/material', () => {
+  const actual = jest.requireActual('@mui/material');
+  return {
+    ...actual,
+    useMediaQuery: jest.fn().mockReturnValue(false),
+  };
+});
+
 jest.mock('../api/users', () => ({
   login: jest.fn(),
   resendPasswordSetup: jest.fn(),
 }));
 
 describe('Login component', () => {
+  beforeEach(() => {
+    localStorage.setItem('clientLoginNoticeCount', '3');
+  });
   it('submits login credentials and calls onLogin', async () => {
     (login as jest.Mock).mockResolvedValue({
       role: 'shopper',
@@ -50,7 +61,7 @@ describe('Login component', () => {
   });
 
   it('opens resend dialog on expired token error', async () => {
-    const apiErr = Object.assign(new Error('expired'), { status: 403 });
+    const apiErr = Object.assign(new Error('expired'), { status: 410 });
     (login as jest.Mock).mockRejectedValue(apiErr);
     (resendPasswordSetup as jest.Mock).mockResolvedValue(undefined);
     const onLogin = jest.fn().mockResolvedValue('/');
@@ -86,8 +97,8 @@ describe('Login component', () => {
     ).toBeNull();
   });
 
-  it('shows biometrics button on small screens', () => {
-    const mq = jest.spyOn(mui, 'useMediaQuery').mockReturnValue(true);
+  it('does not show biometrics button on small screens when unsupported', () => {
+    (mui.useMediaQuery as jest.Mock).mockReturnValue(true);
     const onLogin = jest.fn().mockResolvedValue('/');
     render(
       <MemoryRouter>
@@ -95,9 +106,9 @@ describe('Login component', () => {
       </MemoryRouter>
     );
     expect(
-      screen.getByRole('button', { name: /use biometrics/i })
-    ).toBeInTheDocument();
-    mq.mockRestore();
+      screen.queryByRole('button', { name: /use biometrics/i })
+    ).toBeNull();
+    (mui.useMediaQuery as jest.Mock).mockReturnValue(false);
   });
 
 });
