@@ -92,6 +92,10 @@ describe('rebooking after cancellation', () => {
       .send({ roleId: 1, date: '2024-01-01' });
 
     expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ id: 9, role_id: 1, status: 'approved' });
+    expect(res.body).toMatchObject({
+      message: 'Booking automatically approved',
+      status: 'approved',
+      rescheduleToken: 'tok',
+    });
   });
 });

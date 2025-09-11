@@ -12,6 +12,7 @@ import {
   listVolunteerBookingsByVolunteer,
   createVolunteerBookingForVolunteer,
   rescheduleVolunteerBooking,
+  getRescheduleVolunteerBooking,
   createRecurringVolunteerBooking,
   createRecurringVolunteerBookingForVolunteer,
   cancelRecurringVolunteerBooking,
@@ -94,6 +95,11 @@ router.post(
   '/reschedule/:token',
   optionalAuthMiddleware,
   rescheduleVolunteerBooking,
+);
+router.get(
+  '/reschedule/:token',
+  optionalAuthMiddleware,
+  getRescheduleVolunteerBooking,
 );
 router.post(
   '/resolve-conflict',

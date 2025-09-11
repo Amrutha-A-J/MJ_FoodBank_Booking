@@ -256,6 +256,15 @@ export interface Booking
   note?: string;
 }
 
+export interface BookingActionResponse {
+  message: string;
+  status?: string;
+  bookingsThisMonth?: number;
+  rescheduleToken?: string;
+  googleCalendarUrl?: string;
+  icsUrl?: string;
+}
+
 export interface VolunteerBookingInfo {
   id?: number;
   role_id: number;

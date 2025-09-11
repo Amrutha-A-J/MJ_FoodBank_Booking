@@ -9,6 +9,7 @@ import type {
   VolunteerRecurringBooking,
   UserProfile,
   RecurringVolunteerBooking,
+  BookingActionResponse,
 } from '../types';
 import type { LoginResponse } from './users';
 
@@ -116,7 +117,7 @@ export async function requestVolunteerBooking(
   roleId: number,
   date: string,
   note?: string,
-): Promise<VolunteerBooking & { googleCalendarUrl?: string; icsUrl?: string }> {
+): Promise<BookingActionResponse> {
   const body: any = { roleId, date, type: 'volunteer shift' };
   if (note && note.trim()) body.note = note;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
@@ -126,13 +127,7 @@ export async function requestVolunteerBooking(
     },
     body: JSON.stringify(body),
   });
-  const data = await handleResponse(res);
-  const booking = normalizeVolunteerBooking(data.booking ?? data);
-  return {
-    ...booking,
-    googleCalendarUrl: data.googleCalendarUrl,
-    icsUrl: data.icsUrl,
-  };
+  return handleResponse<BookingActionResponse>(res);
 }
 
 export async function resolveVolunteerBookingConflict(
@@ -187,7 +182,7 @@ export async function getRecurringVolunteerBookings(): Promise<
 export async function cancelVolunteerBooking(
   bookingId: number,
   reason = 'volunteer_cancelled',
-): Promise<void> {
+): Promise<BookingActionResponse> {
   const res = await apiFetch(
     `${API_BASE}/volunteer-bookings/${bookingId}/cancel`,
     {
@@ -198,7 +193,7 @@ export async function cancelVolunteerBooking(
       body: JSON.stringify({ reason, type: 'volunteer shift' }),
     },
   );
-  await handleResponse(res);
+  return handleResponse<BookingActionResponse>(res);
 }
 
 export async function cancelRecurringVolunteerBooking(
@@ -534,13 +529,20 @@ export async function rescheduleVolunteerBookingByToken(
   rescheduleToken: string,
   roleId: number,
   date: string,
-): Promise<void> {
+): Promise<BookingActionResponse> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/reschedule/${rescheduleToken}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ roleId, date }),
   });
-  await handleResponse(res);
+  return handleResponse<BookingActionResponse>(res);
+}
+
+export async function validateVolunteerRescheduleToken(
+  rescheduleToken: string,
+): Promise<BookingActionResponse> {
+  const res = await apiFetch(`${API_BASE}/volunteer-bookings/reschedule/${rescheduleToken}`);
+  return handleResponse<BookingActionResponse>(res);
 }
 
 export async function createVolunteerShopperProfile(
