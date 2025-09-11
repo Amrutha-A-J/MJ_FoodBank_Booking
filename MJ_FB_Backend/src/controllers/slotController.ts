@@ -17,9 +17,30 @@ interface BlockRecord {
   reason: string | null;
 }
 
+interface DatedBlockRecord extends BlockRecord {
+  date: string;
+}
+
+interface RecurringBlockRecord extends BlockRecord {
+  day_of_week: number;
+  week_of_month: number;
+}
+
+interface BreakRecord extends BlockRecord {
+  day_of_week: number;
+}
+
 interface BookingCountRow {
+  date: string;
   slot_id: number;
   approved_count: string;
+}
+
+interface SlotRangeData {
+  blocked: Map<string, Map<number, string>>;
+  breaks: Map<number, Map<number, string>>;
+  recurring: Map<string, Map<number, string>>;
+  bookings: Map<string, Map<number, number>>;
 }
 
 const REGINA_TZ = 'America/Regina';
@@ -36,9 +57,88 @@ function currentReginaTime(): string {
   return `${get('hour')}:${get('minute')}:${get('second')}`;
 }
 
+async function fetchSlotRangeData(dates: string[]): Promise<SlotRangeData> {
+  if (dates.length === 0) {
+    return {
+      blocked: new Map(),
+      breaks: new Map(),
+      recurring: new Map(),
+      bookings: new Map(),
+    };
+  }
+
+  const daysOfWeek = Array.from(
+    new Set(
+      dates.map(d =>
+        new Date(reginaStartOfDayISO(d)).getDay(),
+      ),
+    ),
+  );
+  const weeksOfMonth = Array.from(
+    new Set(
+      dates.map(d =>
+        Math.ceil(new Date(reginaStartOfDayISO(d)).getDate() / 7),
+      ),
+    ),
+  );
+
+  const [blockedResult, recurringResult, breakResult, bookingsResult] =
+    await Promise.all([
+      pool.query<DatedBlockRecord>(
+        'SELECT date, slot_id, reason FROM blocked_slots WHERE date = ANY($1)',
+        [dates],
+      ),
+      pool.query<RecurringBlockRecord>(
+        'SELECT day_of_week, week_of_month, slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = ANY($1) AND week_of_month = ANY($2)',
+        [daysOfWeek, weeksOfMonth],
+      ),
+      pool.query<BreakRecord>(
+        'SELECT day_of_week, slot_id, reason FROM breaks WHERE day_of_week = ANY($1)',
+        [daysOfWeek],
+      ),
+      pool.query<BookingCountRow>(
+        `SELECT date, slot_id, COUNT(*) AS approved_count
+         FROM bookings
+         WHERE status = 'approved' AND date = ANY($1)
+         GROUP BY date, slot_id`,
+        [dates],
+      ),
+    ]);
+
+  const blocked = new Map<string, Map<number, string>>();
+  for (const row of blockedResult.rows) {
+    const key = formatReginaDate(row.date);
+    if (!blocked.has(key)) blocked.set(key, new Map());
+    blocked.get(key)!.set(row.slot_id, row.reason || '');
+  }
+
+  const breaks = new Map<number, Map<number, string>>();
+  for (const row of breakResult.rows) {
+    if (!breaks.has(row.day_of_week)) breaks.set(row.day_of_week, new Map());
+    breaks.get(row.day_of_week)!.set(row.slot_id, row.reason || '');
+  }
+
+  const recurring = new Map<string, Map<number, string>>();
+  for (const row of recurringResult.rows) {
+    const key = `${row.day_of_week}-${row.week_of_month}`;
+    if (!recurring.has(key)) recurring.set(key, new Map());
+    recurring.get(key)!.set(row.slot_id, row.reason || '');
+  }
+
+  const bookings = new Map<string, Map<number, number>>();
+  for (const row of bookingsResult.rows) {
+    const key = formatReginaDate(row.date);
+    if (!bookings.has(key)) bookings.set(key, new Map());
+    bookings.get(key)!.set(row.slot_id, Number(row.approved_count));
+  }
+
+  return { blocked, breaks, recurring, bookings };
+}
+
 async function getSlotsForDate(
   date: string,
   includePast = false,
+  rangeData?: SlotRangeData,
 ): Promise<Slot[]> {
   const reginaDate = formatReginaDate(date);
   const dateObj = new Date(reginaStartOfDayISO(reginaDate));
@@ -87,40 +187,16 @@ async function getSlotsForDate(
     slots = slots.filter(s => s.start_time >= nowTime);
   }
 
-  const [blockedResult, recurringBlockedResult, breakResult, bookingsResult] =
-    await Promise.all([
-      pool.query<BlockRecord>('SELECT slot_id, reason FROM blocked_slots WHERE date = $1', [
-        reginaDate,
-      ]),
-      pool.query<BlockRecord>(
-        'SELECT slot_id, reason FROM recurring_blocked_slots WHERE day_of_week = $1 AND week_of_month = $2',
-        [day, weekOfMonth],
-      ),
-      pool.query<BlockRecord>('SELECT slot_id, reason FROM breaks WHERE day_of_week = $1', [
-        day,
-      ]),
-      pool.query<BookingCountRow>(
-        `SELECT slot_id, COUNT(*) AS approved_count
-         FROM bookings
-         WHERE status = 'approved' AND date = $1
-         GROUP BY slot_id`,
-        [reginaDate],
-      ),
-    ]);
-  const blockedMap = new Map<number, string>(
-    [...recurringBlockedResult.rows, ...blockedResult.rows].map(r => [
-      r.slot_id,
-      r.reason || '',
-    ]),
-  );
+  const data =
+    rangeData ?? (await fetchSlotRangeData([reginaDate]));
+  const blockedMap = new Map<number, string>([
+    ...(data.recurring.get(`${day}-${weekOfMonth}`)?.entries() || []),
+    ...(data.blocked.get(reginaDate)?.entries() || []),
+  ]);
   const breakMap = new Map<number, string>(
-    breakResult.rows.map(r => [r.slot_id, r.reason || '']),
+    data.breaks.get(day)?.entries() || [],
   );
-
-  const approvedMap: Record<string, number> = {};
-  for (const row of bookingsResult.rows) {
-    approvedMap[row.slot_id] = Number(row.approved_count);
-  }
+  const bookingMap = data.bookings.get(reginaDate) || new Map();
 
   return slots.map(slot => {
     const blockedReason = blockedMap.get(slot.id);
@@ -133,14 +209,14 @@ async function getSlotsForDate(
       : undefined;
     const available = reason
       ? 0
-      : Math.max(0, slot.max_capacity - (approvedMap[slot.id] || 0));
+      : Math.max(0, slot.max_capacity - (bookingMap.get(slot.id) || 0));
     const result: Slot = {
       id: slot.id.toString(),
       startTime: slot.start_time,
       endTime: slot.end_time,
       maxCapacity: slot.max_capacity,
       available,
-      overbooked: approvedMap[slot.id] > slot.max_capacity,
+      overbooked: (bookingMap.get(slot.id) || 0) > slot.max_capacity,
     };
     if (reason) result.reason = reason;
     if (status) result.status = status as 'blocked' | 'break';
@@ -206,8 +282,9 @@ export async function listSlotsRange(
       return formatReginaDate(d);
     });
 
+    const rangeData = await fetchSlotRangeData(dates);
     const slotsForDates = await Promise.all(
-      dates.map(date => getSlotsForDate(date, includePast)),
+      dates.map(date => getSlotsForDate(date, includePast, rangeData)),
     );
 
     const today = formatReginaDate(new Date());
