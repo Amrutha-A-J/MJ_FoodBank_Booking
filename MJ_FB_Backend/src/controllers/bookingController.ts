@@ -22,6 +22,7 @@ import {
 } from '../utils/emailUtils';
 import { buildIcsFile } from '../utils/calendarLinks';
 import logger from '../utils/logger';
+import { isHoliday } from '../utils/holidayCache';
 import { parseIdParam } from '../utils/parseIdParam';
 import {
   SlotCapacityError,
@@ -102,8 +103,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         await client.query('ROLLBACK');
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
-      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
-      if ((holiday.rowCount ?? 0) > 0) {
+      const holiday = await isHoliday(date, client);
+      if (holiday) {
         await client.query('ROLLBACK');
         return res
           .status(400)
@@ -934,8 +935,8 @@ export async function createBookingForUser(
         await client.query('ROLLBACK');
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
-      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
-      if ((holiday.rowCount ?? 0) > 0) {
+      const holiday = await isHoliday(date, client);
+      if (holiday) {
         await client.query('ROLLBACK');
         return res
           .status(400)
@@ -1073,8 +1074,8 @@ export async function createBookingForNewClient(
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
-      if ((holiday.rowCount ?? 0) > 0) {
+      const holiday = await isHoliday(date, client);
+      if (holiday) {
         await client.query('ROLLBACK');
         return res
           .status(400)

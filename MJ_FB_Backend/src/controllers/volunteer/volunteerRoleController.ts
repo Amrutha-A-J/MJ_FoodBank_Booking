@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../../utils/dateUtils';
+import { isHoliday } from '../../utils/holidayCache';
 
 export async function addVolunteerRole(
   req: Request,
@@ -334,8 +335,7 @@ export async function listVolunteerRolesForVolunteer(
     const reginaDate = formatReginaDate(date);
     const day = new Date(reginaStartOfDayISO(reginaDate)).getUTCDay();
     const isWeekend = day === 0 || day === 6;
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [reginaDate]);
-    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const isHolidayDate = await isHoliday(reginaDate);
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
 
     const result = await pool.query(
@@ -362,7 +362,8 @@ export async function listVolunteerRolesForVolunteer(
     const roles = result.rows
       .filter(
         (row: any) =>
-          !(isWeekend || isHoliday) || !restrictedCategories.includes(row.category_name),
+          !(isWeekend || isHolidayDate) ||
+          !restrictedCategories.includes(row.category_name),
       )
       .map((row: any) => ({
         id: row.id,
