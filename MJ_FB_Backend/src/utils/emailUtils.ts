@@ -153,10 +153,10 @@ export async function sendTemplatedEmail({
         params,
         attachments,
       });
-      void alertOps(
-        'sendTemplatedEmail',
-        new Error(`Brevo responded with status ${response.status}`),
-      );
+      const message = `Brevo responded with status ${response.status}${
+        responseText ? `: ${responseText}` : ''
+      }`;
+      void alertOps('sendTemplatedEmail', new Error(message));
     }
   } catch (error) {
     logger.warn(
