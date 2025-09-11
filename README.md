@@ -327,8 +327,10 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID`     | Volunteer shift reminder emails               | `body`, `cancelLink`, `rescheduleLink`, `type`                                            |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID`              | Booking reschedule notifications for clients  | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Volunteer shift reschedule emails             | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
-| `DONOR_TEMPLATE_ID_1_100`                    | Monetary donor emails for $1–$100             | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_101_500`                  | Monetary donor emails for $101–$500           | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_1_50`                     | Monetary donor emails for $1–$50              | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_51_100`                   | Monetary donor emails for $51–$100            | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_101_250`                  | Monetary donor emails for $101–$250           | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_251_500`                  | Monetary donor emails for $251–$500           | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
 | `DONOR_TEMPLATE_ID_501_PLUS`                 | Monetary donor emails for $501+               | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
@@ -344,9 +346,11 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 | `VOLUNTEER_BOOKING_REMINDER_TEMPLATE_ID` | Brevo template ID for volunteer shift reminder emails |
 | `CLIENT_RESCHEDULE_TEMPLATE_ID` | Brevo template ID for client reschedule emails (default 10) |
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Brevo template ID for volunteer reschedule emails (default 10) |
-| `DONOR_TEMPLATE_ID_1_100` | Brevo template ID for 1–100 donor emails (default 11) |
-| `DONOR_TEMPLATE_ID_101_500` | Brevo template ID for 101–500 donor emails (default 12) |
-| `DONOR_TEMPLATE_ID_501_PLUS` | Brevo template ID for 501+ donor emails (default 12) |
+| `DONOR_TEMPLATE_ID_1_50` | Brevo template ID for 1–50 donor emails (default 11) |
+| `DONOR_TEMPLATE_ID_51_100` | Brevo template ID for 51–100 donor emails (default 12) |
+| `DONOR_TEMPLATE_ID_101_250` | Brevo template ID for 101–250 donor emails (default 13) |
+| `DONOR_TEMPLATE_ID_251_500` | Brevo template ID for 251–500 donor emails (default 14) |
+| `DONOR_TEMPLATE_ID_501_PLUS` | Brevo template ID for 501+ donor emails (default 15) |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS` | Hours until password setup tokens expire (default 24) |
 
 ### Invitation flow
