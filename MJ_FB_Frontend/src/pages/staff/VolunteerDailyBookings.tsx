@@ -32,6 +32,7 @@ export default function VolunteerDailyBookings() {
   const [date, setDate] = useState<Dayjs>(dayjs());
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
   const [message, setMessage] = useState('');
+  const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [reschedule, setReschedule] = useState<VolunteerBooking | null>(null);
 
   useEffect(() => {
@@ -78,8 +79,10 @@ export default function VolunteerDailyBookings() {
       setBookings(prev =>
         prev.map(b => (b.id === booking.id ? { ...b, status } : b)),
       );
+      setSeverity('success');
       setMessage('Status updated');
     } catch (e: any) {
+      setSeverity('error');
       setMessage(e.message || 'Update failed');
     }
   }
@@ -92,12 +95,14 @@ export default function VolunteerDailyBookings() {
         roleId,
         newDate,
       );
+      setSeverity('success');
       setMessage('Booking rescheduled');
       setReschedule(null);
       const d = formatDate(date);
       const data = await getVolunteerBookingsByDate(d);
       setBookings(data);
     } catch (e: any) {
+      setSeverity('error');
       setMessage(e.message || 'Reschedule failed');
     }
   }
@@ -187,7 +192,7 @@ export default function VolunteerDailyBookings() {
         open={!!message}
         message={message}
         onClose={() => setMessage('')}
-        severity="success"
+        severity={severity}
       />
     </Page>
   );
