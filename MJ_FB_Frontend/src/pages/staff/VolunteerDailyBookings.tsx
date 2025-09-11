@@ -21,10 +21,11 @@ import {
   getVolunteerBookingsByDate,
   updateVolunteerBookingStatus,
   rescheduleVolunteerBookingByToken,
+  getVolunteerRolesForVolunteer,
 } from '../../api/volunteers';
 import type { VolunteerBooking, VolunteerBookingStatus } from '../../types';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
-import RescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import RescheduleDialog from '../../components/RescheduleDialog';
 
 type Grouped = Map<string, Map<string, Map<string, VolunteerBooking[]>>>;
 
@@ -87,12 +88,12 @@ export default function VolunteerDailyBookings() {
     }
   }
 
-  async function handleRescheduleSubmit(newDate: string, roleId: number) {
+  async function handleRescheduleSubmit(newDate: string, roleId: string) {
     if (!reschedule) return;
     try {
       await rescheduleVolunteerBookingByToken(
         reschedule.reschedule_token || '',
-        roleId,
+        Number(roleId),
         newDate,
       );
       setSeverity('success');
@@ -104,6 +105,22 @@ export default function VolunteerDailyBookings() {
     } catch (e: any) {
       setSeverity('error');
       setMessage(e.message || 'Reschedule failed');
+    }
+  }
+
+  async function loadRoleOptions(d: string) {
+    try {
+      const roles = await getVolunteerRolesForVolunteer(d);
+      return roles
+        .filter(r => r.available > 0)
+        .map(r => ({
+          id: r.id.toString(),
+          label: `${r.name} ${formatTime(r.start_time)}–${formatTime(
+            r.end_time,
+          )}`,
+        }));
+    } catch {
+      return [];
     }
   }
 
@@ -186,7 +203,10 @@ export default function VolunteerDailyBookings() {
       <RescheduleDialog
         open={!!reschedule}
         onClose={() => setReschedule(null)}
+        loadOptions={loadRoleOptions}
         onSubmit={handleRescheduleSubmit}
+        optionLabel="Role"
+        submitLabel="Submit"
       />
       <FeedbackSnackbar
         open={!!message}

@@ -8,74 +8,74 @@ import {
   TextField,
   MenuItem,
 } from '@mui/material';
-import { getSlots, rescheduleBookingByToken } from '../api/bookings';
-import { formatTime } from '../utils/time';
-import { formatReginaDate, toDayjs } from '../utils/date';
-import FeedbackSnackbar from './FeedbackSnackbar';
 import DialogCloseButton from './DialogCloseButton';
-import type { Slot } from '../types';
+import FeedbackSnackbar from './FeedbackSnackbar';
+import { formatReginaDate } from '../utils/date';
 import type { AlertColor } from '@mui/material';
+
+interface Option {
+  id: string;
+  label: string;
+}
 
 interface RescheduleDialogProps {
   open: boolean;
-  rescheduleToken: string;
   onClose: () => void;
-  onRescheduled: () => void;
+  loadOptions: (date: string) => Promise<Option[]>;
+  onSubmit: (date: string, optionId: string) => Promise<void>;
+  optionLabel: string;
+  submitLabel: string;
+  title?: string;
 }
 
 export default function RescheduleDialog({
   open,
-  rescheduleToken,
   onClose,
-  onRescheduled,
+  loadOptions,
+  onSubmit,
+  optionLabel,
+  submitLabel,
+  title = 'Reschedule Booking',
 }: RescheduleDialogProps) {
   const [date, setDate] = useState('');
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [slotId, setSlotId] = useState('');
+  const [options, setOptions] = useState<Option[]>([]);
+  const [optionId, setOptionId] = useState('');
   const [message, setMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] =
-    useState<AlertColor>('success');
-  const todayStr = formatReginaDate(toDayjs());
+  const [severity, setSeverity] = useState<AlertColor>('success');
+  const todayStr = formatReginaDate(new Date());
 
   useEffect(() => {
-    if (open && date) {
-      getSlots(date)
-        .then(s => {
-          if (date === todayStr) {
-            const now = toDayjs();
-            s = s.filter(slot =>
-              toDayjs(`${date}T${slot.startTime}`).isAfter(now),
-            );
-          }
-          s = s.filter(
-            slot =>
-              (slot.available ?? 0) > 0 &&
-              slot.status !== 'blocked' &&
-              slot.status !== 'break',
-          );
-          setSlots(s);
-        })
-        .catch(() => setSlots([]));
-    } else {
-      setSlots([]);
-      setSlotId('');
+    if (!open) {
+      setDate('');
+      setOptionId('');
+      setOptions([]);
+      setMessage('');
     }
-  }, [open, date, todayStr]);
+  }, [open]);
 
-  async function submit() {
-    if (!date || !slotId) {
-      setSnackbarSeverity('error');
-      setMessage('Please select date and time');
+  useEffect(() => {
+    if (!open || !date) return;
+    loadOptions(date)
+      .then(setOptions)
+      .catch(() => setOptions([]));
+  }, [open, date, loadOptions]);
+
+  async function handleSubmit() {
+    if (!date || !optionId) {
+      setSeverity('error');
+      setMessage(
+        `Please select date and ${optionLabel.toLowerCase()}`,
+      );
       return;
     }
     try {
-      await rescheduleBookingByToken(rescheduleToken, slotId, date);
-      onRescheduled();
+      await onSubmit(date, optionId);
       onClose();
       setDate('');
-      setSlotId('');
+      setOptionId('');
+      setOptions([]);
     } catch (err: any) {
-      setSnackbarSeverity('error');
+      setSeverity('error');
       setMessage(err.message);
     }
   }
@@ -83,7 +83,7 @@ export default function RescheduleDialog({
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
-      <DialogTitle>Reschedule Booking</DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <TextField
           type="date"
@@ -97,16 +97,16 @@ export default function RescheduleDialog({
         />
         <TextField
           select
-          label="Time"
-          value={slotId}
-          onChange={e => setSlotId(e.target.value)}
+          label={optionLabel}
+          value={optionId}
+          onChange={e => setOptionId(e.target.value)}
           fullWidth
           margin="normal"
-          disabled={!date || slots.length === 0}
+          disabled={!date || options.length === 0}
         >
-          {slots.map(s => (
-            <MenuItem key={s.id} value={s.id}>
-              {formatTime(s.startTime)} - {formatTime(s.endTime)}
+          {options.map(o => (
+            <MenuItem key={o.id} value={o.id}>
+              {o.label}
             </MenuItem>
           ))}
         </TextField>
@@ -114,12 +114,12 @@ export default function RescheduleDialog({
           open={!!message}
           message={message}
           onClose={() => setMessage('')}
-          severity={snackbarSeverity}
+          severity={severity}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={submit} variant="outlined" color="primary">
-          Reschedule
+        <Button onClick={handleSubmit} variant="outlined" color="primary">
+          {submitLabel}
         </Button>
       </DialogActions>
     </Dialog>

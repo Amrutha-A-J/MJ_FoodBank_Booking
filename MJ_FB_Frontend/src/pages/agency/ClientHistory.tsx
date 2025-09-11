@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getBookingHistory, cancelBooking } from '../../api/bookings';
+import {
+  getBookingHistory,
+  cancelBooking,
+  getSlots,
+  rescheduleBookingByToken,
+} from '../../api/bookings';
 import { getMyAgencyClients } from '../../api/agencies';
 import {
   Box,
@@ -15,8 +20,8 @@ import {
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EntitySearch from '../../components/EntitySearch';
-import { toDate } from '../../utils/date';
-import { formatDate } from '../../utils/date';
+import { toDate, formatDate, formatReginaDate, toDayjs } from '../../utils/date';
+import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -125,6 +130,52 @@ export default function ClientHistory() {
     setCancelBookingItem(null);
   };
 
+  async function loadSlotOptions(date: string) {
+    const todayStr = formatReginaDate(toDayjs());
+    try {
+      let slots = await getSlots(date);
+      if (date === todayStr) {
+        const now = toDayjs();
+        slots = slots.filter(s =>
+          toDayjs(`${date}T${s.startTime}`).isAfter(now),
+        );
+      }
+      return slots
+        .filter(
+          s =>
+            (s.available ?? 0) > 0 &&
+            s.status !== 'blocked' &&
+            s.status !== 'break',
+        )
+        .map(s => ({
+          id: s.id,
+          label: `${formatTime(s.startTime)} - ${formatTime(s.endTime)}`,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  async function handleReschedule(date: string, slotId: string) {
+    if (!rescheduleBooking) return;
+    try {
+      await rescheduleBookingByToken(
+        rescheduleBooking.reschedule_token!,
+        slotId,
+        date,
+      );
+      setSnackbar({ message: 'Booking rescheduled', severity: 'success' });
+      await loadBookings();
+    } catch (err: any) {
+      setSnackbar({
+        message: err.message || 'Failed to reschedule booking',
+        severity: 'error',
+      });
+    } finally {
+      setRescheduleBooking(null);
+    }
+  }
+
   return (
     <Page title={t('client_history')}>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
@@ -201,11 +252,11 @@ export default function ClientHistory() {
         {rescheduleBooking && (
           <RescheduleDialog
             open={!!rescheduleBooking}
-            rescheduleToken={rescheduleBooking.reschedule_token!}
             onClose={() => setRescheduleBooking(null)}
-            onRescheduled={() => {
-              loadBookings();
-            }}
+            loadOptions={loadSlotOptions}
+            onSubmit={handleReschedule}
+            optionLabel="Time"
+            submitLabel="Reschedule"
           />
         )}
         {cancelBookingItem && (

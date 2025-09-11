@@ -1,47 +1,24 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import RescheduleDialog from '../components/RescheduleDialog';
-import { formatTime } from '../utils/time';
-
-jest.mock('../api/bookings', () => ({
-  getSlots: jest.fn(),
-  rescheduleBookingByToken: jest.fn(),
-}));
-
-const { getSlots } = jest.requireMock('../api/bookings');
 
 describe('RescheduleDialog', () => {
-  beforeEach(() => {
-    (getSlots as jest.Mock).mockReset();
-  });
-
-  it('shows only available slots', async () => {
-    (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 0 },
-      {
-        id: '2',
-        startTime: '12:00:00',
-        endTime: '12:30:00',
-        available: 1,
-        status: 'blocked',
-      },
-      { id: '3', startTime: '13:00:00', endTime: '13:30:00', available: 1 },
-      {
-        id: '4',
-        startTime: '14:00:00',
-        endTime: '14:30:00',
-        available: 1,
-        status: 'break',
-      },
+  it('loads options and submits selection', async () => {
+    const loadOptions = jest.fn().mockResolvedValue([
+      { id: '1', label: 'First' },
+      { id: '2', label: 'Second' },
     ]);
+    const onSubmit = jest.fn().mockResolvedValue(undefined);
 
     render(
       <RescheduleDialog
         open
-        rescheduleToken=""
         onClose={() => {}}
-        onRescheduled={() => {}}
-      />, 
+        loadOptions={loadOptions}
+        onSubmit={onSubmit}
+        optionLabel="Time"
+        submitLabel="Reschedule"
+      />,
     );
 
     fireEvent.change(screen.getByLabelText(/date/i), {
@@ -49,9 +26,8 @@ describe('RescheduleDialog', () => {
     });
     const user = userEvent.setup();
     await user.click(screen.getByRole('combobox', { name: /time/i }));
-    const options = await screen.findAllByRole('option');
-    const expected = formatTime('13:00:00');
-    expect(options).toHaveLength(1);
-    expect(options[0]).toHaveTextContent(expected);
+    await user.click(await screen.findByRole('option', { name: 'First' }));
+    await user.click(screen.getByRole('button', { name: /reschedule/i }));
+    expect(onSubmit).toHaveBeenCalledWith('2099-01-02', '1');
   });
 });

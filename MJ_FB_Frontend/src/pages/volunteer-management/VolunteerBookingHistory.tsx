@@ -9,7 +9,7 @@ import type { VolunteerBooking } from '../../types';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import DialogCloseButton from '../../components/DialogCloseButton';
-import VolunteerRescheduleDialog from '../../components/VolunteerRescheduleDialog';
+import RescheduleDialog from '../../components/RescheduleDialog';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import BookingHistoryTable from '../../components/BookingHistoryTable';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,8 @@ import {
   Typography,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
+import { getVolunteerRolesForVolunteer } from '../../api/volunteers';
+import { formatTime } from '../../utils/time';
 
 export default function VolunteerBookingHistory() {
   const [history, setHistory] = useState<VolunteerBooking[]>([]);
@@ -87,12 +89,12 @@ export default function VolunteerBookingHistory() {
     }
   }
 
-  async function handleReschedule(date: string, roleId: number) {
+  async function handleReschedule(date: string, roleId: string) {
     if (!rescheduleBooking) return;
     try {
       await rescheduleVolunteerBookingByToken(
         rescheduleBooking.reschedule_token || '',
-        roleId,
+        Number(roleId),
         date,
       );
       setSeverity('success');
@@ -103,6 +105,22 @@ export default function VolunteerBookingHistory() {
       setMessage('Failed to reschedule booking');
     } finally {
       setRescheduleBooking(null);
+    }
+  }
+
+  async function loadRoleOptions(date: string) {
+    try {
+      const roles = await getVolunteerRolesForVolunteer(date);
+      return roles
+        .filter(r => r.available > 0)
+        .map(r => ({
+          id: r.id.toString(),
+          label: `${r.name} ${formatTime(r.start_time)}–${formatTime(
+            r.end_time,
+          )}`,
+        }));
+    } catch {
+      return [];
     }
   }
 
@@ -147,10 +165,13 @@ export default function VolunteerBookingHistory() {
         </DialogActions>
       </Dialog>
 
-      <VolunteerRescheduleDialog
+      <RescheduleDialog
         open={!!rescheduleBooking}
         onClose={() => setRescheduleBooking(null)}
+        loadOptions={loadRoleOptions}
         onSubmit={handleReschedule}
+        optionLabel="Role"
+        submitLabel="Submit"
       />
 
       <FeedbackSnackbar
