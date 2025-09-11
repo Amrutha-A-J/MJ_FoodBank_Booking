@@ -25,7 +25,9 @@ export interface MailListDonor {
 export interface MailLists {
   '1-100': MailListDonor[];
   '101-500': MailListDonor[];
-  '501+': MailListDonor[];
+  '501-1000': MailListDonor[];
+  '1001-10000': MailListDonor[];
+  '10001-30000': MailListDonor[];
 }
 
 export async function getMonetaryDonors(): Promise<MonetaryDonor[]> {

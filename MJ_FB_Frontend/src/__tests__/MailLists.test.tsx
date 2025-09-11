@@ -28,7 +28,9 @@ describe('MailLists', () => {
         { id: 1, firstName: 'Alice', lastName: 'A', email: 'a@example.com', amount: 50 },
       ],
       '101-500': [],
-      '501+': [],
+      '501-1000': [],
+      '1001-10000': [],
+      '10001-30000': [],
     });
 
     renderWithProviders(<MailLists />);
@@ -51,7 +53,9 @@ describe('MailLists', () => {
       '101-500': [
         { id: 2, firstName: 'Bob', lastName: 'B', email: 'b@example.com', amount: 150 },
       ],
-      '501+': [],
+      '501-1000': [],
+      '1001-10000': [],
+      '10001-30000': [],
     });
 
     renderWithProviders(<MailLists />);
@@ -66,7 +70,9 @@ describe('MailLists', () => {
     (getMailLists as jest.Mock).mockResolvedValue({
       '1-100': [],
       '101-500': [],
-      '501+': [],
+      '501-1000': [],
+      '1001-10000': [],
+      '10001-30000': [],
     });
 
     renderWithProviders(<MailLists />);

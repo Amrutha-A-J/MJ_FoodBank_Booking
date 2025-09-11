@@ -59,7 +59,11 @@ Authentication cookies are scoped to the `/` path and use the same options when 
 
 `DONOR_TEMPLATE_ID_101_500` – Brevo template ID for 101–500 donor emails (default 12).
 
-`DONOR_TEMPLATE_ID_501_PLUS` – Brevo template ID for 501+ donor emails (default 12).
+`DONOR_TEMPLATE_ID_501_1000` – Brevo template ID for 501–1,000 donor emails (default 13).
+
+`DONOR_TEMPLATE_ID_1001_10000` – Brevo template ID for 1,001–10,000 donor emails (default 14).
+
+`DONOR_TEMPLATE_ID_10001_30000` – Brevo template ID for 10,001–30,000 donor emails (default 15).
 
 `VOLUNTEER_NO_SHOW_HOURS` – Hours to wait before marking a volunteer shift as no-show (default 24).
 

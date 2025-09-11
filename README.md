@@ -12,9 +12,10 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Password fields include a visibility toggle so users can verify what they type.
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
-- Donor Management → Mail Lists groups monetary donors by monthly contribution and
-  lets staff email each group a summary of families, children, and pounds served. Month
-  defaults to the previous month when unspecified.
+- Donor Management → Mail Lists groups monetary donors into $1–$100, $101–$500,
+  $501–$1,000, $1,001–$10,000, and $10,001–$30,000 tiers and lets staff email each
+  group a summary of families, children, and pounds served. Month defaults to the
+  previous month when unspecified.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
@@ -329,7 +330,9 @@ Create a `.env` file in `MJ_FB_Backend` with the following variables. The server
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID`           | Volunteer shift reschedule emails             | `oldDate`, `oldTime`, `newDate`, `newTime`, `cancelLink`, `rescheduleLink`, `type`        |
 | `DONOR_TEMPLATE_ID_1_100`                    | Monetary donor emails for $1–$100             | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
 | `DONOR_TEMPLATE_ID_101_500`                  | Monetary donor emails for $101–$500           | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
-| `DONOR_TEMPLATE_ID_501_PLUS`                 | Monetary donor emails for $501+               | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_501_1000`                 | Monetary donor emails for $501–$1,000         | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_1001_10000`               | Monetary donor emails for $1,001–$10,000      | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
+| `DONOR_TEMPLATE_ID_10001_30000`              | Monetary donor emails for $10,001–$30,000     | `firstName`, `amount`, `families`, `children`, `pounds`                                   |
 
 Cancellation, no-show, volunteer booking notification, and agency membership emails are no longer sent.
 
@@ -346,7 +349,9 @@ Booking confirmation and reminder email bodies include the weekday and time for 
 | `VOLUNTEER_RESCHEDULE_TEMPLATE_ID` | Brevo template ID for volunteer reschedule emails (default 10) |
 | `DONOR_TEMPLATE_ID_1_100` | Brevo template ID for 1–100 donor emails (default 11) |
 | `DONOR_TEMPLATE_ID_101_500` | Brevo template ID for 101–500 donor emails (default 12) |
-| `DONOR_TEMPLATE_ID_501_PLUS` | Brevo template ID for 501+ donor emails (default 12) |
+| `DONOR_TEMPLATE_ID_501_1000` | Brevo template ID for 501–1,000 donor emails (default 13) |
+| `DONOR_TEMPLATE_ID_1001_10000` | Brevo template ID for 1,001–10,000 donor emails (default 14) |
+| `DONOR_TEMPLATE_ID_10001_30000` | Brevo template ID for 10,001–30,000 donor emails (default 15) |
 | `PASSWORD_SETUP_TOKEN_TTL_HOURS` | Hours until password setup tokens expire (default 24) |
 
 ### Invitation flow
