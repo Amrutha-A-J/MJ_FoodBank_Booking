@@ -132,7 +132,7 @@ const DonorDonationLog = React.lazy(() =>
 const Spinner = () => <CircularProgress />;
 
 export default function App() {
-  const { token, ready, role, name, userRole, access, login, logout } = useAuth();
+  const { isAuthenticated, ready, role, name, userRole, access, login, logout } = useAuth();
   const { t } = useTranslation();
   const [loading] = useState(false);
   const [error, setError] = useState('');
@@ -290,8 +290,8 @@ export default function App() {
 
   const navbarProps = {
     groups: navGroups,
-    onLogout: token ? logout : undefined,
-    name: token ? name || undefined : undefined,
+    onLogout: isAuthenticated ? logout : undefined,
+    name: isAuthenticated ? name || undefined : undefined,
     loading,
     role,
     profileLinks,
@@ -335,7 +335,7 @@ export default function App() {
                 <Route path="/reschedule/:token" element={<RescheduleBooking />} />
               </Routes>
             </Suspense>
-          ) : token ? (
+          ) : isAuthenticated ? (
             <MainLayout {...navbarProps}>
               <Suspense fallback={<Spinner />}>
                 <Routes>
