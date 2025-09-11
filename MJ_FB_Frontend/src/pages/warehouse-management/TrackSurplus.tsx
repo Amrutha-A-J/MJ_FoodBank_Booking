@@ -18,6 +18,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import useSnackbar from '../../hooks/useSnackbar';
 import {
   getSurplus,
   createSurplus,
@@ -66,7 +67,7 @@ export default function TrackSurplus() {
   const [editing, setEditing] = useState<Surplus | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Surplus | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' });
+  const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
   const [config, setConfig] = useState<WarehouseSettings>({
     breadWeightMultiplier: 10,
     cansWeightMultiplier: 20,
@@ -113,9 +114,9 @@ export default function TrackSurplus() {
         setEditing(null);
         setForm({ date: format(selectedDate), type: 'BREAD', count: '' });
         load();
-        setSnackbar({ open: true, message: editing ? 'Surplus updated' : 'Surplus recorded' });
+        showSnackbar(editing ? 'Surplus updated' : 'Surplus recorded');
       })
-      .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save surplus' }));
+      .catch(err => showSnackbar(err.message || 'Failed to save surplus', 'error'));
   }
 
   type SurplusRow = Surplus & { actions?: string };
@@ -250,12 +251,17 @@ export default function TrackSurplus() {
               if (toDelete) {
                 deleteSurplus(toDelete.id)
                   .then(() => {
-                    setSnackbar({ open: true, message: 'Surplus deleted' });
+                    showSnackbar('Surplus deleted');
                     setDeleteOpen(false);
                     setToDelete(null);
                     load();
                   })
-                  .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to delete surplus' }));
+                  .catch(err =>
+                    showSnackbar(
+                      err.message || 'Failed to delete surplus',
+                      'error',
+                    ),
+                  );
               }
             }}
             autoFocus
@@ -266,9 +272,10 @@ export default function TrackSurplus() {
       </Dialog>
 
         <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar({ open: false, message: '' })}
-          message={snackbar.message}
+          open={open}
+          onClose={closeSnackbar}
+          message={message}
+          severity={severity}
         />
       </Page>
     </>

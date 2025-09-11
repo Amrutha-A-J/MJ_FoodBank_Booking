@@ -18,6 +18,7 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import StyledTabs from '../../components/StyledTabs';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import useSnackbar from '../../hooks/useSnackbar';
 import {
   getPigPounds,
   createPigPound,
@@ -61,10 +62,7 @@ export default function TrackPigpound() {
   });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<PigPound | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({
-    open: false,
-    message: '',
-  });
+  const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
 
   const fetchId = useRef(0);
 
@@ -95,10 +93,10 @@ export default function TrackPigpound() {
         setEditing(null);
         setForm({ date: format(selectedDate), weight: '' });
         load(selectedDate);
-        setSnackbar({ open: true, message: editing ? 'Entry updated' : 'Entry recorded' });
+        showSnackbar(editing ? 'Entry updated' : 'Entry recorded');
       })
       .catch(err =>
-        setSnackbar({ open: true, message: err.message || 'Failed to save entry' }),
+        showSnackbar(err.message || 'Failed to save entry', 'error'),
       );
   }
 
@@ -236,16 +234,16 @@ export default function TrackPigpound() {
                 if (toDelete) {
                   deletePigPound(toDelete.id)
                     .then(() => {
-                      setSnackbar({ open: true, message: 'Entry deleted' });
+                      showSnackbar('Entry deleted');
                       setDeleteOpen(false);
                       setToDelete(null);
                       load(selectedDate);
                     })
                     .catch(err =>
-                      setSnackbar({
-                        open: true,
-                        message: err.message || 'Failed to delete entry',
-                      }),
+                      showSnackbar(
+                        err.message || 'Failed to delete entry',
+                        'error',
+                      ),
                     );
                 }
               }}
@@ -257,9 +255,10 @@ export default function TrackPigpound() {
         </Dialog>
 
         <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar({ open: false, message: '' })}
-          message={snackbar.message}
+          open={open}
+          onClose={closeSnackbar}
+          message={message}
+          severity={severity}
         />
       </Page>
     </>

@@ -18,6 +18,7 @@ import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import WarehouseQuickLinks from '../../components/WarehouseQuickLinks';
 import DialogCloseButton from '../../components/DialogCloseButton';
+import useSnackbar from '../../hooks/useSnackbar';
 import { getDonors, createDonor } from '../../api/donors';
 import {
   getDonationsByMonth,
@@ -43,10 +44,7 @@ export default function DonationLog() {
   const [newDonorOpen, setNewDonorOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Donation | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({
-    open: false,
-    message: '',
-  });
+  const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
 
   const [form, setForm] = useState<{
     date: string;
@@ -133,9 +131,11 @@ export default function DonationLog() {
         setEditing(null);
         setForm({ date: `${month}-01`, donorId: null, weight: '' });
         loadDonations();
-        setSnackbar({ open: true, message: editing ? 'Donation updated' : 'Donation recorded' });
+        showSnackbar(editing ? 'Donation updated' : 'Donation recorded');
       })
-      .catch(err => setSnackbar({ open: true, message: err.message || 'Failed to save donation' }));
+      .catch(err =>
+        showSnackbar(err.message || 'Failed to save donation', 'error'),
+      );
   }
 
   function handleAddDonor() {
@@ -143,10 +143,10 @@ export default function DonationLog() {
       createDonor(donorName)
         .then(newDonor => {
           setDonors([...donors, newDonor].sort((a, b) => a.name.localeCompare(b.name)));
-          setSnackbar({ open: true, message: 'Donor added' });
+          showSnackbar('Donor added');
         })
         .catch(err => {
-          setSnackbar({ open: true, message: err.message || 'Failed to add donor' });
+          showSnackbar(err.message || 'Failed to add donor', 'error');
         });
     }
     setDonorName('');
@@ -246,13 +246,16 @@ export default function DonationLog() {
               if (toDelete) {
                 deleteDonation(toDelete.id)
                   .then(() => {
-                    setSnackbar({ open: true, message: 'Donation deleted' });
+                    showSnackbar('Donation deleted');
                     setDeleteOpen(false);
                     setToDelete(null);
                     loadDonations();
                   })
                   .catch(err => {
-                    setSnackbar({ open: true, message: err.message || 'Failed to delete donation' });
+                    showSnackbar(
+                      err.message || 'Failed to delete donation',
+                      'error',
+                    );
                   });
               }
             }}
@@ -280,9 +283,10 @@ export default function DonationLog() {
       </Dialog>
 
       <FeedbackSnackbar
-        open={snackbar.open}
-        onClose={() => setSnackbar({ open: false, message: '' })}
-        message={snackbar.message}
+        open={open}
+        onClose={closeSnackbar}
+        message={message}
+        severity={severity}
       />
     </Page>
   </>
