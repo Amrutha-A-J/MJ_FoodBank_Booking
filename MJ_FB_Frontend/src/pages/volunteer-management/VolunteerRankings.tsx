@@ -9,6 +9,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import Page from '../../components/Page';
+import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
 import PageCard from '../../components/layout/PageCard';
 import {
   getVolunteerRoles,
@@ -46,7 +47,7 @@ export default function VolunteerRankings() {
   }, [option]);
 
   return (
-    <Page title="Volunteer Rankings">
+    <Page title="Volunteer Rankings" header={<VolunteerQuickLinks />}>
       <PageCard>
         <FormControl fullWidth sx={{ mb: 2 }}>
           <InputLabel id="ranking-select">Ranking</InputLabel>

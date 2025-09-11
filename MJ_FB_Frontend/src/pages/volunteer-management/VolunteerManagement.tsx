@@ -54,6 +54,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import { formatDate, addDays } from '../../utils/date';
 import dayjs from '../../utils/date';
 import Page from '../../components/Page';
+import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
 import { useTranslation } from 'react-i18next';
 import EditVolunteerDialog from './EditVolunteerDialog';
 
@@ -656,7 +657,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const maxSlots = Math.max(0, ...roleInfos.map(r => r.max_volunteers));
 
   return (
-    <Page title={title}>
+    <Page title={title} header={<VolunteerQuickLinks />}>
       {tab === 'dashboard' && (
         <Suspense fallback={<CircularProgress />}>
           <Dashboard

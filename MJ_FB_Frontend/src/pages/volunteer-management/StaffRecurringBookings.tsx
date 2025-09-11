@@ -14,6 +14,7 @@ import type {
   VolunteerRoleWithShifts,
 } from '../../types';
 import Page from '../../components/Page';
+import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import EntitySearch from '../../components/EntitySearch';
 import {
@@ -153,7 +154,7 @@ export default function StaffRecurringBookings() {
   }, new Map<number, { category: string; roles: VolunteerRole[] }>());
 
   return (
-    <Page title="Recurring Shifts">
+    <Page title="Recurring Shifts" header={<VolunteerQuickLinks />}>
       <Box sx={{ mb: 2 }}>
         <EntitySearch
           type="volunteer"

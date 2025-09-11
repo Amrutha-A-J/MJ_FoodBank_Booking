@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Page from '../../components/Page';
+import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
 import {
   Box,
   Card,
@@ -125,7 +126,7 @@ export default function VolunteerDailyBookings() {
   }
 
   return (
-    <Page title="Volunteer Daily Bookings">
+    <Page title="Volunteer Daily Bookings" header={<VolunteerQuickLinks />}>
       <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
         <DatePicker
           value={date}
