@@ -2,10 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { TextField, Button } from '@mui/material';
 import FormCard from '../../../components/FormCard';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
-import {
-  getWarehouseSettings,
-  updateWarehouseSettings,
-} from '../../../api/warehouseSettings';
+import { updateWarehouseSettings } from '../../../api/warehouseSettings';
+import useWarehouseSettings from '../../../hooks/useWarehouseSettings';
 
 export default function WarehouseSettings() {
   const [form, setForm] = useState({
@@ -18,18 +16,16 @@ export default function WarehouseSettings() {
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
 
+  const { settings } = useWarehouseSettings();
+
   useEffect(() => {
-    getWarehouseSettings()
-      .then(cfg =>
-        setForm({
-          breadWeightMultiplier: String(cfg.breadWeightMultiplier),
-          cansWeightMultiplier: String(cfg.cansWeightMultiplier),
-        }),
-      )
-      .catch(() => {
-        /* ignore */
+    if (settings) {
+      setForm({
+        breadWeightMultiplier: String(settings.breadWeightMultiplier),
+        cansWeightMultiplier: String(settings.cansWeightMultiplier),
       });
-  }, []);
+    }
+  }, [settings]);
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

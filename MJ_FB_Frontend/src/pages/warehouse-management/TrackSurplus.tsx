@@ -27,10 +27,7 @@ import {
   type Surplus,
 } from '../../api/surplus';
 import { formatLocaleDate, formatDate, normalizeDate } from '../../utils/date';
-import {
-  getWarehouseSettings,
-  type WarehouseSettings,
-} from '../../api/warehouseSettings';
+import useWarehouseSettings from '../../hooks/useWarehouseSettings';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 import { useWeekTabs } from '../../components/useWeekTabs';
 
@@ -43,10 +40,11 @@ export default function TrackSurplus() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Surplus | null>(null);
   const { open, message, showSnackbar, closeSnackbar, severity } = useSnackbar();
-  const [config, setConfig] = useState<WarehouseSettings>({
+  const { settings } = useWarehouseSettings();
+  const config = settings ?? {
     breadWeightMultiplier: 10,
     cansWeightMultiplier: 20,
-  });
+  };
 
   const [form, setForm] = useState<{ date: string; type: 'BREAD' | 'CANS'; count: string }>({
     date: formatDate(selectedDate),
@@ -69,9 +67,6 @@ export default function TrackSurplus() {
 
   useEffect(() => {
     load();
-    getWarehouseSettings()
-      .then(cfg => setConfig(cfg))
-      .catch(() => {});
   }, []);
 
   const filteredRecords = useMemo(() => {
