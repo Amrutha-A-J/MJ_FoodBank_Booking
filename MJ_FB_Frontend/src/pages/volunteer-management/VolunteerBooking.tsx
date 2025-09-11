@@ -33,8 +33,8 @@ export default function VolunteerBooking() {
   );
 
   const bookAction = useCallback(
-    ({ slotId, date }: { slotId: string; date: string; note: string }) =>
-      requestVolunteerBooking(Number(slotId), date),
+    ({ slotId, date, note }: { slotId: string; date: string; note: string }) =>
+      requestVolunteerBooking(Number(slotId), date, note),
     [],
   );
 
@@ -44,6 +44,7 @@ export default function VolunteerBooking() {
       mapSlot={mapSlot}
       bookingAction={bookAction}
       groupSlots={groupByRole}
+      showUsageNotes
     />
   );
 }

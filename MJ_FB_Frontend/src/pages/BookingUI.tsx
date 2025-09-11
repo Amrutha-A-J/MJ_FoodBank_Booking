@@ -98,6 +98,7 @@ export type BookingUIProps = {
     userId?: number;
   }) => Promise<any>;
   groupSlots?: (slots: Slot[]) => Record<string, Slot[]>;
+  showUsageNotes?: boolean;
 };
 
 export default function BookingUI({
@@ -110,6 +111,7 @@ export default function BookingUI({
   mapSlot = (s: any) => s as Slot,
   bookingAction = defaultBookSlot,
   groupSlots,
+  showUsageNotes = true,
 }: BookingUIProps) {
   const { t } = useTranslation();
   const { role, name: authName } = useAuth();
@@ -243,9 +245,11 @@ export default function BookingUI({
     setLoadingConfirm(true);
     setNote('');
     try {
-      const profile = await getUserProfile();
-      setUsage(profile.bookingsThisMonth ?? 0);
-      setNote(profile.defaultBookingNote ?? '');
+      if (showUsageNotes) {
+        const profile = await getUserProfile();
+        setUsage(profile.bookingsThisMonth ?? 0);
+        setNote(profile.defaultBookingNote ?? '');
+      }
       setConfirmOpen(true);
     } finally {
       setLoadingConfirm(false);
@@ -575,18 +579,22 @@ export default function BookingUI({
           <Typography>
             {t('time')}: {selectedLabel}
           </Typography>
-          <Typography>
-            {t('visits_this_month')} {usage ?? 0}
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            margin="normal"
-            label={t('client_note_label')}
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            size="medium"
-          />
+          {showUsageNotes && (
+            <>
+              <Typography>
+                {t('visits_this_month')} {usage ?? 0}
+              </Typography>
+              <TextField
+                fullWidth
+                multiline
+                margin="normal"
+                label={t('client_note_label')}
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                size="medium"
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)} size="medium" sx={{ minHeight: 48 }}>

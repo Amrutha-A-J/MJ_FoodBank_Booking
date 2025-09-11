@@ -59,10 +59,11 @@ export async function createVolunteerBooking(
   next: NextFunction,
 ) {
   const user = req.user;
-  const { roleId, date, type } = req.body as {
+  const { roleId, date, type, note } = req.body as {
     roleId?: number;
     date?: string;
     type?: string;
+    note?: string;
   };
   const emailType = type || 'Volunteer Shift';
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
@@ -188,31 +189,37 @@ export async function createVolunteerBooking(
 
       const token = randomUUID();
       const insertRes = await client.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-         VALUES ($1, $2, $3, 'approved', $4)
-         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-        [roleId, user.id, date, token],
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
+         VALUES ($1, $2, $3, 'approved', $4, $5)
+         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id, note`,
+        [roleId, user.id, date, token, note ?? null],
       );
 
       await client.query('COMMIT');
 
+      let googleCalendarLink: string | undefined;
+      let appleCalendarLink: string | undefined;
       if (user.email) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
           token,
         );
         const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
-        const {
-          googleCalendarLink,
-          appleCalendarLink,
-          icsContent,
-        } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
+        const links = buildCalendarLinks(
+          date,
+          slot.start_time,
+          slot.end_time,
+          uid,
+          0,
+        );
+        googleCalendarLink = links.googleCalendarLink;
+        appleCalendarLink = links.appleCalendarLink;
         const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
           slot.start_time,
         )} to ${formatTimeToAmPm(slot.end_time)}`;
         const attachments = [
           {
             name: 'shift.ics',
-            content: Buffer.from(icsContent, 'utf8').toString('base64'),
+            content: Buffer.from(links.icsContent, 'utf8').toString('base64'),
             type: 'text/calendar',
           },
         ];
@@ -254,7 +261,11 @@ export async function createVolunteerBooking(
       await notifyOps(
         `${user.name || 'Volunteer'} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
-      res.status(201).json(booking);
+      res.status(201).json({
+        ...booking,
+        googleCalendarUrl: googleCalendarLink,
+        icsUrl: appleCalendarLink,
+      });
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
       if (error.code === '23505') {
