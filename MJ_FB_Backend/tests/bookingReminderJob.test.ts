@@ -55,12 +55,21 @@ describe('sendNextDayBookingReminders', () => {
         end_time: '10:00:00',
         reschedule_token: 'tok',
       },
+      {
+        id: 2,
+        user_id: 2,
+        user_email: 'user2@example.com',
+        start_time: '11:00:00',
+        end_time: '12:00:00',
+        reschedule_token: 'tok2',
+      },
     ]);
     (enqueueEmail as jest.Mock).mockResolvedValue(undefined);
 
     await sendNextDayBookingReminders();
 
     expect(fetchBookingsForReminder).toHaveBeenCalledWith('2024-01-02');
+    expect(enqueueEmail).toHaveBeenCalledTimes(2);
     expect(enqueueEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'user@example.com',
@@ -70,13 +79,19 @@ describe('sendNextDayBookingReminders', () => {
         }),
       }),
     );
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'user2@example.com' }),
+    );
     expect(notifyOps).toHaveBeenCalledWith(
       expect.stringContaining('sendNextDayBookingReminders queued reminders for'),
     );
-    expect((notifyOps as jest.Mock).mock.calls[0][0]).toContain('user@example.com');
+    const msg = (notifyOps as jest.Mock).mock.calls[0][0];
+    expect(msg).toContain('user@example.com');
+    expect(msg).toContain('user2@example.com');
+    expect(db.query).toHaveBeenCalledTimes(1);
     expect(db.query).toHaveBeenCalledWith(
-      'UPDATE bookings SET reminder_sent = true WHERE id = $1',
-      [1],
+      'UPDATE bookings SET reminder_sent = true WHERE id = ANY($1)',
+      [[1, 2]],
     );
   });
 
@@ -117,8 +132,8 @@ describe('sendNextDayBookingReminders', () => {
     expect(fetchBookingsForReminder).toHaveBeenCalledTimes(2);
     expect(enqueueEmail).toHaveBeenCalledTimes(1);
     expect(db.query).toHaveBeenCalledWith(
-      'UPDATE bookings SET reminder_sent = true WHERE id = $1',
-      [1],
+      'UPDATE bookings SET reminder_sent = true WHERE id = ANY($1)',
+      [[1]],
     );
   });
 
