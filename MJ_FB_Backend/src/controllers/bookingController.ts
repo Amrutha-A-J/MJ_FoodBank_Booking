@@ -143,16 +143,24 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const uid = `booking-${bookingId}@mjfb`;
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (start_time) {
-      sendBookingEvent({
-        action: 'created',
-        name: user.name || 'Client',
-        role: 'client',
-        date,
-        time: start_time,
-      });
-      await notifyOps(
-        `${user.name || 'Client'} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
-      );
+      try {
+        sendBookingEvent({
+          action: 'created',
+          name: user.name || 'Client',
+          role: 'client',
+          date,
+          time: start_time,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
+      try {
+        await notifyOps(
+          `${user.name || 'Client'} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+        );
+      } catch (err) {
+        logger.error('Failed to notify ops', err);
+      }
     }
     const {
       googleCalendarLink,
@@ -327,16 +335,24 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
       start_time = slotRes.rows[0]?.start_time;
     }
     if (start_time) {
-      sendBookingEvent({
-        action: 'cancelled',
-        name,
-        role: 'client',
-        date: booking.date,
-        time: start_time,
-      });
-      await notifyOps(
-        `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
-      );
+      try {
+        sendBookingEvent({
+          action: 'cancelled',
+          name,
+          role: 'client',
+          date: booking.date,
+          time: start_time,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
+      try {
+        await notifyOps(
+          `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
+        );
+      } catch (err) {
+        logger.error('Failed to notify ops', err);
+      }
     }
     if (bookingUserId !== undefined) {
       const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
@@ -399,16 +415,24 @@ export async function cancelBookingByToken(
       name = resNc.rows[0]?.name || name;
     }
     if (start_time) {
-      sendBookingEvent({
-        action: 'cancelled',
-        name,
-        role: 'client',
-        date: booking.date,
-        time: start_time,
-      });
-      await notifyOps(
-        `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
-      );
+      try {
+        sendBookingEvent({
+          action: 'cancelled',
+          name,
+          role: 'client',
+          date: booking.date,
+          time: start_time,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
+      try {
+        await notifyOps(
+          `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
+        );
+      } catch (err) {
+        logger.error('Failed to notify ops', err);
+      }
     }
     if (booking.user_id) {
       const notifyBody = `Date: ${formatReginaDateWithDay(booking.date)}`;
@@ -695,21 +719,29 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     const oldStart = oldSlotRes.rows[0]?.start_time;
     const newStart = newSlotRes.rows[0]?.start_time;
     if (newStart) {
-      sendBookingEvent({
-        action: 'rescheduled',
-        name,
-        role: 'client',
-        date,
-        time: newStart,
-      });
+      try {
+        sendBookingEvent({
+          action: 'rescheduled',
+          name,
+          role: 'client',
+          date,
+          time: newStart,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
     }
-    await notifyOps(
-      `${name} (client) rescheduled booking from ${formatReginaDateWithDay(booking.date)} ${
-        oldStart ? formatTimeToAmPm(oldStart) : ''
-      } to ${formatReginaDateWithDay(date)} ${
-        newStart ? formatTimeToAmPm(newStart) : ''
-      }`,
-    );
+    try {
+      await notifyOps(
+        `${name} (client) rescheduled booking from ${formatReginaDateWithDay(booking.date)} ${
+          oldStart ? formatTimeToAmPm(oldStart) : ''
+        } to ${formatReginaDateWithDay(date)} ${
+          newStart ? formatTimeToAmPm(newStart) : ''
+        }`,
+      );
+    } catch (err) {
+      logger.error('Failed to notify ops', err);
+    }
 
     const notifyTime = newSlotRes.rows[0]
       ? ` from ${formatTimeToAmPm(newStart)} to ${formatTimeToAmPm(
@@ -825,16 +857,24 @@ export async function createPreapprovedBooking(
     ]);
     const start_time = slotRes.rows[0]?.start_time;
     if (start_time) {
-      sendBookingEvent({
-        action: 'created',
-        name,
-        role: 'client',
-        date,
-        time: start_time,
-      });
-      await notifyOps(
-        `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
-      );
+      try {
+        sendBookingEvent({
+          action: 'created',
+          name,
+          role: 'client',
+          date,
+          time: start_time,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
+      try {
+        await notifyOps(
+          `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+        );
+      } catch (err) {
+        logger.error('Failed to notify ops', err);
+      }
     }
     res.status(201).json({ message: 'Walk-in booking created', rescheduleToken: token });
   } catch (error: any) {
@@ -954,16 +994,24 @@ export async function createBookingForUser(
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (start_time) {
       const name = first_name && last_name ? `${first_name} ${last_name}` : 'Client';
-      sendBookingEvent({
-        action: 'created',
-        name,
-        role: 'client',
-        date,
-        time: start_time,
-      });
-      await notifyOps(
-        `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
-      );
+      try {
+        sendBookingEvent({
+          action: 'created',
+          name,
+          role: 'client',
+          date,
+          time: start_time,
+        });
+      } catch (err) {
+        logger.error('Failed to send booking event', err);
+      }
+      try {
+        await notifyOps(
+          `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+        );
+      } catch (err) {
+        logger.error('Failed to notify ops', err);
+      }
     }
     if (clientEmail) {
         const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
@@ -1066,16 +1114,24 @@ export async function createBookingForNewClient(
       ]);
       const start_time = slotRes.rows[0]?.start_time;
       if (start_time) {
-        sendBookingEvent({
-          action: 'created',
-          name,
-          role: 'client',
-          date,
-          time: start_time,
-        });
-        await notifyOps(
-          `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
-        );
+        try {
+          sendBookingEvent({
+            action: 'created',
+            name,
+            role: 'client',
+            date,
+            time: start_time,
+          });
+        } catch (err) {
+          logger.error('Failed to send booking event', err);
+        }
+        try {
+          await notifyOps(
+            `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
+          );
+        } catch (err) {
+          logger.error('Failed to notify ops', err);
+        }
       }
       res
         .status(201)
