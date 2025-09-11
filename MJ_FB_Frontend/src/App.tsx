@@ -120,7 +120,7 @@ const DonorProfilePage = React.lazy(() =>
   import('./pages/donor-management/DonorProfile')
 );
 const Donors = React.lazy(() =>
-  import('./pages/donor-management/Donors')
+  import('./pages/donor-management/DonorsPage')
 );
 const MailLists = React.lazy(() =>
   import('./pages/donor-management/MailLists')
