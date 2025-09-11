@@ -23,7 +23,7 @@ import { getOutgoingReceivers, createOutgoingReceiver } from '../../api/outgoing
 import { getOutgoingDonations, createOutgoingDonation, updateOutgoingDonation, deleteOutgoingDonation } from '../../api/outgoingDonations';
 import type { OutgoingReceiver } from '../../api/outgoingReceivers';
 import type { OutgoingDonation } from '../../api/outgoingDonations';
-import { formatLocaleDate, toDate, formatDate, addDays } from '../../utils/date';
+import { formatLocaleDate, toDate, formatDate, addDays, normalizeDate } from '../../utils/date';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 function startOfWeek(date: Date) {
@@ -37,10 +37,6 @@ function startOfWeek(date: Date) {
 
 function format(date: Date) {
   return formatDate(date);
-}
-
-function normalize(date: string) {
-  return date.split('T')[0];
 }
 
 export default function TrackOutgoingDonations() {
@@ -101,7 +97,7 @@ export default function TrackOutgoingDonations() {
             
             onClick={() => {
               setEditing(d);
-              setForm({ date: normalize(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
+              setForm({ date: normalizeDate(d.date), receiverId: d.receiverId, weight: String(d.weight), note: d.note || '' });
               setRecordOpen(true);
             }}
             aria-label="Edit outgoing donation"

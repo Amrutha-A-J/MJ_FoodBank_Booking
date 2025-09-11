@@ -59,4 +59,12 @@ export function reginaStartOfDay(date?: ConfigType): dayjs.Dayjs {
   return toDayjs(date).startOf('day');
 }
 
+export function normalizeDate(input?: ConfigType | null): string {
+  if (!input) return '';
+  if (typeof input === 'string') {
+    return input.split('T')[0];
+  }
+  return toDayjs(input).format('YYYY-MM-DD');
+}
+
 export default dayjs;

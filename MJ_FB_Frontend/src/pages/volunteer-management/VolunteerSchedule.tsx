@@ -20,7 +20,7 @@ import type {
 } from "../../types";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { formatTime } from "../../utils/time";
-import { formatDate, addDays } from "../../utils/date";
+import { formatDate, addDays, normalizeDate } from "../../utils/date";
 import Page from "../../components/Page";
 import VolunteerScheduleTable from "../../components/VolunteerScheduleTable";
 import ScheduleCards from "../../components/ScheduleCards";
@@ -193,9 +193,9 @@ export default function VolunteerSchedule() {
     getVolunteerBookingsByRoles(ids)
       .then((data) =>
         setBookings(
-          data.filter((b: VolunteerBooking) =>
-            b.volunteer_id === auth.id &&
-            (b.date?.split('T')[0] ?? b.date) === dateStr,
+          data.filter(
+            (b: VolunteerBooking) =>
+              b.volunteer_id === auth.id && normalizeDate(b.date) === dateStr,
           ),
         ),
       )
