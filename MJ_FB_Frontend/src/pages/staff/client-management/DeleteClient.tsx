@@ -4,7 +4,7 @@ import EntitySearch from '../../../components/EntitySearch';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import { deleteUser } from '../../../api/users';
-import { getApiErrorMessage } from '../../../api/client';
+import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 
 interface Client { name: string; client_id: number; }
 

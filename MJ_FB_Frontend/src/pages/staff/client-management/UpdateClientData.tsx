@@ -25,7 +25,7 @@ import {
   requestPasswordReset,
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
-import { getApiErrorMessage } from "../../../api/client";
+import getApiErrorMessage from "../../../utils/getApiErrorMessage";
 import PasswordField from "../../../components/PasswordField";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
 

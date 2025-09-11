@@ -1,18 +1,19 @@
 import getApiErrorMessage from '../getApiErrorMessage';
+import type { ApiError } from '../../api/client';
 
 describe('getApiErrorMessage', () => {
-  it('returns message from Error object', () => {
-    const err = new Error('boom');
-    expect(getApiErrorMessage(err, 'fallback')).toBe('boom');
+  it('returns detail error message when present', () => {
+    const err: ApiError = new Error('ignored');
+    err.details = { errors: [{ message: 'detail message' }] };
+    expect(getApiErrorMessage(err, 'fallback')).toBe('detail message');
   });
 
-  it('uses details.message when available', () => {
-    const err = new Error('ignored');
-    (err as any).details = { message: 'detail' };
-    expect(getApiErrorMessage(err, 'fallback')).toBe('detail');
+  it('returns error.message when no details', () => {
+    const err = new Error('plain');
+    expect(getApiErrorMessage(err, 'fallback')).toBe('plain');
   });
 
-  it('returns fallback for unknown errors', () => {
+  it('falls back when message is unavailable', () => {
     expect(getApiErrorMessage(undefined, 'fallback')).toBe('fallback');
   });
 });

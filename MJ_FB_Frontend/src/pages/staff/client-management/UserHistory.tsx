@@ -7,7 +7,7 @@ import {
   updateUserInfo,
   requestPasswordReset,
 } from '../../../api/users';
-import { getApiErrorMessage } from '../../../api/client';
+import getApiErrorMessage from '../../../utils/getApiErrorMessage';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatTime } from '../../../utils/time';
 import {
