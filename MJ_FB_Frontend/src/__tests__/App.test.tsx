@@ -32,6 +32,11 @@ jest.mock('../pages/donor-management/DonorDashboard', () => {
   (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
   return mod;
 });
+jest.mock('../pages/donor-management/Donors', () => {
+  const mod = { __esModule: true, default: () => <div>DonorsPage</div> };
+  (mod as any).then = (res: any) => Promise.resolve(res ? res(mod) : mod);
+  return mod;
+});
   
 jest.mock('../pages/donor-management/DonorProfile', () => {
   const mod = { __esModule: true, default: () => <div>DonorProfilePage</div> };
@@ -116,7 +121,8 @@ describe('App authentication persistence', () => {
     localStorage.setItem('access', JSON.stringify(['donor_management']));
     renderWithProviders(<App />);
     fireEvent.click(await screen.findByText('Donor Management'));
-    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(await screen.findByText('Donors')).toBeInTheDocument();
+    expect(screen.getByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
@@ -126,7 +132,8 @@ describe('App authentication persistence', () => {
     localStorage.setItem('access', JSON.stringify(['admin']));
     renderWithProviders(<App />);
     fireEvent.click(await screen.findByText('Donor Management'));
-    expect(await screen.findByText('Donation Log')).toBeInTheDocument();
+    expect(await screen.findByText('Donors')).toBeInTheDocument();
+    expect(screen.getByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
   });
 
@@ -159,11 +166,20 @@ describe('App authentication persistence', () => {
     expect(await screen.findByText('DonationLogPage')).toBeInTheDocument();
   });
 
+  it('routes to donors page', async () => {
+    localStorage.setItem('role', 'staff');
+    localStorage.setItem('name', 'Test Staff');
+    localStorage.setItem('access', JSON.stringify(['donor_management']));
+    window.history.pushState({}, '', '/donor-management/donors');
+    renderWithProviders(<App />);
+    expect(await screen.findByText('DonorsPage')).toBeInTheDocument();
+  });
+
   it('routes to donor mail lists page', async () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
-    window.history.pushState({}, '', '/donor-management');
+    window.history.pushState({}, '', '/donor-management/mail-lists');
     renderWithProviders(<App />);
     expect(await screen.findByText('MailLists')).toBeInTheDocument();
   });
