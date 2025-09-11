@@ -7,6 +7,7 @@ import {
   updateUserInfo,
   requestPasswordReset,
 } from '../../../api/users';
+import { getApiErrorMessage } from '../../../api/client';
 import { useAuth } from '../../../hooks/useAuth';
 import { formatTime } from '../../../utils/time';
 import {
@@ -116,7 +117,11 @@ export default function UserHistory({
         setBookings(ordered);
         setPage(1);
       })
-      .catch(err => console.error('Error loading history:', err));
+      .catch(err => {
+        console.error('Error loading history:', err);
+        setSeverity('error');
+        setMessage(getApiErrorMessage(err, 'Failed to load booking history'));
+      });
   }, [selected, filter, initialUser]);
 
   useEffect(() => {
@@ -225,9 +230,9 @@ export default function UserHistory({
       setSeverity('success');
       setMessage(t('booking_cancelled'));
       loadBookings();
-    } catch {
+    } catch (err: unknown) {
       setSeverity('error');
-      setMessage(t('cancel_booking_failed'));
+      setMessage(getApiErrorMessage(err, 'Unable to cancel booking'));
     } finally {
       setCancelId(null);
     }
@@ -240,9 +245,9 @@ export default function UserHistory({
       setSeverity('success');
       setMessage('Visit deleted');
       loadBookings();
-    } catch {
+    } catch (err: unknown) {
       setSeverity('error');
-      setMessage('Failed to delete visit');
+      setMessage(getApiErrorMessage(err, 'Unable to delete visit'));
     } finally {
       setDeleteVisitId(null);
     }
@@ -262,9 +267,9 @@ export default function UserHistory({
         hasPassword: data.hasPassword,
       });
       setEditOpen(true);
-    } catch {
+    } catch (err: unknown) {
       setSeverity('error');
-      setMessage(t('load_client_failed'));
+      setMessage(getApiErrorMessage(err, 'Failed to load client details'));
     }
   }
 
@@ -289,9 +294,9 @@ export default function UserHistory({
       setEditOpen(false);
       loadBookings();
       return true;
-    } catch {
+    } catch (err: unknown) {
       setSeverity('error');
-      setMessage(t('update_failed'));
+      setMessage(getApiErrorMessage(err, 'Unable to update client'));
       return false;
     }
   }
@@ -304,9 +309,9 @@ export default function UserHistory({
       await requestPasswordReset({ clientId: String(selected.client_id) });
       setSeverity('success');
       setMessage('Password reset link sent');
-    } catch {
+    } catch (err: unknown) {
       setSeverity('error');
-      setMessage('Failed to send password reset link');
+      setMessage(getApiErrorMessage(err, 'Failed to send password reset link'));
     }
   }
 

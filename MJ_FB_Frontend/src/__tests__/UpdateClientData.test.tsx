@@ -40,7 +40,7 @@ beforeEach(() => {
 describe('UpdateClientData', () => {
   it('shows server error message when update fails', async () => {
     (updateUserInfo as jest.Mock).mockRejectedValueOnce({
-      message: 'Update failed',
+      message: 'Unable to update client',
       details: { errors: [{ message: 'Email already exists' }] },
     });
     render(<UpdateClientData />);

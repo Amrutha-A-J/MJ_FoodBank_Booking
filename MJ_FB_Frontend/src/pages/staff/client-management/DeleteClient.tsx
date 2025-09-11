@@ -4,6 +4,7 @@ import EntitySearch from '../../../components/EntitySearch';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import { deleteUser } from '../../../api/users';
+import { getApiErrorMessage } from '../../../api/client';
 
 interface Client { name: string; client_id: number; }
 
@@ -20,8 +21,8 @@ export default function DeleteClient() {
       setMessage('Client deleted');
       setSeverity('success');
       setClient(null);
-    } catch {
-      setMessage('Delete failed');
+    } catch (err: unknown) {
+      setMessage(getApiErrorMessage(err, 'Unable to delete client'));
       setSeverity('error');
     }
     setConfirm(false);
