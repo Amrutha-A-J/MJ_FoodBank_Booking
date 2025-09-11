@@ -43,9 +43,13 @@ const enqueueEmailMock = enqueueEmail as jest.Mock;
 const fetchBookingByTokenMock = fetchBookingByToken as jest.Mock;
 const updateBookingMock = updateBooking as jest.Mock;
 const poolQueryMock = (pool as any).query as jest.Mock;
+const poolConnectMock = (pool as any).connect as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  poolConnectMock.mockResolvedValue({ query: poolQueryMock, release: jest.fn() });
+  poolQueryMock.mockReset();
+  poolQueryMock.mockResolvedValue({ rows: [] });
   (countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(0);
   (isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
   (checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
@@ -62,6 +66,7 @@ beforeEach(() => {
 describe('rescheduleBooking', () => {
   it('queues a reschedule email with old and new times', async () => {
     poolQueryMock
+      .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] })
       .mockResolvedValueOnce({ rows: [{ start_time: '11:00', end_time: '12:00' }] })
       .mockResolvedValueOnce({ rows: [{ exists: true }] })
@@ -86,6 +91,7 @@ describe('rescheduleBooking', () => {
 
   it('fetches email without joining new_clients when table is missing', async () => {
     poolQueryMock
+      .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00', end_time: '10:00' }] })
       .mockResolvedValueOnce({ rows: [{ start_time: '11:00', end_time: '12:00' }] })
       .mockResolvedValueOnce({ rows: [{ exists: false }] })
@@ -97,7 +103,7 @@ describe('rescheduleBooking', () => {
 
     await rescheduleBooking(req, res, next);
 
-    const query = poolQueryMock.mock.calls[3][0];
+    const query = poolQueryMock.mock.calls[4][0];
     expect(query).not.toContain('new_clients');
     expect(query).toContain('LEFT JOIN clients');
     expect(query).not.toContain('users');
