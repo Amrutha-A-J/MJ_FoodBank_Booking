@@ -62,6 +62,8 @@ describe('VolunteerBooking', () => {
     const slot = await screen.findByText(/9:00 AM/);
     fireEvent.click(slot);
     fireEvent.click(screen.getByRole('button', { name: /book selected slot/i }));
+    const noteField = await screen.findByLabelText(/note/i);
+    fireEvent.change(noteField, { target: { value: 'Bring gloves' } });
     fireEvent.click(
       await screen.findByRole('button', { name: /confirm/i }),
     );
@@ -70,6 +72,7 @@ describe('VolunteerBooking', () => {
       expect(requestVolunteerBooking).toHaveBeenCalledWith(
         1,
         expect.any(String),
+        'Bring gloves',
       ),
     );
     await waitFor(() =>

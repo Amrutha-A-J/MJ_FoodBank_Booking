@@ -114,17 +114,25 @@ export async function getVolunteerRolesForVolunteer(
 
 export async function requestVolunteerBooking(
   roleId: number,
-  date: string
-): Promise<VolunteerBooking> {
+  date: string,
+  note?: string,
+): Promise<VolunteerBooking & { googleCalendarUrl?: string; icsUrl?: string }> {
+  const body: any = { roleId, date, type: 'volunteer shift' };
+  if (note && note.trim()) body.note = note;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ roleId, date, type: 'volunteer shift' }),
+    body: JSON.stringify(body),
   });
   const data = await handleResponse(res);
-  return normalizeVolunteerBooking(data);
+  const booking = normalizeVolunteerBooking(data.booking ?? data);
+  return {
+    ...booking,
+    googleCalendarUrl: data.googleCalendarUrl,
+    icsUrl: data.icsUrl,
+  };
 }
 
 export async function resolveVolunteerBookingConflict(
