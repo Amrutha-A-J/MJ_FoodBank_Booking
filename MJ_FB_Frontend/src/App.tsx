@@ -119,6 +119,9 @@ const DonorDashboard = React.lazy(() =>
 const DonorProfilePage = React.lazy(() =>
   import('./pages/donor-management/DonorProfile')
 );
+const DonorsPage = React.lazy(() =>
+  import('./pages/donor-management/DonorsPage')
+);
 const MailLists = React.lazy(() =>
   import('./pages/donor-management/MailLists')
 );
@@ -203,6 +206,7 @@ export default function App() {
         label: 'Donor Management',
         links: [
           { label: t('dashboard'), to: '/donor-management' },
+          { label: 'Donors', to: '/donor-management/donors' },
           { label: 'Donation Log', to: '/donor-management/donation-log' },
           { label: 'Mail Lists', to: '/donor-management/mail-lists' },
         ],
@@ -503,6 +507,14 @@ export default function App() {
                         element={
                           <DonorManagementGuard>
                             <DonorDashboard />
+                          </DonorManagementGuard>
+                        }
+                      />
+                      <Route
+                        path="/donor-management/donors"
+                        element={
+                          <DonorManagementGuard>
+                            <DonorsPage />
                           </DonorManagementGuard>
                         }
                       />
