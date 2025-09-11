@@ -87,6 +87,17 @@ export async function sendTemplatedEmail({
   params,
   attachments,
 }: TemplatedEmailOptions): Promise<void | { skipped: true }> {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(to)) {
+    logger.warn('Invalid recipient email provided. Template email not sent.', {
+      to,
+      templateId,
+      params,
+      attachments,
+    });
+    return;
+  }
+
   if (process.env.EMAIL_ENABLED !== 'true') {
     return { skipped: true };
   }
