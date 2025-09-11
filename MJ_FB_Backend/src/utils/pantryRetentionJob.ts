@@ -21,6 +21,15 @@ export async function cleanupOldPantryData(): Promise<void> {
     await client.query('DELETE FROM client_visits WHERE date < $1', [cutoff]);
     await client.query('DELETE FROM bookings WHERE date < $1', [cutoff]);
     await client.query('COMMIT');
+
+    for (const table of ['client_visits', 'bookings']) {
+      try {
+        await client.query(`VACUUM (ANALYZE) ${table}`);
+      } catch (vacuumErr) {
+        logger.error(`Failed to VACUUM ANALYZE ${table}`, vacuumErr);
+      }
+    }
+
     logger.info('Old pantry data cleaned up');
   } catch (err) {
     await client.query('ROLLBACK');
