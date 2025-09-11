@@ -119,8 +119,8 @@ const DonorDashboard = React.lazy(() =>
 const DonorProfilePage = React.lazy(() =>
   import('./pages/donor-management/DonorProfile')
 );
-const DonorsPage = React.lazy(() =>
-  import('./pages/donor-management/DonorsPage')
+const Donors = React.lazy(() =>
+  import('./pages/donor-management/Donors')
 );
 const MailLists = React.lazy(() =>
   import('./pages/donor-management/MailLists')
@@ -514,7 +514,7 @@ export default function App() {
                         path="/donor-management/donors"
                         element={
                           <DonorManagementGuard>
-                            <DonorsPage />
+                            <Donors />
                           </DonorManagementGuard>
                         }
                       />
