@@ -173,7 +173,7 @@ describe('Mailing list generation', () => {
         rowCount: 5,
       })
       .mockResolvedValueOnce({
-        rows: [{ families: 4, children: 7, pounds: 120 }],
+        rows: [{ families: 4, adults: 10, children: 7, pounds: 120 }],
       });
 
     const res = await request(app)
@@ -198,6 +198,9 @@ describe('Mailing list generation', () => {
     expect(pool.query.mock.calls[2][0]).toEqual(
       expect.stringContaining('orders AS families'),
     );
+    expect(pool.query.mock.calls[2][0]).toEqual(
+      expect.stringContaining('adults'),
+    );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(5);
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
@@ -206,6 +209,7 @@ describe('Mailing list generation', () => {
         firstName: 'A',
         amount: 50,
         families: 4,
+        adults: 10,
         children: 7,
         pounds: 120,
         month: 'June',
@@ -219,6 +223,7 @@ describe('Mailing list generation', () => {
         firstName: 'B',
         amount: 150,
         families: 4,
+        adults: 10,
         children: 7,
         pounds: 120,
         month: 'June',
@@ -232,6 +237,7 @@ describe('Mailing list generation', () => {
         firstName: 'C',
         amount: 700,
         families: 4,
+        adults: 10,
         children: 7,
         pounds: 120,
         month: 'June',
@@ -245,6 +251,7 @@ describe('Mailing list generation', () => {
         firstName: 'D',
         amount: 5000,
         families: 4,
+        adults: 10,
         children: 7,
         pounds: 120,
         month: 'June',
@@ -258,6 +265,7 @@ describe('Mailing list generation', () => {
         firstName: 'E',
         amount: 20000,
         families: 4,
+        adults: 10,
         children: 7,
         pounds: 120,
         month: 'June',
