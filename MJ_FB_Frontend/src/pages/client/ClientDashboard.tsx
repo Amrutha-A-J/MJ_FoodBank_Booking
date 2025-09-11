@@ -181,10 +181,14 @@ export default function ClientDashboard() {
                           {t('cancel')}
                         </Button>
                         <Button
-                          
+
                           variant="contained"
                           sx={{ textTransform: 'none' }}
-                          onClick={() => navigate('/booking-history')}
+                          onClick={() =>
+                            next.reschedule_token &&
+                            navigate(`/reschedule/${next.reschedule_token}`)
+                          }
+                          disabled={!next.reschedule_token}
                         >
                           {t('reschedule')}
                         </Button>
@@ -266,13 +270,17 @@ export default function ClientDashboard() {
                   {t('book_appointment')}
                 </Button>
                 <Button
-                  
+
                   variant="outlined"
                   sx={{
                     textTransform: 'none',
                     width: { xs: '100%', sm: 'auto' },
                   }}
-                  onClick={() => navigate('/booking-history')}
+                  onClick={() =>
+                    next?.reschedule_token &&
+                    navigate(`/reschedule/${next.reschedule_token}`)
+                  }
+                  disabled={!next?.reschedule_token}
                 >
                   {t('reschedule')}
                 </Button>

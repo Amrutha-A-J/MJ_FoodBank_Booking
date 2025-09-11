@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientDashboard from '../pages/client/ClientDashboard';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/bookings';
@@ -103,7 +103,7 @@ describe('ClientDashboard', () => {
     );
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
-    expect(screen.getByText('Mon, Jan 15, 2024')).toBeInTheDocument();
+    expect(await screen.findByText('Mon, Jan 15, 2024')).toBeInTheDocument();
     jest.useRealTimers();
   });
 
@@ -149,5 +149,31 @@ describe('ClientDashboard', () => {
 
     expect(quick.compareDocumentPosition(news) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(quick.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('enables reschedule button when token is available', async () => {
+    (getBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: 'approved',
+        date: '2099-01-01',
+        start_time: '09:00:00',
+        reschedule_token: 'tok123',
+      },
+    ]);
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+    (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
+
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const buttons = screen.getAllByRole('button', { name: /reschedule/i });
+      expect(buttons.some(btn => !btn.hasAttribute('disabled'))).toBe(true);
+    });
   });
 });
