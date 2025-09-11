@@ -233,6 +233,7 @@
   "booking_rescheduled": "Booking rescheduled",
   "reschedule_failed": "Failed to reschedule booking",
   "select_date_time": "Please select date and time",
+  "login_notice_title": "Notice",
   "client_login_notice_id": "Please use your client ID or email to login. If you don't know your client ID or don't have an account created by us, please email harvestpantry@mjfoodbank.org to get an account created.",
   "client_login_notice_internal": "Staff, volunteers, and agencies sign in here with their email.",
   "client_login_notice_password": "If your password is not working, please use the forgot password link below to set a new password.",
