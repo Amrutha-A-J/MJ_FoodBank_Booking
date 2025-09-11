@@ -3,11 +3,16 @@ import express from 'express';
 import bookingsRouter from '../src/routes/bookings';
 import * as bookingRepo from '../src/models/bookingRepository';
 import pool from '../src/db';
+import { getCartTare } from '../src/utils/configCache';
 
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
   ...jest.requireActual('../src/models/bookingRepository'),
   updateBooking: jest.fn(),
+}));
+
+jest.mock('../src/utils/configCache', () => ({
+  getCartTare: jest.fn().mockResolvedValue(0),
 }));
 
 

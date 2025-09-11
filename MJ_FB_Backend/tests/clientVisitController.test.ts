@@ -5,6 +5,7 @@ import {
   refreshPantryMonthly,
   refreshPantryYearly,
 } from '../src/controllers/pantry/pantryAggregationController';
+import { getCartTare } from '../src/utils/configCache';
 import {
   addVisit,
   deleteVisit,
@@ -20,6 +21,12 @@ jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
 
 jest.mock('../src/models/bookingRepository', () => ({
   updateBooking: jest.fn(),
+}));
+
+jest.mock('../src/utils/configCache', () => ({
+  getCartTare: jest.fn().mockResolvedValue(0),
+  refreshCartTare: jest.fn(),
+  setCartTare: jest.fn(),
 }));
 
 describe('clientVisitController', () => {
@@ -109,7 +116,6 @@ describe('clientVisitController', () => {
     const queryMock = jest
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
-      .mockResolvedValueOnce({ rows: [{ value: '0' }], rowCount: 1 }) // cart tare
       .mockResolvedValueOnce({
         rows: [
           {
@@ -160,7 +166,6 @@ describe('clientVisitController', () => {
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
-      .mockResolvedValueOnce({ rows: [{ value: '10' }], rowCount: 1 }) // cart tare
       .mockImplementationOnce((sql: string, params: any[]) => {
         expect(params[3]).toBe(0);
         return {
@@ -189,6 +194,7 @@ describe('clientVisitController', () => {
       .mockResolvedValueOnce({}); // COMMIT
 
     (mockDb.connect as jest.Mock).mockResolvedValue({ query: queryMock, release: jest.fn() });
+    (getCartTare as jest.Mock).mockResolvedValueOnce(10);
 
     const req = {
       body: {
@@ -232,7 +238,6 @@ describe('clientVisitController', () => {
       .fn()
       .mockResolvedValueOnce({}) // BEGIN
       .mockResolvedValueOnce({ rowCount: 0 }) // duplicate check
-      .mockResolvedValueOnce({ rows: [{ value: '0' }], rowCount: 1 }) // cart tare
       .mockImplementationOnce(() =>
         insertGate.promise.then(() => ({
           rows: [
@@ -266,7 +271,6 @@ describe('clientVisitController', () => {
         insertGate.resolve();
         return Promise.resolve({ rowCount: 0 });
       }) // duplicate check
-      .mockResolvedValueOnce({ rows: [{ value: '0' }], rowCount: 1 }) // cart tare
       .mockRejectedValueOnce({ code: '23505' }) // insert fails
       .mockResolvedValueOnce({}); // ROLLBACK
 

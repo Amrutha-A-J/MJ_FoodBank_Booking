@@ -38,6 +38,7 @@ import { insertNewClient } from '../models/newClient';
 import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
+import { getCartTare } from '../utils/configCache';
 import { sendBookingEvent } from '../utils/bookingEvents';
 import { notifyOps } from '../utils/opsAlert';
 
@@ -471,10 +472,7 @@ export async function markBookingVisited(req: Request, res: Response, next: Next
     if ((dup.rowCount ?? 0) > 0) {
       return res.status(409).json({ message: 'Duplicate visit' });
     }
-    const cartRes = await pool.query(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
-    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    const cartTare = await getCartTare();
     let weightWithCartVal = weightWithCart ?? null;
     let weightWithoutCartVal = weightWithoutCart ?? null;
     if (weightWithCartVal == null && weightWithoutCartVal != null) {
