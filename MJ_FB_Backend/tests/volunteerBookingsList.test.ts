@@ -69,4 +69,30 @@ describe('listVolunteerBookings', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].max_volunteers).toBe(5);
   });
+
+  it('filters by multiple role ids', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1,
+          status: 'approved',
+          role_id: 2,
+          volunteer_id: 3,
+          date: '2025-01-01',
+          reschedule_token: 'abc',
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          max_volunteers: 5,
+          role_name: 'Pantry',
+          category_name: 'Food',
+          volunteer_name: 'John Doe',
+        },
+      ],
+    });
+
+    const res = await request(app).get('/volunteer-bookings?roleIds=1,2');
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [[1, 2]]);
+    expect(res.body).toHaveLength(1);
+  });
 });

@@ -12,6 +12,7 @@ import {
   cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
   resolveVolunteerBookingConflict,
+  getVolunteerBookingsByRoles,
 } from "../api/volunteers";
 import { getHolidays } from "../api/bookings";
 import { formatTime } from "../utils/time";
@@ -39,6 +40,7 @@ jest.mock("../api/volunteers", () => ({
   cancelRecurringVolunteerBooking: jest.fn(),
   rescheduleVolunteerBookingByToken: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
 }));
 
 jest.mock("../api/bookings", () => ({ getHolidays: jest.fn() }));
@@ -47,6 +49,7 @@ describe("VolunteerSchedule", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2024-01-29T19:00:00Z"));
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {

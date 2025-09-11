@@ -9,6 +9,7 @@ import {
   updateVolunteerBookingStatus,
   cancelVolunteerBooking,
   getUnmarkedVolunteerBookings,
+  getVolunteerBookingsByRoles,
   createVolunteer,
   getVolunteerById,
   loginVolunteer,
@@ -73,6 +74,13 @@ describe('volunteers api', () => {
     await getUnmarkedVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/volunteer-bookings/unmarked',
+    );
+  });
+
+  it('fetches volunteer bookings by multiple roles', async () => {
+    await getVolunteerBookingsByRoles([1, 2, 3]);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/volunteer-bookings?roleIds=1,2,3',
     );
   });
 

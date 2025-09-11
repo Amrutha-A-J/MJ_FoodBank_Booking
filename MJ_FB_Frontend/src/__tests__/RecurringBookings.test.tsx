@@ -13,6 +13,7 @@ import {
   resolveVolunteerBookingConflict,
   rescheduleVolunteerBookingByToken,
   getRoles,
+  getVolunteerBookingsByRoles,
 } from '../api/volunteers';
 import { getHolidays } from '../api/bookings';
 
@@ -27,6 +28,7 @@ jest.mock('../api/volunteers', () => ({
   getRecurringVolunteerBookings: jest.fn(),
   rescheduleVolunteerBookingByToken: jest.fn(),
   getRoles: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
 }));
 jest.mock('../api/bookings', () => ({
   getHolidays: jest.fn(),
@@ -61,6 +63,7 @@ beforeEach(() => {
   (cancelRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (rescheduleVolunteerBookingByToken as jest.Mock).mockResolvedValue(undefined);
   (getRoles as jest.Mock).mockResolvedValue([]);
+  (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
 });
 
 afterEach(async () => {

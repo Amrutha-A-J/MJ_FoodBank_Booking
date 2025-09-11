@@ -5,6 +5,7 @@ import {
   requestVolunteerBooking,
   createRecurringVolunteerBooking,
   getMyVolunteerBookings,
+  getVolunteerBookingsByRoles,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
@@ -69,6 +70,7 @@ export default function VolunteerSchedule() {
     return fromZonedTime(`${todayStr}T00:00:00`, reginaTimeZone);
   });
   const [bookings, setBookings] = useState<VolunteerBooking[]>([]);
+  const [roleBookings, setRoleBookings] = useState<VolunteerBooking[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [roleGroups, setRoleGroups] = useState<VolunteerRoleGroup[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
@@ -172,6 +174,21 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (!selectedCategoryId) {
+      setRoleBookings([]);
+      return;
+    }
+    const group = roleGroups.find(
+      (g) => g.category_id === Number(selectedCategoryId),
+    );
+    if (!group) return;
+    const ids = group.roles.flatMap((r) => r.slots.map((s) => s.id));
+    getVolunteerBookingsByRoles(ids)
+      .then(setRoleBookings)
+      .catch(() => setRoleBookings([]));
+  }, [selectedCategoryId, roleGroups, currentDate]);
 
   async function quickBook(role: VolunteerRole) {
     try {
@@ -350,8 +367,14 @@ export default function VolunteerSchedule() {
         slots = slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
         const maxSlots = Math.max(0, ...slots.map((s) => s.max_volunteers));
         const rows = slots.map((slot) => {
+          const slotBookings = roleBookings.filter(
+            (b) => b.role_id === slot.id && b.date === dateStr && b.status === 'approved',
+          );
           const myBooking = bookings.find((b) => b.role_id === slot.id);
-          const othersBooked = Math.max(0, slot.booked - (myBooking ? 1 : 0));
+          const othersBooked = Math.max(
+            0,
+            slotBookings.length - (myBooking ? 1 : 0),
+          );
           const cells: {
             content: ReactNode;
             backgroundColor?: string;

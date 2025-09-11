@@ -13,7 +13,7 @@ import {
   removeVolunteerShopperProfile,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
-  getVolunteerBookingsByRole,
+  getVolunteerBookingsByRoles,
   resolveVolunteerBookingConflict,
   createVolunteer,
 } from '../api/volunteers';
@@ -27,7 +27,7 @@ jest.mock('../api/volunteers', () => ({
   removeVolunteerShopperProfile: jest.fn(),
   updateVolunteerTrainedAreas: jest.fn(),
   createVolunteerBookingForVolunteer: jest.fn(),
-  getVolunteerBookingsByRole: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
   createVolunteer: jest.fn(),
 }));
@@ -56,7 +56,7 @@ beforeEach(() => {
   (removeVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
   (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
-  (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+  (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   (createVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
 });
@@ -382,7 +382,7 @@ describe('VolunteerManagement schedule statuses', () => {
         ],
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
         status: 'completed',
@@ -459,7 +459,7 @@ describe('VolunteerManagement schedule navigation', () => {
         ],
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {
