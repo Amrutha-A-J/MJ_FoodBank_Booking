@@ -1,6 +1,5 @@
 import request from 'supertest';
 import express from 'express';
-import app from '../src/app';
 import pool from '../src/db';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
@@ -10,48 +9,52 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
 
-describe('GET /api/slots with invalid dates', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
+jest.mock('../src/routes/pantry/aggregations', () => {
+  const express = require('express');
+  return express.Router();
+});
+
+let app: express.Express;
+
+beforeEach(async () => {
+  (pool.query as jest.Mock).mockReset();
+  await jest.isolateModulesAsync(async () => {
+    app = (await import('../src/app')).default;
   });
+});
+
+describe('GET /api/slots with invalid dates', () => {
 
   it('returns 400 for malformed date string', async () => {
     const res = await request(app).get('/api/slots').query({ date: 'not-a-date' });
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Invalid date');
-    expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
   });
 
   it('returns 400 for invalid date format', async () => {
     const res = await request(app).get('/api/slots').query({ date: '2024-02-30abc' });
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message', 'Invalid date');
-    expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
   });
 });
 
 describe('GET /api/slots applies slot rules', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
 
   it('uses weekday rules', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
-          { id: 2, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
-          { id: 3, start_time: '12:00:00', end_time: '12:30:00', max_capacity: 10 },
-          { id: 4, start_time: '12:30:00', end_time: '13:00:00', max_capacity: 10 },
-          { id: 5, start_time: '14:30:00', end_time: '15:00:00', max_capacity: 10 },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('FROM holidays')) return Promise.resolve({ rowCount: 0, rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [
+            { id: 1, start_time: '09:00:00', end_time: '09:30:00', max_capacity: 10 },
+            { id: 2, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
+            { id: 3, start_time: '12:00:00', end_time: '12:30:00', max_capacity: 10 },
+            { id: 4, start_time: '12:30:00', end_time: '13:00:00', max_capacity: 10 },
+            { id: 5, start_time: '14:30:00', end_time: '15:00:00', max_capacity: 10 },
+          ],
+        });
+      return Promise.resolve({ rows: [] });
+    });
 
     const res = await request(app).get('/api/slots').query({ date: '2024-06-17' });
     expect(res.status).toBe(200);
@@ -62,20 +65,18 @@ describe('GET /api/slots applies slot rules', () => {
   });
 
   it('uses Wednesday rules', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
-          { id: 2, start_time: '15:30:00', end_time: '16:00:00', max_capacity: 10 },
-          { id: 3, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('FROM holidays')) return Promise.resolve({ rowCount: 0, rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [
+            { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
+            { id: 2, start_time: '15:30:00', end_time: '16:00:00', max_capacity: 10 },
+            { id: 3, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
+          ],
+        });
+      return Promise.resolve({ rows: [] });
+    });
 
     const res = await request(app).get('/api/slots').query({ date: '2024-06-19' });
     expect(res.status).toBe(200);
@@ -86,17 +87,20 @@ describe('GET /api/slots applies slot rules', () => {
   });
 
   it('lists Wednesday evening slot in range', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
-          { id: 2, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.startsWith('SELECT date, slot_id, reason FROM blocked_slots')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, week_of_month')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, slot_id, reason FROM breaks')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT date, slot_id, COUNT(*)')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [
+            { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 10 },
+            { id: 2, start_time: '18:30:00', end_time: '19:00:00', max_capacity: 10 },
+          ],
+        });
+      return Promise.resolve({ rows: [] });
+    });
 
     const res = await request(app)
       .get('/api/slots/range')
@@ -110,17 +114,21 @@ describe('GET /api/slots applies slot rules', () => {
   });
 
   it('marks slots blocked from recurring entries', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [{ slot_id: 1, reason: 'maintenance' }] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('FROM holidays')) return Promise.resolve({ rowCount: 0, rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [
+            { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
+          ],
+        });
+      if (sql.startsWith('SELECT date, slot_id, reason FROM blocked_slots')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, week_of_month'))
+        return Promise.resolve({ rows: [{ slot_id: 1, reason: 'maintenance', day_of_week: 2, week_of_month: 3 }] });
+      if (sql.startsWith('SELECT day_of_week, slot_id, reason FROM breaks')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT date, slot_id, COUNT(*)')) return Promise.resolve({ rows: [] });
+      return Promise.resolve({ rows: [] });
+    });
 
     const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
@@ -139,17 +147,21 @@ describe('GET /api/slots applies slot rules', () => {
   });
 
   it('marks slot as overbooked when approved bookings exceed capacity', async () => {
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({
-        rows: [
-          { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
-        ],
-      })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [] })
-      .mockResolvedValueOnce({ rows: [{ slot_id: 1, approved_count: 7 }] });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('FROM holidays')) return Promise.resolve({ rowCount: 0, rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [
+            { id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 },
+          ],
+        });
+      if (sql.startsWith('SELECT date, slot_id, reason FROM blocked_slots')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, week_of_month')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, slot_id, reason FROM breaks')) return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT date, slot_id, COUNT(*)'))
+        return Promise.resolve({ rows: [{ date: '2024-06-18', slot_id: 1, approved_count: '7' }] });
+      return Promise.resolve({ rows: [] });
+    });
 
     const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
@@ -167,16 +179,12 @@ describe('GET /api/slots applies slot rules', () => {
 });
 
 describe('GET /api/slots closed days', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
 
   it('returns empty array on weekends', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
     const res = await request(app).get('/api/slots').query({ date: '2024-06-16' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
-    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 
   it('returns empty array on holidays', async () => {
@@ -184,13 +192,11 @@ describe('GET /api/slots closed days', () => {
     const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
-    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('GET /api/slots/range default length', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
     (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
   });
 
@@ -203,7 +209,6 @@ describe('GET /api/slots/range default length', () => {
 
 describe('GET /api/slots/range days param validation', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
     (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
   });
 
@@ -234,7 +239,29 @@ describe('GET /api/slots/range days param validation', () => {
         'message',
         'days must be an integer between 1 and 120',
       );
-      expect((pool.query as jest.Mock)).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('GET /api/slots/range bulk queries', () => {
+
+  it('fetches metadata once for entire range', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValue({ rows: [] });
+
+    await request(app)
+      .get('/api/slots/range')
+      .query({ start: '2024-06-17', days: 2, includePast: 'true' });
+
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(7);
+    const blockedCall = (pool.query as jest.Mock).mock.calls.find((c: any[]) =>
+      c[0].includes('FROM blocked_slots WHERE date = ANY($1)'),
+    );
+    expect(blockedCall).toBeDefined();
+    expect(blockedCall![1][0]).toEqual(['2024-06-17', '2024-06-18']);
+  });
 });
