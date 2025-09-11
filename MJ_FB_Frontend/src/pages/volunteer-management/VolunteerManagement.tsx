@@ -3,10 +3,8 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import {
   getVolunteerRoles,
   getVolunteerBookingsByRole,
-  cancelRecurringVolunteerBooking,
   searchVolunteers,
   getVolunteerById,
-  getVolunteerBookingHistory,
   createVolunteer,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
@@ -20,11 +18,10 @@ import VolunteerScheduleTable from '../../components/VolunteerScheduleTable';
 import { fromZonedTime } from 'date-fns-tz';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
-import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
 import DialogCloseButton from '../../components/DialogCloseButton';
 import PasswordField from '../../components/PasswordField';
 import PageCard from '../../components/layout/PageCard';
-import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
+import BookingManagementBase from './BookingManagementBase';
 import {
   Button,
   TextField,
@@ -117,12 +114,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [newTrainedRole, setNewTrainedRole] = useState('');
   const [editMsg, setEditMsg] = useState('');
   const [editSeverity, setEditSeverity] = useState<'success' | 'error'>('success');
-  const [history, setHistory] = useState<HistoryRow[]>([]);
 
-  interface HistoryRow extends VolunteerBookingDetail {
-    time?: string;
-    actions?: string;
-  }
 
   const theme = useTheme();
   const approvedColor = lighten(theme.palette.success.light, 0.4);
@@ -171,67 +163,10 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [assignMsg, setAssignMsg] = useState('');
   const [confirmAssign, setConfirmAssign] =
     useState<VolunteerResult | null>(null);
-  const [manageShift, setManageShift] =
-    useState<VolunteerBookingDetail | null>(null);
-  const [cancelRecurringBooking, setCancelRecurringBooking] =
-    useState<VolunteerBookingDetail | null>(null);
   const [forceAssign, setForceAssign] = useState<{
     vol: VolunteerResult;
     addTraining: boolean;
   } | null>(null);
-
-  const historyColumns: Column<HistoryRow>[] = useMemo(
-    () => [
-      { field: 'role_name', header: t('role') },
-      { field: 'date', header: t('date') },
-      {
-        field: 'time',
-        header: t('time'),
-        render: (row: HistoryRow) => (
-          <>
-            {formatTime(row.start_time ?? '')} -
-            {formatTime(row.end_time ?? '')}
-          </>
-        ),
-      },
-      {
-        field: 'status',
-        header: t('status'),
-        render: (row: HistoryRow) => t(row.status ?? ''),
-      },
-      {
-        field: 'actions',
-        header: '',
-        render: (row: HistoryRow) =>
-          row.status === 'approved' ? (
-            <>
-              <Button
-                onClick={() => setManageShift(row)}
-                variant="outlined"
-                color="primary"
-                
-              >
-                {t('manage')}
-              </Button>
-              {row.recurring_id && (
-                <>
-                  {' '}
-                  <Button
-                    onClick={() => setCancelRecurringBooking(row)}
-                    variant="outlined"
-                    color="primary"
-                    
-                  >
-                    {t('cancel_all_upcoming_short')}
-                  </Button>
-                </>
-              )}
-            </>
-          ) : null,
-      },
-    ],
-    [t]
-  );
 
   const reginaTimeZone = 'America/Regina';
   const [currentDate, setCurrentDate] = useState(() => {
@@ -384,26 +319,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
     }
   }, [tab, searchParams, selectedVolunteer]);
 
-  async function cancelRecurring(id: number) {
-    try {
-      await cancelRecurringVolunteerBooking(id);
-      setSnackbarSeverity('success');
-      setMessage('Upcoming bookings cancelled');
-      if (selectedVolunteer) {
-        const data = await getVolunteerBookingHistory(selectedVolunteer.id);
-        setHistory(data);
-      }
-      if (selectedRole) {
-        const ids = nameToSlotIds.get(selectedRole) || [];
-        const data = await Promise.all(ids.map(rid => getVolunteerBookingsByRole(rid)));
-        setBookings(data.flat());
-      }
-    } catch (e) {
-      setSnackbarSeverity('error');
-      setMessage(e instanceof Error ? e.message : String(e));
-    }
-  }
-
   async function handleManageUpdated(
     msg: string,
     severity: 'success' | 'error' | 'info' | 'warning',
@@ -417,14 +332,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
           ids.map(rid => getVolunteerBookingsByRole(rid)),
         );
         setBookings(data.flat());
-      } catch {
-        // ignore
-      }
-    }
-    if (selectedVolunteer) {
-      try {
-        const data = await getVolunteerBookingHistory(selectedVolunteer.id);
-        setHistory(data);
       } catch {
         // ignore
       }
@@ -483,13 +390,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
             )
           )
         );
-        return getVolunteerBookingHistory(vol.id);
-      })
-      .then(data => {
-        setHistory(data);
-      })
-      .catch(() => {
-        setHistory([]);
       });
   }
 
@@ -942,18 +842,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                   <Typography variant="h6" gutterBottom>
                     {t('booking_history')}
                   </Typography>
-                  {history.length > 0 ? (
-                    <Box sx={{ overflowX: 'auto' }}>
-                      <ResponsiveTable
-                        columns={historyColumns}
-                        rows={history as HistoryRow[]}
-                        getRowKey={h => h.id}
-                      />
-                    </Box>
-                  ) : (
-                    <Typography sx={{ textAlign: 'center', p: 1 }}>
-                      {t('no_bookings')}
-                    </Typography>
+                  {selectedVolunteer && (
+                    <BookingManagementBase
+                      volunteerId={selectedVolunteer.id}
+                      onUpdated={handleManageUpdated}
+                    />
                   )}
                 </PageCard>
               </Box>
@@ -1173,19 +1066,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         />
       )}
 
-      {cancelRecurringBooking && (
-        <ConfirmDialog
-          message={`Cancel all upcoming bookings for ${cancelRecurringBooking.role_name}?`}
-          onConfirm={() => {
-            if (cancelRecurringBooking.recurring_id) {
-              cancelRecurring(cancelRecurringBooking.recurring_id);
-            }
-            setCancelRecurringBooking(null);
-          }}
-          onCancel={() => setCancelRecurringBooking(null)}
-        />
-      )}
-
       <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
       <FeedbackSnackbar
         open={!!assignMsg}
@@ -1260,12 +1140,6 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         </div>
       )}
 
-      <ManageVolunteerShiftDialog
-        open={!!manageShift}
-        booking={manageShift}
-        onClose={() => setManageShift(null)}
-        onUpdated={handleManageUpdated}
-      />
       <EditVolunteerDialog
         volunteer={editVolunteer ? { ...editVolunteer, clientId: editVolunteer.clientId ?? null } : null}
         onClose={() => setEditVolunteer(null)}
