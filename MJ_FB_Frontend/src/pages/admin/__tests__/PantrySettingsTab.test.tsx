@@ -1,8 +1,10 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  renderWithProviders,
+  screen,
+  fireEvent,
+} from '../../../../testUtils/renderWithProviders';
 import '@testing-library/jest-dom';
 import PantrySettingsTab from '../settings/PantrySettingsTab';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from '../../../theme';
 import type { Slot } from '../../../types';
 
 jest.mock('../../../api/slots', () => ({
@@ -26,11 +28,7 @@ describe('PantrySettingsTab', () => {
     (getAllSlots as jest.Mock).mockResolvedValue(slots);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 10 });
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantrySettingsTab />
-      </ThemeProvider>,
-    );
+    renderWithProviders(<PantrySettingsTab />);
 
     const capacityField = await screen.findByLabelText('Max bookings per slot');
     const tareField = await screen.findByLabelText('Cart Tare (lbs)');

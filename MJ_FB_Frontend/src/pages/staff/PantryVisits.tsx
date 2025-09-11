@@ -36,7 +36,7 @@ import {
 } from '../../api/clientVisits';
 import { getSunshineBag, saveSunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
-import { getAppConfig } from '../../api/appConfig';
+import useAppConfig from '../../hooks/useAppConfig';
 import type { AlertColor } from '@mui/material';
 import { toDayjs, toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
 
@@ -83,7 +83,8 @@ export default function PantryVisits() {
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [cartTare, setCartTare] = useState(0);
+  const { appConfig } = useAppConfig();
+  const cartTare = appConfig.cartTare;
   const [search, setSearch] = useState('');
 
   useEffect(() => {
@@ -148,12 +149,6 @@ export default function PantryVisits() {
   useEffect(() => {
     loadVisits();
   }, [loadVisits]);
-
-  useEffect(() => {
-    getAppConfig()
-      .then(cfg => setCartTare(cfg.cartTare))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (recordOpen && autoWeight && !form.sunshineBag) {

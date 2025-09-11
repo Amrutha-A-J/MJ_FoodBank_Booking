@@ -10,7 +10,8 @@ import {
 import type { AlertColor } from '@mui/material';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import { getAllSlots, updateSlotCapacity } from '../../../api/slots';
-import { getAppConfig, updateAppConfig } from '../../../api/appConfig';
+import { updateAppConfig } from '../../../api/appConfig';
+import useAppConfig from '../../../hooks/useAppConfig';
 
 export default function PantrySettingsTab() {
   const [capacity, setCapacity] = useState<number>(0);
@@ -18,6 +19,7 @@ export default function PantrySettingsTab() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: AlertColor } | null
   >(null);
+  const { appConfig, error: appConfigError } = useAppConfig();
 
   async function load() {
     try {
@@ -26,17 +28,21 @@ export default function PantrySettingsTab() {
     } catch {
       setSnackbar({ message: 'Failed to load capacity', severity: 'error' });
     }
-    try {
-      const cfg = await getAppConfig();
-      setCartTare(cfg.cartTare);
-    } catch {
-      setSnackbar({ message: 'Failed to load cart tare', severity: 'error' });
-    }
   }
 
   useEffect(() => {
     load();
   }, []);
+
+  useEffect(() => {
+    setCartTare(appConfig.cartTare);
+  }, [appConfig.cartTare]);
+
+  useEffect(() => {
+    if (appConfigError) {
+      setSnackbar({ message: 'Failed to load cart tare', severity: 'error' });
+    }
+  }, [appConfigError]);
 
   const handleSaveCapacity = async () => {
     try {

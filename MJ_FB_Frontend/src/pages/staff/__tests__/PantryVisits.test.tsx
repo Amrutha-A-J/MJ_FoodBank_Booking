@@ -1,8 +1,11 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  renderWithProviders,
+  screen,
+  fireEvent,
+  waitFor,
+} from '../../../../testUtils/renderWithProviders';
 import '@testing-library/jest-dom';
 import PantryVisits from '../PantryVisits';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from '../../../theme';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockNavigate = jest.fn();
@@ -40,11 +43,9 @@ const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
 function renderVisits() {
-  return render(
+  return renderWithProviders(
     <MemoryRouter>
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>
+      <PantryVisits />
     </MemoryRouter>,
   );
 }
@@ -347,11 +348,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
 
-    render(
-      <ThemeProvider theme={theme}>
-        <PantryVisits />
-      </ThemeProvider>,
-    );
+    renderWithProviders(<PantryVisits />);
 
     await screen.findByText('Record Visit');
 

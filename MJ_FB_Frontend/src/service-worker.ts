@@ -94,6 +94,19 @@ registerRoute(
   'GET',
 )
 
+// Cache app config
+registerRoute(
+  ({ url }) => url.pathname.startsWith('/api/app-config'),
+  new StaleWhileRevalidate({
+    cacheName: 'app-config-api',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 1, maxAgeSeconds: 60 * 60 }),
+    ],
+    fetchOptions: { credentials: 'include' },
+  }),
+  'GET',
+)
+
 // Offline fallback for navigation requests
 registerRoute(
   ({ request }) => request.mode === 'navigate',
