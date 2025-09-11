@@ -118,6 +118,7 @@ describe('App authentication persistence', () => {
     fireEvent.click(await screen.findByText('Donor Management'));
     expect(await screen.findByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
+    expect(screen.getByText('Donors')).toBeInTheDocument();
   });
 
   it('shows donor management nav links for admin without donor_management', async () => {
@@ -128,6 +129,7 @@ describe('App authentication persistence', () => {
     fireEvent.click(await screen.findByText('Donor Management'));
     expect(await screen.findByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
+    expect(screen.getByText('Donors')).toBeInTheDocument();
   });
 
   it('shows aggregations nav links for aggregations access', async () => {

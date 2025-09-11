@@ -3,6 +3,7 @@ import {
   createMonetaryDonor,
   updateMonetaryDonor,
   getMonetaryDonor,
+  getMonetaryDonors,
   updateMonetaryDonation,
   deleteMonetaryDonation,
   getMailLists,
@@ -64,6 +65,13 @@ describe('monetary donor api', () => {
   it('fetches a donor', async () => {
     await getMonetaryDonor(2);
     expect(apiFetch).toHaveBeenCalledWith('/api/monetary-donors/2');
+  });
+
+  it('fetches donors with search', async () => {
+    await getMonetaryDonors('Jane');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/monetary-donors?search=Jane',
+    );
   });
 
   it('updates a donation', async () => {
