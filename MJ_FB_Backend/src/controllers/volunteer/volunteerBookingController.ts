@@ -262,7 +262,9 @@ export async function createVolunteerBooking(
         `${user.name || 'Volunteer'} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
       res.status(201).json({
-        ...booking,
+        message: 'Booking automatically approved',
+        status: 'approved',
+        rescheduleToken: token,
         googleCalendarUrl: googleCalendarLink,
         icsUrl: appleCalendarLink,
       });
@@ -429,19 +431,15 @@ export async function createVolunteerBookingForVolunteer(
       await client.query('COMMIT');
 
       const booking = insertRes.rows[0];
-      booking.role_id = booking.slot_id;
-      delete booking.slot_id;
-      booking.status_color = statusColor(booking.status);
-      booking.date =
-        booking.date instanceof Date
-          ? formatReginaDate(booking.date)
-          : booking.date;
       const nameRes = await pool.query(
         'SELECT first_name, last_name FROM volunteers WHERE id=$1',
         [volunteerId],
       );
       const row = nameRes.rows[0];
-      const name = row?.first_name && row?.last_name ? `${row.first_name} ${row.last_name}` : 'Volunteer';
+      const name =
+        row?.first_name && row?.last_name
+          ? `${row.first_name} ${row.last_name}`
+          : 'Volunteer';
       sendBookingEvent({
         action: 'created',
         name,
@@ -452,7 +450,21 @@ export async function createVolunteerBookingForVolunteer(
       await notifyOps(
         `${name} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
-      res.status(201).json(booking);
+      const uid = `volunteer-booking-${booking.id}@mjfb`;
+      const links = buildCalendarLinks(
+        date,
+        slot.start_time,
+        slot.end_time,
+        uid,
+        0,
+      );
+      res.status(201).json({
+        message: 'Booking automatically approved',
+        status: 'approved',
+        rescheduleToken: token,
+        googleCalendarUrl: links.googleCalendarLink,
+        icsUrl: links.appleCalendarLink,
+      });
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
       if (error.code === '23505') {
@@ -1120,9 +1132,40 @@ export async function rescheduleVolunteerBooking(
       )} to ${formatReginaDateWithDay(date)} ${formatTimeToAmPm(slot.start_time)}`,
     );
 
-    res.json({ message: 'Volunteer booking rescheduled', rescheduleToken: newToken });
+    res.json({
+      message: 'Booking rescheduled',
+      status: 'approved',
+      rescheduleToken: newToken,
+    });
   } catch (error) {
     logger.error('Error rescheduling volunteer booking:', error);
+    next(error);
+  }
+}
+
+export async function getRescheduleVolunteerBooking(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { token } = req.params;
+  try {
+    const result = await pool.query(
+      'SELECT status FROM volunteer_bookings WHERE reschedule_token = $1',
+      [token],
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    const status = result.rows[0].status;
+    if (status !== 'approved') {
+      return res
+        .status(400)
+        .json({ message: "This booking can't be rescheduled" });
+    }
+    return res.json({ message: 'Booking can be rescheduled' });
+  } catch (error) {
+    logger.error('Error validating volunteer reschedule booking:', error);
     next(error);
   }
 }
@@ -1587,7 +1630,7 @@ export async function cancelVolunteerBookingOccurrence(
         cancelReason ? ` (${cancelReason})` : ''
       }`,
     );
-    res.json(booking);
+    res.json({ message: 'Booking cancelled' });
   } catch (error) {
     logger.error('Error cancelling volunteer booking:', error);
     next(error);

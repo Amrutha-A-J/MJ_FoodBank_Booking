@@ -8,6 +8,7 @@ import type {
   Holiday,
   Booking,
   BookingResponse,
+  BookingActionResponse,
 } from '../types';
 
 interface SlotResponse {
@@ -82,7 +83,7 @@ export async function createBooking(
   date: string,
   note?: string,
   userId?: number,
-) {
+): Promise<BookingActionResponse> {
   const body: CreateBookingBody = {
     slotId: Number(slotId),
     date,
@@ -97,7 +98,7 @@ export async function createBooking(
     },
     body: JSON.stringify(body),
   });
-  return handleResponse(res);
+  return handleResponse<BookingActionResponse>(res);
 }
 
 function normalizeBooking(b: BookingResponse): Booking {
@@ -348,32 +349,32 @@ export async function createBookingForNewClient(
 
 export async function validateRescheduleToken(
   rescheduleToken: string,
-): Promise<void> {
+): Promise<BookingActionResponse> {
   const res = await apiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`);
-  await handleResponse<void>(res);
+  return handleResponse<BookingActionResponse>(res);
 }
 
 export async function rescheduleBookingByToken(
   rescheduleToken: string,
   slotId: string,
   date: string,
-): Promise<void> {
+): Promise<BookingActionResponse> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const res = await apiFetch(`${API_BASE}/bookings/reschedule/${rescheduleToken}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ slotId, date, type: 'Shopping Appointment' }),
   });
-  await handleResponse<void>(res);
+  return handleResponse<BookingActionResponse>(res);
 }
 
-export async function cancelBookingByToken(token: string): Promise<void> {
+export async function cancelBookingByToken(token: string): Promise<BookingActionResponse> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const res = await apiFetch(`${API_BASE}/bookings/cancel/${token}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ type: 'Shopping Appointment' }),
   });
-  await handleResponse<void>(res);
+  return handleResponse<BookingActionResponse>(res);
 }
 

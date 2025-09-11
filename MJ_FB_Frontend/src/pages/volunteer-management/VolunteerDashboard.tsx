@@ -262,19 +262,11 @@ export default function VolunteerDashboard() {
 
   async function request(role: VolunteerRole) {
     try {
-      const booking = await requestVolunteerBooking(role.id, role.date);
+      await requestVolunteerBooking(role.id, role.date);
       setSnackbarSeverity('success');
       setMessage('Shift booked');
-      setBookings(prev => [
-        ...prev,
-        {
-          ...booking,
-          role_name: role.name,
-          start_time: role.start_time,
-          end_time: role.end_time,
-          category_name: role.category_name,
-        },
-      ]);
+      const latest = await getMyVolunteerBookings();
+      setBookings(latest);
     } catch (e: unknown) {
       const err = e as ApiError;
       const details = err.details as VolunteerBookingConflict | undefined;
