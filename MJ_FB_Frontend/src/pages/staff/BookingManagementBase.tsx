@@ -24,7 +24,7 @@ interface Option {
 }
 
 export interface BookingManagementBaseProps<
-  E extends { id: number | string; name?: string },
+  E extends { id: number | string; name: string },
   B extends BookingHistoryItem,
 > {
   entitySearchType: 'user' | 'volunteer';
@@ -58,7 +58,7 @@ export interface BookingManagementBaseProps<
 }
 
 export default function BookingManagementBase<
-  E extends { id: number | string; name?: string },
+  E extends { id: number | string; name: string },
   B extends BookingHistoryItem,
 >({
   entitySearchType,

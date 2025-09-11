@@ -9,28 +9,28 @@ export default function VolunteerBooking() {
     [],
   );
 
-  const mapSlot = useCallback(
-    (r: VolunteerRole): (Slot & { name: string }) => ({
-      id: String(r.id),
-      startTime: r.start_time,
-      endTime: r.end_time,
-      available: r.available,
-      reason: r.status === 'blocked' ? r.status : undefined,
-      name: r.name || r.role_name,
-    }),
-    [],
-  );
+    const mapSlot = useCallback(
+      (r: VolunteerRole): (Slot & { name: string }) => ({
+        id: String(r.id),
+        startTime: r.start_time,
+        endTime: r.end_time,
+        available: r.available,
+        reason: r.status === 'blocked' ? r.status : undefined,
+        name: r.name,
+      }),
+      [],
+    );
 
-  const groupByRole = useCallback(
-    (slots: (Slot & { name: string })[]) => {
-      return slots.reduce<Record<string, Slot[]>>((acc, s) => {
-        const key = s.name;
-        acc[key] = acc[key] ? [...acc[key], s] : [s];
-        return acc;
-      }, {});
-    },
-    [],
-  );
+    const groupByRole = useCallback(
+      (slots: Slot[]) => {
+        return slots.reduce<Record<string, Slot[]>>((acc, s) => {
+          const key = (s as Slot & { name: string }).name;
+          acc[key] = acc[key] ? [...acc[key], s] : [s];
+          return acc;
+        }, {});
+      },
+      [],
+    );
 
   const bookAction = useCallback(
     ({ slotId, date, note }: { slotId: string; date: string; note: string }) =>

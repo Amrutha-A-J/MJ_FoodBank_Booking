@@ -22,6 +22,7 @@ import DialogCloseButton from '../../components/DialogCloseButton';
 import PasswordField from '../../components/PasswordField';
 import PageCard from '../../components/layout/PageCard';
 import BookingManagementBase from './BookingManagementBase';
+import ManageVolunteerShiftDialog from '../../components/ManageVolunteerShiftDialog';
 import {
   Button,
   TextField,
@@ -105,6 +106,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
+  const [manageShift, setManageShift] =
+    useState<VolunteerBookingDetail | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
@@ -1192,24 +1195,39 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
         />
       )}
 
-      {forceAssign && (
-        <ConfirmDialog
-          message="Role is full. Force booking and increase capacity?"
-          onConfirm={() => {
-            const { vol, addTraining } = forceAssign;
-            setForceAssign(null);
-            completeAssignment(vol, addTraining, true);
-          }}
-          onCancel={() => setForceAssign(null)}
-        />
-      )}
+        {forceAssign && (
+          <ConfirmDialog
+            message="Role is full. Force booking and increase capacity?"
+            onConfirm={() => {
+              const { vol, addTraining } = forceAssign;
+              setForceAssign(null);
+              completeAssignment(vol, addTraining, true);
+            }}
+            onCancel={() => setForceAssign(null)}
+          />
+        )}
 
-      <FeedbackSnackbar open={!!message} onClose={() => setMessage('')} message={message} severity={snackbarSeverity} />
-      <FeedbackSnackbar
-        open={!!assignMsg}
-        onClose={() => setAssignMsg('')}
-        message={assignMsg}
-        severity="error"
+        <ManageVolunteerShiftDialog
+          open={!!manageShift}
+          booking={manageShift}
+          onClose={() => setManageShift(null)}
+          onUpdated={(msg, severity) => {
+            setManageShift(null);
+            handleManageUpdated(msg, severity);
+          }}
+        />
+
+        <FeedbackSnackbar
+          open={!!message}
+          onClose={() => setMessage('')}
+          message={message}
+          severity={snackbarSeverity}
+        />
+        <FeedbackSnackbar
+          open={!!assignMsg}
+          onClose={() => setAssignMsg('')}
+          message={assignMsg}
+          severity="error"
       />
 
       {assignSlot && (
