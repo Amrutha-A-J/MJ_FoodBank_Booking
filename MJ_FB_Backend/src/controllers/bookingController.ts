@@ -528,82 +528,105 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     return res.status(400).json({ message: 'Please choose a valid date' });
   }
   try {
-    const booking = await fetchBookingByToken(token);
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    if (booking.status === 'no_show') {
-      return res.status(400).json({ message: NO_SHOW_MESSAGE });
-    }
-    if (booking.status !== 'approved') {
-      return res.status(400).json({ message: "This booking can't be rescheduled" });
-    }
-    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
-    await checkSlotCapacity(slotId, date);
+    const client = await pool.connect();
+    let booking: any;
+    let oldSlotRes: any;
+    let newSlotRes: any;
+    let emailRes: any;
+    let newToken = '';
+    let newStatus = '';
+    try {
+      await client.query('BEGIN');
+      booking = await fetchBookingByToken(token, client, true);
+      if (!booking) {
+        await client.query('ROLLBACK');
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      if (booking.status === 'no_show') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: NO_SHOW_MESSAGE });
+      }
+      if (booking.status !== 'approved') {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: "This booking can't be rescheduled" });
+      }
+      if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Please choose a valid date' });
+      }
+      await checkSlotCapacity(slotId, date, client);
 
-    const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
-    const usage =
-      bookingUserId !== undefined
-        ? await countVisitsAndBookingsForMonth(bookingUserId, date)
-        : 0;
-    if (usage === false) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
-    let adjustedUsage = usage;
-    if (
-      booking.status === 'approved' &&
-      booking.date &&
-      formatReginaDate(booking.date).slice(0, 7) === date.slice(0, 7)
-    ) {
-      adjustedUsage -= 1;
-    }
+      const bookingUserId = booking.user_id ? Number(booking.user_id) : undefined;
+      const usage =
+        bookingUserId !== undefined
+          ? await countVisitsAndBookingsForMonth(bookingUserId, date)
+          : 0;
+      if (usage === false) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Please choose a valid date' });
+      }
+      let adjustedUsage = usage;
+      if (
+        booking.status === 'approved' &&
+        booking.date &&
+        formatReginaDate(booking.date).slice(0, 7) === date.slice(0, 7)
+      ) {
+        adjustedUsage -= 1;
+      }
 
-    const newToken = randomUUID();
-    const isStaffReschedule = req.user && req.user.role === 'staff';
-    if (!isStaffReschedule && adjustedUsage >= 2) {
-      return res.status(400).json({ message: LIMIT_MESSAGE });
+      newToken = randomUUID();
+      const isStaffReschedule = req.user && req.user.role === 'staff';
+      if (!isStaffReschedule && adjustedUsage >= 2) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: LIMIT_MESSAGE });
+      }
+      newStatus = isStaffReschedule ? booking.status : 'approved';
+      const updateFields: Record<string, any> = {
+        slot_id: slotId,
+        date,
+        reschedule_token: newToken,
+        status: newStatus,
+      };
+
+      oldSlotRes = await client.query(
+        'SELECT start_time, end_time FROM slots WHERE id=$1',
+        [booking.slot_id],
+      );
+      newSlotRes = await client.query(
+        'SELECT start_time, end_time FROM slots WHERE id=$1',
+        [slotId],
+      );
+      const hasNewClients = await hasTable('new_clients', client);
+      emailRes = hasNewClients
+        ? await client.query(
+            `SELECT COALESCE(u.email, nc.email) AS email,
+                    COALESCE(u.first_name || ' ' || u.last_name, nc.name) AS name
+             FROM bookings b
+             LEFT JOIN clients u ON b.user_id = u.client_id
+             LEFT JOIN new_clients nc ON b.new_client_id = nc.id
+             WHERE b.id=$1`,
+            [booking.id],
+          )
+        : await client.query(
+            `SELECT u.email AS email, u.first_name, u.last_name
+             FROM bookings b
+             LEFT JOIN clients u ON b.user_id = u.client_id
+             WHERE b.id=$1`,
+            [booking.id],
+          );
+
+      await updateBooking(booking.id, updateFields, client);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
-    const newStatus = isStaffReschedule ? booking.status : 'approved';
-    const updateFields: Record<string, any> = {
-      slot_id: slotId,
-      date,
-      reschedule_token: newToken,
-      status: newStatus,
-    };
-
-    const oldSlotRes = await pool.query(
-      'SELECT start_time, end_time FROM slots WHERE id=$1',
-      [booking.slot_id],
-    );
-    const newSlotRes = await pool.query(
-      'SELECT start_time, end_time FROM slots WHERE id=$1',
-      [slotId],
-    );
-    const hasNewClients = await hasTable('new_clients');
-    const emailRes = hasNewClients
-      ? await pool.query(
-          `SELECT COALESCE(u.email, nc.email) AS email,
-                  COALESCE(u.first_name || ' ' || u.last_name, nc.name) AS name
-           FROM bookings b
-           LEFT JOIN clients u ON b.user_id = u.client_id
-           LEFT JOIN new_clients nc ON b.new_client_id = nc.id
-           WHERE b.id=$1`,
-          [booking.id],
-        )
-      : await pool.query(
-          `SELECT u.email AS email, u.first_name, u.last_name
-           FROM bookings b
-           LEFT JOIN clients u ON b.user_id = u.client_id
-           WHERE b.id=$1`,
-          [booking.id],
-        );
-
-    await updateBooking(booking.id, updateFields);
 
     const { email, name: nameRes, first_name, last_name } = emailRes.rows[0] || {};
-    const name = nameRes || (first_name && last_name ? `${first_name} ${last_name}` : 'Client');
+    const name =
+      nameRes || (first_name && last_name ? `${first_name} ${last_name}` : 'Client');
     if (email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(newToken);
       const oldTime = oldSlotRes.rows[0]
@@ -685,11 +708,15 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
     await notifyOps(
       `${name} (client) rescheduled booking from ${formatReginaDateWithDay(booking.date)} ${
         oldStart ? formatTimeToAmPm(oldStart) : ''
-      } to ${formatReginaDateWithDay(date)} ${newStart ? formatTimeToAmPm(newStart) : ''}`,
+      } to ${formatReginaDateWithDay(date)} ${
+        newStart ? formatTimeToAmPm(newStart) : ''
+      }`,
     );
 
     const notifyTime = newSlotRes.rows[0]
-      ? ` from ${formatTimeToAmPm(newStart)} to ${formatTimeToAmPm(newSlotRes.rows[0].end_time)}`
+      ? ` from ${formatTimeToAmPm(newStart)} to ${formatTimeToAmPm(
+          newSlotRes.rows[0].end_time,
+        )}`
       : '';
     const notifyBody = `Date: ${formatReginaDateWithDay(date)}${notifyTime}`;
 

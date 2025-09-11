@@ -72,8 +72,17 @@ export async function fetchBookingById(id: number, client: Queryable = pool) {
   return res.rows[0];
 }
 
-export async function fetchBookingByToken(token: string, client: Queryable = pool) {
-  const res = await client.query('SELECT * FROM bookings WHERE reschedule_token = $1', [token]);
+export async function fetchBookingByToken(
+  token: string,
+  client: Queryable = pool,
+  forUpdate = false,
+) {
+  const res = await client.query(
+    `SELECT * FROM bookings WHERE reschedule_token = $1${
+      forUpdate ? ' FOR UPDATE' : ''
+    }`,
+    [token],
+  );
   return res.rows[0];
 }
 
