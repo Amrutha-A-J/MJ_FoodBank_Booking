@@ -6,6 +6,11 @@ jest.mock('../src/utils/opsAlert', () => ({
   alertOps: jest.fn(),
   notifyOps: jest.fn(),
 }));
+jest.mock('../src/utils/configCache', () => ({
+  getCartTare: jest.fn().mockResolvedValue(0),
+  refreshCartTare: jest.fn(),
+  setCartTare: jest.fn(),
+}));
 jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
   refreshPantryWeekly: jest.fn(),
   refreshPantryMonthly: jest.fn(),

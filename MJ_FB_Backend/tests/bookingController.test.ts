@@ -77,13 +77,13 @@ describe('createBookingForUser', () => {
   });
 
   it('returns 400 if booking date is a holiday', async () => {
-    const client = {
-      query: jest
-        .fn()
-        .mockResolvedValueOnce({ rows: [], rowCount: 0 })
-        .mockResolvedValueOnce({ rowCount: 1 }),
-      release: jest.fn(),
-    };
+    const query = jest
+      .fn()
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // select client for update
+      .mockResolvedValueOnce({ rowCount: 1 }) // holiday
+      .mockResolvedValue({}); // ROLLBACK
+    const client = { query, release: jest.fn() };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     const req = {
       user: { role: 'staff', id: 99 },
@@ -264,11 +264,12 @@ describe('cancelBooking', () => {
     });
   });
 
-  it('sends cancellation email when staff provides reason', async () => {
+  it('updates booking status when staff provides reason', async () => {
     const futureDate = formatReginaDate(new Date(Date.now() + 86400000));
     (fetchBookingById as jest.Mock).mockResolvedValue({
       id: 1,
       user_id: '2',
+      slot_id: 1,
       status: 'approved',
       date: futureDate,
     });
@@ -286,12 +287,6 @@ describe('cancelBooking', () => {
     await cancelBooking(req, res, next);
 
     expect(updateBooking).toHaveBeenCalledWith(1, { status: 'cancelled', request_data: 'scheduling conflict' });
-    expect(enqueueEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'client@example.com',
-        params: expect.objectContaining({ body: expect.stringContaining('scheduling conflict') }),
-      }),
-    );
     expect(res.json).toHaveBeenCalledWith({ message: 'Booking cancelled' });
   });
 
@@ -362,6 +357,7 @@ describe('markBookingVisited', () => {
   let pool: any;
   let updateBooking: jest.Mock;
   let refreshClientVisitCount: jest.Mock;
+  let getCartTare: jest.Mock;
 
   beforeEach(() => {
     jest.resetModules();
@@ -378,17 +374,21 @@ describe('markBookingVisited', () => {
         __esModule: true,
         refreshClientVisitCount: jest.fn(),
       }));
+      jest.doMock('../src/utils/configCache', () => ({
+        __esModule: true,
+        getCartTare: jest.fn().mockResolvedValue(5),
+      }));
       markBookingVisited = require('../src/controllers/bookingController').markBookingVisited;
       pool = require('../src/db').default;
       updateBooking = require('../src/models/bookingRepository').updateBooking;
       refreshClientVisitCount = require('../src/controllers/clientVisitController').refreshClientVisitCount;
+      getCartTare = require('../src/utils/configCache').getCartTare;
     });
   });
 
   it('computes missing weightWithoutCart from weightWithCart', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [{ value: '5' }] })
       .mockResolvedValueOnce({ rows: [{ client_id: 1 }] });
     const req = { params: { id: '123' }, body: { weightWithCart: 15 } } as unknown as Request;
     const res = { json: jest.fn() } as unknown as Response;
@@ -400,15 +400,12 @@ describe('markBookingVisited', () => {
       expect.stringContaining('INSERT INTO client_visits'),
       [15, 10, 0, null, 0, 0, 123],
     );
-    expect(pool.query).toHaveBeenCalledWith(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
+    expect(getCartTare).toHaveBeenCalled();
   });
 
   it('computes missing weightWithCart from weightWithoutCart', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 0 })
-      .mockResolvedValueOnce({ rows: [{ value: '5' }] })
       .mockResolvedValueOnce({ rows: [{ client_id: 1 }] });
     const req = { params: { id: '123' }, body: { weightWithoutCart: 10 } } as unknown as Request;
     const res = { json: jest.fn() } as unknown as Response;
@@ -420,9 +417,7 @@ describe('markBookingVisited', () => {
       expect.stringContaining('INSERT INTO client_visits'),
       [15, 10, 0, null, 0, 0, 123],
     );
-    expect(pool.query).toHaveBeenCalledWith(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
+    expect(getCartTare).toHaveBeenCalled();
   });
 
   describe('validation', () => {

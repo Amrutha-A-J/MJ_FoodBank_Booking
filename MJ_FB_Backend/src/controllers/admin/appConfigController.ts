@@ -1,13 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../../db';
 import logger from '../../utils/logger';
+import { getCartTare, refreshCartTare } from '../../utils/configCache';
 
 export async function getAppConfig(_req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await pool.query(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
-    const cartTare = Number(result.rows[0]?.value ?? 0);
+    const cartTare = await getCartTare();
     res.json({ cartTare });
   } catch (error) {
     logger.error('Error fetching app config:', error);
@@ -27,6 +25,7 @@ export async function updateAppConfig(
        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
       [String(cartTare)],
     );
+    await refreshCartTare();
     res.json({ cartTare });
   } catch (error) {
     logger.error('Error updating app config:', error);

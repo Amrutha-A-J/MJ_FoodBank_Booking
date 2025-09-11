@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import appConfigRouter from '../src/routes/admin/appConfig';
 import pool from '../src/db';
+import { setCartTare } from '../src/utils/configCache';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
@@ -26,6 +27,7 @@ app.use('/app-config', appConfigRouter);
 
 afterEach(() => {
   jest.clearAllMocks();
+  setCartTare(null);
 });
 
 describe('app-config routes', () => {

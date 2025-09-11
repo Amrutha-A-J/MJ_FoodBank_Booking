@@ -9,6 +9,7 @@ import {
   refreshPantryMonthly,
   refreshPantryYearly,
 } from './pantry/pantryAggregationController';
+import { getCartTare } from '../utils/configCache';
 
 export async function refreshClientVisitCount(
   clientId: number,
@@ -174,10 +175,7 @@ export async function addVisit(req: Request, res: Response, next: NextFunction) 
         return res.status(409).json({ message: 'Duplicate visit' });
       }
     }
-    const cartRes = await client.query(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
-    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    const cartTare = await getCartTare(client);
     let weightWithoutCartAdjusted = weightWithoutCart;
     if (weightWithCart != null && weightWithoutCart == null) {
       weightWithoutCartAdjusted = weightWithCart - cartTare;
@@ -310,10 +308,7 @@ export async function updateVisit(req: Request, res: Response, next: NextFunctio
         return res.status(409).json({ message: 'Duplicate visit' });
       }
     }
-    const cartRes = await pool.query(
-      "SELECT value FROM app_config WHERE key = 'cart_tare'",
-    );
-    const cartTare = Number(cartRes.rows[0]?.value ?? 0);
+    const cartTare = await getCartTare();
     let weightWithoutCartAdjusted = weightWithoutCart;
     if (weightWithCart != null && weightWithoutCart == null) {
       weightWithoutCartAdjusted = weightWithCart - cartTare;
