@@ -47,6 +47,20 @@ export function addDays(input: ConfigType, amount: number) {
   return toDayjs(input).add(amount, 'day').toDate();
 }
 
+export function startOfWeek(input?: ConfigType) {
+  const d = toDate(input);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+export function getWeekDates(input?: ConfigType) {
+  const start = startOfWeek(input);
+  return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+}
+
 export function formatReginaDate(date: ConfigType): string {
   return toDayjs(date).format('YYYY-MM-DD');
 }
