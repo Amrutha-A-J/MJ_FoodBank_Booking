@@ -25,6 +25,7 @@ import config from '../../config';
 import { sendBookingEvent } from '../../utils/bookingEvents';
 import { notifyOps } from '../../utils/opsAlert';
 import { volunteerBookingsByDateSchema } from '../../schemas/volunteer/volunteerBookingSchemas';
+import { isHoliday, getHolidays } from '../../utils/holidayCache';
 
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 function isValidDateString(date: string): boolean {
@@ -117,10 +118,9 @@ export async function createVolunteerBooking(
     const isWeekend = [0, 6].includes(
       new Date(reginaStartOfDayISO(date!)).getUTCDay(),
     );
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date!]);
-    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const isHolidayDate = await isHoliday(date!);
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
-    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+    if ((isWeekend || isHolidayDate) && restrictedCategories.includes(slot.category_name)) {
       return res.status(400).json({ message: 'Role not bookable on holidays or weekends' });
     }
 
@@ -340,10 +340,9 @@ export async function createVolunteerBookingForVolunteer(
     }
 
     const isWeekend = [0, 6].includes(bookingDate.getUTCDay());
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date]);
-    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const isHolidayDate = await isHoliday(date);
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
-    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+    if ((isWeekend || isHolidayDate) && restrictedCategories.includes(slot.category_name)) {
       return res
         .status(400)
         .json({ message: 'Role not bookable on holidays or weekends' });
@@ -566,10 +565,9 @@ export async function resolveVolunteerBookingConflict(
     const isWeekend = [0, 6].includes(
       new Date(reginaStartOfDayISO(date!)).getUTCDay(),
     );
-    const holidayRes = await pool.query('SELECT 1 FROM holidays WHERE date = $1', [date!]);
-    const isHoliday = (holidayRes.rowCount ?? 0) > 0;
+    const isHolidayDate = await isHoliday(date!);
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
-    if ((isWeekend || isHoliday) && restrictedCategories.includes(slot.category_name)) {
+    if ((isWeekend || isHolidayDate) && restrictedCategories.includes(slot.category_name)) {
       return res
         .status(400)
         .json({ message: 'Role not bookable on holidays or weekends' });
@@ -1250,11 +1248,8 @@ export async function createRecurringVolunteerBooking(
       }
     }
 
-    const [holidayRes, capacityRes, existingRes, overlapRes] = await Promise.all([
-      pool.query(
-        'SELECT date FROM holidays WHERE date BETWEEN $1 AND $2',
-        [startDate, endDate],
-      ),
+    const [holidays, capacityRes, existingRes, overlapRes] = await Promise.all([
+      getHolidays(),
       pool.query(
         `SELECT date, COUNT(*)
          FROM volunteer_bookings
@@ -1278,9 +1273,9 @@ export async function createRecurringVolunteerBooking(
     ]);
 
     const holidaySet = new Set(
-      holidayRes.rows.map((r: any) =>
-        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
-      ),
+      holidays
+        .filter(h => h.date >= startDate && h.date <= endDate)
+        .map(h => h.date),
     );
     const capacityMap = new Map<string, number>();
     for (const row of capacityRes.rows) {
@@ -1455,11 +1450,8 @@ export async function createRecurringVolunteerBookingForVolunteer(
       }
     }
 
-    const [holidayRes, capacityRes, existingRes, overlapRes] = await Promise.all([
-      pool.query(
-        'SELECT date FROM holidays WHERE date BETWEEN $1 AND $2',
-        [startDate, endDate],
-      ),
+    const [holidays, capacityRes, existingRes, overlapRes] = await Promise.all([
+      getHolidays(),
       pool.query(
         `SELECT date, COUNT(*)
          FROM volunteer_bookings
@@ -1483,9 +1475,9 @@ export async function createRecurringVolunteerBookingForVolunteer(
     ]);
 
     const holidaySet = new Set(
-      holidayRes.rows.map((r: any) =>
-        r.date instanceof Date ? formatReginaDate(r.date) : r.date,
-      ),
+      holidays
+        .filter(h => h.date >= startDate && h.date <= endDate)
+        .map(h => h.date),
     );
     const capacityMap = new Map<string, number>();
     for (const row of capacityRes.rows) {

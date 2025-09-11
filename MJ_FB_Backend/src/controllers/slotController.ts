@@ -3,6 +3,7 @@ import pool from '../db';
 import { Slot } from '../models/slot';
 import logger from '../utils/logger';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
+import { isHoliday } from '../utils/holidayCache';
 import { slotSchema, slotIdParamSchema, slotCapacitySchema } from '../schemas/slotSchemas';
 
 interface SlotRow {
@@ -235,11 +236,7 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
       return res.status(400).json({ message: 'Invalid date' });
     }
     const includePast = req.query.includePast === 'true';
-    const holidayResult = await pool.query(
-      'SELECT reason FROM holidays WHERE date = $1',
-      [reginaDate],
-    );
-    if (holidayResult.rows.length > 0) {
+    if (await isHoliday(reginaDate)) {
       // Closed for a holiday – return an empty slot list rather than an error
       return res.json([]);
     }
