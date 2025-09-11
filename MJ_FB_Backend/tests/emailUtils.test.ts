@@ -1,3 +1,5 @@
+jest.mock('../src/utils/opsAlert');
+import { alertOps } from '../src/utils/opsAlert';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import logger from '../src/utils/logger';
 import { shutdownQueue } from '../src/utils/emailQueue';
@@ -26,5 +28,45 @@ describe('sendTemplatedEmail email validation', () => {
     );
     expect(global.fetch).not.toHaveBeenCalled();
     warnSpy.mockRestore();
+  });
+});
+
+describe('sendTemplatedEmail Brevo failure', () => {
+  const originalFetch = global.fetch;
+  const {
+    BREVO_API_KEY: originalApiKey,
+    BREVO_FROM_EMAIL: originalFromEmail,
+    BREVO_FROM_NAME: originalFromName,
+  } = process.env;
+
+  beforeEach(() => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => 'error body',
+    });
+    process.env.BREVO_API_KEY = 'test-key';
+    process.env.BREVO_FROM_EMAIL = 'from@example.com';
+    process.env.BREVO_FROM_NAME = 'Test Sender';
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    process.env.BREVO_API_KEY = originalApiKey;
+    process.env.BREVO_FROM_EMAIL = originalFromEmail;
+    process.env.BREVO_FROM_NAME = originalFromName;
+    shutdownQueue();
+    jest.resetAllMocks();
+  });
+
+  it('alerts ops with response text on non-200 response', async () => {
+    await sendTemplatedEmail({ to: 'user@example.com', templateId: 123 });
+
+    expect(alertOps).toHaveBeenCalledWith(
+      'sendTemplatedEmail',
+      expect.objectContaining({
+        message: 'Brevo responded with status 500: error body',
+      })
+    );
   });
 });
