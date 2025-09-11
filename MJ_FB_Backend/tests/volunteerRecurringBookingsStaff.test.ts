@@ -46,8 +46,11 @@ app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
 describe('staff recurring volunteer bookings', () => {
+  const client = { query: jest.fn(), release: jest.fn() } as any;
   beforeEach(() => {
     jest.clearAllMocks();
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    client.query.mockReset();
   });
 
   it('creates recurring bookings for a volunteer', async () => {
@@ -67,7 +70,11 @@ describe('staff recurring volunteer bookings', () => {
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ email: 'vol@example.com' }] })
       .mockResolvedValueOnce({ rows: [{ id: 30 }] })
-      .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    client.query.mockResolvedValue({});
 
     const start = getNextMonday();
     const end = addDays(start, 2);
@@ -89,6 +96,8 @@ describe('staff recurring volunteer bookings', () => {
       formatDate(end),
     ]);
     expect(res.body.skipped).toEqual([]);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(8);
+    expect(client.query).toHaveBeenCalledTimes(3);
   });
 
   it('lists recurring bookings for a volunteer', async () => {

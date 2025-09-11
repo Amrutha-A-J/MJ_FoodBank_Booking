@@ -52,8 +52,11 @@ app.use(express.json());
 app.use('/volunteer-bookings', volunteerBookingsRouter);
 
 describe('recurring volunteer bookings', () => {
+  const client = { query: jest.fn(), release: jest.fn() } as any;
   beforeEach(() => {
     jest.clearAllMocks();
+    (pool.connect as jest.Mock).mockResolvedValue(client);
+    client.query.mockReset();
   });
 
   it('creates a recurring booking series', async () => {
@@ -70,9 +73,13 @@ describe('recurring volunteer bookings', () => {
           },
         ],
       })
-      .mockResolvedValueOnce({ rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ id: 10 }] })
-      .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
+      .mockResolvedValueOnce({ rowCount: 1 }) // trained
+      .mockResolvedValueOnce({ rows: [{ id: 10 }] }) // insert recurring
+      .mockResolvedValueOnce({ rows: [] }) // holidays
+      .mockResolvedValueOnce({ rows: [] }) // capacity counts
+      .mockResolvedValueOnce({ rows: [] }) // existing
+      .mockResolvedValueOnce({ rows: [] }); // overlaps
+    client.query.mockResolvedValue({});
 
     const start = getNextMonday();
     const end = addDays(start, 2);
@@ -93,6 +100,8 @@ describe('recurring volunteer bookings', () => {
       formatDate(end),
     ]);
     expect(res.body.skipped).toEqual([]);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect(client.query).toHaveBeenCalledTimes(3);
   });
 
   it('skips dates that fail validation', async () => {
@@ -111,7 +120,11 @@ describe('recurring volunteer bookings', () => {
       })
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 20 }] })
-      .mockResolvedValue({ rowCount: 0, rows: [{ count: '0' }] });
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    client.query.mockResolvedValue({});
 
     const start = getNextFriday();
     const end = addDays(start, 2);
@@ -128,9 +141,72 @@ describe('recurring volunteer bookings', () => {
     expect(res.body.recurringId).toBe(20);
     expect(res.body.successes).toEqual([formatDate(start)]);
     expect(res.body.skipped).toEqual([
-      { date: formatDate(addDays(start, 1)), reason: 'Role not bookable on holidays or weekends' },
-      { date: formatDate(end), reason: 'Role not bookable on holidays or weekends' },
+      {
+        date: formatDate(addDays(start, 1)),
+        reason: 'Role not bookable on holidays or weekends',
+      },
+      {
+        date: formatDate(end),
+        reason: 'Role not bookable on holidays or weekends',
+      },
     ]);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect(client.query).toHaveBeenCalledTimes(3);
+  });
+
+  it('handles large date ranges and reports skipped reasons', async () => {
+    const start = getNextMonday();
+    const end = addDays(start, 29);
+    const holiday = addDays(start, 1);
+    const fullDate = addDays(start, 2);
+    const existing = addDays(start, 3);
+    const overlap = addDays(start, 4);
+
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            role_id: 2,
+            max_volunteers: 3,
+            category_name: 'Pantry',
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ id: 40 }] })
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(holiday) }] })
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(fullDate), count: '3' }] })
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(existing) }] })
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(overlap) }] });
+    client.query.mockResolvedValue({});
+
+    const res = await request(app)
+      .post('/volunteer-bookings/recurring')
+      .send({
+        roleId: 2,
+        startDate: formatDate(start),
+        endDate: formatDate(end),
+        pattern: 'daily',
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.recurringId).toBe(40);
+    expect(res.body.skipped).toEqual(
+      expect.arrayContaining([
+        {
+          date: formatDate(holiday),
+          reason: 'Role not bookable on holidays or weekends',
+        },
+        { date: formatDate(fullDate), reason: 'Role is full' },
+        { date: formatDate(existing), reason: 'Already booked' },
+        { date: formatDate(overlap), reason: 'Overlapping booking' },
+      ]),
+    );
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect(client.query).toHaveBeenCalledTimes(3);
   });
 
   it('cancels future recurring bookings', async () => {
