@@ -69,4 +69,15 @@ describe('listVolunteerBookings', () => {
     expect(res.status).toBe(200);
     expect(res.body[0].max_volunteers).toBe(5);
   });
+
+  it('filters bookings by roleIds query', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+    await request(app)
+      .get('/volunteer-bookings')
+      .query({ roleIds: '1,2,3' });
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE vb.slot_id = ANY($1::int[])'),
+      [[1, 2, 3]],
+    );
+  });
 });

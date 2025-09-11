@@ -5,7 +5,7 @@ import VolunteerManagement from '../VolunteerManagement';
 import {
   getVolunteerRoles,
   searchVolunteers,
-  getVolunteerBookingsByRole,
+  getVolunteerBookingsByRoles,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
 } from '../../../api/volunteers';
@@ -13,7 +13,7 @@ import {
 jest.mock('../../../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   searchVolunteers: jest.fn(),
-  getVolunteerBookingsByRole: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
   updateVolunteerTrainedAreas: jest.fn(),
   createVolunteerBookingForVolunteer: jest.fn(),
 }));
@@ -33,7 +33,7 @@ describe('VolunteerManagement force booking', () => {
         has_shifts: true,
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
     (searchVolunteers as jest.Mock).mockResolvedValue([
       {
         id: 5,

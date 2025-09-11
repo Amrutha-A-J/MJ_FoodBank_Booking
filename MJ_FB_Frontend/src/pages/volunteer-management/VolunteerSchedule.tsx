@@ -5,6 +5,7 @@ import {
   requestVolunteerBooking,
   createRecurringVolunteerBooking,
   getMyVolunteerBookings,
+  getVolunteerBookingsByRoles,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   rescheduleVolunteerBookingByToken,
@@ -60,6 +61,7 @@ import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
 import i18n from "../../i18n";
 import useSlotStream from "../../hooks/useSlotStream";
+import { useAuth } from "../../hooks/useAuth";
 
 const reginaTimeZone = "America/Regina";
 
@@ -172,6 +174,32 @@ export default function VolunteerSchedule() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!selectedCategoryId) return;
+    const group = roleGroups.find(
+      (g) => g.category_id === Number(selectedCategoryId),
+    );
+    const ids = group ? group.roles.map((r) => r.id) : [];
+    if (ids.length === 0) {
+      setBookings([]);
+      return;
+    }
+    const dateStr = formatDate(currentDate);
+    getVolunteerBookingsByRoles(ids)
+      .then((data) =>
+        setBookings(
+          data.filter(
+            (b) =>
+              b.volunteer_id === auth.id &&
+              (b.date?.split('T')[0] ?? b.date) === dateStr,
+          ),
+        ),
+      )
+      .catch(() => {});
+  }, [selectedCategoryId, roleGroups, currentDate, auth.id]);
 
   async function quickBook(role: VolunteerRole) {
     try {

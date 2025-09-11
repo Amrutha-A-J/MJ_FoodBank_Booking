@@ -13,7 +13,7 @@ import {
   removeVolunteerShopperProfile,
   updateVolunteerTrainedAreas,
   createVolunteerBookingForVolunteer,
-  getVolunteerBookingsByRole,
+  getVolunteerBookingsByRoles,
   resolveVolunteerBookingConflict,
   createVolunteer,
 } from '../api/volunteers';
@@ -27,7 +27,7 @@ jest.mock('../api/volunteers', () => ({
   removeVolunteerShopperProfile: jest.fn(),
   updateVolunteerTrainedAreas: jest.fn(),
   createVolunteerBookingForVolunteer: jest.fn(),
-  getVolunteerBookingsByRole: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
   createVolunteer: jest.fn(),
 }));
@@ -56,7 +56,7 @@ beforeEach(() => {
   (removeVolunteerShopperProfile as jest.Mock).mockResolvedValue(undefined);
   (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
   (createVolunteerBookingForVolunteer as jest.Mock).mockResolvedValue(undefined);
-  (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+  (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   (createVolunteer as jest.Mock).mockResolvedValue(undefined);
   (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
 });
@@ -382,7 +382,7 @@ describe('VolunteerManagement schedule statuses', () => {
         ],
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
         status: 'completed',
@@ -459,7 +459,7 @@ describe('VolunteerManagement schedule navigation', () => {
         ],
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -524,10 +524,11 @@ describe('VolunteerManagement department schedule', () => {
         ],
       },
     ]);
-    (getVolunteerBookingsByRole as jest.Mock).mockImplementation((id: number) => {
-      if (id === 10) {
-        return Promise.resolve([
-          {
+    (getVolunteerBookingsByRoles as jest.Mock).mockImplementation(
+      (ids: number[]) => {
+        const data: any[] = [];
+        if (ids.includes(10)) {
+          data.push({
             id: 1,
             status: 'approved',
             role_id: 10,
@@ -536,12 +537,10 @@ describe('VolunteerManagement department schedule', () => {
             date: '2024-01-01',
             start_time: '09:00:00',
             end_time: '10:00:00',
-          },
-        ]);
-      }
-      if (id === 20) {
-        return Promise.resolve([
-          {
+          });
+        }
+        if (ids.includes(20)) {
+          data.push({
             id: 2,
             status: 'approved',
             role_id: 20,
@@ -550,11 +549,11 @@ describe('VolunteerManagement department schedule', () => {
             date: '2024-01-01',
             start_time: '09:00:00',
             end_time: '10:00:00',
-          },
-        ]);
-      }
-      return Promise.resolve([]);
-    });
+          });
+        }
+        return Promise.resolve(data);
+      },
+    );
   });
 
   afterEach(() => {

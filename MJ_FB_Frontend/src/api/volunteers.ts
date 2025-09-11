@@ -367,6 +367,17 @@ export async function getVolunteerBookingsByRole(roleId: number) {
   return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
+export async function getVolunteerBookingsByRoles(
+  roleIds: number[],
+) {
+  const params = roleIds.join(',');
+  const res = await apiFetch(
+    `${API_BASE}/volunteer-bookings?roleIds=${params}`,
+  );
+  const data = await handleResponse(res);
+  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
+}
+
 export async function getVolunteerBookings(): Promise<VolunteerBooking[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`);
   const data = await handleResponse(res);
