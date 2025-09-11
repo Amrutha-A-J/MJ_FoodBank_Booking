@@ -102,6 +102,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
   const title = tabTitles[tab];
   const [roles, setRoles] = useState<RoleOption[]>([]);
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [bookings, setBookings] = useState<VolunteerBookingDetail[]>([]);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
@@ -284,18 +285,34 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
 
   const selectedRoleNames = selectedCreateRoles.join(', ');
 
+  const departmentItems = useMemo(
+    () =>
+      groupedRoles.map(g => (
+        <MenuItem key={g.category} value={g.category}>
+          {g.category}
+        </MenuItem>
+      )),
+    [groupedRoles],
+  );
+
   useEffect(() => {
-    if (selectedRole && tab === 'schedule') {
+    if (tab !== 'schedule') return;
+    if (selectedRole) {
       const ids = nameToSlotIds.get(selectedRole) || [];
-    Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
-        .then(data => {
-          setBookings(data.flat());
-        })
+      Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
+        .then(data => setBookings(data.flat()))
         .catch(() => {});
-    } else if (!selectedRole) {
+    } else if (selectedDepartment) {
+      const roles =
+        groupedRoles.find(g => g.category === selectedDepartment)?.roles || [];
+      const ids = roles.flatMap(r => nameToSlotIds.get(r.name) || []);
+      Promise.all(ids.map(id => getVolunteerBookingsByRole(id)))
+        .then(data => setBookings(data.flat()))
+        .catch(() => {});
+    } else {
       setBookings([]);
     }
-  }, [selectedRole, tab, nameToSlotIds]);
+  }, [selectedRole, selectedDepartment, tab, nameToSlotIds, groupedRoles]);
 
   // volunteer search handled via EntitySearch component
 
@@ -655,13 +672,31 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       )}
       {tab === 'schedule' && (
         <div>
+          <FormControl sx={{ minWidth: 200, mr: 2 }}>
+            <InputLabel id="schedule-department-label">Department</InputLabel>
+            <Select
+              labelId="schedule-department-label"
+              value={selectedDepartment}
+              label="Department"
+              onChange={e => {
+                setSelectedDepartment(e.target.value as string);
+                setSelectedRole('');
+              }}
+            >
+              <MenuItem value="">Select department</MenuItem>
+              {departmentItems}
+            </Select>
+          </FormControl>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel id="schedule-role-label">Role</InputLabel>
             <Select
               labelId="schedule-role-label"
               value={selectedRole}
               label="Role"
-              onChange={e => setSelectedRole(e.target.value as string)}
+              onChange={e => {
+                setSelectedRole(e.target.value as string);
+                setSelectedDepartment('');
+              }}
             >
               <MenuItem value="">Select role</MenuItem>
               {scheduleRoleItems}
@@ -723,8 +758,114 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 rows={rows}
               />
             </>
+          ) : selectedDepartment ? (
+            <>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mt={2}
+              >
+                <Button onClick={() => changeDay(-1)} variant="outlined" color="primary">
+                  Previous
+                </Button>
+                <Typography
+                  variant="h5"
+                  component="h3"
+                  sx={{ fontWeight: theme.typography.fontWeightBold }}
+                >
+                  {formatDate(currentDate)}
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Button
+                    onClick={() => setCurrentDate(todayStart)}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Today
+                  </Button>
+                  <LocalizationProvider
+                    dateAdapter={AdapterDayjs}
+                    dateLibInstance={dayjs}
+                  >
+                    <DatePicker
+                      value={dayjs(currentDate)}
+                      format="YYYY-MM-DD"
+                      onChange={(d) => {
+                        if (d) {
+                          setCurrentDate(
+                            fromZonedTime(
+                              `${formatDate(d)}T00:00:00`,
+                              reginaTimeZone,
+                            ),
+                          );
+                        }
+                      }}
+                      slotProps={{ textField: { size: 'medium' } }}
+                    />
+                  </LocalizationProvider>
+                  <Button onClick={() => changeDay(1)} variant="outlined" color="primary">
+                    Next
+                  </Button>
+                </Stack>
+              </Stack>
+              {groupedRoles
+                .find(g => g.category === selectedDepartment)?.roles
+                .filter(r => r.has_shifts)
+                .map(r => {
+                  const roleInfos = roles.filter(ro => ro.name === r.name);
+                  const rows = roleInfos.map(role => {
+                    const slotBookings = bookingsForDate.filter(
+                      b => b.role_id === role.id,
+                    );
+                    return {
+                      time: `${formatTime(role.start_time || '')} - ${formatTime(
+                        role.end_time || '',
+                      )}`,
+                      cells: Array.from({ length: role.max_volunteers }).map(
+                        (_, i) => {
+                          const booking = slotBookings[i];
+                          return {
+                            content: booking ? booking.volunteer_name : 'Available',
+                            backgroundColor: booking
+                              ? statusColors[booking.status] || approvedColor
+                              : undefined,
+                            onClick: () => {
+                              if (booking) {
+                                setManageShift(booking);
+                              } else {
+                                setAssignSlot(role);
+                                setAssignSearch('');
+                                setAssignResults([]);
+                                setAssignMsg('');
+                              }
+                            },
+                          };
+                        },
+                      ),
+                    };
+                  });
+                  const maxSlots = Math.max(
+                    0,
+                    ...roleInfos.map(r => r.max_volunteers),
+                  );
+                  return (
+                    <Box key={r.name} mt={3}>
+                      <Typography
+                        variant="h6"
+                        sx={{ fontWeight: theme.typography.fontWeightBold, mb: 1 }}
+                      >
+                        {r.name}
+                      </Typography>
+                      <VolunteerScheduleTable rows={rows} maxSlots={maxSlots} />
+                    </Box>
+                  );
+                })}
+            </>
           ) : (
-            <p style={{ marginTop: 16 }}>Select a role to view schedule.</p>
+            <p style={{ marginTop: 16 }}>
+              Select a role or department to view schedule.
+            </p>
           )}
         </div>
       )}

@@ -497,3 +497,86 @@ describe('VolunteerManagement schedule navigation', () => {
   });
 });
 
+describe('VolunteerManagement department schedule', () => {
+  beforeEach(() => {
+    jest
+      .useFakeTimers()
+      .setSystemTime(new Date('2024-01-01T19:00:00Z'));
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 1,
+        category_name: 'Pantry',
+        shifts: [
+          { id: 10, start_time: '09:00:00', end_time: '10:00:00' },
+        ],
+      },
+      {
+        id: 2,
+        category_id: 1,
+        name: 'Checker',
+        max_volunteers: 1,
+        category_name: 'Pantry',
+        shifts: [
+          { id: 20, start_time: '09:00:00', end_time: '10:00:00' },
+        ],
+      },
+    ]);
+    (getVolunteerBookingsByRole as jest.Mock).mockImplementation((id: number) => {
+      if (id === 10) {
+        return Promise.resolve([
+          {
+            id: 1,
+            status: 'approved',
+            role_id: 10,
+            volunteer_id: 1,
+            volunteer_name: 'Alice',
+            date: '2024-01-01',
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+          },
+        ]);
+      }
+      if (id === 20) {
+        return Promise.resolve([
+          {
+            id: 2,
+            status: 'approved',
+            role_id: 20,
+            volunteer_id: 2,
+            volunteer_name: 'Bob',
+            date: '2024-01-01',
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows bookings for all roles in selected department', async () => {
+    render(
+      <MemoryRouter initialEntries={['/volunteers/schedule']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.mouseDown(screen.getByLabelText('Department'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Pantry' }));
+
+    expect(await screen.findByText('Greeter')).toBeInTheDocument();
+    expect(await screen.findByText('Checker')).toBeInTheDocument();
+    expect(await screen.findByText('Alice')).toBeInTheDocument();
+    expect(await screen.findByText('Bob')).toBeInTheDocument();
+  });
+});
+
