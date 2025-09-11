@@ -857,45 +857,63 @@ export async function createBookingForUser(
           .json({ message: 'Client not linked to your agency' });
       }
     }
-    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
-    const usage = await countVisitsAndBookingsForMonth(userId, date);
-    if (usage === false) {
-      return res.status(400).json({ message: 'Please choose a valid date' });
-    }
-    if (usage >= 2) {
-      return res.status(400).json({ message: LIMIT_MESSAGE });
-    }
-
     const upcoming = await findUpcomingBooking(userId);
     if (upcoming) {
       return res
         .status(409)
         .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
     }
-    const holiday = await pool.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
-    if ((holiday.rowCount ?? 0) > 0) {
-      return res
-        .status(400)
-        .json({ message: 'Pantry is closed on the selected date.' });
+    if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
+      return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    await checkSlotCapacity(slotIdNum, date);
+    const client = await pool.connect();
     const status = 'approved';
-    const token = randomUUID();
+    let token: string;
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE', [userId]);
+      const usage = await countVisitsAndBookingsForMonth(userId, date, client, true);
+      if (usage === false) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: 'Please choose a valid date' });
+      }
+      if (usage >= 2) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ message: LIMIT_MESSAGE });
+      }
+      const holiday = await client.query('SELECT 1 FROM holidays WHERE date=$1', [date]);
+      if ((holiday.rowCount ?? 0) > 0) {
+        await client.query('ROLLBACK');
+        return res
+          .status(400)
+          .json({ message: 'Pantry is closed on the selected date.' });
+      }
+      await checkSlotCapacity(slotIdNum, date, client);
+      token = randomUUID();
+      await insertBooking(
+        userId,
+        slotIdNum,
+        status,
+        '',
+        date,
+        staffBookingFlag,
+        token,
+        null,
+        note ?? null,
+        client,
+      );
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      if (err instanceof SlotCapacityError) {
+        return res.status(err.status).json({ message: err.message });
+      }
+      throw err;
+    } finally {
+      client.release();
+    }
 
-    await insertBooking(
-      userId,
-      slotIdNum,
-      status,
-      '',
-      date,
-      staffBookingFlag,
-      token,
-      null,
-      note ?? null,
-    );
     const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
     const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
