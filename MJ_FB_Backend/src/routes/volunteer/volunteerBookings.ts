@@ -83,7 +83,7 @@ router.get(
   listVolunteerBookingsForReview,
 );
 router.get(
-  '/day',
+  '/by-date',
   authMiddleware,
   authorizeRoles('staff'),
   listVolunteerBookingsByDate,
