@@ -8,6 +8,7 @@ export default function DonorQuickLinks() {
     '&:hover': { color: 'primary.main' },
   } as const;
   const links = [
+    { to: '/donor-management/donors', label: 'Donors' },
     { to: '/donor-management/donation-log', label: 'Donor Log' },
     { to: '/donor-management/mail-lists', label: 'Mail Lists' },
   ];
