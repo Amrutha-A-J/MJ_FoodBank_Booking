@@ -30,6 +30,7 @@ import {
   createMonetaryDonation,
   updateMonetaryDonation,
   deleteMonetaryDonation,
+  updateMonetaryDonor,
   type MonetaryDonation,
   type MonetaryDonorDetail,
 } from '../../api/monetaryDonors';
@@ -67,6 +68,12 @@ export default function DonorProfile() {
     { amount: '', date: formatDate() },
   );
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -81,6 +88,16 @@ export default function DonorProfile() {
   function openEdit(d: MonetaryDonation) {
     setForm({ id: d.id, amount: String(d.amount), date: d.date });
     setFormOpen(true);
+  }
+
+  function openEditDonor() {
+    if (!donor) return;
+    setEditForm({
+      firstName: donor.firstName,
+      lastName: donor.lastName,
+      email: donor.email,
+    });
+    setEditOpen(true);
   }
 
   async function handleSave() {
@@ -107,6 +124,25 @@ export default function DonorProfile() {
       setSnackbar({
         open: true,
         message: 'Failed to save donation',
+        severity: 'error',
+      });
+    }
+  }
+
+  async function handleDonorSave() {
+    try {
+      await updateMonetaryDonor(donorId, editForm);
+      setSnackbar({
+        open: true,
+        message: 'Donor updated',
+        severity: 'success',
+      });
+      setEditOpen(false);
+      await refetchDonor();
+    } catch {
+      setSnackbar({
+        open: true,
+        message: 'Failed to update donor',
         severity: 'error',
       });
     }
@@ -149,9 +185,14 @@ export default function DonorProfile() {
           </Stack>
         )}
 
-        <Button variant="contained" onClick={openAdd} sx={{ alignSelf: 'flex-start' }}>
-          Add Donation
-        </Button>
+        <Stack direction="row" spacing={1} sx={{ alignSelf: 'flex-start' }}>
+          <Button variant="contained" onClick={openAdd}>
+            Add Donation
+          </Button>
+          <Button variant="outlined" onClick={openEditDonor}>
+            Edit Donor
+          </Button>
+        </Stack>
 
         <TableContainer component={Paper}>
           <Table size="small">
@@ -193,6 +234,40 @@ export default function DonorProfile() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Dialog open={editOpen} onClose={() => setEditOpen(false)}>
+          <DialogTitle>Edit Donor</DialogTitle>
+          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="First Name"
+              value={editForm.firstName}
+              onChange={e =>
+                setEditForm(f => ({ ...f, firstName: e.target.value }))
+              }
+            />
+            <TextField
+              label="Last Name"
+              value={editForm.lastName}
+              onChange={e =>
+                setEditForm(f => ({ ...f, lastName: e.target.value }))
+              }
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={editForm.email}
+              onChange={e =>
+                setEditForm(f => ({ ...f, email: e.target.value }))
+              }
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="contained" onClick={handleDonorSave}>
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Dialog open={formOpen} onClose={() => setFormOpen(false)}>
           <DialogTitle>{form.id ? 'Edit Donation' : 'Add Donation'}</DialogTitle>
