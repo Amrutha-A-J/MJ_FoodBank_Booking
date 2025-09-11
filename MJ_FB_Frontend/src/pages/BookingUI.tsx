@@ -388,7 +388,7 @@ export default function BookingUI({
           borderColor: 'divider',
           pl: 2,
           ...(selected && {
-            bgcolor: 'action.selected',
+            bgcolor: 'warning.light',
             borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
           }),
         }}

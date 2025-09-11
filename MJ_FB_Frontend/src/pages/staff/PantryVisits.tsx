@@ -16,6 +16,7 @@ import {
   RadioGroup,
   Typography,
   Checkbox,
+  Alert,
 } from '@mui/material';
 import Edit from '@mui/icons-material/Edit';
 import Delete from '@mui/icons-material/Delete';
@@ -595,14 +596,21 @@ export default function PantryVisits() {
                   onChange={e => setForm({ ...form, clientId: e.target.value })}
                 />
                 {clientFound === false && (
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="body2" color="error" sx={{ flexGrow: 1 }}>
-                      Client not present in database
-                    </Typography>
-                    <Button variant="outlined" onClick={handleCreateClient}>
-                      Create
-                    </Button>
-                  </Stack>
+                  <Alert
+                    severity="error"
+                    action={
+                      <Button
+                        variant="outlined"
+                        color="inherit"
+                        onClick={handleCreateClient}
+                      >
+                        Create
+                      </Button>
+                    }
+                    sx={{ alignItems: 'center' }}
+                  >
+                    Client not present in database
+                  </Alert>
                 )}
                 <TextField
                   label="Weight With Cart"
