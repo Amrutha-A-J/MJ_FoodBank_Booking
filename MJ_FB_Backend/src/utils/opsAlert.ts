@@ -3,14 +3,22 @@ import logger from './logger';
 
 async function sendTelegram(message: string): Promise<void> {
   if (!config.telegramBotToken || !config.telegramAlertChatId) return;
-  try {
-    await fetch(`https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: config.telegramAlertChatId, text: message }),
-    });
-  } catch (e) {
-    logger.error('Failed to send telegram alert', e);
+  const max = 4096;
+  for (let i = 0; i < message.length; i += max) {
+    const chunk = message.slice(i, i + max);
+    try {
+      await global.fetch(
+        `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: config.telegramAlertChatId, text: chunk }),
+        },
+      );
+    } catch (e) {
+      logger.error('Failed to send telegram alert', e);
+      break;
+    }
   }
 }
 

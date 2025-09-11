@@ -144,7 +144,9 @@ export async function sendTemplatedEmail({
       });
       void alertOps(
         'sendTemplatedEmail',
-        new Error(`Brevo responded with status ${response.status}`),
+        new Error(
+          `Brevo responded with status ${response.status}: ${responseText ?? ''}`,
+        ),
       );
     }
   } catch (error) {
