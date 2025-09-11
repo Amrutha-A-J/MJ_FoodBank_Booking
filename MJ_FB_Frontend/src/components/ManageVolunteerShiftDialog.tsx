@@ -20,9 +20,9 @@ import {
   updateVolunteerBookingStatus,
 } from '../api/volunteers';
 import type { VolunteerBookingDetail, Shift, VolunteerBookingStatus } from '../types';
-import type { ApiError } from '../api/client';
 import { formatTime } from '../utils/time';
 import { formatReginaDate } from '../utils/date';
+import getApiErrorMessage from '../utils/getApiErrorMessage';
 
 interface ManageVolunteerShiftDialogProps {
   open: boolean;
@@ -153,10 +153,9 @@ export default function ManageVolunteerShiftDialog({
           setMessage('Please select a status');
           return;
       }
-    } catch (e) {
-      const err = e as ApiError;
+    } catch (err) {
       setSeverity('error');
-      setMessage(err.message || 'Action failed');
+      setMessage(getApiErrorMessage(err, 'Failed to update booking'));
     }
   }
 

@@ -25,6 +25,7 @@ import { createClientVisit } from '../api/clientVisits';
 import { formatTime } from '../utils/time';
 import { formatReginaDate, toDayjs } from '../utils/date';
 import type { Slot, Booking } from '../types';
+import getApiErrorMessage from '../utils/getApiErrorMessage';
 
 const CART_TARE = 27;
 
@@ -164,7 +165,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
       }
     } catch (err) {
       setSeverity('error');
-      setMessage((err as Error).message || 'Action failed');
+      setMessage(getApiErrorMessage(err, 'Failed to update booking'));
     }
   }
 
