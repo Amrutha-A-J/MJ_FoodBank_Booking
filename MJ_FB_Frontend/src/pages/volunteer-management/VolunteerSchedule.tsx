@@ -191,10 +191,9 @@ export default function VolunteerSchedule() {
     getVolunteerBookingsByRoles(ids)
       .then((data) =>
         setBookings(
-          data.filter(
-            (b) =>
-              b.volunteer_id === auth.id &&
-              (b.date?.split('T')[0] ?? b.date) === dateStr,
+          data.filter((b: VolunteerBooking) =>
+            b.volunteer_id === auth.id &&
+            (b.date?.split('T')[0] ?? b.date) === dateStr,
           ),
         ),
       )

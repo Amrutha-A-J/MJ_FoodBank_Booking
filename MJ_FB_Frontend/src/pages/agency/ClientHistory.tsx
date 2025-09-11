@@ -14,13 +14,12 @@ import {
   Select,
   MenuItem,
   TableContainer,
-  Stack,
   Typography,
 } from '@mui/material';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import EntitySearch from '../../components/EntitySearch';
-import { toDate, formatDate, formatReginaDate, toDayjs } from '../../utils/date';
+import { toDate, formatReginaDate, toDayjs } from '../../utils/date';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
 import { useTranslation } from 'react-i18next';

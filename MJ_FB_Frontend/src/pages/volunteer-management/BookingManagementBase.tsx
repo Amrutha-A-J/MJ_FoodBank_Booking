@@ -51,15 +51,15 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
     () => [
       { field: 'role_name', header: t('role') },
       { field: 'date', header: t('date') },
-      {
-        field: 'time',
-        header: t('time'),
-        render: (row: VolunteerBookingDetail) => (
-          <>
-            {formatTime(row.start_time ?? '')} - {formatTime(row.end_time ?? '')}
-          </>
-        ),
-      },
+        {
+          field: 'start_time',
+          header: t('time'),
+          render: (row: VolunteerBookingDetail) => (
+            <>
+              {formatTime(row.start_time ?? '')} - {formatTime(row.end_time ?? '')}
+            </>
+          ),
+        },
       {
         field: 'status',
         header: t('status'),
