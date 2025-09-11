@@ -190,15 +190,12 @@ export default function PendingReviews() {
               Mark No Show
             </Button>
           </Stack>
-          {displayed.length > 0 ? (
-            <ResponsiveTable
-              columns={columns}
-              rows={displayed}
-              getRowKey={b => b.id}
-            />
-          ) : (
-            <Typography>No bookings</Typography>
-          )}
+          <ResponsiveTable
+            columns={columns}
+            rows={displayed}
+            getRowKey={b => b.id}
+            emptyMessage="No bookings"
+          />
         </Stack>
         <ManageVolunteerShiftDialog
           open={Boolean(dialog)}

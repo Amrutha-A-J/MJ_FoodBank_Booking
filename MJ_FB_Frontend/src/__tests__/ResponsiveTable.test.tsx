@@ -39,4 +39,22 @@ describe('ResponsiveTable', () => {
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Age')).toBeInTheDocument();
   });
+
+  it('shows a default empty message', () => {
+    useMediaQueryMock.mockReturnValue(false);
+    render(<ResponsiveTable columns={columns} rows={[]} />);
+    expect(screen.getByText('No records')).toBeInTheDocument();
+  });
+
+  it('shows a custom empty message', () => {
+    useMediaQueryMock.mockReturnValue(false);
+    render(
+      <ResponsiveTable
+        columns={columns}
+        rows={[]}
+        emptyMessage="Nothing to display"
+      />,
+    );
+    expect(screen.getByText('Nothing to display')).toBeInTheDocument();
+  });
 });

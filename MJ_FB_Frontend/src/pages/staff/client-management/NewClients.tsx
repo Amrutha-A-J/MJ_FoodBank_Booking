@@ -66,7 +66,12 @@ export default function NewClients() {
       <Typography variant="h5" gutterBottom>
         New Clients
       </Typography>
-      <ResponsiveTable columns={columns} rows={clients} getRowKey={c => c.id} />
+      <ResponsiveTable
+        columns={columns}
+        rows={clients}
+        getRowKey={c => c.id}
+        emptyMessage="No new clients to review"
+      />
       {confirm && (
         <ConfirmDialog
           message={`Delete ${confirm.name}?`}

@@ -30,6 +30,8 @@ interface Props<T extends object> {
   getRowKey?: (row: T, index: number) => React.Key;
   /** Optional ref to the underlying table element */
   tableRef?: Ref<HTMLTableElement>;
+  /** Message to display when no rows are provided */
+  emptyMessage?: string;
 }
 
 export default function ResponsiveTable<T extends object>({
@@ -37,12 +39,21 @@ export default function ResponsiveTable<T extends object>({
   rows,
   getRowKey,
   tableRef,
+  emptyMessage = 'No records',
 }: Props<T>) {
   const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const rowKey = (row: T, index: number) =>
     getRowKey ? getRowKey(row, index) : index;
+
+  if (rows.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+        <Typography>{emptyMessage}</Typography>
+      </Box>
+    );
+  }
 
   if (isSmall) {
     return (
