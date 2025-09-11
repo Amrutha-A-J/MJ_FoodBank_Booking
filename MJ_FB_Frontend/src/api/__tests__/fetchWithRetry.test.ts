@@ -61,5 +61,22 @@ describe('fetchWithRetry', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(timeoutSpy).not.toHaveBeenCalled();
   });
+
+  it('throws after exhausting retries', async () => {
+    const timeoutSpy = jest.spyOn(global, 'setTimeout');
+    fetchMock.mockRejectedValue(new Error('net'));
+
+    const promise = fetchWithRetry('/test', {}, 1, 100);
+    await Promise.resolve();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
+    jest.runOnlyPendingTimers();
+    await Promise.resolve();
+
+    await expect(promise).rejects.toThrow(
+      'Failed to fetch after 2 attempts',
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
 
