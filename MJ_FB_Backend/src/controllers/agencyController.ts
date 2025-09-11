@@ -14,6 +14,7 @@ import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../ut
 import { sendTemplatedEmail } from '../utils/emailUtils';
 import config from '../config';
 import { parseIdParam } from '../utils/parseIdParam';
+import { parsePaginationParams } from '../utils/parsePaginationParams';
 
 export async function createAgency(
   req: Request,
@@ -157,23 +158,12 @@ export async function getAgencyClients(
       return res.status(403).json({ message: 'Forbidden' });
     }
     const search = req.query.search as string | undefined;
-    const limitParam = req.query.limit as string | undefined;
-    const offsetParam = req.query.offset as string | undefined;
-    let limit = 25;
-    if (limitParam !== undefined) {
-      const parsed = Number(limitParam);
-      if (!Number.isFinite(parsed) || parsed < 1) {
-        return res.status(400).json({ message: 'Invalid limit' });
-      }
-      limit = Math.min(parsed, 100);
-    }
-    let offset = 0;
-    if (offsetParam !== undefined) {
-      const parsed = Number(offsetParam);
-      if (!Number.isFinite(parsed) || parsed < 0) {
-        return res.status(400).json({ message: 'Invalid offset' });
-      }
-      offset = parsed;
+    let limit: number;
+    let offset: number;
+    try {
+      ({ limit, offset } = parsePaginationParams(req, 25, 100));
+    } catch (err) {
+      return res.status(400).json({ message: (err as Error).message });
     }
     const clients = await fetchAgencyClients(agencyId, search, limit, offset);
     res.json(clients);
