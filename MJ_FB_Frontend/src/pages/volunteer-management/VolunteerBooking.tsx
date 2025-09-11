@@ -13,6 +13,7 @@ import {
   Stack,
   Button,
   Skeleton,
+  TextField,
 } from '@mui/material';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs, { Dayjs } from 'dayjs';
@@ -71,6 +72,7 @@ export default function VolunteerBooking() {
     !isDisabled(date),
   );
   const [booking, setBooking] = useState(false);
+  const [note, setNote] = useState('');
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -107,9 +109,10 @@ export default function VolunteerBooking() {
     if (!selected) return;
     setBooking(true);
     try {
-      await requestVolunteerBooking(selected.id, selected.date);
+      await requestVolunteerBooking(selected.id, selected.date, note);
       setSnackbar({ open: true, message: 'Shift booked', severity: 'success' });
       setSelected(null);
+      setNote('');
       refetch();
     } catch (e) {
       const err = e as ApiError;
@@ -238,20 +241,24 @@ export default function VolunteerBooking() {
           zIndex: theme => theme.zIndex.appBar,
         }}
       >
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" spacing={1}>
+          <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexGrow: 1 }}>
             <Typography>
               {selected
                 ? `${selected.name} • ${formatTime(selected.start_time)}–${formatTime(selected.end_time)} on ${date.format('ddd, MMM D, YYYY')}`
                 : 'No slot selected'}
             </Typography>
           </Stack>
-          <Button
-            variant="contained"
-            
-            disabled={!selected || booking}
-            onClick={handleBook}
-          >
+          {selected && (
+            <TextField
+              label="Note"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              size="medium"
+              sx={{ minWidth: { xs: '100%', sm: 200 } }}
+            />
+          )}
+          <Button variant="contained" disabled={!selected || booking} onClick={handleBook}>
             Request shift
           </Button>
         </Stack>

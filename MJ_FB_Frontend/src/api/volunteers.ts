@@ -21,6 +21,8 @@ function normalizeVolunteerBooking(b: any): VolunteerBooking {
     end_time: b.end_time ?? b.endTime,
     startTime: b.startTime ?? b.start_time,
     endTime: b.endTime ?? b.end_time,
+    googleCalendarUrl: b.googleCalendarUrl,
+    icsUrl: b.icsUrl,
   };
 }
 
@@ -114,14 +116,15 @@ export async function getVolunteerRolesForVolunteer(
 
 export async function requestVolunteerBooking(
   roleId: number,
-  date: string
+  date: string,
+  note = ''
 ): Promise<VolunteerBooking> {
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ roleId, date, type: 'volunteer shift' }),
+    body: JSON.stringify({ roleId, date, note, type: 'volunteer shift' }),
   });
   const data = await handleResponse(res);
   return normalizeVolunteerBooking(data);

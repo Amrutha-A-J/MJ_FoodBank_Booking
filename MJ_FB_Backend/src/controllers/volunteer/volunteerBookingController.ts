@@ -59,9 +59,10 @@ export async function createVolunteerBooking(
   next: NextFunction,
 ) {
   const user = req.user;
-  const { roleId, date, type } = req.body as {
+  const { roleId, date, note, type } = req.body as {
     roleId?: number;
     date?: string;
+    note?: string;
     type?: string;
   };
   const emailType = type || 'Volunteer Shift';
@@ -188,24 +189,25 @@ export async function createVolunteerBooking(
 
       const token = randomUUID();
       const insertRes = await client.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-         VALUES ($1, $2, $3, 'approved', $4)
-         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-        [roleId, user.id, date, token],
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
+         VALUES ($1, $2, $3, 'approved', $4, $5)
+         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, note, recurring_id`,
+        [roleId, user.id, date, token, note ?? null],
       );
 
       await client.query('COMMIT');
 
+      const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
+      const { googleCalendarLink, appleCalendarLink } = buildCalendarLinks(
+        date,
+        slot.start_time,
+        slot.end_time,
+        uid,
+        0,
+      );
+
       if (user.email) {
-        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(
-          token,
-        );
-        const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
-        const {
-          googleCalendarLink,
-          appleCalendarLink,
-          icsContent,
-        } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
+        const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
         const body = `Date: ${formatReginaDateWithDay(date)} from ${formatTimeToAmPm(
           slot.start_time,
         )} to ${formatTimeToAmPm(slot.end_time)}`;
@@ -244,6 +246,7 @@ export async function createVolunteerBooking(
         booking.date instanceof Date
           ? formatReginaDate(booking.date)
           : booking.date;
+      booking.note = booking.note ?? null;
       sendBookingEvent({
         action: 'created',
         name: user.name || 'Volunteer',
@@ -254,7 +257,11 @@ export async function createVolunteerBooking(
       await notifyOps(
         `${user.name || 'Volunteer'} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
-      res.status(201).json(booking);
+      res.status(201).json({
+        ...booking,
+        googleCalendarUrl: googleCalendarLink,
+        icsUrl: appleCalendarLink,
+      });
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
       if (error.code === '23505') {
@@ -276,11 +283,12 @@ export async function createVolunteerBookingForVolunteer(
   res: Response,
   next: NextFunction,
 ) {
-  const { volunteerId, roleId, date, force } = req.body as {
+  const { volunteerId, roleId, date, force, note } = req.body as {
     volunteerId?: number;
     roleId?: number;
     date?: string;
     force?: boolean;
+    note?: string;
   };
   if (!volunteerId || !roleId || !date) {
     return res
@@ -409,13 +417,20 @@ export async function createVolunteerBookingForVolunteer(
 
       const token = randomUUID();
       const insertRes = await client.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-         VALUES ($1, $2, $3, 'approved', $4)
-         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-        [roleId, volunteerId, date, token],
+        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
+         VALUES ($1, $2, $3, 'approved', $4, $5)
+         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, note, recurring_id`,
+        [roleId, volunteerId, date, token, note ?? null],
       );
 
       await client.query('COMMIT');
+
+      const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
+      const {
+        googleCalendarLink,
+        appleCalendarLink,
+        icsContent,
+      } = buildCalendarLinks(date, slot.start_time, slot.end_time, uid, 0);
 
       const booking = insertRes.rows[0];
       booking.role_id = booking.slot_id;
@@ -425,6 +440,7 @@ export async function createVolunteerBookingForVolunteer(
         booking.date instanceof Date
           ? formatReginaDate(booking.date)
           : booking.date;
+      booking.note = booking.note ?? null;
       const nameRes = await pool.query(
         'SELECT first_name, last_name FROM volunteers WHERE id=$1',
         [volunteerId],
@@ -441,7 +457,11 @@ export async function createVolunteerBookingForVolunteer(
       await notifyOps(
         `${name} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
-      res.status(201).json(booking);
+      res.status(201).json({
+        ...booking,
+        googleCalendarUrl: googleCalendarLink,
+        icsUrl: appleCalendarLink,
+      });
     } catch (error: any) {
       await client.query('ROLLBACK').catch(() => {});
       if (error.code === '23505') {
@@ -470,9 +490,10 @@ export async function resolveVolunteerBookingConflict(
     rawRoleId !== undefined && rawRoleId !== null
       ? Number(rawRoleId)
       : undefined;
-  const { date, keep, type } = req.body as {
+  const { date, keep, note, type } = req.body as {
     date?: string;
     keep?: 'existing' | 'new';
+    note?: string;
     type?: string;
   };
   const emailType = type || 'Volunteer Shift';
@@ -594,20 +615,20 @@ export async function resolveVolunteerBookingConflict(
 
     const token = randomUUID();
     const insertRes = await pool.query(
-      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-       VALUES ($1, $2, $3, 'approved', $4)
-       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-      [roleId, user.id, date!, token]
+      `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
+       VALUES ($1, $2, $3, 'approved', $4, $5)
+       RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, note, recurring_id`,
+      [roleId, user.id, date!, token, note ?? null],
     );
 
+    const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
+    const {
+      googleCalendarLink,
+      appleCalendarLink,
+      icsContent,
+    } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
     if (user.email) {
       const { cancelLink, rescheduleLink } = buildCancelRescheduleLinks(token);
-      const uid = `volunteer-booking-${insertRes.rows[0].id}@mjfb`;
-      const {
-        googleCalendarLink,
-        appleCalendarLink,
-        icsContent,
-      } = buildCalendarLinks(date!, slot.start_time, slot.end_time, uid, 0);
       const body = `Date: ${formatReginaDateWithDay(date!)} from ${formatTimeToAmPm(
         slot.start_time,
       )} to ${formatTimeToAmPm(slot.end_time)}`;
@@ -646,8 +667,16 @@ export async function resolveVolunteerBookingConflict(
       booking.date instanceof Date
         ? formatReginaDate(booking.date)
         : booking.date;
+    booking.note = booking.note ?? null;
 
-    return res.status(201).json({ kept: 'new', booking });
+    return res.status(201).json({
+      kept: 'new',
+      booking: {
+        ...booking,
+        googleCalendarUrl: googleCalendarLink,
+        icsUrl: appleCalendarLink,
+      },
+    });
   } catch (error: any) {
     if (error.code === '23505') {
       return res.status(400).json({ message: 'Already booked for this shift' });

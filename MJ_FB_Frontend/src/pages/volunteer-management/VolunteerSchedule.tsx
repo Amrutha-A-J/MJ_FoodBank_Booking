@@ -87,6 +87,7 @@ export default function VolunteerSchedule() {
   );
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [endDate, setEndDate] = useState("");
+  const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] =
     useState<AlertColor>("success");
@@ -178,7 +179,7 @@ export default function VolunteerSchedule() {
 
   async function quickBook(role: VolunteerRole) {
     try {
-      await requestVolunteerBooking(role.id, formatDate(currentDate));
+      await requestVolunteerBooking(role.id, formatDate(currentDate), "");
       setSnackbarSeverity('success');
       setMessage(i18n.t('slot_booked_success'));
       await loadData();
@@ -203,7 +204,7 @@ export default function VolunteerSchedule() {
     if (!requestRole) return;
     try {
       if (frequency === "one-time") {
-        await requestVolunteerBooking(requestRole.id, formatDate(currentDate));
+        await requestVolunteerBooking(requestRole.id, formatDate(currentDate), note);
       } else {
         await createRecurringVolunteerBooking(
           requestRole.id,
@@ -220,6 +221,7 @@ export default function VolunteerSchedule() {
       setSnackbarSeverity("success");
       setMessage(`Shift booked for ${dateLabel} · ${timeLabel}`);
       setRequestRole(null);
+      setNote('');
       await loadData();
     } catch (err) {
       const apiErr = err as ApiError;
@@ -516,8 +518,8 @@ export default function VolunteerSchedule() {
           </Typography>
         ) : null}
 
-        <Dialog open={!!requestRole} onClose={() => setRequestRole(null)}>
-          <DialogCloseButton onClose={() => setRequestRole(null)} />
+        <Dialog open={!!requestRole} onClose={() => { setRequestRole(null); setNote(''); }}>
+          <DialogCloseButton onClose={() => { setRequestRole(null); setNote(''); }} />
           <DialogTitle>Request Booking</DialogTitle>
           <DialogContent dividers>
             <Typography sx={{ mb: 2 }}>
@@ -575,6 +577,15 @@ export default function VolunteerSchedule() {
                 InputLabelProps={{ shrink: true }}
               />
             )}
+            <TextField
+              label="Note"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              fullWidth
+              multiline
+              size="medium"
+              sx={{ mt: 2 }}
+            />
           </DialogContent>
           <DialogActions>
             <Button

@@ -133,6 +133,8 @@ export interface VolunteerBooking {
   reschedule_token?: string;
   recurring_id?: number;
   note?: string | null;
+  googleCalendarUrl?: string;
+  icsUrl?: string;
 }
 
 export interface VolunteerRecurringBooking {

@@ -63,7 +63,7 @@ function useSlots(
   return { slots: data ?? [], isLoading: isFetching, refetch, error };
 }
 
-function bookSlot(payload: {
+function defaultBookSlot(payload: {
   date: string;
   slotId: string;
   note: string;
@@ -78,6 +78,17 @@ export type BookingUIProps = {
   userId?: number;
   embedded?: boolean;
   onLoadingChange?: (loading: boolean) => void;
+  bookSlot?: (payload: {
+    date: string;
+    slotId: string;
+    note: string;
+    userId?: number;
+  }) => Promise<any>;
+  showNote?: boolean;
+  fetchUsage?: () => Promise<{
+    bookingsThisMonth?: number;
+    defaultBookingNote?: string;
+  }>;
 };
 
 export default function BookingUI({
@@ -86,6 +97,9 @@ export default function BookingUI({
   userId,
   embedded = false,
   onLoadingChange,
+  bookSlot = defaultBookSlot,
+  showNote = true,
+  fetchUsage = getUserProfile,
 }: BookingUIProps) {
   const { t } = useTranslation();
   const [date, setDate] = useState<Dayjs>(() => {
@@ -207,9 +221,13 @@ export default function BookingUI({
     setLoadingConfirm(true);
     setNote('');
     try {
-      const profile = await getUserProfile();
-      setUsage(profile.bookingsThisMonth ?? 0);
-      setNote(profile.defaultBookingNote ?? '');
+      if (fetchUsage) {
+        const profile = await fetchUsage();
+        setUsage(profile.bookingsThisMonth ?? null);
+        if (showNote) setNote(profile.defaultBookingNote ?? '');
+      } else if (showNote) {
+        setNote('');
+      }
       setConfirmOpen(true);
     } finally {
       setLoadingConfirm(false);
@@ -545,18 +563,22 @@ export default function BookingUI({
           <Typography>
             {t('time')}: {selectedLabel}
           </Typography>
-          <Typography>
-            {t('visits_this_month')} {usage ?? 0}
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            margin="normal"
-            label={t('client_note_label')}
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            size="medium"
-          />
+          {usage !== null && (
+            <Typography>
+              {t('visits_this_month')} {usage}
+            </Typography>
+          )}
+          {showNote && (
+            <TextField
+              fullWidth
+              multiline
+              margin="normal"
+              label={t('client_note_label')}
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              size="medium"
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)} size="medium" sx={{ minHeight: 48 }}>

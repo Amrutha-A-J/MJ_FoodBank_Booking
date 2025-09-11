@@ -262,7 +262,7 @@ export default function VolunteerDashboard() {
 
   async function request(role: VolunteerRole) {
     try {
-      const booking = await requestVolunteerBooking(role.id, role.date);
+      const booking = await requestVolunteerBooking(role.id, role.date, '');
       setSnackbarSeverity('success');
       setMessage('Shift booked');
       setBookings(prev => [

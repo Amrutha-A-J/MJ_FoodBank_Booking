@@ -66,10 +66,17 @@ describe('VolunteerBooking', () => {
 
     const slot = await screen.findByText(/9:00 AM/);
     fireEvent.click(slot);
+    fireEvent.change(screen.getByLabelText(/Note/i), {
+      target: { value: 'bring gloves' },
+    });
     fireEvent.click(screen.getByRole('button', { name: /request shift/i }));
 
     await waitFor(() =>
-      expect(requestVolunteerBooking).toHaveBeenCalledWith(1, expect.any(String)),
+      expect(requestVolunteerBooking).toHaveBeenCalledWith(
+        1,
+        expect.any(String),
+        'bring gloves',
+      ),
     );
     await waitFor(() =>
       expect(screen.getByText('Shift booked')).toBeInTheDocument(),
