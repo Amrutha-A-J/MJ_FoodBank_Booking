@@ -182,7 +182,7 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
                 );
               } else {
                 navigate(
-                  `/volunteer-management/search?id=${res.id}&name=${encodeURIComponent(
+                  `/volunteer-management/volunteers?id=${res.id}&name=${encodeURIComponent(
                     res.name,
                   )}`,
                 );

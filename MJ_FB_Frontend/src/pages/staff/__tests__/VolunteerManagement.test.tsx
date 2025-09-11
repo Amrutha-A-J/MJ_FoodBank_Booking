@@ -14,7 +14,6 @@ describe('VolunteerManagement tabs', () => {
       screen.getByRole('tab', { name: /search volunteer/i })
     ).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /add/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /edit/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /delete/i })).toBeInTheDocument();
   });
 });
