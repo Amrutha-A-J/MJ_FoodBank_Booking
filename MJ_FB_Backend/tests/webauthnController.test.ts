@@ -39,4 +39,30 @@ describe('webauthn routes', () => {
     const res = await request(app).post('/api/webauthn/verify').send({ credentialId: 'missing' });
     expect(res.status).toBe(401);
   });
+
+  it('register returns 401 for invalid credentials', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+    const res = await request(app)
+      .post('/api/webauthn/register')
+      .send({ identifier: '123', credentialId: 'abc' });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid credentials' });
+  });
+
+  it('verify returns 401 for invalid credentials', async () => {
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ user_identifier: '123', credential_id: 'abc' }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+
+    const res = await request(app)
+      .post('/api/webauthn/verify')
+      .send({ credentialId: 'abc' });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: 'Invalid credentials' });
+  });
 });

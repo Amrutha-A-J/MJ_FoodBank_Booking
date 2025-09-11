@@ -4,6 +4,7 @@ import pool from '../db';
 import { getCredential, saveCredential, getCredentialById } from '../models/webauthn';
 import issueAuthTokens, { AuthPayload } from '../utils/authUtils';
 import { getAgencyByEmail } from '../models/agency';
+import UnauthorizedError from '../utils/UnauthorizedError';
 
 export async function generateChallenge(req: Request, res: Response) {
   const { identifier } = req.body as { identifier?: string };
@@ -29,7 +30,11 @@ export async function registerCredential(
     const data = await loginByIdentifier(identifier, res);
     res.json(data);
   } catch (error) {
-    next(error);
+    if (error instanceof UnauthorizedError) {
+      res.status(401).json({ message: 'Invalid credentials' });
+    } else {
+      next(error);
+    }
   }
 }
 
@@ -47,7 +52,11 @@ export async function verifyCredential(
     const data = await loginByIdentifier(stored.userIdentifier, res);
     res.json(data);
   } catch (error) {
-    next(error);
+    if (error instanceof UnauthorizedError) {
+      res.status(401).json({ message: 'Invalid credentials' });
+    } else {
+      next(error);
+    }
   }
 }
 
@@ -127,7 +136,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
       return { role: 'agency', name: agency.name, id: agency.id, access: [] };
     }
 
-    throw new Error('Invalid credentials');
+    throw new UnauthorizedError('Invalid credentials');
   }
 
   const clientId = Number(identifier);
@@ -136,7 +145,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
     [clientId],
   );
   if ((userQuery.rowCount ?? 0) === 0) {
-    throw new Error('Invalid credentials');
+    throw new UnauthorizedError('Invalid credentials');
   }
   const userRow = userQuery.rows[0];
 
