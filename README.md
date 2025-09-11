@@ -104,7 +104,7 @@ verification succeeds.
         autovacuum_vacuum_threshold = 50,
         autovacuum_analyze_threshold = 50;
   ```
-- Schedule a low-traffic `VACUUM (ANALYZE, VERBOSE)` to keep planner stats fresh.
+- A nightly backend job runs `VACUUM (ANALYZE)` on frequently updated tables (`bookings`, `volunteer_bookings`, `email_queue`) at 1 AM Regina time.
 - Plan quarterly `REINDEX` or [`pg_repack`](https://reorg.github.io/pg_repack/) runs for heavily updated tables such as `bookings` and `volunteer_bookings`.
 - Monitor table bloat using `pg_stat_user_tables` or `pgstattuple` and log maintenance tasks in `mj_food_bank_deploy_ops_cheatsheet.md`.
 
