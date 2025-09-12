@@ -7,8 +7,10 @@ import {
   Button,
   TextField,
   Stack,
+  FormControl,
   FormControlLabel,
-  Checkbox,
+  FormHelperText,
+  Switch,
   Tooltip,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
@@ -105,18 +107,29 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       <DialogTitle>Edit Volunteer</DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          <Tooltip title="Volunteer already has a password" disableHoverListener={!form.hasPassword}>
+          <Tooltip
+            title="Volunteer already has a password"
+            disableHoverListener={!form.hasPassword}
+          >
             <span>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.onlineAccess}
-                    onChange={e => setForm({ ...form, onlineAccess: e.target.checked })}
-                    disabled={form.hasPassword}
-                  />
-                }
-                label="Online Access"
-              />
+              <FormControl>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.onlineAccess}
+                      onChange={e =>
+                        setForm({ ...form, onlineAccess: e.target.checked })
+                      }
+                      disabled={form.hasPassword}
+                      data-testid="online-access-toggle"
+                    />
+                  }
+                  label="Online Access"
+                />
+                <FormHelperText>
+                  Allow the volunteer to sign in online.
+                </FormHelperText>
+              </FormControl>
             </span>
           </Tooltip>
           <TextField

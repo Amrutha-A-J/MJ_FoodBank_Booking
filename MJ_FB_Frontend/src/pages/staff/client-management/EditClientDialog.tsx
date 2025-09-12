@@ -6,8 +6,10 @@ import {
   DialogActions,
   Button,
   TextField,
+  FormControl,
   FormControlLabel,
-  Checkbox,
+  FormHelperText,
+  Switch,
   Stack,
   Tooltip,
 } from '@mui/material';
@@ -114,18 +116,24 @@ export default function EditClientDialog({
             disableHoverListener={!form.hasPassword}
           >
             <span>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.onlineAccess}
-                    onChange={e =>
-                      setForm({ ...form, onlineAccess: e.target.checked })
-                    }
-                    disabled={form.hasPassword}
-                  />
-                }
-                label="Online Access"
-              />
+              <FormControl>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={form.onlineAccess}
+                      onChange={e =>
+                        setForm({ ...form, onlineAccess: e.target.checked })
+                      }
+                      disabled={form.hasPassword}
+                      data-testid="online-access-toggle"
+                    />
+                  }
+                  label="Online Access"
+                />
+                <FormHelperText>
+                  Allow the client to sign in online.
+                </FormHelperText>
+              </FormControl>
             </span>
           </Tooltip>
           <TextField
