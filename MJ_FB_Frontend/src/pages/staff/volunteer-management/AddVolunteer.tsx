@@ -55,8 +55,8 @@ export default function AddVolunteer() {
         onlineAccess,
         email || undefined,
         phone || undefined,
-        sendPasswordLink ? undefined : password || undefined,
-        sendPasswordLink,
+        onlineAccess && !sendPasswordLink ? password || undefined : undefined,
+        onlineAccess ? sendPasswordLink : undefined,
       );
       setMessage('Volunteer created');
       setSeverity('success');
