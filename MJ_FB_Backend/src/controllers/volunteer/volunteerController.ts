@@ -53,7 +53,7 @@ export async function getVolunteerProfile(
   if (!user) return res.status(401).json({ message: 'Unauthorized' });
   try {
     const profileRes = await pool.query(
-      `SELECT id, first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
+      `SELECT id, first_name, last_name, email, phone, consent FROM volunteers WHERE id = $1`,
       [user.id],
     );
     if ((profileRes.rowCount ?? 0) === 0) {
@@ -75,6 +75,7 @@ export async function getVolunteerProfile(
       phone: row.phone,
       role: 'volunteer',
       trainedAreas: trainedRes.rows.map(r => r.name),
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error fetching volunteer profile:', error);
@@ -148,8 +149,8 @@ export async function createVolunteer(
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     const result = await pool.query(
-      `INSERT INTO volunteers (first_name, last_name, email, phone, password)
-       VALUES ($1,$2,$3,$4,$5)
+      `INSERT INTO volunteers (first_name, last_name, email, phone, password, consent)
+       VALUES ($1,$2,$3,$4,$5, true)
        RETURNING id`,
       [firstName, lastName, email, phone, hashedPassword]
     );
@@ -229,7 +230,7 @@ export async function updateVolunteer(
              ELSE password
            END
        WHERE id = $7
-       RETURNING id, first_name, last_name, email, phone, password`,
+       RETURNING id, first_name, last_name, email, phone, password, consent`,
       [
         firstName,
         lastName,
@@ -261,6 +262,7 @@ export async function updateVolunteer(
       lastName: row.last_name,
       email: row.email,
       phone: row.phone,
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error updating volunteer:', error);
@@ -315,8 +317,8 @@ export async function createVolunteerShopperProfile(
     }
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const userRes = await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1,$2,$3,$4,$5,'shopper',NULL, true, $6) RETURNING client_id`,
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link, consent)
+       VALUES ($1,$2,$3,$4,$5,'shopper',NULL, true, $6, true) RETURNING client_id`,
       [
         volRes.rows[0].first_name,
         volRes.rows[0].last_name,

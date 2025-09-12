@@ -6,11 +6,12 @@ export interface Agency {
   email: string;
   password: string | null;
   contact_info: string | null;
+  consent: boolean;
 }
 
 export async function getAgencyByEmail(email: string): Promise<Agency | undefined> {
   const res = await pool.query<Agency>(
-    'SELECT id, name, email, password, contact_info FROM agencies WHERE email = $1',
+    'SELECT id, name, email, password, contact_info, consent FROM agencies WHERE email = $1',
     [email],
   );
   return res.rows[0] as Agency | undefined;
@@ -22,9 +23,9 @@ export async function createAgency(
   contactInfo?: string,
 ): Promise<Agency> {
   const res = await pool.query(
-    `INSERT INTO agencies (name, email, password, contact_info)
-     VALUES ($1, $2, NULL, $3)
-     RETURNING id, name, email, password, contact_info`,
+    `INSERT INTO agencies (name, email, password, contact_info, consent)
+     VALUES ($1, $2, NULL, $3, true)
+     RETURNING id, name, email, password, contact_info, consent`,
     [name, email, contactInfo ?? null],
   );
   return res.rows[0] as Agency;

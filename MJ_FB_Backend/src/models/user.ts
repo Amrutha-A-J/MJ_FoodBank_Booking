@@ -12,4 +12,5 @@ export interface User {
   bookingCountLastUpdated: string;
   password?: string | null;
   onlineAccess: boolean;
+  consent: boolean;
 }

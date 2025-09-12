@@ -63,7 +63,7 @@ export async function verifyCredential(
 async function loginByIdentifier(identifier: string, res: Response) {
   if (identifier.includes('@')) {
     const volunteerQuery = await pool.query(
-      `SELECT v.id, v.first_name, v.last_name, v.user_id, u.role AS user_role
+      `SELECT v.id, v.first_name, v.last_name, v.user_id, v.consent, u.role AS user_role
        FROM volunteers v
        LEFT JOIN clients u ON v.user_id = u.client_id
        WHERE v.email = $1`,
@@ -101,11 +101,12 @@ async function loginByIdentifier(identifier: string, res: Response) {
         }),
         access,
         id: volunteer.id,
+        consent: volunteer.consent,
       };
     }
 
     const staffQuery = await pool.query(
-      `SELECT id, first_name, last_name, role, access FROM staff WHERE email = $1`,
+      `SELECT id, first_name, last_name, role, access, consent FROM staff WHERE email = $1`,
       [identifier],
     );
     if ((staffQuery.rowCount ?? 0) > 0) {
@@ -122,6 +123,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
         name: `${staff.first_name} ${staff.last_name}`,
         access: staff.access || [],
         id: staff.id,
+        consent: staff.consent,
       };
     }
 
@@ -133,7 +135,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
         type: 'agency',
       };
       await issueAuthTokens(res, payload, `agency:${agency.id}`);
-      return { role: 'agency', name: agency.name, id: agency.id, access: [] };
+      return { role: 'agency', name: agency.name, id: agency.id, access: [], consent: agency.consent };
     }
 
     throw new UnauthorizedError('Invalid credentials');
@@ -141,7 +143,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
 
   const clientId = Number(identifier);
   const userQuery = await pool.query(
-    `SELECT client_id, first_name, last_name, role FROM clients WHERE client_id = $1 AND online_access = true`,
+    `SELECT client_id, first_name, last_name, role, consent FROM clients WHERE client_id = $1 AND online_access = true`,
     [clientId],
   );
   if ((userQuery.rowCount ?? 0) === 0) {
@@ -150,7 +152,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
   const userRow = userQuery.rows[0];
 
   const volunteerQuery = await pool.query(
-    `SELECT id, first_name, last_name FROM volunteers WHERE user_id = $1`,
+    `SELECT id, first_name, last_name, consent FROM volunteers WHERE user_id = $1`,
     [userRow.client_id],
   );
   if ((volunteerQuery.rowCount ?? 0) > 0) {
@@ -181,6 +183,7 @@ async function loginByIdentifier(identifier: string, res: Response) {
       userRole: userRow.role,
       access,
       id: volunteer.id,
+      consent: volunteer.consent,
     };
   }
 
@@ -194,5 +197,6 @@ async function loginByIdentifier(identifier: string, res: Response) {
     role: userRow.role,
     name: `${userRow.first_name} ${userRow.last_name}`,
     id: userRow.client_id,
+    consent: userRow.consent,
   };
 }

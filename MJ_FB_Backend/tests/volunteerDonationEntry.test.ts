@@ -32,6 +32,7 @@ describe('donation entry volunteer login', () => {
           password: 'hashed',
           user_id: null,
           user_role: null,
+          consent: false,
         }],
       })
       .mockResolvedValueOnce({ rows: [{ name: 'Donation Entry' }] });

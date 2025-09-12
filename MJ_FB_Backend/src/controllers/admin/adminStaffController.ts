@@ -67,7 +67,7 @@ export async function createStaff(req: Request, res: Response, next: NextFunctio
     }
     const role = 'staff';
     const result = await pool.query(
-      `INSERT INTO staff (first_name, last_name, role, email, password, access) VALUES ($1, $2, $3, $4, NULL, $5) RETURNING id`,
+      `INSERT INTO staff (first_name, last_name, role, email, password, access, consent) VALUES ($1, $2, $3, $4, NULL, $5, true) RETURNING id`,
       [firstName, lastName, role, email, access],
     );
     const staffId = result.rows[0].id;
