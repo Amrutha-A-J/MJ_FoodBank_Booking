@@ -75,6 +75,7 @@
   "resend_password_setup_link": "Resend Password Setup Link",
   "email_or_client_id": "Email or Client ID",
   "setup_link_sent": "If the account exists, a setup link has been sent.",
+  "setup_link_explanation": "We couldn't find a password for this account. You may not have completed setup or the link expired. Enter your email or client ID to receive a new setup link.",
   "reset_link_sent": "If the account exists, a reset link has been sent.",
   "password_reset_instructions": "Enter your email or client ID and select submit. You'll get an email with a link to reset your password.",
   "profile_page": {
