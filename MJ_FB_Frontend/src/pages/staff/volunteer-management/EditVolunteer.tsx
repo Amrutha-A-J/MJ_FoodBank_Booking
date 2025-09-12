@@ -40,6 +40,12 @@ import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 
+function slugify(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 export default function EditVolunteer() {
   const [volunteer, setVolunteer] =
     useState<VolunteerSearchResult | null>(null);
@@ -195,9 +201,22 @@ export default function EditVolunteer() {
                   placeholder="Search volunteer"
                   onSelect={v => handleSelect(v as VolunteerSearchResult)}
                 />
+                {!volunteer && (
+                  <FormHelperText>Select a volunteer to edit</FormHelperText>
+                )}
                 {volunteer && (
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography>{volunteer.name}</Typography>
+                    <Typography data-testid="volunteer-name">
+                      {volunteer.name}
+                    </Typography>
+                    {volunteer.hasPassword && (
+                      <Chip
+                        label="Online account"
+                        size="small"
+                        color="success"
+                        data-testid="online-badge"
+                      />
+                    )}
                     {hasShopper && (
                       <Chip label="Shopper profile" size="small" />
                     )}
@@ -244,6 +263,7 @@ export default function EditVolunteer() {
                         value={selected}
                         onChange={handleRoleChange}
                         renderValue={() => 'Select roles'}
+                        data-testid="roles-select"
                       >
                         {groupedRoles.flatMap(g => [
                           <ListSubheader key={`${g.category}-header`}>
@@ -258,13 +278,26 @@ export default function EditVolunteer() {
                         ])}
                       </Select>
                     </FormControl>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    {selected.length === 0 && (
+                      <FormHelperText>Select at least one role</FormHelperText>
+                    )}
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gap: 1,
+                        gridTemplateColumns: {
+                          xs: '1fr',
+                          sm: 'repeat(auto-fill, minmax(200px, 1fr))',
+                        },
+                      }}
+                    >
                       {selected.map(name => (
                         <Chip
                           key={name}
                           label={name}
                           onDelete={() => removeRole(name)}
                           title={name}
+                          data-testid={`role-chip-${slugify(name)}`}
                           sx={{
                             maxWidth: 200,
                             '& .MuiChip-label': {
@@ -274,7 +307,7 @@ export default function EditVolunteer() {
                           }}
                         />
                       ))}
-                    </Stack>
+                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -299,6 +332,7 @@ export default function EditVolunteer() {
               variant="contained"
               onClick={handleSave}
               aria-label="Save volunteer"
+              data-testid="save-button"
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Save
