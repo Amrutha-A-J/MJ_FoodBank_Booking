@@ -33,6 +33,7 @@ export default function EntitySearch<T extends SearchResultBase>({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [results, setResults] = useState<T[]>([]);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedQuery(query), 300);
@@ -42,6 +43,7 @@ export default function EntitySearch<T extends SearchResultBase>({
   useEffect(() => {
     if (debouncedQuery.length < 3) {
       setResults([]);
+      setHasSearched(false);
       return;
     }
     let active = true;
@@ -52,6 +54,7 @@ export default function EntitySearch<T extends SearchResultBase>({
         : type === 'volunteer'
         ? searchVolunteers
         : searchAgencies);
+    setHasSearched(true);
     fn(debouncedQuery)
       .then(data => {
         if (active) setResults(data);
@@ -74,6 +77,7 @@ export default function EntitySearch<T extends SearchResultBase>({
   function handleSelect(res: T) {
     setQuery(clearOnSelect ? '' : getLabel(res));
     setResults([]);
+    setHasSearched(false);
     onSelect(res);
   }
 
@@ -115,7 +119,9 @@ export default function EntitySearch<T extends SearchResultBase>({
           ))}
         </ul>
       ) : (
-        query.trim().length >= 3 && <p>No search results.</p>
+        hasSearched && results.length === 0 && query.trim() !== '' && (
+          <p>No search results.</p>
+        )
       )}
       <FeedbackSnackbar
         open={!!error}
