@@ -137,6 +137,7 @@ export function SlotRow({
         borderBottom: 1,
         borderColor: 'divider',
         width: '100%',
+        flexDirection: { xs: 'column', md: 'row' },
       }}
     >
       <ListItemButton
@@ -149,7 +150,8 @@ export function SlotRow({
         })}
         sx={{
           pl: 2,
-          flexGrow: 1,
+          flexGrow: { md: 1 },
+          width: { xs: '100%', md: 'auto' },
           ...(isMdUp
             ? {
                 mr: selected ? 1 : 0,
