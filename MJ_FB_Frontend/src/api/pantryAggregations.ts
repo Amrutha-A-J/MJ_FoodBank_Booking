@@ -84,3 +84,20 @@ export async function rebuildPantryAggregations() {
   const res = await apiFetch(`${API_BASE}/pantry-aggregations/rebuild`, { method: 'POST' });
   await handleResponse(res);
 }
+
+export async function postManualPantryAggregate(data: {
+  year: number;
+  month: number;
+  orders: number;
+  adults: number;
+  children: number;
+  weight: number;
+}) {
+  const body = { ...data, people: data.adults + data.children };
+  const res = await apiFetch(`${API_BASE}/pantry-aggregations/manual`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  await handleResponse(res);
+}

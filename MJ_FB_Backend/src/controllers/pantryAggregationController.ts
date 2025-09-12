@@ -14,6 +14,7 @@ import {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
+  manualPantryAggregate,
 } from './pantry/pantryAggregationController';
 
 export {
@@ -23,6 +24,7 @@ export {
   refreshPantryWeekly,
   refreshPantryMonthly,
   refreshPantryYearly,
+  manualPantryAggregate,
 };
 
 export async function listWeeklyAggregations(req: Request, res: Response, next: NextFunction) {

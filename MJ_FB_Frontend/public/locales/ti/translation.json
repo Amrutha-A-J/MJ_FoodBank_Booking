@@ -267,5 +267,7 @@
     "link_label": "privacy policy",
     "agree": "Agree"
   },
-  "privacy_policy": "Privacy Policy"
+  "privacy_policy": "Privacy Policy",
+  "insert_aggregate": "Insert Aggregate",
+  "insert_aggregate_help": "Manually add or update monthly totals"
 }

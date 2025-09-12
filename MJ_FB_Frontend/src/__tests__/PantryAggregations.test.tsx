@@ -18,6 +18,7 @@ const mockExportPantryAggregations = jest
   .fn()
   .mockResolvedValue({ blob: new Blob(), fileName: 'test.xlsx' });
 const mockRebuildPantryAggregations = jest.fn().mockResolvedValue(undefined);
+const mockPostManualPantryAggregate = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../api/pantryAggregations', () => ({
   getPantryWeekly: (...args: unknown[]) => mockGetPantryWeekly(...args),
@@ -28,6 +29,7 @@ jest.mock('../api/pantryAggregations', () => ({
   getPantryWeeks: (...args: unknown[]) => mockGetPantryWeeks(...args),
   exportPantryAggregations: (...args: unknown[]) => mockExportPantryAggregations(...args),
   rebuildPantryAggregations: (...args: unknown[]) => mockRebuildPantryAggregations(...args),
+  postManualPantryAggregate: (...args: unknown[]) => mockPostManualPantryAggregate(...args),
 }));
 
 describe('PantryAggregations page', () => {
@@ -152,6 +154,45 @@ describe('PantryAggregations page', () => {
     await waitFor(() => expect(mockGetPantryWeeks).toHaveBeenCalled());
     const exportBtn = await screen.findByRole('button', { name: /export table/i });
     expect(exportBtn).toBeDisabled();
+  });
+
+  it('inserts manual aggregate through modal', async () => {
+    render(
+      <MemoryRouter>
+        <PantryAggregations />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('tab', { name: /monthly/i }));
+    await waitFor(() => expect(mockGetPantryMonthly).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: /insert aggregate/i }));
+
+    fireEvent.change(await screen.findByLabelText(/orders/i), {
+      target: { value: '1' },
+    });
+    fireEvent.change(screen.getByLabelText(/adults/i), {
+      target: { value: '2' },
+    });
+    fireEvent.change(screen.getByLabelText(/children/i), {
+      target: { value: '3' },
+    });
+    fireEvent.change(screen.getByLabelText(/weight/i), {
+      target: { value: '4' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() =>
+      expect(mockPostManualPantryAggregate).toHaveBeenCalledWith({
+        year: currentYear,
+        month: currentMonth,
+        orders: 1,
+        adults: 2,
+        children: 3,
+        weight: 4,
+      }),
+    );
+    await waitFor(() => expect(mockGetPantryMonthly).toHaveBeenCalledTimes(2));
   });
 
   it('formats partial weeks with remaining weekdays', () => {

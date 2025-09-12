@@ -8,6 +8,7 @@ import {
   listAvailableWeeks,
   exportAggregations,
   rebuildAggregations,
+  manualPantryAggregate,
 } from '../../controllers/pantryAggregationController';
 import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
 
@@ -56,6 +57,12 @@ router.get(
   exportAggregations,
 );
 router.post('/rebuild', authMiddleware, authorizeAccess('pantry', 'aggregations'), rebuildAggregations);
+router.post(
+  '/manual',
+  authMiddleware,
+  authorizeAccess('pantry', 'aggregations'),
+  manualPantryAggregate,
+);
 
 export default router;
 

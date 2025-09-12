@@ -29,6 +29,7 @@ const {
 } = require('../src/controllers/pantry/pantryAggregationController');
 
 const app = express();
+app.use(express.json());
 app.use('/pantry-aggregations', pantryAggregationsRoutes);
 
 describe('pantry aggregation routes', () => {
@@ -123,5 +124,56 @@ describe('pantry aggregation routes', () => {
       'attachment; filename=2024_05_2024-04-29_to_2024-05-03_week_1_agggregation.xlsx',
     );
     expect(res.body).toEqual(Buffer.from('test'));
+  });
+
+  it('inserts manual aggregation', async () => {
+    const body = {
+      year: 2024,
+      month: 5,
+      orders: 1,
+      adults: 2,
+      children: 3,
+      people: 5,
+      weight: 10,
+    };
+    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    const res = await request(app).post('/pantry-aggregations/manual').send(body);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Saved' });
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO pantry_monthly_overall'),
+      [2024, 5, 1, 2, 3, 5, 10],
+    );
+  });
+
+  it('updates manual aggregation', async () => {
+    const body1 = {
+      year: 2024,
+      month: 5,
+      orders: 1,
+      adults: 2,
+      children: 3,
+      people: 5,
+      weight: 10,
+    };
+    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    await request(app).post('/pantry-aggregations/manual').send(body1);
+
+    const body2 = {
+      year: 2024,
+      month: 5,
+      orders: 2,
+      adults: 3,
+      children: 4,
+      people: 7,
+      weight: 20,
+    };
+    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    const res = await request(app).post('/pantry-aggregations/manual').send(body2);
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenLastCalledWith(
+      expect.any(String),
+      [2024, 5, 2, 3, 4, 7, 20],
+    );
   });
 });
