@@ -166,6 +166,11 @@ describe('VolunteerManagement shopper profile', () => {
     (searchVolunteers as jest.Mock)
       .mockResolvedValueOnce([mockVolunteer])
       .mockResolvedValueOnce([{ ...mockVolunteer, hasShopper: true }]);
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      hasShopper: true,
+      clientId: 123,
+    });
 
     render(
       <MemoryRouter initialEntries={['/volunteers/search']}>

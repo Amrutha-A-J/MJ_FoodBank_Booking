@@ -37,12 +37,50 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
 
+describe('EditVolunteer volunteer info display', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    mockVolunteer.hasPassword = false;
+  });
+
+  it('shows helper text when no volunteer is selected', () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText('Search and select a volunteer'),
+    ).toBeInTheDocument();
+  });
+
+  it('displays volunteer name and online badge when selected', async () => {
+    mockVolunteer.name = 'John Doe';
+    mockVolunteer.hasPassword = true;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(await screen.findByTestId('volunteer-name')).toHaveTextContent(
+      'John Doe',
+    );
+    expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+  });
+});
+
 describe('EditVolunteer shopper profile', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    mockVolunteer.hasPassword = false;
   });
 
   it('creates shopper profile', async () => {
@@ -120,6 +158,7 @@ describe('EditVolunteer role selection', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    mockVolunteer.hasPassword = false;
   });
 
   it('adds role via dropdown', async () => {
