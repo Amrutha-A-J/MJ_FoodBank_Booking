@@ -70,7 +70,7 @@ router.get(
   listVolunteerBookingsByVolunteer
 );
 router.get(
-  '/unmarked',
+  ['/unmarked', '/review'],
   authMiddleware,
   authorizeRoles('staff'),
   listUnmarkedVolunteerBookings,

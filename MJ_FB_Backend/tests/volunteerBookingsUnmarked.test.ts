@@ -76,4 +76,36 @@ describe('listUnmarkedVolunteerBookings', () => {
       status_color: 'green',
     });
   });
+
+  it('is also accessible via /review', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1,
+          status: 'approved',
+          role_id: 2,
+          volunteer_id: 3,
+          date: '2024-01-01',
+          reschedule_token: 'abc',
+          recurring_id: null,
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          max_volunteers: 5,
+          role_name: 'Pantry',
+          category_name: 'Food',
+          volunteer_name: 'Jane Doe',
+        },
+      ],
+    });
+
+    const res = await request(app).get('/volunteer-bookings/review');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toMatchObject({
+      id: 1,
+      status: 'approved',
+      volunteer_name: 'Jane Doe',
+      status_color: 'green',
+    });
+  });
 });
