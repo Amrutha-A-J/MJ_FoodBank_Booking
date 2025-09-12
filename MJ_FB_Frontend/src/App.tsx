@@ -249,7 +249,7 @@ export default function App() {
       label: t('booking'),
       links: [
         { label: t('dashboard'), to: '/' },
-        { label: t('book_appointment'), to: '/book-appointment' },
+        { label: t('book_shopping_appointment'), to: '/book-appointment' },
         { label: t('booking_history'), to: '/booking-history' },
       ],
     });
@@ -267,7 +267,7 @@ export default function App() {
       navGroups.push({
         label: t('booking'),
         links: [
-          { label: t('book_appointment'), to: '/book-appointment' },
+          { label: t('book_shopping_appointment'), to: '/book-appointment' },
           { label: t('booking_history'), to: '/booking-history' },
         ],
       });
