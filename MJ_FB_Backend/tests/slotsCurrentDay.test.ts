@@ -3,7 +3,10 @@ import express from 'express';
 import pool from '../src/db';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
-  authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
+    req.user = { role: 'staff' };
+    next();
+  },
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),

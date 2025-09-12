@@ -240,8 +240,19 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
       // Closed for a holiday – return an empty slot list rather than an error
       return res.json([]);
     }
+    const role = req.user?.role;
+    const hideReason = role !== 'staff' && role !== 'admin';
     const slotsWithAvailability = await getSlotsForDate(reginaDate, includePast);
-    res.json(slotsWithAvailability);
+    const sanitized = hideReason
+      ? slotsWithAvailability.map(s => {
+          if (s.status === 'blocked') {
+            const { reason, status, ...rest } = s;
+            return { ...rest, available: 0 };
+          }
+          return s;
+        })
+      : slotsWithAvailability;
+    res.json(sanitized);
   } catch (error: any) {
     if (error.message === 'Invalid date' || error instanceof RangeError) {
       return res.status(400).json({ message: 'Invalid date' });
@@ -279,6 +290,8 @@ export async function listSlotsRange(
       return formatReginaDate(d);
     });
 
+    const role = req.user?.role;
+    const hideReason = role !== 'staff' && role !== 'admin';
     const rangeData = await fetchSlotRangeData(dates);
     const slotsForDates = await Promise.all(
       dates.map(date => getSlotsForDate(date, includePast, rangeData)),
@@ -290,6 +303,15 @@ export async function listSlotsRange(
       if (!includePast && date === today) {
         const nowTime = currentReginaTime();
         slots = slots.filter(s => s.startTime >= nowTime);
+      }
+      if (hideReason) {
+        slots = slots.map(s => {
+          if (s.status === 'blocked') {
+            const { reason, status, ...rest } = s;
+            return { ...rest, available: 0 };
+          }
+          return s;
+        });
       }
       return { date, slots };
     });
