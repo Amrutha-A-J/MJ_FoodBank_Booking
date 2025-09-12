@@ -19,6 +19,7 @@ jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
   listAvailableMonths: jest.fn(),
   listAvailableWeeks: jest.fn(),
   manualPantryAggregate: jest.fn(),
+  firstMondayOfMonth: jest.fn(),
 }));
 import { notifyOps } from '../src/utils/opsAlert';
 
