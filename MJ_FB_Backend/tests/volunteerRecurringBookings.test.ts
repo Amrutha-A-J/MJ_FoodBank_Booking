@@ -6,6 +6,7 @@ import {
 } from '../src/controllers/volunteer/volunteerBookingController';
 import pool from '../src/db';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
+import { setHolidays } from '../src/utils/holidayCache';
 
 const formatDate = (d: Date) => d.toISOString().split('T')[0];
 const addDays = (d: Date, days: number) => {
@@ -57,6 +58,7 @@ describe('recurring volunteer bookings', () => {
     jest.clearAllMocks();
     (pool.connect as jest.Mock).mockResolvedValue(client);
     client.query.mockReset();
+    setHolidays(null);
   });
 
   it('creates a recurring booking series', async () => {
