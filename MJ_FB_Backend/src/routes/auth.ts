@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import {
   requestPasswordReset,
   resendPasswordSetup,
@@ -14,11 +15,13 @@ import { authMiddleware } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import { authLoginSchema } from '../schemas/userSchemas';
 
+export const authLimiter = rateLimit({ windowMs: 60_000, limit: 5 });
+
 const router = Router();
 
-router.post('/login', validate(authLoginSchema), loginUser);
-router.post('/request-password-reset', requestPasswordReset);
-router.post('/resend-password-setup', resendPasswordSetup);
+router.post('/login', authLimiter, validate(authLoginSchema), loginUser);
+router.post('/request-password-reset', authLimiter, requestPasswordReset);
+router.post('/resend-password-setup', authLimiter, resendPasswordSetup);
 router.get('/password-setup-info', getPasswordSetupInfo);
 router.post('/set-password', setPassword);
 router.post('/change-password', authMiddleware, changePassword);
