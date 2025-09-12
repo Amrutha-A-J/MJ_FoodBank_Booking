@@ -183,6 +183,34 @@ describe('PantryVisits', () => {
     expect(screen.queryByText('Bob')).not.toBeInTheDocument();
   });
 
+  it('renders profile link with descriptive text', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 2,
+        verified: false,
+      },
+    ]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    renderVisits();
+
+    const link = await screen.findByRole('link', { name: /open profile/i });
+    expect(link).toHaveAttribute(
+      'href',
+      'https://portal.link2feed.ca/org/1605/intake/111',
+    );
+  });
+
   it('shows summary for visits', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([
       {

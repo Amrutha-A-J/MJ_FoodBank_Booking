@@ -335,7 +335,7 @@ export default function PantryVisits() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Link
+            {t('open_profile')}
           </a>
         ) : (
           'N/A'
