@@ -48,4 +48,14 @@ describe('ClientBottomNav', () => {
     );
     expect(queryByLabelText('dashboard')).not.toBeInTheDocument();
   });
+
+  it('uses a larger tap target', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <ClientBottomNav />
+      </MemoryRouter>,
+    );
+    const nav = container.querySelector('.MuiBottomNavigation-root');
+    expect(nav).toHaveStyle('height: 72px');
+  });
 });
