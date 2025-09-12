@@ -122,6 +122,21 @@ describe('bookingRepository', () => {
     expect(rows[0].note).toBe('remember ID');
   });
 
+  it('fetchBookings joins monthly aggregate views', async () => {
+    setQueryResults({ rows: [] });
+    await fetchBookings(undefined, undefined, undefined);
+    const query = (mockPool.query as jest.Mock).mock.calls[0][0];
+    expect(query).toMatch(/LEFT JOIN\s+monthly_client_visits\s+v\s+ON/);
+    expect(query).toMatch(/LEFT JOIN\s+monthly_approved_bookings\s+ab\s+ON/);
+  });
+
+  it('fetchBookings returns aggregate counts', async () => {
+    setQueryResults({ rows: [{ id: 1, visits_this_month: 2, approved_bookings_this_month: 3 }] });
+    const rows = await fetchBookings(undefined, undefined, undefined);
+    expect(rows[0].visits_this_month).toBe(2);
+    expect(rows[0].approved_bookings_this_month).toBe(3);
+  });
+
   it('fetchBookingsForReminder selects only necessary fields', async () => {
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ exists: true }] })
