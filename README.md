@@ -33,6 +33,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
 - Input fields feature larger touch targets on mobile devices for easier tapping.
 - Staff dashboards include a Volunteer Coverage card; click a role to see which volunteers are on duty.
+- Staff dashboard charts pull pantry monthly aggregates to show total orders and adult/child breakdowns.
 
 - Staff with `aggregations` or `donor_management` access see an **Aggregations** navigation item with **Pantry Aggregations** and **Warehouse Aggregations** pages for reporting.
 
