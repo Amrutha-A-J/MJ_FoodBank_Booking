@@ -113,6 +113,7 @@ const AgencyBookAppointment = React.lazy(() =>
 );
 const CancelBooking = React.lazy(() => import('./pages/CancelBooking'));
 const RescheduleBooking = React.lazy(() => import('./pages/RescheduleBooking'));
+const PrivacyPolicy = React.lazy(() => import('./pages/privacy/PrivacyPolicy'));
 const DonorDashboard = React.lazy(() =>
   import('./pages/donor-management/DonorDashboard')
 );
@@ -366,6 +367,7 @@ export default function App() {
                     }
                   />
                   <Route path="/profile" element={<Profile role={role} />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
                   {showStaff && (
                     <Route
                       path="/pantry"
@@ -624,6 +626,7 @@ export default function App() {
                   <Routes>
                     <Route path="/login" element={<Login onLogin={login} />} />
                     <Route path="/set-password" element={<PasswordSetup />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                   </Routes>
                 </Suspense>
