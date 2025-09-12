@@ -81,6 +81,16 @@ export default function AddVolunteer() {
       setSeverity('error');
       return;
     }
+    if (selectedRoles.length === 0) {
+      setMessage('At least one role required');
+      setSeverity('error');
+      return;
+    }
+    if (onlineAccess && !email) {
+      setMessage('Email required for online access');
+      setSeverity('error');
+      return;
+    }
     if (onlineAccess && !sendPasswordLink && !password) {
       setMessage('Password required');
       setSeverity('error');
