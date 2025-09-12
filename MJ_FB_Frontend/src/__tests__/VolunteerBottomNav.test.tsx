@@ -17,7 +17,7 @@ jest.mock('../hooks/useAuth', () => ({
 describe('VolunteerBottomNav', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
-    mockUseAuth.mockReturnValue({ userRole: '' });
+    mockUseAuth.mockReturnValue({ role: 'volunteer', userRole: '' });
   });
 
   it('selects schedule tab when on schedule route', () => {
@@ -41,7 +41,7 @@ describe('VolunteerBottomNav', () => {
   });
 
   it('shows shopper navigation when userRole is shopper', () => {
-    mockUseAuth.mockReturnValue({ userRole: 'shopper' });
+    mockUseAuth.mockReturnValue({ role: 'volunteer', userRole: 'shopper' });
     render(
       <MemoryRouter initialEntries={['/volunteer']}>
         <VolunteerBottomNav />
@@ -52,7 +52,7 @@ describe('VolunteerBottomNav', () => {
   });
 
   it('navigates to shopper pages', () => {
-    mockUseAuth.mockReturnValue({ userRole: 'shopper' });
+    mockUseAuth.mockReturnValue({ role: 'volunteer', userRole: 'shopper' });
     render(
       <MemoryRouter initialEntries={['/volunteer']}>
         <VolunteerBottomNav />
@@ -62,5 +62,15 @@ describe('VolunteerBottomNav', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/book-appointment');
     fireEvent.click(screen.getByRole('button', { name: /profile/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/profile');
+  });
+
+  it('does not render for non-volunteer roles', () => {
+    mockUseAuth.mockReturnValue({ role: 'staff', userRole: '' });
+    const { queryByRole } = render(
+      <MemoryRouter initialEntries={['/volunteer']}>
+        <VolunteerBottomNav />
+      </MemoryRouter>,
+    );
+    expect(queryByRole('button', { name: /dashboard/i })).not.toBeInTheDocument();
   });
 });

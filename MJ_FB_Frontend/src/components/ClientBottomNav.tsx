@@ -4,11 +4,18 @@ import CalendarToday from '@mui/icons-material/CalendarToday';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useTheme } from '@mui/material/styles';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import type { Role } from '../types';
 
 export default function ClientBottomNav() {
   const theme = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  let role: Role | '' = '';
+  try {
+    ({ role } = useAuth());
+  } catch {}
+  if (role === 'staff') return null;
   let value: 'dashboard' | 'bookings' | 'profile' = 'dashboard';
   if (pathname.startsWith('/book-appointment') || pathname.startsWith('/booking-history')) value = 'bookings';
   else if (pathname.startsWith('/profile')) value = 'profile';

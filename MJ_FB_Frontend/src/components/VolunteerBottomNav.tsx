@@ -4,14 +4,17 @@ import CalendarToday from '@mui/icons-material/CalendarToday';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import type { Role } from '../types';
 
 export default function VolunteerBottomNav() {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
+  let role: Role | '' = '';
   let userRole = '';
   try {
-    ({ userRole } = useAuth());
+    ({ role, userRole } = useAuth());
   } catch {}
+  if (role !== 'volunteer') return null;
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   let value: 'dashboard' | 'schedule' | 'bookings' | 'profile' = 'dashboard';
   if (pathname.startsWith('/volunteer/schedule')) value = 'schedule';
   else if (pathname.startsWith('/book-appointment') || pathname.startsWith('/booking-history'))
