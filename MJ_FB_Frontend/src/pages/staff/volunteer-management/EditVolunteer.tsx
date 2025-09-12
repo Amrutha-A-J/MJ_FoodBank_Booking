@@ -24,6 +24,8 @@ import {
   DialogContent,
   FormControl,
   FormControlLabel,
+  FormHelperText,
+  Grid,
   InputLabel,
   ListItemText,
   ListSubheader,
@@ -38,6 +40,7 @@ import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
+import slugify from '../../../utils/slugify';
 
 export default function EditVolunteer() {
   const [volunteer, setVolunteer] =
@@ -236,6 +239,8 @@ export default function EditVolunteer() {
                         value={selected}
                         onChange={handleRoleChange}
                         renderValue={() => 'Select roles'}
+                        label="Select roles"
+                        data-testid="roles-select"
                       >
                         {groupedRoles.flatMap(g => [
                           <ListSubheader key={`${g.category}-header`}>
@@ -249,16 +254,29 @@ export default function EditVolunteer() {
                           )),
                         ])}
                       </Select>
+                      {selected.length === 0 && (
+                        <FormHelperText>No roles assigned yet</FormHelperText>
+                      )}
                     </FormControl>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Grid
+                      container
+                      spacing={1}
+                      sx={{ mt: 2, bgcolor: 'background.default', p: 1, borderRadius: 1 }}
+                    >
                       {selected.map(name => (
-                        <Chip
-                          key={name}
-                          label={name}
-                          onDelete={() => removeRole(name)}
-                        />
+                        <Grid item key={name}>
+                          <Chip
+                            label={name}
+                            variant="outlined"
+                            size="medium"
+                            onDelete={() => removeRole(name)}
+                            data-testid={`role-chip-${slugify(name)}`}
+                            sx={{ maxWidth: 200 }}
+                            title={name}
+                          />
+                        </Grid>
                       ))}
-                    </Stack>
+                    </Grid>
                   </Stack>
                 </CardContent>
               </Card>

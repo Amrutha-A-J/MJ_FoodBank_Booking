@@ -148,12 +148,14 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByTestId('roles-select'));
     const listbox = await screen.findByRole('listbox');
     fireEvent.click(within(listbox).getByText('Role A'));
     fireEvent.keyDown(listbox, { key: 'Escape' });
 
-    expect(await screen.findByText('Role A')).toBeInTheDocument();
+    expect(await screen.findByTestId('role-chip-role-a')).toBeInTheDocument();
+    expect(screen.queryByText('No roles assigned yet')).not.toBeInTheDocument();
   });
 
   it('removes role via chip delete', async () => {
@@ -176,9 +178,10 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const chip = await screen.findByText('Role A');
-    const deleteBtn = within(chip.parentElement as HTMLElement).getByRole('button');
+    const chip = await screen.findByTestId('role-chip-role-a');
+    const deleteBtn = within(chip).getByRole('button');
     fireEvent.click(deleteBtn);
-    expect(screen.queryByText('Role A')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument();
+    expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
   });
 });
