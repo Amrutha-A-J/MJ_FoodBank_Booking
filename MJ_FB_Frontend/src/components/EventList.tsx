@@ -36,7 +36,7 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
       {items.map(ev => (
         <ListItem
           key={ev.id}
-          disableGutters
+          sx={{ pl: 0 }}
           secondaryAction={
               <Box>
                 {onEdit && (
