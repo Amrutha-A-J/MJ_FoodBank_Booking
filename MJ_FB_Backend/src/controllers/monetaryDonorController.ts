@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { parse } from 'csv-parse/sync';
 import pool from '../db';
 import logger from '../utils/logger';
 import { sendTemplatedEmail } from '../utils/emailUtils';
@@ -427,6 +428,80 @@ export async function sendTestMailLists(req: Request, res: Response, next: NextF
     res.json({ sent });
   } catch (error) {
     logger.error('Error sending test monetary donor mails:', error);
+    next(error);
+  }
+}
+
+export async function importZeffyDonations(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'File required' });
+
+    const records = parse(req.file.buffer.toString('utf8'), {
+      columns: true,
+      skip_empty_lines: true,
+    });
+
+    let donorsAdded = 0;
+    let donationsImported = 0;
+
+    for (const row of records) {
+      if (row['Payment Status'] !== 'Succeeded') continue;
+
+      const firstName = (row['First Name'] ?? '').trim();
+      const lastName = (row['Last Name'] ?? '').trim();
+      const email = (row['Email'] ?? '').trim() || null;
+
+      let donorId: number;
+      if (email) {
+        const existing = await pool.query('SELECT id FROM monetary_donors WHERE email = $1', [email]);
+        if (existing.rowCount) {
+          donorId = existing.rows[0].id;
+        } else {
+          const insert = await pool.query(
+            `INSERT INTO monetary_donors (first_name, last_name, email)
+             VALUES ($1, $2, $3)
+             RETURNING id`,
+            [firstName, lastName, email],
+          );
+          donorId = insert.rows[0].id;
+          donorsAdded++;
+        }
+      } else {
+        const existing = await pool.query(
+          'SELECT id FROM monetary_donors WHERE first_name = $1 AND last_name = $2 AND email IS NULL',
+          [firstName, lastName],
+        );
+        if (existing.rowCount) {
+          donorId = existing.rows[0].id;
+        } else {
+          const insert = await pool.query(
+            `INSERT INTO monetary_donors (first_name, last_name, email)
+             VALUES ($1, $2, $3)
+             RETURNING id`,
+            [firstName, lastName, null],
+          );
+          donorId = insert.rows[0].id;
+          donorsAdded++;
+        }
+      }
+
+      const date = new Date(row['Payment Date']);
+      const dateStr = date.toLocaleDateString('en-CA', { timeZone: 'America/Regina' });
+      const amount = Math.round(
+        parseFloat((row['Total Amount'] ?? '0').replace(/[^0-9.-]/g, '')) * 100,
+      );
+
+      await pool.query(
+        `INSERT INTO monetary_donations (donor_id, date, amount)
+         VALUES ($1, $2, $3)`,
+        [donorId, dateStr, amount],
+      );
+      donationsImported++;
+    }
+
+    res.json({ donorsAdded, donationsImported });
+  } catch (error) {
+    logger.error('Error importing Zeffy donations:', error);
     next(error);
   }
 }
