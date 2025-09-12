@@ -40,7 +40,6 @@ import { isAgencyClient, getAgencyClientSet } from '../models/agency';
 import { refreshClientVisitCount, getClientBookingsThisMonth } from './clientVisitController';
 import { hasTable } from '../utils/dbUtils';
 import { getCartTare } from '../utils/configCache';
-import { sendBookingEvent } from '../utils/bookingEvents';
 import { notifyOps } from '../utils/opsAlert';
 
 const NO_SHOW_MESSAGE =
@@ -144,17 +143,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     const uid = `booking-${bookingId}@mjfb`;
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (start_time) {
-      try {
-        sendBookingEvent({
-          action: 'created',
-          name: user.name || 'Client',
-          role: 'client',
-          date,
-          time: start_time,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
       try {
         await notifyOps(
           `${user.name || 'Client'} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
@@ -337,17 +325,6 @@ export async function cancelBooking(req: AuthRequest, res: Response, next: NextF
     }
     if (start_time) {
       try {
-        sendBookingEvent({
-          action: 'cancelled',
-          name,
-          role: 'client',
-          date: booking.date,
-          time: start_time,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
-      try {
         await notifyOps(
           `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
         );
@@ -413,17 +390,6 @@ export async function cancelBookingByToken(
       name = resNc.rows[0]?.name || name;
     }
     if (start_time) {
-      try {
-        sendBookingEvent({
-          action: 'cancelled',
-          name,
-          role: 'client',
-          date: booking.date,
-          time: start_time,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
       try {
         await notifyOps(
           `${name} (client) cancelled booking for ${formatReginaDateWithDay(booking.date)} at ${formatTimeToAmPm(start_time)}`,
@@ -713,19 +679,6 @@ export async function rescheduleBooking(req: Request, res: Response, next: NextF
 
     const oldStart = oldSlotRes.rows[0]?.start_time;
     const newStart = newSlotRes.rows[0]?.start_time;
-    if (newStart) {
-      try {
-        sendBookingEvent({
-          action: 'rescheduled',
-          name,
-          role: 'client',
-          date,
-          time: newStart,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
-    }
     try {
       await notifyOps(
         `${name} (client) rescheduled booking from ${formatReginaDateWithDay(booking.date)} ${
@@ -845,17 +798,6 @@ export async function createPreapprovedBooking(
     ]);
     const start_time = slotRes.rows[0]?.start_time;
     if (start_time) {
-      try {
-        sendBookingEvent({
-          action: 'created',
-          name,
-          role: 'client',
-          date,
-          time: start_time,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
       try {
         await notifyOps(
           `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
@@ -983,17 +925,6 @@ export async function createBookingForUser(
     if (start_time) {
       const name = first_name && last_name ? `${first_name} ${last_name}` : 'Client';
       try {
-        sendBookingEvent({
-          action: 'created',
-          name,
-          role: 'client',
-          date,
-          time: start_time,
-        });
-      } catch (err) {
-        logger.error('Failed to send booking event', err);
-      }
-      try {
         await notifyOps(
           `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,
         );
@@ -1102,17 +1033,6 @@ export async function createBookingForNewClient(
       ]);
       const start_time = slotRes.rows[0]?.start_time;
       if (start_time) {
-        try {
-          sendBookingEvent({
-            action: 'created',
-            name,
-            role: 'client',
-            date,
-            time: start_time,
-          });
-        } catch (err) {
-          logger.error('Failed to send booking event', err);
-        }
         try {
           await notifyOps(
             `${name} (client) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(start_time)}`,

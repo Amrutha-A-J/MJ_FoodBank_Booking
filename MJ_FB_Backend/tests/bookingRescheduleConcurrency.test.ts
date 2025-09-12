@@ -18,7 +18,6 @@ jest.mock('../src/utils/emailUtils', () => ({
 }));
 jest.mock('../src/utils/calendarLinks', () => ({ buildIcsFile: () => '' }));
 jest.mock('../src/utils/emailQueue', () => ({ enqueueEmail: jest.fn() }));
-jest.mock('../src/utils/bookingEvents', () => ({ sendBookingEvent: jest.fn() }));
 jest.mock('../src/utils/opsAlert', () => ({ notifyOps: jest.fn() }));
 jest.mock('../src/utils/bookingUtils', () => ({
   countVisitsAndBookingsForMonth: jest.fn().mockResolvedValue(0),

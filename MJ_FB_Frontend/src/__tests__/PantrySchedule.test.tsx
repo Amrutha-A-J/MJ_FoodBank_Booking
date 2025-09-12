@@ -3,12 +3,6 @@ import PantrySchedule from '../pages/staff/PantrySchedule';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import { getSlots, getBookings, getHolidays } from '../api/bookings';
 
-class EventSourceMock {
-  constructor(public url: string) {}
-  onmessage: ((event: { data: string }) => void) | null = null;
-  close() {}
-}
-
 jest.mock('../api/bookings', () => ({
   getSlots: jest.fn(),
   getBookings: jest.fn(),
@@ -24,7 +18,6 @@ jest.mock('../api/users', () => ({
 
 describe('PantrySchedule Today button', () => {
   beforeEach(() => {
-    (global as any).EventSource = EventSourceMock as any;
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-01-29T19:00:00Z'));
     (getHolidays as jest.Mock).mockResolvedValue([]);
@@ -32,7 +25,6 @@ describe('PantrySchedule Today button', () => {
   });
 
   afterEach(() => {
-    delete (global as any).EventSource;
     jest.useRealTimers();
   });
 

@@ -4,7 +4,6 @@ import {
   useEffect,
   useRef,
   useMemo,
-  useCallback,
   type ReactNode,
 } from 'react';
 import {
@@ -42,7 +41,6 @@ import type { Slot, Holiday, BookingActionResponse } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
 import useHolidays from '../hooks/useHolidays';
-import useSlotStream, { type SlotStreamMessage } from '../hooks/useSlotStream';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
@@ -175,25 +173,6 @@ export default function BookingUI<T = Slot>({
   const slotsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const handleStream = useCallback(
-    (data: SlotStreamMessage<T>) => {
-      const dateStr = date.format('YYYY-MM-DD');
-      if (data?.date !== dateStr || !Array.isArray(data.slots)) return;
-      queryClient.setQueryData<Slot[]>(
-        ['slots', dateStr, slotFetcher],
-        (prev = []) => {
-          const map = new Map(prev.map(s => [s.id, s]));
-          (data.slots ?? []).map(mapSlot).forEach((s: Slot) => {
-            map.set(s.id, s);
-          });
-          return Array.from(map.values());
-        },
-      );
-    },
-    [date, queryClient, mapSlot, slotFetcher],
-  );
-
-  useSlotStream(handleStream);
 
   useEffect(() => {
     if (!isDisabled(date)) return;
