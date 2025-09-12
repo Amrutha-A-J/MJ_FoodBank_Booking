@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, act, fireEvent, within } from '@testing-library/react';
-import BookingUI from '../pages/BookingUI';
+import BookingUI, { SlotRow } from '../pages/BookingUI';
 import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -108,6 +108,46 @@ describe('BookingUI visible slots', () => {
     });
     await screen.findByText(/Booking for: Test/);
     expect(screen.queryByText('Book Appointment')).toBeNull();
+  });
+});
+
+describe('SlotRow', () => {
+  it('shrinks when selected and shows booking button', () => {
+    const slot = {
+      id: '1',
+      startTime: '11:00:00',
+      endTime: '11:30:00',
+      available: 1,
+    } as any;
+    const { rerender } = render(
+      <SlotRow
+        slot={slot}
+        selected={false}
+        onSelect={() => {}}
+        onBook={() => {}}
+        booking={false}
+        loadingConfirm={false}
+      />,
+    );
+    const listButton = screen.getByLabelText(/select .* time slot/i);
+    expect(listButton).toHaveStyle({ width: '100%' });
+    expect(
+      screen.queryByRole('button', { name: /book selected slot/i }),
+    ).toBeNull();
+    rerender(
+      <SlotRow
+        slot={slot}
+        selected={true}
+        onSelect={() => {}}
+        onBook={() => {}}
+        booking={false}
+        loadingConfirm={false}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: /book selected slot/i }),
+    ).toBeInTheDocument();
+    expect(listButton.style.width).not.toBe('100%');
   });
 });
 
