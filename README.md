@@ -195,7 +195,6 @@ npm run test:frontend  # frontend tests
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
 - Searching for a numeric client ID in Client Management that returns no results shows an **Add Client** shortcut that opens the Add tab with the ID prefilled.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
-- Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
 - Staff can manage recurring volunteer shift series from the **Recurring Shifts** page under Volunteer Management.
 - Only staff can update volunteer trained roles; volunteers may view but not modify their assigned roles from the dashboard.
 - Daily reminder jobs queue emails for next-day bookings and volunteer shifts using the backend email queue. Each job now runs via `node-cron` at `0 9 * * *` Regina time and exposes start/stop functions.
