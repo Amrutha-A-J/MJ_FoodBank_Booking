@@ -72,6 +72,17 @@ describe('EditVolunteer volunteer info display', () => {
     );
     expect(screen.getByTestId('online-badge')).toBeInTheDocument();
   });
+
+  it('shows helper text when no roles are assigned', async () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
+  });
 });
 
 describe('EditVolunteer shopper profile', () => {
@@ -103,7 +114,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
@@ -141,7 +152,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
@@ -190,6 +201,7 @@ describe('EditVolunteer role selection', () => {
 
     fireEvent.click(screen.getByText('Select Volunteer'));
     expect(screen.getByTestId('roles-select')).toBeInTheDocument();
+    expect(screen.getByTestId('save-button')).toBeDisabled();
     expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
     fireEvent.mouseDown(
       screen.getByTestId('roles-select').querySelector('[role="combobox"]')!
@@ -199,6 +211,7 @@ describe('EditVolunteer role selection', () => {
     fireEvent.keyDown(listbox, { key: 'Escape' });
 
     expect(await screen.findByTestId('role-chip-role-a')).toBeInTheDocument();
+    expect(screen.getByTestId('save-button')).toBeEnabled();
     expect(screen.queryByText('No roles assigned yet')).not.toBeInTheDocument();
   });
 
@@ -234,5 +247,46 @@ describe('EditVolunteer role selection', () => {
     fireEvent.click(deleteBtn);
     expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument();
     expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
+  });
+
+  it('renders multiple role chips in a grid container', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Role A',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+      {
+        id: 2,
+        category_id: 1,
+        name: 'Role B',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+    ]);
+    mockVolunteer.name = 'John Doe';
+    mockVolunteer.hasShopper = false;
+    mockVolunteer.clientId = null;
+    mockVolunteer.trainedAreas = [1, 2];
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    const chipA = await screen.findByTestId('role-chip-role-a');
+    const chipB = await screen.findByTestId('role-chip-role-b');
+    expect(chipA).toBeInTheDocument();
+    expect(chipB).toBeInTheDocument();
+
+    const grid = chipA.parentElement?.parentElement;
+    expect(grid).toHaveClass('MuiGrid-container');
   });
 });
