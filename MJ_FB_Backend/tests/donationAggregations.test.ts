@@ -18,6 +18,14 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+const authRow = {
+  id: 1,
+  first_name: 'Test',
+  last_name: 'User',
+  email: 't@example.com',
+  role: 'staff',
+};
+
 describe('GET /donations/aggregations', () => {
   it('includes donors with zero yearly donations', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse'] });
@@ -33,10 +41,7 @@ describe('GET /donations/aggregations', () => {
     ];
 
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
-      })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({ rows });
 
     const res = await request(app)
@@ -44,6 +49,11 @@ describe('GET /donations/aggregations', () => {
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+      [1],
+    );
     expect(res.body).toEqual([
       {
         donor: 'Alice',

@@ -107,9 +107,9 @@ describe('Donor Donation Log', () => {
 
     const searchField = screen.getByLabelText('Search');
 
-    fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
+    fireEvent.change(searchField, { target: { value: '2' } });
     await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('2'),
     );
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
@@ -121,9 +121,16 @@ describe('Donor Donation Log', () => {
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
 
-    fireEvent.change(searchField, { target: { value: '100' } });
+    fireEvent.change(searchField, { target: { value: 'Smith' } });
     await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined),
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('Smith'),
+    );
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
+    await waitFor(() =>
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
     );
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();

@@ -18,41 +18,44 @@ describe('Donors page', () => {
     jest.clearAllMocks();
   });
 
-  it('searches and displays donors', async () => {
-    (getMonetaryDonors as jest.Mock)
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        { id: 1, firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com' },
-      ]);
+  it.each(['1', 'Jane', 'Doe', 'jane@example.com'])(
+    'searches donors by %s',
+    async term => {
+      (getMonetaryDonors as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { id: 1, firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com' },
+        ]);
 
-    renderWithProviders(
-      <MemoryRouter initialEntries={["/donor-management/donors"]}>
-        <Routes>
-          <Route path="/donor-management/donors" element={<Donors />} />
-          <Route
-            path="/donor-management/donors/:id"
-            element={<div>Donor Profile</div>}
-          />
-        </Routes>
-      </MemoryRouter>,
-    );
+      renderWithProviders(
+        <MemoryRouter initialEntries={["/donor-management/donors"]}>
+          <Routes>
+            <Route path="/donor-management/donors" element={<Donors />} />
+            <Route
+              path="/donor-management/donors/:id"
+              element={<div>Donor Profile</div>}
+            />
+          </Routes>
+        </MemoryRouter>,
+      );
 
-    const input = screen.getByLabelText('Search');
-    fireEvent.change(input, { target: { value: 'Jane' } });
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+      const input = screen.getByLabelText('Search');
+      fireEvent.change(input, { target: { value: term } });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
 
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('Jane'),
-    );
+      await waitFor(() =>
+        expect(getMonetaryDonors).toHaveBeenLastCalledWith(term),
+      );
 
-    const link = await screen.findByText('jane@example.com');
-    const anchor = link.closest('a');
-    expect(anchor).toHaveAttribute('href', '/donor-management/donors/1');
+      const link = await screen.findByText('jane@example.com');
+      const anchor = link.closest('a');
+      expect(anchor).toHaveAttribute('href', '/donor-management/donors/1');
 
-    fireEvent.click(anchor!);
-    expect(await screen.findByText('Donor Profile')).toBeInTheDocument();
-  });
+      fireEvent.click(anchor!);
+      expect(await screen.findByText('Donor Profile')).toBeInTheDocument();
+    },
+  );
 });
 
