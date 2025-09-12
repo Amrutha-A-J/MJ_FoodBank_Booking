@@ -66,11 +66,11 @@ in `summary.ot_bank_remaining`.
 
 ## Leave approval workflow
 
-Staff can request vacation, sick, or personal leave via `/api/leave/requests`.
+Staff can request vacation, sick, or personal leave via `/api/v1/leave/requests`.
 Personal days are limited to one per calendar quarter and approved requests do
 **not** prefill timesheets. Admins can view requests for a specific staff member
-at `/api/timesheets/leave-requests/:staffId` (use the staff ID, not the timesheet ID) or list all requests at
-`/api/leave/requests`. The Admin → Leave Requests page shows the start and end
+at `/api/v1/timesheets/leave-requests/:staffId` (use the staff ID, not the timesheet ID) or list all requests at
+`/api/v1/leave/requests`. The Admin → Leave Requests page shows the start and end
 dates, request type, and an automatically calculated day count for each pending
 request. Approving a vacation or sick request adds default hours for each day in
 the request but leaves the entries editable. An approved request
@@ -100,11 +100,11 @@ TIMESHEET_APPROVER_EMAILS=admin1@example.com,admin2@example.com # optional
 - `POST /timesheets/:id/reject` – reject a submitted timesheet (admin only).
 - `POST /timesheets/:id/process` – mark a timesheet as processed and exportable (admin only).
 - `GET /timesheets/leave-requests/:staffId` – list leave requests for a staff member (admin only).
-- `GET /api/leave/requests` – list all leave requests (admin only).
-- `POST /api/leave/requests` – submit a leave request for the logged in staff
+- `GET /api/v1/leave/requests` – list all leave requests (admin only).
+- `POST /api/v1/leave/requests` – submit a leave request for the logged in staff
   member with `startDate`, `endDate`, `type`, and optional `reason`.
-- `POST /api/leave/requests/:id/approve` – approve a leave request, applying vacation hours and locking the day.
-- `POST /api/leave/requests/:id/reject` – reject a leave request.
+- `POST /api/v1/leave/requests/:id/approve` – approve a leave request, applying vacation hours and locking the day.
+- `POST /api/v1/leave/requests/:id/reject` – reject a leave request.
 
 ## UI walkthrough
 

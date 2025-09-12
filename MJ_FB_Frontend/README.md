@@ -38,13 +38,13 @@ The frontend registers a Workbox-powered service worker that precaches built ass
 The frontend requires `VITE_API_BASE` to be defined. Create a `.env` file in this directory with either an absolute or relative URL:
 
 ```
-VITE_API_BASE=/api
+VITE_API_BASE=/api/v1
 ```
 
 or
 
 ```
-VITE_API_BASE=http://localhost:4000/api
+VITE_API_BASE=http://localhost:4000/api/v1
 ```
 
 The build will fail if this variable is missing.

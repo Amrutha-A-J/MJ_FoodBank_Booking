@@ -2,7 +2,7 @@ import { apiFetch } from '../client';
 import { deleteUser, login } from '../users';
 
 jest.mock('../client', () => ({
-  API_BASE: '/api',
+  API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -15,13 +15,13 @@ describe('users api', () => {
 
   it('calls delete endpoint', async () => {
     await deleteUser(5);
-    expect(apiFetch).toHaveBeenCalledWith('/api/users/id/5', expect.objectContaining({ method: 'DELETE' }));
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/users/id/5', expect.objectContaining({ method: 'DELETE' }));
   });
 
   it('logs in client with email', async () => {
     await login('user@example.com', 'secret');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

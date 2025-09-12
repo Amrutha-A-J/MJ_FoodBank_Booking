@@ -2,7 +2,7 @@ import { apiFetch, handleResponse } from '../api/client';
 import { login, addUser } from '../api/users';
 
 jest.mock('../api/client', () => ({
-  API_BASE: '/api',
+  API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -16,7 +16,7 @@ describe('users api', () => {
   it('sends clientId or email to login', async () => {
     await login('123', 'pw');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ clientId: 123, password: 'pw' }),
@@ -24,7 +24,7 @@ describe('users api', () => {
     );
     await login('user@example.com', 'pw');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ email: 'user@example.com', password: 'pw' }),
@@ -48,7 +48,7 @@ describe('users api', () => {
       sendPasswordLink: false,
     });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/users/add-client',
+      '/api/v1/users/add-client',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -68,7 +68,7 @@ describe('users api', () => {
   it('omits undefined fields in addUser', async () => {
     await addUser('123', 'shopper', false);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/users/add-client',
+      '/api/v1/users/add-client',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({

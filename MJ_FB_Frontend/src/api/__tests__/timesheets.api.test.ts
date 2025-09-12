@@ -10,7 +10,7 @@ import {
 } from '../timesheets';
 
 jest.mock('../client', () => ({
-  API_BASE: 'http://localhost/api',
+  API_BASE: 'http://localhost/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -24,23 +24,23 @@ describe('timesheets api', () => {
   it('lists my timesheets', async () => {
     await listTimesheets();
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/mine',
+      'http://localhost/api/v1/timesheets/mine',
     );
   });
 
   it('lists all timesheets with optional staff filter', async () => {
     await listAllTimesheets();
-    expect(apiFetch).toHaveBeenCalledWith('http://localhost/api/timesheets');
+    expect(apiFetch).toHaveBeenCalledWith('http://localhost/api/v1/timesheets');
     await listAllTimesheets(7);
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets?staffId=7',
+      'http://localhost/api/v1/timesheets?staffId=7',
     );
   });
 
   it('gets timesheet days', async () => {
     await getTimesheetDays(5);
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/5/days',
+      'http://localhost/api/v1/timesheets/5/days',
     );
   });
 
@@ -53,7 +53,7 @@ describe('timesheets api', () => {
       vacHours: 0,
     });
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/3/days/2024-01-02',
+      'http://localhost/api/v1/timesheets/3/days/2024-01-02',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({
@@ -70,7 +70,7 @@ describe('timesheets api', () => {
   it('submits timesheet', async () => {
     await submitTimesheet(9);
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/9/submit',
+      'http://localhost/api/v1/timesheets/9/submit',
       {
         method: 'POST',
       },
@@ -80,7 +80,7 @@ describe('timesheets api', () => {
   it('rejects timesheet', async () => {
     await rejectTimesheet(4);
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/4/reject',
+      'http://localhost/api/v1/timesheets/4/reject',
       {
         method: 'POST',
       },
@@ -90,7 +90,7 @@ describe('timesheets api', () => {
   it('processes timesheet', async () => {
     await processTimesheet(6);
     expect(apiFetch).toHaveBeenCalledWith(
-      'http://localhost/api/timesheets/6/process',
+      'http://localhost/api/v1/timesheets/6/process',
       {
         method: 'POST',
       },

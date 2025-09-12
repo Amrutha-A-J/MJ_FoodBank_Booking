@@ -2,7 +2,7 @@ import { apiFetch } from '../client';
 import { deleteVolunteer, updateVolunteer } from '../volunteers';
 
 jest.mock('../client', () => ({
-  API_BASE: '/api',
+  API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -15,13 +15,13 @@ describe('volunteers api', () => {
 
   it('calls delete volunteer endpoint', async () => {
     await deleteVolunteer(3);
-    expect(apiFetch).toHaveBeenCalledWith('/api/volunteers/3', expect.objectContaining({ method: 'DELETE' }));
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/volunteers/3', expect.objectContaining({ method: 'DELETE' }));
   });
 
   it('calls update volunteer endpoint', async () => {
     await updateVolunteer(5, { firstName: 'A', lastName: 'B' });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteers/5',
+      '/api/v1/volunteers/5',
       expect.objectContaining({ method: 'PUT' })
     );
   });

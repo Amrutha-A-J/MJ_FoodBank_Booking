@@ -5,10 +5,10 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - [MJ_FB_Backend](MJ_FB_Backend) – Node.js/Express API.
 - [MJ_FB_Frontend](MJ_FB_Frontend) – React single-page app.
 - [docs](docs/) with setup notes and a [Timesheets guide](docs/timesheets.md).
-- Leave request API under `/api/leave/requests` for staff leave, supporting
+  - Leave request API under `/api/v1/leave/requests` for staff leave, supporting
   vacation, sick, or personal requests (one personal day per quarter) with optional reasons.
   Admins can view requests for a specific staff member via
-  `/api/timesheets/leave-requests/:staffId` (using the staff ID, not the timesheet ID).
+  `/api/v1/timesheets/leave-requests/:staffId` (using the staff ID, not the timesheet ID).
 - Password fields include a visibility toggle so users can verify what they type.
 - Booking confirmation emails include links to public pages for cancelling or rescheduling
   bookings at `/cancel/:token` and `/reschedule/:token`.
@@ -21,8 +21,8 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
 - Sunshine bag recipients are tracked separately and excluded from total client counts.
-- Pantry stats can be recomputed for all historical data via `POST /api/pantry-aggregations/rebuild`.
-- Past blocked slots are cleared nightly, with `/api/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
+  - Pantry stats can be recomputed for all historical data via `POST /api/v1/pantry-aggregations/rebuild`.
+  - Past blocked slots are cleared nightly, with `/api/v1/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
 - All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
 - The login page automatically surfaces passkey prompts via WebAuthn on supported devices.
 - Password reset dialog prompts clients to enter their client ID and explains that a reset link will be emailed.
@@ -154,9 +154,9 @@ Ops alerts include the failing job or API route and are forwarded to a Telegram 
 Calendar emails attach an `.ics` file. If `ICS_BASE_URL` is configured, `appleCalendarLink`
 points to the hosted file; otherwise it falls back to a base64 `data:` URI.
 
-Staff submit leave through `/api/leave/requests` with `startDate`, `endDate`,
+Staff submit leave through `/api/v1/leave/requests` with `startDate`, `endDate`,
 `type` (`vacation`, `sick`, or `personal` – limited to one personal day per quarter), and optional `reason`; admins approve or reject
-via `/api/leave/requests/:id/approve` and `/api/leave/requests/:id/reject`.
+via `/api/v1/leave/requests/:id/approve` and `/api/v1/leave/requests/:id/reject`.
 
 Individuals who use the food bank are referred to as clients throughout the application.
 
@@ -368,7 +368,7 @@ After setting a password, users are redirected to the login page for their role.
 1. **Create an agency** – as staff, call `POST /agencies` with the agency details:
 
    ```bash
-   curl -X POST http://localhost:4000/api/agencies \
+    curl -X POST http://localhost:4000/api/v1/agencies \
      -H "Authorization: Bearer <staff-token>" \
     -H "Content-Type: application/json" \
     -d '{"name":"Sample Agency","email":"agency@example.com","contactInfo":"123-4567"}'
@@ -393,14 +393,14 @@ After setting a password, users are redirected to the login page for their role.
 
 # As staff assigning client 42 to agency 1
 
-curl -X POST http://localhost:4000/api/agencies/add-client \
+curl -X POST http://localhost:4000/api/v1/agencies/add-client \
  -H "Authorization: Bearer <token>" \
  -H "Content-Type: application/json" \
  -d '{"agencyId":1,"clientId":42}'
 
 # As the agency itself
 
-curl -X POST http://localhost:4000/api/agencies/add-client \
+curl -X POST http://localhost:4000/api/v1/agencies/add-client \
  -H "Authorization: Bearer <agency-token>" \
  -H "Content-Type: application/json" \
  -d '{"agencyId":1,"clientId":42}'
@@ -455,13 +455,13 @@ npm start   # or npm run dev
 The frontend requires `VITE_API_BASE` to point to the backend API. Create a `.env` file in `MJ_FB_Frontend` with either a relative or absolute URL:
 
 ```
-VITE_API_BASE=/api
+VITE_API_BASE=/api/v1
 ```
 
 or
 
 ```
-VITE_API_BASE=http://localhost:4000/api
+VITE_API_BASE=http://localhost:4000/api/v1
 ```
 
 The build will fail if this variable is missing.

@@ -8,7 +8,7 @@ describe('auth cookies in non-production', () => {
       process.env.COOKIE_DOMAIN = 'example.com';
       process.env.NODE_ENV = 'development';
       const { default: app } = await import('../src/app');
-      const res = await request(app).get('/api/auth/csrf-token');
+      const res = await request(app).get('/api/v1/auth/csrf-token');
       const cookie = res.headers['set-cookie'][0];
       expect(cookie).not.toMatch(/Domain=example\.com/);
       delete process.env.COOKIE_DOMAIN;

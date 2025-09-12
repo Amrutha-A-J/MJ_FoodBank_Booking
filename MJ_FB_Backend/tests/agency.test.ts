@@ -93,7 +93,7 @@ test('does not query database on import', () => {
 
 const app = express();
 app.use(express.json());
-app.use('/api/bookings', bookingsRouter);
+app.use('/api/v1/bookings', bookingsRouter);
 app.use('/agencies', agenciesRoutes);
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   res.status(err.status || 500).json({ message: err.message });
@@ -125,7 +125,7 @@ describe('Agency booking creation', () => {
     (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
 
     const res = await request(app)
-      .post('/api/bookings')
+      .post('/api/v1/bookings')
       .send({ userId: 5, slotId: 1, date: today });
 
     expect(res.status).toBe(201);
@@ -136,7 +136,7 @@ describe('Agency booking creation', () => {
     (isAgencyClient as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app)
-      .post('/api/bookings')
+      .post('/api/v1/bookings')
       .send({ userId: 5, slotId: 1, date: today });
 
     expect(res.status).toBe(403);
@@ -147,7 +147,7 @@ describe('Agency booking creation', () => {
     it('ignores userId query for agency', async () => {
       (isAgencyClient as jest.Mock).mockResolvedValue(true);
       const res = await request(app)
-        .get('/api/bookings/history')
+        .get('/api/v1/bookings/history')
         .query({ userId: 99 });
 
       expect(res.status).toBe(200);
@@ -159,7 +159,7 @@ describe('Agency booking creation', () => {
     it('passes pagination and clientIds for agencies', async () => {
       (isAgencyClient as jest.Mock).mockResolvedValue(true);
       const res = await request(app)
-        .get('/api/bookings/history')
+        .get('/api/v1/bookings/history')
         .query({ clientIds: '5,6', limit: '10', offset: '5' });
 
       expect(res.status).toBe(200);
@@ -177,7 +177,7 @@ describe('Agency booking listing', () => {
   it('lists bookings for associated clients', async () => {
     (getAgencyClientSet as jest.Mock).mockResolvedValue(new Set([5, 6]));
     const res = await request(app)
-      .get('/api/bookings')
+      .get('/api/v1/bookings')
       .query({ clientIds: '5,6' });
 
     expect(res.status).toBe(200);
@@ -191,7 +191,7 @@ describe('Agency booking listing', () => {
   it('rejects unassociated clients', async () => {
     (getAgencyClientSet as jest.Mock).mockResolvedValue(new Set([5]));
     const res = await request(app)
-      .get('/api/bookings')
+      .get('/api/v1/bookings')
       .query({ clientIds: '5,6' });
 
     expect(res.status).toBe(403);
@@ -214,7 +214,7 @@ describe('Agency booking modifications', () => {
     });
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
 
-    const res = await request(app).post('/api/bookings/1/cancel');
+    const res = await request(app).post('/api/v1/bookings/1/cancel');
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking cancelled');
@@ -230,7 +230,7 @@ describe('Agency booking modifications', () => {
     });
     (bookingRepository.updateBooking as jest.Mock).mockResolvedValue(undefined);
 
-    const res = await request(app).post('/api/bookings/1/cancel');
+    const res = await request(app).post('/api/v1/bookings/1/cancel');
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking cancelled');
@@ -246,7 +246,7 @@ describe('Agency booking modifications', () => {
       date: futureDate,
     });
 
-    const res = await request(app).post('/api/bookings/1/cancel');
+    const res = await request(app).post('/api/v1/bookings/1/cancel');
 
     expect(res.status).toBe(403);
   });
@@ -270,7 +270,7 @@ describe('Agency booking modifications', () => {
       .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] });
 
     const res = await request(app)
-      .post('/api/bookings/reschedule/token123')
+      .post('/api/v1/bookings/reschedule/token123')
       .send({ slotId: 2, date: futureDate });
 
     expect(res.status).toBe(200);

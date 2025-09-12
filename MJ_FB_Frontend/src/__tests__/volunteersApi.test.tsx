@@ -16,7 +16,7 @@ import {
 } from '../api/volunteers';
 
 jest.mock('../api/client', () => ({
-  API_BASE: '/api',
+  API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -30,7 +30,7 @@ describe('volunteers api', () => {
   it('creates volunteer booking for volunteer', async () => {
     await createVolunteerBookingForVolunteer(5, 3, '2024-01-01');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/staff',
+      '/api/v1/volunteer-bookings/staff',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ volunteerId: 5, roleId: 3, date: '2024-01-01', force: false }),
@@ -41,7 +41,7 @@ describe('volunteers api', () => {
   it('creates volunteer booking with force', async () => {
     await createVolunteerBookingForVolunteer(5, 3, '2024-01-01', true);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/staff',
+      '/api/v1/volunteer-bookings/staff',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ volunteerId: 5, roleId: 3, date: '2024-01-01', force: true }),
@@ -52,7 +52,7 @@ describe('volunteers api', () => {
   it('updates volunteer trained areas', async () => {
     await updateVolunteerTrainedAreas(2, [1, 3]);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteers/2/trained-areas',
+      '/api/v1/volunteers/2/trained-areas',
       expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({ roleIds: [1, 3] }),
@@ -62,29 +62,29 @@ describe('volunteers api', () => {
 
   it('fetches volunteer by id', async () => {
     await getVolunteerById(7);
-    expect(apiFetch).toHaveBeenCalledWith('/api/volunteers/7');
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/volunteers/7');
   });
 
   it('fetches volunteer master roles', async () => {
     await getVolunteerMasterRoles();
-    expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-master-roles');
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/volunteer-master-roles');
   });
 
   it('fetches unmarked volunteer bookings', async () => {
     await getUnmarkedVolunteerBookings();
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/unmarked',
+      '/api/v1/volunteer-bookings/unmarked',
     );
   });
 
   it('fetches recurring volunteer bookings', async () => {
     await getMyRecurringVolunteerBookings();
-    expect(apiFetch).toHaveBeenCalledWith('/api/volunteer-bookings/recurring');
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/volunteer-bookings/recurring');
   });
 
   it('logs in volunteer with email', async () => {
     await loginVolunteer('user@example.com', 'pass');
-    expect(apiFetch).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/auth/login', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({ email: 'user@example.com', password: 'pass' }),
     }));
@@ -102,7 +102,7 @@ describe('volunteers api', () => {
       false,
     );
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteers',
+      '/api/v1/volunteers',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -122,7 +122,7 @@ describe('volunteers api', () => {
   it('fetches volunteer bookings by roles', async () => {
     await getVolunteerBookingsByRoles([1, 2, 3]);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings?roleIds=1,2,3',
+      '/api/v1/volunteer-bookings?roleIds=1,2,3',
     );
   });
 
@@ -151,7 +151,7 @@ describe('volunteers api', () => {
       '2024-02-01',
     );
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/recurring/staff',
+      '/api/v1/volunteer-bookings/recurring/staff',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -170,14 +170,14 @@ describe('volunteers api', () => {
   it('fetches recurring volunteer bookings for volunteer', async () => {
     await getRecurringVolunteerBookingsForVolunteer(7);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/recurring/volunteer/7',
+      '/api/v1/volunteer-bookings/recurring/volunteer/7',
     );
   });
 
   it('updates volunteer booking status with reason', async () => {
     await updateVolunteerBookingStatus(7, 'cancelled', 'sick');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/7',
+      '/api/v1/volunteer-bookings/7',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ status: 'cancelled', reason: 'sick' }),
@@ -188,7 +188,7 @@ describe('volunteers api', () => {
   it('updates volunteer booking status to completed', async () => {
     await updateVolunteerBookingStatus(7, 'completed');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/7',
+      '/api/v1/volunteer-bookings/7',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ status: 'completed' }),
@@ -199,7 +199,7 @@ describe('volunteers api', () => {
   it('cancels volunteer booking with reason', async () => {
     await cancelVolunteerBooking(10, 'sick');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/volunteer-bookings/10/cancel',
+      '/api/v1/volunteer-bookings/10/cancel',
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ reason: 'sick', type: 'volunteer shift' }),

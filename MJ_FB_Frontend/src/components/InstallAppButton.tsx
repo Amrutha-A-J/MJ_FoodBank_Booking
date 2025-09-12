@@ -60,7 +60,7 @@ export default function InstallAppButton() {
 
   useEffect(() => {
     const handler = () => {
-      navigator.sendBeacon('/api/pwa-install');
+      navigator.sendBeacon('/api/v1/pwa-install');
       setInstalled(true);
       setShowPrompt(false);
     };

@@ -23,8 +23,8 @@ const volunteerWithShopper = {
 
 const app = express();
 app.use(express.json());
-app.use('/api/auth', authRouter);
-app.use('/api/users', usersRouter);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', usersRouter);
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -36,9 +36,9 @@ beforeEach(() => {
   (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
 });
 
-describe('POST /api/auth/login', () => {
+describe('POST /api/v1/auth/login', () => {
   it('returns 400 when missing credentials', async () => {
-    const res = await request(app).post('/api/auth/login').send({});
+    const res = await request(app).post('/api/v1/auth/login').send({});
     expect(res.status).toBe(400);
   });
 
@@ -63,7 +63,7 @@ describe('POST /api/auth/login', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'john@example.com', password: 'secret' });
 
     expect(res.status).toBe(200);
@@ -80,7 +80,7 @@ describe('POST /api/auth/login', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: volunteerWithShopper.email, password: 'secret' });
 
     expect(res.status).toBe(200);
@@ -123,7 +123,7 @@ describe('POST /api/auth/login', () => {
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ clientId: 9, password: 'secret' });
 
     expect(res.status).toBe(200);
@@ -153,7 +153,7 @@ describe('POST /api/auth/login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'john@example.com', password: 'wrong' });
 
     expect(res.status).toBe(401);
@@ -161,15 +161,15 @@ describe('POST /api/auth/login', () => {
 
   it('returns 404 when account is not found', async () => {
     const res = await request(app)
-      .post('/api/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'missing@example.com', password: 'secret' });
     expect(res.status).toBe(404);
   });
 });
 
-describe('GET /api/users/me', () => {
+describe('GET /api/v1/users/me', () => {
   it('requires authentication', async () => {
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
     expect(res.status).toBe(401);
   });
 });

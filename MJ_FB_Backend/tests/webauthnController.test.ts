@@ -8,7 +8,7 @@ jest.mock('../src/utils/authUtils', () => ({ __esModule: true, default: jest.fn(
 
 const app = express();
 app.use(express.json());
-app.use('/api/webauthn', webauthnRoutes);
+app.use('/api/v1/webauthn', webauthnRoutes);
 
 describe('webauthn routes', () => {
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('webauthn routes', () => {
   });
 
   it('returns a challenge without identifier', async () => {
-    const res = await request(app).post('/api/webauthn/challenge').send({});
+    const res = await request(app).post('/api/v1/webauthn/challenge').send({});
     expect(res.status).toBe(200);
     expect(res.body.challenge).toBeDefined();
     expect(res.body.registered).toBeUndefined();
@@ -28,7 +28,7 @@ describe('webauthn routes', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ client_id: 123, first_name: 'John', last_name: 'Doe', role: 'shopper' }] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
-    const res = await request(app).post('/api/webauthn/verify').send({ credentialId: 'abc' });
+    const res = await request(app).post('/api/v1/webauthn/verify').send({ credentialId: 'abc' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ role: 'shopper', name: 'John Doe', id: 123 });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE credential_id = \$1/);
@@ -36,7 +36,7 @@ describe('webauthn routes', () => {
 
   it('returns 401 for unknown credential', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
-    const res = await request(app).post('/api/webauthn/verify').send({ credentialId: 'missing' });
+    const res = await request(app).post('/api/v1/webauthn/verify').send({ credentialId: 'missing' });
     expect(res.status).toBe(401);
   });
 
@@ -46,7 +46,7 @@ describe('webauthn routes', () => {
       .mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
     const res = await request(app)
-      .post('/api/webauthn/register')
+      .post('/api/v1/webauthn/register')
       .send({ identifier: '123', credentialId: 'abc' });
 
     expect(res.status).toBe(401);
@@ -59,7 +59,7 @@ describe('webauthn routes', () => {
       .mockResolvedValueOnce({ rowCount: 0, rows: [] });
 
     const res = await request(app)
-      .post('/api/webauthn/verify')
+      .post('/api/v1/webauthn/verify')
       .send({ credentialId: 'abc' });
 
     expect(res.status).toBe(401);

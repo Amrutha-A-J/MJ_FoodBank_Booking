@@ -6,6 +6,7 @@
 - Use Node.js 22+; run `nvm use` to switch to the pinned version in `.nvmrc`.
 - Keep recurring-booking tests current in both the backend and frontend whenever this feature changes.
 - The pantry schedule receives live updates through an SSE endpoint at `/bookings/stream`.
+- API routes are served under `/api/v1`; legacy `/api` paths redirect to `/api/v1`.
 - Pantry and volunteer schedules include a Today button and a date picker for jumping directly to specific days.
 - Volunteer schedule marks Moose Jaw Food Bank as closed on weekends and holidays, displaying the reason. Gardening and Special Events roles remain bookable every day.
 - `/slots/range` returns 90 days of availability by default so the pantry schedule can load slots three months ahead.
