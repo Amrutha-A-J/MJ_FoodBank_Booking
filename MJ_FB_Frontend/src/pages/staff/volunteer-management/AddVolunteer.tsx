@@ -81,6 +81,11 @@ export default function AddVolunteer() {
       setSeverity('error');
       return;
     }
+    if (onlineAccess && !sendPasswordLink && !password) {
+      setMessage('Password required');
+      setSeverity('error');
+      return;
+    }
     try {
       await createVolunteer(
         firstName,
