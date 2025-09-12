@@ -7,6 +7,7 @@ import {
   getMonetaryDonations,
   updateMonetaryDonation,
   deleteMonetaryDonation,
+  importMonetaryDonations,
 } from '../api/monetaryDonors';
 
 jest.mock('../api/monetaryDonors', () => ({
@@ -16,6 +17,7 @@ jest.mock('../api/monetaryDonors', () => ({
   createMonetaryDonation: jest.fn(),
   updateMonetaryDonation: jest.fn(),
   deleteMonetaryDonation: jest.fn(),
+  importMonetaryDonations: jest.fn(),
 }));
 
 describe('Donor Donation Log', () => {
@@ -87,7 +89,7 @@ describe('Donor Donation Log', () => {
 
   it('filters donations by search', async () => {
     (getMonetaryDonors as jest.Mock).mockResolvedValue([
-      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+      { id: 1, firstName: 'John', lastName: 'Doe', email: null },
       { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' },
     ]);
     (getMonetaryDonations as jest.Mock).mockImplementation(async (donorId: number) => {
@@ -102,7 +104,7 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('john@example.com')).toBeInTheDocument();
+    expect(await screen.findByText('John')).toBeInTheDocument();
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
 
     const searchField = screen.getByLabelText('Search');
@@ -112,13 +114,13 @@ describe('Donor Donation Log', () => {
       expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
     );
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+    expect(screen.queryByText('John')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'john' } });
     await waitFor(() =>
       expect(getMonetaryDonors).toHaveBeenLastCalledWith('john'),
     );
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('John')).toBeInTheDocument();
     expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: '100' } });
@@ -126,14 +128,41 @@ describe('Donor Donation Log', () => {
       expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined),
     );
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+    expect(screen.queryByText('John')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: '' } });
     await waitFor(() =>
       expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined),
     );
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('John')).toBeInTheDocument();
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+  });
+
+  it('imports donations and reloads list', async () => {
+    (getMonetaryDonors as jest.Mock).mockResolvedValue([
+      { id: 1, firstName: 'John', lastName: 'Doe', email: null },
+    ]);
+    (getMonetaryDonations as jest.Mock).mockResolvedValue([
+      { id: 1, donorId: 1, amount: 50, date: '2024-01-10' },
+    ]);
+    (importMonetaryDonations as jest.Mock).mockResolvedValue(undefined);
+
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText('$50.00');
+
+    const file = new File(['data'], 'donations.csv', { type: 'text/csv' });
+    fireEvent.change(screen.getByLabelText('Import CSV'), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() => expect(importMonetaryDonations).toHaveBeenCalled());
+    await waitFor(() => expect(getMonetaryDonations).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Import complete')).toBeInTheDocument();
   });
 });
 

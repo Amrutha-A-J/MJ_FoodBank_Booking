@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
 import {
@@ -18,6 +19,7 @@ import {
   updateTestEmail,
   deleteTestEmail,
   sendTestMailLists,
+  importMonetaryDonors,
 } from '../controllers/monetaryDonorController';
 import { addMonetaryDonorSchema, updateMonetaryDonorSchema } from '../schemas/monetaryDonorSchemas';
 import { addMonetaryDonationSchema, updateMonetaryDonationSchema } from '../schemas/monetaryDonationSchemas';
@@ -27,6 +29,7 @@ import {
 } from '../schemas/monetaryDonorTestEmailSchemas';
 
 const router = Router();
+const upload = multer();
 
 router.use(authMiddleware);
 router.use(authorizeAccess('donor_management'));
@@ -57,5 +60,7 @@ router.get('/:id/donations', listDonations);
 router.post('/:id/donations', validate(addMonetaryDonationSchema), addDonation);
 router.put('/donations/:id', validate(updateMonetaryDonationSchema), updateDonation);
 router.delete('/donations/:id', deleteDonation);
+
+router.post('/import', upload.single('file'), importMonetaryDonors);
 
 export default router;

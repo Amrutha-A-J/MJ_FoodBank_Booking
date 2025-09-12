@@ -153,6 +153,41 @@ export async function deleteDonation(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function importMonetaryDonors(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const file = (req as any).file;
+    const csv = file?.buffer.toString('utf8').trim();
+    if (!csv) return res.status(400).json({ message: 'No file' });
+    const lines = csv.split(/\r?\n/).slice(1);
+    for (const line of lines) {
+      if (!line) continue;
+      const [firstName, lastName, email, amountStr, date] = line.split(',');
+      const donorRes = await pool.query(
+        `INSERT INTO monetary_donors (first_name, last_name, email)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (email) DO UPDATE
+         SET first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name
+         RETURNING id`,
+        [firstName, lastName, email || null],
+      );
+      const donorId = donorRes.rows[0].id;
+      await pool.query(
+        `INSERT INTO monetary_donations (donor_id, date, amount)
+         VALUES ($1, $2, $3)`,
+        [donorId, date, parseInt(amountStr, 10)],
+      );
+    }
+    res.json({ imported: lines.length });
+  } catch (error) {
+    logger.error('Error importing monetary donors:', error);
+    next(error);
+  }
+}
+
 export async function getMailLists(req: Request, res: Response, next: NextFunction) {
   try {
     const now = new Date();

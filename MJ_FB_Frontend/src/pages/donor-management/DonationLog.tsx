@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Button,
   Dialog,
@@ -25,6 +25,7 @@ import {
   createMonetaryDonation,
   updateMonetaryDonation,
   deleteMonetaryDonation,
+  importMonetaryDonations,
   type MonetaryDonor,
   type MonetaryDonation,
 } from '../../api/monetaryDonors';
@@ -68,6 +69,7 @@ export default function DonationLog() {
     message: '',
   });
   const [search, setSearch] = useState('');
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const currency = useMemo(
     () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
@@ -81,7 +83,7 @@ export default function DonationLog() {
         d =>
           d.firstName.toLowerCase().includes(s) ||
           d.lastName.toLowerCase().includes(s) ||
-          d.email.toLowerCase().includes(s) ||
+          (d.email || '').toLowerCase().includes(s) ||
           d.amount.toString().includes(s),
       );
     },
@@ -118,7 +120,7 @@ export default function DonationLog() {
                 ...n,
                 firstName: d.firstName,
                 lastName: d.lastName,
-                email: d.email,
+                email: d.email ?? '',
               })),
           )
           .catch(() => []),
@@ -239,6 +241,21 @@ export default function DonationLog() {
     },
   ];
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      await importMonetaryDonations(form);
+      setSnackbar({ open: true, message: 'Import complete' });
+      await loadDonations();
+    } catch {
+      setSnackbar({ open: true, message: 'Import failed' });
+    }
+    e.target.value = '';
+  };
+
   const table = (
     <TableContainer sx={{ overflowX: 'auto' }}>
       <ResponsiveTable columns={columns} rows={filteredDonations} getRowKey={r => r.id} />
@@ -269,6 +286,20 @@ export default function DonationLog() {
             }}
           >
             Add Donor
+          </Button>
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInput}
+            onChange={handleImport}
+            style={{ display: 'none' }}
+            aria-label="Import CSV"
+          />
+          <Button
+            variant="outlined"
+            onClick={() => fileInput.current?.click()}
+          >
+            Import
           </Button>
           <TextField
             label="Month"
