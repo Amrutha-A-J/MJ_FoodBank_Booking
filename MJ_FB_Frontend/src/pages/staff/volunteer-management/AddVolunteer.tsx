@@ -215,7 +215,7 @@ export default function AddVolunteer() {
             sx={{ mt: 2, bgcolor: 'background.default', p: 1, borderRadius: 1 }}
           >
             {selectedRoles.map(id => (
-              <Grid item key={id}>
+              <Grid key={id} size="auto">
                 <Chip
                   label={idToName.get(id)}
                   variant="outlined"
