@@ -295,5 +295,7 @@
     "contact_email": "amrutha.laxman@mjfoodbank.org"
   },
   "insert_aggregate": "Insert Aggregate",
-  "insert_aggregate_help": "Manually add or update monthly totals"
+  "insert_aggregate_help": "Manually add or update monthly totals",
+  "volunteer_shift": "Volunteer Shift",
+  "book_shopping": "Book Shopping"
 }
