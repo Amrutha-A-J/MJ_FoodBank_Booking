@@ -103,7 +103,7 @@ export const donorAggregations = asyncHandler(async (req: Request, res: Response
     `SELECT o.first_name || ' ' || o.last_name AS donor, o.email, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
-       LEFT JOIN donor_aggregations a ON a.donor_id = o.id
+       LEFT JOIN donor_aggregations a ON a.donor_email = o.email
          AND a.year = $1
          AND a.month = m.month
        ORDER BY o.first_name, o.last_name, m.month`,
@@ -136,7 +136,7 @@ export const exportDonorAggregations = asyncHandler(
       `SELECT o.first_name || ' ' || o.last_name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
-       LEFT JOIN donor_aggregations a ON a.donor_id = o.id
+       LEFT JOIN donor_aggregations a ON a.donor_email = o.email
          AND a.year = $1
          AND a.month = m.month
        ORDER BY o.first_name, o.last_name, m.month`,
