@@ -238,7 +238,9 @@ export default function AgencyClientManager() {
         maxWidth="md"
       >
         <DialogTitle>
-          {bookingClient ? `Book for ${bookingClient.name}` : 'Book Appointment'}
+          {bookingClient
+            ? `Book for ${bookingClient.name}`
+            : 'Book Shopping Appointment'}
         </DialogTitle>
         <DialogContent>
           {bookingLoading && (

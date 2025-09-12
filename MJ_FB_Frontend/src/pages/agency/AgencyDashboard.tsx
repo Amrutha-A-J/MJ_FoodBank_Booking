@@ -255,12 +255,12 @@ export default function AgencyDashboard() {
             <SectionCard title="Quick Actions">
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button
-                  
+
                   variant="contained"
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/book')}
                 >
-                  Book Appointment
+                  {t('book_appointment')}
                 </Button>
                 <Button
                   

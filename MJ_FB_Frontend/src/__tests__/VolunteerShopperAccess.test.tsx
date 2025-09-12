@@ -33,12 +33,16 @@ describe('Volunteer with shopper profile', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() =>
-      expect(screen.getByRole('link', { name: /Book Appointment/i })).toBeInTheDocument(),
+      expect(
+        screen.getByRole('link', { name: /Book Shopping Appointment/i }),
+      ).toBeInTheDocument(),
     );
     expect(loginVolunteer).toHaveBeenCalledWith('vol@example.com', 'pass');
     expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('link', { name: /Book Appointment/i }));
+    fireEvent.click(
+      screen.getByRole('link', { name: /Book Shopping Appointment/i }),
+    );
     expect(screen.getByText(/BookingUI Component/i)).toBeInTheDocument();
   });
 });
