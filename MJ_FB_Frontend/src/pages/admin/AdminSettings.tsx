@@ -3,6 +3,7 @@ import StyledTabs from '../../components/StyledTabs';
 import WarehouseSettings from './settings/WarehouseSettings';
 import PantrySettingsTab from './settings/PantrySettingsTab';
 import VolunteerSettingsTab from './settings/VolunteerSettingsTab';
+import DonorSettingsTab from './settings/DonorSettingsTab';
 
 export default function AdminSettings() {
   return (
@@ -12,6 +13,7 @@ export default function AdminSettings() {
           { label: 'Warehouse', content: <WarehouseSettings /> },
           { label: 'Pantry', content: <PantrySettingsTab /> },
           { label: 'Volunteer', content: <VolunteerSettingsTab /> },
+          { label: 'Donor', content: <DonorSettingsTab /> },
         ]}
       />
     </Page>

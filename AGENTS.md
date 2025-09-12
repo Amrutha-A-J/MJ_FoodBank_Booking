@@ -47,6 +47,7 @@
 - Profile pages let clients and volunteers toggle email reminders from `/users/me/preferences`.
 - Staff can delete client and volunteer accounts from their respective management pages; update help content when these features change.
 - Donation management pages are accessible to staff with donor_management access and admins.
+- Admin settings include a Donor tab for managing test email addresses used when sending donor mail lists.
 - Donor donation log allows editing, deleting, and searching recorded donations by donor email, name, or amount.
 - Donor Management → Donors lists existing donors and lets staff edit donor details.
 - Aggregations pages are accessible to staff with aggregations or donor_management access.

@@ -8,6 +8,11 @@ import {
   deleteMonetaryDonation,
   getMailLists,
   sendMailListEmails,
+  sendTestMailListEmails,
+  getDonorTestEmails,
+  createDonorTestEmail,
+  updateDonorTestEmail,
+  deleteDonorTestEmail,
 } from '../monetaryDonors';
 
 jest.mock('../client', () => ({
@@ -123,6 +128,49 @@ describe('monetary donor mail lists api', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ year: 2024, month: 5 }),
       }),
+    );
+  });
+
+  it('sends test mail list emails', async () => {
+    await sendTestMailListEmails({ year: 2024, month: 5 });
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/mail-lists/test',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year: 2024, month: 5 }),
+      }),
+    );
+  });
+
+  it('manages donor test emails', async () => {
+    await getDonorTestEmails();
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/monetary-donors/test-emails');
+
+    await createDonorTestEmail('a@test.com');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/test-emails',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'a@test.com' }),
+      }),
+    );
+
+    await updateDonorTestEmail(1, 'b@test.com');
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/test-emails/1',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'b@test.com' }),
+      }),
+    );
+
+    await deleteDonorTestEmail(1);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/test-emails/1',
+      expect.objectContaining({ method: 'DELETE' }),
     );
   });
 });

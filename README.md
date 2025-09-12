@@ -17,6 +17,9 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
   summary of families, children, and pounds served. Month defaults to the previous month
   when unspecified.
 - Donor Management → Donors lists existing donors and lets staff edit donor details.
+- Admin Settings → Donor tab manages test email addresses used for Mail Lists
+  testing, and the Mail Lists page provides a Send test emails button to email
+  each tier to the configured addresses.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.

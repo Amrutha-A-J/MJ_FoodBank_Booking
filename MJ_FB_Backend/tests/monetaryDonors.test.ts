@@ -314,3 +314,79 @@ describe('Mailing list generation', () => {
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('Donor test emails', () => {
+  it('manages test emails', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [{ id: 1, email: 'a@test.com' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [{ id: 2, email: 'b@test.com' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [{ id: 2, email: 'c@test.com' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({});
+
+    let res = await request(app)
+      .get('/monetary-donors/test-emails')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(2, 'SELECT id, email FROM donor_test_emails ORDER BY id');
+
+    res = await request(app)
+      .post('/monetary-donors/test-emails')
+      .send({ email: 'b@test.com' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(201);
+    expect(pool.query).toHaveBeenNthCalledWith(3, 'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email', ['b@test.com']);
+
+    res = await request(app)
+      .put('/monetary-donors/test-emails/2')
+      .send({ email: 'c@test.com' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(4, 'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email', ['c@test.com', '2']);
+
+    res = await request(app)
+      .delete('/monetary-donors/test-emails/2')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(204);
+    expect(pool.query).toHaveBeenNthCalledWith(5, 'DELETE FROM donor_test_emails WHERE id = $1', ['2']);
+  });
+
+  it('sends test emails for each tier', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    const origRandom = Math.random;
+    Math.random = () => 0.5;
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [{ families: 1, adults: 2, children: 3, pounds: 4 }] })
+      .mockResolvedValueOnce({ rows: [{ email: 'test@example.com' }] });
+
+    const res = await request(app)
+      .post('/monetary-donors/mail-lists/test')
+      .send({ year: 2024, month: 6 })
+      .set('Authorization', 'Bearer token');
+
+    Math.random = origRandom;
+
+    expect(res.status).toBe(200);
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(5);
+    expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
+      to: 'test@example.com',
+      templateId: 11,
+      params: {
+        firstName: 'Test',
+        amount: 51,
+        families: 1,
+        adults: 2,
+        children: 3,
+        pounds: 4,
+        month: 'June',
+        year: 2024,
+      },
+    });
+    expect(res.body).toEqual({ sent: 5 });
+  });
+});
