@@ -3,7 +3,10 @@ import express from 'express';
 import pool from '../src/db';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
-  authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
+    req.user = { role: 'staff' };
+    next();
+  },
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
@@ -142,6 +145,53 @@ describe('GET /api/v1/slots applies slot rules', () => {
         overbooked: false,
         reason: 'maintenance',
         status: 'blocked',
+      },
+    ]);
+  });
+
+  it('omits blocked slot reason for non-staff users', async () => {
+    jest.resetModules();
+    jest.doMock('../src/middleware/authMiddleware', () => ({
+      authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
+        req.user = { role: 'shopper' };
+        next();
+      },
+      authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+      authorizeAccess: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+      optionalAuthMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+    }));
+    await jest.isolateModulesAsync(async () => {
+      app = (await import('../src/app')).default;
+    });
+    (pool.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('FROM holidays')) return Promise.resolve({ rowCount: 0, rows: [] });
+      if (sql.startsWith('SELECT id, start_time'))
+        return Promise.resolve({
+          rows: [{ id: 1, start_time: '09:30:00', end_time: '10:00:00', max_capacity: 5 }],
+        });
+      if (sql.startsWith('SELECT date, slot_id, reason FROM blocked_slots'))
+        return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT day_of_week, week_of_month'))
+        return Promise.resolve({
+          rows: [{ slot_id: 1, reason: 'maintenance', day_of_week: 2, week_of_month: 3 }],
+        });
+      if (sql.startsWith('SELECT day_of_week, slot_id, reason FROM breaks'))
+        return Promise.resolve({ rows: [] });
+      if (sql.startsWith('SELECT date, slot_id, COUNT(*)'))
+        return Promise.resolve({ rows: [] });
+      return Promise.resolve({ rows: [] });
+    });
+
+    const res = await request(app).get('/api/v1/slots').query({ date: '2024-06-18' });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        id: '1',
+        startTime: '09:30:00',
+        endTime: '10:00:00',
+        maxCapacity: 5,
+        available: 0,
+        overbooked: false,
       },
     ]);
   });

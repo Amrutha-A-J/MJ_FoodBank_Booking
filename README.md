@@ -26,6 +26,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Sunshine bag recipients are tracked separately and excluded from total client counts.
   - Pantry stats can be recomputed for all historical data via `POST /api/v1/pantry-aggregations/rebuild`.
   - Past blocked slots are cleared nightly, with `/api/v1/blocked-slots/cleanup` available for admins to trigger a manual cleanup.
+- Clients and volunteers see blocked slots as fully booked; reasons are visible only to staff.
 - All users sign in at a consolidated `/login` page using their client ID or email and password. The page offers contact and password reset guidance and notes that staff, volunteers, and agencies also sign in here.
 - The login page automatically surfaces passkey prompts via WebAuthn on supported devices.
 - A privacy notice prompts for consent after login; once agreed, it isn't shown again.
