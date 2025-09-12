@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
-import { createEventSchema } from '../schemas/eventSchemas';
+import { createEventSchema, updateEventSchema } from '../schemas/eventSchemas';
 import { formatReginaDate } from '../utils/dateUtils';
 import type { PoolClient } from 'pg';
 import { parseIdParam } from '../utils/parseIdParam';
@@ -22,11 +22,12 @@ export async function listEvents(req: Request, res: Response, next: NextFunction
               e.created_by AS "createdBy",
               e.visible_to_volunteers AS "visibleToVolunteers",
               e.visible_to_clients AS "visibleToClients",
+              e.priority,
               CONCAT(s.first_name, ' ', s.last_name) AS "createdByName"
        FROM events e
        JOIN staff s ON e.created_by = s.id
        ${where}
-       ORDER BY e.start_date ASC`
+       ORDER BY e.priority DESC, e.start_date ASC`
     );
 
     const today: any[] = [];
@@ -66,6 +67,7 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     endDate,
     visibleToVolunteers = false,
     visibleToClients = false,
+    priority = 0,
   } = parsed.data;
   let client: PoolClient | undefined;
   try {
@@ -75,8 +77,8 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     client = await pool.connect();
     await client.query('BEGIN');
     const inserted = await client.query(
-      `INSERT INTO events (title, details, category, start_date, end_date, created_by, visible_to_volunteers, visible_to_clients) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-      [title, details, category, start, end, createdBy, visibleToVolunteers, visibleToClients]
+      `INSERT INTO events (title, details, category, start_date, end_date, created_by, visible_to_volunteers, visible_to_clients, priority) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [title, details, category, start, end, createdBy, visibleToVolunteers, visibleToClients, priority]
     );
     const eventId = inserted.rows[0].id;
     await client.query('COMMIT');
@@ -93,6 +95,31 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     next(error);
   } finally {
     client?.release();
+  }
+}
+
+export async function updateEvent(req: Request, res: Response, next: NextFunction) {
+  const id = parseIdParam(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: 'Invalid id' });
+  }
+  const parsed = updateEventSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.issues });
+  }
+  const { priority } = parsed.data;
+  try {
+    const result = await pool.query(
+      'UPDATE events SET priority = $1 WHERE id = $2 RETURNING id, priority',
+      [priority, id]
+    );
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    logger.error('Error updating event:', error);
+    next(error);
   }
 }
 

@@ -69,6 +69,7 @@ describe('StaffDashboard', () => {
           endDate: '2024-01-01',
           createdBy: 1,
           createdByName: 'Alice',
+          priority: 0,
         },
       ],
       upcoming: [],

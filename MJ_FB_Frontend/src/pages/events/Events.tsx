@@ -67,7 +67,7 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Today</Typography>
-              <EventList events={events.today} onDelete={confirmDelete} />
+              <EventList events={events.today} onDelete={confirmDelete} onChange={fetchEvents} />
             </CardContent>
           </Card>
         </Grid>
@@ -75,7 +75,7 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Upcoming</Typography>
-              <EventList events={events.upcoming} onDelete={confirmDelete} />
+              <EventList events={events.upcoming} onDelete={confirmDelete} onChange={fetchEvents} />
             </CardContent>
           </Card>
         </Grid>
@@ -83,7 +83,7 @@ export default function Events() {
           <Card sx={{ maxHeight: 200, overflowY: 'auto' }}>
             <CardContent>
               <Typography variant="h6">Past</Typography>
-              <EventList events={events.past} onDelete={confirmDelete} />
+              <EventList events={events.past} onDelete={confirmDelete} onChange={fetchEvents} />
             </CardContent>
           </Card>
         </Grid>

@@ -1,11 +1,16 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import Events from '../pages/events/Events';
-import { getEvents, deleteEvent } from '../api/events';
+import { getEvents, deleteEvent, updateEvent } from '../api/events';
 
 jest.mock('../api/events', () => ({
   getEvents: jest.fn(),
   deleteEvent: jest.fn(),
+  updateEvent: jest.fn(),
 }));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe('Events page', () => {
   it('handles undefined API responses gracefully', async () => {
@@ -18,7 +23,7 @@ describe('Events page', () => {
     expect(screen.getAllByText(/no events/i)).toHaveLength(3);
   });
 
-  it('renders events in correct sections', async () => {
+  it('renders events in correct sections and order', async () => {
     const getEventsMock = getEvents as jest.Mock;
     getEventsMock.mockResolvedValue({
       today: [
@@ -30,6 +35,7 @@ describe('Events page', () => {
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Details today',
+          priority: 1,
         },
       ],
       upcoming: [
@@ -41,6 +47,7 @@ describe('Events page', () => {
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Future details',
+          priority: 0,
         },
       ],
       past: [
@@ -52,6 +59,7 @@ describe('Events page', () => {
           createdBy: 1,
           createdByName: 'Alice Smith',
           details: 'Past details',
+          priority: 0,
         },
       ],
     });
@@ -79,6 +87,7 @@ describe('Events page', () => {
           endDate: new Date().toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
+          priority: 0,
         },
       ],
       upcoming: [],
@@ -113,6 +122,7 @@ describe('Events page', () => {
           endDate: new Date().toISOString(),
           createdBy: 1,
           createdByName: 'Alice Smith',
+          priority: 0,
         },
       ],
       upcoming: [],
@@ -128,5 +138,51 @@ describe('Events page', () => {
     fireEvent.click(screen.getByLabelText(/close/i));
 
     expect(deleteEventMock).not.toHaveBeenCalled();
+  });
+
+  it('reorders events when priority buttons are used', async () => {
+    const getEventsMock = getEvents as jest.Mock;
+    const updateEventMock = updateEvent as jest.Mock;
+    getEventsMock
+      .mockResolvedValueOnce({
+        today: [
+          {
+            id: 1,
+            title: 'Low',
+            startDate: new Date().toISOString(),
+            endDate: new Date().toISOString(),
+            createdBy: 1,
+            createdByName: 'Alice Smith',
+            priority: 0,
+          },
+        ],
+        upcoming: [],
+        past: [],
+      })
+      .mockResolvedValueOnce({
+        today: [
+          {
+            id: 1,
+            title: 'Low',
+            startDate: new Date().toISOString(),
+            endDate: new Date().toISOString(),
+            createdBy: 1,
+            createdByName: 'Alice Smith',
+            priority: 1,
+          },
+        ],
+        upcoming: [],
+        past: [],
+      });
+    updateEventMock.mockResolvedValue({ id: 1, priority: 1 });
+
+    render(<Events />);
+
+    await waitFor(() => expect(getEventsMock).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByLabelText(/move up/i));
+
+    await waitFor(() => expect(updateEventMock).toHaveBeenCalledWith(1, { priority: 1 }));
+    await waitFor(() => expect(getEventsMock).toHaveBeenCalledTimes(2));
   });
 });

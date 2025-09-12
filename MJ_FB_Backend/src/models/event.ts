@@ -10,6 +10,7 @@ export interface Event {
   created_by: number;
   visible_to_volunteers: boolean;
   visible_to_clients: boolean;
+  priority: number;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ export interface InsertEventParams {
   createdBy: number;
   visibleToVolunteers?: boolean;
   visibleToClients?: boolean;
+  priority?: number;
 }
 
 export async function insertEvent({
@@ -34,6 +36,7 @@ export async function insertEvent({
   createdBy,
   visibleToVolunteers = false,
   visibleToClients = false,
+  priority = 0,
 }: InsertEventParams): Promise<Event> {
   const res = await pool.query(
     `INSERT INTO events (
@@ -44,9 +47,10 @@ export async function insertEvent({
         end_date,
         created_by,
         visible_to_volunteers,
-        visible_to_clients
+        visible_to_clients,
+        priority
      )
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
      RETURNING *`,
     [
       title,
@@ -57,6 +61,7 @@ export async function insertEvent({
       createdBy,
       visibleToVolunteers,
       visibleToClients,
+      priority,
     ],
   );
   return res.rows[0];
