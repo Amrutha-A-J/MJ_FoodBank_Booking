@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import Navbar, { type NavGroup, type NavLink } from '../Navbar';
 import Breadcrumbs from '../Breadcrumbs';
 import PageContainer from './PageContainer';
+import PrivacyNoticeModal from '../PrivacyNoticeModal';
 import {
   createContext,
   useContext,
@@ -84,6 +85,7 @@ export default function MainLayout({ children, ...navbarProps }: MainLayoutProps
               )}
             </Box>
             {children}
+            <PrivacyNoticeModal />
           </PageContainer>
         </Box>
       </BreadcrumbActionsContext.Provider>

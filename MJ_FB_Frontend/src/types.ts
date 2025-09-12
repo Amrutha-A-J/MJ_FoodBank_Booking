@@ -26,6 +26,7 @@ export interface LoginResponse {
   userRole?: UserRole;
   access?: StaffAccess[];
   id?: number;
+  consent?: boolean;
 }
 
 export interface Slot {
@@ -182,6 +183,7 @@ export interface UserProfile {
   roles?: StaffAccess[];
   trainedAreas?: string[];
   defaultBookingNote?: string;
+  consent?: boolean;
 }
 
 export interface UserPreferences {

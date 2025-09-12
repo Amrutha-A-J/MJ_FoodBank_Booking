@@ -112,6 +112,15 @@ export async function updateMyProfile(data: {
   return handleResponse(res);
 }
 
+export async function setUserConsent(consent: boolean): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/users/me`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ consent }),
+  });
+  await handleResponse(res);
+}
+
 export async function staffExists(): Promise<boolean> {
   const res = await apiFetch(`${API_BASE}/staff/exists`);
   const data = (await handleResponse(res)) as { exists?: boolean } | undefined;
