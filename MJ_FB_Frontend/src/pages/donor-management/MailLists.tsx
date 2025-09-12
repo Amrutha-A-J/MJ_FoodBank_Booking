@@ -27,6 +27,7 @@ export default function MailLists() {
   now.setUTCMonth(now.getUTCMonth() - 1);
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
+  const monthName = now.toLocaleString('en-CA', { month: 'long' });
   const [lists, setLists] = useState<MailLists>();
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -87,7 +88,7 @@ export default function MailLists() {
                 onClick={() => setConfirmSend(true)}
                 disabled={!lists || noDonors}
               >
-                Send emails
+                {`Send emails for (${monthName})`}
               </Button>
               </span>
           </Tooltip>

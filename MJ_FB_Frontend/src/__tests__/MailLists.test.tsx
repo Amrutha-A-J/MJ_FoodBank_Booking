@@ -33,15 +33,18 @@ describe('MailLists', () => {
       '10001-30000': [],
     });
 
+    const now = new Date();
+    now.setUTCMonth(now.getUTCMonth() - 1);
+    const monthName = now.toLocaleString('en-CA', { month: 'long' });
+
     renderWithProviders(<MailLists />);
 
-    const btn = await screen.findByRole('button', { name: /send emails/i });
+    const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeEnabled());
+    expect(btn).toHaveTextContent(`Send emails for (${monthName})`);
 
     await userEvent.click(btn);
     await userEvent.click(await screen.findByRole('button', { name: /confirm/i }));
-    const now = new Date();
-    now.setUTCMonth(now.getUTCMonth() - 1);
     expect(sendMailListEmails).toHaveBeenCalledWith({
       year: now.getUTCFullYear(),
       month: now.getUTCMonth() + 1,
@@ -59,10 +62,15 @@ describe('MailLists', () => {
       '10001-30000': [],
     });
 
+    const now = new Date();
+    now.setUTCMonth(now.getUTCMonth() - 1);
+    const monthName = now.toLocaleString('en-CA', { month: 'long' });
+
     renderWithProviders(<MailLists />);
 
-    const btn = await screen.findByRole('button', { name: /send emails/i });
+    const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeEnabled());
+    expect(btn).toHaveTextContent(`Send emails for (${monthName})`);
     expect(
       screen.queryByText('No donors to email for last month')
     ).not.toBeInTheDocument();
@@ -76,10 +84,15 @@ describe('MailLists', () => {
       '10001-30000': [],
     });
 
+    const now = new Date();
+    now.setUTCMonth(now.getUTCMonth() - 1);
+    const monthName = now.toLocaleString('en-CA', { month: 'long' });
+
     renderWithProviders(<MailLists />);
 
-    const btn = await screen.findByRole('button', { name: /send emails/i });
+    const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeDisabled());
+    expect(btn).toHaveTextContent(`Send emails for (${monthName})`);
     expect(
       await screen.findByText('No donors to email for last month')
     ).toBeInTheDocument();
