@@ -15,6 +15,7 @@ import {
   Button,
   Checkbox,
   Chip,
+  Paper,
   Dialog,
   DialogActions,
   DialogContent,
@@ -29,6 +30,7 @@ import {
   Switch,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -40,6 +42,8 @@ export default function EditVolunteer() {
     useState<VolunteerSearchResult | null>(null);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const [originalSelected, setOriginalSelected] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [hasShopper, setHasShopper] = useState(false);
@@ -88,6 +92,14 @@ export default function EditVolunteer() {
     return map;
   }, [roles]);
 
+  const hasChanges = useMemo(() => {
+    const s = [...selected].sort();
+    const o = [...originalSelected].sort();
+    return s.length !== o.length || s.some((v, i) => v !== o[i]);
+  }, [selected, originalSelected]);
+
+  const theme = useTheme();
+
   function handleSelect(v: VolunteerSearchResult) {
     setVolunteer(v);
     setHasShopper(v.hasShopper);
@@ -95,6 +107,7 @@ export default function EditVolunteer() {
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
     setSelected(names);
+    setOriginalSelected(names);
   }
 
   function handleRoleChange(e: SelectChangeEvent<string[]>) {
@@ -107,15 +120,19 @@ export default function EditVolunteer() {
   }
 
   async function handleSave() {
-    if (!volunteer) return;
+    if (!volunteer || !hasChanges) return;
+    setSaving(true);
     try {
       const roleIds = selected.flatMap(name => nameToRoleIds.get(name) || []);
       await updateVolunteerTrainedAreas(volunteer.id, roleIds);
       setMessage('Volunteer updated');
       setSeverity('success');
+      setOriginalSelected(selected);
     } catch (err: unknown) {
       setMessage(getApiErrorMessage(err, 'Unable to update volunteer'));
       setSeverity('error');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -127,6 +144,7 @@ export default function EditVolunteer() {
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
       setSelected(names);
+      setOriginalSelected(names);
       setHasShopper(v.hasShopper);
     } catch {}
   }
@@ -187,49 +205,70 @@ export default function EditVolunteer() {
         onSelect={v => handleSelect(v as VolunteerSearchResult)}
       />
       {volunteer && (
-        <Stack spacing={2} mt={2} maxWidth={400}>
-          <Typography>{volunteer.name}</Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hasShopper}
-                onChange={handleShopperToggle}
-                color="primary"
-              />
-            }
-            label="Shopper Profile"
-          />
-          <FormControl fullWidth>
-            <InputLabel id="role-select-label">Roles</InputLabel>
-            <Select
-              labelId="role-select-label"
-              multiple
-              value={selected}
-              onChange={handleRoleChange}
-              renderValue={() => 'Select roles'}
-            >
-              {groupedRoles.flatMap(g => [
-                <ListSubheader key={`${g.category}-header`}>
-                  {g.category}
-                </ListSubheader>,
-                ...g.roles.map(r => (
-                  <MenuItem key={r.id} value={r.name}>
-                    <Checkbox checked={selected.includes(r.name)} />
-                    <ListItemText primary={r.name} />
-                  </MenuItem>
-                )),
-              ])}
-            </Select>
-          </FormControl>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {selected.map(name => (
-              <Chip key={name} label={name} onDelete={() => removeRole(name)} />
-            ))}
+        <>
+          <Stack spacing={2} mt={2} maxWidth={400}>
+            <Typography>{volunteer.name}</Typography>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hasShopper}
+                  onChange={handleShopperToggle}
+                  color="primary"
+                />
+              }
+              label="Shopper Profile"
+            />
+            <FormControl fullWidth>
+              <InputLabel id="role-select-label">Roles</InputLabel>
+              <Select
+                labelId="role-select-label"
+                multiple
+                value={selected}
+                onChange={handleRoleChange}
+                renderValue={() => 'Select roles'}
+              >
+                {groupedRoles.flatMap(g => [
+                  <ListSubheader key={`${g.category}-header`}>
+                    {g.category}
+                  </ListSubheader>,
+                  ...g.roles.map(r => (
+                    <MenuItem key={r.id} value={r.name}>
+                      <Checkbox checked={selected.includes(r.name)} />
+                      <ListItemText primary={r.name} />
+                    </MenuItem>
+                  )),
+                ])}
+              </Select>
+            </FormControl>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {selected.map(name => (
+                <Chip key={name} label={name} onDelete={() => removeRole(name)} />
+              ))}
+            </Stack>
           </Stack>
-          <Button variant="contained" onClick={handleSave}>
-            Save
-          </Button>
-        </Stack>
+          <Box
+            component={Paper}
+            sx={{
+              position: 'sticky',
+              bottom: 0,
+              mt: 3,
+              p: 2,
+              borderRadius: { xs: 0, md: 2 },
+              zIndex: theme.zIndex.appBar,
+            }}
+          >
+            <Button
+              variant="contained"
+              fullWidth
+              aria-label="Save volunteer changes"
+              data-testid="save-button"
+              disabled={saving || !hasChanges}
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+          </Box>
+        </>
       )}
       {shopperOpen && (
         <Dialog open onClose={() => setShopperOpen(false)}>

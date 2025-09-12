@@ -6,6 +6,7 @@ import {
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   getVolunteerById,
+  updateVolunteerTrainedAreas,
 } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => {
@@ -43,6 +44,7 @@ describe('EditVolunteer shopper profile', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    (updateVolunteerTrainedAreas as jest.Mock).mockReset();
   });
 
   it('creates shopper profile', async () => {
@@ -63,9 +65,9 @@ describe('EditVolunteer shopper profile', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
-
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(screen.getByRole('switch', { name: /shopper profile/i }));
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/phone/i), { target: { value: '555-1234' } });
@@ -100,9 +102,9 @@ describe('EditVolunteer shopper profile', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
-
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(screen.getByRole('switch', { name: /shopper profile/i }));
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
     await waitFor(() =>
@@ -118,6 +120,7 @@ describe('EditVolunteer role selection', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    (updateVolunteerTrainedAreas as jest.Mock).mockReset();
   });
 
   it('adds role via dropdown', async () => {
@@ -167,7 +170,52 @@ describe('EditVolunteer role selection', () => {
         shifts: [],
       },
     ]);
-    mockVolunteer.trainedAreas = [1];
+    mockVolunteer.trainedAreas = [];
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+    const chip = await screen.findByText('Role A');
+    const deleteIcon = within(chip.parentElement as HTMLElement).getByTestId(
+      'CancelIcon',
+    );
+    fireEvent.click(deleteIcon);
+    await waitFor(() =>
+      expect(screen.queryByText('Role A')).not.toBeInTheDocument(),
+    );
+  });
+});
+
+describe('EditVolunteer save button', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockReset();
+    (createVolunteerShopperProfile as jest.Mock).mockReset();
+    (removeVolunteerShopperProfile as jest.Mock).mockReset();
+    (getVolunteerById as jest.Mock).mockReset();
+    (updateVolunteerTrainedAreas as jest.Mock).mockReset();
+  });
+
+  it('enables and disables save button appropriately', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Role A',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+    ]);
+    mockVolunteer.trainedAreas = [];
+    (updateVolunteerTrainedAreas as jest.Mock).mockResolvedValue(undefined);
 
     render(
       <MemoryRouter>
@@ -176,9 +224,24 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const chip = await screen.findByText('Role A');
-    const deleteBtn = within(chip.parentElement as HTMLElement).getByRole('button');
-    fireEvent.click(deleteBtn);
-    expect(screen.queryByText('Role A')).not.toBeInTheDocument();
+    let saveBtn = await screen.findByRole('button', {
+      name: /save volunteer changes/i,
+    });
+    expect(saveBtn).toBeDisabled();
+
+    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    saveBtn = await screen.findByRole('button', {
+      name: /save volunteer changes/i,
+    });
+    expect(saveBtn).not.toBeDisabled();
+
+    fireEvent.click(saveBtn);
+
+    expect(saveBtn).toBeDisabled();
+    await waitFor(() => expect(updateVolunteerTrainedAreas).toHaveBeenCalled());
   });
 });
