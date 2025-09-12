@@ -176,4 +176,34 @@ describe('pantry aggregation routes', () => {
       [2024, 5, 2, 3, 4, 7, 20],
     );
   });
+
+  it('inserts manual weekly aggregation and refreshes totals', async () => {
+    const body = {
+      year: 2024,
+      month: 5,
+      week: 2,
+      orders: 1,
+      adults: 2,
+      children: 3,
+      people: 5,
+      weight: 10,
+    };
+    (pool.query as jest.Mock).mockResolvedValue({ rows: [{}] });
+    const res = await request(app).post('/pantry-aggregations/manual').send(body);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Saved' });
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('INSERT INTO pantry_weekly_overall'),
+      [2024, 5, 2, '2024-05-06', '2024-05-10', 1, 2, 3, 5, 10],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO pantry_monthly_overall'),
+      expect.any(Array),
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO pantry_yearly_overall'),
+      expect.any(Array),
+    );
+  });
 });

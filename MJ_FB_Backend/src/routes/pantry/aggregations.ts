@@ -61,6 +61,7 @@ router.post(
   '/manual',
   authMiddleware,
   authorizeAccess('pantry', 'aggregations'),
+  // Body: { year, month, week?, orders?, adults?, children?, people?, weight? }
   manualPantryAggregate,
 );
 
