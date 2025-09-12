@@ -1,5 +1,6 @@
 # Feature Log
 
+- feat: allow manual warehouse overall aggregates
 - feat: allow manual pantry monthly aggregates
 - feat: remove help page and navigation
 - f038a6a7 feat: add context to telegram ops alerts
