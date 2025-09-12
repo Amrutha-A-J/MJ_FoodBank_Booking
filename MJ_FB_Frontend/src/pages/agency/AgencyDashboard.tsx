@@ -27,6 +27,7 @@ import {
   cancelBooking,
 } from '../../api/bookings';
 import { getEvents, type EventGroups } from '../../api/events';
+import type { ApiError } from '../../api/client';
 import type { Slot, Holiday, Booking } from '../../types';
 import { formatTime, formatReginaDate, formatRegina } from '../../utils/time';
 import type { AlertColor } from '@mui/material';

@@ -305,7 +305,7 @@ export default function EditVolunteer() {
                     sx={{ mt: 2, bgcolor: 'background.default', p: 1, borderRadius: 1 }}
                   >
                     {selected.map(name => (
-                      <Grid item key={name}>
+                      <Grid key={name} size="auto">
                         <Chip
                           label={name}
                           variant="outlined"
@@ -342,7 +342,6 @@ export default function EditVolunteer() {
               data-testid="save-button"
               onClick={handleSave}
               disabled={saving || !hasChanges}
-              aria-label="Save volunteer"
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Save
