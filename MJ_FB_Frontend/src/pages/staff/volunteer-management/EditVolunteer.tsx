@@ -45,6 +45,8 @@ export default function EditVolunteer() {
     useState<VolunteerSearchResult | null>(null);
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const [initialSelected, setInitialSelected] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [hasShopper, setHasShopper] = useState(false);
@@ -100,6 +102,7 @@ export default function EditVolunteer() {
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
     setSelected(names);
+    setInitialSelected(names);
   }
 
   function handleRoleChange(e: SelectChangeEvent<string[]>) {
@@ -111,16 +114,27 @@ export default function EditVolunteer() {
     setSelected(prev => prev.filter(n => n !== name));
   }
 
+  const hasChanges = useMemo(() => {
+    if (selected.length !== initialSelected.length) return true;
+    const a = [...selected].sort();
+    const b = [...initialSelected].sort();
+    return a.some((v, i) => v !== b[i]);
+  }, [selected, initialSelected]);
+
   async function handleSave() {
-    if (!volunteer) return;
+    if (!volunteer || !hasChanges) return;
+    setSaving(true);
     try {
       const roleIds = selected.flatMap(name => nameToRoleIds.get(name) || []);
       await updateVolunteerTrainedAreas(volunteer.id, roleIds);
+      setInitialSelected(selected);
       setMessage('Volunteer updated');
       setSeverity('success');
     } catch (err: unknown) {
       setMessage(getApiErrorMessage(err, 'Unable to update volunteer'));
       setSeverity('error');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -160,6 +174,7 @@ export default function EditVolunteer() {
       setShopperClientId('');
       setShopperEmail('');
       setShopperPhone('');
+      setHasShopper(true);
       await refreshVolunteer(volunteer.id);
     } catch (err) {
       setMessage(getApiErrorMessage(err, 'Unable to create shopper profile'));
@@ -174,6 +189,7 @@ export default function EditVolunteer() {
       setMessage('Shopper profile removed');
       setSeverity('success');
       setRemoveShopperOpen(false);
+      setHasShopper(false);
       await refreshVolunteer(volunteer.id);
     } catch (err) {
       setMessage(getApiErrorMessage(err, 'Unable to remove shopper profile'));
@@ -289,15 +305,17 @@ export default function EditVolunteer() {
             bottom: 0,
             bgcolor: 'background.paper',
             py: 2,
+            mt: 3,
           }}
         >
-          <Container
-            maxWidth="md"
-            sx={{ display: 'flex', justifyContent: 'flex-end' }}
-          >
+          <Container maxWidth="md">
             <Button
               variant="contained"
+              fullWidth
+              aria-label="Save volunteer changes"
+              data-testid="save-button"
               onClick={handleSave}
+              disabled={saving || !hasChanges}
               aria-label="Save volunteer"
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
