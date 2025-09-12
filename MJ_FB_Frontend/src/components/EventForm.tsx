@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -16,13 +16,14 @@ import dayjs, { formatReginaDate } from '../utils/date';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from './FeedbackSnackbar';
-import { createEvent } from '../api/events';
+import { createEvent, updateEvent, type Event } from '../api/events';
 import DialogCloseButton from './DialogCloseButton';
 
 interface EventFormProps {
   open: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onSaved: () => void;
+  event?: Event | null;
 }
 
 const categories = [
@@ -33,7 +34,7 @@ const categories = [
   'staff leave',
 ];
 
-export default function EventForm({ open, onClose, onCreated }: EventFormProps) {
+export default function EventForm({ open, onClose, onSaved, event }: EventFormProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
@@ -45,6 +46,28 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (open) {
+      if (event) {
+        setTitle(event.title);
+        setDetails(event.details ?? '');
+        setCategory(event.category ?? '');
+        setStartDate(dayjs(event.startDate));
+        setEndDate(dayjs(event.endDate));
+        setVisibleToVolunteers(!!event.visibleToVolunteers);
+        setVisibleToClients(!!event.visibleToClients);
+      } else {
+        setTitle('');
+        setDetails('');
+        setCategory('');
+        setStartDate(null);
+        setEndDate(null);
+        setVisibleToVolunteers(false);
+        setVisibleToClients(false);
+      }
+    }
+  }, [open, event]);
+
   async function submit() {
     if (!title || !category || !startDate || !endDate) {
       setError('Please fill in title, category, start date, and end date');
@@ -55,24 +78,30 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
       return;
     }
     try {
-      await createEvent({
-        title,
-        details,
-        category,
-        startDate: formatReginaDate(startDate),
-        endDate: formatReginaDate(endDate),
-        visibleToVolunteers,
-        visibleToClients,
-      });
-      setSuccess('Event created');
-      setTitle('');
-      setDetails('');
-      setCategory('');
-      setStartDate(null);
-      setEndDate(null);
-      setVisibleToVolunteers(false);
-      setVisibleToClients(false);
-      onCreated();
+      if (event) {
+        await updateEvent(event.id, {
+          title,
+          details,
+          category,
+          startDate: formatReginaDate(startDate),
+          endDate: formatReginaDate(endDate),
+          visibleToVolunteers,
+          visibleToClients,
+        });
+        setSuccess('Event updated');
+      } else {
+        await createEvent({
+          title,
+          details,
+          category,
+          startDate: formatReginaDate(startDate),
+          endDate: formatReginaDate(endDate),
+          visibleToVolunteers,
+          visibleToClients,
+        });
+        setSuccess('Event created');
+      }
+      onSaved();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -83,7 +112,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
     <>
       <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
         <DialogCloseButton onClose={onClose} />
-        <DialogTitle>Create Event</DialogTitle>
+        <DialogTitle>{event ? 'Edit Event' : 'Create Event'}</DialogTitle>
         <DialogContent>
           <TextField
             label="Title"
@@ -150,7 +179,7 @@ export default function EventForm({ open, onClose, onCreated }: EventFormProps) 
         </DialogContent>
         <DialogActions>
           <Button onClick={submit} variant="contained" color="primary">
-            Create
+            {event ? 'Save' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

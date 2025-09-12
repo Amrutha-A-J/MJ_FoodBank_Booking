@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
-import { createEventSchema } from '../schemas/eventSchemas';
+import { createEventSchema, updateEventSchema } from '../schemas/eventSchemas';
 import { formatReginaDate } from '../utils/dateUtils';
+import { updateEvent as updateEventModel } from '../models/event';
 import type { PoolClient } from 'pg';
 import { parseIdParam } from '../utils/parseIdParam';
 
@@ -93,6 +94,49 @@ export async function createEvent(req: Request, res: Response, next: NextFunctio
     next(error);
   } finally {
     client?.release();
+  }
+}
+
+export async function updateEvent(req: Request, res: Response, next: NextFunction) {
+  const id = parseIdParam(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: 'Invalid id' });
+  }
+  const parsed = updateEventSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.issues });
+  }
+  const data = parsed.data;
+  const mapped: any = {};
+  if (data.title !== undefined) mapped.title = data.title;
+  if (data.details !== undefined) mapped.details = data.details;
+  if (data.category !== undefined) mapped.category = data.category;
+  if (data.startDate !== undefined)
+    mapped.startDate = formatReginaDate(data.startDate);
+  if (data.endDate !== undefined) mapped.endDate = formatReginaDate(data.endDate);
+  if (data.visibleToVolunteers !== undefined)
+    mapped.visibleToVolunteers = data.visibleToVolunteers;
+  if (data.visibleToClients !== undefined)
+    mapped.visibleToClients = data.visibleToClients;
+  try {
+    const updated = await updateEventModel(id, mapped);
+    if (!updated) return res.status(404).json({ message: 'Event not found' });
+    res.json({
+      id: updated.id,
+      title: updated.title,
+      details: updated.details,
+      category: updated.category,
+      startDate: updated.start_date,
+      endDate: updated.end_date,
+      createdBy: updated.created_by,
+      visibleToVolunteers: updated.visible_to_volunteers,
+      visibleToClients: updated.visible_to_clients,
+      created_at: updated.created_at,
+      updated_at: updated.updated_at,
+    });
+  } catch (error) {
+    logger.error('Error updating event:', error);
+    next(error);
   }
 }
 

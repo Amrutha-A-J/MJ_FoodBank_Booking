@@ -41,6 +41,26 @@ export async function createEvent(data: {
   return handleResponse(res);
 }
 
+export async function updateEvent(
+  id: number,
+  data: {
+    title?: string;
+    details?: string;
+    category?: string;
+    startDate?: string;
+    endDate?: string;
+    visibleToVolunteers?: boolean;
+    visibleToClients?: boolean;
+  },
+) {
+  const res = await apiFetch(`${API_BASE}/events/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function deleteEvent(id: number) {
   const res = await apiFetch(`${API_BASE}/events/${id}`, {
     method: 'DELETE',

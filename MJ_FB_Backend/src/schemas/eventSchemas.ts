@@ -13,6 +13,20 @@ export const createEventSchema = z.object({
   path: ['endDate'],
 });
 
+export const updateEventSchema = createEventSchema
+  .partial()
+  .refine(
+    data =>
+      !data.startDate ||
+      !data.endDate ||
+      data.endDate >= data.startDate,
+    {
+      message: 'endDate must be on or after startDate',
+      path: ['endDate'],
+    },
+  );
+
 export const listEventsSchema = z.object({});
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;

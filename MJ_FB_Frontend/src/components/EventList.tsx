@@ -1,5 +1,6 @@
-import { List, ListItem, Typography, ListItemText, IconButton } from '@mui/material';
+import { List, ListItem, Typography, ListItemText, IconButton, Box } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import type { Event } from '../api/events';
 import { formatLocaleDate } from '../utils/date';
 
@@ -7,9 +8,10 @@ interface EventListProps {
   events: Event[];
   limit?: number;
   onDelete?: (id: number) => void;
+  onEdit?: (ev: Event) => void;
 }
 
-export default function EventList({ events, limit, onDelete }: EventListProps) {
+export default function EventList({ events, limit, onDelete, onEdit }: EventListProps) {
   const items = limit ? events.slice(0, limit) : events;
   if (!items.length)
     return <Typography variant="body2">No events</Typography>;
@@ -26,11 +28,18 @@ export default function EventList({ events, limit, onDelete }: EventListProps) {
           key={ev.id}
           disableGutters
           secondaryAction={
-            onDelete && (
-              <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
-                <DeleteIcon />
-              </IconButton>
-            )
+            <Box>
+              {onEdit && (
+                <IconButton edge="end" aria-label="edit" onClick={() => onEdit(ev)}>
+                  <EditIcon />
+                </IconButton>
+              )}
+              {onDelete && (
+                <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              )}
+            </Box>
           }
         >
           <ListItemText

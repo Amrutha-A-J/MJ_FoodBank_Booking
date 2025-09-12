@@ -14,6 +14,7 @@ export default function Events() {
     past: [],
   });
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Event | null>(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
@@ -57,7 +58,13 @@ export default function Events() {
     <Page
       title="Events"
       header={
-        <Button variant="contained" onClick={() => setOpen(true)}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setEditing(null);
+            setOpen(true);
+          }}
+        >
           Create Event
         </Button>
       }
@@ -67,7 +74,14 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Today</Typography>
-              <EventList events={events.today} onDelete={confirmDelete} />
+              <EventList
+                events={events.today}
+                onDelete={confirmDelete}
+                onEdit={ev => {
+                  setEditing(ev);
+                  setOpen(true);
+                }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -75,7 +89,14 @@ export default function Events() {
           <Card>
             <CardContent>
               <Typography variant="h6">Upcoming</Typography>
-              <EventList events={events.upcoming} onDelete={confirmDelete} />
+              <EventList
+                events={events.upcoming}
+                onDelete={confirmDelete}
+                onEdit={ev => {
+                  setEditing(ev);
+                  setOpen(true);
+                }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -83,7 +104,14 @@ export default function Events() {
           <Card sx={{ maxHeight: 200, overflowY: 'auto' }}>
             <CardContent>
               <Typography variant="h6">Past</Typography>
-              <EventList events={events.past} onDelete={confirmDelete} />
+              <EventList
+                events={events.past}
+                onDelete={confirmDelete}
+                onEdit={ev => {
+                  setEditing(ev);
+                  setOpen(true);
+                }}
+              />
             </CardContent>
           </Card>
         </Grid>
@@ -91,7 +119,8 @@ export default function Events() {
       <EventForm
         open={open}
         onClose={() => setOpen(false)}
-        onCreated={fetchEvents}
+        onSaved={fetchEvents}
+        event={editing ?? undefined}
       />
       {eventToDelete && (
         <ConfirmDialog

@@ -117,3 +117,53 @@ describe('POST /events', () => {
     expect(client.release).toHaveBeenCalled();
   });
 });
+
+describe('PUT /events/:id', () => {
+  const existing = {
+    id: 1,
+    title: 'Old',
+    details: 'Details',
+    category: 'General',
+    start_date: '2024-01-01',
+    end_date: '2024-01-02',
+    created_by: 1,
+    visible_to_volunteers: false,
+    visible_to_clients: false,
+    created_at: '2024-01-01',
+    updated_at: '2024-01-02',
+  };
+
+  it('updates an event', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [existing] });
+    const res = await request(app)
+      .put('/events/1')
+      .set('Authorization', 'Bearer token')
+      .send({ title: 'Updated', startDate: '2024-01-01', endDate: '2024-01-02', category: 'General' });
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'UPDATE events SET title = $2, category = $3, start_date = $4, end_date = $5 WHERE id = $1 RETURNING *',
+      [1, 'Updated', 'General', '2024-01-01', '2024-01-02'],
+    );
+  });
+
+  it('returns 400 for invalid payload', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+    });
+    const res = await request(app)
+      .put('/events/1')
+      .set('Authorization', 'Bearer token')
+      .send({ startDate: '2024-01-02', endDate: '2024-01-01' });
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+});
