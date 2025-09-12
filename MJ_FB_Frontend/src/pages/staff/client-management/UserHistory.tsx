@@ -10,6 +10,7 @@ import { deleteClientVisit } from '../../../api/clientVisits';
 import EntitySearch from '../../../components/EntitySearch';
 import BookingManagementBase from '../../../components/BookingManagementBase';
 import EditClientDialog from './EditClientDialog';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 import { useAuth } from '../../../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { Box, Button, Typography } from '@mui/material';
@@ -27,6 +28,7 @@ export default function UserHistory({
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<User | null>(initialUser || null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const { t } = useTranslation();
   const { role } = useAuth();
   const showNotes = role === 'staff' || role === 'agency';
@@ -52,9 +54,7 @@ export default function UserHistory({
               type="user"
               placeholder={t('search_by_name_or_client_id')}
               onSelect={u => setSelected(u as User)}
-              onNotFound={id =>
-                navigate(`/staff/client-management?tab=add&clientId=${id}`)
-              }
+              onNotFound={id => setPendingId(id)}
             />
           )}
           {selected && (
@@ -91,6 +91,16 @@ export default function UserHistory({
           )}
         </Box>
       </Box>
+      {pendingId && (
+        <ConfirmDialog
+          message={`Add client ${pendingId}?`}
+          onConfirm={() => {
+            navigate(`/staff/client-management?tab=add&clientId=${pendingId}`);
+            setPendingId(null);
+          }}
+          onCancel={() => setPendingId(null)}
+        />
+      )}
     </Box>
   );
 }

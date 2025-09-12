@@ -532,10 +532,11 @@ export default function PantryVisits() {
           Record Visit
         </Button>
         <TextField
-          
+
           label="Search"
           value={search}
           onChange={e => setSearch(e.target.value)}
+          inputProps={{ 'data-testid': 'entity-search-input' }}
           fullWidth
         />
         <TextField
