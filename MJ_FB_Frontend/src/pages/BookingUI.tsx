@@ -188,20 +188,33 @@ export function SlotRow({
         unmountOnExit
         sx={isMdUp ? undefined : { width: '100%' }}
       >
-        <Button
-          variant="contained"
-          size="medium"
-          fullWidth={!isMdUp}
-          sx={
-            isMdUp
-              ? { width: bookWidth, height: '100%', flexShrink: 0 }
-              : { width: '100%' }
-          }
-          disabled={booking || loadingConfirm}
-          onClick={onBook}
-        >
-          {t('book_selected_slot')}
-        </Button>
+        {(() => {
+          const label = t('book_selected_slot');
+          const words = label.split(' ');
+          const multiline =
+            words.length > 1 ? `${words[0]}\n${words.slice(1).join(' ')}` : label;
+          return (
+            <Button
+              variant="contained"
+              size="medium"
+              fullWidth={!isMdUp}
+              sx={
+                isMdUp
+                  ? {
+                      width: bookWidth,
+                      height: '100%',
+                      flexShrink: 0,
+                      whiteSpace: 'pre-line',
+                    }
+                  : { width: '100%' }
+              }
+              disabled={booking || loadingConfirm}
+              onClick={onBook}
+            >
+              {isMdUp ? multiline : label}
+            </Button>
+          );
+        })()}
       </Collapse>
     </ListItem>
   );
