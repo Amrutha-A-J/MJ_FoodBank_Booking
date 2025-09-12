@@ -775,10 +775,20 @@ ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
     'ZION CHURCH',
   ];
   const donors = [...new Set(donorList)];
-  const donorValues = donors.map((_, i) => `($${i + 1})`).join(',');
+  const donorValues: string[] = [];
+  const params: string[] = [];
+  donors.forEach((name, index) => {
+    const [firstName, ...lastNameParts] = name.split(' ');
+    const lastName = lastNameParts.join(' ');
+    const email = `donor${index + 1}@example.com`;
+    params.push(firstName, lastName, email);
+    donorValues.push(
+      `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`,
+    );
+  });
   await client.query(
-    `INSERT INTO donors (name) VALUES ${donorValues} ON CONFLICT (name) DO NOTHING;`,
-    donors,
+    `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')} ON CONFLICT (email) DO NOTHING;`,
+    params,
   );
   logger.info('Database setup complete');
   await client.end();
