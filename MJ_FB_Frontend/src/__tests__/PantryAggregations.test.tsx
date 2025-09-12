@@ -1,4 +1,4 @@
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import PantryAggregations from '../pages/staff/PantryAggregations';
 import { getWeekForDate, getWeekRanges } from '../utils/pantryWeek';
@@ -156,7 +156,7 @@ describe('PantryAggregations page', () => {
     expect(exportBtn).toBeDisabled();
   });
 
-  it('inserts manual aggregate through modal', async () => {
+  it('inserts manual weekly aggregate through modal and refreshes tables', async () => {
     render(
       <MemoryRouter>
         <PantryAggregations />
@@ -164,35 +164,36 @@ describe('PantryAggregations page', () => {
     );
 
     await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalled());
-    fireEvent.click(screen.getByRole('tab', { name: /monthly/i }));
-    await waitFor(() => expect(mockGetPantryMonthly).toHaveBeenCalled());
     fireEvent.click(screen.getByRole('button', { name: /insert aggregate/i }));
-
-    fireEvent.change(await screen.findByLabelText(/orders/i), {
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText(/orders/i), {
       target: { value: '1' },
     });
-    fireEvent.change(screen.getByLabelText(/adults/i), {
+    fireEvent.change(within(dialog).getByLabelText(/adults/i), {
       target: { value: '2' },
     });
-    fireEvent.change(screen.getByLabelText(/children/i), {
+    fireEvent.change(within(dialog).getByLabelText(/children/i), {
       target: { value: '3' },
     });
-    fireEvent.change(screen.getByLabelText(/weight/i), {
+    fireEvent.change(within(dialog).getByLabelText(/weight/i), {
       target: { value: '4' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /save/i }));
 
     await waitFor(() =>
       expect(mockPostManualPantryAggregate).toHaveBeenCalledWith({
         year: currentYear,
         month: currentMonth,
+        week: 1,
         orders: 1,
         adults: 2,
         children: 3,
         weight: 4,
       }),
     );
-    await waitFor(() => expect(mockGetPantryMonthly).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockGetPantryWeekly).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mockGetPantryMonthly).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockGetPantryYearly).toHaveBeenCalledTimes(1));
   });
 
   it('formats partial weeks with remaining weekdays', () => {

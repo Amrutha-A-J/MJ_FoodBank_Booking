@@ -88,13 +88,14 @@ export async function rebuildPantryAggregations() {
 export async function postManualPantryAggregate(data: {
   year: number;
   month: number;
+  week: number;
   orders: number;
   adults: number;
   children: number;
   weight: number;
 }) {
   const body = { ...data, people: data.adults + data.children };
-  const res = await apiFetch(`${API_BASE}/pantry-aggregations/manual`, {
+  const res = await apiFetch(`${API_BASE}/pantry-aggregations/manual/weekly`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
