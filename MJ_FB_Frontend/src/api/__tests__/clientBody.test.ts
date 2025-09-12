@@ -1,4 +1,4 @@
-import { apiFetch, API_BASE } from '../client';
+import { apiFetch, API_BASE, __resetCsrfTokenForTests } from '../client';
 import { mockFetch, restoreFetch } from '../../../testUtils/mockFetch';
 
 let fetchMock: jest.Mock;
@@ -6,12 +6,13 @@ let fetchMock: jest.Mock;
 describe('apiFetch preserves body on refresh', () => {
   beforeEach(() => {
     fetchMock = mockFetch();
-    document.cookie = 'csrfToken=test';
+    __resetCsrfTokenForTests();
   });
 
   afterEach(() => {
     restoreFetch();
     jest.resetAllMocks();
+    __resetCsrfTokenForTests();
   });
 
   it('reuses multipart body after token refresh', async () => {
@@ -20,6 +21,9 @@ describe('apiFetch preserves body on refresh', () => {
     const bodies: string[] = [];
 
     fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ csrfToken: 'test' }), { status: 200 }),
+      )
       .mockImplementationOnce(async (req: Request) => {
         bodies.push(await req.text());
         return new Response(null, { status: 401 });
@@ -34,6 +38,6 @@ describe('apiFetch preserves body on refresh', () => {
     expect(res.status).toBe(200);
     expect(bodies).toHaveLength(2);
     expect(bodies[0]).toBe(bodies[1]);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 });
