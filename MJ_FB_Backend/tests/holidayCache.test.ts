@@ -31,4 +31,12 @@ describe('holiday cache', () => {
       'SELECT date, reason FROM holidays ORDER BY date',
     );
   });
+
+  it('throws when query fails with provided client', async () => {
+    (hasTable as jest.Mock).mockResolvedValue(true);
+    const client = {
+      query: jest.fn().mockRejectedValue(new Error('boom')),
+    } as any;
+    await expect(isHoliday('2025-12-25', client)).rejects.toThrow('boom');
+  });
 });
