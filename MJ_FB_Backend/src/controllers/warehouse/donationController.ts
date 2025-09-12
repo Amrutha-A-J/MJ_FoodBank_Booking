@@ -95,6 +95,24 @@ export const deleteDonation = asyncHandler(async (req: Request, res: Response) =
   res.json({ message: 'Deleted' });
 });
 
+export const manualDonorAggregation = asyncHandler(async (req: Request, res: Response) => {
+  const year = Number(req.body.year);
+  const month = Number(req.body.month);
+  const donorEmail = (req.body.donorEmail as string | undefined)?.trim();
+  const total = Number(req.body.total) || 0;
+  if (!year || !month || !donorEmail) {
+    return res.status(400).json({ message: 'Year, month, and donorEmail required' });
+  }
+  await pool.query(
+    `INSERT INTO donor_aggregations (year, month, donor_email, total)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (year, month, donor_email)
+       DO UPDATE SET total = EXCLUDED.total`,
+    [year, month, donorEmail, total],
+  );
+  res.json({ message: 'Saved' });
+});
+
 export const donorAggregations = asyncHandler(async (req: Request, res: Response) => {
   const year =
     parseInt((req.query.year as string) ?? '', 10) ||

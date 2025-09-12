@@ -18,8 +18,11 @@ jest.mock('../api/warehouseOverall', () => ({
 }));
 
 const mockGetDonorAggregations = jest.fn().mockResolvedValue([]);
+const mockPostManualDonorAggregation = jest.fn().mockResolvedValue(undefined);
 jest.mock('../api/donations', () => ({
   getDonorAggregations: (...args: unknown[]) => mockGetDonorAggregations(...args),
+  postManualDonorAggregation: (...args: unknown[]) =>
+    mockPostManualDonorAggregation(...args),
 }));
 
 describe('Aggregations page', () => {
@@ -89,7 +92,34 @@ describe('Aggregations page', () => {
         outgoingDonations: 4,
       }),
     );
-    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalledTimes(2));
+  });
+
+  it('inserts manual donor aggregate through modal', async () => {
+    const year = new Date().getFullYear();
+    render(<Aggregations />);
+
+    await waitFor(() => expect(mockGetDonorAggregations).toHaveBeenCalled());
+
+    fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
+
+    fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText(/donor email/i), {
+      target: { value: 'alice@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/total/i), { target: { value: '100' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() =>
+      expect(mockPostManualDonorAggregation).toHaveBeenCalledWith({
+        year,
+        month: 5,
+        donorEmail: 'alice@example.com',
+        total: 100,
+      }),
+    );
+    await waitFor(() => expect(mockGetDonorAggregations).toHaveBeenCalledTimes(2));
   });
 });
 

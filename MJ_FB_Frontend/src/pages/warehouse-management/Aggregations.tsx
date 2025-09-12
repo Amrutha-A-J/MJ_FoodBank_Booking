@@ -22,7 +22,11 @@ import {
   postManualWarehouseOverall,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
-import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
+import {
+  getDonorAggregations,
+  postManualDonorAggregation,
+  type DonorAggregation,
+} from '../../api/donations';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
@@ -52,6 +56,11 @@ export default function Aggregations() {
   const [insertPigPound, setInsertPigPound] = useState('');
   const [insertOutgoing, setInsertOutgoing] = useState('');
   const [insertLoading, setInsertLoading] = useState(false);
+  const [donorInsertOpen, setDonorInsertOpen] = useState(false);
+  const [donorInsertMonth, setDonorInsertMonth] = useState('');
+  const [donorInsertEmail, setDonorInsertEmail] = useState('');
+  const [donorInsertTotal, setDonorInsertTotal] = useState('');
+  const [donorInsertLoading, setDonorInsertLoading] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -197,12 +206,22 @@ export default function Aggregations() {
           </Select>
         </FormControl>
         <Button
-          
           variant="contained"
           onClick={handleExportDonors}
           disabled={donorExportLoading}
         >
           {donorExportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setDonorInsertMonth('');
+            setDonorInsertEmail('');
+            setDonorInsertTotal('');
+            setDonorInsertOpen(true);
+          }}
+        >
+          {t('insert_aggregate')}
         </Button>
       </Stack>
       <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
@@ -350,14 +369,83 @@ export default function Aggregations() {
     { label: 'Yearly Overall Aggregations', content: overallContent },
   ];
 
-    return (
-      <Page title="Warehouse Aggregations">
-        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-        <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
-          <DialogTitle>{t('insert_aggregate')}</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField
+  return (
+    <Page title="Warehouse Aggregations">
+      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+      <Dialog open={donorInsertOpen} onClose={() => setDonorInsertOpen(false)}>
+        <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Month"
+              type="number"
+              value={donorInsertMonth}
+              onChange={e => setDonorInsertMonth(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Donor Email"
+              value={donorInsertEmail}
+              onChange={e => setDonorInsertEmail(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Total"
+              type="number"
+              value={donorInsertTotal}
+              onChange={e => setDonorInsertTotal(e.target.value)}
+              size="medium"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDonorInsertOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (donorInsertMonth === '' || donorInsertEmail === '') return;
+              setDonorInsertLoading(true);
+              try {
+                await postManualDonorAggregation({
+                  year: donorYear,
+                  month: Number(donorInsertMonth),
+                  donorEmail: donorInsertEmail,
+                  total: Number(donorInsertTotal) || 0,
+                });
+                setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
+                setDonorInsertOpen(false);
+                setDonorLoading(true);
+                getDonorAggregations(donorYear)
+                  .then(setDonorRows)
+                  .catch(() => {
+                    setSnackbar({
+                      open: true,
+                      message: 'Failed to load donor aggregations',
+                      severity: 'error',
+                    });
+                    setDonorRows([]);
+                  })
+                  .finally(() => setDonorLoading(false));
+              } catch {
+                setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
+              } finally {
+                setDonorInsertLoading(false);
+              }
+            }}
+            disabled={donorInsertLoading || donorInsertMonth === '' || donorInsertEmail === ''}
+            sx={{ textTransform: 'none' }}
+          >
+            {donorInsertLoading ? <CircularProgress size={20} /> : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
+        <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
                 label="Month"
                 type="number"
                 value={insertMonth}

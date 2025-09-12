@@ -6,10 +6,15 @@ import {
   deleteDonation,
   donorAggregations,
   exportDonorAggregations,
+  manualDonorAggregation,
 } from '../../controllers/warehouse/donationController';
 import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
 import { validate } from '../../middleware/validate';
-import { addDonationSchema, updateDonationSchema } from '../../schemas/warehouse/donationSchemas';
+import {
+  addDonationSchema,
+  updateDonationSchema,
+  manualDonorAggregationSchema,
+} from '../../schemas/warehouse/donationSchemas';
 
 const router = Router();
 
@@ -25,6 +30,13 @@ router.get(
   authMiddleware,
   authorizeAccess('warehouse', 'donation_entry', 'aggregations'),
   exportDonorAggregations,
+);
+router.post(
+  '/aggregations/manual',
+  authMiddleware,
+  authorizeAccess('warehouse', 'aggregations'),
+  validate(manualDonorAggregationSchema),
+  manualDonorAggregation,
 );
 router.post('/', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(addDonationSchema), addDonation);
 router.put('/:id', authMiddleware, authorizeAccess('warehouse', 'donation_entry'), validate(updateDonationSchema), updateDonation);

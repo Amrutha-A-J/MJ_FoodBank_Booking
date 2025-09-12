@@ -61,3 +61,17 @@ export async function exportDonorAggregations(year: number): Promise<Blob> {
   if (!res.ok) await handleResponse(res);
   return res.blob();
 }
+
+export async function postManualDonorAggregation(data: {
+  year: number;
+  month: number;
+  donorEmail: string;
+  total: number;
+}): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/donations/aggregations/manual`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
+}

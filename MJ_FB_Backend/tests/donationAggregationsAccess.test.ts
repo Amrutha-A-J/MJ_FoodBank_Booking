@@ -15,4 +15,9 @@ describe('donation aggregations auth', () => {
     const res = await request(app).get('/donations/aggregations/export?year=2024');
     expect(res.status).toBe(401);
   });
+
+  it('requires auth for manual insert', async () => {
+    const res = await request(app).post('/donations/aggregations/manual');
+    expect(res.status).toBe(401);
+  });
 });
