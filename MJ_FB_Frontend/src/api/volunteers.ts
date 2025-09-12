@@ -400,17 +400,6 @@ export async function getUnmarkedVolunteerBookings(): Promise<VolunteerBooking[]
   return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
 }
 
-export async function getVolunteerBookingsForReview(
-  start: string,
-  end: string,
-): Promise<VolunteerBooking[]> {
-  const res = await apiFetch(
-    `${API_BASE}/volunteer-bookings/review?start=${start}&end=${end}`,
-  );
-  const data = await handleResponse(res);
-  return Array.isArray(data) ? data.map(normalizeVolunteerBooking) : data;
-}
-
 export async function updateVolunteerBookingStatus(
   bookingId: number,
   status: VolunteerBookingStatus,
