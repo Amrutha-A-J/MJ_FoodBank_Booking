@@ -1,24 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Stack,
-  Link,
-  FormControlLabel,
-  Checkbox,
-  Tooltip,
-  Typography,
-  Chip,
-  TableContainer,
-} from "@mui/material";
-import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
+import { Box, Button, Link, TableContainer, Typography } from "@mui/material";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
-import DialogCloseButton from "../../../components/DialogCloseButton";
 import {
   getIncompleteUsers,
   updateUserInfo,
@@ -28,13 +10,13 @@ import {
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
 import getApiErrorMessage from "../../../utils/getApiErrorMessage";
-import PasswordField from "../../../components/PasswordField";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
+import EditClientForm, { type EditClientFormValues } from "./EditClientForm";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
   const [selected, setSelected] = useState<IncompleteUser | null>(null);
-  const [form, setForm] = useState({
+  const [initialValues, setInitialValues] = useState<EditClientFormValues>({
     firstName: "",
     lastName: "",
     email: "",
@@ -70,7 +52,7 @@ export default function UpdateClientData() {
     setSelected(client);
     try {
       const data = await getUserByClientId(String(client.clientId));
-      setForm({
+      setInitialValues({
         firstName: data.firstName || "",
         lastName: data.lastName || "",
         email: data.email || "",
@@ -80,7 +62,7 @@ export default function UpdateClientData() {
         hasPassword: data.hasPassword,
       });
     } catch (err: unknown) {
-      setForm({
+      setInitialValues({
         firstName: client.firstName || "",
         lastName: client.lastName || "",
         email: client.email || "",
@@ -97,56 +79,72 @@ export default function UpdateClientData() {
     }
   }
 
-  async function handleSave(): Promise<boolean> {
-    if (!selected) return false;
-    try {
-      await updateUserInfo(selected.clientId, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email || undefined,
-        phone: form.phone || undefined,
-        onlineAccess: form.hasPassword ? true : form.onlineAccess,
-        ...(form.onlineAccess && form.password
-          ? { password: form.password }
-          : {}),
-      });
-      setSnackbar({
-        open: true,
-        message: "Client updated",
-        severity: "success",
-      });
-      setSelected(null);
-      loadClients();
-      return true;
-    } catch (err: unknown) {
-      setSnackbar({
-        open: true,
-        message: getApiErrorMessage(err, 'Unable to update client'),
-        severity: 'error',
-      });
-      return false;
-    }
+export async function handleSave(
+  clientId: number,
+  form: EditClientFormValues,
+  setSnackbar: (snackbar: {
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }) => void,
+  setSelected: (value: IncompleteUser | null) => void,
+  loadClients: () => void,
+): Promise<boolean> {
+  try {
+    await updateUserInfo(clientId, {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email || undefined,
+      phone: form.phone || undefined,
+      onlineAccess: form.hasPassword ? true : form.onlineAccess,
+      ...(form.onlineAccess && form.password ? { password: form.password } : {}),
+    });
+    setSnackbar({
+      open: true,
+      message: "Client updated",
+      severity: "success",
+    });
+    setSelected(null);
+    loadClients();
+    return true;
+  } catch (err: unknown) {
+    setSnackbar({
+      open: true,
+      message: getApiErrorMessage(err, 'Unable to update client'),
+      severity: 'error',
+    });
+    return false;
   }
+}
 
-  async function handleSendReset() {
-    if (!selected) return;
-    const ok = await handleSave();
-    if (!ok) return;
-    try {
-      await requestPasswordReset({ clientId: String(selected.clientId) });
-      setSnackbar({
-        open: true,
-        message: "Password reset link sent",
-        severity: "success",
-      });
-    } catch (err: unknown) {
-      setSnackbar({
-        open: true,
-        message: getApiErrorMessage(err, 'Failed to send password reset link'),
-        severity: 'error',
-      });
-    }
+export async function handleSendReset(
+  clientId: number,
+  form: EditClientFormValues,
+  setSnackbar: (snackbar: {
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }) => void,
+  setSelected: (value: IncompleteUser | null) => void,
+  loadClients: () => void,
+): Promise<void> {
+  const ok = await handleSave(clientId, form, setSnackbar, setSelected, loadClients);
+  if (!ok) return;
+  try {
+    await requestPasswordReset({ clientId: String(clientId) });
+    setSnackbar({
+      open: true,
+      message: "Password reset link sent",
+      severity: "success",
+    });
+  } catch (err: unknown) {
+    setSnackbar({
+      open: true,
+      message: getApiErrorMessage(err, 'Failed to send password reset link'),
+      severity: 'error',
+    });
   }
+}
 
   type ClientRow = IncompleteUser & { actions?: string };
 
@@ -185,121 +183,25 @@ export default function UpdateClientData() {
         />
       </TableContainer>
 
-      <Dialog open={!!selected} onClose={() => setSelected(null)}>
-        <DialogCloseButton onClose={() => setSelected(null)} />
-        <DialogTitle>
-          Edit Client -{" "}
-          {selected && (
-            <Link
-              href={selected.profileLink}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {selected.clientId}
-            </Link>
-          )}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h6">
-                {form.firstName} {form.lastName}
-              </Typography>
-              {form.hasPassword && (
-                <Chip
-                  color="success"
-                  icon={<CheckCircleOutline />}
-                  label="Online account"
-                  data-testid="online-badge"
-                />
-              )}
-            </Stack>
-
-            <Stack spacing={2}>
-              <Typography variant="subtitle1">Account</Typography>
-              <Tooltip
-                title="Client already has a password"
-                disableHoverListener={!form.hasPassword}
-              >
-                <span>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={form.onlineAccess}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            onlineAccess: e.target.checked,
-                          })
-                        }
-                        disabled={form.hasPassword}
-                      />
-                    }
-                    label="Online Access"
-                  />
-                </span>
-              </Tooltip>
-              {form.onlineAccess && !form.hasPassword && (
-                <PasswordField
-                  fullWidth
-                  label="Password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                />
-              )}
-            </Stack>
-
-            <Stack spacing={2}>
-              <Typography variant="subtitle1">Contact</Typography>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Email (optional)"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-              <TextField
-                fullWidth
-                label="Phone (optional)"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          {form.onlineAccess && (
-            <Button variant="outlined" color="primary" onClick={handleSendReset}>
-              Send password reset link
-            </Button>
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={!form.firstName || !form.lastName}
-          >
-            Save
-          </Button>
-        </DialogActions>
-        </Dialog>
+        {selected && (
+          <EditClientForm
+            open={!!selected}
+            initialValues={initialValues}
+            onClose={() => setSelected(null)}
+            onSave={form =>
+              handleSave(selected.clientId, form, setSnackbar, setSelected, loadClients)
+            }
+            onSendReset={form =>
+              handleSendReset(
+                selected.clientId,
+                form,
+                setSnackbar,
+                setSelected,
+                loadClients,
+              )
+            }
+          />
+        )}
 
       <FeedbackSnackbar
         open={!!snackbar}
