@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
 import { ReadableStream, WritableStream } from 'stream/web';
-import './src/i18n';
 
 // Polyfill TextEncoder/Decoder for testing environment
 (global as any).TextEncoder = TextEncoder;
