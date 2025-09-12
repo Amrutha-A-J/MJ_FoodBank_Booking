@@ -45,7 +45,7 @@ export default function UserHistory({
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        {initialUser ? t('booking_history') : t('client_history')}
+        {initialUser ? t('client_booking_history') : t('client_history')}
       </Typography>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>

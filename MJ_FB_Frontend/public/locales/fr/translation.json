@@ -46,6 +46,8 @@
   "client_dashboard": "Client Dashboard",
   "book_appointment": "Book Appointment",
   "booking_history": "Booking History",
+  "client_booking_history": "Booking History",
+  "volunteer_booking_history": "Booking History",
   "booking": "Booking",
   "hello_name": "Hello, {{name}}",
   "profile": "Profile",
