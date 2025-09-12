@@ -267,7 +267,7 @@ export default function ClientDashboard() {
                   }}
                   onClick={() => navigate('/book-appointment')}
                 >
-                  {t('book_appointment')}
+                  {t('book_shopping_appointment')}
                 </Button>
                 <Button
 
