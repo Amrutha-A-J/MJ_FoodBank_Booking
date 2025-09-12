@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent, within } from '@testing-library/react';
 import BookingUI from '../pages/BookingUI';
 import dayjs from 'dayjs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,6 +31,10 @@ jest.mock('../api/bookings', () => ({
 
 jest.mock('../api/users', () => ({
   getUserProfile: jest.fn(),
+}));
+
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({ role: 'client', name: 'Test User' }),
 }));
 
 const { getSlots, getHolidays, createBooking } = jest.requireMock('../api/bookings');
@@ -137,58 +141,63 @@ describe('Booking confirmation', () => {
     jest.useRealTimers();
   });
 
-  function renderUI() {
+  function renderUI(slots = [
+    { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
+  ]) {
     const queryClient = new QueryClient();
     render(
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>
-          <BookingUI shopperName="Test" initialDate={dayjs('2024-01-01')} />
+          <BookingUI
+            shopperName="Test"
+            initialDate={dayjs('2024-01-01')}
+            slotFetcher={async () => slots as any}
+          />
         </QueryClientProvider>
       </MemoryRouter>,
     );
   }
 
   it('opens confirmation dialog before booking', async () => {
-    (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
-    ]);
-    (getHolidays as jest.Mock).mockResolvedValue([]);
     (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
 
     renderUI();
 
     await act(async () => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
     });
-    await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
-    fireEvent.click(screen.getByText(/book selected slot/i));
+    const bookButton = within(slot.closest('li')!).getByRole('button', {
+      name: /book selected slot/i,
+    });
+    fireEvent.click(bookButton);
 
     await act(async () => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
     });
 
     await screen.findByText(/confirm booking/i);
   });
 
   it('submits note with booking', async () => {
-    (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
-    ]);
-    (getHolidays as jest.Mock).mockResolvedValue([]);
     (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
     (createBooking as jest.Mock).mockResolvedValue({});
 
     renderUI();
 
     await act(async () => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
     });
-    await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
-    fireEvent.click(screen.getByText(/book selected slot/i));
+    const bookButton = within(slot.closest('li')!).getByRole('button', {
+      name: /book selected slot/i,
+    });
+    fireEvent.click(bookButton);
 
     await screen.findByText(/confirm booking/i);
     fireEvent.change(screen.getByLabelText(/client note/i), {
@@ -207,21 +216,20 @@ describe('Booking confirmation', () => {
   });
 
   it('shows summary fields on separate lines', async () => {
-    (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
-    ]);
-    (getHolidays as jest.Mock).mockResolvedValue([]);
     (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 3 });
 
     renderUI();
 
     await act(async () => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
     });
-    await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
-    fireEvent.click(screen.getByText(/book selected slot/i));
+    const bookButton = within(slot.closest('li')!).getByRole('button', {
+      name: /book selected slot/i,
+    });
+    fireEvent.click(bookButton);
 
     await screen.findByText(/confirm booking/i);
     screen.getByText(/^Date:/i);
@@ -230,10 +238,6 @@ describe('Booking confirmation', () => {
   });
 
   it('shows calendar links after booking', async () => {
-    (getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
-    ]);
-    (getHolidays as jest.Mock).mockResolvedValue([]);
     (getUserProfile as jest.Mock).mockResolvedValue({ bookingsThisMonth: 0 });
     (createBooking as jest.Mock).mockResolvedValue({
       googleCalendarUrl: 'https://calendar.test',
@@ -243,12 +247,15 @@ describe('Booking confirmation', () => {
     renderUI();
 
     await act(async () => {
-      jest.runAllTimers();
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
     });
-    await waitFor(() => expect(getSlots).toHaveBeenCalled());
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
-    fireEvent.click(screen.getByText(/book selected slot/i));
+    const bookButton = within(slot.closest('li')!).getByRole('button', {
+      name: /book selected slot/i,
+    });
+    fireEvent.click(bookButton);
 
     await screen.findByText(/confirm booking/i);
     fireEvent.click(screen.getByText(/confirm$/i));
