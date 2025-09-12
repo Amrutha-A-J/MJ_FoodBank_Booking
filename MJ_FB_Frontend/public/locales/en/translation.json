@@ -277,6 +277,19 @@
   "reschedule_no_show_error": "This booking has already expired and was marked as a no-show. Please book a new appointment.",
   "not_applicable": "N/A",
   "privacy_policy": "Privacy Policy",
+  "privacy_policy_page": {
+    "intro": "Moose Jaw Food Bank collects personal information only to manage accounts and appointments.",
+    "data_collected": "We collect your name, contact information, family size, appointment and volunteer history, and any notes you provide. This information lets us manage bookings, coordinate services, communicate with you, and meet reporting requirements. Basic analytics help us improve the service.",
+    "pipeda": "We are committed to protecting your personal information in accordance with the Personal Information Protection and Electronic Documents Act (PIPEDA).",
+    "complaint_right": "If you believe that your personal information has been collected, used, or disclosed in a way that is inconsistent with this Privacy Policy or with PIPEDA requirements, you have the right to file a complaint.",
+    "complaint_how": "How to Submit a Complaint:",
+    "complaint_contact": "You may contact our Privacy Officer in writing with details of your concern.",
+    "complaint_ack": "We will acknowledge receipt of your complaint within a reasonable timeframe and investigate promptly.",
+    "complaint_measures": "If the complaint is found to be justified, we will take appropriate corrective measures.",
+    "contact_heading": "Contact Information:",
+    "contact_name": "Amrutha Adiyath",
+    "contact_email": "amrutha.laxman@mjfoodbank.org"
+  },
   "insert_aggregate": "Insert Aggregate",
   "insert_aggregate_help": "Manually add or update monthly totals"
 }
