@@ -45,6 +45,7 @@
   "dashboard": "Dashboard",
   "client_dashboard": "Client Dashboard",
   "book_appointment": "Book Appointment",
+  "book_volunteer_shift": "Book Volunteer Shift",
   "booking_history": "Booking History",
   "booking": "Booking",
   "hello_name": "Hello, {{name}}",

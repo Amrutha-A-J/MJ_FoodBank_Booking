@@ -204,6 +204,8 @@ export default function BookingUI<T = Slot>({
 }: BookingUIProps<T>) {
   const { t } = useTranslation();
   const { role, name: authName } = useAuth();
+  const pageTitle =
+    role === 'volunteer' ? t('book_volunteer_shift') : t('book_appointment');
   const displayName = shopperName ?? authName ?? 'John Shopper';
 
   const [date, setDate] = useState<Dayjs>(() => {
@@ -622,7 +624,7 @@ export default function BookingUI<T = Slot>({
 
   if (embedded) return content;
   return (
-    <Page title={t('book_appointment')}>
+    <Page title={pageTitle}>
       {content}
       {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
     </Page>
