@@ -164,17 +164,18 @@ describe('Mailing list generation', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
         rows: [
-          { first_name: 'A', email: 'a@example.com', amount: 50 },
-          { first_name: 'B', email: 'b@example.com', amount: 150 },
-          { first_name: 'C', email: 'c@example.com', amount: 700 },
-          { first_name: 'D', email: 'd@example.com', amount: 5000 },
-          { first_name: 'E', email: 'e@example.com', amount: 20000 },
+          { id: 1, first_name: 'A', email: 'a@example.com', amount: 50 },
+          { id: 2, first_name: 'B', email: 'b@example.com', amount: 150 },
+          { id: 3, first_name: 'C', email: 'c@example.com', amount: 700 },
+          { id: 4, first_name: 'D', email: 'd@example.com', amount: 5000 },
+          { id: 5, first_name: 'E', email: 'e@example.com', amount: 20000 },
         ],
         rowCount: 5,
       })
       .mockResolvedValueOnce({
         rows: [{ families: 4, adults: 10, children: 7, pounds: 120 }],
-      });
+      })
+      .mockResolvedValue({});
 
     const res = await request(app)
       .post('/monetary-donors/mail-lists/send')
@@ -184,8 +185,8 @@ describe('Mailing list generation', () => {
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
-      expect.stringContaining('n.date >= $1 AND n.date < $2'),
-      ['2024-06-01', '2024-07-01'],
+      expect.stringContaining('LEFT JOIN monetary_donor_mail_log'),
+      ['2024-06-01', '2024-07-01', 2024, 6],
     );
     expect(pool.query).toHaveBeenNthCalledWith(
       3,
@@ -202,6 +203,10 @@ describe('Mailing list generation', () => {
       expect.stringContaining('adults'),
     );
     expect(sendTemplatedEmail).toHaveBeenCalledTimes(5);
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donor_mail_log'),
+      [1, 2024, 6],
+    );
     expect((sendTemplatedEmail as jest.Mock).mock.calls[0][0]).toEqual({
       to: 'a@example.com',
       templateId: 11,
@@ -280,5 +285,32 @@ describe('Mailing list generation', () => {
       ['Monetary donor emails sent for 10001-30000: e@example.com'],
     ]);
     expect(res.body).toEqual({ sent: 5 });
+  });
+
+  it('does not resend emails already logged for the month', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [{ id: 1, first_name: 'A', email: 'a@example.com', amount: 50 }],
+      })
+      .mockResolvedValueOnce({ rows: [{ families: 4, adults: 10, children: 7, pounds: 120 }] })
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ families: 4, adults: 10, children: 7, pounds: 120 }] });
+
+    await request(app)
+      .post('/monetary-donors/mail-lists/send')
+      .send({ year: 2024, month: 6 })
+      .set('Authorization', 'Bearer token');
+
+    const second = await request(app)
+      .post('/monetary-donors/mail-lists/send')
+      .send({ year: 2024, month: 6 })
+      .set('Authorization', 'Bearer token');
+
+    expect(second.body).toEqual({ sent: 0 });
+    expect(sendTemplatedEmail).toHaveBeenCalledTimes(1);
   });
 });
