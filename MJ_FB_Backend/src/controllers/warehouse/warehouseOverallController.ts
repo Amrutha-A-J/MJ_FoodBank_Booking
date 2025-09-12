@@ -71,6 +71,21 @@ export async function refreshWarehouseOverall(year: number, month: number) {
   }
 }
 
+export const manualWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
+  const { year, month, donations, surplus, pigPound, outgoingDonations } = req.body;
+  await pool.query(
+    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (year, month)
+       DO UPDATE SET donations = EXCLUDED.donations,
+                     surplus = EXCLUDED.surplus,
+                     pig_pound = EXCLUDED.pig_pound,
+                     outgoing_donations = EXCLUDED.outgoing_donations`,
+    [year, month, donations, surplus, pigPound, outgoingDonations],
+  );
+  res.json({ message: 'Saved' });
+});
+
 export const listWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
   const year =
     parseInt((req.query.year as string) ?? '', 10) ||

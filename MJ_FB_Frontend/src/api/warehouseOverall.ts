@@ -8,6 +8,10 @@ export interface WarehouseOverall {
   outgoingDonations: number;
 }
 
+export interface ManualWarehouseOverall extends WarehouseOverall {
+  year: number;
+}
+
 export async function getWarehouseOverallYears(): Promise<number[]> {
   const res = await apiFetch(`${API_BASE}/warehouse-overall/years`);
   return handleResponse(res);
@@ -27,4 +31,12 @@ export async function exportWarehouseOverall(year: number): Promise<Blob> {
   const res = await apiFetch(`${API_BASE}/warehouse-overall/export?year=${year}`);
   if (!res.ok) await handleResponse(res);
   return res.blob();
+}
+
+export async function postManualWarehouseOverall(data: ManualWarehouseOverall): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/warehouse-overall/manual`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  await handleResponse(res);
 }

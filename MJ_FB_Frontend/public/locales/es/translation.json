@@ -268,5 +268,6 @@
     "link_label": "privacy policy",
     "agree": "Agree"
   },
-  "privacy_policy": "Privacy Policy"
+  "privacy_policy": "Privacy Policy",
+  "insert_aggregate": "Insert Aggregate"
 }

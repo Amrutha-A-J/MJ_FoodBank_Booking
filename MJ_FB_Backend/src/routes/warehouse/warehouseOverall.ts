@@ -4,6 +4,7 @@ import {
   rebuildWarehouseOverall,
   exportWarehouseOverall,
   listAvailableYears,
+  manualWarehouseOverall,
 } from '../../controllers/warehouse/warehouseOverallController';
 import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
 
@@ -20,6 +21,12 @@ router.post(
   authMiddleware,
   authorizeAccess('warehouse', 'aggregations'),
   rebuildWarehouseOverall,
+);
+router.post(
+  '/manual',
+  authMiddleware,
+  authorizeAccess('warehouse', 'aggregations'),
+  manualWarehouseOverall,
 );
 router.get(
   '/export',

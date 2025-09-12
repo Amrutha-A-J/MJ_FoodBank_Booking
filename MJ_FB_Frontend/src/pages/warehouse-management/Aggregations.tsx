@@ -8,12 +8,18 @@ import {
   Stack,
   CircularProgress,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import Page from '../../components/Page';
 import {
   getWarehouseOverall,
   getWarehouseOverallYears,
   exportWarehouseOverall,
+  postManualWarehouseOverall,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
@@ -22,6 +28,7 @@ import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
+import { useTranslation } from 'react-i18next';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -38,6 +45,16 @@ export default function Aggregations() {
   const [exportLoading, setExportLoading] = useState(false);
   const [donorExportLoading, setDonorExportLoading] = useState(false);
   const donorTableRef = useRef<HTMLTableElement>(null);
+  const { t } = useTranslation();
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    month: 1,
+    donations: 0,
+    surplus: 0,
+    pigPound: 0,
+    outgoingDonations: 0,
+  });
 
   useEffect(() => {
     async function loadYears() {
@@ -137,6 +154,24 @@ export default function Aggregations() {
       setSnackbar({ open: true, message: 'Failed to export', severity: 'error' });
     } finally {
       setExportLoading(false);
+    }
+  }
+
+  async function handleManualSubmit() {
+    setManualLoading(true);
+    try {
+      await postManualWarehouseOverall({ year: overallYear, ...manualForm });
+      setManualOpen(false);
+      setSnackbar({ open: true, message: 'Saved', severity: 'success' });
+      setOverallLoading(true);
+      getWarehouseOverall(overallYear)
+        .then(setOverallRows)
+        .catch(() => setOverallRows([]))
+        .finally(() => setOverallLoading(false));
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to save aggregate', severity: 'error' });
+    } finally {
+      setManualLoading(false);
     }
   }
 
@@ -258,8 +293,10 @@ export default function Aggregations() {
             ))}
           </Select>
         </FormControl>
+        <Button variant="contained" onClick={() => setManualOpen(true)}>
+          {t('insert_aggregate')}
+        </Button>
         <Button
-          
           variant="contained"
           onClick={handleExportOverall}
           disabled={exportLoading}
@@ -314,15 +351,79 @@ export default function Aggregations() {
     { label: 'Yearly Overall Aggregations', content: overallContent },
   ];
 
-    return (
-      <Page title="Warehouse Aggregations">
-        <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
-        <FeedbackSnackbar
-          open={snackbar.open}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          message={snackbar.message}
-          severity={snackbar.severity}
-        />
-      </Page>
-    );
-  }
+  return (
+    <Page title="Warehouse Aggregations">
+      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+      <FeedbackSnackbar
+        open={snackbar.open}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+        severity={snackbar.severity}
+      />
+      <Dialog open={manualOpen} onClose={() => setManualOpen(false)} fullWidth>
+        <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel id="manual-month-label">Month</InputLabel>
+            <Select
+              labelId="manual-month-label"
+              label="Month"
+              value={manualForm.month}
+              onChange={e => setManualForm({ ...manualForm, month: Number(e.target.value) })}
+            >
+              {monthNames.map((name, idx) => (
+                <MenuItem key={idx + 1} value={idx + 1}>
+                  {name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            margin="dense"
+            fullWidth
+            label="Donations"
+            type="number"
+            value={manualForm.donations}
+            onChange={e => setManualForm({ ...manualForm, donations: Number(e.target.value) })}
+          />
+          <TextField
+            margin="dense"
+            fullWidth
+            label="Surplus"
+            type="number"
+            value={manualForm.surplus}
+            onChange={e => setManualForm({ ...manualForm, surplus: Number(e.target.value) })}
+          />
+          <TextField
+            margin="dense"
+            fullWidth
+            label="Pig Pound"
+            type="number"
+            value={manualForm.pigPound}
+            onChange={e => setManualForm({ ...manualForm, pigPound: Number(e.target.value) })}
+          />
+          <TextField
+            margin="dense"
+            fullWidth
+            label="Outgoing Donations"
+            type="number"
+            value={manualForm.outgoingDonations}
+            onChange={e =>
+              setManualForm({ ...manualForm, outgoingDonations: Number(e.target.value) })
+            }
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setManualOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleManualSubmit}
+            disabled={manualLoading}
+          >
+            {manualLoading ? <CircularProgress size={20} /> : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Page>
+  );
+}
