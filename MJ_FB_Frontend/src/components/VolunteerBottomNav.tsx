@@ -24,10 +24,14 @@ export default function VolunteerBottomNav() {
   else if (pathname.startsWith('/profile')) value = 'profile';
 
   return (
-    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+    <Paper
+      sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, pb: 'env(safe-area-inset-bottom)' }}
+      elevation={3}
+    >
       <BottomNavigation
         showLabels
         value={value}
+        sx={{ height: 72 }}
         onChange={(_, newValue) => {
           if (newValue === 'dashboard') navigate('/volunteer');
           if (newValue === 'schedule') navigate('/volunteer/schedule');

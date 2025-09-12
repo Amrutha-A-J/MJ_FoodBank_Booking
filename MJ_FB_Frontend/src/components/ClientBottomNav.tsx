@@ -22,12 +22,20 @@ export default function ClientBottomNav() {
 
   return (
     <Paper
-      sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: theme.zIndex.appBar + 1 }}
+      sx={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: theme.zIndex.appBar + 1,
+        pb: 'env(safe-area-inset-bottom)',
+      }}
       elevation={3}
     >
       <BottomNavigation
         showLabels
         value={value}
+        sx={{ height: 72 }}
         onChange={(_, newValue) => {
           if (newValue === 'dashboard') navigate('/');
           if (newValue === 'bookings') navigate('/book-appointment');
