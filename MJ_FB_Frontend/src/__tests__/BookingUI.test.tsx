@@ -130,7 +130,7 @@ describe('SlotRow', () => {
       />,
     );
     const listButton = screen.getByLabelText(/select .* time slot/i);
-    expect(listButton).toHaveStyle({ width: '100%' });
+    expect(listButton).toHaveStyle({ marginRight: '0px' });
     expect(
       screen.queryByRole('button', { name: /book selected slot/i }),
     ).toBeNull();
@@ -147,29 +147,19 @@ describe('SlotRow', () => {
     expect(
       screen.getByRole('button', { name: /book selected slot/i }),
     ).toBeInTheDocument();
-    expect(listButton.style.width).not.toBe('100%');
+    expect(listButton).toHaveStyle({ marginRight: '8px' });
   });
 });
 
 describe('Booking confirmation', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-01T10:30:00'));
-  });
-
   beforeEach(() => {
-    jest.setSystemTime(new Date('2024-01-01T10:30:00'));
     jest.clearAllMocks();
-  });
-
-  afterAll(() => {
-    jest.setSystemTime(new Date());
-    jest.useRealTimers();
   });
 
   function renderUI(slots = [
     { id: '1', startTime: '11:00:00', endTime: '11:30:00', available: 1 },
   ]) {
+    (getHolidays as jest.Mock).mockResolvedValue([]);
     const queryClient = new QueryClient();
     render(
       <MemoryRouter>
@@ -189,21 +179,12 @@ describe('Booking confirmation', () => {
 
     renderUI();
 
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
-    });
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
     });
     fireEvent.click(bookButton);
-
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
-    });
 
     await screen.findByText(/confirm booking/i);
   });
@@ -214,10 +195,6 @@ describe('Booking confirmation', () => {
 
     renderUI();
 
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
-    });
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
@@ -246,10 +223,6 @@ describe('Booking confirmation', () => {
 
     renderUI();
 
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
-    });
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
@@ -272,10 +245,6 @@ describe('Booking confirmation', () => {
 
     renderUI();
 
-    await act(async () => {
-      jest.runOnlyPendingTimers();
-      jest.runOnlyPendingTimers();
-    });
     const slot = await screen.findByLabelText(/select .* time slot/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
