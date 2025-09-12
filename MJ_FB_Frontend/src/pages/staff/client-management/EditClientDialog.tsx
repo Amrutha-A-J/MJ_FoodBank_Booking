@@ -153,6 +153,7 @@ export default function EditClientDialog({
                 label="Password"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
+                inputProps={{ 'data-testid': 'password-input' }}
               />
             )}
           </Stack>
@@ -164,12 +165,14 @@ export default function EditClientDialog({
               label="First Name"
               value={form.firstName}
               onChange={e => setForm({ ...form, firstName: e.target.value })}
+              inputProps={{ 'data-testid': 'first-name-input' }}
             />
             <TextField
               fullWidth
               label="Last Name"
               value={form.lastName}
               onChange={e => setForm({ ...form, lastName: e.target.value })}
+              inputProps={{ 'data-testid': 'last-name-input' }}
             />
             <TextField
               fullWidth
@@ -177,6 +180,7 @@ export default function EditClientDialog({
               type="email"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
+              inputProps={{ 'data-testid': 'email-input' }}
             />
             <TextField
               fullWidth
@@ -184,13 +188,19 @@ export default function EditClientDialog({
               type="tel"
               value={form.phone}
               onChange={e => setForm({ ...form, phone: e.target.value })}
+              inputProps={{ 'data-testid': 'phone-input' }}
             />
           </Stack>
         </Stack>
       </DialogContent>
       <DialogActions>
         {form.onlineAccess && (
-          <Button variant="outlined" color="primary" onClick={handleSendReset}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleSendReset}
+            data-testid="send-reset-button"
+          >
             Send password reset link
           </Button>
         )}
@@ -199,6 +209,7 @@ export default function EditClientDialog({
           color="primary"
           onClick={handleSaveClient}
           disabled={!form.firstName || !form.lastName}
+          data-testid="save-button"
         >
           Save
         </Button>
