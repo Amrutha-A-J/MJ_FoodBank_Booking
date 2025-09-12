@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { addUser } from '../../../api/users';
 import type { UserRole } from '../../../types';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -18,6 +19,7 @@ import {
 import PasswordField from '../../../components/PasswordField';
 
 export default function AddClient() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('shopper');
   const [phone, setPhone] = useState('');
@@ -30,6 +32,11 @@ export default function AddClient() {
   const [onlineAccess, setOnlineAccess] = useState(false);
   const [sendPasswordLink, setSendPasswordLink] = useState(true);
   const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    const id = searchParams.get('clientId');
+    if (id) setClientId(id);
+  }, [searchParams]);
 
   async function submitUser() {
     if (onlineAccess) {
