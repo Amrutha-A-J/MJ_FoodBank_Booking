@@ -189,7 +189,9 @@ describe('pantry aggregation routes', () => {
       weight: 10,
     };
     (pool.query as jest.Mock).mockResolvedValue({ rows: [{}] });
-    const res = await request(app).post('/pantry-aggregations/manual').send(body);
+    const res = await request(app)
+      .post('/pantry-aggregations/manual/weekly')
+      .send(body);
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Saved' });
     expect(pool.query).toHaveBeenNthCalledWith(
