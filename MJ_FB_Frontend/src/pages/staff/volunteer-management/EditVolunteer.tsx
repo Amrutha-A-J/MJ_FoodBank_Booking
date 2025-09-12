@@ -206,7 +206,6 @@ export default function EditVolunteer() {
         <Stack spacing={3}>
           <Typography variant="h5">Edit Volunteer</Typography>
           <Card>
-            <CardHeader title="Volunteer" />
             <CardContent>
               <Stack spacing={2}>
                 <EntitySearch
