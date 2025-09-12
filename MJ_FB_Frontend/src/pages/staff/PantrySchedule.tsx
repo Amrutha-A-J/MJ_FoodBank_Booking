@@ -32,7 +32,6 @@ import {
   ListItemText,
   Checkbox,
   FormControlLabel,
-  Alert,
 } from "@mui/material";
 import ManageBookingDialog from "../../components/ManageBookingDialog";
 import PantryQuickLinks from "../../components/PantryQuickLinks";
@@ -72,8 +71,6 @@ export default function PantrySchedule({
   } | null>(null);
   const [manageBooking, setManageBooking] = useState<Booking | null>(null);
   const [assignMessage, setAssignMessage] = useState("");
-  const [streamError, setStreamError] = useState(false);
-  const [esRetry, setEsRetry] = useState(0);
 
   const handleAssignClose = () => {
     setAssignSlot(null);
@@ -149,48 +146,6 @@ export default function PantrySchedule({
   }, [currentDate, loadData]);
 
   useEffect(() => {
-    if (typeof EventSource === "undefined") return;
-    const es = new EventSource(
-      `${import.meta.env.VITE_API_BASE}/bookings/stream`,
-      {
-        withCredentials: true,
-      },
-    );
-    es.onopen = () => {
-      setStreamError(false);
-    };
-    es.onerror = () => {
-      setStreamError(true);
-    };
-    es.onmessage = (ev) => {
-      try {
-        const data = JSON.parse(ev.data) as {
-          action: "created" | "cancelled";
-          name: string;
-          role: string;
-          date: string;
-          time: string;
-        };
-        if (data.date === formatDate(currentDate)) {
-          void loadData();
-          const actionText = data.action === "created" ? "booked" : "cancelled";
-          setSnackbar({
-            message: `${data.name} (${data.role}) ${actionText} ${formatTime(
-              data.time,
-            )}`,
-            severity: "info",
-          });
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-    return () => {
-      es.close();
-    };
-  }, [currentDate, loadData, esRetry]);
-
-  useEffect(() => {
     if (assignSlot && searchTerm.length >= 3) {
       const delay = setTimeout(() => {
         (searchUsersFn || searchUsers)(searchTerm)
@@ -209,9 +164,6 @@ export default function PantrySchedule({
     );
   }
 
-  function retryStream() {
-    setEsRetry((r) => r + 1);
-  }
 
   async function assignExistingUser(user: UserSearchResult) {
     if (!assignSlot) return;
@@ -457,19 +409,6 @@ export default function PantrySchedule({
         severity={snackbar?.severity}
         action={snackbar?.action}
       />
-      {streamError && (
-        <Alert
-          severity="error"
-          action={
-            <Button onClick={retryStream} variant="outlined" color="primary">
-              Retry
-            </Button>
-          }
-          sx={{ alignItems: 'center' }}
-        >
-          Live updates unavailable
-        </Alert>
-      )}
       {isClosed ? (
         <Typography align="center">
           Moose Jaw food bank is closed for {dayName}

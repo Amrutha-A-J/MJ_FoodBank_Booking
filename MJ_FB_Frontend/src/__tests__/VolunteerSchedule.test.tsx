@@ -17,20 +17,6 @@ import {
 import { getHolidays } from "../api/bookings";
 import { formatTime } from "../utils/time";
 
-class EventSourceMock {
-  constructor(public url: string) {}
-  onmessage: ((event: { data: string }) => void) | null = null;
-  close() {}
-}
-
-beforeEach(() => {
-  (global as any).EventSource = EventSourceMock as any;
-});
-
-afterEach(() => {
-  delete (global as any).EventSource;
-});
-
 jest.mock("../api/volunteers", () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
   getMyVolunteerBookings: jest.fn(),

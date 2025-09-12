@@ -4,7 +4,6 @@ import {
   authorizeRoles,
   optionalAuthMiddleware,
 } from '../middleware/authMiddleware';
-import { registerBookingStream } from '../utils/bookingEvents';
 import {
   createBooking,
   listBookings,
@@ -50,20 +49,6 @@ router.get(
   listBookings
 );
 
-// SSE stream of booking events
-router.get(
-  '/stream',
-  authMiddleware,
-  (req: Request, res: Response) => {
-    res.set({
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    });
-    res.flushHeaders();
-    registerBookingStream(res);
-  }
-);
 
 // Booking history for user or staff lookup
 // Optional query params: status, past=true, userId (staff/agency), includeVisits=true, includeStaffNotes=true (agency only)

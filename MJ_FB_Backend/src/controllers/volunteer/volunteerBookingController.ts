@@ -22,7 +22,6 @@ import {
   formatTimeToAmPm,
 } from '../../utils/dateUtils';
 import config from '../../config';
-import { sendBookingEvent } from '../../utils/bookingEvents';
 import { notifyOps } from '../../utils/opsAlert';
 import { volunteerBookingsByDateSchema } from '../../schemas/volunteer/volunteerBookingSchemas';
 import { isHoliday, getHolidays } from '../../utils/holidayCache';
@@ -251,13 +250,6 @@ export async function createVolunteerBooking(
         booking.date instanceof Date
           ? formatReginaDate(booking.date)
           : booking.date;
-      sendBookingEvent({
-        action: 'created',
-        name: user.name || 'Volunteer',
-        role: 'volunteer',
-        date,
-        time: slot.start_time,
-      });
       await notifyOps(
         `${user.name || 'Volunteer'} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
@@ -439,13 +431,6 @@ export async function createVolunteerBookingForVolunteer(
         row?.first_name && row?.last_name
           ? `${row.first_name} ${row.last_name}`
           : 'Volunteer';
-      sendBookingEvent({
-        action: 'created',
-        name,
-        role: 'volunteer',
-        date,
-        time: slot.start_time,
-      });
       await notifyOps(
         `${name} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
@@ -1103,18 +1088,11 @@ export async function rescheduleVolunteerBooking(
       );
     }
 
-    sendBookingEvent({
-      action: 'rescheduled',
-      name,
-      role: 'volunteer',
-      date,
-      time: slot.start_time,
-    });
-    await notifyOps(
-      `${name} (volunteer) rescheduled shift from ${formatReginaDateWithDay(booking.date)} ${formatTimeToAmPm(
-        oldSlotRes.rows[0].start_time,
-      )} to ${formatReginaDateWithDay(date)} ${formatTimeToAmPm(slot.start_time)}`,
-    );
+      await notifyOps(
+        `${name} (volunteer) rescheduled shift from ${formatReginaDateWithDay(booking.date)} ${formatTimeToAmPm(
+          oldSlotRes.rows[0].start_time,
+        )} to ${formatReginaDateWithDay(date)} ${formatTimeToAmPm(slot.start_time)}`,
+      );
 
     res.json({
       message: 'Booking rescheduled',
@@ -1674,13 +1652,6 @@ export async function cancelVolunteerBookingOccurrence(
     booking.date = dateStr;
     booking.reason = cancelReason;
     const name = first_name && last_name ? `${first_name} ${last_name}` : 'Volunteer';
-    sendBookingEvent({
-      action: 'cancelled',
-      name,
-      role: 'volunteer',
-      date: dateStr,
-      time: slot.start_time,
-    });
     await notifyOps(
       `${name} (volunteer) cancelled shift on ${formatReginaDateWithDay(dateStr)} at ${formatTimeToAmPm(slot.start_time)}${
         cancelReason ? ` (${cancelReason})` : ''

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
 import * as usersApi from '../../../api/users';
@@ -299,60 +299,3 @@ describe('PantrySchedule Wednesday evening slot', () => {
   });
 });
 
-describe('PantrySchedule SSE connection indicator', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-02T00:00:00-06:00'));
-    (bookingApi.getSlots as jest.Mock).mockResolvedValue([
-      { id: '1', startTime: '09:00:00', endTime: '09:30:00', available: 1, maxCapacity: 1 },
-    ]);
-    (bookingApi.getBookings as jest.Mock).mockResolvedValue([]);
-    (bookingApi.getHolidays as jest.Mock).mockResolvedValue([]);
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    // @ts-expect-error cleanup
-    delete global.EventSource;
-  });
-
-  it('shows indicator when EventSource errors', async () => {
-    const esInstance: any = { close: jest.fn() };
-    const esConstructor = jest.fn(() => esInstance);
-    // @ts-expect-error mock EventSource
-    global.EventSource = esConstructor;
-
-    render(
-      <MemoryRouter>
-        <PantrySchedule />
-      </MemoryRouter>,
-    );
-
-    await screen.findByText('9:00 AM - 9:30 AM');
-    act(() => {
-      esInstance.onerror?.(new Event('error'));
-    });
-    expect(await screen.findByText('Live updates unavailable')).toBeInTheDocument();
-  });
-
-  it('reconnects when retry is clicked', async () => {
-    const esInstance: any = { close: jest.fn() };
-    const esConstructor = jest.fn(() => esInstance);
-    // @ts-expect-error mock EventSource
-    global.EventSource = esConstructor;
-
-    render(
-      <MemoryRouter>
-        <PantrySchedule />
-      </MemoryRouter>,
-    );
-
-    await screen.findByText('9:00 AM - 9:30 AM');
-    act(() => {
-      esInstance.onerror?.(new Event('error'));
-    });
-    const retryBtn = await screen.findByRole('button', { name: 'Retry' });
-    fireEvent.click(retryBtn);
-    expect(esConstructor).toHaveBeenCalledTimes(2);
-  });
-});
