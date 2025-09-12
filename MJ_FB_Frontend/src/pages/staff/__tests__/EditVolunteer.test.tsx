@@ -37,6 +37,37 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
 
+describe('EditVolunteer page', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+  });
+
+  it('shows helper text when no volunteer selected', () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Select a volunteer to begin')).toBeInTheDocument();
+    expect(screen.queryByTestId('save-button')).not.toBeInTheDocument();
+  });
+
+  it('shows online account badge when hasPassword true', () => {
+    mockVolunteer.hasPassword = true;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+    mockVolunteer.hasPassword = false;
+  });
+});
+
 describe('EditVolunteer shopper profile', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
@@ -65,7 +96,8 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    expect(screen.getByTestId('volunteer-name')).toHaveTextContent('John Doe');
+    const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
@@ -103,7 +135,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
@@ -120,6 +152,30 @@ describe('EditVolunteer role selection', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+  });
+
+  it('shows helper text when no roles assigned', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Role A',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+    ]);
+    mockVolunteer.trainedAreas = [];
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(screen.getByTestId('roles-select')).toBeInTheDocument();
+    expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
   });
 
   it('adds role via dropdown', async () => {
@@ -195,5 +251,51 @@ describe('EditVolunteer role selection', () => {
     fireEvent.click(deleteBtn);
     expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument();
     expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
+  });
+
+  it('renders role chips in a grid container', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Role A',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+      {
+        id: 2,
+        category_id: 1,
+        name: 'Role B',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+    ]);
+    mockVolunteer.trainedAreas = [];
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    const select = screen.getByTestId('roles-select');
+    fireEvent.mouseDown(select.querySelector('[role="combobox"]')!);
+    let listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    fireEvent.mouseDown(select.querySelector('[role="combobox"]')!);
+    listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role B'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    const chipA = await screen.findByTestId('role-chip-role-a');
+    const chipB = await screen.findByTestId('role-chip-role-b');
+    const container = chipA.closest('.MuiGrid-container');
+    expect(container).toBeInTheDocument();
+    expect(container).toContainElement(chipB);
   });
 });

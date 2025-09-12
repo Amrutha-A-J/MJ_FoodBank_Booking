@@ -36,6 +36,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -176,8 +177,8 @@ export default function EditVolunteer() {
       setShopperClientId('');
       setShopperEmail('');
       setShopperPhone('');
-      setHasShopper(true);
       await refreshVolunteer(volunteer.id);
+      setHasShopper(true);
     } catch (err) {
       setMessage(getApiErrorMessage(err, 'Unable to create shopper profile'));
       setSeverity('error');
@@ -191,8 +192,8 @@ export default function EditVolunteer() {
       setMessage('Shopper profile removed');
       setSeverity('success');
       setRemoveShopperOpen(false);
-      setHasShopper(false);
       await refreshVolunteer(volunteer.id);
+      setHasShopper(false);
     } catch (err) {
       setMessage(getApiErrorMessage(err, 'Unable to remove shopper profile'));
       setSeverity('error');
@@ -213,13 +214,26 @@ export default function EditVolunteer() {
                   placeholder="Search volunteer"
                   onSelect={v => handleSelect(v as VolunteerSearchResult)}
                 />
-                {volunteer && (
+                {volunteer ? (
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography>{volunteer.name}</Typography>
+                    <Typography data-testid="volunteer-name">
+                      {volunteer.name}
+                    </Typography>
+                    {volunteer.hasPassword && (
+                      <Chip
+                        color="success"
+                        icon={<CheckCircleOutline />}
+                        label="Online account"
+                        size="small"
+                        data-testid="online-badge"
+                      />
+                    )}
                     {hasShopper && (
                       <Chip label="Shopper profile" size="small" />
                     )}
                   </Stack>
+                ) : (
+                  <FormHelperText>Select a volunteer to begin</FormHelperText>
                 )}
               </Stack>
             </CardContent>

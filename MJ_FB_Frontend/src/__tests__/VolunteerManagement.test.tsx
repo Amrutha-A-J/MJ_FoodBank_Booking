@@ -192,7 +192,9 @@ describe('VolunteerManagement shopper profile', () => {
         undefined,
       )
     );
-    await waitFor(() => expect(screen.getByLabelText(/shopper profile/i)).toBeChecked());
+    await waitFor(() =>
+      expect(screen.getByText('Shopper profile created')).toBeInTheDocument()
+    );
   });
 
   it('removes shopper profile for volunteer', async () => {
@@ -311,8 +313,8 @@ describe('VolunteerManagement role updates', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const input = await screen.findByLabelText(/add role/i);
-    fireEvent.mouseDown(input);
+    const combobox = await screen.findByRole('combobox', { name: /add role/i });
+    fireEvent.mouseDown(combobox);
     fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
