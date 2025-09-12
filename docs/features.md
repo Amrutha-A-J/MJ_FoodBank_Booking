@@ -27,7 +27,6 @@
 - b6308934 feat: replace tables with responsive tables
 - d12abfd0 feat: use responsive tables for warehouse pages
 - 7c366c96 feat(frontend): add responsive pantry visit cards
-- b5158bb3 feat: add responsive layout for pending reviews
 - d6d33d72 feat: use responsive table for agency client history
 - f017c303 feat(timesheets): add responsive table
 - f95bb36f feat: use responsive table on staff list
@@ -108,7 +107,6 @@
 - 2ed39ea2 feat: support visit notes
 - 6aada54a feat: add helper to set mock DB results
 - 55ee97b0 feat: make daily jobs optionally skip initial run
-- b6cfa70a feat: add type safety for review status filter
 - e210a9f1 feat(types): add RequestUser and type Express request
 - 9af4d94a feat: add email template env vars
 - 42186542 feat: enable warehouse aggregation export
@@ -316,7 +314,6 @@
 - 723f661f feat: implement refresh token flow
 - 99553fe0 feat: show booking confirmation
 - b08ecc18 feat: add reusable entity search
-- 3f216865 feat(frontend): restore staff pending requests page
 - befddb4a feat(navbar): add white hover text for submenus
 - b73a0714 feat: improve invalid role feedback
 - 1f4973ff feat: remove fixed app width
@@ -388,8 +385,6 @@
 - 9ff672e5 feat: align staff roles with database
 - b5455cfd feat: improve responsive design
 - ae0225df feat: add staff login and admin setup
-- 7d0cee32 feat: add approval confirmation
-- 67f0e8aa feat: show pending bookings in schedule
 - d504f200 feat: add staff schedule view
 - 2e82227c feat: hash user passwords
 - 2b317fdf feat: allow configuring frontend origin
