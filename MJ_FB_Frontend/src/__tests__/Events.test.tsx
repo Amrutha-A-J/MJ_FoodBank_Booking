@@ -212,22 +212,21 @@ describe('Events page', () => {
         createdBy: 1,
         createdByName: 'Alice Smith',
         priority: 0,
+        category: 'harvest pantry',
       };
-      getEventsMock
-        .mockResolvedValueOnce({ today: [event], upcoming: [], past: [] })
-        .mockResolvedValueOnce({ today: [{ ...event, title: 'New' }], upcoming: [], past: [] });
+      getEventsMock.mockResolvedValue({ today: [event], upcoming: [], past: [] });
       updateEventMock.mockResolvedValue({});
 
       render(<Events />);
 
       await waitFor(() => expect(getEventsMock).toHaveBeenCalled());
 
-      fireEvent.click(screen.getByLabelText(/edit/i));
+      const edit = await screen.findByLabelText(/edit/i);
+      fireEvent.click(edit);
       fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'New' } });
       fireEvent.click(screen.getByRole('button', { name: /Save/i }));
 
-      await waitFor(() => expect(updateEventMock).toHaveBeenCalled());
-      expect(updateEventMock).toHaveBeenCalledWith(1, expect.objectContaining({ title: 'New' }));
+      await waitFor(() => expect(updateEventMock).toHaveBeenCalledWith(1, expect.objectContaining({ title: 'New' })));
       await waitFor(() => expect(getEventsMock).toHaveBeenCalledTimes(2));
     });
   });
