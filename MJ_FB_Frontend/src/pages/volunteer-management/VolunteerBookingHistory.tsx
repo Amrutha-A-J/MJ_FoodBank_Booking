@@ -125,7 +125,7 @@ export default function VolunteerBookingHistory() {
   }
 
   return (
-    <Page title={t('booking_history')}>
+    <Page title={t('volunteer_booking_history')}>
       {rows.length === 0 ? (
         <Typography align="center">{t('no_bookings')}</Typography>
       ) : (
