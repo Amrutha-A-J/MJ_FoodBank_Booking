@@ -25,6 +25,7 @@ import {
   FormControl,
   FormControlLabel,
   FormHelperText,
+  Grid,
   InputLabel,
   ListItemText,
   ListSubheader,
@@ -35,6 +36,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
@@ -234,48 +236,53 @@ export default function EditVolunteer() {
               <Card>
                 <CardHeader title="Roles" />
                 <CardContent>
-                  <Stack spacing={2}>
-                    <FormControl fullWidth>
-                      <InputLabel id="role-select-label">Roles</InputLabel>
-                      <Select
-                        labelId="role-select-label"
-                        aria-labelledby="role-select-label"
-                        multiple
-                        value={selected}
-                        onChange={handleRoleChange}
-                        renderValue={() => 'Select roles'}
-                      >
-                        {groupedRoles.flatMap(g => [
-                          <ListSubheader key={`${g.category}-header`}>
-                            {g.category}
-                          </ListSubheader>,
-                          ...g.roles.map(r => (
-                            <MenuItem key={r.id} value={r.name}>
-                              <Checkbox checked={selected.includes(r.name)} />
-                              <ListItemText primary={r.name} />
-                            </MenuItem>
-                          )),
-                        ])}
-                      </Select>
-                    </FormControl>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {selected.map(name => (
+                  <FormControl fullWidth>
+                    <InputLabel id="role-select-label">Roles</InputLabel>
+                    <Select
+                      labelId="role-select-label"
+                      aria-labelledby="role-select-label"
+                      multiple
+                      value={selected}
+                      onChange={handleRoleChange}
+                      renderValue={() => 'Select roles'}
+                      label="Select roles"
+                      data-testid="roles-select"
+                    >
+                      {groupedRoles.flatMap(g => [
+                        <ListSubheader key={`${g.category}-header`}>
+                          {g.category}
+                        </ListSubheader>,
+                        ...g.roles.map(r => (
+                          <MenuItem key={r.id} value={r.name}>
+                            <Checkbox checked={selected.includes(r.name)} />
+                            <ListItemText primary={r.name} />
+                          </MenuItem>
+                        )),
+                      ])}
+                    </Select>
+                    {selected.length === 0 && (
+                      <FormHelperText>No roles assigned yet</FormHelperText>
+                    )}
+                  </FormControl>
+                  <Grid
+                    container
+                    spacing={1}
+                    sx={{ mt: 2, bgcolor: 'background.default', p: 1, borderRadius: 1 }}
+                  >
+                    {selected.map(name => (
+                      <Grid item key={name}>
                         <Chip
-                          key={name}
                           label={name}
+                          variant="outlined"
+                          size="medium"
                           onDelete={() => removeRole(name)}
+                          data-testid={`role-chip-${slugify(name)}`}
+                          sx={{ maxWidth: 200 }}
                           title={name}
-                          sx={{
-                            maxWidth: 200,
-                            '& .MuiChip-label': {
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            },
-                          }}
                         />
-                      ))}
-                    </Stack>
-                  </Stack>
+                      </Grid>
+                    ))}
+                  </Grid>
                 </CardContent>
               </Card>
             </>
