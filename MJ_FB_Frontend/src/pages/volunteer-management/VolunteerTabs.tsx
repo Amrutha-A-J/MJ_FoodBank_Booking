@@ -3,7 +3,6 @@ import { Tabs, Tab, CircularProgress } from '@mui/material';
 import Page from '../../components/Page';
 
 const VolunteerManagement = React.lazy(() => import('./VolunteerManagement'));
-const PendingReviews = React.lazy(() => import('./PendingReviews'));
 const DeleteVolunteer = React.lazy(() => import('./DeleteVolunteer'));
 
 export default function VolunteerTabs() {
@@ -15,13 +14,11 @@ export default function VolunteerTabs() {
         <Tab label="Search" />
         <Tab label="Add Volunteer" />
         <Tab label="Delete Volunteer" />
-        <Tab label="Pending Reviews" />
       </Tabs>
       <Suspense fallback={<CircularProgress />}>
         {tab === 0 && <VolunteerManagement initialTab="search" />}
         {tab === 1 && <VolunteerManagement initialTab="create" />}
         {tab === 2 && <DeleteVolunteer />}
-        {tab === 3 && <PendingReviews />}
       </Suspense>
     </Page>
   );

@@ -26,9 +26,6 @@ jest.mock('../pages/volunteer-management/VolunteerManagement', () => () => <div>
 jest.mock('../pages/volunteer-management/VolunteerTabs', () => () => <div>VolunteerTabs</div>);
 jest.mock('../pages/volunteer-management/VolunteerRankings', () => () => <div>VolunteerRankings</div>);
 jest.mock('../pages/volunteer-management/StaffRecurringBookings', () => () => <div>StaffRecurringBookings</div>);
-jest.mock('../api/volunteers', () => ({
-  getVolunteerBookingsForReview: jest.fn().mockResolvedValue([]),
-}));
 
 test('shows Recurring Shifts link for staff with volunteer-management access', async () => {
   localStorage.setItem('role', 'staff');

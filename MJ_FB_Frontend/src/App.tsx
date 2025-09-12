@@ -10,9 +10,7 @@ import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard, DonorManagementGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
-import { getVolunteerBookingsForReview } from './api/volunteers';
 import { getStaffRootPath } from './utils/staffRootPath';
-import dayjs, { formatDate } from './utils/date';
 import LanguageSelector from './components/LanguageSelector';
 import InstallAppButton from './components/InstallAppButton';
 
@@ -139,7 +137,6 @@ export default function App() {
   const { t } = useTranslation();
   const [loading] = useState(false);
   const [error, setError] = useState('');
-  const [pendingReviews, setPendingReviews] = useState(0);
   const isStaff = role === 'staff' || access.includes('admin');
   const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
   const showStaff = isStaff && hasAccess('pantry');
@@ -158,16 +155,6 @@ export default function App() {
 
   const staffRootPath = getStaffRootPath(access as StaffAccess[]);
   const singleAccessOnly = isStaff && staffRootPath !== '/';
-
-  useEffect(() => {
-    if (showVolunteerManagement) {
-      const start = formatDate(dayjs().startOf('week'));
-      const end = formatDate(dayjs().startOf('week').add(6, 'day'));
-      getVolunteerBookingsForReview(start, end)
-        .then(b => setPendingReviews(b.length))
-        .catch(() => setPendingReviews(0));
-    }
-  }, [showVolunteerManagement]);
 
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
@@ -197,11 +184,7 @@ export default function App() {
           { label: 'Schedule', to: '/volunteer-management/schedule' },
           { label: 'Daily Bookings', to: '/volunteer-management/daily' },
           { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
-          {
-            label: 'Volunteers',
-            to: '/volunteer-management/volunteers',
-            badge: pendingReviews,
-          },
+          { label: 'Volunteers', to: '/volunteer-management/volunteers' },
         ],
       });
     if (showDonorManagement)

@@ -49,9 +49,6 @@ jest.mock('../api/bookings', () => ({
   getSlots: jest.fn().mockResolvedValue([]),
   getHolidays: jest.fn().mockResolvedValue([]),
 }));
-jest.mock('../api/volunteers', () => ({
-  getVolunteerBookingsForReview: jest.fn().mockResolvedValue([]),
-}));
 
 describe('App authentication persistence', () => {
   beforeEach(() => {
