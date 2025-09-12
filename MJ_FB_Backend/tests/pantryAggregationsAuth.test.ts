@@ -31,4 +31,8 @@ describe('pantry aggregations auth', () => {
     const res = await request(app).post('/pantry-aggregations/manual');
     expect(res.status).toBe(401);
   });
+  it('requires auth for manual weekly aggregate', async () => {
+    const res = await request(app).post('/pantry-aggregations/manual/weekly');
+    expect(res.status).toBe(401);
+  });
 });

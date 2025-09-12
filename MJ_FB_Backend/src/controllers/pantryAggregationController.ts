@@ -27,6 +27,17 @@ export {
   manualPantryAggregate,
 };
 
+export async function manualWeeklyPantryAggregate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body.week) {
+    return res.status(400).json({ message: 'Week required' });
+  }
+  return manualPantryAggregate(req, res, next);
+}
+
 export async function listWeeklyAggregations(req: Request, res: Response, next: NextFunction) {
   return listPantryWeekly(req, res, next);
 }

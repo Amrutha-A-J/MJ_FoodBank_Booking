@@ -9,6 +9,7 @@ import {
   exportAggregations,
   rebuildAggregations,
   manualPantryAggregate,
+  manualWeeklyPantryAggregate,
 } from '../../controllers/pantryAggregationController';
 import { authMiddleware, authorizeAccess } from '../../middleware/authMiddleware';
 
@@ -63,6 +64,13 @@ router.post(
   authorizeAccess('pantry', 'aggregations'),
   // Body: { year, month, week?, orders?, adults?, children?, people?, weight? }
   manualPantryAggregate,
+);
+router.post(
+  '/manual/weekly',
+  authMiddleware,
+  authorizeAccess('pantry', 'aggregations'),
+  // Body: { year, month, week, orders?, adults?, children?, people?, weight? }
+  manualWeeklyPantryAggregate,
 );
 
 export default router;
