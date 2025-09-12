@@ -17,6 +17,10 @@ jest.mock('../../../api/client', () => ({
   handleResponse: jest.fn(async () => undefined),
 }));
 
+beforeEach(() => {
+  (apiFetch as jest.Mock).mockClear();
+});
+
 test('omits sendPasswordLink when creating volunteer without email', async () => {
   render(
     <MemoryRouter>
@@ -34,4 +38,25 @@ test('omits sendPasswordLink when creating volunteer without email', async () =>
   expect(body).not.toHaveProperty('sendPasswordLink');
   expect(body).not.toHaveProperty('password');
   expect(body).not.toHaveProperty('email');
+});
+
+test('requires password when set password selected', async () => {
+  render(
+    <MemoryRouter>
+      <AddVolunteer />
+    </MemoryRouter>,
+  );
+
+  fireEvent.click(screen.getByLabelText(/online access/i));
+  fireEvent.click(screen.getByRole('button', { name: /set password/i }));
+  fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } });
+  fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
+  fireEvent.change(screen.getByLabelText(/email/i), {
+    target: { value: 'jane@example.com' },
+  });
+
+  fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+  expect(await screen.findByText('Password required')).toBeInTheDocument();
+  expect(apiFetch).not.toHaveBeenCalled();
 });
