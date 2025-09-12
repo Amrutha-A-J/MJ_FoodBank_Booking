@@ -9,7 +9,6 @@ import { AuthProvider } from './hooks/useAuth';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from './utils/date';
-import './i18n';
 import { registerSW } from 'virtual:pwa-register';
 
 const App = React.lazy(() => import('./App'));
