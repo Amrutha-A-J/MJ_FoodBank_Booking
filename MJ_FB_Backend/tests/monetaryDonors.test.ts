@@ -1,10 +1,28 @@
 import request from 'supertest';
 import express from 'express';
-import monetaryDonorsRoutes from '../src/routes/monetaryDonors';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import { sendTemplatedEmail } from '../src/utils/emailUtils';
 import { notifyOps } from '../src/utils/opsAlert';
+
+jest.mock(
+  'csv-parse/sync',
+  () => ({
+    parse: jest.fn((str: string) => {
+      const [headerLine, ...lines] = str.trim().split('\n');
+      const headers = headerLine.split(',');
+      return lines.map(line => {
+        const values = line.split(',');
+        return headers.reduce<Record<string, string>>((acc, h, i) => {
+          acc[h] = values[i] ?? '';
+          return acc;
+        }, {});
+      });
+    }),
+  }),
+  { virtual: true },
+);
+import monetaryDonorsRoutes from '../src/routes/monetaryDonors';
 
 jest.mock('jsonwebtoken');
 jest.mock('../src/utils/emailUtils', () => ({
@@ -36,7 +54,7 @@ describe('Monetary donor CRUD', () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
         rows: [
-          { id: 1, firstName: 'Alice', lastName: 'A', email: 'a@example.com' },
+          { id: 1, firstName: 'Alice', lastName: 'A', email: null },
         ],
       });
 
@@ -50,7 +68,7 @@ describe('Monetary donor CRUD', () => {
       expect.stringContaining('FROM monetary_donors'),
       ['%Al%'],
     );
-    expect(res.body).toEqual([{ id: 1, firstName: 'Alice', lastName: 'A', email: 'a@example.com' }]);
+    expect(res.body).toEqual([{ id: 1, firstName: 'Alice', lastName: 'A', email: null }]);
   });
 
   it('adds donor', async () => {
@@ -108,6 +126,63 @@ describe('Monetary donor CRUD', () => {
 
     expect(res.status).toBe(204);
     expect(pool.query).toHaveBeenNthCalledWith(2, 'DELETE FROM monetary_donors WHERE id = $1', ['3']);
+  });
+});
+
+describe('Import Zeffy donations', () => {
+  it('imports donors with and without emails', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['donor_management'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      // existing donor by email
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 1 }] })
+      // donation insert for existing donor
+      .mockResolvedValueOnce({})
+      // check for donor without email
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
+      // insert new donor without email
+      .mockResolvedValueOnce({ rows: [{ id: 2 }] })
+      // donation insert for new donor
+      .mockResolvedValueOnce({});
+
+    const csv = [
+      'First Name,Last Name,Email,Payment Date,Payment Status,Total Amount',
+      'Alice,A,a@example.com,2024-01-15T06:00:00Z,Succeeded,$10.00',
+      'Bob,Builder,,2024-01-20T06:00:00Z,Succeeded,$20.00',
+    ].join('\n');
+
+    const res = await request(app)
+      .post('/monetary-donors/import')
+      .attach('file', Buffer.from(csv), 'donations.csv')
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledWith(
+      'SELECT id FROM monetary_donors WHERE email = $1',
+      ['a@example.com'],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      'SELECT id FROM monetary_donors WHERE first_name = $1 AND last_name = $2 AND email IS NULL',
+      ['Bob', 'Builder'],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donors'),
+      ['Bob', 'Builder', null],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donations'),
+      [1, expect.any(String), 1000],
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO monetary_donations'),
+      [2, expect.any(String), 2000],
+    );
+    expect(res.body).toEqual({ donorsAdded: 1, donationsImported: 2 });
   });
 });
 
@@ -339,20 +414,32 @@ describe('Donor test emails', () => {
       .send({ email: 'b@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(201);
-    expect(pool.query).toHaveBeenNthCalledWith(3, 'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email', ['b@test.com']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      4,
+      'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email',
+      ['b@test.com'],
+    );
 
     res = await request(app)
       .put('/monetary-donors/test-emails/2')
       .send({ email: 'c@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenNthCalledWith(4, 'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email', ['c@test.com', '2']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      6,
+      'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email',
+      ['c@test.com', '2'],
+    );
 
     res = await request(app)
       .delete('/monetary-donors/test-emails/2')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(204);
-    expect(pool.query).toHaveBeenNthCalledWith(5, 'DELETE FROM donor_test_emails WHERE id = $1', ['2']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      8,
+      'DELETE FROM donor_test_emails WHERE id = $1',
+      ['2'],
+    );
   });
 
   it('sends test emails for each tier', async () => {

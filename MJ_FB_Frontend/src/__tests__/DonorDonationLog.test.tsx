@@ -1,10 +1,12 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { setImmediate as _setImmediate, clearImmediate as _clearImmediate } from 'timers';
 import { MemoryRouter } from 'react-router-dom';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import DonationLog from '../pages/donor-management/DonationLog';
 import {
   getMonetaryDonors,
   getMonetaryDonations,
+  importZeffyDonations,
   updateMonetaryDonation,
   deleteMonetaryDonation,
 } from '../api/monetaryDonors';
@@ -14,17 +16,22 @@ jest.mock('../api/monetaryDonors', () => ({
   getMonetaryDonations: jest.fn(),
   createMonetaryDonor: jest.fn(),
   createMonetaryDonation: jest.fn(),
+  importZeffyDonations: jest.fn(),
   updateMonetaryDonation: jest.fn(),
   deleteMonetaryDonation: jest.fn(),
 }));
 
 describe('Donor Donation Log', () => {
+  const fixedTime = new Date('2024-01-01T12:00:00Z').getTime();
+  const realDateNow = Date.now;
   beforeEach(() => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T12:00:00Z'));
+    (global as any).setImmediate = _setImmediate;
+    (global as any).clearImmediate = _clearImmediate;
+    Date.now = () => fixedTime;
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    Date.now = realDateNow;
     jest.clearAllMocks();
   });
 
@@ -141,6 +148,72 @@ describe('Donor Donation Log', () => {
     );
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+  });
+
+  it('handles donors without emails in display and search', async () => {
+    (getMonetaryDonors as jest.Mock).mockResolvedValue([
+      { id: 1, firstName: 'No', lastName: 'Email', email: null },
+      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' },
+    ]);
+    (getMonetaryDonations as jest.Mock).mockImplementation(async (donorId: number) =>
+      donorId === 1
+        ? [{ id: 1, donorId: 1, amount: 50, date: '2024-01-10' }]
+        : [{ id: 2, donorId: 2, amount: 100, date: '2024-01-15' }],
+    );
+
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.getByText('No')).toBeInTheDocument();
+    expect(screen.getByText('Email')).toBeInTheDocument();
+
+    const searchField = screen.getByLabelText('Search');
+    fireEvent.change(searchField, { target: { value: 'No' } });
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('No'));
+    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
+    expect(screen.getByText('No')).toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
+    await waitFor(() =>
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
+    );
+    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('No')).not.toBeInTheDocument();
+  });
+
+  it('imports donations and reloads list', async () => {
+    (getMonetaryDonors as jest.Mock)
+      .mockResolvedValueOnce([
+        { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+      ])
+      .mockResolvedValueOnce([
+        { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+      ]);
+    (getMonetaryDonations as jest.Mock).mockResolvedValue([
+      { id: 1, donorId: 1, amount: 50, date: '2024-01-10' },
+    ]);
+    (importZeffyDonations as jest.Mock).mockResolvedValue({});
+
+    renderWithProviders(
+      <MemoryRouter>
+        <DonationLog />
+      </MemoryRouter>,
+    );
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = { name: 'donations.csv' } as File;
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [file] } });
+    });
+
+    await waitFor(() => expect(importZeffyDonations).toHaveBeenCalled());
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(getMonetaryDonations).toHaveBeenCalledTimes(2));
+    await screen.findByText('Donations imported');
   });
 });
 
