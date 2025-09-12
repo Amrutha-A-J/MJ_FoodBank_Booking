@@ -7,7 +7,9 @@ import {
   Button,
   TextField,
   FormControlLabel,
-  Checkbox,
+  Switch,
+  FormControl,
+  FormHelperText,
   Stack,
   Tooltip,
   Typography,
@@ -133,18 +135,27 @@ export default function EditClientDialog({
               disableHoverListener={!form.hasPassword}
             >
               <span>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.onlineAccess}
-                      onChange={e =>
-                        setForm({ ...form, onlineAccess: e.target.checked })
-                      }
-                      disabled={form.hasPassword}
-                    />
-                  }
-                  label="Online Access"
-                />
+                <FormControl>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={form.onlineAccess}
+                        onChange={e =>
+                          setForm({
+                            ...form,
+                            onlineAccess: e.target.checked,
+                          })
+                        }
+                        disabled={form.hasPassword}
+                        data-testid="online-access-toggle"
+                      />
+                    }
+                    label="Online Access"
+                  />
+                  <FormHelperText>
+                    Allow the client to sign in online.
+                  </FormHelperText>
+                </FormControl>
               </span>
             </Tooltip>
             {form.onlineAccess && !form.hasPassword && (

@@ -8,7 +8,9 @@ import {
   TextField,
   Stack,
   FormControlLabel,
-  Checkbox,
+  Switch,
+  FormControl,
+  FormHelperText,
   Tooltip,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
@@ -104,27 +106,35 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Volunteer</DialogTitle>
       <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <Tooltip title="Volunteer already has a password" disableHoverListener={!form.hasPassword}>
-            <span>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.onlineAccess}
-                    onChange={e => setForm({ ...form, onlineAccess: e.target.checked })}
-                    disabled={form.hasPassword}
+          <Stack spacing={2} mt={1}>
+            <Tooltip title="Volunteer already has a password" disableHoverListener={!form.hasPassword}>
+              <span>
+                <FormControl>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={form.onlineAccess}
+                        onChange={e =>
+                          setForm({ ...form, onlineAccess: e.target.checked })
+                        }
+                        disabled={form.hasPassword}
+                        data-testid="online-access-toggle"
+                      />
+                    }
+                    label="Online Access"
                   />
-                }
-                label="Online Access"
-              />
-            </span>
-          </Tooltip>
-          <TextField
-            label="First Name"
-            value={form.firstName}
-            onChange={e => setForm({ ...form, firstName: e.target.value })}
-            required
-            fullWidth
+                  <FormHelperText>
+                    Allow the volunteer to sign in online.
+                  </FormHelperText>
+                </FormControl>
+              </span>
+            </Tooltip>
+            <TextField
+              label="First Name"
+              value={form.firstName}
+              onChange={e => setForm({ ...form, firstName: e.target.value })}
+              required
+              fullWidth
           />
           <TextField
             label="Last Name"
