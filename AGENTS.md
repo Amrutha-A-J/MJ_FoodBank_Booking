@@ -14,6 +14,7 @@
 - Staff can book appointments for any future date from the pantry schedule; the client-only limit of booking in the current month (and next month only during the final week) does not apply to staff.
 - A unified `/login` page serves clients, staff, volunteers, and agencies; everyone signs in with their client ID or email and password.
 - The login page automatically prompts for passkeys via WebAuthn on supported devices.
+- A maintenance mode can disable access with a full-screen overlay and session-dismissable notice banner.
 - Volunteers see an Install App button on their first visit to volunteer pages when the app isn't already installed. An onboarding modal explains offline use, and installations are tracked.
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
 - A privacy notice modal prompts for consent after login and stores acknowledgement in the `users` table and localStorage to avoid repeat prompts.

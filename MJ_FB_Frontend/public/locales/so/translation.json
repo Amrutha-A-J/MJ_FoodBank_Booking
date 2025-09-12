@@ -298,5 +298,6 @@
   "insert_aggregate": "Insert Aggregate",
   "insert_aggregate_help": "Manually add or update monthly totals",
   "volunteer_shift": "Volunteer",
-  "book_shopping": "Shopping"
+  "book_shopping": "Shopping",
+  "maintenance_message": "We are under maintenance. Please check back later."
 }

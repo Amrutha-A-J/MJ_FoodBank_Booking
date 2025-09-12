@@ -497,6 +497,7 @@ A daily database bloat monitor job warns when `pg_stat_user_tables.n_dead_tup` e
 - Staff dashboard dates display weekday, month, day, and year (e.g., 'Tue, Jan 2, 2024').
 - Staff dashboard includes a pantry visit trend line chart showing monthly totals for clients, adults, and children.
 - Includes a reusable `FeedbackSnackbar` component for concise user notifications.
+- Supports a maintenance mode with a full-screen overlay and session-dismissable notice banner.
 - Volunteers see an Install App button on their first visit to volunteer pages if the app isn't already installed. An onboarding modal explains offline benefits, and installs are tracked. On Android, tapping the button shows Chrome's install prompt; iOS users should use Safari's **Add to Home Screen**.
 - Client and volunteer dashboards display onboarding tips on first visit and store a local flag to avoid repeat prompts.
 - An Install App button appears when the app is installable and not already installed. On Android, the button opens Chrome's install prompt; iOS users should use Safari's **Add to Home Screen**.

@@ -13,6 +13,9 @@ import type { StaffAccess } from './types';
 import { getStaffRootPath } from './utils/staffRootPath';
 import LanguageSelector from './components/LanguageSelector';
 import InstallAppButton from './components/InstallAppButton';
+import MaintenanceOverlay from './components/MaintenanceOverlay';
+import MaintenanceBanner from './components/MaintenanceBanner';
+import useMaintenance from './hooks/useMaintenance';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -283,6 +286,10 @@ export default function App() {
     profileLinks,
   };
   const AppContent = () => {
+    const { maintenanceMode, notice } = useMaintenance();
+    if (maintenanceMode) {
+      return <MaintenanceOverlay />;
+    }
     const location = useLocation();
     const path = location.pathname;
     useEffect(() => {
@@ -322,7 +329,9 @@ export default function App() {
               </Routes>
             </Suspense>
           ) : isAuthenticated ? (
-            <MainLayout {...navbarProps}>
+            <>
+              <MaintenanceBanner notice={notice} />
+              <MainLayout {...navbarProps}>
               <Suspense fallback={<Spinner />}>
                 <Routes>
                   <Route
@@ -601,6 +610,7 @@ export default function App() {
                 </Routes>
               </Suspense>
             </MainLayout>
+            </>
           ) : !ready ? (
             <Spinner />
           ) : (
