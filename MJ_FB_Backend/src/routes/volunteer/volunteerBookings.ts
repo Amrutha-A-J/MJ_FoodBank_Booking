@@ -1,17 +1,16 @@
 import express from 'express';
 import {
   createVolunteerBooking,
-  listVolunteerBookings,
-  listVolunteerBookingsByRole,
-  listMyVolunteerBookings,
-  listMyRecurringVolunteerBookings,
-  listUnmarkedVolunteerBookings,
-  listVolunteerBookingsForReview,
-  listVolunteerBookingsByDate,
-  updateVolunteerBookingStatus,
-  listVolunteerBookingsByVolunteer,
-  createVolunteerBookingForVolunteer,
-  rescheduleVolunteerBooking,
+    listVolunteerBookings,
+    listVolunteerBookingsByRole,
+    listMyVolunteerBookings,
+    listMyRecurringVolunteerBookings,
+    listUnmarkedVolunteerBookings,
+    listVolunteerBookingsByDate,
+    updateVolunteerBookingStatus,
+    listVolunteerBookingsByVolunteer,
+    createVolunteerBookingForVolunteer,
+    rescheduleVolunteerBooking,
   getRescheduleVolunteerBooking,
   createRecurringVolunteerBooking,
   createRecurringVolunteerBookingForVolunteer,
@@ -76,18 +75,12 @@ router.get(
   authorizeRoles('staff'),
   listUnmarkedVolunteerBookings,
 );
-router.get(
-  '/review',
-  authMiddleware,
-  authorizeRoles('staff'),
-  listVolunteerBookingsForReview,
-);
-router.get(
-  '/by-date',
-  authMiddleware,
-  authorizeRoles('staff'),
-  listVolunteerBookingsByDate,
-);
+  router.get(
+    '/by-date',
+    authMiddleware,
+    authorizeRoles('staff'),
+    listVolunteerBookingsByDate,
+  );
 router.get('/', authMiddleware, authorizeRoles('staff'), listVolunteerBookings);
 router.get('/:role_id', authMiddleware, authorizeRoles('staff'), listVolunteerBookingsByRole);
 router.patch('/:id', authMiddleware, authorizeRoles('staff'), updateVolunteerBookingStatus);
