@@ -247,6 +247,7 @@ export default function UpdateClientData() {
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })
                   }
+                  inputProps={{ 'data-testid': 'password-input' }}
                 />
               )}
             </Stack>
@@ -259,6 +260,7 @@ export default function UpdateClientData() {
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 required
+                inputProps={{ 'data-testid': 'first-name-input' }}
               />
               <TextField
                 fullWidth
@@ -266,6 +268,7 @@ export default function UpdateClientData() {
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 required
+                inputProps={{ 'data-testid': 'last-name-input' }}
               />
               <TextField
                 fullWidth
@@ -273,6 +276,7 @@ export default function UpdateClientData() {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                inputProps={{ 'data-testid': 'email-input' }}
               />
               <TextField
                 fullWidth
@@ -280,13 +284,19 @@ export default function UpdateClientData() {
                 type="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                inputProps={{ 'data-testid': 'phone-input' }}
               />
             </Stack>
           </Stack>
         </DialogContent>
         <DialogActions>
           {form.onlineAccess && (
-            <Button variant="outlined" color="primary" onClick={handleSendReset}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleSendReset}
+              data-testid="send-reset-button"
+            >
               Send password reset link
             </Button>
           )}
@@ -295,6 +305,7 @@ export default function UpdateClientData() {
             color="primary"
             onClick={handleSave}
             disabled={!form.firstName || !form.lastName}
+            data-testid="save-button"
           >
             Save
           </Button>
