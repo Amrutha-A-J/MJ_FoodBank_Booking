@@ -11,18 +11,24 @@ export default function PrivacyPolicy() {
   return (
     <Page title={t('privacy_policy')}>
       <Stack spacing={2}>
-        <Typography>
-          Moose Jaw Food Bank collects personal information only to manage accounts and
-          appointments. We do not share your information with third parties except as
-          required by law. Basic analytics help improve the service.
+        <Typography>{t('privacy_policy_page.intro')}</Typography>
+        <Typography>{t('privacy_policy_page.data_collected')}</Typography>
+        <Typography>{t('privacy_policy_page.pipeda')}</Typography>
+        <Typography>{t('privacy_policy_page.complaint_right')}</Typography>
+        <Typography variant="h6">
+          {t('privacy_policy_page.complaint_how')}
         </Typography>
+        <Typography>{t('privacy_policy_page.complaint_contact')}</Typography>
+        <Typography>{t('privacy_policy_page.complaint_ack')}</Typography>
+        <Typography>{t('privacy_policy_page.complaint_measures')}</Typography>
         <Typography>
-          To request deletion of your account or for any privacy questions, contact
-          Amrutha Adiyath at{' '}
-          <Link href="mailto:amrutha.laxman@mjfoodbank.org">
-            amrutha.laxman@mjfoodbank.org
+          {t('privacy_policy_page.contact_heading')}
+          <br />
+          {t('privacy_policy_page.contact_name')}
+          <br />
+          <Link href={`mailto:${t('privacy_policy_page.contact_email')}`}>
+            {t('privacy_policy_page.contact_email')}
           </Link>
-          .
         </Typography>
       </Stack>
       {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
