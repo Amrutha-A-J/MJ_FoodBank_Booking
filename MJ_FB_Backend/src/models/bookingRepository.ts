@@ -32,8 +32,8 @@ export async function checkSlotCapacity(
   client: Queryable = pool,
 ) {
   const reginaDate = formatReginaDate(date);
-  const res = await client.query(
-    `SELECT s.max_capacity, b.approved_count
+  const params = [slotId, reginaDate];
+  const baseQuery = `SELECT s.max_capacity, b.approved_count
        FROM slots s
        LEFT JOIN (
          SELECT slot_id, COUNT(id) AS approved_count
@@ -41,16 +41,42 @@ export async function checkSlotCapacity(
          WHERE slot_id = $1 AND date = $2 AND status = 'approved'
          GROUP BY slot_id
        ) b ON b.slot_id = s.id
-       WHERE s.id = $1
-       FOR UPDATE`,
-    [slotId, reginaDate],
-  );
+       WHERE s.id = $1`;
+  const lockQuery = `${baseQuery} FOR UPDATE`;
+  let res;
+  try {
+    res = await client.query(lockQuery, params);
+  } catch (err: any) {
+    if (err.code === '0A000') {
+      res = await client.query(baseQuery, params);
+    } else {
+      throw err;
+    }
+  }
   if ((res.rowCount ?? 0) === 0) {
     throw new SlotCapacityError('Invalid slot');
   }
   const approvedCount = Number(res.rows[0].approved_count);
   if (approvedCount >= res.rows[0].max_capacity) {
     throw new SlotCapacityError('Slot full on selected date', 409);
+  }
+}
+
+export async function lockClientRow(
+  userId: number,
+  client: Queryable = pool,
+) {
+  try {
+    await client.query(
+      'SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE',
+      [userId],
+    );
+  } catch (err: any) {
+    if (err.code === '0A000') {
+      await client.query('SELECT client_id FROM clients WHERE client_id=$1', [userId]);
+    } else {
+      throw err;
+    }
   }
 }
 

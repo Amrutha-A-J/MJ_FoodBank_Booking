@@ -28,6 +28,7 @@ import {
   SlotCapacityError,
   checkSlotCapacity,
   insertBooking,
+  lockClientRow,
   fetchBookings as repoFetchBookings,
   fetchBookingById,
   updateBooking,
@@ -92,7 +93,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     let token: string | undefined;
     try {
       await client.query('BEGIN');
-      await client.query('SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE', [userId]);
+      await lockClientRow(userId, client);
       const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
       if (monthlyUsage === false) {
         await client.query('ROLLBACK');
@@ -867,7 +868,7 @@ export async function createBookingForUser(
     let token: string;
     try {
       await client.query('BEGIN');
-      await client.query('SELECT client_id FROM clients WHERE client_id=$1 FOR UPDATE', [userId]);
+      await lockClientRow(userId, client);
       const usage = await countVisitsAndBookingsForMonth(userId, date, client, true);
       if (usage === false) {
         await client.query('ROLLBACK');
