@@ -101,6 +101,95 @@ export type BookingUIProps<T = Slot> = {
   showUsageNotes?: boolean;
 };
 
+type SlotRowProps = {
+  slot: Slot;
+  selected: boolean;
+  onSelect: () => void;
+  onBook: () => void;
+  booking: boolean;
+  loadingConfirm: boolean;
+};
+
+export function SlotRow({
+  slot,
+  selected,
+  onSelect,
+  onBook,
+  booking,
+  loadingConfirm,
+}: SlotRowProps) {
+  const { t } = useTranslation();
+  const bookWidth = 140;
+  const start = dayjs(slot.startTime, 'HH:mm:ss');
+  const end = dayjs(slot.endTime, 'HH:mm:ss');
+  const label = `${start.format('h:mm a')} – ${end.format('h:mm a')}`;
+  const available = slot.available ?? 0;
+  const isFull = available <= 0;
+  return (
+    <ListItem
+      key={slot.id}
+      disablePadding
+      sx={{
+        display: 'flex',
+        alignItems: 'stretch',
+        borderBottom: 1,
+        borderColor: 'divider',
+        width: '100%',
+      }}
+    >
+      <ListItemButton
+        disabled={isFull}
+        selected={selected}
+        onClick={onSelect}
+        aria-label={t('select_time_slot', {
+          start: start.format('h:mm a'),
+          end: end.format('h:mm a'),
+        })}
+        sx={theme => ({
+          pl: 2,
+          flexGrow: 1,
+          transition: theme.transitions.create('width'),
+          width: selected ? `calc(100% - ${bookWidth + 8}px)` : '100%',
+          ...(selected && {
+            bgcolor: 'warning.light',
+            borderLeft: `3px solid ${theme.palette.primary.main}`,
+          }),
+        })}
+      >
+        <ListItemText
+          primary={label}
+          secondary={
+            isFull ? slot.reason || t('fully_booked') : t('choose_this_time')
+          }
+        />
+        <Chip
+          label={
+            isFull
+              ? t('full')
+              : t('available_count', { count: available })
+          }
+          color={isFull ? 'default' : 'success'}
+        />
+      </ListItemButton>
+      <Collapse orientation="horizontal" in={selected} unmountOnExit>
+        <Button
+          variant="contained"
+          size="medium"
+          sx={{
+            ml: 1,
+            width: bookWidth,
+            height: '100%',
+          }}
+          disabled={booking || loadingConfirm}
+          onClick={onBook}
+        >
+          {t('book_selected_slot')}
+        </Button>
+      </Collapse>
+    </ListItem>
+  );
+}
+
 export default function BookingUI<T = Slot>({
   shopperName,
   initialDate = dayjs(),
@@ -347,71 +436,16 @@ export default function BookingUI<T = Slot>({
   }
 
   function renderSlot(slot: Slot) {
-    const start = dayjs(slot.startTime, 'HH:mm:ss');
-    const end = dayjs(slot.endTime, 'HH:mm:ss');
-    const label = `${start.format('h:mm a')} – ${end.format('h:mm a')}`;
-    const available = slot.available ?? 0;
-    const isFull = available <= 0;
     const selected = selectedSlotId === slot.id;
     return (
-      <ListItem
-        key={slot.id}
-        disablePadding
-        sx={{
-          flexDirection: 'column',
-          alignItems: 'stretch',
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <ListItemButton
-          disabled={isFull}
-          selected={selected}
-          onClick={() => setSelectedSlotId(slot.id)}
-          aria-label={t('select_time_slot', {
-            start: start.format('h:mm a'),
-            end: end.format('h:mm a'),
-          })}
-          sx={{
-            pl: 2,
-            ...(selected && {
-              bgcolor: 'warning.light',
-              borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
-            }),
-          }}
-        >
-          <ListItemText
-            primary={label}
-            secondary={
-              isFull
-                ? slot.reason || t('fully_booked')
-                : t('choose_this_time')
-            }
-          />
-          <Chip
-            label={
-              isFull
-                ? t('full')
-                : t('available_count', { count: available })
-            }
-            color={isFull ? 'default' : 'success'}
-          />
-        </ListItemButton>
-        <Collapse in={selected} timeout="auto" unmountOnExit>
-          <Box sx={{ p: 2, pt: 0 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              size="medium"
-              sx={{ minHeight: 48 }}
-              disabled={booking || loadingConfirm}
-              onClick={handleOpenConfirm}
-            >
-              {t('book_selected_slot')}
-            </Button>
-          </Box>
-        </Collapse>
-      </ListItem>
+      <SlotRow
+        slot={slot}
+        selected={selected}
+        onSelect={() => setSelectedSlotId(slot.id)}
+        onBook={handleOpenConfirm}
+        booking={booking}
+        loadingConfirm={loadingConfirm}
+      />
     );
   }
 
@@ -481,8 +515,7 @@ export default function BookingUI<T = Slot>({
               borderRadius: 2,
               maxHeight: { xs: 420, md: 560 },
               overflow: 'auto',
-              width: { xs: '100%', md: 360 },
-              mx: 'auto',
+              width: '100%',
             }}
           >
             {isLoading ? (
