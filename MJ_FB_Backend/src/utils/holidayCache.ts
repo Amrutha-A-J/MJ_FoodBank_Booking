@@ -16,7 +16,10 @@ async function loadHolidays(client: Queryable = pool) {
         );
         rows = result.rows as any[];
       }
-    } catch {
+    } catch (err) {
+      if (client !== pool) {
+        throw err;
+      }
       // fall back to empty holidays list if the query fails
     }
     holidays = new Map(
