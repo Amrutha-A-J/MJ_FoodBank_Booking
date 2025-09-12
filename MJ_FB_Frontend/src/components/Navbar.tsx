@@ -446,6 +446,15 @@ export default function Navbar({
                     {t('profile')}
                   </MenuItem>
                   <MenuItem
+                    component={RouterLink}
+                    to="/privacy"
+                    onClick={closeProfileMenu}
+                    disabled={loading}
+                    sx={DROPDOWN_ITEM_SX}
+                  >
+                    {t('privacy_policy')}
+                  </MenuItem>
+                  <MenuItem
                     onClick={() => {
                       closeProfileMenu();
                       onLogout();

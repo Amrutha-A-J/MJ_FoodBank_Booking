@@ -128,6 +128,9 @@ const MailLists = React.lazy(() =>
 const DonorDonationLog = React.lazy(() =>
   import('./pages/donor-management/DonationLog')
 );
+const PrivacyPolicy = React.lazy(() =>
+  import('./pages/privacy/PrivacyPolicy')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -610,6 +613,7 @@ export default function App() {
                     </>
                   )}
                   <Route path="/set-password" element={<PasswordSetup />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
@@ -624,6 +628,7 @@ export default function App() {
                   <Routes>
                     <Route path="/login" element={<Login onLogin={login} />} />
                     <Route path="/set-password" element={<PasswordSetup />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                   </Routes>
                 </Suspense>
