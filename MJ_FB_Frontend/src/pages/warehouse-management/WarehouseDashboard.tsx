@@ -120,10 +120,6 @@ export default function WarehouseDashboard() {
   }, []);
 
   useEffect(() => {
-    if (search.length < 2) {
-      setDonorOptions([]);
-      return;
-    }
     let active = true;
     getDonors(search)
       .then(d => {
@@ -223,7 +219,15 @@ export default function WarehouseDashboard() {
   );
 
   const filteredDonors = useMemo(
-    () => donors.filter(d => d.name.toLowerCase().includes(search.toLowerCase())),
+    () =>
+      donors.filter(d => {
+        const term = search.toLowerCase();
+        return (
+          d.id.toString().includes(term) ||
+          `${d.firstName} ${d.lastName}`.toLowerCase().includes(term) ||
+          d.email.toLowerCase().includes(term)
+        );
+      }),
     [donors, search],
   );
   const filteredReceivers = useMemo(
@@ -282,9 +286,8 @@ export default function WarehouseDashboard() {
             </Select>
           </FormControl>
           <Autocomplete
-            
             options={donorOptions}
-            getOptionLabel={o => o.name}
+            getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
             inputValue={search}
             onInputChange={(_e, v) => setSearch(v)}
             onChange={(_e, v) => {
@@ -474,7 +477,9 @@ export default function WarehouseDashboard() {
                 {filteredDonors.map((d, i) => (
                   <Stack key={i} direction="row" justifyContent="space-between">
                     <Box>
-                      <Typography variant="body2">{d.name}</Typography>
+                      <Typography variant="body2">
+                        {d.firstName} {d.lastName}
+                      </Typography>
                       <Typography variant="caption" color="text.secondary">
                         Last: {formatLocaleDate(d.lastDonationISO)}
                       </Typography>

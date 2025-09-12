@@ -2,11 +2,16 @@ import { API_BASE, apiFetch, handleResponse } from './client';
 
 export interface Donor {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export interface TopDonor {
-  name: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
   totalLbs: number;
   lastDonationISO: string;
 }
@@ -28,11 +33,15 @@ export async function getDonors(search?: string): Promise<Donor[]> {
   return handleResponse(res);
 }
 
-export async function createDonor(name: string): Promise<Donor> {
+export async function createDonor(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}): Promise<Donor> {
   const res = await apiFetch(`${API_BASE}/donors`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
