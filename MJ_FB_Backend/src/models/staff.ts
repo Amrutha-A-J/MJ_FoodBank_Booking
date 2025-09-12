@@ -18,4 +18,5 @@ export interface Staff {
   email: string;
   password: string;
   access: StaffAccess[];
+  consent: boolean;
 }

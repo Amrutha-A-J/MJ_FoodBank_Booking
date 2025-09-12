@@ -1,7 +1,7 @@
 import request from 'supertest';
 import express from 'express';
 import usersRouter from '../src/routes/users';
-import authRouter from '../src/routes/auth';
+import authRouter, { authLimiter } from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -19,6 +19,7 @@ const volunteerWithShopper = {
   password: 'hashed',
   user_id: 9,
   user_role: 'shopper',
+  consent: false,
 };
 
 const app = express();
@@ -33,6 +34,9 @@ beforeAll(() => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  authLimiter.resetKey('::ffff:127.0.0.1');
+  authLimiter.resetKey('127.0.0.1');
+  authLimiter.resetKey('::1');
   (pool.query as jest.Mock).mockResolvedValue({ rowCount: 0, rows: [] });
 });
 
@@ -56,6 +60,7 @@ describe('POST /api/v1/auth/login', () => {
             password: 'hashed',
             role: 'staff',
             access: [],
+            consent: false,
           },
         ],
       });
@@ -90,6 +95,7 @@ describe('POST /api/v1/auth/login', () => {
       userRole: 'shopper',
       access: [],
       id: 1,
+      consent: false,
     });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
@@ -112,12 +118,13 @@ describe('POST /api/v1/auth/login', () => {
             last_name: 'Doe',
             role: 'shopper',
             password: 'hashed',
+            consent: false,
           },
         ],
       })
       .mockResolvedValueOnce({
         rowCount: 1,
-        rows: [{ id: 1, first_name: 'John', last_name: 'Doe' }],
+        rows: [{ id: 1, first_name: 'John', last_name: 'Doe', consent: false }],
       });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     (jwt.sign as jest.Mock).mockReturnValue('token');
@@ -133,6 +140,7 @@ describe('POST /api/v1/auth/login', () => {
       userRole: 'shopper',
       access: [],
       id: 1,
+      consent: false,
     });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE client_id = \$1/);
     expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/FROM volunteers WHERE user_id = \$1/);
@@ -148,7 +156,7 @@ describe('POST /api/v1/auth/login', () => {
   it('returns 401 with invalid credentials', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ email: 'john@example.com', password: 'hashed' }],
+      rows: [{ email: 'john@example.com', password: 'hashed', consent: false }],
     });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
@@ -160,8 +168,12 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   it('returns 404 when account is not found', async () => {
+    authLimiter.resetKey('::ffff:127.0.0.1');
+    authLimiter.resetKey('127.0.0.1');
+    authLimiter.resetKey('::1');
     const res = await request(app)
       .post('/api/v1/auth/login')
+      .set('X-Forwarded-For', '1.1.1.1')
       .send({ email: 'missing@example.com', password: 'secret' });
     expect(res.status).toBe(404);
   });

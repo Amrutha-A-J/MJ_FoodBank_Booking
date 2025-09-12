@@ -21,7 +21,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
   try {
     if (email) {
       const volunteerQuery = await pool.query(
-        `SELECT v.id, v.first_name, v.last_name, v.password, v.user_id, u.role AS user_role
+        `SELECT v.id, v.first_name, v.last_name, v.password, v.consent, v.user_id, u.role AS user_role
          FROM volunteers v
          LEFT JOIN clients u ON v.user_id = u.client_id
          WHERE v.email = $1`,
@@ -66,11 +66,12 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           }),
           access,
           id: volunteer.id,
+          consent: volunteer.consent,
         });
       }
 
       const staffQuery = await pool.query(
-        `SELECT id, first_name, last_name, email, password, role, access FROM staff WHERE email = $1`,
+        `SELECT id, first_name, last_name, email, password, role, access, consent FROM staff WHERE email = $1`,
         [email],
       );
       if ((staffQuery.rowCount ?? 0) > 0) {
@@ -97,6 +98,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           name: `${staff.first_name} ${staff.last_name}`,
           access: staff.access || [],
           id: staff.id,
+          consent: staff.consent,
         });
       }
 
@@ -122,6 +124,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           name: agency.name,
           id: agency.id,
           access: [],
+          consent: agency.consent,
         });
       }
 
@@ -156,7 +159,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
 
     if (clientId) {
       const userQuery = await pool.query(
-        `SELECT client_id, first_name, last_name, role, password FROM clients WHERE client_id = $1 AND online_access = true`,
+        `SELECT client_id, first_name, last_name, role, password, consent FROM clients WHERE client_id = $1 AND online_access = true`,
         [clientId],
       );
       if ((userQuery.rowCount ?? 0) === 0) {
@@ -172,7 +175,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       }
 
       const volunteerQuery = await pool.query(
-        `SELECT id, first_name, last_name FROM volunteers WHERE user_id = $1`,
+        `SELECT id, first_name, last_name, consent FROM volunteers WHERE user_id = $1`,
         [userRow.client_id],
       );
       if ((volunteerQuery.rowCount ?? 0) > 0) {
@@ -203,6 +206,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
           userRole: userRow.role,
           access,
           id: volunteer.id,
+          consent: volunteer.consent,
         });
       }
 
@@ -216,6 +220,7 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         role: userRow.role,
         name: `${userRow.first_name} ${userRow.last_name}`,
         id: userRow.client_id,
+        consent: userRow.consent,
       });
     }
 
@@ -288,8 +293,8 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const profileLink = `https://portal.link2feed.ca/org/1605/intake/${clientId}`;
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
     await pool.query(
-      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      `INSERT INTO clients (first_name, last_name, email, phone, client_id, role, password, online_access, profile_link, consent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
       [
         firstName || null,
         lastName || null,
@@ -362,7 +367,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
   try {
     const { clientId } = req.params;
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, online_access, password
+      `SELECT client_id, first_name, last_name, email, phone, online_access, password, consent
        FROM clients WHERE client_id = $1`,
       [clientId]
     );
@@ -378,6 +383,7 @@ export async function getUserByClientId(req: Request, res: Response, next: NextF
       clientId: row.client_id,
       onlineAccess: row.online_access,
       hasPassword: row.password != null,
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error fetching user by client ID:', error);
@@ -391,7 +397,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
   try {
     if (user.type === 'staff') {
       const result = await pool.query(
-        `SELECT id, first_name, last_name, email, access FROM staff WHERE id = $1`,
+        `SELECT id, first_name, last_name, email, access, consent FROM staff WHERE id = $1`,
         [user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -406,12 +412,13 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         phone: null,
         role: 'staff',
         roles: row.access || [],
+        consent: row.consent,
       });
     }
 
     if (user.type === 'volunteer') {
       const profileRes = await pool.query(
-        `SELECT id, first_name, last_name, email, phone FROM volunteers WHERE id = $1`,
+        `SELECT id, first_name, last_name, email, phone, consent FROM volunteers WHERE id = $1`,
         [user.id],
       );
       if ((profileRes.rowCount ?? 0) === 0) {
@@ -433,12 +440,13 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         phone: row.phone,
         role: 'volunteer',
         trainedAreas: trainedRes.rows.map(r => r.name),
+        consent: row.consent,
       });
     }
 
     if (user.type === 'agency') {
       const result = await pool.query(
-        `SELECT id, name, email, contact_info FROM agencies WHERE id = $1`,
+        `SELECT id, name, email, contact_info, consent FROM agencies WHERE id = $1`,
         [user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -452,11 +460,12 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
         email: row.email,
         phone: row.contact_info,
         role: 'agency',
+        consent: row.consent,
       });
     }
 
     const result = await pool.query(
-      `SELECT client_id, first_name, last_name, email, phone, role
+      `SELECT client_id, first_name, last_name, email, phone, role, consent
        FROM clients WHERE client_id = $1`,
       [user.id],
     );
@@ -473,6 +482,7 @@ export async function getUserProfile(req: Request, res: Response, next: NextFunc
       clientId: row.client_id,
       role: row.role,
       bookingsThisMonth,
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error fetching user profile:', error);
@@ -489,7 +499,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
       const result = await pool.query(
         `UPDATE staff SET email = COALESCE($1, email)
          WHERE id = $2
-         RETURNING id, first_name, last_name, email, access`,
+         RETURNING id, first_name, last_name, email, access, consent`,
         [email, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -504,6 +514,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         phone: null,
         role: 'staff',
         roles: row.access || [],
+        consent: row.consent,
       });
     }
 
@@ -513,7 +524,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
          SET email = COALESCE($1, email),
              phone = COALESCE($2, phone)
          WHERE id = $3
-         RETURNING id, first_name, last_name, email, phone`,
+         RETURNING id, first_name, last_name, email, phone, consent`,
         [email, phone, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -535,6 +546,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         phone: row.phone,
         role: 'volunteer',
         trainedAreas: trainedRes.rows.map(r => r.name),
+        consent: row.consent,
       });
     }
 
@@ -544,7 +556,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
          SET email = COALESCE($1, email),
              contact_info = COALESCE($2, contact_info)
          WHERE id = $3
-         RETURNING id, name, email, contact_info`,
+         RETURNING id, name, email, contact_info, consent`,
         [email, phone, user.id],
       );
       if ((result.rowCount ?? 0) === 0) {
@@ -558,6 +570,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
         email: row.email,
         phone: row.contact_info,
         role: 'agency',
+        consent: row.consent,
       });
     }
 
@@ -566,7 +579,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
        SET email = COALESCE($1, email),
            phone = COALESCE($2, phone)
        WHERE client_id = $3
-       RETURNING client_id, first_name, last_name, email, phone, role`,
+       RETURNING client_id, first_name, last_name, email, phone, role, consent`,
       [email, phone, user.id],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -582,6 +595,7 @@ export async function updateMyProfile(req: Request, res: Response, next: NextFun
       clientId: row.client_id,
       role: row.role,
       bookingsThisMonth,
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error updating profile:', error);
@@ -658,7 +672,7 @@ export async function updateUserByClientId(
          SET first_name = $1, last_name = $2, email = $3, phone = $4,
              online_access = true, password = COALESCE($5, password)
          WHERE client_id = $6
-         RETURNING client_id, first_name, last_name, email, phone, profile_link`,
+         RETURNING client_id, first_name, last_name, email, phone, profile_link, consent`,
         [
           firstName,
           lastName,
@@ -679,6 +693,7 @@ export async function updateUserByClientId(
         email: row.email,
         phone: row.phone,
         profileLink: row.profile_link,
+        consent: row.consent,
       });
     }
 
@@ -686,7 +701,7 @@ export async function updateUserByClientId(
       `UPDATE clients
        SET first_name = $1, last_name = $2, email = $3, phone = $4
        WHERE client_id = $5
-       RETURNING client_id, first_name, last_name, email, phone, profile_link`,
+       RETURNING client_id, first_name, last_name, email, phone, profile_link, consent`,
       [firstName, lastName, email || null, phone || null, clientId],
     );
     if ((result.rowCount ?? 0) === 0) {
@@ -700,6 +715,7 @@ export async function updateUserByClientId(
       email: row.email,
       phone: row.phone,
       profileLink: row.profile_link,
+      consent: row.consent,
     });
   } catch (error) {
     logger.error('Error updating user info:', error);

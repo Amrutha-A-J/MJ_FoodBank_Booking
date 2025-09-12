@@ -23,6 +23,7 @@ describe('insertWalkinUser', () => {
     expect(query).toContain('INSERT INTO clients');
     expect(query).toMatch(/client_id/);
     expect(query).toMatch(/RETURNING client_id/);
+    expect(query).toMatch(/consent/);
 
     expect(params[0]).toBe(first);
     expect(params[1]).toBe(last);
