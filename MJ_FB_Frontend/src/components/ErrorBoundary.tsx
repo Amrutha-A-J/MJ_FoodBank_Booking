@@ -1,3 +1,4 @@
+import { Box, Button, Typography } from '@mui/material';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
@@ -24,7 +25,20 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return null;
+      return (
+        <Box p={2} textAlign="center">
+          <Typography variant="h6" gutterBottom>
+            Something went wrong. Try reloading the page.
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => window.location.reload()}
+            size="medium"
+          >
+            Reload
+          </Button>
+        </Box>
+      );
     }
     return this.props.children;
   }
