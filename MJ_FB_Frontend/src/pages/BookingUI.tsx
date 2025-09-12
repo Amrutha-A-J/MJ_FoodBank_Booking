@@ -148,8 +148,8 @@ export function SlotRow({
         sx={theme => ({
           pl: 2,
           flexGrow: 1,
-          transition: theme.transitions.create('width'),
-          width: selected ? `calc(100% - ${bookWidth + 8}px)` : '100%',
+          mr: selected ? 1 : 0,
+          transition: theme.transitions.create('margin-right'),
           ...(selected && {
             bgcolor: 'warning.light',
             borderLeft: `3px solid ${theme.palette.primary.main}`,
@@ -176,9 +176,9 @@ export function SlotRow({
           variant="contained"
           size="medium"
           sx={{
-            ml: 1,
             width: bookWidth,
             height: '100%',
+            flexShrink: 0,
           }}
           disabled={booking || loadingConfirm}
           onClick={onBook}
