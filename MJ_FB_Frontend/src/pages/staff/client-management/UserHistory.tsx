@@ -54,7 +54,10 @@ export default function UserHistory({
               type="user"
               placeholder={t('search_by_name_or_client_id')}
               onSelect={u => setSelected(u as User)}
-              onNotFound={id => setPendingId(id)}
+              onNotFound={id => {
+                (document.activeElement as HTMLElement | null)?.blur();
+                setPendingId(id);
+              }}
             />
           )}
           {selected && (
@@ -78,6 +81,7 @@ export default function UserHistory({
               renderDeleteVisitButton={(b, isSmall, open) =>
                 role === 'staff' && b.status === 'visited' && !b.slot_id ? (
                   <Button
+                    key="deleteVisit"
                     onClick={open}
                     variant="outlined"
                     color="error"
