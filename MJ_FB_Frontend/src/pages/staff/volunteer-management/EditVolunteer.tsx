@@ -342,7 +342,6 @@ export default function EditVolunteer() {
               data-testid="save-button"
               onClick={handleSave}
               disabled={saving || !hasChanges}
-              aria-label="Save volunteer"
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Save
