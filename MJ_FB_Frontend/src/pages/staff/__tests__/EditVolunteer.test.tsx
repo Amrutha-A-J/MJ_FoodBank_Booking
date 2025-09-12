@@ -65,7 +65,8 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    fireEvent.click(toggle);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/phone/i), { target: { value: '555-1234' } });
@@ -102,7 +103,8 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    const toggle = screen.getByRole('switch', { name: /shopper profile/i });
+    fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
     await waitFor(() =>
@@ -167,7 +169,7 @@ describe('EditVolunteer role selection', () => {
         shifts: [],
       },
     ]);
-    mockVolunteer.trainedAreas = [1];
+    mockVolunteer.trainedAreas = [];
 
     render(
       <MemoryRouter>
@@ -176,8 +178,13 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
     const chip = await screen.findByText('Role A');
-    const deleteBtn = within(chip.parentElement as HTMLElement).getByRole('button');
+    const deleteBtn = within(chip.parentElement as HTMLElement).getByTestId('CancelIcon');
     fireEvent.click(deleteBtn);
     expect(screen.queryByText('Role A')).not.toBeInTheDocument();
   });
