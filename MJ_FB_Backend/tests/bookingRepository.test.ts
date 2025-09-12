@@ -22,22 +22,30 @@ describe('bookingRepository', () => {
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toBeInstanceOf(
         SlotCapacityError,
       );
+      expect(mockPool.query).toHaveBeenCalledTimes(1);
     });
 
     it('throws when slot full', async () => {
-      (mockPool.query as jest.Mock)
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_capacity: 1 }] })
-        .mockResolvedValueOnce({ rows: [{ count: '1' }] });
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ max_capacity: 1, approved_count: 1 }],
+      });
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toThrow(
         'Slot full on selected date',
       );
+      const [sql, params] = (mockPool.query as jest.Mock).mock.calls[0];
+      expect(sql).toMatch(/COUNT/);
+      expect(sql).toMatch(/FOR UPDATE/);
+      expect(params).toEqual([1, '2024-01-01']);
     });
 
     it('resolves when slot has capacity', async () => {
-      (mockPool.query as jest.Mock)
-        .mockResolvedValueOnce({ rowCount: 1, rows: [{ max_capacity: 2 }] })
-        .mockResolvedValueOnce({ rows: [{ count: '1' }] });
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ max_capacity: 2, approved_count: 1 }],
+      });
       await expect(checkSlotCapacity(1, '2024-01-01')).resolves.toBeUndefined();
+      expect(mockPool.query).toHaveBeenCalledTimes(1);
     });
   });
 
