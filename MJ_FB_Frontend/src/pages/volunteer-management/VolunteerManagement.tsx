@@ -909,6 +909,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                           checked={selectedVolunteer.hasShopper}
                           onChange={handleShopperToggle}
                           color="primary"
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-focusVisible': {
+                              outline: '2px solid',
+                              outlineOffset: 2,
+                            },
+                          }}
                         />
                       }
                       label="Shopper Profile"
@@ -936,13 +942,20 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                           key={r}
                           label={r}
                           onDelete={() => toggleTrained(r, false)}
+                          title={r}
+                          sx={{
+                            maxWidth: 150,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
                         />
                       ))}
                     </Stack>
-                    <FormControl sx={{ mb: 2, minWidth: 200 }}>
+                    <FormControl sx={{ mb: 2, minWidth: 200 }} fullWidth>
                       <InputLabel id="add-role-label">Add role</InputLabel>
                       <Select
                         labelId="add-role-label"
+                        aria-labelledby="add-role-label"
                         value={newTrainedRole}
                         label="Add role"
                         onChange={e => {
@@ -963,7 +976,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         ])}
                       </Select>
                     </FormControl>
-                    <Button variant="contained" onClick={saveTrainedAreas}>
+                    <Button
+                      variant="contained"
+                      onClick={saveTrainedAreas}
+                      aria-label="Save roles"
+                    >
                       Save
                     </Button>
                     {editMsg && (
@@ -1048,6 +1065,12 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                     <Switch
                       checked={sendPasswordLink}
                       onChange={e => setSendPasswordLink(e.target.checked)}
+                      sx={{
+                        '& .MuiSwitch-switchBase.Mui-focusVisible': {
+                          outline: '2px solid',
+                          outlineOffset: 2,
+                        },
+                      }}
                     />
                   }
                   label="Send password setup link"
@@ -1259,8 +1282,8 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                 value={assignSearch}
                 onChange={e => setAssignSearch(e.target.value)}
                 label="Search"
-                
                 fullWidth
+                inputProps={{ 'aria-label': 'Search volunteers' }}
               />
             <ul style={{ listStyle: 'none', paddingLeft: 0, maxHeight: '150px', overflowY: 'auto' }}>
               {assignResults.map(v => (
