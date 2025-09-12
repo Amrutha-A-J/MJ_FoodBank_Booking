@@ -12,6 +12,7 @@
     "bcrypt": "^6",
     "cookie": "^0.7",
     "cors": "^2",
+    "csv-parse": "^5.6.0",
     "dotenv": "^17",
     "express": "^5",
     "express-rate-limit": "^8.1.0",
