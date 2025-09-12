@@ -47,6 +47,7 @@ import leaveRequestsRoutes from './routes/leaveRequests';
 import sunshineBagsRoutes from './routes/sunshineBags';
 import webauthnRoutes from './routes/webauthn';
 import pantryAggregationsRoutes from './routes/pantry/aggregations';
+import maintenanceRoutes from './routes/maintenance';
 
 const app = express();
 
@@ -123,6 +124,7 @@ api.use('/timesheets', timesheetsRoutes);
 api.use('/leave/requests', leaveRequestsRoutes);
 api.use('/sunshine-bags', sunshineBagsRoutes);
 api.use('/pantry-aggregations', pantryAggregationsRoutes);
+api.use('/maintenance', maintenanceRoutes);
 
 // Redirect legacy /api requests to /api/v1
 app.use('/api', (req, res, next) => {
