@@ -10,31 +10,20 @@ import NewClients from './client-management/NewClients';
 import NoShowWeek from './client-management/NoShowWeek';
 import DeleteClient from './client-management/DeleteClient';
 
+const tabNames = ['history', 'add', 'update', 'new', 'noshow', 'delete'] as const;
+
 export default function ClientManagement() {
-  const [searchParams] = useSearchParams();
-  const initial = searchParams.get('tab');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(() => {
-    switch (initial) {
-      case 'add':
-        return 1;
-      case 'update':
-        return 2;
-      case 'new':
-        return 3;
-      case 'noshow':
-        return 4;
-      default:
-        return 0; // 'history' or unknown -> Search Client
-    }
+    const initial = searchParams.get('tab') ?? tabNames[0];
+    const idx = tabNames.indexOf(initial);
+    return idx === -1 ? 0 : idx;
   });
 
   useEffect(() => {
-    const t = searchParams.get('tab');
-    if (t === 'add') setTab(1);
-    else if (t === 'update') setTab(2);
-    else if (t === 'new') setTab(3);
-    else if (t === 'noshow') setTab(4);
-    else setTab(0); // 'history' or undefined -> Search Client
+    const t = searchParams.get('tab') ?? tabNames[0];
+    const idx = tabNames.indexOf(t);
+    setTab(idx === -1 ? 0 : idx);
   }, [searchParams]);
   const tabs = [
     { label: 'Search Client', content: <UserHistory /> },
@@ -47,7 +36,14 @@ export default function ClientManagement() {
 
   return (
     <Page title="Client Management" header={<PantryQuickLinks />}>
-      <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
+      <StyledTabs
+        tabs={tabs}
+        value={tab}
+        onChange={(_, v) => {
+          setTab(v);
+          setSearchParams({ tab: tabNames[v] });
+        }}
+      />
     </Page>
   );
 }
