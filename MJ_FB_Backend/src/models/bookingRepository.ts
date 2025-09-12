@@ -32,19 +32,20 @@ export async function checkSlotCapacity(
   client: Queryable = pool,
 ) {
   const reginaDate = formatReginaDate(date);
-  const slotRes = await client.query(
-    'SELECT max_capacity FROM slots WHERE id = $1 FOR UPDATE',
-    [slotId],
-  );
-  if ((slotRes.rowCount ?? 0) === 0) {
-    throw new SlotCapacityError('Invalid slot');
-  }
-  const approvedCountRes = await client.query(
-    `SELECT COUNT(*) FROM bookings WHERE slot_id=$1 AND date=$2 AND status='approved'`,
+  const res = await client.query(
+    `SELECT s.max_capacity, COUNT(b.id) AS approved_count
+       FROM slots s
+       LEFT JOIN bookings b ON b.slot_id = s.id AND b.date = $2 AND b.status='approved'
+       WHERE s.id = $1
+       GROUP BY s.id, s.max_capacity
+       FOR UPDATE`,
     [slotId, reginaDate],
   );
-  const approvedCount = Number(approvedCountRes.rows[0].count);
-  if (approvedCount >= slotRes.rows[0].max_capacity) {
+  if ((res.rowCount ?? 0) === 0) {
+    throw new SlotCapacityError('Invalid slot');
+  }
+  const approvedCount = Number(res.rows[0].approved_count);
+  if (approvedCount >= res.rows[0].max_capacity) {
     throw new SlotCapacityError('Slot full on selected date', 409);
   }
 }
