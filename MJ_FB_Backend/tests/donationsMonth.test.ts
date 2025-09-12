@@ -18,6 +18,14 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+const authRow = {
+  id: 1,
+  first_name: 'Test',
+  last_name: 'User',
+  email: 't@example.com',
+  role: 'staff',
+};
+
 describe('GET /donations?month=', () => {
   it('returns donations for the given month', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({
@@ -27,74 +35,68 @@ describe('GET /donations?month=', () => {
       access: ['warehouse', 'donation_entry'],
     });
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
-        rowCount: 1,
         rows: [
           {
             id: 1,
-            first_name: 'Test',
-            last_name: 'User',
-            email: 't@example.com',
-            role: 'staff',
+            date: '2024-02-01',
+            weight: 10,
+            donorId: 2,
+            firstName: 'Alice',
+            lastName: 'Smith',
+            email: 'a@example.com',
+          },
+          {
+            id: 2,
+            date: '2024-02-10',
+            weight: 20,
+            donorId: 3,
+            firstName: 'Bob',
+            lastName: 'Brown',
+            email: 'b@example.com',
           },
         ],
-      })
-        .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 1,
-              date: '2024-02-01',
-              weight: 10,
-              donorId: 2,
-              firstName: 'Alice',
-              lastName: 'Smith',
-              email: 'a@example.com',
-            },
-            {
-              id: 2,
-              date: '2024-02-10',
-              weight: 20,
-              donorId: 3,
-              firstName: 'Bob',
-              lastName: 'Brown',
-              email: 'b@example.com',
-            },
-          ],
-        });
+      });
 
     const res = await request(app)
       .get('/donations?month=2024-02')
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
-      expect(pool.query).toHaveBeenNthCalledWith(
-        2,
-        `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+      [1],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
               o.first_name as "firstName", o.last_name as "lastName", o.email
          FROM donations d JOIN donors o ON d.donor_id = o.id
          WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
-        ['2024-02-01', '2024-03-01'],
-      );
-      expect(res.body).toEqual([
-        {
-          id: 1,
-          date: '2024-02-01',
-          weight: 10,
-          donorId: 2,
-          firstName: 'Alice',
-          lastName: 'Smith',
-          email: 'a@example.com',
-        },
-        {
-          id: 2,
-          date: '2024-02-10',
-          weight: 20,
-          donorId: 3,
-          firstName: 'Bob',
-          lastName: 'Brown',
-          email: 'b@example.com',
-        },
-      ]);
+      ['2024-02-01', '2024-03-01'],
+    );
+    expect(res.body).toEqual([
+      {
+        id: 1,
+        date: '2024-02-01',
+        weight: 10,
+        donorId: 2,
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'a@example.com',
+      },
+      {
+        id: 2,
+        date: '2024-02-10',
+        weight: 20,
+        donorId: 3,
+        firstName: 'Bob',
+        lastName: 'Brown',
+        email: 'b@example.com',
+      },
+    ]);
   });
 });
 

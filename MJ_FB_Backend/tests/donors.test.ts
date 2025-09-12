@@ -22,15 +22,32 @@ beforeEach(() => {
 const authRow = { id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' };
 
 describe('donor routes', () => {
-  it('lists donors matching search', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse', 'donation_entry'] });
+  it.each([
+    ['2'],
+    ['Alice'],
+    ['Smith'],
+    ['alice@example.com'],
+  ])('lists donors matching %s', async search => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
         rows: [{ id: 2, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' }],
       });
-    const res = await request(app).get('/donors?search=ali').set('Authorization', 'Bearer token');
+    const res = await request(app)
+      .get(`/donors?search=${encodeURIComponent(search)}`)
+      .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+      [1],
+    );
     expect(pool.query).toHaveBeenNthCalledWith(
       2,
       `SELECT id, first_name AS "firstName", last_name AS "lastName", email
@@ -40,7 +57,7 @@ describe('donor routes', () => {
           OR last_name ILIKE $1
           OR email ILIKE $1
        ORDER BY first_name, last_name`,
-      ['%ali%'],
+      [`%${search}%`],
     );
     expect(res.body).toEqual([
       { id: 2, firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com' },
@@ -60,10 +77,38 @@ describe('donor routes', () => {
       .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
     expect(res.status).toBe(201);
     expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+      [1],
+    );
+    expect(pool.query).toHaveBeenNthCalledWith(
       2,
       'INSERT INTO donors (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id, first_name AS "firstName", last_name AS "lastName", email',
       ['Bob', 'Brown', 'bob@example.com'],
     );
     expect(res.body).toEqual({ id: 3, firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
+  });
+
+  it('returns 409 for duplicate donor email', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce({ code: '23505' });
+    const res = await request(app)
+      .post('/donors')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com' });
+    expect(res.status).toBe(409);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT id, first_name, last_name, email, role FROM staff WHERE id = $1',
+      [1],
+    );
+    expect(res.body).toEqual({ message: 'Donor already exists' });
   });
 });
