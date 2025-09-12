@@ -30,6 +30,11 @@ export interface MailLists {
   '10001-30000': MailListDonor[];
 }
 
+export interface DonorTestEmail {
+  id: number;
+  email: string;
+}
+
 export async function getMonetaryDonors(
   search?: string,
 ): Promise<MonetaryDonor[]> {
@@ -161,6 +166,51 @@ export async function sendMailListEmails({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ year, month }),
+  });
+  await handleResponse(res);
+}
+
+export async function sendTestMailListEmails({
+  year,
+  month,
+}: SendMailListParams): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/mail-lists/test`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ year, month }),
+  });
+  await handleResponse(res);
+}
+
+export async function getDonorTestEmails(): Promise<DonorTestEmail[]> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails`);
+  return handleResponse(res);
+}
+
+export async function createDonorTestEmail(email: string): Promise<DonorTestEmail> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return handleResponse(res);
+}
+
+export async function updateDonorTestEmail(
+  id: number,
+  email: string,
+): Promise<DonorTestEmail> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteDonorTestEmail(id: number): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails/${id}`, {
+    method: 'DELETE',
   });
   await handleResponse(res);
 }

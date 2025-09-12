@@ -7,6 +7,7 @@ import AdminSettings from '../AdminSettings';
 jest.mock('../settings/WarehouseSettings', () => () => <div>Warehouse Content</div>);
 jest.mock('../settings/PantrySettingsTab', () => () => <div>Pantry Content</div>);
 jest.mock('../settings/VolunteerSettingsTab', () => () => <div>Volunteer Content</div>);
+jest.mock('../settings/DonorSettingsTab', () => () => <div>Donor Content</div>);
 
 describe('AdminSettings', () => {
   it('renders tabs and switches content', () => {
@@ -21,5 +22,7 @@ describe('AdminSettings', () => {
     expect(screen.getByText('Pantry Content')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Volunteer' }));
     expect(screen.getByText('Volunteer Content')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Donor' }));
+    expect(screen.getByText('Donor Content')).toBeInTheDocument();
   });
 });

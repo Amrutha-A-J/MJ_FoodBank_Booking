@@ -17,6 +17,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import {
   getMailLists,
   sendMailListEmails,
+  sendTestMailListEmails,
   type MailLists,
 } from '../../api/monetaryDonors';
 
@@ -34,6 +35,7 @@ export default function MailLists() {
     severity: 'success' as AlertColor,
   });
   const [confirmSend, setConfirmSend] = useState(false);
+  const [confirmTestSend, setConfirmTestSend] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -65,6 +67,20 @@ export default function MailLists() {
     }
   }
 
+  async function handleTestSend() {
+    setConfirmTestSend(false);
+    try {
+      await sendTestMailListEmails({ year, month });
+      setSnackbar({ open: true, message: 'Test emails sent', severity: 'success' });
+    } catch (error: any) {
+      setSnackbar({
+        open: true,
+        message: error.message ?? 'Failed to send test emails',
+        severity: 'error',
+      });
+    }
+  }
+
   const noDonors = Boolean(lists && !RANGES.some(range => lists[range].length > 0));
 
   return (
@@ -91,6 +107,13 @@ export default function MailLists() {
               </Button>
               </span>
           </Tooltip>
+          <Button
+            variant="outlined"
+            onClick={() => setConfirmTestSend(true)}
+            disabled={!lists}
+          >
+            Send test emails
+          </Button>
           {noDonors && (
             <Typography color="text.secondary">No donors to email for last month</Typography>
           )}
@@ -130,6 +153,13 @@ export default function MailLists() {
               message="Send emails?"
               onConfirm={handleSend}
               onCancel={() => setConfirmSend(false)}
+            />
+          )}
+          {confirmTestSend && (
+            <ConfirmDialog
+              message="Send test emails?"
+              onConfirm={handleTestSend}
+              onCancel={() => setConfirmTestSend(false)}
             />
           )}
         </Stack>

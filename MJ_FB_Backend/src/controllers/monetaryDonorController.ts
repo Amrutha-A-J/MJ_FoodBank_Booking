@@ -290,3 +290,135 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+
+export async function listTestEmails(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await pool.query(
+      'SELECT id, email FROM donor_test_emails ORDER BY id',
+    );
+    res.json(result.rows);
+  } catch (error) {
+    logger.error('Error listing donor test emails:', error);
+    next(error);
+  }
+}
+
+export async function addTestEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { email } = req.body;
+    const result = await pool.query(
+      'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email',
+      [email],
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
+    logger.error('Error adding donor test email:', error);
+    next(error);
+  }
+}
+
+export async function updateTestEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { email } = req.body;
+    const id = req.params.id;
+    const result = await pool.query(
+      'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email',
+      [email, id],
+    );
+    if (result.rowCount === 0) return res.status(404).json({ message: 'Not found' });
+    res.json(result.rows[0]);
+  } catch (error: any) {
+    if (error.code === '23505') {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
+    logger.error('Error updating donor test email:', error);
+    next(error);
+  }
+}
+
+export async function deleteTestEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    await pool.query('DELETE FROM donor_test_emails WHERE id = $1', [req.params.id]);
+    res.status(204).end();
+  } catch (error) {
+    logger.error('Error deleting donor test email:', error);
+    next(error);
+  }
+}
+
+export async function sendTestMailLists(req: Request, res: Response, next: NextFunction) {
+  try {
+    const now = new Date();
+    let year = parseInt((req.body.year as string) ?? '', 10);
+    let month = parseInt((req.body.month as string) ?? '', 10);
+    if (Number.isNaN(year) || Number.isNaN(month)) {
+      now.setUTCMonth(now.getUTCMonth() - 1);
+      year = now.getUTCFullYear();
+      month = now.getUTCMonth() + 1;
+    }
+
+    const statsRes = await pool.query(
+      `SELECT orders AS families,
+              adults,
+              children,
+              weight AS pounds
+         FROM pantry_monthly_overall
+        WHERE year = $1 AND month = $2`,
+      [year, month],
+    );
+    const { families = 0, adults = 0, children = 0, pounds = 0 } =
+      statsRes.rows[0] || {};
+
+    const emailsRes = await pool.query(
+      'SELECT email FROM donor_test_emails ORDER BY id',
+    );
+    const testEmails = emailsRes.rows.map(r => r.email);
+
+    const ranges: Record<string, { min: number; max: number; templateId: number }> = {
+      '1-100': { min: 1, max: 100, templateId: config.donorTemplateId1To100 },
+      '101-500': { min: 101, max: 500, templateId: config.donorTemplateId101To500 },
+      '501-1000': { min: 501, max: 1000, templateId: config.donorTemplateId501To1000 },
+      '1001-10000': { min: 1001, max: 10000, templateId: config.donorTemplateId1001To10000 },
+      '10001-30000': { min: 10001, max: 30000, templateId: config.donorTemplateId10001To30000 },
+    };
+
+    const monthName = new Date(Date.UTC(year, month - 1)).toLocaleString('en-CA', {
+      month: 'long',
+    });
+    let sent = 0;
+    for (const [range, info] of Object.entries(ranges)) {
+      const sentEmails: string[] = [];
+      for (const email of testEmails) {
+        const amount =
+          Math.floor(Math.random() * (info.max - info.min + 1)) + info.min;
+        await sendTemplatedEmail({
+          to: email,
+          templateId: info.templateId,
+          params: {
+            firstName: 'Test',
+            amount,
+            families,
+            adults,
+            children,
+            pounds,
+            month: monthName,
+            year,
+          },
+        });
+        sent++;
+        sentEmails.push(email);
+      }
+      if (sentEmails.length > 0) {
+        await notifyOps(`Test monetary donor emails sent for ${range}: ${sentEmails.join(', ')}`);
+      }
+    }
+
+    res.json({ sent });
+  } catch (error) {
+    logger.error('Error sending test monetary donor mails:', error);
+    next(error);
+  }
+}
