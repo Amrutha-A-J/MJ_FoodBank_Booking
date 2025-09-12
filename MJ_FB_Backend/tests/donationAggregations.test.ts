@@ -23,8 +23,13 @@ describe('GET /donations/aggregations', () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse'] });
     const months = Array.from({ length: 12 }, (_, i) => i + 1);
     const rows = [
-      ...months.map(month => ({ donor: 'Alice', month, total: month === 1 ? 100 : month === 2 ? 50 : 0 })),
-      ...months.map(month => ({ donor: 'Bob', month, total: 0 })),
+      ...months.map(month => ({
+        donor: 'Alice',
+        email: 'alice@example.com',
+        month,
+        total: month === 1 ? 100 : month === 2 ? 50 : 0,
+      })),
+      ...months.map(month => ({ donor: 'Bob', email: 'bob@example.com', month, total: 0 })),
     ];
 
     (pool.query as jest.Mock)
@@ -40,8 +45,18 @@ describe('GET /donations/aggregations', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
-      { donor: 'Alice', monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], total: 150 },
-      { donor: 'Bob', monthlyTotals: Array(12).fill(0), total: 0 },
+      {
+        donor: 'Alice',
+        email: 'alice@example.com',
+        monthlyTotals: [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        total: 150,
+      },
+      {
+        donor: 'Bob',
+        email: 'bob@example.com',
+        monthlyTotals: Array(12).fill(0),
+        total: 0,
+      },
     ]);
   });
 });

@@ -23,16 +23,18 @@ export const listDonations = asyncHandler(async (req: Request, res: Response) =>
     const endDate = new Date(Date.UTC(year, monthNum, 1));
     const end = endDate.toISOString().slice(0, 10);
     const result = await pool.query(
-      `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
-       FROM donations d JOIN donors o ON d.donor_id = o.id
-       WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
+      `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
+              o.first_name as "firstName", o.last_name as "lastName", o.email
+         FROM donations d JOIN donors o ON d.donor_id = o.id
+         WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
       [start, end],
     );
     return res.json(result.rows);
   }
 
   const result = await pool.query(
-    `SELECT d.id, d.date, d.weight, d.donor_id as "donorId", o.name as donor
+    `SELECT d.id, d.date, d.weight, d.donor_id as "donorId",
+            o.first_name as "firstName", o.last_name as "lastName", o.email
        FROM donations d JOIN donors o ON d.donor_id = o.id
        WHERE d.date = $1 ORDER BY d.id`,
     [date!],
@@ -46,10 +48,13 @@ export const addDonation = asyncHandler(async (req: Request, res: Response) => {
     'INSERT INTO donations (date, donor_id, weight) VALUES ($1, $2, $3) RETURNING id, date, donor_id as "donorId", weight',
     [date, donorId, weight],
   );
-  const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+  const donorRes = await pool.query(
+    'SELECT first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+    [donorId],
+  );
   const dt = new Date(reginaStartOfDayISO(date));
   await refreshWarehouseOverall(dt.getUTCFullYear(), dt.getUTCMonth() + 1);
-  res.status(201).json({ ...result.rows[0], donor: donorRes.rows[0].name });
+  res.status(201).json({ ...result.rows[0], ...donorRes.rows[0] });
 });
 
 export const updateDonation = asyncHandler(async (req: Request, res: Response) => {
@@ -61,7 +66,10 @@ export const updateDonation = asyncHandler(async (req: Request, res: Response) =
     'UPDATE donations SET date = $1, donor_id = $2, weight = $3 WHERE id = $4 RETURNING id, date, donor_id as "donorId", weight',
     [date, donorId, weight, id],
   );
-  const donorRes = await pool.query('SELECT name FROM donors WHERE id = $1', [donorId]);
+  const donorRes = await pool.query(
+    'SELECT first_name AS "firstName", last_name AS "lastName", email FROM donors WHERE id = $1',
+    [donorId],
+  );
   const newDt = new Date(reginaStartOfDayISO(date));
   await refreshWarehouseOverall(newDt.getUTCFullYear(), newDt.getUTCMonth() + 1);
   if (oldDate) {
@@ -73,7 +81,7 @@ export const updateDonation = asyncHandler(async (req: Request, res: Response) =
       await refreshWarehouseOverall(oldDt.getUTCFullYear(), oldDt.getUTCMonth() + 1);
     }
   }
-  res.json({ ...result.rows[0], donor: donorRes.rows[0].name });
+  res.json({ ...result.rows[0], ...donorRes.rows[0] });
 });
 
 export const deleteDonation = asyncHandler(async (req: Request, res: Response) => {
@@ -92,26 +100,26 @@ export const donorAggregations = asyncHandler(async (req: Request, res: Response
     parseInt((req.query.year as string) ?? '', 10) ||
     new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
   const result = await pool.query(
-    `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
+    `SELECT o.first_name || ' ' || o.last_name AS donor, o.email, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
        LEFT JOIN donor_aggregations a ON a.donor_id = o.id
          AND a.year = $1
          AND a.month = m.month
-       ORDER BY o.name, m.month`,
+       ORDER BY o.first_name, o.last_name, m.month`,
     [year],
   );
-
-  const donorMap = new Map<string, { donor: string; monthlyTotals: number[]; total: number }>();
-  for (const { donor, month, total } of result.rows as {
+  const donorMap = new Map<string, { donor: string; email: string; monthlyTotals: number[]; total: number }>();
+  for (const { donor, email, month, total } of result.rows as {
     donor: string;
+    email: string;
     month: number;
     total: number;
   }[]) {
-    if (!donorMap.has(donor)) {
-      donorMap.set(donor, { donor, monthlyTotals: Array(12).fill(0), total: 0 });
+    if (!donorMap.has(email)) {
+      donorMap.set(email, { donor, email, monthlyTotals: Array(12).fill(0), total: 0 });
     }
-    const entry = donorMap.get(donor)!;
+    const entry = donorMap.get(email)!;
     entry.monthlyTotals[month - 1] = total ?? 0;
     entry.total += total ?? 0;
   }
@@ -125,13 +133,13 @@ export const exportDonorAggregations = asyncHandler(
       parseInt((req.query.year as string) ?? '', 10) ||
       new Date(reginaStartOfDayISO(new Date())).getUTCFullYear();
     const result = await pool.query(
-      `SELECT o.name AS donor, m.month, COALESCE(a.total, 0) AS total
+      `SELECT o.first_name || ' ' || o.last_name AS donor, m.month, COALESCE(a.total, 0) AS total
        FROM donors o
        CROSS JOIN generate_series(1, 12) AS m(month)
        LEFT JOIN donor_aggregations a ON a.donor_id = o.id
          AND a.year = $1
          AND a.month = m.month
-       ORDER BY o.name, m.month`,
+       ORDER BY o.first_name, o.last_name, m.month`,
       [year],
     );
 
