@@ -158,28 +158,58 @@ export async function manualPantryAggregate(
   try {
     const year = Number(req.body.year);
     const month = Number(req.body.month);
-    if (!year || !month) return res.status(400).json({ message: "Year and month required" });
+    if (!year || !month)
+      return res.status(400).json({ message: 'Year and month required' });
+    const week = Number(req.body.week);
     const orders = Number(req.body.orders) || 0;
     const adults = Number(req.body.adults) || 0;
     const children = Number(req.body.children) || 0;
     const people = Number(req.body.people) || 0;
     const weight = Number(req.body.weight) || 0;
 
-    await pool.query(
-      `INSERT INTO pantry_monthly_overall (year, month, orders, adults, children, people, weight)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         ON CONFLICT (year, month)
-         DO UPDATE SET orders = EXCLUDED.orders,
-                       adults = EXCLUDED.adults,
-                       children = EXCLUDED.children,
-                       people = EXCLUDED.people,
-                       weight = EXCLUDED.weight`,
-      [year, month, orders, adults, children, people, weight],
-    );
+    if (week) {
+      const monthStart = new Date(Date.UTC(year, month - 1, 1));
+      const firstMonday = startOfWeek(monthStart);
+      const start = new Date(firstMonday);
+      start.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
+      const end = new Date(start);
+      end.setUTCDate(start.getUTCDate() + 4);
+      const startStr = start.toISOString().slice(0, 10);
+      const endStr = end.toISOString().slice(0, 10);
 
-    res.json({ message: "Saved" });
+      await pool.query(
+        `INSERT INTO pantry_weekly_overall (year, month, week, start_date, end_date, orders, adults, children, people, weight)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           ON CONFLICT (year, month, week)
+           DO UPDATE SET start_date = EXCLUDED.start_date,
+                         end_date = EXCLUDED.end_date,
+                         orders = EXCLUDED.orders,
+                         adults = EXCLUDED.adults,
+                         children = EXCLUDED.children,
+                         people = EXCLUDED.people,
+                         weight = EXCLUDED.weight`,
+        [year, month, week, startStr, endStr, orders, adults, children, people, weight],
+      );
+
+      await refreshPantryMonthly(year, month);
+      await refreshPantryYearly(year);
+    } else {
+      await pool.query(
+        `INSERT INTO pantry_monthly_overall (year, month, orders, adults, children, people, weight)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (year, month)
+           DO UPDATE SET orders = EXCLUDED.orders,
+                         adults = EXCLUDED.adults,
+                         children = EXCLUDED.children,
+                         people = EXCLUDED.people,
+                         weight = EXCLUDED.weight`,
+        [year, month, orders, adults, children, people, weight],
+      );
+    }
+
+    res.json({ message: 'Saved' });
   } catch (error) {
-    logger.error("Error inserting pantry manual aggregate:", error);
+    logger.error('Error inserting pantry manual aggregate:', error);
     next(error);
   }
 }
