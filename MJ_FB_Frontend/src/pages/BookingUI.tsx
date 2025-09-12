@@ -14,6 +14,7 @@ import {
   Paper,
   Typography,
   List,
+  ListItem,
   ListItemButton,
   ListItemText,
   ListSubheader,
@@ -21,6 +22,7 @@ import {
   Divider,
   Stack,
   Button,
+  Collapse,
   Toolbar,
   Skeleton,
   Link,
@@ -169,7 +171,6 @@ export default function BookingUI<T = Slot>({
   const [usage, setUsage] = useState<number | null>(null);
   const [loadingConfirm, setLoadingConfirm] = useState(false);
   const theme = useTheme();
-  const bottomNavOffset = theme.spacing(7);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -377,43 +378,64 @@ export default function BookingUI<T = Slot>({
     const isFull = available <= 0;
     const selected = selectedSlotId === slot.id;
     return (
-      <ListItemButton
+      <ListItem
         key={slot.id}
-        disabled={isFull}
-        selected={selected}
-        onClick={() => setSelectedSlotId(slot.id)}
-        aria-label={t('select_time_slot', {
-          start: start.format('h:mm a'),
-          end: end.format('h:mm a'),
-        })}
+        disablePadding
         sx={{
+          flexDirection: 'column',
+          alignItems: 'stretch',
           borderBottom: 1,
           borderColor: 'divider',
-          pl: 2,
-          ...(selected && {
-            bgcolor: 'warning.light',
-            borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
-          }),
         }}
       >
-        <ListItemText
-          primary={label}
-          secondary={
-            isFull
-              ? slot.reason || t('fully_booked')
-              : t('choose_this_time')
-          }
-        />
-        <Chip
-          label={
-            isFull
-              ? t('full')
-              : t('available_count', { count: available })
-          }
-          color={isFull ? 'default' : 'success'}
-          
-        />
-      </ListItemButton>
+        <ListItemButton
+          disabled={isFull}
+          selected={selected}
+          onClick={() => setSelectedSlotId(slot.id)}
+          aria-label={t('select_time_slot', {
+            start: start.format('h:mm a'),
+            end: end.format('h:mm a'),
+          })}
+          sx={{
+            pl: 2,
+            ...(selected && {
+              bgcolor: 'warning.light',
+              borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
+            }),
+          }}
+        >
+          <ListItemText
+            primary={label}
+            secondary={
+              isFull
+                ? slot.reason || t('fully_booked')
+                : t('choose_this_time')
+            }
+          />
+          <Chip
+            label={
+              isFull
+                ? t('full')
+                : t('available_count', { count: available })
+            }
+            color={isFull ? 'default' : 'success'}
+          />
+        </ListItemButton>
+        <Collapse in={selected} timeout="auto" unmountOnExit>
+          <Box sx={{ p: 2, pt: 0 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              size="medium"
+              sx={{ minHeight: 48 }}
+              disabled={booking || loadingConfirm}
+              onClick={handleOpenConfirm}
+            >
+              {t('book_selected_slot')}
+            </Button>
+          </Box>
+        </Collapse>
+      </ListItem>
     );
   }
 
@@ -475,15 +497,16 @@ export default function BookingUI<T = Slot>({
             )}
           </Paper>
         </Grid>
-        <Grid size={{ xs: 12, md: 'grow' }} sx={{ flexGrow: 1 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper
             ref={slotsRef}
             sx={{
               p: 2,
-              pb: 8,
               borderRadius: 2,
               maxHeight: { xs: 420, md: 560 },
               overflow: 'auto',
+              width: { xs: '100%', md: 360 },
+              mx: 'auto',
             }}
           >
             {isLoading ? (
@@ -535,43 +558,6 @@ export default function BookingUI<T = Slot>({
           </Paper>
         </Grid>
       </Grid>
-      <Box
-        component={Paper}
-        sx={{
-          position: 'sticky',
-          bottom: embedded ? 0 : bottomNavOffset,
-          mt: 2,
-          p: 2,
-          borderRadius: { xs: 0, md: 2 },
-          zIndex: theme.zIndex.appBar,
-        }}
-      >
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          justifyContent={{ xs: 'center', sm: 'space-between' }}
-          spacing={1}
-        >
-          <Typography sx={{ mb: { xs: 1, sm: 0 } }}>
-            {selectedSlotId
-              ? t('selected_on', {
-                  slot: selectedLabel,
-                  date: date.format('ddd, MMM D, YYYY'),
-                })
-              : t('no_slot_selected')}
-          </Typography>
-          <Button
-            variant="contained"
-            disabled={!selectedSlotId || booking || loadingConfirm}
-            onClick={handleOpenConfirm}
-            fullWidth
-            size="medium"
-            sx={{ width: { sm: 'auto' }, minHeight: 48 }}
-          >
-            {t('book_selected_slot')}
-          </Button>
-        </Stack>
-      </Box>
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogCloseButton onClose={() => setConfirmOpen(false)} />
         <DialogTitle>{t('confirm_booking')}</DialogTitle>

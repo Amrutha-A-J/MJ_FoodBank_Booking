@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { LocalizationProvider } from '@mui/x-date-pickers';
@@ -61,7 +61,10 @@ describe('VolunteerBooking', () => {
 
     const slot = await screen.findByText(/9:00 AM/);
     fireEvent.click(slot);
-    fireEvent.click(screen.getByRole('button', { name: /book selected slot/i }));
+    const bookButton = within(slot.closest('li')!).getByRole('button', {
+      name: /book selected slot/i,
+    });
+    fireEvent.click(bookButton);
     const noteField = await screen.findByLabelText(/note/i);
     fireEvent.change(noteField, { target: { value: 'Bring gloves' } });
     fireEvent.click(
