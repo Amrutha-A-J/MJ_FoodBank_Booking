@@ -221,10 +221,14 @@ export function buildCalendarLinks(
 
 export function saveIcsFile(fileName: string, content: string): string {
   if (config.icsBaseUrl) {
-    const dir = path.join(__dirname, '..', '..', 'public', 'ics');
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, fileName), content, 'utf8');
-    return `${config.icsBaseUrl.replace(/\/$/, '')}/${fileName}`;
+    try {
+      const dir = path.join(__dirname, '..', '..', 'public', 'ics');
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, fileName), content, 'utf8');
+      return `${config.icsBaseUrl.replace(/\/$/, '')}/${fileName}`;
+    } catch (error) {
+      logger.error('Failed to write ICS file, falling back to data URI', error);
+    }
   }
   const base64 = Buffer.from(content, 'utf8').toString('base64');
   return `data:text/calendar;charset=utf-8;base64,${base64}`;
