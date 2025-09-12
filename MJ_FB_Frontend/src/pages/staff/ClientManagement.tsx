@@ -15,13 +15,13 @@ const tabNames = ['history', 'add', 'update', 'new', 'noshow', 'delete'] as cons
 export default function ClientManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(() => {
-    const initial = searchParams.get('tab') ?? tabNames[0];
+    const initial = (searchParams.get('tab') ?? tabNames[0]) as (typeof tabNames)[number];
     const idx = tabNames.indexOf(initial);
     return idx === -1 ? 0 : idx;
   });
 
   useEffect(() => {
-    const t = searchParams.get('tab') ?? tabNames[0];
+    const t = (searchParams.get('tab') ?? tabNames[0]) as (typeof tabNames)[number];
     const idx = tabNames.indexOf(t);
     setTab(idx === -1 ? 0 : idx);
   }, [searchParams]);

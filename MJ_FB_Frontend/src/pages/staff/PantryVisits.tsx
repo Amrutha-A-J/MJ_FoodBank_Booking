@@ -38,7 +38,7 @@ import { getSunshineBag, saveSunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
 import useAppConfig from '../../hooks/useAppConfig';
 import type { AlertColor } from '@mui/material';
-import { toDayjs, toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
+import { toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
 
 function startOfWeek(date: Date) {
   const d = toDate(date);
@@ -51,17 +51,6 @@ function startOfWeek(date: Date) {
 
 function format(date: Date) {
   return formatDate(date);
-}
-
-function formatDisplay(dateStr: string) {
-  const d = toDayjs(dateStr);
-  if (!d.isValid()) return dateStr;
-  return formatLocaleDate(d, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
 }
 
 export default function PantryVisits() {
