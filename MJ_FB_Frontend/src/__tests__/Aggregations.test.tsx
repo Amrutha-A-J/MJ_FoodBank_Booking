@@ -6,12 +6,15 @@ const mockGetWarehouseOverallYears = jest
   .fn()
   .mockResolvedValue([new Date().getFullYear()]);
 const mockExportWarehouseOverall = jest.fn().mockResolvedValue(new Blob());
+const mockPostManualWarehouseOverall = jest.fn().mockResolvedValue(undefined);
 jest.mock('../api/warehouseOverall', () => ({
   getWarehouseOverall: (...args: unknown[]) => mockGetWarehouseOverall(...args),
   getWarehouseOverallYears: (...args: unknown[]) =>
     mockGetWarehouseOverallYears(...args),
   exportWarehouseOverall: (...args: unknown[]) =>
     mockExportWarehouseOverall(...args),
+  postManualWarehouseOverall: (...args: unknown[]) =>
+    mockPostManualWarehouseOverall(...args),
 }));
 
 const mockGetDonorAggregations = jest.fn().mockResolvedValue([]);
@@ -54,6 +57,39 @@ describe('Aggregations page', () => {
     fireEvent.click(exportBtn);
 
     await waitFor(() => expect(mockExportWarehouseOverall).toHaveBeenCalledWith(year));
+  });
+
+  it('inserts manual aggregate through modal', async () => {
+    const year = new Date().getFullYear();
+    render(<Aggregations />);
+
+    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('tab', { name: /yearly overall aggregations/i }));
+
+    fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
+
+    fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText(/donations/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/surplus/i), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/pig pound/i), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText(/outgoing donations/i), {
+      target: { value: '4' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() =>
+      expect(mockPostManualWarehouseOverall).toHaveBeenCalledWith({
+        year,
+        month: 5,
+        donations: 1,
+        surplus: 2,
+        pigPound: 3,
+        outgoingDonations: 4,
+      }),
+    );
+    await waitFor(() => expect(mockGetWarehouseOverall).toHaveBeenCalledTimes(2));
   });
 });
 

@@ -71,6 +71,29 @@ export async function refreshWarehouseOverall(year: number, month: number) {
   }
 }
 
+export const manualWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
+  const year = Number(req.body.year);
+  const month = Number(req.body.month);
+  if (!year || !month) return res.status(400).json({ message: 'Year and month required' });
+  const donations = Number(req.body.donations) || 0;
+  const surplus = Number(req.body.surplus) || 0;
+  const pigPound = Number(req.body.pigPound) || 0;
+  const outgoingDonations = Number(req.body.outgoingDonations) || 0;
+
+  await pool.query(
+    `INSERT INTO warehouse_overall (year, month, donations, surplus, pig_pound, outgoing_donations)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (year, month)
+       DO UPDATE SET donations = EXCLUDED.donations,
+                     surplus = EXCLUDED.surplus,
+                     pig_pound = EXCLUDED.pig_pound,
+                     outgoing_donations = EXCLUDED.outgoing_donations`,
+    [year, month, donations, surplus, pigPound, outgoingDonations],
+  );
+
+  res.json({ message: 'Saved' });
+});
+
 export const listWarehouseOverall = asyncHandler(async (req: Request, res: Response) => {
   const year =
     parseInt((req.query.year as string) ?? '', 10) ||

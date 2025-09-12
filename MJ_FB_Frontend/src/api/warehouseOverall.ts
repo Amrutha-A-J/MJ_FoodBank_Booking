@@ -23,6 +23,24 @@ export async function rebuildWarehouseOverall(year: number): Promise<void> {
   await handleResponse(res);
 }
 
+export interface ManualWarehouseOverall {
+  year: number;
+  month: number;
+  donations: number;
+  surplus: number;
+  pigPound: number;
+  outgoingDonations: number;
+}
+
+export async function postManualWarehouseOverall(data: ManualWarehouseOverall): Promise<void> {
+  const res = await apiFetch(`${API_BASE}/warehouse-overall/manual`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  });
+  await handleResponse(res);
+}
+
 export async function exportWarehouseOverall(year: number): Promise<Blob> {
   const res = await apiFetch(`${API_BASE}/warehouse-overall/export?year=${year}`);
   if (!res.ok) await handleResponse(res);

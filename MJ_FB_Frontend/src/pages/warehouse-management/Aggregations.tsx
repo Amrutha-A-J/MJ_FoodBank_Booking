@@ -8,12 +8,18 @@ import {
   Stack,
   CircularProgress,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import Page from '../../components/Page';
 import {
   getWarehouseOverall,
   getWarehouseOverallYears,
   exportWarehouseOverall,
+  postManualWarehouseOverall,
   type WarehouseOverall,
 } from '../../api/warehouseOverall';
 import { getDonorAggregations, type DonorAggregation } from '../../api/donations';
@@ -22,6 +28,7 @@ import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
+import { useTranslation } from 'react-i18next';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -38,6 +45,14 @@ export default function Aggregations() {
   const [exportLoading, setExportLoading] = useState(false);
   const [donorExportLoading, setDonorExportLoading] = useState(false);
   const donorTableRef = useRef<HTMLTableElement>(null);
+  const [insertOpen, setInsertOpen] = useState(false);
+  const [insertMonth, setInsertMonth] = useState('');
+  const [insertDonations, setInsertDonations] = useState('');
+  const [insertSurplus, setInsertSurplus] = useState('');
+  const [insertPigPound, setInsertPigPound] = useState('');
+  const [insertOutgoing, setInsertOutgoing] = useState('');
+  const [insertLoading, setInsertLoading] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function loadYears() {
@@ -61,13 +76,21 @@ export default function Aggregations() {
     loadYears();
   }, []);
 
-  useEffect(() => {
+  async function loadOverall() {
     setOverallLoading(true);
     setOverallRows([]);
-    getWarehouseOverall(overallYear)
-      .then(setOverallRows)
-      .catch(() => setOverallRows([]))
-      .finally(() => setOverallLoading(false));
+    try {
+      const rows = await getWarehouseOverall(overallYear);
+      setOverallRows(rows);
+    } catch {
+      setOverallRows([]);
+    } finally {
+      setOverallLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadOverall();
   }, [overallYear]);
 
   useEffect(() => {
@@ -259,12 +282,25 @@ export default function Aggregations() {
           </Select>
         </FormControl>
         <Button
-          
+
           variant="contained"
           onClick={handleExportOverall}
           disabled={exportLoading}
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export'}
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setInsertMonth('');
+            setInsertDonations('');
+            setInsertSurplus('');
+            setInsertPigPound('');
+            setInsertOutgoing('');
+            setInsertOpen(true);
+          }}
+        >
+          {t('insert_aggregate')}
         </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
@@ -317,6 +353,81 @@ export default function Aggregations() {
     return (
       <Page title="Warehouse Aggregations">
         <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+        <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
+          <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Month"
+                type="number"
+                value={insertMonth}
+                onChange={e => setInsertMonth(e.target.value)}
+                size="medium"
+              />
+              <TextField
+                label="Donations"
+                type="number"
+                value={insertDonations}
+                onChange={e => setInsertDonations(e.target.value)}
+                size="medium"
+              />
+              <TextField
+                label="Surplus"
+                type="number"
+                value={insertSurplus}
+                onChange={e => setInsertSurplus(e.target.value)}
+                size="medium"
+              />
+              <TextField
+                label="Pig Pound"
+                type="number"
+                value={insertPigPound}
+                onChange={e => setInsertPigPound(e.target.value)}
+                size="medium"
+              />
+              <TextField
+                label="Outgoing Donations"
+                type="number"
+                value={insertOutgoing}
+                onChange={e => setInsertOutgoing(e.target.value)}
+                size="medium"
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setInsertOpen(false)} sx={{ textTransform: 'none' }}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                if (insertMonth === '') return;
+                setInsertLoading(true);
+                try {
+                  await postManualWarehouseOverall({
+                    year: overallYear,
+                    month: Number(insertMonth),
+                    donations: Number(insertDonations) || 0,
+                    surplus: Number(insertSurplus) || 0,
+                    pigPound: Number(insertPigPound) || 0,
+                    outgoingDonations: Number(insertOutgoing) || 0,
+                  });
+                  setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
+                  setInsertOpen(false);
+                  loadOverall();
+                } catch {
+                  setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
+                } finally {
+                  setInsertLoading(false);
+                }
+              }}
+              disabled={insertLoading || insertMonth === ''}
+              sx={{ textTransform: 'none' }}
+            >
+              {insertLoading ? <CircularProgress size={20} /> : 'Save'}
+            </Button>
+          </DialogActions>
+        </Dialog>
         <FeedbackSnackbar
           open={snackbar.open}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
