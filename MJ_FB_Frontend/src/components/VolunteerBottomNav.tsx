@@ -39,23 +39,23 @@ export default function VolunteerBottomNav() {
           icon={<Dashboard aria-label="dashboard" />}
         />
         <BottomNavigationAction
-          label="Schedule"
+          label="Volunteer Shift"
           value="schedule"
-          icon={<CalendarToday aria-label="schedule" />}
+          icon={<CalendarToday aria-label="volunteer shift" />}
         />
         {userRole === 'shopper' && [
           <BottomNavigationAction
             key="bookings"
-            label="Bookings"
+            label="Book Shopping"
             value="bookings"
-            icon={<CalendarToday aria-label="bookings" />}
-          />,
+            icon={<CalendarToday aria-label="book shopping" />}
+          />, 
           <BottomNavigationAction
             key="profile"
             label="Profile"
             value="profile"
             icon={<AccountCircle aria-label="profile" />}
-          />,
+          />, 
         ]}
       </BottomNavigation>
     </Paper>
