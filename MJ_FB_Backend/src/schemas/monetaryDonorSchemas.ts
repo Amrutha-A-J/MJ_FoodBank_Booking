@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const monetaryDonorSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  email: z.string().email(),
+  email: z.string().email().nullable(),
 });
 
 export const addMonetaryDonorSchema = monetaryDonorSchema;

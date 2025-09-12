@@ -131,6 +131,11 @@ describe('Mailing list generation', () => {
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('d.email IS NOT NULL'),
+      expect.any(Array),
+    );
     expect(res.body['1-100']).toHaveLength(1);
     expect(res.body['101-500']).toHaveLength(1);
     expect(res.body['501-1000']).toHaveLength(1);
@@ -188,6 +193,7 @@ describe('Mailing list generation', () => {
       expect.stringContaining('LEFT JOIN monetary_donor_mail_log'),
       ['2024-06-01', '2024-07-01', 2024, 6],
     );
+    expect(pool.query.mock.calls[1][0]).toContain('d.email IS NOT NULL');
     expect(pool.query).toHaveBeenNthCalledWith(
       3,
       expect.stringContaining('FROM pantry_monthly_overall'),
@@ -305,6 +311,8 @@ describe('Mailing list generation', () => {
       .send({ year: 2024, month: 6 })
       .set('Authorization', 'Bearer token');
 
+    expect(pool.query.mock.calls[1][0]).toContain('d.email IS NOT NULL');
+
     const second = await request(app)
       .post('/monetary-donors/mail-lists/send')
       .send({ year: 2024, month: 6 })
@@ -339,20 +347,32 @@ describe('Donor test emails', () => {
       .send({ email: 'b@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(201);
-    expect(pool.query).toHaveBeenNthCalledWith(3, 'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email', ['b@test.com']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      4,
+      'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email',
+      ['b@test.com'],
+    );
 
     res = await request(app)
       .put('/monetary-donors/test-emails/2')
       .send({ email: 'c@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenNthCalledWith(4, 'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email', ['c@test.com', '2']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      6,
+      'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email',
+      ['c@test.com', '2'],
+    );
 
     res = await request(app)
       .delete('/monetary-donors/test-emails/2')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(204);
-    expect(pool.query).toHaveBeenNthCalledWith(5, 'DELETE FROM donor_test_emails WHERE id = $1', ['2']);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      8,
+      'DELETE FROM donor_test_emails WHERE id = $1',
+      ['2'],
+    );
   });
 
   it('sends test emails for each tier', async () => {
@@ -388,5 +408,9 @@ describe('Donor test emails', () => {
       },
     });
     expect(res.body).toEqual({ sent: 5 });
+    expect(pool.query).toHaveBeenNthCalledWith(
+      3,
+      'SELECT email FROM donor_test_emails WHERE email IS NOT NULL ORDER BY id',
+    );
   });
 });

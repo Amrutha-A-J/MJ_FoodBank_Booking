@@ -4,7 +4,7 @@ export interface MonetaryDonor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
 }
 
 export interface MonetaryDonation {
@@ -80,7 +80,7 @@ export interface MonetaryDonorDetail {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   amount: number;
   lastDonationISO: string | null;
 }

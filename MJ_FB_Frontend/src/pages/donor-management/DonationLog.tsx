@@ -37,7 +37,7 @@ function formatMonth(date = new Date()) {
 type DonationRow = MonetaryDonation & {
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
 };
 
 export default function DonationLog() {
@@ -81,7 +81,7 @@ export default function DonationLog() {
         d =>
           d.firstName.toLowerCase().includes(s) ||
           d.lastName.toLowerCase().includes(s) ||
-          d.email.toLowerCase().includes(s) ||
+          (d.email ?? '').toLowerCase().includes(s) ||
           d.amount.toString().includes(s),
       );
     },
@@ -175,8 +175,8 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    if (!donorForm.firstName || !donorForm.lastName || !donorForm.email) return;
-    createMonetaryDonor(donorForm)
+    if (!donorForm.firstName || !donorForm.lastName) return;
+    createMonetaryDonor({ ...donorForm, email: donorForm.email || null })
       .then(newDonor => {
         setDonors(
           [...donors, newDonor].sort((a, b) =>
@@ -381,10 +381,10 @@ export default function DonationLog() {
               />
             </Stack>
           </DialogContent>
-          <DialogActions>
+      <DialogActions>
             <Button
               onClick={handleAddDonor}
-              disabled={!donorForm.firstName || !donorForm.lastName || !donorForm.email}
+              disabled={!donorForm.firstName || !donorForm.lastName}
             >
               Save
             </Button>
