@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
 import { getBookings } from '../api/bookings';
 import { getEvents } from '../api/events';
-import { getVisitStats } from '../api/clientVisits';
+import { getPantryMonthly } from '../api/pantryAggregations';
 import { getVolunteerBookings, getVolunteerRoles } from '../api/volunteers';
 import { formatReginaDate } from '../utils/time';
 
@@ -20,8 +20,8 @@ jest.mock('../api/events', () => ({
   getEvents: jest.fn(),
 }));
 
-jest.mock('../api/clientVisits', () => ({
-  getVisitStats: jest.fn(),
+jest.mock('../api/pantryAggregations', () => ({
+  getPantryMonthly: jest.fn(),
 }));
 
 jest.mock('../api/volunteers', () => ({
@@ -38,10 +38,12 @@ describe('StaffDashboard', () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    (getVisitStats as jest.Mock).mockResolvedValue([
-      { month: '2024-01', clients: 2, adults: 1, children: 1 },
-      { month: '2024-02', clients: 3, adults: 2, children: 1 },
-    ]);
+    (getPantryMonthly as jest.Mock)
+      .mockResolvedValueOnce([
+        { month: 1, orders: 2, adults: 1, children: 1 },
+        { month: 2, orders: 3, adults: 2, children: 1 },
+      ])
+      .mockResolvedValueOnce([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
     render(
@@ -51,7 +53,7 @@ describe('StaffDashboard', () => {
     );
 
     await screen.findByText('Total Clients');
-    expect(getVisitStats).toHaveBeenCalled();
+    expect(getPantryMonthly).toHaveBeenCalled();
     expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
   });
 
@@ -59,7 +61,7 @@ describe('StaffDashboard', () => {
     (getBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    (getVisitStats as jest.Mock).mockResolvedValue([]);
+    (getPantryMonthly as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [
         {
@@ -118,7 +120,7 @@ describe('StaffDashboard', () => {
     ]);
     (getVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
-    (getVisitStats as jest.Mock).mockResolvedValue([]);
+    (getPantryMonthly as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({
       today: [],
       upcoming: [],

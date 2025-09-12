@@ -18,7 +18,8 @@ import Announcement from '@mui/icons-material/Announcement';
 import { getBookings, getSlotsRange } from '../../api/bookings';
 import { getVolunteerBookings } from '../../api/volunteers';
 import type { Role, Booking, VolunteerBooking, SlotsByDate } from '../../types';
-import { getVisitStats, type VisitStat } from '../../api/clientVisits';
+import type { VisitStat } from '../../api/clientVisits';
+import { getPantryMonthly } from '../../api/pantryAggregations';
 import {
   formatTime,
   formatReginaDate,
@@ -88,8 +89,30 @@ function StaffDashboard({ masterRoleFilter }: { masterRoleFilter?: string[] }) {
         setEvents({ today: [], upcoming: [], past: [] }),
       );
 
-    getVisitStats({ group: 'month', months: 12 })
-      .then(data => setVisitStats(data ?? []))
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    Promise.all([
+      getPantryMonthly(currentYear, currentMonth),
+      getPantryMonthly(currentYear - 1, currentMonth),
+    ])
+      .then(([curr, prev]) => {
+        const combined = [
+          ...prev.map(r => ({ ...r, year: currentYear - 1 })),
+          ...curr.map(r => ({ ...r, year: currentYear })),
+        ];
+        const minKey = currentYear * 12 + currentMonth - 11;
+        const stats: VisitStat[] = combined
+          .filter(r => r.year * 12 + r.month >= minKey)
+          .sort((a, b) => a.year * 12 + a.month - (b.year * 12 + b.month))
+          .map(r => ({
+            month: `${r.year}-${String(r.month).padStart(2, '0')}`,
+            clients: r.orders,
+            adults: r.adults,
+            children: r.children,
+          }));
+        setVisitStats(stats);
+      })
       .catch(() => setVisitStats([]));
   }, []);
 
