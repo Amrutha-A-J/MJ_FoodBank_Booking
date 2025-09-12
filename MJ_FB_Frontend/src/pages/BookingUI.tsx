@@ -36,7 +36,7 @@ import { useTheme } from '@mui/material/styles';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
 import dayjs, { Dayjs } from 'dayjs';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import type { Slot, Holiday, BookingActionResponse } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
 import { getUserProfile } from '../api/users';
@@ -171,9 +171,6 @@ export default function BookingUI<T = Slot>({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const slotsRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
-
-
   useEffect(() => {
     if (!isDisabled(date)) return;
     let next = date;
