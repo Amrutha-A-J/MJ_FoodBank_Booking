@@ -8,6 +8,11 @@ import {
   Stack,
   Button,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import Page from '../../components/Page';
@@ -23,6 +28,7 @@ import {
   getPantryWeeks,
   exportPantryAggregations,
   rebuildPantryAggregations,
+  postManualPantryAggregate,
 } from '../../api/pantryAggregations';
 import dayjs, { formatDate } from '../../utils/date';
 import { getWeekRanges, getWeekForDate } from '../../utils/pantryWeek';
@@ -60,6 +66,14 @@ export default function PantryAggregations() {
   const [month, setMonth] = useState<number | ''>('');
   const [monthlyRows, setMonthlyRows] = useState<any[]>([]);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
+  const [insertOpen, setInsertOpen] = useState(false);
+  const [insertLoading, setInsertLoading] = useState(false);
+  const [insertYear, setInsertYear] = useState<number | ''>('');
+  const [insertMonth, setInsertMonth] = useState<number | ''>('');
+  const [insertOrders, setInsertOrders] = useState('');
+  const [insertAdults, setInsertAdults] = useState('');
+  const [insertChildren, setInsertChildren] = useState('');
+  const [insertWeight, setInsertWeight] = useState('');
 
   const [yearlyYear, setYearlyYear] = useState<number | ''>('');
   const [yearlyRows, setYearlyRows] = useState<any[]>([]);
@@ -209,7 +223,7 @@ export default function PantryAggregations() {
       .finally(() => setWeeklyLoading(false));
   }, [weeklyYear, weeklyMonth, tab]);
 
-  useEffect(() => {
+  const loadMonthly = () => {
     if (tab !== 1 || monthlyYear === '' || month === '') return;
     setMonthlyLoading(true);
     getPantryMonthly(monthlyYear, month)
@@ -223,7 +237,9 @@ export default function PantryAggregations() {
       )
       .catch(() => setMonthlyRows([]))
       .finally(() => setMonthlyLoading(false));
-  }, [monthlyYear, month, tab]);
+  };
+
+  useEffect(loadMonthly, [monthlyYear, month, tab]);
 
   useEffect(() => {
     if (tab !== 2 || yearlyYear === '') return;
@@ -437,6 +453,26 @@ export default function PantryAggregations() {
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setInsertYear(monthlyYear);
+            setInsertMonth(month);
+            setInsertOrders('');
+            setInsertAdults('');
+            setInsertChildren('');
+            setInsertWeight('');
+            setInsertOpen(true);
+          }}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+            minWidth: { sm: 160 },
+            flexShrink: 0,
+            textTransform: 'none',
+          }}
+        >
+          Insert Aggregate
+        </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
         {monthlyLoading ? (
@@ -519,6 +555,88 @@ export default function PantryAggregations() {
   return (
     <Page title="Pantry Aggregations">
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
+      <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
+        <DialogTitle>Insert Aggregate</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Year"
+              type="number"
+              value={insertYear}
+              onChange={e => setInsertYear(Number(e.target.value))}
+              size="medium"
+            />
+            <TextField
+              label="Month"
+              type="number"
+              value={insertMonth}
+              onChange={e => setInsertMonth(Number(e.target.value))}
+              size="medium"
+            />
+            <TextField
+              label="Orders"
+              type="number"
+              value={insertOrders}
+              onChange={e => setInsertOrders(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Adults"
+              type="number"
+              value={insertAdults}
+              onChange={e => setInsertAdults(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Children"
+              type="number"
+              value={insertChildren}
+              onChange={e => setInsertChildren(e.target.value)}
+              size="medium"
+            />
+            <TextField
+              label="Weight"
+              type="number"
+              value={insertWeight}
+              onChange={e => setInsertWeight(e.target.value)}
+              size="medium"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInsertOpen(false)} sx={{ textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (insertYear === '' || insertMonth === '') return;
+              setInsertLoading(true);
+              try {
+                await postManualPantryAggregate({
+                  year: Number(insertYear),
+                  month: Number(insertMonth),
+                  orders: Number(insertOrders) || 0,
+                  adults: Number(insertAdults) || 0,
+                  children: Number(insertChildren) || 0,
+                  weight: Number(insertWeight) || 0,
+                });
+                setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
+                setInsertOpen(false);
+                loadMonthly();
+              } catch {
+                setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
+              } finally {
+                setInsertLoading(false);
+              }
+            }}
+            disabled={insertLoading || insertYear === '' || insertMonth === ''}
+            sx={{ textTransform: 'none' }}
+          >
+            {insertLoading ? <CircularProgress size={20} /> : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <FeedbackSnackbar
         open={snackbar.open}
         onClose={() => setSnackbar({ ...snackbar, open: false })}

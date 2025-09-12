@@ -178,6 +178,40 @@ export async function refreshPantryYearly(year: number) {
   );
 }
 
+export async function manualPantryAggregate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const year = Number(req.body.year);
+    const month = Number(req.body.month);
+    if (!year || !month) return res.status(400).json({ message: "Year and month required" });
+    const orders = Number(req.body.orders) || 0;
+    const adults = Number(req.body.adults) || 0;
+    const children = Number(req.body.children) || 0;
+    const people = Number(req.body.people) || 0;
+    const weight = Number(req.body.weight) || 0;
+
+    await pool.query(
+      `INSERT INTO pantry_monthly_overall (year, month, orders, adults, children, people, weight)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (year, month)
+         DO UPDATE SET orders = EXCLUDED.orders,
+                       adults = EXCLUDED.adults,
+                       children = EXCLUDED.children,
+                       people = EXCLUDED.people,
+                       weight = EXCLUDED.weight`,
+      [year, month, orders, adults, children, people, weight],
+    );
+
+    res.json({ message: "Saved" });
+  } catch (error) {
+    logger.error("Error inserting pantry manual aggregate:", error);
+    next(error);
+  }
+}
+
 export async function listPantryWeekly(req: Request, res: Response, next: NextFunction) {
   try {
     const year = parseInt((req.query.year as string) ?? '', 10);

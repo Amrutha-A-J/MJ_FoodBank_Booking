@@ -276,5 +276,7 @@
   "use_biometrics": "Use biometrics",
   "reschedule_no_show_error": "This booking has already expired and was marked as a no-show. Please book a new appointment.",
   "not_applicable": "N/A",
-  "privacy_policy": "Privacy Policy"
+  "privacy_policy": "Privacy Policy",
+  "insert_aggregate": "Insert Aggregate",
+  "insert_aggregate_help": "Manually add or update monthly totals"
 }
