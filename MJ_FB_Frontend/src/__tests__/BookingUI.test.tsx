@@ -20,7 +20,7 @@ jest.mock('../api/users', () => ({
 }));
 
 jest.mock('../hooks/useAuth', () => ({
-  useAuth: () => ({ role: 'client', name: 'Test User' }),
+  useAuth: () => ({ role: 'client', name: 'Test User', userRole: 'shopper' }),
 }));
 
 const { getSlots, getHolidays, createBooking } = jest.requireMock('../api/bookings');
@@ -95,7 +95,7 @@ describe('BookingUI visible slots', () => {
 
     const queryClient = new QueryClient();
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/book-appointment']}>
         <QueryClientProvider client={queryClient}>
           <BookingUI shopperName="Test" embedded />
         </QueryClientProvider>
@@ -152,8 +152,18 @@ describe('SlotRow', () => {
 });
 
 describe('Booking confirmation', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T10:30:00'));
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    jest.setSystemTime(new Date());
+    jest.useRealTimers();
   });
 
   function renderUI(slots = [
@@ -162,7 +172,7 @@ describe('Booking confirmation', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     const queryClient = new QueryClient();
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/book-appointment']}>
         <QueryClientProvider client={queryClient}>
           <BookingUI
             shopperName="Test"
@@ -172,6 +182,10 @@ describe('Booking confirmation', () => {
         </QueryClientProvider>
       </MemoryRouter>,
     );
+    act(() => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
   }
 
   it('opens confirmation dialog before booking', async () => {
