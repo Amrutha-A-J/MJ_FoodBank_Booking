@@ -44,7 +44,7 @@ import useHolidays from '../hooks/useHolidays';
 import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import FeedbackModal from '../components/FeedbackModal';
 import DialogCloseButton from '../components/DialogCloseButton';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 import Page from '../components/Page';
 import ClientBottomNav from '../components/ClientBottomNav';
 import VolunteerBottomNav from '../components/VolunteerBottomNav';
@@ -203,9 +203,13 @@ export default function BookingUI<T = Slot>({
   showUsageNotes = true,
 }: BookingUIProps<T>) {
   const { t } = useTranslation();
-  const { role, name: authName } = useAuth();
+  const { role, userRole, name: authName } = useAuth();
+  const { pathname } = useLocation();
   const pageTitle =
-    role === 'volunteer' ? t('book_volunteer_shift') : t('book_appointment');
+    pathname.startsWith('/book-appointment') &&
+    (role === 'shopper' || userRole === 'shopper')
+      ? t('book_shopping_appointment')
+      : t('book_volunteer_shift');
   const displayName = shopperName ?? authName ?? 'John Shopper';
 
   const [date, setDate] = useState<Dayjs>(() => {
