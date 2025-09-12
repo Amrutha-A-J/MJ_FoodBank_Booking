@@ -271,5 +271,6 @@
     "message": "This app uses basic analytics to improve the service. Read our",
     "link_label": "privacy policy",
     "agree": "Agree"
-  }
+  },
+  "privacy_policy": "Privacy Policy"
 }
