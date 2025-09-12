@@ -310,25 +310,24 @@ export default function PantryVisits() {
 
   const columns: any[] = [
     {
-      field: 'date',
-      header: 'Date',
-      render: (v: ClientVisit) => formatDisplay(v.date),
+      field: 'index',
+      header: '#',
     },
     {
       field: 'clientId',
       header: 'Client ID',
-      render: (v: ClientVisit) =>
+      render: (v: ClientVisit & { index: number }) =>
         `${v.clientId ?? t('not_applicable')}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
     },
     {
       field: 'clientName',
       header: 'Client Name',
-      render: (v: ClientVisit) => v.clientName ?? '',
+      render: (v: ClientVisit & { index: number }) => v.clientName ?? '',
     },
     {
       field: 'profile',
       header: 'Profile',
-      render: (v: ClientVisit) =>
+      render: (v: ClientVisit & { index: number }) =>
         v.clientId ? (
           <a
             href={`https://portal.link2feed.ca/org/1605/intake/${v.clientId}`}
@@ -346,19 +345,27 @@ export default function PantryVisits() {
     {
       field: 'adults',
       header: t('adults_label'),
-      render: (v: ClientVisit) => v.adults,
+      render: (v: ClientVisit & { index: number }) => v.adults,
     },
     {
       field: 'children',
       header: t('children_label'),
-      render: (v: ClientVisit) => v.children,
+      render: (v: ClientVisit & { index: number }) => v.children,
     },
-    { field: 'petItem', header: 'Pet Item', render: (v: ClientVisit) => v.petItem },
-    { field: 'note', header: 'Note', render: (v: ClientVisit) => v.note || '' },
+    {
+      field: 'petItem',
+      header: 'Pet Item',
+      render: (v: ClientVisit & { index: number }) => v.petItem,
+    },
+    {
+      field: 'note',
+      header: 'Note',
+      render: (v: ClientVisit & { index: number }) => v.note || '',
+    },
     {
       field: 'verified',
       header: 'Verified',
-      render: (v: ClientVisit) => (
+      render: (v: ClientVisit & { index: number }) => (
         <Checkbox
           checked={v.verified}
           onChange={() => {
@@ -383,7 +390,7 @@ export default function PantryVisits() {
     {
       field: 'actions',
       header: 'Actions',
-      render: (v: ClientVisit) =>
+      render: (v: ClientVisit & { index: number }) =>
         !v.verified && (
           <Stack direction="row" spacing={1}>
             <IconButton
@@ -426,14 +433,19 @@ export default function PantryVisits() {
     },
   ];
 
+  const indexedVisits = useMemo(
+    () => filteredVisits.map((v, i) => ({ ...v, index: i + 1 })),
+    [filteredVisits],
+  );
+
   const table =
-    filteredVisits.length === 0 ? (
+    indexedVisits.length === 0 ? (
       <Typography align="center">No records</Typography>
     ) : (
       <TableContainer sx={{ overflowX: 'auto' }}>
         <ResponsiveTable
           columns={columns}
-          rows={filteredVisits}
+          rows={indexedVisits}
           getRowKey={(v) => v.id}
         />
       </TableContainer>
@@ -452,6 +464,14 @@ export default function PantryVisits() {
     ),
     content: (
       <>
+        <Typography variant="h6" component="h4" sx={{ mb: 1 }}>
+          {`Summary of ${formatLocaleDate(d, {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })}`}
+        </Typography>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <Typography variant="body2">
             {`${t('pantry_visits.summary.clients')}: ${summary.clients}`}
