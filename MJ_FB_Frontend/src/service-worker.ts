@@ -31,7 +31,7 @@ registerRoute(
 
 // Cache schedule-related API responses
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/slots'),
+  ({ url }) => url.pathname.startsWith('/api/v1/slots'),
   new StaleWhileRevalidate({
     cacheName: 'schedule-api',
     plugins: [
@@ -44,7 +44,7 @@ registerRoute(
 
 // Cache booking history
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/bookings/history'),
+  ({ url }) => url.pathname.startsWith('/api/v1/bookings/history'),
   new StaleWhileRevalidate({
     cacheName: 'booking-history-api',
     plugins: [
@@ -57,7 +57,7 @@ registerRoute(
 
 // Cache profile data
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/users/me'),
+  ({ url }) => url.pathname.startsWith('/api/v1/users/me'),
   new StaleWhileRevalidate({
     cacheName: 'profile-api',
     plugins: [
@@ -70,7 +70,7 @@ registerRoute(
 
 // Cache warehouse settings
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/warehouse-settings'),
+  ({ url }) => url.pathname.startsWith('/api/v1/warehouse-settings'),
   new StaleWhileRevalidate({
     cacheName: 'warehouse-settings-api',
     plugins: [
@@ -83,7 +83,7 @@ registerRoute(
 
 // Cache volunteer booking data
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/volunteer-bookings'),
+  ({ url }) => url.pathname.startsWith('/api/v1/volunteer-bookings'),
   new StaleWhileRevalidate({
     cacheName: 'volunteer-bookings-api',
     plugins: [
@@ -96,7 +96,7 @@ registerRoute(
 
 // Cache notifications
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/users/me/notifications'),
+  ({ url }) => url.pathname.startsWith('/api/v1/users/me/notifications'),
   new StaleWhileRevalidate({
     cacheName: 'notifications-api',
     plugins: [
@@ -109,7 +109,7 @@ registerRoute(
 
 // Cache app config
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/app-config'),
+  ({ url }) => url.pathname.startsWith('/api/v1/app-config'),
   new StaleWhileRevalidate({
     cacheName: 'app-config-api',
     plugins: [
@@ -138,7 +138,7 @@ const bookingQueue = new BackgroundSyncPlugin('booking-queue', {
 })
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/bookings'),
+  ({ url }) => url.pathname.startsWith('/api/v1/bookings'),
   new NetworkOnly({
     fetchOptions: { credentials: 'include' },
     plugins: [bookingQueue],
@@ -147,7 +147,7 @@ registerRoute(
 )
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/bookings'),
+  ({ url }) => url.pathname.startsWith('/api/v1/bookings'),
   new NetworkOnly({
     fetchOptions: { credentials: 'include' },
     plugins: [bookingQueue],
@@ -160,7 +160,7 @@ const volunteerBookingQueue = new BackgroundSyncPlugin('volunteer-booking-queue'
 })
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/volunteer-bookings'),
+  ({ url }) => url.pathname.startsWith('/api/v1/volunteer-bookings'),
   new NetworkOnly({
     fetchOptions: { credentials: 'include' },
     plugins: [volunteerBookingQueue],

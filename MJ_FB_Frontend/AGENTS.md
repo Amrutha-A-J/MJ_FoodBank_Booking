@@ -8,6 +8,7 @@
 
 ## Environment
 - Requires Node.js 22+; run `nvm use` to match the version in `.nvmrc`.
+- `VITE_API_BASE` defaults to the versioned API at `/api/v1`.
 
 ## Project Layout
 - React app built with Vite.

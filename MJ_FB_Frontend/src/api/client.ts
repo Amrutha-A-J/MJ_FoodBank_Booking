@@ -7,13 +7,16 @@ let API_BASE =
 
 if (!API_BASE) {
   const message =
-    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000/api)';
+    'VITE_API_BASE is not defined. Set it in the frontend .env file (e.g. VITE_API_BASE=http://localhost:4000/api/v1)';
   console.error(message);
   throw new Error(message);
 }
 
 API_BASE = API_BASE.replace(/\/$/, '');
-if (!API_BASE.endsWith('/api')) API_BASE += '/api';
+if (!API_BASE.endsWith('/api/v1')) {
+  if (API_BASE.endsWith('/api')) API_BASE += '/v1';
+  else API_BASE += '/api/v1';
+}
 
 let csrfToken: string | null = null;
 

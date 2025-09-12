@@ -18,7 +18,7 @@ jest.mock('../src/middleware/validate', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/api/users', usersRouter);
+app.use('/api/v1/users', usersRouter);
 
 afterEach(() => {
   (pool.query as jest.Mock).mockReset();
@@ -48,7 +48,7 @@ describe('client profile visit count', () => {
         rows: [{ bookings_this_month: 0 }],
       });
 
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
 
     expect(res.status).toBe(200);
     expect(res.body.bookingsThisMonth).toBe(0);

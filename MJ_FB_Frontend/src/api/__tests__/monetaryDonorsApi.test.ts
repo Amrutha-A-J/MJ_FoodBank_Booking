@@ -11,7 +11,7 @@ import {
 } from '../monetaryDonors';
 
 jest.mock('../client', () => ({
-  API_BASE: '/api',
+  API_BASE: '/api/v1',
   apiFetch: jest.fn(),
   handleResponse: jest.fn().mockResolvedValue(undefined),
 }));
@@ -29,7 +29,7 @@ describe('monetary donor api', () => {
       email: 'jane@example.com',
     });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors',
+      '/api/v1/monetary-donors',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,7 +49,7 @@ describe('monetary donor api', () => {
       email: 'john@example.com',
     });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors/1',
+      '/api/v1/monetary-donors/1',
       expect.objectContaining({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -64,13 +64,13 @@ describe('monetary donor api', () => {
 
   it('fetches a donor', async () => {
     await getMonetaryDonor(2);
-    expect(apiFetch).toHaveBeenCalledWith('/api/monetary-donors/2');
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/monetary-donors/2');
   });
 
   it('fetches donors with search', async () => {
     await getMonetaryDonors('Jane');
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors?search=Jane',
+      '/api/v1/monetary-donors?search=Jane',
     );
   });
 
@@ -81,7 +81,7 @@ describe('monetary donor api', () => {
       date: '2024-01-01',
     });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors/donations/5',
+      '/api/v1/monetary-donors/donations/5',
       expect.objectContaining({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -97,7 +97,7 @@ describe('monetary donor api', () => {
   it('deletes a donation', async () => {
     await deleteMonetaryDonation(7);
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors/donations/7',
+      '/api/v1/monetary-donors/donations/7',
       expect.objectContaining({ method: 'DELETE' }),
     );
   });
@@ -111,13 +111,13 @@ describe('monetary donor mail lists api', () => {
 
   it('fetches mail lists for month and year', async () => {
     await getMailLists(2024, 5);
-    expect(apiFetch).toHaveBeenCalledWith('/api/monetary-donors/mail-lists?year=2024&month=5');
+    expect(apiFetch).toHaveBeenCalledWith('/api/v1/monetary-donors/mail-lists?year=2024&month=5');
   });
 
   it('sends mail list emails', async () => {
     await sendMailListEmails({ year: 2024, month: 5 });
     expect(apiFetch).toHaveBeenCalledWith(
-      '/api/monetary-donors/mail-lists/send',
+      '/api/v1/monetary-donors/mail-lists/send',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -17,7 +17,7 @@ jest.mock('../src/middleware/validate', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/api/users', usersRouter);
+app.use('/api/v1/users', usersRouter);
 
 afterEach(() => {
   (pool.query as jest.Mock).mockReset();
@@ -26,7 +26,7 @@ afterEach(() => {
 describe('User preference routes', () => {
   it('returns defaults when no preferences set', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
-    const res = await request(app).get('/api/users/me/preferences');
+    const res = await request(app).get('/api/v1/users/me/preferences');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ emailReminders: true });
     expect(pool.query).toHaveBeenCalledWith(
@@ -41,7 +41,7 @@ describe('User preference routes', () => {
       rows: [{ email_reminders: false }],
     });
     const res = await request(app)
-      .put('/api/users/me/preferences')
+      .put('/api/v1/users/me/preferences')
       .send({ emailReminders: false });
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(

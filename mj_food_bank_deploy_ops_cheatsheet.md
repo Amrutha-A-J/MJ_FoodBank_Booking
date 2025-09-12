@@ -48,7 +48,7 @@ sudo systemctl reload nginx
 
 ### 2C) Quick Verify
 ```bash
-curl -I https://app.mjfoodbank.org/api/health
+curl -I https://app.mjfoodbank.org/api/v1/health
 sudo journalctl -u nginx -n 50
 ```
 

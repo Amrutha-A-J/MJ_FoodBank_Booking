@@ -74,14 +74,14 @@ const icsPath = path.join(__dirname, '..', 'public', 'ics');
 app.use('/ics', express.static(icsPath));
 
 /* =========================================
- * API (everything under /api)
+ * API (everything under /api/v1)
  * ========================================= */
 const api = Router();
 
 // Health FIRST (JSON response so it won't be mistaken for SPA)
 api.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
 
-// Mount feature routers (all relative to /api)
+// Mount feature routers (all relative to /api/v1)
 api.use('/users', usersRoutes);
 api.use('/agencies', agenciesRoutes);
 api.use('/slots', slotsRoutes);
@@ -124,8 +124,15 @@ api.use('/leave/requests', leaveRequestsRoutes);
 api.use('/sunshine-bags', sunshineBagsRoutes);
 api.use('/pantry-aggregations', pantryAggregationsRoutes);
 
-// Mount /api
-app.use('/api', api);
+// Redirect legacy /api requests to /api/v1
+app.use('/api', (req, res, next) => {
+  if (req.originalUrl.startsWith('/api/v1')) return next();
+  const target = `/api/v1${req.url === '/' ? '' : req.url}`;
+  res.redirect(308, target);
+});
+
+// Mount /api/v1
+app.use('/api/v1', api);
 
 /* =========================================
  * SPA (served only for non-/api paths)

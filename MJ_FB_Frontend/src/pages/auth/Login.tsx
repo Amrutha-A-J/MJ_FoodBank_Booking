@@ -80,7 +80,7 @@ export default function Login({
     async function attemptPasskey() {
       if (!('credentials' in navigator)) return;
       try {
-        const resp = await fetch('/api/webauthn/challenge', {
+        const resp = await fetch('/api/v1/webauthn/challenge', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -93,7 +93,7 @@ export default function Login({
         })) as PublicKeyCredential | null;
         if (!cred) return;
         const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
-        const verifyRes = await fetch('/api/webauthn/verify', {
+        const verifyRes = await fetch('/api/v1/webauthn/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ credentialId: credId }),

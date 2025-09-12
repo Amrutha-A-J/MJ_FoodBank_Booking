@@ -12,6 +12,7 @@
 ## Environment
 
 - Requires Node.js 22+ for native `fetch`; development is pinned via `.nvmrc`, and `.npmrc` sets `engine-strict=true` to prevent using other Node versions. GitHub Actions reads `.nvmrc` to keep CI builds and tests on the same runtime.
+- API routes are versioned under `/api/v1`; requests to `/api` are redirected.
 - The `clients` table uses `client_id` as its primary key; do not reference an `id` column for clients.
 - The `volunteers` table no longer includes a `username` column, and `email` must be unique though it can be null.
 

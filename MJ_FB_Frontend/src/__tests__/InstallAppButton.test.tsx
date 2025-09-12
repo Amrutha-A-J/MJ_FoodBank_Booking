@@ -62,7 +62,7 @@ describe('InstallAppButton', () => {
     });
 
     fireEvent(window, new Event('appinstalled'));
-    expect(sendBeacon).toHaveBeenCalledWith('/api/pwa-install');
+    expect(sendBeacon).toHaveBeenCalledWith('/api/v1/pwa-install');
   });
 
   it('hides button when app already installed', () => {

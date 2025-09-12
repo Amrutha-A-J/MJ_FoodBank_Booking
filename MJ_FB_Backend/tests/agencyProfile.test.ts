@@ -18,7 +18,7 @@ jest.mock('../src/middleware/validate', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/api/users', usersRouter);
+app.use('/api/v1/users', usersRouter);
 
 afterEach(() => {
   (pool.query as jest.Mock).mockReset();
@@ -31,7 +31,7 @@ describe('Agency profile routes', () => {
       rows: [{ id: 1, name: 'Agency', email: 'agency@example.com', contact_info: '123-4567' }],
     });
 
-    const res = await request(app).get('/api/users/me');
+    const res = await request(app).get('/api/v1/users/me');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       id: 1,
@@ -50,7 +50,7 @@ describe('Agency profile routes', () => {
     });
 
     const res = await request(app)
-      .patch('/api/users/me')
+      .patch('/api/v1/users/me')
       .send({ email: 'new@example.com', phone: 'info' });
 
     expect(res.status).toBe(200);

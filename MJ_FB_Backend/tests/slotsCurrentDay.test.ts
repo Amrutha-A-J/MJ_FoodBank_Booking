@@ -45,7 +45,7 @@ describe('Past slot filtering', () => {
       return Promise.resolve({ rows: [] });
     });
 
-    const res = await request(app).get('/api/slots').query({ date: '2024-06-18' });
+    const res = await request(app).get('/api/v1/slots').query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual(['13:30:00']);
   });
@@ -76,7 +76,7 @@ describe('Past slot filtering', () => {
     });
 
     const res = await request(app)
-      .get('/api/slots/range')
+      .get('/api/v1/slots/range')
       .query({ start: '2024-06-18', days: 2 });
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-18');
@@ -97,7 +97,7 @@ describe('Past slot filtering', () => {
       });
 
     const res = await request(app)
-      .get('/api/slots')
+      .get('/api/v1/slots')
       .query({ date: '2024-06-18', includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body.map((s: any) => s.startTime)).toEqual([
@@ -132,7 +132,7 @@ describe('Past slot filtering', () => {
     });
 
     const res = await request(app)
-      .get('/api/slots/range')
+      .get('/api/v1/slots/range')
       .query({ start: '2024-06-18', days: 2, includePast: 'true' });
     expect(res.status).toBe(200);
     expect(res.body[0].date).toBe('2024-06-18');
