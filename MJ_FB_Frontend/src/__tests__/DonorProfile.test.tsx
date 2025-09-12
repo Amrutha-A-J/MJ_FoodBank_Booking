@@ -1,4 +1,3 @@
-import en from '../public/locales/en/translation.json';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

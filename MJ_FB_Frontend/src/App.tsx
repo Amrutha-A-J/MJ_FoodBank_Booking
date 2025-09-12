@@ -11,7 +11,6 @@ import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard, DonorManagementGuard } from './hooks/useAuth';
 import type { StaffAccess } from './types';
 import { getStaffRootPath } from './utils/staffRootPath';
-import LanguageSelector from './components/LanguageSelector';
 import InstallAppButton from './components/InstallAppButton';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
@@ -290,24 +289,9 @@ export default function App() {
     useEffect(() => {
       console.log('Navigated to', path);
     }, [path]);
-    const showLanguageSelector =
-      path.startsWith('/login') ||
-      path.startsWith('/forgot-password') ||
-      path.startsWith('/set-password') ||
-      path.startsWith('/cancel') ||
-      path.startsWith('/reschedule') ||
-      path.startsWith('/book-appointment') ||
-      path.startsWith('/booking-history') ||
-      path.startsWith('/profile') ||
-      (path === '/' && role === 'shopper');
 
     return (
       <>
-        {showLanguageSelector && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.5rem' }}>
-            <LanguageSelector />
-          </div>
-        )}
         <div className="app-container">
           <FeedbackSnackbar
             open={!!error}

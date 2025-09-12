@@ -1,4 +1,3 @@
-import en from '../../../public/locales/en/translation.json';
 import BookingHistoryTable, { type BookingHistoryItem } from '../BookingHistoryTable';
 import { renderWithProviders, screen, fireEvent } from '../../../testUtils/renderWithProviders';
 

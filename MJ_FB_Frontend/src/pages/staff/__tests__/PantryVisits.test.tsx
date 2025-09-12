@@ -1,4 +1,3 @@
-import en from '../../../../public/locales/en/translation.json';
 import {
   renderWithProviders,
   screen,

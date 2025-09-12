@@ -26,10 +26,8 @@ const browserLang =
   typeof navigator !== 'undefined' ? navigator.language.split('-')[0] : 'en';
 
 if (process.env.NODE_ENV === 'test') {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const en = require('../public/locales/en/translation.json');
   i18n.use(initReactI18next).init({
-    resources: { en: { translation: en } },
+    resources: { en: { translation: {} } },
     lng: 'en',
     fallbackLng: 'en',
     supportedLngs: ['en'],
