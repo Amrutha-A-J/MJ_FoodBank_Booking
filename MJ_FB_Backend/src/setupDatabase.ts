@@ -775,21 +775,38 @@ ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
     'ZION CHURCH',
   ];
   const donors = [...new Set(donorList)];
-  const donorValues: string[] = [];
-  const params: string[] = [];
-  donors.forEach((name, index) => {
-    const [firstName, ...lastNameParts] = name.split(' ');
-    const lastName = lastNameParts.join(' ');
-    const email = `donor${index + 1}@example.com`;
-    params.push(firstName, lastName, email);
-    donorValues.push(
-      `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`,
+  const hasFirstNameColumn = await client
+    .query(
+      `SELECT 1 FROM information_schema.columns WHERE table_name = 'donors' AND column_name = 'first_name'`,
+    )
+    .then(res => res.rowCount > 0);
+
+  if (hasFirstNameColumn) {
+    const donorValues: string[] = [];
+    const params: string[] = [];
+    donors.forEach((name, index) => {
+      const [firstName, ...lastNameParts] = name.split(' ');
+      const lastName = lastNameParts.join(' ');
+      const email = `donor${index + 1}@example.com`;
+      params.push(firstName, lastName, email);
+      donorValues.push(
+        `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`,
+      );
+    });
+    await client.query(
+      `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')} ON CONFLICT (email) DO NOTHING;`,
+      params,
     );
-  });
-  await client.query(
-    `INSERT INTO donors (first_name, last_name, email) VALUES ${donorValues.join(',')} ON CONFLICT (email) DO NOTHING;`,
-    params,
-  );
+  } else {
+    const donorValues: string[] = [];
+    donors.forEach((_, index) => {
+      donorValues.push(`($${index + 1})`);
+    });
+    await client.query(
+      `INSERT INTO donors (name) VALUES ${donorValues.join(',')} ON CONFLICT (name) DO NOTHING;`,
+      donors,
+    );
+  }
   logger.info('Database setup complete');
   await client.end();
 }
