@@ -4,19 +4,10 @@ import {
   Button,
   Dialog,
   DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Stack,
   Link,
-  FormControlLabel,
-  Checkbox,
-  Tooltip,
   Typography,
-  Chip,
   TableContainer,
 } from "@mui/material";
-import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import FeedbackSnackbar from "../../../components/FeedbackSnackbar";
 import DialogCloseButton from "../../../components/DialogCloseButton";
 import {
@@ -28,13 +19,15 @@ import {
 } from "../../../api/users";
 import type { AlertColor } from "@mui/material";
 import getApiErrorMessage from "../../../utils/getApiErrorMessage";
-import PasswordField from "../../../components/PasswordField";
 import ResponsiveTable, { type Column } from "../../../components/ResponsiveTable";
+import EditClientForm, {
+  type EditClientFormData,
+} from "./EditClientForm";
 
 export default function UpdateClientData() {
   const [clients, setClients] = useState<IncompleteUser[]>([]);
   const [selected, setSelected] = useState<IncompleteUser | null>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<EditClientFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -97,17 +90,17 @@ export default function UpdateClientData() {
     }
   }
 
-  async function handleSave(): Promise<boolean> {
+  async function handleSave(data: EditClientFormData): Promise<boolean> {
     if (!selected) return false;
     try {
       await updateUserInfo(selected.clientId, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email || undefined,
-        phone: form.phone || undefined,
-        onlineAccess: form.hasPassword ? true : form.onlineAccess,
-        ...(form.onlineAccess && form.password
-          ? { password: form.password }
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        onlineAccess: data.hasPassword ? true : data.onlineAccess,
+        ...(data.onlineAccess && data.password
+          ? { password: data.password }
           : {}),
       });
       setSnackbar({
@@ -128,9 +121,9 @@ export default function UpdateClientData() {
     }
   }
 
-  async function handleSendReset() {
+  async function handleSendReset(data: EditClientFormData) {
     if (!selected) return;
-    const ok = await handleSave();
+    const ok = await handleSave(data);
     if (!ok) return;
     try {
       await requestPasswordReset({ clientId: String(selected.clientId) });
@@ -199,118 +192,13 @@ export default function UpdateClientData() {
             </Link>
           )}
         </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} mt={1}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Typography variant="h6">
-                {form.firstName} {form.lastName}
-              </Typography>
-              {form.hasPassword && (
-                <Chip
-                  color="success"
-                  icon={<CheckCircleOutline />}
-                  label="Online account"
-                  data-testid="online-badge"
-                />
-              )}
-            </Stack>
-
-            <Stack spacing={2}>
-              <Typography variant="subtitle1">Account</Typography>
-              <Tooltip
-                title="Client already has a password"
-                disableHoverListener={!form.hasPassword}
-              >
-                <span>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={form.onlineAccess}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            onlineAccess: e.target.checked,
-                          })
-                        }
-                        disabled={form.hasPassword}
-                      />
-                    }
-                    label="Online Access"
-                  />
-                </span>
-              </Tooltip>
-              {form.onlineAccess && !form.hasPassword && (
-                <PasswordField
-                  fullWidth
-                  label="Password"
-                  value={form.password}
-                  onChange={(e) =>
-                    setForm({ ...form, password: e.target.value })
-                  }
-                  inputProps={{ 'data-testid': 'password-input' }}
-                />
-              )}
-            </Stack>
-
-            <Stack spacing={2}>
-              <Typography variant="subtitle1">Contact</Typography>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                required
-                inputProps={{ 'data-testid': 'first-name-input' }}
-              />
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                required
-                inputProps={{ 'data-testid': 'last-name-input' }}
-              />
-              <TextField
-                fullWidth
-                label="Email (optional)"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                inputProps={{ 'data-testid': 'email-input' }}
-              />
-              <TextField
-                fullWidth
-                label="Phone (optional)"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                inputProps={{ 'data-testid': 'phone-input' }}
-              />
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          {form.onlineAccess && (
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleSendReset}
-              data-testid="send-reset-button"
-            >
-              Send password reset link
-            </Button>
-          )}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            disabled={!form.firstName || !form.lastName}
-            data-testid="save-button"
-          >
-            Save
-          </Button>
-        </DialogActions>
-        </Dialog>
+        <EditClientForm
+          open={!!selected}
+          initialData={form}
+          onSave={handleSave}
+          onSendReset={handleSendReset}
+        />
+      </Dialog>
 
       <FeedbackSnackbar
         open={!!snackbar}
