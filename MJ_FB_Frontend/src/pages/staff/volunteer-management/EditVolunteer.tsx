@@ -20,6 +20,7 @@ import {
   DialogContent,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   InputLabel,
   ListItemText,
   ListSubheader,
@@ -189,16 +190,22 @@ export default function EditVolunteer() {
       {volunteer && (
         <Stack spacing={2} mt={2} maxWidth={400}>
           <Typography>{volunteer.name}</Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hasShopper}
-                onChange={handleShopperToggle}
-                color="primary"
-              />
-            }
-            label="Shopper Profile"
-          />
+          <FormControl component="fieldset">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hasShopper}
+                  onChange={handleShopperToggle}
+                  color="primary"
+                  data-testid="shopper-toggle"
+                />
+              }
+              label="Shopper Profile"
+            />
+            <FormHelperText>
+              Enable if this volunteer also shops at the pantry.
+            </FormHelperText>
+          </FormControl>
           <FormControl fullWidth>
             <InputLabel id="role-select-label">Roles</InputLabel>
             <Select
