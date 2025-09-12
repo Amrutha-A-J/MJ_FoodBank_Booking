@@ -936,13 +936,22 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                           key={r}
                           label={r}
                           onDelete={() => toggleTrained(r, false)}
+                          title={r}
+                          sx={{
+                            maxWidth: 200,
+                            '& .MuiChip-label': {
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            },
+                          }}
                         />
                       ))}
                     </Stack>
-                    <FormControl sx={{ mb: 2, minWidth: 200 }}>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
                       <InputLabel id="add-role-label">Add role</InputLabel>
                       <Select
                         labelId="add-role-label"
+                        aria-labelledby="add-role-label"
                         value={newTrainedRole}
                         label="Add role"
                         onChange={e => {
@@ -963,7 +972,11 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
                         ])}
                       </Select>
                     </FormControl>
-                    <Button variant="contained" onClick={saveTrainedAreas}>
+                    <Button
+                      variant="contained"
+                      onClick={saveTrainedAreas}
+                      aria-label="Save trained roles"
+                    >
                       Save
                     </Button>
                     {editMsg && (

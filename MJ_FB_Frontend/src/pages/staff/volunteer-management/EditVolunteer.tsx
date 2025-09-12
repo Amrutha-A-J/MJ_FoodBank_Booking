@@ -232,6 +232,7 @@ export default function EditVolunteer() {
                       <InputLabel id="role-select-label">Roles</InputLabel>
                       <Select
                         labelId="role-select-label"
+                        aria-labelledby="role-select-label"
                         multiple
                         value={selected}
                         onChange={handleRoleChange}
@@ -256,6 +257,14 @@ export default function EditVolunteer() {
                           key={name}
                           label={name}
                           onDelete={() => removeRole(name)}
+                          title={name}
+                          sx={{
+                            maxWidth: 200,
+                            '& .MuiChip-label': {
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            },
+                          }}
                         />
                       ))}
                     </Stack>
@@ -282,6 +291,7 @@ export default function EditVolunteer() {
             <Button
               variant="contained"
               onClick={handleSave}
+              aria-label="Save volunteer"
               sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Save
