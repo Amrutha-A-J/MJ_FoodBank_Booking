@@ -11,6 +11,7 @@ export interface Event {
   createdByName: string;
   visibleToVolunteers?: boolean;
   visibleToClients?: boolean;
+  priority: number;
 }
 
 export interface EventGroups {
@@ -32,9 +33,19 @@ export async function createEvent(data: {
   endDate: string;
   visibleToVolunteers?: boolean;
   visibleToClients?: boolean;
+  priority?: number;
 }) {
   const res = await apiFetch(`${API_BASE}/events`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateEvent(id: number, data: { priority: number }) {
+  const res = await apiFetch(`${API_BASE}/events/${id}`, {
+    method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });

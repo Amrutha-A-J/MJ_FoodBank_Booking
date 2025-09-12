@@ -1,15 +1,19 @@
-import { List, ListItem, Typography, ListItemText, IconButton } from '@mui/material';
+import { List, ListItem, Typography, ListItemText, IconButton, Box } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import type { Event } from '../api/events';
+import { updateEvent } from '../api/events';
 import { formatLocaleDate } from '../utils/date';
 
 interface EventListProps {
   events: Event[];
   limit?: number;
   onDelete?: (id: number) => void;
+  onChange?: () => void;
 }
 
-export default function EventList({ events, limit, onDelete }: EventListProps) {
+export default function EventList({ events, limit, onDelete, onChange }: EventListProps) {
   const items = limit ? events.slice(0, limit) : events;
   if (!items.length)
     return <Typography variant="body2">No events</Typography>;
@@ -19,6 +23,12 @@ export default function EventList({ events, limit, onDelete }: EventListProps) {
     const endText = formatLocaleDate(end);
     return startText === endText ? startText : `${startText} - ${endText}`;
   }
+
+  async function changePriority(ev: Event, delta: number) {
+    await updateEvent(ev.id, { priority: ev.priority + delta });
+    onChange?.();
+  }
+
   return (
     <List>
       {items.map(ev => (
@@ -26,11 +36,23 @@ export default function EventList({ events, limit, onDelete }: EventListProps) {
           key={ev.id}
           disableGutters
           secondaryAction={
-            onDelete && (
-              <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
-                <DeleteIcon />
-              </IconButton>
-            )
+            <Box>
+              {onChange && (
+                <>
+                  <IconButton aria-label="move up" onClick={() => changePriority(ev, 1)}>
+                    <ArrowUpwardIcon />
+                  </IconButton>
+                  <IconButton aria-label="move down" onClick={() => changePriority(ev, -1)}>
+                    <ArrowDownwardIcon />
+                  </IconButton>
+                </>
+              )}
+              {onDelete && (
+                <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              )}
+            </Box>
           }
         >
           <ListItemText

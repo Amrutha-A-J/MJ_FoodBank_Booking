@@ -26,9 +26,11 @@ describe('ClientDashboard', () => {
         {
           id: 1,
           title: 'Client Event',
-          date: new Date().toISOString(),
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString(),
           createdBy: 1,
           createdByName: 'Staff',
+          priority: 0,
         },
       ],
       upcoming: [],

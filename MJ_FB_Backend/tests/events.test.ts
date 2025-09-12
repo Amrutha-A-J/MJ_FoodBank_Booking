@@ -19,38 +19,54 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('DELETE /events/:id', () => {
-    it('returns 400 for invalid id', async () => {
-      (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
-      (pool.query as jest.Mock).mockResolvedValueOnce({
+describe('GET /events', () => {
+  it('orders events by priority and start date', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
-      });
-      const res = await request(app)
-        .delete('/events/abc')
-        .set('Authorization', 'Bearer token');
-      expect(res.status).toBe(400);
-      // Only the auth query should have been executed
-      expect(pool.query).toHaveBeenCalledTimes(1);
-    });
-
-    it('deletes an existing event', async () => {
-      (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
-      (pool.query as jest.Mock)
-        .mockResolvedValueOnce({
-          rowCount: 1,
-          rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
-        })
-        .mockResolvedValueOnce({ rowCount: 1 });
-      const res = await request(app)
-        .delete('/events/1')
-        .set('Authorization', 'Bearer token');
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({ message: 'Deleted' });
-      expect(pool.query).toHaveBeenCalledTimes(2);
-      expect(pool.query).toHaveBeenCalledWith('DELETE FROM events WHERE id = $1', [1]);
-    });
+      })
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 });
+    const res = await request(app)
+      .get('/events')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(pool.query.mock.calls[1][0]).toContain('ORDER BY e.priority DESC, e.start_date ASC');
   });
+});
+
+describe('DELETE /events/:id', () => {
+  it('returns 400 for invalid id', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+    });
+    const res = await request(app)
+      .delete('/events/abc')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes an existing event', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+      })
+      .mockResolvedValueOnce({ rowCount: 1 });
+    const res = await request(app)
+      .delete('/events/1')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Deleted' });
+    expect(pool.query).toHaveBeenCalledTimes(2);
+    expect(pool.query).toHaveBeenCalledWith('DELETE FROM events WHERE id = $1', [1]);
+  });
+});
 
 describe('POST /events', () => {
   const validBody = {
@@ -85,8 +101,8 @@ describe('POST /events', () => {
     expect(client.query).toHaveBeenNthCalledWith(1, 'BEGIN');
     expect(client.query).toHaveBeenNthCalledWith(
       2,
-      'INSERT INTO events (title, details, category, start_date, end_date, created_by, visible_to_volunteers, visible_to_clients) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id',
-      ['Test', 'Details', 'General', '2024-01-01', '2024-01-02', 1, false, false]
+      'INSERT INTO events (title, details, category, start_date, end_date, created_by, visible_to_volunteers, visible_to_clients, priority) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id',
+      ['Test', 'Details', 'General', '2024-01-01', '2024-01-02', 1, false, false, 0]
     );
     expect(client.query).toHaveBeenCalledWith('COMMIT');
     expect(client.release).toHaveBeenCalled();
@@ -115,5 +131,31 @@ describe('POST /events', () => {
     expect(client.query).toHaveBeenCalledWith('ROLLBACK');
     expect(client.query).not.toHaveBeenCalledWith('COMMIT');
     expect(client.release).toHaveBeenCalled();
+  });
+});
+
+describe('PUT /events/:id', () => {
+  it('updates event priority', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+      })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ id: 1, priority: 5 }],
+      });
+    const res = await request(app)
+      .put('/events/1')
+      .set('Authorization', 'Bearer token')
+      .send({ priority: 5 });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: 1, priority: 5 });
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'UPDATE events SET priority = $1 WHERE id = $2 RETURNING id, priority',
+      [5, 1]
+    );
   });
 });
