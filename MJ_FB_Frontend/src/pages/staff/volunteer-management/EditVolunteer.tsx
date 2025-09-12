@@ -30,6 +30,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
@@ -186,9 +187,30 @@ export default function EditVolunteer() {
         placeholder="Search volunteer"
         onSelect={v => handleSelect(v as VolunteerSearchResult)}
       />
+      {volunteer ? (
+        <Stack direction="row" spacing={1} alignItems="center" mt={2}>
+          <Typography variant="h6" data-testid="volunteer-name">
+            {volunteer.name}
+          </Typography>
+          {volunteer.hasPassword && (
+            <Chip
+              icon={<CheckCircleOutline fontSize="small" />}
+              label="Online account"
+              color="success"
+              size="small"
+              variant="outlined"
+              data-testid="online-badge"
+              aria-label="Online account"
+            />
+          )}
+        </Stack>
+      ) : (
+        <Typography mt={2} color="text.secondary">
+          Search and select a volunteer
+        </Typography>
+      )}
       {volunteer && (
         <Stack spacing={2} mt={2} maxWidth={400}>
-          <Typography>{volunteer.name}</Typography>
           <FormControlLabel
             control={
               <Switch

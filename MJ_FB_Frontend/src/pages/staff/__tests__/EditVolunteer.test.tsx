@@ -37,6 +37,54 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
 
+describe('EditVolunteer header', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (createVolunteerShopperProfile as jest.Mock).mockReset();
+    (removeVolunteerShopperProfile as jest.Mock).mockReset();
+    (getVolunteerById as jest.Mock).mockReset();
+  });
+
+  it('shows helper text and displays name and online badge when selected', async () => {
+    mockVolunteer.hasPassword = true;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText('Search and select a volunteer'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(
+      screen.queryByText('Search and select a volunteer'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId('volunteer-name')).toHaveTextContent('John Doe');
+    expect(screen.getByTestId('online-badge')).toHaveAttribute(
+      'aria-label',
+      'Online account',
+    );
+  });
+
+  it('omits online badge when volunteer has no password', () => {
+    mockVolunteer.hasPassword = false;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(screen.queryByTestId('online-badge')).not.toBeInTheDocument();
+  });
+});
+
 describe('EditVolunteer shopper profile', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
