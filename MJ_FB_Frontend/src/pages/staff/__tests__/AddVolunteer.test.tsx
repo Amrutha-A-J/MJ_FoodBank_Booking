@@ -17,6 +17,10 @@ jest.mock('../../../api/client', () => ({
   handleResponse: jest.fn(async () => undefined),
 }));
 
+beforeEach(() => {
+  (apiFetch as jest.Mock).mockClear();
+});
+
 test('omits sendPasswordLink when creating volunteer without email', async () => {
   render(
     <MemoryRouter>
@@ -34,4 +38,66 @@ test('omits sendPasswordLink when creating volunteer without email', async () =>
   expect(body).not.toHaveProperty('sendPasswordLink');
   expect(body).not.toHaveProperty('password');
   expect(body).not.toHaveProperty('email');
+});
+
+test('includes sendPasswordLink and email when sending link', async () => {
+  render(
+    <MemoryRouter>
+      <AddVolunteer />
+    </MemoryRouter>,
+  );
+
+  fireEvent.change(screen.getByLabelText(/first name/i), {
+    target: { value: 'Jane' },
+  });
+  fireEvent.change(screen.getByLabelText(/last name/i), {
+    target: { value: 'Doe' },
+  });
+  fireEvent.click(screen.getByLabelText(/online access/i));
+  fireEvent.change(screen.getByLabelText(/^email/i), {
+    target: { value: 'jane@example.com' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+  await waitFor(() => expect(apiFetch).toHaveBeenCalled());
+
+  const body = JSON.parse((apiFetch as jest.Mock).mock.calls[0][1].body);
+  expect(body).toMatchObject({
+    email: 'jane@example.com',
+    sendPasswordLink: true,
+  });
+  expect(body).not.toHaveProperty('password');
+});
+
+test('includes password and omits sendPasswordLink when setting password', async () => {
+  render(
+    <MemoryRouter>
+      <AddVolunteer />
+    </MemoryRouter>,
+  );
+
+  fireEvent.change(screen.getByLabelText(/first name/i), {
+    target: { value: 'Jane' },
+  });
+  fireEvent.change(screen.getByLabelText(/last name/i), {
+    target: { value: 'Doe' },
+  });
+  fireEvent.click(screen.getByLabelText(/online access/i));
+  fireEvent.click(screen.getByRole('button', { name: /set password/i }));
+  fireEvent.change(screen.getByLabelText(/^password/i), {
+    target: { value: 'Password1!' },
+  });
+  fireEvent.change(screen.getByLabelText(/^email/i), {
+    target: { value: 'jane@example.com' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /add volunteer/i }));
+
+  await waitFor(() => expect(apiFetch).toHaveBeenCalled());
+
+  const body = JSON.parse((apiFetch as jest.Mock).mock.calls[0][1].body);
+  expect(body).toMatchObject({
+    email: 'jane@example.com',
+    password: 'Password1!',
+  });
+  expect(body).not.toHaveProperty('sendPasswordLink');
 });

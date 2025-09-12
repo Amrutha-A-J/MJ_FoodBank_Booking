@@ -90,7 +90,7 @@ export default function AddVolunteer() {
         email || undefined,
         phone || undefined,
         onlineAccess && !sendPasswordLink ? password || undefined : undefined,
-        onlineAccess ? sendPasswordLink : undefined,
+        onlineAccess && sendPasswordLink ? true : undefined,
       );
       setMessage('Volunteer created');
       setSeverity('success');
