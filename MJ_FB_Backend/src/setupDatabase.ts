@@ -779,7 +779,7 @@ ON CONFLICT (role_id, start_time, end_time) DO NOTHING;
     .query(
       `SELECT 1 FROM information_schema.columns WHERE table_name = 'donors' AND column_name = 'first_name'`,
     )
-    .then(res => res.rowCount > 0);
+    .then(res => (res.rowCount ?? 0) > 0);
 
   if (hasFirstNameColumn) {
     const donorValues: string[] = [];
