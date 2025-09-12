@@ -6,6 +6,7 @@ import {
   getMonetaryDonors,
   updateMonetaryDonation,
   deleteMonetaryDonation,
+  importZeffyDonations,
   getMailLists,
   sendMailListEmails,
   sendTestMailListEmails,
@@ -104,6 +105,18 @@ describe('monetary donor api', () => {
     expect(apiFetch).toHaveBeenCalledWith(
       '/api/v1/monetary-donors/donations/7',
       expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('imports zeffy donations', async () => {
+    const file = new File(['csv'], 'donations.csv');
+    await importZeffyDonations(file);
+    expect(apiFetch).toHaveBeenCalledWith(
+      '/api/v1/monetary-donors/import',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.any(FormData),
+      }),
     );
   });
 });
