@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   Button,
   Dialog,
@@ -25,6 +25,7 @@ import {
   createMonetaryDonation,
   updateMonetaryDonation,
   deleteMonetaryDonation,
+  importZeffyDonations,
   type MonetaryDonor,
   type MonetaryDonation,
 } from '../../api/monetaryDonors';
@@ -37,7 +38,7 @@ function formatMonth(date = new Date()) {
 type DonationRow = MonetaryDonation & {
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
 };
 
 export default function DonationLog() {
@@ -68,6 +69,29 @@ export default function DonationLog() {
     message: '',
   });
   const [search, setSearch] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await importZeffyDonations(file);
+      const donorSearch = search && isNaN(Number(search)) ? search : undefined;
+      const donorList = await getMonetaryDonors(donorSearch).catch(() => []);
+      const sorted = donorList.sort((a, b) =>
+        `${a.lastName} ${a.firstName}`.localeCompare(
+          `${b.lastName} ${b.firstName}`,
+        ),
+      );
+      setDonors(sorted);
+      loadDonations(sorted);
+      setSnackbar({ open: true, message: 'Donations imported' });
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to import donations' });
+    } finally {
+      e.target.value = '';
+    }
+  }
 
   const currency = useMemo(
     () => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }),
@@ -81,7 +105,7 @@ export default function DonationLog() {
         d =>
           d.firstName.toLowerCase().includes(s) ||
           d.lastName.toLowerCase().includes(s) ||
-          d.email.toLowerCase().includes(s) ||
+          (d.email ?? '').toLowerCase().includes(s) ||
           d.amount.toString().includes(s),
       );
     },
@@ -103,36 +127,39 @@ export default function DonationLog() {
       .catch(() => setDonors([]));
   }, [search]);
 
-  const loadDonations = useCallback(() => {
-    if (donors.length === 0) {
-      setDonations([]);
-      return;
-    }
-    Promise.all(
-      donors.map(d =>
-        getMonetaryDonations(d.id)
-          .then(list =>
-            list
-              .filter(n => n.date.startsWith(`${month}-`))
-              .map(n => ({
-                ...n,
-                firstName: d.firstName,
-                lastName: d.lastName,
-                email: d.email,
-              })),
-          )
-          .catch(() => []),
-      ),
-    )
-      .then(res =>
-        setDonations(
-          res
-            .flat()
-            .sort((a, b) => a.date.localeCompare(b.date)),
+  const loadDonations = useCallback(
+    (list: MonetaryDonor[] = donors) => {
+      if (list.length === 0) {
+        setDonations([]);
+        return;
+      }
+      Promise.all(
+        list.map(d =>
+          getMonetaryDonations(d.id)
+            .then(list =>
+              list
+                .filter(n => n.date.startsWith(`${month}-`))
+                .map(n => ({
+                  ...n,
+                  firstName: d.firstName,
+                  lastName: d.lastName,
+                  email: d.email,
+                })),
+            )
+            .catch(() => []),
         ),
       )
-      .catch(() => setDonations([]));
-  }, [donors, month]);
+        .then(res =>
+          setDonations(
+            res
+              .flat()
+              .sort((a, b) => a.date.localeCompare(b.date)),
+          ),
+        )
+        .catch(() => setDonations([]));
+    },
+    [donors, month],
+  );
 
   useEffect(() => {
     loadDonations();
@@ -175,8 +202,12 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    if (!donorForm.firstName || !donorForm.lastName || !donorForm.email) return;
-    createMonetaryDonor(donorForm)
+    if (!donorForm.firstName || !donorForm.lastName) return;
+    createMonetaryDonor({
+      firstName: donorForm.firstName,
+      lastName: donorForm.lastName,
+      email: donorForm.email || null,
+    })
       .then(newDonor => {
         setDonors(
           [...donors, newDonor].sort((a, b) =>
@@ -202,7 +233,7 @@ export default function DonationLog() {
     },
     { field: 'firstName', header: 'First Name' },
     { field: 'lastName', header: 'Last Name' },
-    { field: 'email', header: 'Email' },
+    { field: 'email', header: 'Email', render: d => d.email ?? '' },
     {
       field: 'amount',
       header: 'Amount',
@@ -269,6 +300,19 @@ export default function DonationLog() {
             }}
           >
             Add Donor
+          </Button>
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInputRef}
+            onChange={handleImport}
+            style={{ display: 'none' }}
+          />
+          <Button
+            variant="outlined"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import Zeffy CSV
           </Button>
           <TextField
             label="Month"
@@ -384,7 +428,7 @@ export default function DonationLog() {
           <DialogActions>
             <Button
               onClick={handleAddDonor}
-              disabled={!donorForm.firstName || !donorForm.lastName || !donorForm.email}
+              disabled={!donorForm.firstName || !donorForm.lastName}
             >
               Save
             </Button>

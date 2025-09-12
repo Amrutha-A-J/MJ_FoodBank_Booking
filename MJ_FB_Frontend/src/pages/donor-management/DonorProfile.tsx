@@ -95,7 +95,7 @@ export default function DonorProfile() {
     setEditForm({
       firstName: donor.firstName,
       lastName: donor.lastName,
-      email: donor.email,
+      email: donor.email ?? '',
     });
     setEditOpen(true);
   }
@@ -131,7 +131,10 @@ export default function DonorProfile() {
 
   async function handleDonorSave() {
     try {
-      await updateMonetaryDonor(donorId, editForm);
+      await updateMonetaryDonor(donorId, {
+        ...editForm,
+        email: editForm.email || null,
+      });
       setSnackbar({
         open: true,
         message: 'Donor updated',
@@ -178,7 +181,7 @@ export default function DonorProfile() {
             <Typography variant="h5">
               {donor.firstName} {donor.lastName}
             </Typography>
-            <Typography>{donor.email}</Typography>
+            <Typography>{donor.email ?? ''}</Typography>
             <Typography>
               Total Donated: {currency.format(donor.amount)}
             </Typography>

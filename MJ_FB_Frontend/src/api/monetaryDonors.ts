@@ -4,7 +4,7 @@ export interface MonetaryDonor {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
 }
 
 export interface MonetaryDonation {
@@ -80,7 +80,7 @@ export interface MonetaryDonorDetail {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
+  email: string | null;
   amount: number;
   lastDonationISO: string | null;
 }
@@ -211,6 +211,16 @@ export async function updateDonorTestEmail(
 export async function deleteDonorTestEmail(id: number): Promise<void> {
   const res = await apiFetch(`${API_BASE}/monetary-donors/test-emails/${id}`, {
     method: 'DELETE',
+  });
+  await handleResponse(res);
+}
+
+export async function importZeffyDonations(file: File): Promise<void> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await apiFetch(`${API_BASE}/monetary-donors/import`, {
+    method: 'POST',
+    body: formData,
   });
   await handleResponse(res);
 }

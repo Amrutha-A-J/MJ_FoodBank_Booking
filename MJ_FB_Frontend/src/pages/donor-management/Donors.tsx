@@ -69,7 +69,7 @@ export default function Donors() {
                   >
                     <TableCell>{d.firstName}</TableCell>
                     <TableCell>{d.lastName}</TableCell>
-                    <TableCell>{d.email}</TableCell>
+                    <TableCell>{d.email ?? ''}</TableCell>
                   </TableRow>
                 ))}
                 {donors.length === 0 && (
