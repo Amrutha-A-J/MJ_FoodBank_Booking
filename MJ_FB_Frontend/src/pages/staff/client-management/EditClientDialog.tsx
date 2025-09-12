@@ -10,7 +10,10 @@ import {
   Checkbox,
   Stack,
   Tooltip,
+  Typography,
+  Chip,
 } from '@mui/material';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import type { AlertColor } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import PasswordField from '../../../components/PasswordField';
@@ -109,54 +112,80 @@ export default function EditClientDialog({
       <DialogTitle>Edit Client</DialogTitle>
       <DialogContent>
         <Stack spacing={2} mt={1}>
-          <Tooltip
-            title="Client already has a password"
-            disableHoverListener={!form.hasPassword}
-          >
-            <span>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.onlineAccess}
-                    onChange={e =>
-                      setForm({ ...form, onlineAccess: e.target.checked })
-                    }
-                    disabled={form.hasPassword}
-                  />
-                }
-                label="Online Access"
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="h6">
+              {form.firstName} {form.lastName}
+            </Typography>
+            {form.hasPassword && (
+              <Chip
+                color="success"
+                icon={<CheckCircleOutline />}
+                label="Online account"
+                data-testid="online-badge"
               />
-            </span>
-          </Tooltip>
-          <TextField
-            label="First Name"
-            value={form.firstName}
-            onChange={e => setForm({ ...form, firstName: e.target.value })}
-          />
-          <TextField
-            label="Last Name"
-            value={form.lastName}
-            onChange={e => setForm({ ...form, lastName: e.target.value })}
-          />
-          <TextField
-            label="Email (optional)"
-            type="email"
-            value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
-          />
-          <TextField
-            label="Phone (optional)"
-            type="tel"
-            value={form.phone}
-            onChange={e => setForm({ ...form, phone: e.target.value })}
-          />
-          {form.onlineAccess && !form.hasPassword && (
-            <PasswordField
-              label="Password"
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
+            )}
+          </Stack>
+
+          <Stack spacing={2}>
+            <Typography variant="subtitle1">Account</Typography>
+            <Tooltip
+              title="Client already has a password"
+              disableHoverListener={!form.hasPassword}
+            >
+              <span>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.onlineAccess}
+                      onChange={e =>
+                        setForm({ ...form, onlineAccess: e.target.checked })
+                      }
+                      disabled={form.hasPassword}
+                    />
+                  }
+                  label="Online Access"
+                />
+              </span>
+            </Tooltip>
+            {form.onlineAccess && !form.hasPassword && (
+              <PasswordField
+                fullWidth
+                label="Password"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+              />
+            )}
+          </Stack>
+
+          <Stack spacing={2}>
+            <Typography variant="subtitle1">Contact</Typography>
+            <TextField
+              fullWidth
+              label="First Name"
+              value={form.firstName}
+              onChange={e => setForm({ ...form, firstName: e.target.value })}
             />
-          )}
+            <TextField
+              fullWidth
+              label="Last Name"
+              value={form.lastName}
+              onChange={e => setForm({ ...form, lastName: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Email (optional)"
+              type="email"
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Phone (optional)"
+              type="tel"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+            />
+          </Stack>
         </Stack>
       </DialogContent>
       <DialogActions>
