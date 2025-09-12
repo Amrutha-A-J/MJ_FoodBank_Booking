@@ -19,6 +19,7 @@
 - A privacy notice modal prompts for consent after login and stores acknowledgement in the `users` table and localStorage to avoid repeat prompts.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
+- Maintenance notices use translation keys `maintenance_mode_title`, `maintenance_mode_message`, `upcoming_maintenance_title`, and `upcoming_maintenance_notice`; document them in `docs/maintenance.md` and update locales.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table. Sunshine bag recipients are recorded separately and excluded from total client counts.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.
 - Anonymous pantry visits display "(ANONYMOUS)" after the client ID and their family size is excluded from the summary counts.

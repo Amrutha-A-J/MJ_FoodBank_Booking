@@ -1,6 +1,7 @@
 # Navigation
 
 Clients can access the dashboard from the navigation menu.
+Admins can manage maintenance windows from **Admin → Maintenance**. This page is staff-only and does not require translation.
 
 ## Localization
 

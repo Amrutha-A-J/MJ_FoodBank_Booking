@@ -298,5 +298,9 @@
   "insert_aggregate": "Insert Aggregate",
   "insert_aggregate_help": "Manually add or update monthly totals",
   "volunteer_shift": "Volunteer",
-  "book_shopping": "Shopping"
+  "book_shopping": "Shopping",
+  "maintenance_mode_title": "Maintenance Mode",
+  "maintenance_mode_message": "The site is temporarily unavailable for maintenance. Please try again later.",
+  "upcoming_maintenance_title": "Upcoming Maintenance",
+  "upcoming_maintenance_notice": "The site will be unavailable on {{date}} from {{start}} to {{end}}."
 }

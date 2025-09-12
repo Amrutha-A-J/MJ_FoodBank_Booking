@@ -1,5 +1,6 @@
 # Feature Log
 
+- feat: add maintenance mode notices
 - feat: allow manual warehouse overall aggregates
 - feat: allow manual pantry monthly aggregates
 - feat: remove help page and navigation
