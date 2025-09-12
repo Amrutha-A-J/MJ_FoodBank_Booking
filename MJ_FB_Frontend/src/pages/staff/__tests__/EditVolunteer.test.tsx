@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EditVolunteer from '../volunteer-management/EditVolunteer';
 import {
@@ -37,6 +37,59 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
 
+describe('EditVolunteer volunteer info', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    mockVolunteer.hasPassword = false;
+  });
+
+  it('shows helper text when no volunteer selected', () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText('Search and select a volunteer'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows name and online badge when volunteer has password', async () => {
+    mockVolunteer.hasPassword = true;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(await screen.findByTestId('volunteer-name')).toHaveTextContent(
+      'John Doe',
+    );
+    expect(screen.getByTestId('online-badge')).toBeInTheDocument();
+  });
+
+  it('hides online badge when volunteer lacks password', async () => {
+    mockVolunteer.hasPassword = false;
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+
+    expect(await screen.findByTestId('volunteer-name')).toHaveTextContent(
+      'John Doe',
+    );
+    expect(screen.queryByTestId('online-badge')).not.toBeInTheDocument();
+  });
+});
+
 describe('EditVolunteer shopper profile', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
@@ -65,7 +118,9 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(
+      await screen.findByRole('switch', { name: /shopper profile/i }),
+    );
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/phone/i), { target: { value: '555-1234' } });
@@ -102,7 +157,9 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(
+      await screen.findByRole('switch', { name: /shopper profile/i }),
+    );
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
     await waitFor(() =>
@@ -146,11 +203,13 @@ describe('EditVolunteer role selection', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
-
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    await act(async () => {});
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    const roleSelect = await screen.findByRole('combobox', { name: /roles/i });
+    fireEvent.mouseDown(roleSelect);
     const listbox = await screen.findByRole('listbox');
-    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.click(await within(listbox).findByText('Role A'));
     fireEvent.keyDown(listbox, { key: 'Escape' });
 
     expect(await screen.findByText('Role A')).toBeInTheDocument();
@@ -175,10 +234,13 @@ describe('EditVolunteer role selection', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    await act(async () => {});
     fireEvent.click(screen.getByText('Select Volunteer'));
     const chip = await screen.findByText('Role A');
-    const deleteBtn = within(chip.parentElement as HTMLElement).getByRole('button');
-    fireEvent.click(deleteBtn);
+    fireEvent.click(
+      within(chip.parentElement as HTMLElement).getByTestId('CancelIcon'),
+    );
     expect(screen.queryByText('Role A')).not.toBeInTheDocument();
   });
 });
