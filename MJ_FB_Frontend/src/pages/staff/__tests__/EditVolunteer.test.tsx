@@ -65,7 +65,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(screen.getByTestId('shopper-toggle'));
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByLabelText(/phone/i), { target: { value: '555-1234' } });
@@ -102,7 +102,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByRole('checkbox', { name: /shopper profile/i }));
+    fireEvent.click(screen.getByTestId('shopper-toggle'));
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
     await waitFor(() =>
@@ -146,14 +146,16 @@ describe('EditVolunteer role selection', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
-
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    fireEvent.mouseDown(
+      within(screen.getByTestId('roles-select')).getByRole('combobox')
+    );
     const listbox = await screen.findByRole('listbox');
     fireEvent.click(within(listbox).getByText('Role A'));
     fireEvent.keyDown(listbox, { key: 'Escape' });
 
-    expect(await screen.findByText('Role A')).toBeInTheDocument();
+    expect(await screen.findByTestId('role-chip-role-a')).toBeInTheDocument();
   });
 
   it('removes role via chip delete', async () => {
@@ -166,8 +168,16 @@ describe('EditVolunteer role selection', () => {
         category_name: 'Master 1',
         shifts: [],
       },
+      {
+        id: 2,
+        category_id: 1,
+        name: 'Role B',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
     ]);
-    mockVolunteer.trainedAreas = [1];
+    mockVolunteer.trainedAreas = [];
 
     render(
       <MemoryRouter>
@@ -175,10 +185,116 @@ describe('EditVolunteer role selection', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const chip = await screen.findByText('Role A');
-    const deleteBtn = within(chip.parentElement as HTMLElement).getByRole('button');
+    fireEvent.mouseDown(
+      within(screen.getByTestId('roles-select')).getByRole('combobox')
+    );
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    const chip = await screen.findByTestId('role-chip-role-a');
+    const deleteBtn = within(chip).getByTestId('CancelIcon');
     fireEvent.click(deleteBtn);
-    expect(screen.queryByText('Role A')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('role-chip-role-a')).not.toBeInTheDocument();
+  });
+});
+
+describe('EditVolunteer helpers and badges', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (createVolunteerShopperProfile as jest.Mock).mockReset();
+    (removeVolunteerShopperProfile as jest.Mock).mockReset();
+    (getVolunteerById as jest.Mock).mockReset();
+    mockVolunteer.trainedAreas = [];
+  });
+
+  it('shows helper text when no volunteer selected', () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByTestId('no-volunteer-helper')).toBeInTheDocument();
+  });
+
+  it('shows helper text when no roles assigned', async () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(await screen.findByTestId('no-roles-helper')).toBeInTheDocument();
+  });
+
+  it('shows online account badge when hasPassword true', async () => {
+    mockVolunteer.hasPassword = true;
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    expect(await screen.findByTestId('online-badge')).toBeInTheDocument();
+    mockVolunteer.hasPassword = false;
+  });
+});
+
+describe('EditVolunteer responsive chip grid', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockReset();
+    (createVolunteerShopperProfile as jest.Mock).mockReset();
+    (removeVolunteerShopperProfile as jest.Mock).mockReset();
+    (getVolunteerById as jest.Mock).mockReset();
+  });
+
+  it('renders chips within a grid container', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Role A',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+      {
+        id: 2,
+        category_id: 1,
+        name: 'Role B',
+        max_volunteers: 1,
+        category_name: 'Master 1',
+        shifts: [],
+      },
+    ]);
+    mockVolunteer.trainedAreas = [];
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.mouseDown(
+      within(screen.getByTestId('roles-select')).getByRole('combobox')
+    );
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(within(listbox).getByText('Role A'));
+    fireEvent.click(within(listbox).getByText('Role B'));
+    fireEvent.keyDown(listbox, { key: 'Escape' });
+
+    const chipA = await screen.findByTestId('role-chip-role-a');
+    const chipB = await screen.findByTestId('role-chip-role-b');
+    expect(chipA).toBeInTheDocument();
+    expect(chipB).toBeInTheDocument();
+    const grid = chipA.parentElement as HTMLElement;
+    expect(grid).toHaveStyle('display: grid');
   });
 });

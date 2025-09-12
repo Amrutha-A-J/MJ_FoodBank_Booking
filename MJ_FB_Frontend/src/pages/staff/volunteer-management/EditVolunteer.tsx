@@ -19,6 +19,7 @@ import {
   DialogActions,
   DialogContent,
   FormControl,
+  FormHelperText,
   FormControlLabel,
   InputLabel,
   ListItemText,
@@ -186,15 +187,31 @@ export default function EditVolunteer() {
         placeholder="Search volunteer"
         onSelect={v => handleSelect(v as VolunteerSearchResult)}
       />
+      {!volunteer && (
+        <Typography data-testid="no-volunteer-helper" color="text.secondary" mt={2}>
+          Select a volunteer to edit.
+        </Typography>
+      )}
       {volunteer && (
         <Stack spacing={2} mt={2} maxWidth={400}>
-          <Typography>{volunteer.name}</Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography data-testid="volunteer-name">{volunteer.name}</Typography>
+            {volunteer.hasPassword && (
+              <Chip
+                label="Online account"
+                color="primary"
+                size="small"
+                data-testid="online-badge"
+              />
+            )}
+          </Stack>
           <FormControlLabel
             control={
               <Switch
                 checked={hasShopper}
                 onChange={handleShopperToggle}
                 color="primary"
+                data-testid="shopper-toggle"
               />
             }
             label="Shopper Profile"
@@ -207,6 +224,7 @@ export default function EditVolunteer() {
               value={selected}
               onChange={handleRoleChange}
               renderValue={() => 'Select roles'}
+              data-testid="roles-select"
             >
               {groupedRoles.flatMap(g => [
                 <ListSubheader key={`${g.category}-header`}>
@@ -216,17 +234,34 @@ export default function EditVolunteer() {
                   <MenuItem key={r.id} value={r.name}>
                     <Checkbox checked={selected.includes(r.name)} />
                     <ListItemText primary={r.name} />
-                  </MenuItem>
-                )),
-              ])}
+                </MenuItem>
+              )),
+            ])}
             </Select>
+            {selected.length === 0 && (
+              <FormHelperText data-testid="no-roles-helper">
+                Assign at least one role
+              </FormHelperText>
+            )}
           </FormControl>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
+          <Box
+            data-testid="chip-grid"
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(120px, 1fr))"
+            gap={1}
+          >
             {selected.map(name => (
-              <Chip key={name} label={name} onDelete={() => removeRole(name)} />
+              <Chip
+                key={name}
+                label={name}
+                onDelete={() => removeRole(name)}
+                data-testid={`role-chip-${name
+                  .toLowerCase()
+                  .replace(/\s+/g, '-')}`}
+              />
             ))}
-          </Stack>
-          <Button variant="contained" onClick={handleSave}>
+          </Box>
+          <Button variant="contained" onClick={handleSave} data-testid="save-button">
             Save
           </Button>
         </Stack>
