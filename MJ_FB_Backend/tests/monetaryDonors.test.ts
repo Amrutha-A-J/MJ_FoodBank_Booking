@@ -74,6 +74,92 @@ describe('Monetary donor CRUD', () => {
     );
   });
 
+  it('rejects duplicate donor emails', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['donor_management'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce({ code: '23505' });
+
+    const res = await request(app)
+      .post('/monetary-donors')
+      .send({ firstName: 'Bob', lastName: 'B', email: 'b@example.com' })
+      .set('Authorization', 'Bearer token');
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ message: 'Donor already exists' });
+  });
+
+  it('searches by id, first name, last name, and email', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['donor_management'],
+    });
+    (pool.query as jest.Mock)
+      // search by id
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 1, firstName: 'Id', lastName: 'Match', email: 'id@example.com' },
+        ],
+      })
+      // search by first name
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 2, firstName: 'Alice', lastName: 'A', email: 'alice@example.com' },
+        ],
+      })
+      // search by last name
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 3, firstName: 'B', lastName: 'Smith', email: 'bsmith@example.com' },
+        ],
+      })
+      // search by email
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [
+          { id: 4, firstName: 'C', lastName: 'C', email: 'c@example.com' },
+        ],
+      });
+
+    let res = await request(app)
+      .get('/monetary-donors?search=1')
+      .set('Authorization', 'Bearer token');
+    expect(res.body).toEqual([
+      { id: 1, firstName: 'Id', lastName: 'Match', email: 'id@example.com' },
+    ]);
+
+    res = await request(app)
+      .get('/monetary-donors?search=Alice')
+      .set('Authorization', 'Bearer token');
+    expect(res.body).toEqual([
+      { id: 2, firstName: 'Alice', lastName: 'A', email: 'alice@example.com' },
+    ]);
+
+    res = await request(app)
+      .get('/monetary-donors?search=Smith')
+      .set('Authorization', 'Bearer token');
+    expect(res.body).toEqual([
+      { id: 3, firstName: 'B', lastName: 'Smith', email: 'bsmith@example.com' },
+    ]);
+
+    res = await request(app)
+      .get('/monetary-donors?search=c@example.com')
+      .set('Authorization', 'Bearer token');
+    expect(res.body).toEqual([
+      { id: 4, firstName: 'C', lastName: 'C', email: 'c@example.com' },
+    ]);
+  });
+
   it('updates donor', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
     (pool.query as jest.Mock)
@@ -339,20 +425,20 @@ describe('Donor test emails', () => {
       .send({ email: 'b@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(201);
-    expect(pool.query).toHaveBeenNthCalledWith(3, 'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email', ['b@test.com']);
+    expect(pool.query).toHaveBeenNthCalledWith(4, 'INSERT INTO donor_test_emails (email) VALUES ($1) RETURNING id, email', ['b@test.com']);
 
     res = await request(app)
       .put('/monetary-donors/test-emails/2')
       .send({ email: 'c@test.com' })
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenNthCalledWith(4, 'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email', ['c@test.com', '2']);
+    expect(pool.query).toHaveBeenNthCalledWith(6, 'UPDATE donor_test_emails SET email = $1 WHERE id = $2 RETURNING id, email', ['c@test.com', '2']);
 
     res = await request(app)
       .delete('/monetary-donors/test-emails/2')
       .set('Authorization', 'Bearer token');
     expect(res.status).toBe(204);
-    expect(pool.query).toHaveBeenNthCalledWith(5, 'DELETE FROM donor_test_emails WHERE id = $1', ['2']);
+    expect(pool.query).toHaveBeenNthCalledWith(8, 'DELETE FROM donor_test_emails WHERE id = $1', ['2']);
   });
 
   it('sends test emails for each tier', async () => {

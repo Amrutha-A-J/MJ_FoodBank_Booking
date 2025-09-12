@@ -19,11 +19,20 @@ describe('Donors page', () => {
   });
 
   it('searches and displays donors', async () => {
-    (getMonetaryDonors as jest.Mock)
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
+    (getMonetaryDonors as jest.Mock).mockImplementation(async (search?: string) => {
+      const donors = [
         { id: 1, firstName: 'Jane', lastName: 'Doe', email: 'jane@example.com' },
-      ]);
+      ];
+      if (!search) return [];
+      const s = search.toLowerCase();
+      return donors.filter(
+        d =>
+          d.id.toString().includes(s) ||
+          d.firstName.toLowerCase().includes(s) ||
+          d.lastName.toLowerCase().includes(s) ||
+          d.email.toLowerCase().includes(s),
+      );
+    });
 
     renderWithProviders(
       <MemoryRouter initialEntries={["/donor-management/donors"]}>
@@ -50,6 +59,14 @@ describe('Donors page', () => {
     const link = await screen.findByText('jane@example.com');
     const anchor = link.closest('a');
     expect(anchor).toHaveAttribute('href', '/donor-management/donors/1');
+
+    fireEvent.change(input, { target: { value: '1' } });
+    act(() => {
+      jest.advanceTimersByTime(300);
+    });
+    await waitFor(() =>
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('1'),
+    );
 
     fireEvent.click(anchor!);
     expect(await screen.findByText('Donor Profile')).toBeInTheDocument();

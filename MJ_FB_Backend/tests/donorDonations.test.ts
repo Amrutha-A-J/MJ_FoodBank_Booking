@@ -9,6 +9,14 @@ jest.mock('jsonwebtoken');
 const app = express();
 app.use('/donors', donorsRoutes);
 
+const authRow = {
+  id: 1,
+  first_name: 'Test',
+  last_name: 'User',
+  email: 't@example.com',
+  role: 'staff',
+};
+
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
   process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
@@ -22,10 +30,7 @@ describe('GET /donors/:id/donations', () => {
   it('returns donations in reverse chronological order', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['warehouse'] });
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
-      })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
         rows: [
           { id: 2, date: '2024-03-01', weight: 30 },

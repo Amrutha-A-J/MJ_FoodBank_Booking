@@ -86,10 +86,23 @@ describe('Donor Donation Log', () => {
   });
 
   it('filters donations by search', async () => {
-    (getMonetaryDonors as jest.Mock).mockResolvedValue([
-      { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
-      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' },
-    ]);
+    (getMonetaryDonors as jest.Mock).mockImplementation(
+      async (search?: string) => {
+        const donors = [
+          { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com' },
+          { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' },
+        ];
+        if (!search) return donors;
+        const s = search.toLowerCase();
+        return donors.filter(
+          d =>
+            d.id.toString().includes(s) ||
+            d.firstName.toLowerCase().includes(s) ||
+            d.lastName.toLowerCase().includes(s) ||
+            d.email.toLowerCase().includes(s),
+        );
+      },
+    );
     (getMonetaryDonations as jest.Mock).mockImplementation(async (donorId: number) => {
       if (donorId === 1) return [{ id: 1, donorId: 1, amount: 50, date: '2024-01-10' }];
       if (donorId === 2) return [{ id: 2, donorId: 2, amount: 100, date: '2024-01-15' }];
@@ -121,12 +134,19 @@ describe('Donor Donation Log', () => {
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
 
-    fireEvent.change(searchField, { target: { value: '100' } });
+    fireEvent.change(searchField, { target: { value: 'Smith' } });
     await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined),
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('Smith'),
     );
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+
+    fireEvent.change(searchField, { target: { value: '1' } });
+    await waitFor(() =>
+      expect(getMonetaryDonors).toHaveBeenLastCalledWith('1'),
+    );
+    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: '' } });
     await waitFor(() =>
