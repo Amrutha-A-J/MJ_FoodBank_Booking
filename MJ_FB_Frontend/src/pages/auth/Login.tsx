@@ -4,9 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { login } from '../../api/users';
 import type { LoginResponse } from '../../api/users';
 import type { ApiError } from '../../api/client';
-import { Link, TextField, Box, Dialog, DialogContent, DialogTitle, IconButton, Typography, Stack } from '@mui/material';
+import { Link, TextField, Box, Stack } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import CloseIcon from '@mui/icons-material/Close';
 import PasswordField from '../../components/PasswordField';
 import Page from '../../components/Page';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
@@ -26,22 +25,10 @@ export default function Login({
   const [resetOpen, setResetOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [noticeOpen, setNoticeOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const identifierRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0');
-    setNoticeOpen(count < 3);
-  }, []);
-
-  function handleNoticeClose() {
-    const count = Number(localStorage.getItem('clientLoginNoticeCount') ?? '0') + 1;
-    localStorage.setItem('clientLoginNoticeCount', String(count));
-    setNoticeOpen(false);
-  }
 
   const identifierError = submitted && identifier === '';
   const passwordError = submitted && password === '';
@@ -170,33 +157,6 @@ export default function Login({
       </Box>
       <PasswordResetDialog open={resetOpen} onClose={() => setResetOpen(false)} />
       <FeedbackSnackbar open={!!error} onClose={() => setError('')} message={error} severity="error" />
-      <Dialog open={noticeOpen} onClose={handleNoticeClose} aria-labelledby="login-notice-title">
-        <DialogTitle id="login-notice-title">{t('login_notice_title')}</DialogTitle>
-        <DialogContent sx={{ position: 'relative', pt: 4 }}>
-          <IconButton
-            aria-label="close"
-            onClick={handleNoticeClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <Typography variant="body2" paragraph>
-            {t('client_login_notice_id')}
-          </Typography>
-          <Typography variant="body2" paragraph>
-            {t('client_login_notice_internal')}
-          </Typography>
-          <Typography variant="body2" paragraph>
-            {t('client_login_notice_password')}
-          </Typography>
-          <Typography variant="body2" paragraph>
-            {t('client_login_notice_volunteer')}
-          </Typography>
-          <Typography variant="body2" paragraph>
-            {t('client_login_notice_close')}
-          </Typography>
-        </DialogContent>
-      </Dialog>
       <ResendPasswordSetupDialog open={resendOpen} onClose={() => setResendOpen(false)} />
     </Page>
   );

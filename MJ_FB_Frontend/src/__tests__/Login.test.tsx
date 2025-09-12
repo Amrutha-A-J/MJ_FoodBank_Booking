@@ -18,9 +18,6 @@ jest.mock('../api/users', () => ({
 }));
 
 describe('Login component', () => {
-  beforeEach(() => {
-    localStorage.setItem('clientLoginNoticeCount', '3');
-  });
   it('submits login credentials and calls onLogin', async () => {
     (login as jest.Mock).mockResolvedValue({
       role: 'shopper',
