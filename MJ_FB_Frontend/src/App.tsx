@@ -94,6 +94,7 @@ const Exports = React.lazy(() => import('./pages/warehouse-management/Exports'))
 const AdminStaffForm = React.lazy(() => import('./pages/admin/AdminStaffForm'));
 const AdminStaffList = React.lazy(() => import('./pages/admin/AdminStaffList'));
 const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
+const Maintenance = React.lazy(() => import('./pages/admin/Maintenance'));
 const Events = React.lazy(() => import('./pages/events/Events'));
 const PantryVisits = React.lazy(() => import('./pages/staff/PantryVisits'));
 const PantryAggregations = React.lazy(() =>
@@ -226,6 +227,7 @@ export default function App() {
           { label: t('timesheets.title'), to: '/admin/timesheet' },
           { label: t('leave.title'), to: '/admin/leave-requests' },
           { label: 'Settings', to: '/admin/settings' },
+          { label: 'Maintenance', to: '/admin/maintenance' },
         ],
       });
 
@@ -485,6 +487,9 @@ export default function App() {
                   )}
                   {showAdmin && (
                     <Route path="/admin/settings" element={<AdminSettings />} />
+                  )}
+                  {showAdmin && (
+                    <Route path="/admin/maintenance" element={<Maintenance />} />
                   )}
                   {showDonorManagement && (
                     <>
