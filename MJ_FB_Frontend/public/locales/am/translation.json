@@ -261,5 +261,10 @@
   },
   "use_biometrics": "Use biometrics",
   "reschedule_no_show_error": "This booking has already expired and was marked as a no-show. Please book a new appointment.",
-  "not_applicable": "N/A"
+  "not_applicable": "N/A",
+  "privacy_notice": {
+    "message": "This app uses basic analytics to improve the service. Read our",
+    "link_label": "privacy policy",
+    "agree": "Agree"
+  }
 }
