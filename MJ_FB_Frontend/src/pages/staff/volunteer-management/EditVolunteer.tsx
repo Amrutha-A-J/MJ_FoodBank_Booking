@@ -36,6 +36,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -213,13 +214,31 @@ export default function EditVolunteer() {
                   placeholder="Search volunteer"
                   onSelect={v => handleSelect(v as VolunteerSearchResult)}
                 />
-                {volunteer && (
+                {volunteer ? (
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography>{volunteer.name}</Typography>
+                    <Typography
+                      variant="h6"
+                      data-testid="volunteer-name"
+                    >
+                      {volunteer.name}
+                    </Typography>
+                    {volunteer.hasPassword && (
+                      <Chip
+                        icon={<CheckCircleOutline fontSize="small" />}
+                        label="Online account"
+                        color="success"
+                        size="small"
+                        variant="outlined"
+                        data-testid="online-badge"
+                        aria-label="Online account"
+                      />
+                    )}
                     {hasShopper && (
                       <Chip label="Shopper profile" size="small" />
                     )}
                   </Stack>
+                ) : (
+                  <FormHelperText>Search and select a volunteer</FormHelperText>
                 )}
               </Stack>
             </CardContent>
