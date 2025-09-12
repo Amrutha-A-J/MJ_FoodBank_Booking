@@ -161,19 +161,10 @@ export async function fetchBookings(
         LEFT JOIN clients u ON b.user_id = u.client_id
         LEFT JOIN new_clients nc ON b.new_client_id = nc.id
         INNER JOIN slots s ON b.slot_id = s.id
-        LEFT JOIN (
-          SELECT client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS visits
-          FROM client_visits
-          GROUP BY client_id, month
-        ) v ON v.client_id = u.client_id
-          AND b.date BETWEEN v.month AND (v.month + INTERVAL '1 month' - INTERVAL '1 day')
-        LEFT JOIN (
-          SELECT user_id AS client_id, DATE_TRUNC('month', date) AS month, COUNT(*) AS approved
-          FROM bookings
-          WHERE status = 'approved'
-          GROUP BY user_id, month
-        ) ab ON ab.client_id = u.client_id
-          AND b.date BETWEEN ab.month AND (ab.month + INTERVAL '1 month' - INTERVAL '1 day')
+        LEFT JOIN monthly_client_visits v ON v.client_id = u.client_id
+          AND DATE_TRUNC('month', b.date) = v.month
+        LEFT JOIN monthly_approved_bookings ab ON ab.client_id = u.client_id
+          AND DATE_TRUNC('month', b.date) = ab.month
       ${whereClause}
       ORDER BY b.date ASC, s.start_time ASC`,
     params,
