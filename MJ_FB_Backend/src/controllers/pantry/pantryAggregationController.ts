@@ -89,36 +89,22 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
 }
 
 export async function refreshPantryMonthly(year: number, month: number) {
-  const [visitsRes, bagRes] = await Promise.all([
-    pool.query(
-      `SELECT COUNT(*) FILTER (WHERE NOT is_anonymous)::int AS visits,
-              COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
-              COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children,
-              COALESCE(SUM(weight_without_cart),0)::int AS weight
-         FROM client_visits
-        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
-    ),
-    pool.query(
-      `SELECT COALESCE(SUM(client_count)::int,0) AS orders,
-              COALESCE(SUM(weight)::int,0) AS weight
-         FROM sunshine_bag_log
-        WHERE EXTRACT(YEAR FROM date) = $1 AND EXTRACT(MONTH FROM date) = $2`,
-      [year, month],
-    ),
-  ]);
+  const totalsRes = await pool.query(
+    `SELECT COALESCE(SUM(orders),0)::int AS orders,
+            COALESCE(SUM(adults),0)::int AS adults,
+            COALESCE(SUM(children),0)::int AS children,
+            COALESCE(SUM(people),0)::int AS people,
+            COALESCE(SUM(weight),0)::int AS weight
+       FROM pantry_weekly_overall
+      WHERE year = $1 AND month = $2`,
+    [year, month],
+  );
 
-  const visitOrders = Number(visitsRes.rows[0]?.visits ?? 0);
-  const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
-  const children = Number(visitsRes.rows[0]?.children ?? 0);
-  const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
-  const bagOrders = Number(bagRes.rows[0]?.orders ?? 0);
-  const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
-
-  const orders = visitOrders + bagOrders;
-  const adults = visitAdults + bagOrders;
-  const people = visitAdults + children;
-  const weight = visitWeight + sunshineWeight;
+  const orders = Number(totalsRes.rows[0]?.orders ?? 0);
+  const adults = Number(totalsRes.rows[0]?.adults ?? 0);
+  const children = Number(totalsRes.rows[0]?.children ?? 0);
+  const people = Number(totalsRes.rows[0]?.people ?? 0);
+  const weight = Number(totalsRes.rows[0]?.weight ?? 0);
 
   await pool.query(
     `INSERT INTO pantry_monthly_overall (year, month, orders, adults, children, people, weight)
@@ -134,36 +120,22 @@ export async function refreshPantryMonthly(year: number, month: number) {
 }
 
 export async function refreshPantryYearly(year: number) {
-  const [visitsRes, bagRes] = await Promise.all([
-    pool.query(
-      `SELECT COUNT(*) FILTER (WHERE NOT is_anonymous)::int AS visits,
-              COALESCE(SUM(adults) FILTER (WHERE NOT is_anonymous),0)::int AS adults,
-              COALESCE(SUM(children) FILTER (WHERE NOT is_anonymous),0)::int AS children,
-              COALESCE(SUM(weight_without_cart),0)::int AS weight
-         FROM client_visits
-        WHERE EXTRACT(YEAR FROM date) = $1`,
-      [year],
-    ),
-    pool.query(
-      `SELECT COALESCE(SUM(client_count)::int,0) AS orders,
-              COALESCE(SUM(weight)::int,0) AS weight
-         FROM sunshine_bag_log
-        WHERE EXTRACT(YEAR FROM date) = $1`,
-      [year],
-    ),
-  ]);
+  const totalsRes = await pool.query(
+    `SELECT COALESCE(SUM(orders),0)::int AS orders,
+            COALESCE(SUM(adults),0)::int AS adults,
+            COALESCE(SUM(children),0)::int AS children,
+            COALESCE(SUM(people),0)::int AS people,
+            COALESCE(SUM(weight),0)::int AS weight
+       FROM pantry_weekly_overall
+      WHERE year = $1`,
+    [year],
+  );
 
-  const visitOrders = Number(visitsRes.rows[0]?.visits ?? 0);
-  const visitAdults = Number(visitsRes.rows[0]?.adults ?? 0);
-  const children = Number(visitsRes.rows[0]?.children ?? 0);
-  const visitWeight = Number(visitsRes.rows[0]?.weight ?? 0);
-    const bagOrders = Number(bagRes.rows[0]?.orders ?? 0);
-  const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
-
-  const orders = visitOrders + bagOrders;
-  const adults = visitAdults + bagOrders;
-  const people = visitAdults + children;
-  const weight = visitWeight + sunshineWeight;
+  const orders = Number(totalsRes.rows[0]?.orders ?? 0);
+  const adults = Number(totalsRes.rows[0]?.adults ?? 0);
+  const children = Number(totalsRes.rows[0]?.children ?? 0);
+  const people = Number(totalsRes.rows[0]?.people ?? 0);
+  const weight = Number(totalsRes.rows[0]?.weight ?? 0);
 
   await pool.query(
     `INSERT INTO pantry_yearly_overall (year, orders, adults, children, people, weight)
