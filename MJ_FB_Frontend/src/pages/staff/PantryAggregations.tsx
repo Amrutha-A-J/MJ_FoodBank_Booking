@@ -70,6 +70,8 @@ export default function PantryAggregations() {
   const [insertLoading, setInsertLoading] = useState(false);
   const [insertYear, setInsertYear] = useState<number | ''>('');
   const [insertMonth, setInsertMonth] = useState<number | ''>('');
+  const [insertWeek, setInsertWeek] = useState<number | ''>('');
+  const [insertWeekRanges, setInsertWeekRanges] = useState<{ week: number; label: string }[]>([]);
   const [insertOrders, setInsertOrders] = useState('');
   const [insertAdults, setInsertAdults] = useState('');
   const [insertChildren, setInsertChildren] = useState('');
@@ -125,6 +127,35 @@ export default function PantryAggregations() {
     setWeekRanges(ranges);
     setWeek(defaultWeek);
   }, [weeklyYear, weeklyMonth, weeklyWeeks]);
+
+  useEffect(() => {
+    if (insertYear === '' || insertMonth === '') {
+      setInsertWeekRanges([]);
+      setInsertWeek('');
+      return;
+    }
+    const ranges = getWeekRanges(insertYear, Number(insertMonth) - 1)
+      .map(r => {
+        let start = dayjs(r.startDate);
+        let end = dayjs(r.endDate);
+        while ([0, 6].includes(start.day()) && start.isBefore(end)) {
+          start = start.add(1, 'day');
+        }
+        while ([0, 6].includes(end.day()) && end.isAfter(start)) {
+          end = end.subtract(1, 'day');
+        }
+        if (start.isAfter(end)) return null;
+        const label = start.isSame(end, 'day')
+          ? formatDate(start)
+          : `${formatDate(start)} - ${formatDate(end)}`;
+        return { week: r.week, label };
+      })
+      .filter((r): r is { week: number; label: string } => r !== null);
+    setInsertWeekRanges(ranges);
+    if (!ranges.some(r => r.week === insertWeek)) {
+      setInsertWeek(ranges[0]?.week ?? '');
+    }
+  }, [insertYear, insertMonth]);
 
   useEffect(() => {
     getPantryYears()
@@ -189,8 +220,8 @@ export default function PantryAggregations() {
       .catch(() => setWeeklyWeeks([]));
   }, [weeklyYear, weeklyMonth]);
 
-  useEffect(() => {
-    if (tab !== 0 || weeklyYear === '' || weeklyMonth === '') return;
+  const loadWeekly = (force = false) => {
+    if ((!force && tab !== 0) || weeklyYear === '' || weeklyMonth === '') return;
     setWeeklyLoading(true);
     getPantryWeekly(weeklyYear, weeklyMonth)
       .then(rows => {
@@ -221,10 +252,12 @@ export default function PantryAggregations() {
       })
       .catch(() => setWeeklyRows([]))
       .finally(() => setWeeklyLoading(false));
-  }, [weeklyYear, weeklyMonth, tab]);
+  };
 
-  const loadMonthly = () => {
-    if (tab !== 1 || monthlyYear === '' || month === '') return;
+  useEffect(() => loadWeekly(), [weeklyYear, weeklyMonth, tab]);
+
+  const loadMonthly = (force = false) => {
+    if ((!force && tab !== 1) || monthlyYear === '' || month === '') return;
     setMonthlyLoading(true);
     getPantryMonthly(monthlyYear, month)
       .then(rows =>
@@ -239,16 +272,18 @@ export default function PantryAggregations() {
       .finally(() => setMonthlyLoading(false));
   };
 
-  useEffect(loadMonthly, [monthlyYear, month, tab]);
+  useEffect(() => loadMonthly(), [monthlyYear, month, tab]);
 
-  useEffect(() => {
-    if (tab !== 2 || yearlyYear === '') return;
+  const loadYearly = (force = false) => {
+    if ((!force && tab !== 2) || yearlyYear === '') return;
     setYearlyLoading(true);
     getPantryYearly(yearlyYear)
       .then(setYearlyRows)
       .catch(() => setYearlyRows([]))
       .finally(() => setYearlyLoading(false));
-  }, [yearlyYear, tab]);
+  };
+
+  useEffect(() => loadYearly(), [yearlyYear, tab]);
 
   const handleExportWeekly = async () => {
     if (weeklyYear === '' || weeklyMonth === '' || week === '') return;
@@ -385,6 +420,27 @@ export default function PantryAggregations() {
         >
           {exportLoading ? <CircularProgress size={20} /> : 'Export Table'}
         </Button>
+        <Button
+          variant="contained"
+          onClick={() => {
+            setInsertYear(weeklyYear);
+            setInsertMonth(weeklyMonth);
+            setInsertWeek(week);
+            setInsertOrders('');
+            setInsertAdults('');
+            setInsertChildren('');
+            setInsertWeight('');
+            setInsertOpen(true);
+          }}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+            minWidth: { sm: 160 },
+            flexShrink: 0,
+            textTransform: 'none',
+          }}
+        >
+          Insert Aggregate
+        </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
         {weeklyLoading ? (
@@ -458,6 +514,7 @@ export default function PantryAggregations() {
           onClick={() => {
             setInsertYear(monthlyYear);
             setInsertMonth(month);
+            setInsertWeek('');
             setInsertOrders('');
             setInsertAdults('');
             setInsertChildren('');
@@ -574,6 +631,22 @@ export default function PantryAggregations() {
               size="medium"
             />
             <TextField
+              select
+              label="Week"
+              value={insertWeek === '' ? '' : String(insertWeek)}
+              onChange={e => {
+                const value = e.target.value;
+                setInsertWeek(value === '' ? '' : Number(value));
+              }}
+              size="medium"
+            >
+              {insertWeekRanges.map(range => (
+                <MenuItem key={range.week} value={range.week}>
+                  {range.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
               label="Orders"
               type="number"
               value={insertOrders}
@@ -610,12 +683,13 @@ export default function PantryAggregations() {
           <Button
             variant="contained"
             onClick={async () => {
-              if (insertYear === '' || insertMonth === '') return;
+              if (insertYear === '' || insertMonth === '' || insertWeek === '') return;
               setInsertLoading(true);
               try {
                 await postManualPantryAggregate({
                   year: Number(insertYear),
                   month: Number(insertMonth),
+                  week: Number(insertWeek),
                   orders: Number(insertOrders) || 0,
                   adults: Number(insertAdults) || 0,
                   children: Number(insertChildren) || 0,
@@ -623,14 +697,21 @@ export default function PantryAggregations() {
                 });
                 setSnackbar({ open: true, message: 'Aggregate saved', severity: 'success' });
                 setInsertOpen(false);
-                loadMonthly();
+                loadWeekly(true);
+                loadMonthly(true);
+                loadYearly(true);
               } catch {
                 setSnackbar({ open: true, message: 'Failed to save', severity: 'error' });
               } finally {
                 setInsertLoading(false);
               }
             }}
-            disabled={insertLoading || insertYear === '' || insertMonth === ''}
+            disabled={
+              insertLoading ||
+              insertYear === '' ||
+              insertMonth === '' ||
+              insertWeek === ''
+            }
             sx={{ textTransform: 'none' }}
           >
             {insertLoading ? <CircularProgress size={20} /> : 'Save'}
