@@ -53,8 +53,6 @@ describe("VolunteerSchedule", () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.useFakeTimers();
     jest.setSystemTime(new Date());
     jest.useRealTimers();
   });
