@@ -40,16 +40,18 @@ export async function sendNextDayBookingReminders(
       );
       const body = `Date: ${formattedDate}${time}`;
       tasks.push(() =>
-        enqueueEmail({
-          to: b.user_email!,
-          templateId: config.bookingReminderTemplateId,
-          params: {
-            body,
-            cancelLink,
-            rescheduleLink,
-            type: 'Shopping Appointment',
-          },
-        }),
+        Promise.resolve(
+          enqueueEmail({
+            to: b.user_email!,
+            templateId: config.bookingReminderTemplateId,
+            params: {
+              body,
+              cancelLink,
+              rescheduleLink,
+              type: 'Shopping Appointment',
+            },
+          }),
+        ),
       );
       ids.push(b.id);
       recipients.push(b.user_email);

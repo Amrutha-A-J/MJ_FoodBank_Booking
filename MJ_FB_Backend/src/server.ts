@@ -107,8 +107,9 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
   stopVacuumJob();
   shutdownQueue();
   if (server) {
+    const srv = server;
     await new Promise<void>((resolve, reject) => {
-      server.close((err) => (err ? reject(err) : resolve()));
+      srv.close((err) => (err ? reject(err) : resolve()));
     });
   }
   try {
