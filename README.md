@@ -188,6 +188,7 @@ npm run test:frontend  # frontend tests
 - Bookings support an optional **client note** field. Clients can add a note during booking, and staff see it in booking dialogs. Client notes are stored and returned via `/bookings` endpoints.
 - Client visit records include an optional **staff note** field. Staff users automatically see these notes via `/bookings/history`, while agency users can retrieve them by adding `includeStaffNotes=true`.
 - Staff or agency users can create bookings for unregistered clients via `/bookings/new-client`; the email field is optional, so bookings can be created without an email address. Staff can list or delete these pending clients through `/new-clients` routes and the Client Management **New Clients** tab.
+- Searching for a numeric client ID in Client Management that returns no results shows an **Add Client** shortcut that opens the Add tab with the ID prefilled.
 - Volunteer role management and scheduling restricted to trained areas; volunteers can only book shifts in roles they are trained for.
 - Volunteer management groups volunteer search, creation, and review under a **Volunteers** submenu. Its **Pending Reviews** tab shows the current week with `no_show` shifts and today's overdue `approved` bookings, allowing staff to mark them `completed` or `no_show`.
 - Staff can manage recurring volunteer shift series from the **Recurring Shifts** page under Volunteer Management.

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   getBookingHistory,
   cancelBooking,
@@ -25,6 +25,7 @@ export default function UserHistory({
   initialUser?: User;
 }) {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<User | null>(initialUser || null);
   const { t } = useTranslation();
   const { role } = useAuth();
@@ -51,6 +52,9 @@ export default function UserHistory({
               type="user"
               placeholder={t('search_by_name_or_client_id')}
               onSelect={u => setSelected(u as User)}
+              onNotFound={id =>
+                navigate(`/staff/client-management?tab=add&clientId=${id}`)
+              }
             />
           )}
           {selected && (

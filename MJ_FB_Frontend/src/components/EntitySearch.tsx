@@ -19,6 +19,7 @@ interface EntitySearchProps<T extends SearchResultBase> {
   renderResult?: (result: T, select: () => void) => ReactNode;
   searchFn?: (query: string) => Promise<T[]>;
   clearOnSelect?: boolean;
+  onNotFound?: (id: string) => void;
 }
 
 export default function EntitySearch<T extends SearchResultBase>({
@@ -28,6 +29,7 @@ export default function EntitySearch<T extends SearchResultBase>({
   renderResult,
   searchFn,
   clearOnSelect = false,
+  onNotFound,
 }: EntitySearchProps<T>) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -117,6 +119,18 @@ export default function EntitySearch<T extends SearchResultBase>({
       ) : (
         query.trim().length >= 3 && <p>No search results.</p>
       )}
+      {type === 'user' &&
+        results.length === 0 &&
+        /^\d+$/.test(query.trim()) &&
+        onNotFound && (
+          <Button
+            onClick={() => onNotFound(query.trim())}
+            variant="outlined"
+            color="primary"
+          >
+            {`Add Client ${query.trim()}`}
+          </Button>
+        )}
       <FeedbackSnackbar
         open={!!error}
         onClose={() => setError('')}
