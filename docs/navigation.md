@@ -8,3 +8,5 @@ Only client-facing navigation items require translation. Add the following trans
 
 - `dashboard`
 - `privacy_policy`
+- `volunteer_shift`
+- `book_shopping`
