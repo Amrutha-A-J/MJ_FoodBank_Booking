@@ -97,5 +97,6 @@ describe('UpdateClientData', () => {
     const checkbox = await screen.findByLabelText('Online Access');
     expect(checkbox).toBeDisabled();
     expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+    expect(screen.getByTestId('online-badge')).toBeInTheDocument();
   });
 });
