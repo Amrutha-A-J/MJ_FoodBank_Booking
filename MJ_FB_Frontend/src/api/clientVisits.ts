@@ -79,6 +79,12 @@ export async function getVisitStats(
   if (params.months != null) url.searchParams.set('months', String(params.months));
   if (params.group != null) url.searchParams.set('group', params.group);
   const res = await apiFetch(url.toString());
-  return handleResponse(res);
+  const data = await handleResponse<any[]>(res);
+  return data.map(row => ({
+    month: row.month ?? row.date ?? '',
+    clients: row.clients ?? row.total ?? 0,
+    adults: row.adults ?? 0,
+    children: row.children ?? 0,
+  }));
 }
 
