@@ -68,11 +68,10 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
     render: b => {
       const start = b.start_time ?? b.startTime;
       const end = b.end_time ?? b.endTime;
-      const startTime = start ? formatTime(start) : 'N/A';
-      const endTime = end ? formatTime(end) : 'N/A';
-      return startTime !== 'N/A' && endTime !== 'N/A'
-        ? `${startTime} - ${endTime}`
-        : 'N/A';
+      const na = t('not_applicable');
+      const startTime = start ? formatTime(start) : na;
+      const endTime = end ? formatTime(end) : na;
+      return start && end ? `${startTime} - ${endTime}` : na;
     },
   });
 

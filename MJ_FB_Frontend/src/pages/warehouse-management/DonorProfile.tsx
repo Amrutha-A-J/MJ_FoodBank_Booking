@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -18,6 +19,7 @@ import Page from '../../components/Page';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 export default function DonorProfile() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [donor, setDonor] = useState<DonorDetail | null>(null);
   const [donations, setDonations] = useState<DonorDonation[]>([]);
@@ -54,7 +56,7 @@ export default function DonorProfile() {
               Total: {donor.totalLbs.toLocaleString()} lbs
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Last Donation: {donor.lastDonationISO ? formatLocaleDate(donor.lastDonationISO) : 'N/A'}
+              Last Donation: {donor.lastDonationISO ? formatLocaleDate(donor.lastDonationISO) : t('not_applicable')}
             </Typography>
           </CardContent>
         </Card>

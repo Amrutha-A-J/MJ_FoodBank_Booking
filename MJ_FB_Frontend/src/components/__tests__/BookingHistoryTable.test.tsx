@@ -1,3 +1,4 @@
+import en from '../../../public/locales/en/translation.json';
 import BookingHistoryTable, { type BookingHistoryItem } from '../BookingHistoryTable';
 import { renderWithProviders, screen, fireEvent } from '../../../testUtils/renderWithProviders';
 
@@ -35,6 +36,11 @@ describe('BookingHistoryTable', () => {
     expect(onReschedule).toHaveBeenCalledWith(row);
     fireEvent.click(screen.getByText('Cancel all upcoming'));
     expect(onCancelSeries).toHaveBeenCalledWith(2);
+  });
+
+  it('shows N/A when time missing', () => {
+    renderWithProviders(<BookingHistoryTable rows={[{ id: 2, date: '2024-01-01', status: 'approved' }]} />);
+    expect(screen.getByText(en.not_applicable)).toBeInTheDocument();
   });
 });
 
