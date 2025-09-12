@@ -119,6 +119,8 @@ export function SlotRow({
   loadingConfirm,
 }: SlotRowProps) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const bookWidth = 140;
   const start = dayjs(slot.startTime, 'HH:mm:ss');
   const end = dayjs(slot.endTime, 'HH:mm:ss');
@@ -145,16 +147,23 @@ export function SlotRow({
           start: start.format('h:mm a'),
           end: end.format('h:mm a'),
         })}
-        sx={theme => ({
+        sx={{
           pl: 2,
           flexGrow: 1,
-          mr: selected ? 1 : 0,
-          transition: theme.transitions.create('margin-right'),
+          ...(isMdUp
+            ? {
+                mr: selected ? 1 : 0,
+                transition: theme.transitions.create('margin-right'),
+              }
+            : {
+                mb: selected ? 1 : 0,
+                transition: theme.transitions.create('margin-bottom'),
+              }),
           ...(selected && {
             bgcolor: 'warning.light',
             borderLeft: `3px solid ${theme.palette.primary.main}`,
           }),
-        })}
+        }}
       >
         <ListItemText
           primary={label}
@@ -171,15 +180,21 @@ export function SlotRow({
           color={isFull ? 'default' : 'success'}
         />
       </ListItemButton>
-      <Collapse orientation="horizontal" in={selected} unmountOnExit>
+      <Collapse
+        orientation={isMdUp ? 'horizontal' : 'vertical'}
+        in={selected}
+        unmountOnExit
+        sx={isMdUp ? undefined : { width: '100%' }}
+      >
         <Button
           variant="contained"
           size="medium"
-          sx={{
-            width: bookWidth,
-            height: '100%',
-            flexShrink: 0,
-          }}
+          fullWidth={!isMdUp}
+          sx={
+            isMdUp
+              ? { width: bookWidth, height: '100%', flexShrink: 0 }
+              : { width: '100%' }
+          }
           disabled={booking || loadingConfirm}
           onClick={onBook}
         >
