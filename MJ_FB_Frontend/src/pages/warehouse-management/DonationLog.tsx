@@ -37,7 +37,8 @@ function formatMonth(date = new Date()) {
 
 export default function DonationLog() {
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [donors, setDonors] = useState<Donor[]>([]);
+  const [donorOptions, setDonorOptions] = useState<Donor[]>([]);
+  const [donorSearch, setDonorSearch] = useState('');
   const [month, setMonth] = useState(formatMonth());
   const [recordOpen, setRecordOpen] = useState(false);
   const [editing, setEditing] = useState<Donation | null>(null);
@@ -55,7 +56,7 @@ export default function DonationLog() {
     donorId: null,
     weight: '',
   });
-  const [donorName, setDonorName] = useState('');
+  const [newDonor, setNewDonor] = useState({ firstName: '', lastName: '', email: '' });
 
   type DonationRow = Donation & { actions?: string };
 
@@ -65,7 +66,11 @@ export default function DonationLog() {
       header: 'Date',
       render: d => formatLocaleDate(d.date),
     },
-    { field: 'donor', header: 'Donor' },
+    {
+      field: 'donor' as keyof DonationRow & string,
+      header: 'Donor',
+      render: d => `${d.donor.firstName} ${d.donor.lastName} (${d.donor.email})`,
+    },
     {
       field: 'weight',
       header: 'Weight (lbs)',
@@ -105,10 +110,23 @@ export default function DonationLog() {
   ];
 
   useEffect(() => {
-    getDonors()
-      .then(d => setDonors(d.sort((a, b) => a.name.localeCompare(b.name))))
-      .catch(() => setDonors([]));
-  }, []);
+    let active = true;
+    getDonors(donorSearch)
+      .then(d => {
+        if (active)
+          setDonorOptions(
+            d.sort((a, b) =>
+              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+            ),
+          );
+      })
+      .catch(() => {
+        if (active) setDonorOptions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [donorSearch]);
 
   const loadDonations = useCallback(() => {
     getDonationsByMonth(month)
@@ -139,17 +157,21 @@ export default function DonationLog() {
   }
 
   function handleAddDonor() {
-    if (donorName && !donors.some(d => d.name === donorName)) {
-      createDonor(donorName)
-        .then(newDonor => {
-          setDonors([...donors, newDonor].sort((a, b) => a.name.localeCompare(b.name)));
+    if (newDonor.firstName && newDonor.lastName && newDonor.email) {
+      createDonor(newDonor)
+        .then(d => {
+          setDonorOptions(prev =>
+            [...prev, d].sort((a, b) =>
+              `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+            ),
+          );
           showSnackbar('Donor added');
         })
         .catch(err => {
           showSnackbar(err.message || 'Failed to add donor', 'error');
         });
     }
-    setDonorName('');
+    setNewDonor({ firstName: '', lastName: '', email: '' });
     setNewDonorOpen(false);
   }
 
@@ -218,12 +240,13 @@ export default function DonationLog() {
               onChange={e => setForm({ ...form, weight: e.target.value })}
             />
             <Autocomplete
-              options={donors}
-              value={donors.find(d => d.id === form.donorId) || null}
+              options={donorOptions}
+              value={donorOptions.find(d => d.id === form.donorId) || null}
+              onInputChange={(_e, v) => setDonorSearch(v)}
               onChange={(_e, v) => setForm({ ...form, donorId: v ? v.id : null })}
               renderInput={params => <TextField {...params} label="Donor" />}
               isOptionEqualToValue={(option, value) => option.id === value.id}
-              getOptionLabel={option => option.name}
+              getOptionLabel={o => `${o.firstName} ${o.lastName} (${o.email})`}
             />
           </Stack>
         </DialogContent>
@@ -270,15 +293,30 @@ export default function DonationLog() {
         <DialogCloseButton onClose={() => setNewDonorOpen(false)} />
         <DialogTitle>Add Donor</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <TextField
-            label="Donor Name"
-            value={donorName}
-            onChange={e => setDonorName(e.target.value)}
-            fullWidth
-          />
+          <Stack spacing={2} mt={1}>
+            <TextField
+              label="First Name"
+              value={newDonor.firstName}
+              onChange={e => setNewDonor({ ...newDonor, firstName: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label="Last Name"
+              value={newDonor.lastName}
+              onChange={e => setNewDonor({ ...newDonor, lastName: e.target.value })}
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={newDonor.email}
+              onChange={e => setNewDonor({ ...newDonor, email: e.target.value })}
+              fullWidth
+            />
+          </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleAddDonor} disabled={!donorName}>Save</Button>
+          <Button onClick={handleAddDonor} disabled={!newDonor.firstName || !newDonor.lastName || !newDonor.email}>Save</Button>
         </DialogActions>
       </Dialog>
 

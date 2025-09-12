@@ -4,7 +4,11 @@ export interface Donation {
   id: number;
   date: string;
   donorId: number;
-  donor: string;
+  donor: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   weight: number;
 }
 

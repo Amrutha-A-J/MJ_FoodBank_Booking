@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-} from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
   getDonor,
@@ -51,12 +46,20 @@ export default function DonorProfile() {
       {donor && (
         <Card variant="outlined" sx={{ mb: 2 }}>
           <CardContent>
-            <Typography variant="h6">{donor.name}</Typography>
+            <Typography variant="h6">
+              {donor.firstName} {donor.lastName}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {donor.email}
+            </Typography>
             <Typography variant="body2" color="text.secondary">
               Total: {donor.totalLbs.toLocaleString()} lbs
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Last Donation: {donor.lastDonationISO ? formatLocaleDate(donor.lastDonationISO) : t('not_applicable')}
+              Last Donation:{' '}
+              {donor.lastDonationISO
+                ? formatLocaleDate(donor.lastDonationISO)
+                : t('not_applicable')}
             </Typography>
           </CardContent>
         </Card>
