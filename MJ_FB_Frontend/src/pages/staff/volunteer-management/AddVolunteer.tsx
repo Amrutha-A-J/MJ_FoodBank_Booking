@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createVolunteer, getVolunteerRoles } from '../../../api/volunteers';
 import { getApiErrorMessage } from '../../../api/helpers';
 import type { VolunteerRoleWithShifts } from '../../../types';
@@ -6,13 +6,23 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
+  FormControl,
   FormControlLabel,
+  FormHelperText,
+  Grid,
+  InputLabel,
+  ListItemText,
+  ListSubheader,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import PasswordField from '../../../components/PasswordField';
 
@@ -35,10 +45,34 @@ export default function AddVolunteer() {
       .catch(() => setRoles([]));
   }, []);
 
-  function toggleRole(id: number, checked: boolean) {
-    setSelectedRoles(prev =>
-      checked ? [...prev, id] : prev.filter(r => r !== id),
-    );
+  const groupedRoles = useMemo(() => {
+    const groups = new Map<string, { id: number; name: string }[]>();
+    roles.forEach(r => {
+      const arr = groups.get(r.category_name) || [];
+      if (!arr.some(a => a.id === r.id)) {
+        arr.push({ id: r.id, name: r.name });
+      }
+      groups.set(r.category_name, arr);
+    });
+    return Array.from(groups.entries()).map(([category, roles]) => ({
+      category,
+      roles,
+    }));
+  }, [roles]);
+
+  const idToName = useMemo(() => {
+    const map = new Map<number, string>();
+    roles.forEach(r => map.set(r.id, r.name));
+    return map;
+  }, [roles]);
+
+  function handleRoleChange(e: SelectChangeEvent<number[]>) {
+    const value = e.target.value;
+    setSelectedRoles(typeof value === 'string' ? value.split(',').map(Number) : value);
+  }
+
+  function removeRole(id: number) {
+    setSelectedRoles(prev => prev.filter(r => r !== id));
   }
 
   async function handleSubmit() {
@@ -142,18 +176,58 @@ export default function AddVolunteer() {
           onChange={e => setPhone(e.target.value)}
         />
         <Typography variant="subtitle1">Trained Areas</Typography>
-        {roles.map(r => (
-          <FormControlLabel
-            key={r.id}
-            control={
-              <Checkbox
-                checked={selectedRoles.includes(r.id)}
-                onChange={e => toggleRole(r.id, e.target.checked)}
-              />
+        <FormControl fullWidth>
+          <InputLabel id="roles-select-label">Roles</InputLabel>
+          <Select
+            labelId="roles-select-label"
+            multiple
+            value={selectedRoles}
+            onChange={handleRoleChange}
+            renderValue={selected =>
+              (selected as number[]).length === 0
+                ? 'Select roles'
+                : (selected as number[])
+                    .map(id => idToName.get(id))
+                    .join(', ')
             }
-            label={r.name}
-          />
-        ))}
+            label="Roles"
+          >
+            {groupedRoles.flatMap(g => [
+              <ListSubheader key={`${g.category}-header`}>
+                {g.category}
+              </ListSubheader>,
+              ...g.roles.map(r => (
+                <MenuItem key={r.id} value={r.id}>
+                  <Checkbox checked={selectedRoles.includes(r.id)} />
+                  <ListItemText primary={r.name} />
+                </MenuItem>
+              )),
+            ])}
+          </Select>
+          {selectedRoles.length === 0 && (
+            <FormHelperText>No roles selected</FormHelperText>
+          )}
+        </FormControl>
+        {selectedRoles.length > 0 && (
+          <Grid
+            container
+            spacing={1}
+            sx={{ mt: 2, bgcolor: 'background.default', p: 1, borderRadius: 1 }}
+          >
+            {selectedRoles.map(id => (
+              <Grid item key={id}>
+                <Chip
+                  label={idToName.get(id)}
+                  variant="outlined"
+                  size="medium"
+                  onDelete={() => removeRole(id)}
+                  sx={{ maxWidth: 200 }}
+                  title={idToName.get(id)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
         <Button variant="contained" onClick={handleSubmit}>
           Add Volunteer
         </Button>

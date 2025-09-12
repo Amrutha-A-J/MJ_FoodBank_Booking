@@ -62,6 +62,38 @@ beforeEach(() => {
 });
 
 describe('VolunteerManagement create volunteer', () => {
+  it('groups roles by master role', async () => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        category_id: 1,
+        name: 'Greeter',
+        max_volunteers: 1,
+        category_name: 'Front',
+        shifts: [],
+      },
+      {
+        id: 2,
+        category_id: 2,
+        name: 'Driver',
+        max_volunteers: 1,
+        category_name: 'Back',
+        shifts: [],
+      },
+    ]);
+
+    render(
+      <MemoryRouter initialEntries={['/volunteers/create']}>
+        <Routes>
+          <Route path="/volunteers/:tab" element={<VolunteerManagement />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /select roles/i }));
+    expect(await screen.findByText('Front')).toBeInTheDocument();
+    expect(await screen.findByText('Back')).toBeInTheDocument();
+  });
   it('requires email when online access enabled', async () => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
@@ -316,8 +348,8 @@ describe('VolunteerManagement role updates', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const input = await screen.findByLabelText(/add role/i);
-    fireEvent.mouseDown(input);
+    const [, select] = await screen.findAllByLabelText(/add role/i);
+    fireEvent.mouseDown(select);
     fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
