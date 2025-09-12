@@ -4,6 +4,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from '../../../../testUtils/renderWithProviders';
 import '@testing-library/jest-dom';
 import PantryVisits from '../PantryVisits';
@@ -364,9 +365,52 @@ describe('PantryVisits', () => {
 
     await screen.findByText('Alice');
 
-    expect(screen.getByText('Mon, May 13, 2024')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Summary of Mon, May 13, 2024' }),
+    ).toBeInTheDocument();
 
     jest.useRealTimers();
+  });
+
+  it('shows row numbers for visits', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-01-01',
+        clientId: 111,
+        clientName: 'Alice',
+        anonymous: false,
+        weightWithCart: 10,
+        weightWithoutCart: 5,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+        verified: false,
+      },
+      {
+        id: 2,
+        date: '2024-01-01',
+        clientId: 222,
+        clientName: 'Bob',
+        anonymous: false,
+        weightWithCart: 20,
+        weightWithoutCart: 15,
+        petItem: 0,
+        adults: 1,
+        children: 0,
+        verified: false,
+      },
+    ]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+
+    renderVisits();
+
+    await screen.findByText('Bob');
+
+    const rows = screen.getAllByRole('row');
+    expect(within(rows[1]).getAllByRole('cell')[0]).toHaveTextContent('1');
+    expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('2');
   });
 
   it('shows "No records" when there are no visits', async () => {
