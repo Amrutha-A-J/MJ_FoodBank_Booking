@@ -57,6 +57,23 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     throw e;
   }
 
+  if (res.status === 403) {
+    const data = await res
+      .clone()
+      .json()
+      .catch(() => null);
+    if (data && data.message === 'Invalid CSRF token') {
+      csrfToken = null;
+      await ensureCsrfToken();
+      if (csrfToken) {
+        const retryHeaders = new Headers(retryRequest.headers);
+        retryHeaders.set('X-CSRF-Token', csrfToken);
+        const retry = new Request(retryRequest, { headers: retryHeaders });
+        res = await fetchWithRetry(retry, {}, 1, 300);
+      }
+    }
+  }
+
   if (res.status === 401) {
     if (isRefreshCall) {
       clearAuthAndRedirect();
