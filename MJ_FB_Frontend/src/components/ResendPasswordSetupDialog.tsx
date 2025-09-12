@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogTitle, Button, TextField } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, Button, TextField, Typography } from '@mui/material';
 import { resendPasswordSetup } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
@@ -47,6 +47,9 @@ export default function ResendPasswordSetupDialog({
             actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
+            <Typography variant="body2">
+              {t('setup_link_explanation')}
+            </Typography>
             <TextField
               autoFocus
               margin="dense"
