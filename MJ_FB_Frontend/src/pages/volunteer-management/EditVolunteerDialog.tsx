@@ -124,30 +124,35 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
             value={form.firstName}
             onChange={e => setForm({ ...form, firstName: e.target.value })}
             required
+            fullWidth
           />
           <TextField
             label="Last Name"
             value={form.lastName}
             onChange={e => setForm({ ...form, lastName: e.target.value })}
             required
+            fullWidth
           />
           <TextField
             label="Email (optional)"
             type="email"
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
+            fullWidth
           />
           <TextField
             label="Phone (optional)"
             type="tel"
             value={form.phone}
             onChange={e => setForm({ ...form, phone: e.target.value })}
+            fullWidth
           />
           {form.onlineAccess && !form.hasPassword && (
             <PasswordField
               label="Password"
               value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
+              fullWidth
             />
           )}
         </Stack>
@@ -158,7 +163,11 @@ export default function EditVolunteerDialog({ volunteer, onClose, onSaved }: Edi
             Send password setup link
           </Button>
         )}
-        <Button onClick={handleSave} disabled={!form.firstName || !form.lastName}>
+        <Button
+          onClick={handleSave}
+          disabled={!form.firstName || !form.lastName}
+          aria-label="Save volunteer"
+        >
           Save
         </Button>
       </DialogActions>
