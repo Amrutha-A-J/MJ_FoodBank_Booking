@@ -102,7 +102,11 @@ describe('pantry aggregation routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Rebuilt' });
     expect(refreshPantryMonthly).toHaveBeenCalledTimes(12);
-    expect(refreshPantryWeekly).toHaveBeenCalledTimes(72);
+    expect(refreshPantryWeekly).toHaveBeenCalledTimes(53);
+    const week6Calls = (refreshPantryWeekly as jest.Mock).mock.calls.filter(
+      ([, , w]) => w === 6,
+    );
+    expect(week6Calls.length).toBe(0);
     expect(refreshPantryYearly).toHaveBeenCalledWith(2024);
   });
 
@@ -121,7 +125,7 @@ describe('pantry aggregation routes', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     expect(res.headers['content-disposition']).toBe(
-      'attachment; filename=2024_05_2024-04-29_to_2024-05-03_week_1_agggregation.xlsx',
+      'attachment; filename=2024_05_2024-05-06_to_2024-05-10_week_1_agggregation.xlsx',
     );
     expect(res.body).toEqual(Buffer.from('test'));
   });
@@ -181,7 +185,7 @@ describe('pantry aggregation routes', () => {
     const body = {
       year: 2024,
       month: 5,
-      week: 2,
+      week: 1,
       orders: 1,
       adults: 2,
       children: 3,
@@ -197,7 +201,7 @@ describe('pantry aggregation routes', () => {
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining('INSERT INTO pantry_weekly_overall'),
-      [2024, 5, 2, '2024-05-06', '2024-05-10', 1, 2, 3, 5, 10],
+      [2024, 5, 1, '2024-05-06', '2024-05-10', 1, 2, 3, 5, 10],
     );
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO pantry_monthly_overall'),

@@ -15,6 +15,7 @@ import {
   refreshPantryMonthly,
   refreshPantryYearly,
   manualPantryAggregate,
+  firstMondayOfMonth,
 } from './pantry/pantryAggregationController';
 
 export {
@@ -76,8 +77,14 @@ export async function rebuildAggregations(_req: Request, res: Response, next: Ne
     if (minYear && maxYear) {
       for (let y = minYear; y <= maxYear; y++) {
         for (let m = 1; m <= 12; m++) {
-          for (let w = 1; w <= 6; w++) {
+          const firstMonday = firstMondayOfMonth(y, m);
+          let w = 1;
+          while (true) {
+            const start = new Date(firstMonday);
+            start.setUTCDate(firstMonday.getUTCDate() + (w - 1) * 7);
+            if (start.getUTCMonth() + 1 !== m) break;
             await refreshPantryWeekly(y, m, w);
+            w++;
           }
           await refreshPantryMonthly(y, m);
         }

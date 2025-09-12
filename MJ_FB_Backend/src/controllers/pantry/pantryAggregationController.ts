@@ -14,6 +14,15 @@ function startOfWeek(date: Date) {
   return d;
 }
 
+export function firstMondayOfMonth(year: number, month: number) {
+  const monthStart = new Date(Date.UTC(year, month - 1, 1));
+  const firstMonday = startOfWeek(monthStart);
+  if (firstMonday.getUTCMonth() + 1 !== month) {
+    firstMonday.setUTCDate(firstMonday.getUTCDate() + 7);
+  }
+  return firstMonday;
+}
+
 const headerStyle = {
   backgroundColor: '#000000',
   color: '#FFFFFF',
@@ -21,10 +30,12 @@ const headerStyle = {
 };
 
 export async function refreshPantryWeekly(year: number, month: number, week: number) {
-  const monthStart = new Date(Date.UTC(year, month - 1, 1));
-  const firstMonday = startOfWeek(monthStart);
+  const firstMonday = firstMondayOfMonth(year, month);
   const start = new Date(firstMonday);
   start.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
+
+  if (start.getUTCMonth() + 1 !== month) return;
+
   const end = new Date(start);
   end.setUTCDate(start.getUTCDate() + 4);
 
@@ -168,10 +179,11 @@ export async function manualPantryAggregate(
     const weight = Number(req.body.weight) || 0;
 
     if (week) {
-      const monthStart = new Date(Date.UTC(year, month - 1, 1));
-      const firstMonday = startOfWeek(monthStart);
+      const firstMonday = firstMondayOfMonth(year, month);
       const start = new Date(firstMonday);
       start.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
+      if (start.getUTCMonth() + 1 !== month)
+        return res.status(400).json({ message: 'Invalid week for month' });
       const end = new Date(start);
       end.setUTCDate(start.getUTCDate() + 4);
       const startStr = start.toISOString().slice(0, 10);
@@ -363,8 +375,7 @@ export async function exportPantryWeekly(req: Request, res: Response, next: Next
 
     let { startDate, endDate } = row;
     if (!startDate || !endDate) {
-      const monthStart = new Date(Date.UTC(year, month - 1, 1));
-      const firstMonday = startOfWeek(monthStart);
+      const firstMonday = firstMondayOfMonth(year, month);
       const start = new Date(firstMonday);
       start.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
       const end = new Date(start);
