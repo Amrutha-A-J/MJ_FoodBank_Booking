@@ -1,3 +1,4 @@
+import en from '../../../../public/locales/en/translation.json';
 import {
   renderWithProviders,
   screen,
@@ -255,6 +256,13 @@ describe('PantryVisits', () => {
     expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
+  it('shows N/A for missing client info', async () => {
+    (getClientVisits as jest.Mock).mockResolvedValue([{ id: 1, date: '2024-01-01', clientId: null, clientName: null, anonymous: false, adults: 0, children: 0, verified: false }]);
+    (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
+    (getSunshineBag as jest.Mock).mockResolvedValue(null);
+    renderVisits();
+    expect(await screen.findAllByText(en.not_applicable)).toHaveLength(2);
+  });
   it('toggles verification and hides actions', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([
       {

@@ -14,3 +14,4 @@ Translations apply only to client-visible booking messages (e.g., `no_reschedule
 - `reschedule_no_show_error`
 - `select_date_time`
 - `visits_this_month`
+- `not_applicable`

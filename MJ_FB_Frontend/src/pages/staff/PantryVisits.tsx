@@ -318,7 +318,7 @@ export default function PantryVisits() {
       field: 'clientId',
       header: 'Client ID',
       render: (v: ClientVisit) =>
-        `${v.clientId ?? 'N/A'}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
+        `${v.clientId ?? t('not_applicable')}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
     },
     {
       field: 'clientName',
@@ -338,7 +338,7 @@ export default function PantryVisits() {
             {t('open_profile')}
           </a>
         ) : (
-          'N/A'
+          t('not_applicable')
         ),
     },
     { field: 'weightWithCart', header: 'Weight With Cart' },

@@ -260,5 +260,6 @@
     "close": "Got it"
   },
   "use_biometrics": "Use biometrics",
-  "reschedule_no_show_error": "This booking has already expired and was marked as a no-show. Please book a new appointment."
+  "reschedule_no_show_error": "This booking has already expired and was marked as a no-show. Please book a new appointment.",
+  "not_applicable": "N/A"
 }
