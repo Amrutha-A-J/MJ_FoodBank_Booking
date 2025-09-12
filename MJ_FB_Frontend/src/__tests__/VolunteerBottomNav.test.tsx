@@ -20,13 +20,13 @@ describe('VolunteerBottomNav', () => {
     mockUseAuth.mockReturnValue({ role: 'volunteer', userRole: '' });
   });
 
-  it('selects volunteer shift tab when on schedule route', () => {
+  it('selects volunteer tab when on schedule route', () => {
     render(
       <MemoryRouter initialEntries={['/volunteer/schedule']}>
         <VolunteerBottomNav />
       </MemoryRouter>,
     );
-    const scheduleBtn = screen.getByRole('button', { name: /volunteer shift/i });
+    const scheduleBtn = screen.getByRole('button', { name: /volunteer/i });
     expect(scheduleBtn).toHaveClass('Mui-selected');
   });
 
@@ -47,7 +47,7 @@ describe('VolunteerBottomNav', () => {
         <VolunteerBottomNav />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('button', { name: /book shopping/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /shopping/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /profile/i })).toBeInTheDocument();
   });
 
@@ -58,7 +58,7 @@ describe('VolunteerBottomNav', () => {
         <VolunteerBottomNav />
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /book shopping/i }));
+    fireEvent.click(screen.getByRole('button', { name: /shopping/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/book-appointment');
     fireEvent.click(screen.getByRole('button', { name: /profile/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/profile');

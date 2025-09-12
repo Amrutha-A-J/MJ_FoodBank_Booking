@@ -5,6 +5,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { Role } from '../types';
+import { useTranslation } from 'react-i18next';
 
 export default function VolunteerBottomNav() {
   let role: Role | '' = '';
@@ -15,6 +16,7 @@ export default function VolunteerBottomNav() {
   if (role !== 'volunteer') return null;
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   let value: 'dashboard' | 'schedule' | 'bookings' | 'profile' = 'dashboard';
   if (pathname.startsWith('/volunteer/schedule')) value = 'schedule';
   else if (pathname.startsWith('/book-appointment') || pathname.startsWith('/booking-history'))
@@ -34,28 +36,28 @@ export default function VolunteerBottomNav() {
         }}
       >
         <BottomNavigationAction
-          label="Dashboard"
+          label={t('dashboard')}
           value="dashboard"
-          icon={<Dashboard aria-label="dashboard" />}
+          icon={<Dashboard aria-label={t('dashboard')} />}
         />
         <BottomNavigationAction
-          label="Volunteer Shift"
+          label={t('volunteer_shift')}
           value="schedule"
-          icon={<CalendarToday aria-label="volunteer shift" />}
+          icon={<CalendarToday aria-label={t('volunteer_shift')} />}
         />
         {userRole === 'shopper' && [
           <BottomNavigationAction
             key="bookings"
-            label="Book Shopping"
+            label={t('book_shopping')}
             value="bookings"
-            icon={<CalendarToday aria-label="book shopping" />}
-          />, 
+            icon={<CalendarToday aria-label={t('book_shopping')} />}
+          />,
           <BottomNavigationAction
             key="profile"
-            label="Profile"
+            label={t('profile')}
             value="profile"
-            icon={<AccountCircle aria-label="profile" />}
-          />, 
+            icon={<AccountCircle aria-label={t('profile')} />}
+          />,
         ]}
       </BottomNavigation>
     </Paper>

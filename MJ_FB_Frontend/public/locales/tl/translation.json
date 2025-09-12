@@ -297,6 +297,6 @@
   },
   "insert_aggregate": "Insert Aggregate",
   "insert_aggregate_help": "Manually add or update monthly totals",
-  "volunteer_shift": "Volunteer Shift",
-  "book_shopping": "Book Shopping"
+  "volunteer_shift": "Volunteer",
+  "book_shopping": "Shopping"
 }
