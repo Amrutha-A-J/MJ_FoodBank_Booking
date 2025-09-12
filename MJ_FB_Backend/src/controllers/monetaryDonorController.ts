@@ -213,12 +213,14 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
     const endDate = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
 
     const donorsRes = await pool.query(
-      `SELECT d.first_name, d.email, COALESCE(SUM(n.amount), 0)::int AS amount
+      `SELECT d.id, d.first_name, d.email, COALESCE(SUM(n.amount), 0)::int AS amount
        FROM monetary_donations n
        JOIN monetary_donors d ON n.donor_id = d.id
-       WHERE n.date >= $1 AND n.date < $2
+       LEFT JOIN monetary_donor_mail_log m
+         ON m.donor_id = d.id AND m.year = $3 AND m.month = $4
+       WHERE n.date >= $1 AND n.date < $2 AND m.id IS NULL
        GROUP BY d.id, d.first_name, d.email`,
-      [startDate, endDate],
+      [startDate, endDate, year, month],
     );
 
     const statsRes = await pool.query(
@@ -278,6 +280,12 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
             year,
           },
         });
+        await pool.query(
+          `INSERT INTO monetary_donor_mail_log (donor_id, year, month)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (donor_id, year, month) DO NOTHING`,
+          [donor.id, year, month],
+        );
         sent++;
         emails.push(donor.email);
       }
