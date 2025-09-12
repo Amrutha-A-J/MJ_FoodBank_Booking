@@ -172,7 +172,7 @@ export async function getMailLists(req: Request, res: Response, next: NextFuncti
               COALESCE(SUM(n.amount), 0)::int AS amount
        FROM monetary_donations n
        JOIN monetary_donors d ON n.donor_id = d.id
-       WHERE n.date >= $1 AND n.date < $2
+       WHERE n.date >= $1 AND n.date < $2 AND d.email IS NOT NULL
        GROUP BY d.id, d.first_name, d.last_name, d.email`,
       [startDate, endDate],
     );
@@ -219,7 +219,7 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
        JOIN monetary_donors d ON n.donor_id = d.id
        LEFT JOIN monetary_donor_mail_log m
          ON m.donor_id = d.id AND m.year = $3 AND m.month = $4
-       WHERE n.date >= $1 AND n.date < $2 AND m.id IS NULL
+       WHERE n.date >= $1 AND n.date < $2 AND d.email IS NOT NULL AND m.id IS NULL
        GROUP BY d.id, d.first_name, d.email`,
       [startDate, endDate, year, month],
     );
@@ -382,7 +382,7 @@ export async function sendTestMailLists(req: Request, res: Response, next: NextF
       statsRes.rows[0] || {};
 
     const emailsRes = await pool.query(
-      'SELECT email FROM donor_test_emails ORDER BY id',
+      'SELECT email FROM donor_test_emails WHERE email IS NOT NULL ORDER BY id',
     );
     const testEmails = emailsRes.rows.map(r => r.email);
 
