@@ -49,6 +49,7 @@
   "booking": "Booking",
   "hello_name": "Hello, {{name}}",
   "profile": "Profile",
+  "open_profile": "Open profile",
   "logout": "Logout",
   "breadcrumb": "breadcrumb",
   "home": "Home",
