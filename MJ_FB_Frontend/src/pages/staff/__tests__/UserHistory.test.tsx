@@ -31,7 +31,7 @@ describe('UserHistory search add shortcut', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.change(screen.getByLabelText('Search'), {
+    fireEvent.change(screen.getByTestId('entity-search-input'), {
       target: { value: '123' },
     });
 
@@ -41,6 +41,7 @@ describe('UserHistory search add shortcut', () => {
 
     const addBtn = await screen.findByRole('button', { name: 'Add Client 123' });
     fireEvent.click(addBtn);
+    fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
 
     expect(await screen.findByRole('button', { name: /add client/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/client id/i)).toHaveValue('123');

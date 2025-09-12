@@ -8,6 +8,11 @@ import './src/i18n';
 (global as any).TextDecoder = TextDecoder as any;
 (global as any).ReadableStream = ReadableStream as any;
 (global as any).WritableStream = WritableStream as any;
+(global as any).clearImmediate =
+  (global as any).clearImmediate || ((id: number) => clearTimeout(id));
+(global as any).performance = (global as any).performance || ({} as any);
+(global as any).performance.markResourceTiming =
+  (global as any).performance.markResourceTiming || (() => {});
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');

@@ -175,7 +175,7 @@ describe('PantryVisits', () => {
     await screen.findByText('Alice');
     expect(screen.getByText('Bob')).toBeInTheDocument();
 
-    const search = screen.getByLabelText('Search');
+    const search = screen.getByTestId('entity-search-input');
     fireEvent.change(search, { target: { value: 'Bob' } });
     expect(screen.queryByText('Alice')).not.toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
