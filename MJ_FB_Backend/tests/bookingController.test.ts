@@ -27,12 +27,17 @@ describe('createBookingForUser', () => {
         __esModule: true,
         insertBooking: jest.fn().mockResolvedValue(undefined),
         checkSlotCapacity: jest.fn().mockResolvedValue(undefined),
+        lockClientRow: jest.fn().mockResolvedValue(undefined),
         SlotCapacityError: class extends Error {},
       }));
       jest.doMock('../src/models/agency', () => ({
         __esModule: true,
         isAgencyClient: jest.fn().mockResolvedValue(true),
         getAgencyClientSet: jest.fn(),
+      }));
+      jest.doMock('../src/utils/dbUtils', () => ({
+        __esModule: true,
+        hasTable: jest.fn().mockResolvedValue(true),
       }));
       jest.doMock('../src/db', () => ({
         __esModule: true,

@@ -1,15 +1,24 @@
 import pool from '../db';
 import { Queryable } from './bookingUtils';
 import { formatReginaDate } from './dateUtils';
+import { hasTable } from './dbUtils';
 
 let holidays: Map<string, string> | null = null;
 
 async function loadHolidays(client: Queryable = pool) {
   if (holidays === null) {
-    const result = await client
-      .query('SELECT date, reason FROM holidays ORDER BY date')
-      .catch(() => ({ rows: [] } as any));
-    const rows = (result?.rows ?? []) as any[];
+    let rows: any[] = [];
+    try {
+      const exists = await hasTable('holidays', client);
+      if (exists) {
+        const result = await client.query(
+          'SELECT date, reason FROM holidays ORDER BY date',
+        );
+        rows = result.rows as any[];
+      }
+    } catch {
+      // fall back to empty holidays list if the query fails
+    }
     holidays = new Map(
       rows.map(r => [formatReginaDate(r.date), r.reason ?? '']),
     );
