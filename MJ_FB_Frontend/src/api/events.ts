@@ -43,7 +43,19 @@ export async function createEvent(data: {
   return handleResponse(res);
 }
 
-export async function updateEvent(id: number, data: { priority: number }) {
+export async function updateEvent(
+  id: number,
+  data: {
+    title?: string;
+    details?: string;
+    category?: string;
+    startDate?: string;
+    endDate?: string;
+    visibleToVolunteers?: boolean;
+    visibleToClients?: boolean;
+    priority?: number;
+  },
+) {
   const res = await apiFetch(`${API_BASE}/events/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

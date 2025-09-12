@@ -2,6 +2,7 @@ import { List, ListItem, Typography, ListItemText, IconButton, Box } from '@mui/
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import EditIcon from '@mui/icons-material/Edit';
 import type { Event } from '../api/events';
 import { updateEvent } from '../api/events';
 import { formatLocaleDate } from '../utils/date';
@@ -11,9 +12,10 @@ interface EventListProps {
   limit?: number;
   onDelete?: (id: number) => void;
   onChange?: () => void;
+  onEdit?: (event: Event) => void;
 }
 
-export default function EventList({ events, limit, onDelete, onChange }: EventListProps) {
+export default function EventList({ events, limit, onDelete, onChange, onEdit }: EventListProps) {
   const items = limit ? events.slice(0, limit) : events;
   if (!items.length)
     return <Typography variant="body2">No events</Typography>;
@@ -36,26 +38,31 @@ export default function EventList({ events, limit, onDelete, onChange }: EventLi
           key={ev.id}
           disableGutters
           secondaryAction={
-            <Box>
-              {onChange && (
-                <>
-                  <IconButton aria-label="move up" onClick={() => changePriority(ev, 1)}>
-                    <ArrowUpwardIcon />
+              <Box>
+                {onEdit && (
+                  <IconButton aria-label="edit" onClick={() => onEdit(ev)}>
+                    <EditIcon />
                   </IconButton>
-                  <IconButton aria-label="move down" onClick={() => changePriority(ev, -1)}>
-                    <ArrowDownwardIcon />
+                )}
+                {onChange && (
+                  <>
+                    <IconButton aria-label="move up" onClick={() => changePriority(ev, 1)}>
+                      <ArrowUpwardIcon />
+                    </IconButton>
+                    <IconButton aria-label="move down" onClick={() => changePriority(ev, -1)}>
+                      <ArrowDownwardIcon />
+                    </IconButton>
+                  </>
+                )}
+                {onDelete && (
+                  <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
+                    <DeleteIcon />
                   </IconButton>
-                </>
-              )}
-              {onDelete && (
-                <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              )}
-            </Box>
-          }
-        >
-          <ListItemText
+                )}
+              </Box>
+            }
+          >
+            <ListItemText
             primary={`${formatDateRange(ev.startDate, ev.endDate)} - ${ev.title}`}
             secondary={
               <>

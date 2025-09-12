@@ -8,6 +8,21 @@ jest.mock('../api/events', () => ({
   updateEvent: jest.fn(),
 }));
 
+jest.mock('@mui/x-date-pickers', () => {
+  const TextField = require('@mui/material/TextField').default;
+  return {
+    LocalizationProvider: ({ children }: any) => <>{children}</>,
+    DatePicker: ({ label, value, onChange, slotProps }: any) => (
+      <TextField
+        label={label}
+        value={value ? new Date(value).toISOString().slice(0, 10) : ''}
+        onChange={e => onChange(new Date(e.target.value).toISOString())}
+        {...(slotProps?.textField || {})}
+      />
+    ),
+  };
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -140,7 +155,7 @@ describe('Events page', () => {
     expect(deleteEventMock).not.toHaveBeenCalled();
   });
 
-  it('reorders events when priority buttons are used', async () => {
+    it('reorders events when priority buttons are used', async () => {
     const getEventsMock = getEvents as jest.Mock;
     const updateEventMock = updateEvent as jest.Mock;
     getEventsMock
@@ -184,5 +199,35 @@ describe('Events page', () => {
 
     await waitFor(() => expect(updateEventMock).toHaveBeenCalledWith(1, { priority: 1 }));
     await waitFor(() => expect(getEventsMock).toHaveBeenCalledTimes(2));
+    });
+
+    it('edits an event', async () => {
+      const getEventsMock = getEvents as jest.Mock;
+      const updateEventMock = updateEvent as jest.Mock;
+      const event = {
+        id: 1,
+        title: 'Old',
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString(),
+        createdBy: 1,
+        createdByName: 'Alice Smith',
+        priority: 0,
+      };
+      getEventsMock
+        .mockResolvedValueOnce({ today: [event], upcoming: [], past: [] })
+        .mockResolvedValueOnce({ today: [{ ...event, title: 'New' }], upcoming: [], past: [] });
+      updateEventMock.mockResolvedValue({});
+
+      render(<Events />);
+
+      await waitFor(() => expect(getEventsMock).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByLabelText(/edit/i));
+      fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'New' } });
+      fireEvent.click(screen.getByRole('button', { name: /Save/i }));
+
+      await waitFor(() => expect(updateEventMock).toHaveBeenCalled());
+      expect(updateEventMock).toHaveBeenCalledWith(1, expect.objectContaining({ title: 'New' }));
+      await waitFor(() => expect(getEventsMock).toHaveBeenCalledTimes(2));
+    });
   });
-});

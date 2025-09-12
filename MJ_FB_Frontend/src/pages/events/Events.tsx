@@ -8,15 +8,16 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import { getEvents, deleteEvent, type EventGroups, type Event } from '../../api/events';
 
 export default function Events() {
-  const [events, setEvents] = useState<EventGroups>({
-    today: [],
-    upcoming: [],
-    past: [],
-  });
-  const [open, setOpen] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
-  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+    const [events, setEvents] = useState<EventGroups>({
+      today: [],
+      upcoming: [],
+      past: [],
+    });
+    const [open, setOpen] = useState(false);
+    const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
+    const [success, setSuccess] = useState('');
+    const [error, setError] = useState('');
+    const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
 
   function fetchEvents() {
     getEvents()
@@ -55,44 +56,69 @@ export default function Events() {
 
   return (
     <Page
-      title="Events"
-      header={
-        <Button variant="contained" onClick={() => setOpen(true)}>
-          Create Event
-        </Button>
-      }
+        title="Events"
+        header={
+          <Button variant="contained" onClick={() => { setEventToEdit(null); setOpen(true); }}>
+            Create Event
+          </Button>
+        }
     >
       <Grid container spacing={2}>
         <Grid size={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Today</Typography>
-              <EventList events={events.today} onDelete={confirmDelete} onChange={fetchEvents} />
+                <Typography variant="h6">Today</Typography>
+                <EventList
+                  events={events.today}
+                  onDelete={confirmDelete}
+                  onChange={fetchEvents}
+                  onEdit={ev => {
+                    setEventToEdit(ev);
+                    setOpen(true);
+                  }}
+                />
             </CardContent>
           </Card>
         </Grid>
         <Grid size={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6">Upcoming</Typography>
-              <EventList events={events.upcoming} onDelete={confirmDelete} onChange={fetchEvents} />
+                <Typography variant="h6">Upcoming</Typography>
+                <EventList
+                  events={events.upcoming}
+                  onDelete={confirmDelete}
+                  onChange={fetchEvents}
+                  onEdit={ev => {
+                    setEventToEdit(ev);
+                    setOpen(true);
+                  }}
+                />
             </CardContent>
           </Card>
         </Grid>
         <Grid size={12}>
           <Card sx={{ maxHeight: 200, overflowY: 'auto' }}>
             <CardContent>
-              <Typography variant="h6">Past</Typography>
-              <EventList events={events.past} onDelete={confirmDelete} onChange={fetchEvents} />
+                <Typography variant="h6">Past</Typography>
+                <EventList
+                  events={events.past}
+                  onDelete={confirmDelete}
+                  onChange={fetchEvents}
+                  onEdit={ev => {
+                    setEventToEdit(ev);
+                    setOpen(true);
+                  }}
+                />
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-      <EventForm
-        open={open}
-        onClose={() => setOpen(false)}
-        onCreated={fetchEvents}
-      />
+        <EventForm
+          open={open}
+          onClose={() => { setOpen(false); setEventToEdit(null); }}
+          onSaved={fetchEvents}
+          event={eventToEdit ?? undefined}
+        />
       {eventToDelete && (
         <ConfirmDialog
           message={`Delete ${eventToDelete.title}?`}

@@ -134,28 +134,55 @@ describe('POST /events', () => {
   });
 });
 
-describe('PUT /events/:id', () => {
-  it('updates event priority', async () => {
-    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
-    (pool.query as jest.Mock)
-      .mockResolvedValueOnce({
+  describe('PUT /events/:id', () => {
+    it('updates event fields', async () => {
+      (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
+        })
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [
+            {
+              id: 1,
+              title: 'Updated',
+              details: null,
+              category: 'General',
+              start_date: '2024-01-01',
+              end_date: '2024-01-02',
+              created_by: 1,
+              visible_to_volunteers: false,
+              visible_to_clients: false,
+              priority: 5,
+              created_at: '2024-01-01',
+              updated_at: '2024-01-02',
+            },
+          ],
+        });
+      const res = await request(app)
+        .put('/events/1')
+        .set('Authorization', 'Bearer token')
+        .send({ title: 'Updated', startDate: '2024-01-01', endDate: '2024-01-02', priority: 5 });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({ id: 1, title: 'Updated', priority: 5 }),
+      );
+      expect(pool.query.mock.calls[1][0]).toContain('UPDATE events SET');
+    });
+
+    it('returns 400 for invalid payload', async () => {
+      (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff' });
+      (pool.query as jest.Mock).mockResolvedValueOnce({
         rowCount: 1,
         rows: [{ id: 1, first_name: 'T', last_name: 'S', email: 't@e.com', role: 'staff' }],
-      })
-      .mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ id: 1, priority: 5 }],
       });
-    const res = await request(app)
-      .put('/events/1')
-      .set('Authorization', 'Bearer token')
-      .send({ priority: 5 });
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ id: 1, priority: 5 });
-    expect(pool.query).toHaveBeenNthCalledWith(
-      2,
-      'UPDATE events SET priority = $1 WHERE id = $2 RETURNING id, priority',
-      [5, 1]
-    );
+      const res = await request(app)
+        .put('/events/1')
+        .set('Authorization', 'Bearer token')
+        .send({ startDate: '2024-01-02', endDate: '2024-01-01' });
+      expect(res.status).toBe(400);
+      expect(pool.query).toHaveBeenCalledTimes(1);
+    });
   });
-});

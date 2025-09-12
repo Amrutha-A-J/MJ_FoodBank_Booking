@@ -1,10 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import dayjs from 'dayjs';
 import EventForm from '../components/EventForm';
-import { createEvent } from '../api/events';
+import { createEvent, updateEvent } from '../api/events';
 
 jest.mock('../api/events', () => ({
   createEvent: jest.fn(),
+  updateEvent: jest.fn(),
 }));
 
 jest.mock('@mui/x-date-pickers', () => {
@@ -23,12 +24,13 @@ jest.mock('@mui/x-date-pickers', () => {
 });
 
 describe('EventForm', () => {
-  beforeEach(() => {
-    (createEvent as jest.Mock).mockResolvedValue({});
-  });
+    beforeEach(() => {
+      (createEvent as jest.Mock).mockResolvedValue({});
+      (updateEvent as jest.Mock).mockResolvedValue({});
+    });
 
   it('submits event data', async () => {
-    render(<EventForm open onClose={() => {}} onCreated={() => {}} />);
+      render(<EventForm open onClose={() => {}} onSaved={() => {}} />);
 
     fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'Test' } });
     fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: 'harvest pantry' } });
@@ -47,6 +49,25 @@ describe('EventForm', () => {
       visibleToVolunteers: false,
       visibleToClients: false,
     });
+  });
+
+  it('updates event data when editing', async () => {
+    const event = {
+      id: 1,
+      title: 'Old',
+      startDate: '2024-01-01',
+      endDate: '2024-01-02',
+      createdBy: 1,
+      createdByName: 'Alice',
+      priority: 0,
+    } as any;
+    render(<EventForm open onClose={() => {}} onSaved={() => {}} event={event} />);
+
+    fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'New' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save/i }));
+
+    await waitFor(() => expect(updateEvent).toHaveBeenCalled());
+    expect(updateEvent).toHaveBeenCalledWith(1, expect.objectContaining({ title: 'New' }));
   });
 });
 

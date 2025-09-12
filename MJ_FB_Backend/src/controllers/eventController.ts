@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import pool from '../db';
 import logger from '../utils/logger';
 import { createEventSchema, updateEventSchema } from '../schemas/eventSchemas';
+import { updateEvent as updateEventModel } from '../models/event';
 import { formatReginaDate } from '../utils/dateUtils';
 import type { PoolClient } from 'pg';
 import { parseIdParam } from '../utils/parseIdParam';
@@ -103,20 +104,34 @@ export async function updateEvent(req: Request, res: Response, next: NextFunctio
   if (id === null) {
     return res.status(400).json({ message: 'Invalid id' });
   }
-  const parsed = updateEventSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ errors: parsed.error.issues });
-  }
-  const { priority } = parsed.data;
   try {
-    const result = await pool.query(
-      'UPDATE events SET priority = $1 WHERE id = $2 RETURNING id, priority',
-      [priority, id]
-    );
-    if ((result.rowCount ?? 0) === 0) {
+    const parsed = updateEventSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ errors: parsed.error.issues });
+    }
+    const { startDate, endDate, ...rest } = parsed.data;
+    const updated = await updateEventModel(id, {
+      ...rest,
+      startDate: startDate ? formatReginaDate(startDate) : undefined,
+      endDate: endDate ? formatReginaDate(endDate) : undefined,
+    });
+    if (!updated) {
       return res.status(404).json({ message: 'Event not found' });
     }
-    res.json(result.rows[0]);
+    res.json({
+      id: updated.id,
+      title: updated.title,
+      details: updated.details,
+      category: updated.category,
+      startDate: updated.start_date,
+      endDate: updated.end_date,
+      createdBy: updated.created_by,
+      visibleToVolunteers: updated.visible_to_volunteers,
+      visibleToClients: updated.visible_to_clients,
+      priority: updated.priority,
+      createdAt: updated.created_at,
+      updatedAt: updated.updated_at,
+    });
   } catch (error) {
     logger.error('Error updating event:', error);
     next(error);
