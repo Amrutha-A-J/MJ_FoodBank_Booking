@@ -33,11 +33,15 @@ export async function checkSlotCapacity(
 ) {
   const reginaDate = formatReginaDate(date);
   const res = await client.query(
-    `SELECT s.max_capacity, COUNT(b.id) AS approved_count
+    `SELECT s.max_capacity, b.approved_count
        FROM slots s
-       LEFT JOIN bookings b ON b.slot_id = s.id AND b.date = $2 AND b.status='approved'
+       LEFT JOIN (
+         SELECT slot_id, COUNT(id) AS approved_count
+         FROM bookings
+         WHERE slot_id = $1 AND date = $2 AND status = 'approved'
+         GROUP BY slot_id
+       ) b ON b.slot_id = s.id
        WHERE s.id = $1
-       GROUP BY s.id, s.max_capacity
        FOR UPDATE`,
     [slotId, reginaDate],
   );
