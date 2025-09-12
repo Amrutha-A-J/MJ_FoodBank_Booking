@@ -90,7 +90,7 @@ export default function EntitySearch<T extends SearchResultBase>({
           onChange={e => setQuery(e.target.value)}
           placeholder={placeholder}
           label="Search"
-          
+          inputProps={{ 'aria-label': placeholder || 'Search' }}
           fullWidth
         />
       {results.length > 0 ? (

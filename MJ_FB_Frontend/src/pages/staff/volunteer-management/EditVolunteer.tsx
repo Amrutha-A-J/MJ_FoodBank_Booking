@@ -24,6 +24,7 @@ import {
   DialogContent,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   InputLabel,
   ListItemText,
   ListSubheader,
@@ -227,16 +228,22 @@ export default function EditVolunteer() {
                 <CardHeader title="Profile" />
                 <CardContent>
                   <Stack spacing={2}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={hasShopper}
-                          onChange={handleShopperToggle}
-                          color="primary"
-                        />
-                      }
-                      label="Shopper Profile"
-                    />
+                    <FormControl component="fieldset">
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={hasShopper}
+                            onChange={handleShopperToggle}
+                            color="primary"
+                            data-testid="shopper-toggle"
+                          />
+                        }
+                        label="Shopper Profile"
+                      />
+                      <FormHelperText>
+                        Enable if this volunteer also shops at the pantry.
+                      </FormHelperText>
+                    </FormControl>
                   </Stack>
                 </CardContent>
               </Card>
@@ -248,6 +255,7 @@ export default function EditVolunteer() {
                       <InputLabel id="role-select-label">Roles</InputLabel>
                       <Select
                         labelId="role-select-label"
+                        aria-labelledby="role-select-label"
                         multiple
                         value={selected}
                         onChange={handleRoleChange}
@@ -272,6 +280,14 @@ export default function EditVolunteer() {
                           key={name}
                           label={name}
                           onDelete={() => removeRole(name)}
+                          title={name}
+                          sx={{
+                            maxWidth: 200,
+                            '& .MuiChip-label': {
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            },
+                          }}
                         />
                       ))}
                     </Stack>
@@ -300,6 +316,8 @@ export default function EditVolunteer() {
               data-testid="save-button"
               onClick={handleSave}
               disabled={saving || !hasChanges}
+              aria-label="Save volunteer"
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               Save
             </Button>
