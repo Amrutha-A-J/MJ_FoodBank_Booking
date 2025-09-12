@@ -13,8 +13,12 @@ import type { VolunteerRoleWithShifts } from '../../../types';
 import {
   Box,
   Button,
+  Card,
+  CardContent,
+  CardHeader,
   Checkbox,
   Chip,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -177,59 +181,113 @@ export default function EditVolunteer() {
   }
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Edit Volunteer
-      </Typography>
-      <EntitySearch
-        type="volunteer"
-        placeholder="Search volunteer"
-        onSelect={v => handleSelect(v as VolunteerSearchResult)}
-      />
-      {volunteer && (
-        <Stack spacing={2} mt={2} maxWidth={400}>
-          <Typography>{volunteer.name}</Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={hasShopper}
-                onChange={handleShopperToggle}
-                color="primary"
-              />
-            }
-            label="Shopper Profile"
-          />
-          <FormControl fullWidth>
-            <InputLabel id="role-select-label">Roles</InputLabel>
-            <Select
-              labelId="role-select-label"
-              multiple
-              value={selected}
-              onChange={handleRoleChange}
-              renderValue={() => 'Select roles'}
-            >
-              {groupedRoles.flatMap(g => [
-                <ListSubheader key={`${g.category}-header`}>
-                  {g.category}
-                </ListSubheader>,
-                ...g.roles.map(r => (
-                  <MenuItem key={r.id} value={r.name}>
-                    <Checkbox checked={selected.includes(r.name)} />
-                    <ListItemText primary={r.name} />
-                  </MenuItem>
-                )),
-              ])}
-            </Select>
-          </FormControl>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {selected.map(name => (
-              <Chip key={name} label={name} onDelete={() => removeRole(name)} />
-            ))}
-          </Stack>
-          <Button variant="contained" onClick={handleSave}>
-            Save
-          </Button>
+    <>
+      <Container maxWidth="md">
+        <Stack spacing={3}>
+          <Typography variant="h5">Edit Volunteer</Typography>
+          <Card>
+            <CardHeader title="Volunteer" />
+            <CardContent>
+              <Stack spacing={2}>
+                <EntitySearch
+                  type="volunteer"
+                  placeholder="Search volunteer"
+                  onSelect={v => handleSelect(v as VolunteerSearchResult)}
+                />
+                {volunteer && (
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography>{volunteer.name}</Typography>
+                    {hasShopper && (
+                      <Chip label="Shopper profile" size="small" />
+                    )}
+                  </Stack>
+                )}
+              </Stack>
+            </CardContent>
+          </Card>
+          {volunteer && (
+            <>
+              <Card>
+                <CardHeader title="Profile" />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={hasShopper}
+                          onChange={handleShopperToggle}
+                          color="primary"
+                        />
+                      }
+                      label="Shopper Profile"
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader title="Roles" />
+                <CardContent>
+                  <Stack spacing={2}>
+                    <FormControl fullWidth>
+                      <InputLabel id="role-select-label">Roles</InputLabel>
+                      <Select
+                        labelId="role-select-label"
+                        multiple
+                        value={selected}
+                        onChange={handleRoleChange}
+                        renderValue={() => 'Select roles'}
+                      >
+                        {groupedRoles.flatMap(g => [
+                          <ListSubheader key={`${g.category}-header`}>
+                            {g.category}
+                          </ListSubheader>,
+                          ...g.roles.map(r => (
+                            <MenuItem key={r.id} value={r.name}>
+                              <Checkbox checked={selected.includes(r.name)} />
+                              <ListItemText primary={r.name} />
+                            </MenuItem>
+                          )),
+                        ])}
+                      </Select>
+                    </FormControl>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {selected.map(name => (
+                        <Chip
+                          key={name}
+                          label={name}
+                          onDelete={() => removeRole(name)}
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </Stack>
+      </Container>
+      {volunteer && (
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            bgcolor: 'background.paper',
+            py: 2,
+          }}
+        >
+          <Container
+            maxWidth="md"
+            sx={{ display: 'flex', justifyContent: 'flex-end' }}
+          >
+            <Button
+              variant="contained"
+              onClick={handleSave}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              Save
+            </Button>
+          </Container>
+        </Box>
       )}
       {shopperOpen && (
         <Dialog open onClose={() => setShopperOpen(false)}>
@@ -279,6 +337,6 @@ export default function EditVolunteer() {
         message={message}
         severity={severity}
       />
-    </Box>
+    </>
   );
 }
