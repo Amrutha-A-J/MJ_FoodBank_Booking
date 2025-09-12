@@ -9,4 +9,11 @@ export const donationSchema = z.object({
 export const addDonationSchema = donationSchema;
 export const updateDonationSchema = donationSchema;
 
+export const manualDonorAggregationSchema = z.object({
+  year: z.number().int(),
+  month: z.number().int(),
+  donorEmail: z.string().email(),
+  total: z.number().int().optional(),
+});
+
 export type DonationSchema = z.infer<typeof donationSchema>;
