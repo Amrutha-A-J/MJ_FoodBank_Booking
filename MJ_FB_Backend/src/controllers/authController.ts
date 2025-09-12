@@ -431,9 +431,11 @@ export function csrfToken(_req: Request, res: Response) {
   const token = randomUUID();
   const secure = process.env.NODE_ENV === 'production';
   res.cookie('csrfToken', token, {
+    httpOnly: true,
     sameSite: 'strict',
     secure,
     path: '/',
+    maxAge: 60 * 60 * 1000,
     ...(secure && config.cookieDomain ? { domain: config.cookieDomain } : {}),
   });
   res.json({ csrfToken: token });

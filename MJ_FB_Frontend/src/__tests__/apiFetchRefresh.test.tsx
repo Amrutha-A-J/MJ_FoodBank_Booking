@@ -1,4 +1,4 @@
-import { apiFetch } from '../api/client';
+import { apiFetch, __resetCsrfTokenForTests } from '../api/client';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('apiFetch refresh handling', () => {
@@ -7,7 +7,7 @@ describe('apiFetch refresh handling', () => {
 
   beforeEach(() => {
     originalLocation = window.location;
-    document.cookie = 'csrfToken=test';
+    __resetCsrfTokenForTests();
     localStorage.setItem('role', 'test');
     Object.defineProperty(window, 'location', {
       value: { assign: jest.fn(), pathname: '/' },
@@ -20,12 +20,15 @@ describe('apiFetch refresh handling', () => {
     Object.defineProperty(window, 'location', { value: originalLocation });
     restoreFetch();
     jest.resetAllMocks();
-    document.cookie = '';
+    __resetCsrfTokenForTests();
     localStorage.clear();
   });
 
   it('redirects when refresh returns unexpected status', async () => {
     fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ csrfToken: 'test' }), { status: 200 }),
+      )
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(new Response(null, { status: 500 }));
 
@@ -35,6 +38,9 @@ describe('apiFetch refresh handling', () => {
 
   it('redirects when refresh encounters network error', async () => {
     fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ csrfToken: 'test' }), { status: 200 }),
+      )
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockRejectedValueOnce(new Error('network'))
       .mockRejectedValueOnce(new Error('network'));

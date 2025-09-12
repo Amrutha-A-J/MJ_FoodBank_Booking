@@ -15,10 +15,19 @@ if (!API_BASE) {
 API_BASE = API_BASE.replace(/\/$/, '');
 if (!API_BASE.endsWith('/api')) API_BASE += '/api';
 
-function getCsrfToken() {
-  return document.cookie
-    .split('; ')
-    .find(row => row.startsWith('csrfToken='))?.split('=')[1];
+let csrfToken: string | null = null;
+
+async function ensureCsrfToken() {
+  if (csrfToken) return;
+  try {
+    const res = await fetch(`${API_BASE}/auth/csrf-token`, { credentials: 'include' });
+    const data = await res.json().catch(() => null);
+    if (data && typeof data.csrfToken === 'string') {
+      csrfToken = data.csrfToken;
+    }
+  } catch {
+    /* ignore token fetch errors */
+  }
 }
 
 // shared refresh promise to avoid multiple concurrent refresh calls
@@ -26,16 +35,10 @@ let refreshPromise: Promise<Response> | null = null;
 
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
-  let csrf = getCsrfToken();
-  if (!csrf) {
-    try {
-      await fetch(`${API_BASE}/auth/csrf-token`, { credentials: 'include' });
-      csrf = getCsrfToken();
-    } catch {
-      /* ignore token fetch errors */
-    }
+  if (!csrfToken) {
+    await ensureCsrfToken();
   }
-  if (csrf) headers.set('X-CSRF-Token', csrf);
+  if (csrfToken) headers.set('X-CSRF-Token', csrfToken);
   init.headers = headers;
 
   const request = new Request(input, { credentials: 'include', ...init });
@@ -79,6 +82,10 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     }
   }
   return res;
+}
+
+export function __resetCsrfTokenForTests() {
+  csrfToken = null;
 }
 
 export interface ApiError extends Error {

@@ -35,4 +35,11 @@ describe('CSRF middleware', () => {
     const res = await request(app).post('/protected');
     expect(res.status).toBe(403);
   });
+
+  it('sets HttpOnly csrf cookie with 1-hour expiry', async () => {
+    const tokenRes = await request(app).get('/csrf-token');
+    const cookieHeader = tokenRes.headers['set-cookie'][0];
+    expect(cookieHeader).toContain('HttpOnly');
+    expect(cookieHeader).toMatch(/Max-Age=3600/);
+  });
 });
