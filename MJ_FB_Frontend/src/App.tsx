@@ -8,9 +8,12 @@ import Navbar, { type NavGroup, type NavLink } from './components/Navbar';
 import FeedbackSnackbar from './components/FeedbackSnackbar';
 import MainLayout from './components/layout/MainLayout';
 import { useAuth, AgencyGuard, DonorManagementGuard } from './hooks/useAuth';
+import useMaintenance from './hooks/useMaintenance';
 import type { StaffAccess } from './types';
 import { getStaffRootPath } from './utils/staffRootPath';
 import InstallAppButton from './components/InstallAppButton';
+import MaintenanceOverlay from './components/MaintenanceOverlay';
+import MaintenanceBanner from './components/MaintenanceBanner';
 
 const Profile = React.lazy(() => import('./pages/booking/Profile'));
 const ManageAvailability = React.lazy(() =>
@@ -135,6 +138,7 @@ export default function App() {
   const { isAuthenticated, ready, role, name, userRole, access, login, logout } = useAuth();
   const [loading] = useState(false);
   const [error, setError] = useState('');
+  const { maintenanceMode, notice } = useMaintenance();
   const isStaff = role === 'staff' || access.includes('admin');
   const hasAccess = (a: StaffAccess) => access.includes('admin') || access.includes(a);
   const showStaff = isStaff && hasAccess('pantry');
@@ -281,7 +285,7 @@ export default function App() {
     role,
     profileLinks,
   };
-  const AppContent = () => {
+  const AppContent = ({ maintenanceNotice }: { maintenanceNotice?: string }) => {
     const location = useLocation();
     const path = location.pathname;
     useEffect(() => {
@@ -305,9 +309,10 @@ export default function App() {
               </Routes>
             </Suspense>
           ) : isAuthenticated ? (
-            <MainLayout {...navbarProps}>
-              <Suspense fallback={<Spinner />}>
-                <Routes>
+            <MaintenanceBanner notice={maintenanceNotice}>
+              <MainLayout {...navbarProps}>
+                <Suspense fallback={<Spinner />}>
+                  <Routes>
                   <Route
                     path="/"
                     element={
@@ -584,9 +589,10 @@ export default function App() {
                   <Route path="/set-password" element={<PasswordSetup />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
-            </MainLayout>
+                  </Routes>
+                </Suspense>
+              </MainLayout>
+            </MaintenanceBanner>
           ) : !ready ? (
             <Spinner />
           ) : (
@@ -611,8 +617,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      {maintenanceMode && <MaintenanceOverlay />}
       <InstallAppButton />
-      <AppContent />
+      <AppContent maintenanceNotice={notice} />
     </BrowserRouter>
   );
 }
