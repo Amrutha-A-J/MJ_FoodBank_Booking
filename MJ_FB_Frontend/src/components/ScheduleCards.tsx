@@ -1,6 +1,5 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
 import type { ReactNode } from "react";
-import i18n from "../i18n";
 
 interface Cell {
   content: ReactNode;
@@ -23,7 +22,7 @@ export default function ScheduleCards({ maxSlots, rows }: Props) {
   const safeMaxSlots = Math.max(1, maxSlots);
 
   if (rows.length === 0) {
-    return <Typography align="center">{i18n.t("no_bookings")}</Typography>;
+    return <Typography align="center">No bookings</Typography>;
   }
 
   return (
