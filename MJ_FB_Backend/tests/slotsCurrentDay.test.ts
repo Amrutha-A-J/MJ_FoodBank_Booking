@@ -21,6 +21,8 @@ let app: express.Express;
 beforeEach(async () => {
   (pool.query as jest.Mock).mockReset();
   await jest.isolateModulesAsync(async () => {
+    const holidays = await import('../src/utils/holidayCache');
+    holidays.setHolidays(new Map());
     app = (await import('../src/app')).default;
   });
 });
