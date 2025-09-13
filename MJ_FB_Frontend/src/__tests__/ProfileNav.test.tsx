@@ -36,11 +36,7 @@ jest.mock('../api/volunteers', () => ({
 }));
 
 jest.mock('../hooks/useAuth', () => ({
-  useAuth: () => ({ userRole: 'shopper' }),
-}));
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (s: string) => s }),
+  useAuth: () => ({ role: 'volunteer', userRole: 'shopper' }),
 }));
 
 describe('Profile bottom nav', () => {
@@ -50,7 +46,7 @@ describe('Profile bottom nav', () => {
         <Profile role="volunteer" />
       </MemoryRouter>,
     );
-    expect(await screen.findByRole('button', { name: /schedule/i })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /shifts/i })).toBeInTheDocument();
   });
 
   it('does not show schedule option for shoppers', () => {
@@ -59,7 +55,7 @@ describe('Profile bottom nav', () => {
         <Profile role="shopper" />
       </MemoryRouter>,
     );
-    expect(screen.queryByRole('button', { name: /schedule/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /shifts/i })).not.toBeInTheDocument();
   });
 });
 
