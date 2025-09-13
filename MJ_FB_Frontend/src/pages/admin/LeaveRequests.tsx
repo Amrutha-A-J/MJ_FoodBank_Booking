@@ -59,7 +59,9 @@ export default function AdminLeaveRequests() {
                   {formatLocaleDate(r.start_date!)} – {formatLocaleDate(r.end_date!)} ({
                     days
                   }{' '}
-                  days) • {r.type ? typeMap[r.type] : ''}
+                  days) • {
+                    r.type ? typeMap[r.type as keyof typeof typeMap] : ''
+                  }
                 </Typography>
               </Box>
               <Box
