@@ -7,12 +7,10 @@ import FeedbackSnackbar from '../components/FeedbackSnackbar';
 import ClientBottomNav from '../components/ClientBottomNav';
 import VolunteerBottomNav from '../components/VolunteerBottomNav';
 import { cancelBookingByToken } from '../api/bookings';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
 export default function CancelBooking() {
   const { token } = useParams();
-  const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const { role } = useAuth();
@@ -20,30 +18,30 @@ export default function CancelBooking() {
   useEffect(() => {
     async function run() {
       if (!token) {
-        setError(t('invalid_or_expired_token'));
+        setError('Invalid or expired token');
         return;
       }
       try {
         await cancelBookingByToken(token);
-        setMessage(t('booking_cancelled'));
+        setMessage('Booking cancelled');
       } catch (err) {
-        setError(t('cancel_booking_failed'));
+        setError('Failed to cancel booking');
       }
     }
     run();
-  }, [token, t]);
+  }, [token]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
   }
 
   return (
-    <Page title={t('cancel_booking')}>
+    <Page title="Cancel booking">
       <Grid container spacing={2} justifyContent="center">
         <Grid size={{ xs: 12, sm: 8, md: 6 }}>
-          <FormCard title={t('cancel_booking')} onSubmit={handleSubmit} actions={
+          <FormCard title="Cancel booking" onSubmit={handleSubmit} actions={
             <Button component={RouterLink} to="/" variant="contained">
-              {t('back_to_login')}
+              Back to Login
             </Button>
           }>
             <Typography>{message || error || ''}</Typography>
