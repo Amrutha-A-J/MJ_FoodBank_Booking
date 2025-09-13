@@ -1,7 +1,7 @@
 # Maintenance Mode
 
 Admin users can schedule downtime and toggle maintenance mode from **Admin → Maintenance**.
-When active, maintenance mode prevents normal access and shows a message to clients.
+When active, maintenance mode prevents normal access and shows a message to clients. Staff can still sign in to disable maintenance.
 A scheduled window displays an upcoming maintenance banner to clients.
 
 ## Translation keys
