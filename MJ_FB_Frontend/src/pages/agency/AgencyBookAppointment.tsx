@@ -12,7 +12,6 @@ import BookingUI from '../BookingUI';
 import { searchAgencyClients } from '../../api/agencies';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 
 interface AgencyClient {
   id: number;
@@ -27,7 +26,6 @@ export default function AgencyBookAppointment() {
   const [snackbar, setSnackbar] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingClients, setLoadingClients] = useState(false);
-  const { t } = useTranslation();
 
   useEffect(() => {
     if (!search) {
@@ -70,7 +68,7 @@ export default function AgencyBookAppointment() {
   }, [search]);
 
   return (
-    <Page title={t('book_appointment')}>
+    <Page title="Book Appointment">
       <TextField
         label="Search Clients"
         value={search}
