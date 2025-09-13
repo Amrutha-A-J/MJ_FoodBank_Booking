@@ -40,7 +40,7 @@ describe('POST /bookings slotId validation', () => {
     const today = formatReginaDate(new Date());
     const res = await request(app).post('/bookings').send({ date: today });
     expect(res.status).toBe(400);
-    expect(res.body.message).toBe('Please select a time slot');
+    expect(res.body.message).toBe('Please select a valid time slot');
     expect(pool.query).not.toHaveBeenCalled();
     expect(pool.connect).not.toHaveBeenCalled();
   });

@@ -60,20 +60,24 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   const { slotId, date, isStaffBooking, note, type } = req.body;
   const emailType = type || 'Shopping Appointment';
   if (slotId === undefined || slotId === null) {
-    return res.status(400).json({ message: 'Please select a time slot' });
-  }
-
-  if (!isValidDateString(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
+    return res
+      .status(400)
+      .json({ message: 'Please select a valid time slot' });
   }
 
   const slotIdNum = Number(slotId);
   if (!Number.isInteger(slotIdNum)) {
-    return res.status(400).json({ message: 'Please select a valid time slot' });
+    return res
+      .status(400)
+      .json({ message: 'Please select a valid time slot' });
   }
 
   if (!date) {
     return res.status(400).json({ message: 'Please select a date' });
+  }
+
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
   }
 
   try {
@@ -926,19 +930,24 @@ export async function createBookingForUser(
   const { userId, slotId, date, note, type } = req.body;
   const emailType = type || 'Shopping Appointment';
   const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
-  if (!userId || !slotId || !date) {
+  if (slotId === undefined || slotId === null) {
+    return res
+      .status(400)
+      .json({ message: 'Please select a valid time slot' });
+  }
+  if (!userId || !date) {
     return res
       .status(400)
       .json({ message: 'Please provide a user, time slot, and date' });
   }
-
-  if (!isValidDateString(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
-  }
-
   const slotIdNum = Number(slotId);
   if (!Number.isInteger(slotIdNum)) {
-    return res.status(400).json({ message: 'Please select a valid time slot' });
+    return res
+      .status(400)
+      .json({ message: 'Please select a valid time slot' });
+  }
+  if (!isValidDateString(date)) {
+    return res.status(400).json({ message: 'Please choose a valid date' });
   }
 
   try {
