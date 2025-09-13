@@ -4,6 +4,8 @@ import ClientManagement from '../ClientManagement';
 import { getNewClients, deleteNewClient } from '../../../api/users';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 
+const originalFetch = global.fetch;
+
 (global as any).clearImmediate = (global as any).clearImmediate || ((id: number) => clearTimeout(id));
 (global as any).performance = (global as any).performance || ({} as any);
 (global as any).performance.markResourceTiming = (global as any).performance.markResourceTiming || (() => {});
@@ -51,5 +53,9 @@ describe('ClientManagement New Clients tab', () => {
       expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
     });
   });
+});
+
+afterAll(() => {
+  global.fetch = originalFetch;
 });
 
