@@ -70,11 +70,6 @@ describe('AdminStaffList', () => {
   });
 
   it('does not delete staff when dialog is dismissed', async () => {
-    ConfirmDialogMock.mockImplementationOnce(({ onCancel }) => {
-      onCancel();
-      return null;
-    });
-
     renderWithProviders(
       <MemoryRouter>
         <AdminStaffList />
@@ -84,6 +79,8 @@ describe('AdminStaffList', () => {
     expect(await screen.findByText('John Doe')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('delete'));
+    expect(await screen.findByText('Delete John Doe?')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('close'));
 
     await waitFor(() => {
       expect(deleteStaff).not.toHaveBeenCalled();
