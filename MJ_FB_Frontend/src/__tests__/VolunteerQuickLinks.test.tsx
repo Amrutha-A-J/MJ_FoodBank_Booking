@@ -22,4 +22,15 @@ describe('VolunteerQuickLinks', () => {
       '/volunteer-management/daily',
     );
   });
+
+  it('keeps links enabled on the current page', () => {
+    render(
+      <MemoryRouter initialEntries={['/volunteer-management/volunteers']}>
+        <VolunteerQuickLinks />
+      </MemoryRouter>,
+    );
+    expect(
+      screen.getByRole('link', { name: /Search Volunteer/i }),
+    ).not.toHaveAttribute('aria-disabled');
+  });
 });

@@ -1,8 +1,9 @@
 import { Stack, Button } from '@mui/material';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 export default function VolunteerQuickLinks() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const buttonSx = {
     textTransform: 'none',
     '&:hover': { color: 'primary.main' },
@@ -26,7 +27,9 @@ export default function VolunteerQuickLinks() {
           sx={buttonSx}
           component={RouterLink}
           to={link.to}
-          disabled={pathname === link.to}
+          onClick={() => {
+            if (pathname === link.to) navigate(0);
+          }}
           fullWidth
         >
           {link.label}
