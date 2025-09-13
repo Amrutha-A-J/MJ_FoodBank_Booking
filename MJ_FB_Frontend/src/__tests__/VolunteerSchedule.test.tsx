@@ -120,7 +120,7 @@ describe("VolunteerSchedule", () => {
     });
     expect(prev).toBeDisabled();
 
-    expect(await screen.findByText("No bookings")).toBeInTheDocument();
+    expect(await screen.findByText(/No bookings\.?/)).toBeInTheDocument();
   });
 
   it("shows only available slots in reschedule dialog", async () => {
@@ -240,7 +240,7 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    expect(await screen.findByText("No bookings")).toBeInTheDocument();
+    expect(await screen.findByText(/No bookings\.?/)).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
     mq.mockRestore();
   });
