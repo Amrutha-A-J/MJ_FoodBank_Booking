@@ -5,7 +5,7 @@ import pool from '../src/db';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, _res: any, next: any) => {
-    req.user = { id: 1, type: 'client', role: 'shopper' };
+    req.user = { id: 1, type: 'user', role: 'shopper' };
     next();
   },
   authorizeRoles: () => (_req: any, _res: any, next: any) => next(),
@@ -31,7 +31,7 @@ describe('User preference routes', () => {
     expect(res.body).toEqual({ emailReminders: true });
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('FROM user_preferences'),
-      [1, 'client'],
+      [1, 'user'],
     );
   });
 
@@ -46,7 +46,7 @@ describe('User preference routes', () => {
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO user_preferences'),
-      [1, 'client', false],
+      [1, 'user', false],
     );
     expect(res.body).toEqual({ emailReminders: false });
   });
