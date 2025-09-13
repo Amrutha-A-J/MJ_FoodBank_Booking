@@ -5,10 +5,10 @@ import Page from '../../components/Page';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
-  getMaintenance,
-  updateMaintenance,
-  clearMaintenance,
-  type Maintenance,
+  getMaintenanceSettings,
+  updateMaintenanceSettings,
+  clearMaintenanceStats,
+  type MaintenanceSettings,
 } from '../../api/maintenance';
 
 export default function Maintenance() {
@@ -20,9 +20,9 @@ export default function Maintenance() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await getMaintenance();
+        const data = await getMaintenanceSettings();
         setMaintenanceMode(data.maintenanceMode);
-        setUpcomingNotice(data.notice ?? '');
+        setUpcomingNotice(data.upcomingNotice ?? '');
       } catch (err: any) {
         setError(err.message || String(err));
       }
@@ -32,11 +32,11 @@ export default function Maintenance() {
 
   async function handleSave() {
     try {
-      const settings: Maintenance = {
+      const settings: MaintenanceSettings = {
         maintenanceMode,
-        notice: upcomingNotice,
+        upcomingNotice,
       };
-      await updateMaintenance(settings);
+      await updateMaintenanceSettings(settings);
       setMessage('Settings saved');
     } catch (err: any) {
       setError(err.message || String(err));
@@ -45,7 +45,7 @@ export default function Maintenance() {
 
   async function handleClearStats() {
     try {
-      await clearMaintenance();
+      await clearMaintenanceStats();
       setMessage('Maintenance stats cleared');
     } catch (err: any) {
       setError(err.message || String(err));

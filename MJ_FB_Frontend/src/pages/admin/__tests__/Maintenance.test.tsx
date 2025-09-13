@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../../../theme';
@@ -25,12 +25,17 @@ describe('Maintenance', () => {
     );
 
     const switchEl = await screen.findByRole('switch', { name: /maintenance mode/i });
-    expect(getMaintenanceSettings).toHaveBeenCalled();
+    await waitFor(() => expect(getMaintenanceSettings).toHaveBeenCalled());
     fireEvent.click(switchEl);
     fireEvent.change(screen.getByLabelText(/upcoming notice/i), { target: { value: 'Soon' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(updateMaintenanceSettings).toHaveBeenCalledWith({ maintenanceMode: true, upcomingNotice: 'Soon' });
+    await waitFor(() =>
+      expect(updateMaintenanceSettings).toHaveBeenCalledWith({
+        maintenanceMode: true,
+        upcomingNotice: 'Soon',
+      }),
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Clear Maintenance Stats' }));
-    expect(clearMaintenanceStats).toHaveBeenCalled();
+    await waitFor(() => expect(clearMaintenanceStats).toHaveBeenCalled());
   });
 });
