@@ -121,8 +121,9 @@ export async function countVisitsAndBookingsForMonth(
 
 export async function findUpcomingBooking(
   userId: number,
+  client: Queryable = pool,
 ): Promise<{ date: string; start_time: string; status: string } | null> {
-  const res = await pool.query(
+  const res = await client.query(
     `SELECT b.date, s.start_time, b.status
        FROM bookings b
        INNER JOIN slots s ON b.slot_id = s.id

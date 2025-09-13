@@ -82,13 +82,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
 
-    const upcoming = await findUpcomingBooking(userId);
-    if (upcoming) {
-      return res
-        .status(409)
-        .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
-    }
-
     const client = await pool.connect();
     let token: string | undefined;
     let transactionActive = false;
@@ -104,6 +97,24 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           err,
         );
         throw err;
+      }
+      let upcoming;
+      try {
+        logger.info('Checking upcoming booking', { userId });
+        upcoming = await findUpcomingBooking(userId, client);
+      } catch (err) {
+        logger.error(`Failed to check upcoming booking for user ${userId}`, err);
+        throw err;
+      }
+      if (upcoming) {
+        await client.query('ROLLBACK');
+        transactionActive = false;
+        return res
+          .status(409)
+          .json({
+            message: 'You already have a booking scheduled',
+            existingBooking: upcoming,
+          });
       }
       let monthlyUsage: number | false;
       try {
@@ -922,12 +933,6 @@ export async function createBookingForUser(
           .json({ message: 'Client not linked to your agency' });
       }
     }
-    const upcoming = await findUpcomingBooking(userId);
-    if (upcoming) {
-      return res
-        .status(409)
-        .json({ message: 'You already have a booking scheduled', existingBooking: upcoming });
-    }
     if (req.user?.role !== 'staff' && !isDateWithinCurrentOrNextMonth(date)) {
       return res.status(400).json({ message: 'Please choose a valid date' });
     }
@@ -938,6 +943,14 @@ export async function createBookingForUser(
     try {
       await client.query('BEGIN');
       await lockClientRow(userId, client);
+      const upcoming = await findUpcomingBooking(userId, client);
+      if (upcoming) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({
+          message: 'You already have a booking scheduled',
+          existingBooking: upcoming,
+        });
+      }
       const usage = await countVisitsAndBookingsForMonth(userId, date, client, true);
       if (usage === false) {
         await client.query('ROLLBACK');
