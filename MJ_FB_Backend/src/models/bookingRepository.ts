@@ -141,9 +141,9 @@ export async function insertBooking(
   newClientId: number | null = null,
   note: string | null = null,
   client: Queryable = pool,
-) {
+): Promise<number> {
   const reginaDate = formatReginaDate(date);
-  const res = await client.query(
+  const res = await client.query<{ id: number }>(
     `INSERT INTO bookings (user_id, new_client_id, slot_id, status, request_data, note, date, is_staff_booking, reschedule_token)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
     [
