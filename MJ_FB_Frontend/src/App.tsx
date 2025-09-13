@@ -1,7 +1,6 @@
 import React, { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useTranslation } from 'react-i18next';
 const Dashboard = React.lazy(
   () => import('./components/dashboard/Dashboard')
 );
@@ -134,7 +133,6 @@ const Spinner = () => <CircularProgress />;
 
 export default function App() {
   const { isAuthenticated, ready, role, name, userRole, access, login, logout } = useAuth();
-  const { t } = useTranslation();
   const [loading] = useState(false);
   const [error, setError] = useState('');
   const isStaff = role === 'staff' || access.includes('admin');
@@ -159,16 +157,16 @@ export default function App() {
   const navGroups: NavGroup[] = [];
   const profileLinks: NavLink[] | undefined = isStaff
     ? [
-        { label: t('news_and_events'), to: '/events' },
-        { label: t('timesheets.title'), to: '/timesheet' },
-        { label: t('leave.title'), to: '/leave-requests' },
+        { label: 'News & Events', to: '/events' },
+        { label: 'Timesheets', to: '/timesheet' },
+        { label: 'Leave Requests', to: '/leave-requests' },
       ]
     : undefined;
   if (!role) {
-    navGroups.push({ label: t('login'), links: [{ label: t('login'), to: '/login' }] });
+    navGroups.push({ label: 'Login', links: [{ label: 'Login', to: '/login' }] });
   } else if (isStaff) {
     const staffLinks = [
-      { label: t('dashboard'), to: '/pantry' },
+      { label: 'Dashboard', to: '/pantry' },
       { label: 'Manage Availability', to: '/pantry/manage-availability' },
       { label: 'Pantry Schedule', to: '/pantry/schedule' },
       { label: 'Pantry Visits', to: '/pantry/visits' },
@@ -180,7 +178,7 @@ export default function App() {
       navGroups.push({
         label: 'Volunteer Management',
         links: [
-          { label: t('dashboard'), to: '/volunteer-management' },
+          { label: 'Dashboard', to: '/volunteer-management' },
           { label: 'Schedule', to: '/volunteer-management/schedule' },
           { label: 'Daily Bookings', to: '/volunteer-management/daily' },
           { label: 'Recurring Shifts', to: '/volunteer-management/recurring' },
@@ -191,7 +189,7 @@ export default function App() {
       navGroups.push({
         label: 'Donor Management',
         links: [
-          { label: t('dashboard'), to: '/donor-management' },
+          { label: 'Dashboard', to: '/donor-management' },
           { label: 'Donors', to: '/donor-management/donors' },
           { label: 'Donation Log', to: '/donor-management/donation-log' },
           { label: 'Mail Lists', to: '/donor-management/mail-lists' },
@@ -199,7 +197,7 @@ export default function App() {
       });
 
     const warehouseLinks = [
-      { label: t('dashboard'), to: '/warehouse-management' },
+      { label: 'Dashboard', to: '/warehouse-management' },
       { label: 'Donation Log', to: '/warehouse-management/donation-log' },
       { label: 'Track Pigpound', to: '/warehouse-management/track-pigpound' },
       {
@@ -223,8 +221,8 @@ export default function App() {
         label: 'Admin',
         links: [
           { label: 'Staff', to: '/admin/staff' },
-          { label: t('timesheets.title'), to: '/admin/timesheet' },
-          { label: t('leave.title'), to: '/admin/leave-requests' },
+          { label: 'Timesheets', to: '/admin/timesheet' },
+          { label: 'Leave Requests', to: '/admin/leave-requests' },
           { label: 'Settings', to: '/admin/settings' },
           { label: 'Maintenance', to: '/admin/maintenance' },
         ],
@@ -240,36 +238,36 @@ export default function App() {
     navGroups.push({
       label: 'Agency',
       links: [
-        { label: t('dashboard'), to: '/' },
-        { label: t('book_appointment'), to: '/agency/book' },
-        { label: t('booking_history'), to: '/agency/history' },
+        { label: 'Dashboard', to: '/' },
+        { label: 'Book Appointment', to: '/agency/book' },
+        { label: 'Booking History', to: '/agency/history' },
       ],
     });
   } else if (role === 'shopper') {
     navGroups.push({
-      label: t('booking'),
+      label: 'Booking',
       links: [
-        { label: t('dashboard'), to: '/' },
-        { label: t('book_shopping_appointment'), to: '/book-appointment' },
-        { label: t('booking_history'), to: '/booking-history' },
+        { label: 'Dashboard', to: '/' },
+        { label: 'Book Shopping Appointment', to: '/book-appointment' },
+        { label: 'Booking History', to: '/booking-history' },
       ],
     });
   } else if (role === 'volunteer') {
     navGroups.push({
       label: 'Volunteer',
       links: [
-        { label: t('dashboard'), to: '/' },
+        { label: 'Dashboard', to: '/' },
         { label: 'Schedule', to: '/volunteer/schedule' },
         { label: 'Recurring Bookings', to: '/volunteer/recurring' },
-        { label: t('booking_history'), to: '/volunteer/history' },
+        { label: 'Booking History', to: '/volunteer/history' },
       ],
     });
     if (userRole === 'shopper') {
       navGroups.push({
-        label: t('booking'),
+        label: 'Booking',
         links: [
-          { label: t('book_shopping_appointment'), to: '/book-appointment' },
-          { label: t('booking_history'), to: '/booking-history' },
+          { label: 'Book Shopping Appointment', to: '/book-appointment' },
+          { label: 'Booking History', to: '/booking-history' },
         ],
       });
     }
