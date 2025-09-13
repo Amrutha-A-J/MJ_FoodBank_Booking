@@ -95,13 +95,27 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     try {
       await client.query('BEGIN');
       transactionActive = true;
-      await lockClientRow(userId, client);
-      const monthlyUsage = await countVisitsAndBookingsForMonth(
-        userId,
-        date,
-        client,
-        true,
-      );
+      try {
+        await lockClientRow(userId, client);
+      } catch (err) {
+        logger.error(`Failed to lock client row for user ${userId}`, err);
+        throw err;
+      }
+      let monthlyUsage: number | false;
+      try {
+        monthlyUsage = await countVisitsAndBookingsForMonth(
+          userId,
+          date,
+          client,
+          true,
+        );
+      } catch (err) {
+        logger.error(
+          `Failed to count visits and bookings for user ${userId} on ${date}`,
+          err,
+        );
+        throw err;
+      }
       if (monthlyUsage === false) {
         await client.query('ROLLBACK');
         transactionActive = false;
@@ -112,7 +126,13 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         transactionActive = false;
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
-      const holiday = await isHoliday(date, client);
+      let holiday: boolean;
+      try {
+        holiday = await isHoliday(date, client);
+      } catch (err) {
+        logger.error(`Failed to check holiday for ${date}`, err);
+        throw err;
+      }
       if (holiday) {
         await client.query('ROLLBACK');
         transactionActive = false;

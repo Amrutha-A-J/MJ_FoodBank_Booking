@@ -2,6 +2,7 @@ import pool from '../db';
 import { Queryable } from './bookingUtils';
 import { formatReginaDate } from './dateUtils';
 import { hasTable } from './dbUtils';
+import logger from './logger';
 
 let holidays: Map<string, string> | null = null;
 
@@ -17,6 +18,7 @@ async function loadHolidays(client: Queryable = pool) {
         rows = result.rows as any[];
       }
     } catch (err) {
+      logger.error('Failed to load holidays', err);
       if (client !== pool) {
         throw err;
       }

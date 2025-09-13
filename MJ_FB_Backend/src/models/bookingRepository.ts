@@ -2,6 +2,7 @@ import pool from '../db';
 import { Pool, PoolClient } from 'pg';
 import { formatReginaDate } from '../utils/dateUtils';
 import { hasTable } from '../utils/dbUtils';
+import logger from '../utils/logger';
 
 export type Queryable = Pool | PoolClient;
 
@@ -94,6 +95,7 @@ export async function lockClientRow(
     if (err.code === '0A000') {
       await client.query('SELECT client_id FROM clients WHERE client_id=$1', [userId]);
     } else {
+      logger.error(`Failed to lock client row for user ${userId}`, err);
       throw err;
     }
   }

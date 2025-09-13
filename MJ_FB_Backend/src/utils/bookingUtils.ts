@@ -1,6 +1,7 @@
 import pool from '../db';
 import { Pool, PoolClient } from 'pg';
 import { formatReginaDate, reginaStartOfDayISO } from './dateUtils';
+import logger from './logger';
 
 export type Queryable = Pool | PoolClient;
 
@@ -76,20 +77,29 @@ export async function countVisitsAndBookingsForMonth(
   }
 
   if (lock) {
-    await client.query(
-      `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
-      [userId, start, end],
-    );
-    await client.query(
-      `SELECT cv.id FROM client_visits cv
+    try {
+      await client.query(
+        `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
+        [userId, start, end],
+      );
+      await client.query(
+        `SELECT cv.id FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
-      [userId, start, end],
-    );
+        [userId, start, end],
+      );
+    } catch (err) {
+      logger.error(
+        `Failed to lock visits/bookings for user ${userId} between ${start} and ${end}`,
+        err,
+      );
+      throw err;
+    }
   }
 
-  const res = await client.query(
-    `SELECT (
+  try {
+    const res = await client.query(
+      `SELECT (
         SELECT COUNT(*) FROM bookings
         WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3 AND date >= CURRENT_DATE
       ) + (
@@ -97,9 +107,16 @@ export async function countVisitsAndBookingsForMonth(
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3
       ) AS total`,
-    [userId, start, end],
-  );
-  return Number(res.rows[0].total);
+      [userId, start, end],
+    );
+    return Number(res.rows[0].total);
+  } catch (err) {
+    logger.error(
+      `Failed to count visits and bookings for user ${userId} between ${start} and ${end}`,
+      err,
+    );
+    throw err;
+  }
 }
 
 export async function findUpcomingBooking(
