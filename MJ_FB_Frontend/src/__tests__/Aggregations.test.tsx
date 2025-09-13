@@ -73,7 +73,7 @@ describe('Aggregations page', () => {
     fireEvent.click(await screen.findByRole('button', { name: /insert aggregate/i }));
 
     fireEvent.change(screen.getByLabelText(/month/i), { target: { value: '5' } });
-    fireEvent.change(screen.getByLabelText(/donations/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/total donations/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/surplus/i), { target: { value: '2' } });
     fireEvent.change(screen.getByLabelText(/pig pound/i), { target: { value: '3' } });
     fireEvent.change(screen.getByLabelText(/outgoing donations/i), {

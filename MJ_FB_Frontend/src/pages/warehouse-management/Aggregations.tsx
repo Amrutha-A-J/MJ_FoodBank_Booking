@@ -450,7 +450,7 @@ export default function Aggregations() {
                 size="medium"
               />
               <TextField
-                label="Donations"
+                label="Total Donations"
                 type="number"
                 value={insertDonations}
                 onChange={e => setInsertDonations(e.target.value)}
