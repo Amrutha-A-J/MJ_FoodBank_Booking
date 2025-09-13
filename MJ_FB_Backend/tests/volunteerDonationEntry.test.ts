@@ -4,6 +4,13 @@ import authRouter from '../src/routes/auth';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
 
+jest.mock('express-rate-limit', () => ({
+  rateLimit: () => {
+    const fn: any = (_req: any, _res: any, next: any) => next();
+    fn.resetKey = jest.fn();
+    return fn;
+  },
+}));
 jest.mock('../src/db');
 jest.mock('bcrypt');
 jest.mock('../src/utils/authUtils', () => ({
@@ -13,7 +20,7 @@ jest.mock('../src/utils/authUtils', () => ({
 
 const app = express();
 app.use(express.json());
-app.use('/auth', authRouter);
+app.use('/api/v1/auth', authRouter);
 
 describe('donation entry volunteer login', () => {
   beforeEach(() => {
@@ -22,6 +29,7 @@ describe('donation entry volunteer login', () => {
 
   it('returns donation_entry access when trained for Donation Entry role', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [{
@@ -39,11 +47,11 @@ describe('donation entry volunteer login', () => {
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
     const res = await request(app)
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'jane@example.com', password: 'pw' });
 
     expect(res.status).toBe(200);
     expect(res.body.access).toEqual(['donation_entry']);
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE v.email = \$1/);
   });
 });
