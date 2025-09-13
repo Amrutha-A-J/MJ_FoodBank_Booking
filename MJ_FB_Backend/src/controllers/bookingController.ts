@@ -96,13 +96,22 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       await client.query('BEGIN');
       transactionActive = true;
       try {
+        logger.info('Locking client row', { userId, slotId: slotIdNum, date });
         await lockClientRow(userId, client);
       } catch (err) {
-        logger.error(`Failed to lock client row for user ${userId}`, err);
+        logger.error(
+          `Failed to lock client row for user ${userId}, slot ${slotIdNum} on ${date}`,
+          err,
+        );
         throw err;
       }
       let monthlyUsage: number | false;
       try {
+        logger.info('Counting visits and bookings for month', {
+          userId,
+          slotId: slotIdNum,
+          date,
+        });
         monthlyUsage = await countVisitsAndBookingsForMonth(
           userId,
           date,
@@ -111,7 +120,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         );
       } catch (err) {
         logger.error(
-          `Failed to count visits and bookings for user ${userId} on ${date}`,
+          `Failed to count visits and bookings for user ${userId} on ${date} (slot ${slotIdNum})`,
           err,
         );
         throw err;
@@ -128,9 +137,13 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       }
       let holiday: boolean;
       try {
+        logger.info('Checking holiday', { userId, slotId: slotIdNum, date });
         holiday = await isHoliday(date, client);
       } catch (err) {
-        logger.error(`Failed to check holiday for ${date}`, err);
+        logger.error(
+          `Failed to check holiday for ${date} (user ${userId}, slot ${slotIdNum})`,
+          err,
+        );
         throw err;
       }
       if (holiday) {
@@ -140,20 +153,38 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           .status(400)
           .json({ message: 'Pantry is closed on the selected date.' });
       }
-      await checkSlotCapacity(slotIdNum, date, client);
+      try {
+        logger.info('Checking slot capacity', { userId, slotId: slotIdNum, date });
+        await checkSlotCapacity(slotIdNum, date, client);
+      } catch (err) {
+        logger.error(
+          `Failed to check slot capacity for user ${userId}, slot ${slotIdNum} on ${date}`,
+          err,
+        );
+        throw err;
+      }
       token = randomUUID();
-      await insertBooking(
-        userId,
-        slotIdNum,
-        'approved',
-        '',
-        date,
-        isStaffBooking || false,
-        token,
-        null,
-        note ?? null,
-        client,
-      );
+      try {
+        logger.info('Inserting booking', { userId, slotId: slotIdNum, date });
+        await insertBooking(
+          userId,
+          slotIdNum,
+          'approved',
+          '',
+          date,
+          isStaffBooking || false,
+          token,
+          null,
+          note ?? null,
+          client,
+        );
+      } catch (err) {
+        logger.error(
+          `Failed to insert booking for user ${userId}, slot ${slotIdNum} on ${date}`,
+          err,
+        );
+        throw err;
+      }
       await client.query('COMMIT');
       transactionActive = false;
     } catch (err) {
