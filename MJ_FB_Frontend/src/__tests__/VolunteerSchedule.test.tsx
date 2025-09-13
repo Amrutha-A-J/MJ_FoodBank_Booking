@@ -192,7 +192,8 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    fireEvent.click(await screen.findByText("My Booking"));
+    await screen.findByText("Greeter");
+    fireEvent.click(await screen.findByText(/My Booking/i));
     fireEvent.click(await screen.findByRole("button", { name: /reschedule/i }));
 
     fireEvent.change(screen.getByLabelText(/date/i), {
