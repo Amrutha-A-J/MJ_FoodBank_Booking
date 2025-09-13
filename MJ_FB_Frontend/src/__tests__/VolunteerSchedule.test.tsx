@@ -1,5 +1,5 @@
 import { screen, fireEvent, waitFor } from "@testing-library/react";
-import * as mui from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
 import { renderWithProviders } from "../../testUtils/renderWithProviders";
 import {
@@ -15,6 +15,14 @@ import {
 } from "../api/volunteers";
 import { getHolidays } from "../api/bookings";
 import { formatTime } from "../utils/time";
+
+jest.mock("@mui/material/useMediaQuery");
+const useMediaQueryMock = useMediaQuery as jest.MockedFunction<
+  typeof useMediaQuery
+>;
+const actualUseMediaQuery =
+  jest.requireActual("@mui/material/useMediaQuery").default;
+useMediaQueryMock.mockImplementation(actualUseMediaQuery);
 
 jest.mock("../api/volunteers", () => ({
   getVolunteerRolesForVolunteer: jest.fn(),
@@ -35,6 +43,7 @@ describe("VolunteerSchedule", () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2024-01-29T19:00:00Z"));
     (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
+    useMediaQueryMock.mockImplementation(actualUseMediaQuery);
   });
 
   afterEach(() => {
@@ -235,7 +244,7 @@ describe("VolunteerSchedule", () => {
       },
     ]);
 
-    const mq = jest.spyOn(mui, "useMediaQuery").mockReturnValue(true);
+    useMediaQueryMock.mockReturnValue(true);
     renderWithProviders(<VolunteerSchedule />);
 
     fireEvent.mouseDown(screen.getByLabelText('Department'));
@@ -243,7 +252,7 @@ describe("VolunteerSchedule", () => {
 
     expect(await screen.findByText(/No bookings\.?/)).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
-    mq.mockRestore();
+    useMediaQueryMock.mockImplementation(actualUseMediaQuery);
   });
 
   it('books a slot via Sign Up button', async () => {
