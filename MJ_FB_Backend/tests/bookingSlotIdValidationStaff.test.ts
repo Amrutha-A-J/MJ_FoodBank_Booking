@@ -33,6 +33,17 @@ beforeEach(() => {
 });
 
 describe('POST /bookings/staff slotId validation', () => {
+  it('returns 400 for missing slotId without querying the DB', async () => {
+    const today = formatReginaDate(new Date());
+    const res = await request(app)
+      .post('/bookings/staff')
+      .send({ userId: 1, date: today });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Please select a valid time slot');
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(pool.connect).not.toHaveBeenCalled();
+  });
+
   it('returns 400 for non-integer slotId without querying the DB', async () => {
     const today = formatReginaDate(new Date());
     const res = await request(app)
