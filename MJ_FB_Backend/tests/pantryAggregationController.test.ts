@@ -6,6 +6,7 @@ import mockPool from './utils/mockDb';
 import {
   refreshPantryMonthly,
   refreshPantryYearly,
+  refreshPantryWeekly,
 } from '../src/controllers/pantry/pantryAggregationController';
 
 const year = new Date().getFullYear();
@@ -54,6 +55,33 @@ describe('pantryAggregationController totals', () => {
       2,
       expect.stringContaining('INSERT INTO pantry_yearly_overall'),
       [year, 10, 20, 5, 25, 100],
+    );
+  });
+
+  it('excludes sunshine bag orders from adult and people totals', async () => {
+    (mockPool.query as jest.Mock)
+      .mockResolvedValueOnce({
+        rows: [{ visits: 2, adults: 4, children: 3, weight: 20 }],
+      })
+      .mockResolvedValueOnce({ rows: [{ orders: 5, weight: 15 }] })
+      .mockResolvedValue({} as any);
+
+    await refreshPantryWeekly(2024, 5, 1);
+
+    expect(mockPool.query).toHaveBeenLastCalledWith(
+      expect.stringContaining('INSERT INTO pantry_weekly_overall'),
+      [
+        2024,
+        5,
+        1,
+        expect.any(String),
+        expect.any(String),
+        7, // orders = visitOrders + bagOrders
+        4, // adults = visitAdults only
+        3, // children
+        7, // people = adults + children
+        35, // weight = visitWeight + sunshineWeight
+      ],
     );
   });
 });
