@@ -288,11 +288,14 @@ export default function App() {
   const AppContent = ({ maintenanceNotice }: { maintenanceNotice?: string }) => {
     const location = useLocation();
     const path = location.pathname;
+    const showOverlay =
+      maintenanceMode && !(isStaff || path === '/login');
     useEffect(() => {
       console.log('Navigated to', path);
     }, [path]);
     return (
       <>
+        {showOverlay && <MaintenanceOverlay />}
         <div className="app-container">
           <FeedbackSnackbar
             open={!!error}
@@ -617,7 +620,6 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      {maintenanceMode && <MaintenanceOverlay />}
       <InstallAppButton />
       <AppContent maintenanceNotice={notice} />
     </BrowserRouter>
