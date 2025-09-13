@@ -111,7 +111,7 @@ export default function AdminStaffList() {
           {toDelete && (
             <ConfirmDialog
               message={`Delete ${toDelete.firstName} ${toDelete.lastName}?`}
-              onConfirm={handleDelete}
+              onConfirm={() => handleDelete()}
               onCancel={() => setToDelete(null)}
             />
           )}
