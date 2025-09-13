@@ -116,11 +116,12 @@ export default function AddClient() {
                 <Typography variant="body2" color="text.secondary">
                   An email invitation will be sent.
                 </Typography>
-              ) : (
+                ) : (
                 <PasswordField
                   label="Password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
+                  visibilityIconButtonProps={{ 'aria-label': 'Toggle password visibility' }}
                 />
               )}
             </>

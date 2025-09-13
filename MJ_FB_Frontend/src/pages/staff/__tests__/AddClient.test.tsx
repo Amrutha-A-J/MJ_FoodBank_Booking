@@ -101,7 +101,7 @@ test('includes password and omits sendPasswordLink when setting password', async
   fireEvent.change(screen.getByLabelText(/email/i), {
     target: { value: 'jane@example.com' },
   });
-  fireEvent.change(screen.getByLabelText(/password/i), {
+  fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
     target: { value: 'P@ssword1' },
   });
 
