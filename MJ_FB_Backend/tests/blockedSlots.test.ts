@@ -6,10 +6,10 @@ jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
   authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
 }));
-jest.mock('../src/utils/blockedSlotCleanupJob', () => ({
+jest.mock('../src/jobs/blockedSlotCleanupJob', () => ({
   cleanupPastBlockedSlots: jest.fn().mockResolvedValue(undefined),
 }));
-const { cleanupPastBlockedSlots } = require('../src/utils/blockedSlotCleanupJob');
+const { cleanupPastBlockedSlots } = require('../src/jobs/blockedSlotCleanupJob');
 
 const app = express();
 app.use(express.json());

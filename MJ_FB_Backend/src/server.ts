@@ -38,7 +38,7 @@ import { startLogCleanupJob, stopLogCleanupJob } from './utils/logCleanupJob';
 import {
   startBlockedSlotCleanupJob,
   stopBlockedSlotCleanupJob,
-} from './utils/blockedSlotCleanupJob';
+} from './jobs/blockedSlotCleanupJob';
 import { startDbBloatMonitorJob, stopDbBloatMonitorJob } from './utils/dbBloatMonitorJob';
 import { startVacuumJob, stopVacuumJob } from './utils/vacuumJob';
 
