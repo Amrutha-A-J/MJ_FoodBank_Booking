@@ -17,7 +17,8 @@
 - The login page automatically prompts for passkeys via WebAuthn on supported devices.
 - Volunteers see an Install App button on their first visit to volunteer pages when the app isn't already installed. An onboarding modal explains offline use, and installations are tracked.
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
-- A privacy notice modal prompts for consent after login and stores acknowledgement in the `users` table and localStorage to avoid repeat prompts.
+ - A privacy notice modal prompts for consent after login and stores acknowledgement in the `users` table and localStorage to avoid repeat prompts.
+ - The privacy policy is publicly accessible without signing in, and the login page includes a link to it.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table. Sunshine bag recipients are recorded separately and excluded from total client counts.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.

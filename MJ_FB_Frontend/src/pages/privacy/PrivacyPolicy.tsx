@@ -5,7 +5,7 @@ import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function PrivacyPolicy() {
-  const { role } = useAuth();
+  const { role, isAuthenticated } = useAuth();
   return (
     <Page title="Privacy Policy – Harvest Pantry Booking App">
       <Stack spacing={2}>
@@ -101,7 +101,8 @@ export default function PrivacyPolicy() {
           </Link>
         </Typography>
       </Stack>
-      {role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />}
+      {isAuthenticated &&
+        (role === 'volunteer' ? <VolunteerBottomNav /> : <ClientBottomNav />)}
     </Page>
   );
 }

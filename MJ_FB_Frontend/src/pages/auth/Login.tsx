@@ -117,6 +117,9 @@ export default function Login({
               >
                 Login
               </LoadingButton>
+              <Link href="/privacy" underline="hover" textAlign="center">
+                Privacy Policy
+              </Link>
             </Stack>
           }
           centered={false}
