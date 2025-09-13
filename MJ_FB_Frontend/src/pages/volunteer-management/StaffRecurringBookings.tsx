@@ -294,7 +294,7 @@ export default function StaffRecurringBookings() {
                             onClick={() => cancelOccurrence(o.id)}
                             variant="outlined"
                             color="primary"
-                            
+                            aria-label="Cancel occurrence"
                           >
                             Cancel
                           </Button>
