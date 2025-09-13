@@ -17,7 +17,6 @@ import {
   Stack,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import RescheduleDialog from './RescheduleDialog';
 import DialogCloseButton from './DialogCloseButton';
 import FeedbackSnackbar from './FeedbackSnackbar';
@@ -72,7 +71,6 @@ export default function BookingManagementBase({
   renderDeleteVisitButton,
   showNotes,
 }: BookingManagementBaseProps) {
-  const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState(1);
@@ -188,11 +186,11 @@ export default function BookingManagementBase({
     try {
       await cancelBooking(String(cancelId));
       setSeverity('success');
-      setMessage(t('booking_cancelled'));
+      setMessage('Booking cancelled');
       loadBookings();
     } catch (err: unknown) {
       setSeverity('error');
-      setMessage(getApiErrorMessage(err, t('cancel_booking_failed')));
+      setMessage(getApiErrorMessage(err, 'Failed to cancel booking'));
     } finally {
       setCancelId(null);
     }
@@ -217,7 +215,7 @@ export default function BookingManagementBase({
     <div>
       <Box>
         <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-          {user.name && <h3>{t('history_for', { name: user.name })}</h3>}
+          {user.name && <h3>{`History for ${user.name}`}</h3>}
           {renderEditDialog && (
             <Button
               variant="contained"
@@ -228,18 +226,18 @@ export default function BookingManagementBase({
           )}
         </Stack>
         <FormControl sx={{ minWidth: 160, mb: 1 }}>
-          <InputLabel id="filter-label">{t('filter')}</InputLabel>
+          <InputLabel id="filter-label">Filter</InputLabel>
           <Select
             labelId="filter-label"
             value={filter}
-            label={t('filter')}
+            label="Filter"
             onChange={e => setFilter(e.target.value)}
           >
-            <MenuItem value="all">{t('all')}</MenuItem>
-            <MenuItem value="approved">{t('approved')}</MenuItem>
-            <MenuItem value="visited">{t('visited')}</MenuItem>
-            <MenuItem value="no_show">{t('no_show')}</MenuItem>
-            <MenuItem value="past">{t('past')}</MenuItem>
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="approved">Approved</MenuItem>
+            <MenuItem value="visited">Visited</MenuItem>
+            <MenuItem value="no_show">No show</MenuItem>
+            <MenuItem value="past">Past</MenuItem>
           </Select>
         </FormControl>
         {showNotes && (
@@ -250,11 +248,11 @@ export default function BookingManagementBase({
                 onChange={e => setNotesOnly(e.target.checked)}
               />
             }
-            label={t('visits_with_notes_only')}
+            label="Visits with notes only"
           />
         )}
         {paginated.length === 0 ? (
-          <Typography align="center">{t('no_bookings')}</Typography>
+          <Typography align="center">No bookings</Typography>
         ) : (
           <TableContainer sx={{ overflowX: 'auto' }}>
             <BookingHistoryTable
@@ -290,7 +288,7 @@ export default function BookingManagementBase({
               disabled={page === 1}
               variant="outlined"
             >
-              {t('prev')}
+              Prev
             </Button>
             <Typography>{page}</Typography>
             <Button
@@ -298,7 +296,7 @@ export default function BookingManagementBase({
               disabled={page === totalPages}
               variant="outlined"
             >
-              {t('next')}
+              Next
             </Button>
           </Box>
         )}
@@ -325,9 +323,9 @@ export default function BookingManagementBase({
         })}
       <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
         <DialogCloseButton onClose={() => setCancelId(null)} />
-        <DialogTitle>{t('cancel_booking')}</DialogTitle>
+        <DialogTitle>Cancel booking</DialogTitle>
         <DialogContent>
-          <Typography>{t('cancel_booking_question')}</Typography>
+          <Typography>Cancel this booking?</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -335,7 +333,7 @@ export default function BookingManagementBase({
             variant="contained"
             onClick={confirmCancel}
           >
-            {t('cancel_booking')}
+            Cancel booking
           </Button>
         </DialogActions>
       </Dialog>
