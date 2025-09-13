@@ -7,6 +7,7 @@ import {
   formatReginaDate,
   formatReginaDateWithDay,
   formatTimeToAmPm,
+  reginaStartOfDayISO,
 } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
@@ -64,7 +65,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
   }
 
   if (!isValidDateString(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  const today = new Date(reginaStartOfDayISO(new Date()));
+  const bookingDate = new Date(reginaStartOfDayISO(date));
+  if (Number.isNaN(bookingDate.getTime()) || bookingDate <= today) {
+    return res.status(400).json({ message: 'Invalid date' });
   }
 
   const slotIdNum = Number(slotId);
@@ -925,7 +931,8 @@ export async function createBookingForUser(
 
   const { userId, slotId, date, note, type } = req.body;
   const emailType = type || 'Shopping Appointment';
-  const staffBookingFlag = req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
+  const staffBookingFlag =
+    req.user.role === 'agency' ? true : !!req.body.isStaffBooking;
   if (!userId || !slotId || !date) {
     return res
       .status(400)
@@ -933,7 +940,12 @@ export async function createBookingForUser(
   }
 
   if (!isValidDateString(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  const today = new Date(reginaStartOfDayISO(new Date()));
+  const bookingDate = new Date(reginaStartOfDayISO(date));
+  if (Number.isNaN(bookingDate.getTime()) || bookingDate <= today) {
+    return res.status(400).json({ message: 'Invalid date' });
   }
 
   const slotIdNum = Number(slotId);
