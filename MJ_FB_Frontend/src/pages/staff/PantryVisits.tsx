@@ -37,15 +37,12 @@ import { getSunshineBag, saveSunshineBag } from '../../api/sunshineBags';
 import { addUser, getUserByClientId } from '../../api/users';
 import useAppConfig from '../../hooks/useAppConfig';
 import type { AlertColor } from '@mui/material';
-import { toDate, formatDate, formatLocaleDate, addDays } from '../../utils/date';
+import { toDate, formatDate, formatLocaleDate, addDays, toDayjs } from '../../utils/date';
 
 function startOfWeek(date: Date) {
-  const d = toDate(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday as first day
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  const d = toDayjs(date);
+  const day = d.day();
+  return d.subtract(day === 0 ? 6 : day - 1, 'day').startOf('day').toDate();
 }
 
 function format(date: Date) {
@@ -457,7 +454,7 @@ export default function PantryVisits() {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-          })}`}
+          })},`}
         </Typography>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <Typography variant="body2">
@@ -574,7 +571,7 @@ export default function PantryVisits() {
             >
               <FormControlLabel value="regular" control={<Radio />} label="Regular visit" />
               <FormControlLabel value="anonymous" control={<Radio />} label="Anonymous visit" />
-              <FormControlLabel value="sunshine" control={<Radio />} label="Sunshine Bag" />
+              <FormControlLabel value="sunshine" control={<Radio />} label="Sunshine bag?" />
             </RadioGroup>
             {form.sunshineBag ? (
               <>

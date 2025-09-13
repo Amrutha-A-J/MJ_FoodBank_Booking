@@ -8,6 +8,7 @@ import {
 import '@testing-library/jest-dom';
 import PantryVisits from '../PantryVisits';
 import { MemoryRouter } from 'react-router-dom';
+import { formatLocaleDate } from '../../../utils/date';
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
@@ -76,7 +77,7 @@ describe('PantryVisits', () => {
   });
 
   it('shows date in weekday tabs', async () => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-05-13'));
+    jest.useFakeTimers().setSystemTime(new Date('2024-05-13T12:00:00Z'));
     (getClientVisits as jest.Mock).mockResolvedValue([]);
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
@@ -84,7 +85,11 @@ describe('PantryVisits', () => {
     renderVisits();
 
     await screen.findByText('Record Visit');
-    expect(screen.getByText('May 13')).toBeInTheDocument();
+    const expectedTab = formatLocaleDate(new Date('2024-05-13T12:00:00Z'), {
+      month: 'short',
+      day: 'numeric',
+    });
+    expect(screen.getByText(expectedTab)).toBeInTheDocument();
 
     jest.useRealTimers();
   });
@@ -370,8 +375,14 @@ describe('PantryVisits', () => {
 
     await screen.findByText('Alice');
 
+    const expectedDate = formatLocaleDate('2024-05-13', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
     expect(
-      screen.getByRole('heading', { name: 'Summary of Mon, May 13, 2024' }),
+      screen.getByRole('heading', { name: `Summary of ${expectedDate},` }),
     ).toBeInTheDocument();
 
     jest.useRealTimers();
