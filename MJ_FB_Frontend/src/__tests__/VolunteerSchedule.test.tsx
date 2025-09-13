@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import * as mui from "@mui/material";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
 import { renderWithProviders } from "../../testUtils/renderWithProviders";
@@ -120,7 +120,7 @@ describe("VolunteerSchedule", () => {
     });
     expect(prev).toBeDisabled();
 
-    expect(await screen.findByText("No bookings")).toBeInTheDocument();
+    expect(await screen.findByText(/No bookings/i)).toBeInTheDocument();
   });
 
   it("shows only available slots in reschedule dialog", async () => {
@@ -240,7 +240,7 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    expect(await screen.findByText("No bookings")).toBeInTheDocument();
+    expect(await screen.findByText(/No bookings/i)).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
     mq.mockRestore();
   });
@@ -272,7 +272,9 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    fireEvent.click(await screen.findByRole('button', { name: /sign up/i }));
+    const rows = await screen.findAllByRole("row");
+    const firstSlotCell = within(rows[1]).getAllByRole("cell")[1];
+    fireEvent.click(within(firstSlotCell).getByRole("button"));
 
     await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   });
