@@ -21,7 +21,6 @@ import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 export type NavLink = {
   label: string;
@@ -56,7 +55,6 @@ export default function Navbar({
   const [mobileSubmenu, setMobileSubmenu] = useState<NavGroup | null>(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const location = useLocation();
-  const { t } = useTranslation();
 
   function handleGroupClick(label: string, event: React.MouseEvent<HTMLElement>) {
     setAnchorEl(event.currentTarget);
@@ -127,11 +125,11 @@ export default function Navbar({
   const mobileProfileGroup: NavGroup | null =
     onLogout && name
       ? {
-          label: t('hello_name', { name }),
+          label: `Hello, ${name}`,
           links: [
             ...(role === 'staff' ? profileLinks ?? [] : []),
-            { label: t('profile'), to: '/profile' },
-            { label: t('logout'), onClick: () => onLogout?.() },
+            { label: 'Profile', to: '/profile' },
+            { label: 'Logout', onClick: () => onLogout?.() },
           ],
         }
       : null;
@@ -251,7 +249,7 @@ export default function Navbar({
                           disabled={loading}
                           sx={MOBILE_DROPDOWN_ITEM_SX}
                         >
-                          {t('logout')}
+                          Logout
                         </ListItemButton>
                       ) : null}
                     </List>
@@ -411,7 +409,7 @@ export default function Navbar({
                   aria-expanded={profileMenuOpen ? 'true' : undefined}
                   aria-controls="profile-menu"
                 >
-                  {t('hello_name', { name })}
+                  {`Hello, ${name}`}
                 </Button>
                 <Menu
                   id="profile-menu"
@@ -443,7 +441,7 @@ export default function Navbar({
                     disabled={loading}
                     sx={DROPDOWN_ITEM_SX}
                   >
-                    {t('profile')}
+                    Profile
                   </MenuItem>
                   <MenuItem
                     component={RouterLink}
@@ -452,7 +450,7 @@ export default function Navbar({
                     disabled={loading}
                     sx={DROPDOWN_ITEM_SX}
                   >
-                    {t('privacy_policy')}
+                    Privacy Policy
                   </MenuItem>
                   <MenuItem
                     onClick={() => {
@@ -462,13 +460,13 @@ export default function Navbar({
                     disabled={loading}
                     sx={DROPDOWN_ITEM_SX}
                   >
-                    {t('logout')}
+                    Logout
                   </MenuItem>
                 </Menu>
               </>
             ) : !name && !isSmall ? (
               <Button color="inherit" onClick={onLogout} disabled={loading} sx={NAV_TXT_SX}>
-                {t('logout')}
+                Logout
               </Button>
             ) : null)}
 
