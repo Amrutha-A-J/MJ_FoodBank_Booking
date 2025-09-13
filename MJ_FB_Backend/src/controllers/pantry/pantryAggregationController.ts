@@ -69,8 +69,8 @@ export async function refreshPantryWeekly(year: number, month: number, week: num
   const sunshineWeight = Number(bagRes.rows[0]?.weight ?? 0);
 
   const orders = visitOrders + bagOrders;
-  const adults = visitAdults + bagOrders;
-  const people = visitAdults + children;
+  const adults = visitAdults;
+  const people = adults + children;
   const weight = visitWeight + sunshineWeight;
 
   await pool.query(
