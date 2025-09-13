@@ -100,13 +100,9 @@ describe('GET /volunteer-roles/mine', () => {
   });
 
   it('excludes restricted categories on holidays', async () => {
-    setHolidays(new Map([[ '2025-01-01', '' ]]));
+    setHolidays(new Map([['2025-01-01', '']]));
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
-      .mockResolvedValueOnce({ rows: [{ exists: true }], rowCount: 1 })
-      .mockResolvedValueOnce({
-        rows: [{ date: '2025-01-01', reason: 'Holiday' }],
-      })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -130,6 +126,7 @@ describe('GET /volunteer-roles/mine', () => {
       .query({ date: '2025-01-01' });
 
     expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenCalledTimes(2);
     expect(res.body).toEqual([]);
   });
 });
