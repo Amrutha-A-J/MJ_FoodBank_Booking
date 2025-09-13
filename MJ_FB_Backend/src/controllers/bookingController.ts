@@ -90,7 +90,8 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
     }
 
     const client = await pool.connect();
-    let token: string | undefined;
+    let token: string;
+    let bookingId: number;
     let transactionActive = false;
     try {
       await client.query('BEGIN');
@@ -166,7 +167,7 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       token = randomUUID();
       try {
         logger.info('Inserting booking', { userId, slotId: slotIdNum, date });
-        await insertBooking(
+        bookingId = await insertBooking(
           userId,
           slotIdNum,
           'approved',
@@ -208,8 +209,6 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       'SELECT start_time, end_time FROM slots WHERE id=$1',
       [slotIdNum],
     );
-    const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
-    const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
     const { start_time, end_time } = slotRes.rows[0] || {};
     if (start_time) {
@@ -935,6 +934,7 @@ export async function createBookingForUser(
     const client = await pool.connect();
     const status = 'approved';
     let token: string;
+    let bookingId: number;
     try {
       await client.query('BEGIN');
       await lockClientRow(userId, client);
@@ -956,7 +956,7 @@ export async function createBookingForUser(
       }
       await checkSlotCapacity(slotIdNum, date, client);
       token = randomUUID();
-      await insertBooking(
+      bookingId = await insertBooking(
         userId,
         slotIdNum,
         status,
@@ -984,8 +984,6 @@ export async function createBookingForUser(
       client.release();
     }
 
-    const inserted = await pool.query('SELECT id FROM bookings WHERE reschedule_token=$1', [token]);
-    const bookingId = inserted.rows[0].id;
     const uid = `booking-${bookingId}@mjfb`;
     const emailRes = await pool.query(
       'SELECT email, first_name, last_name FROM clients WHERE client_id=$1',
