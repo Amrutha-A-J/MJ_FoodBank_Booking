@@ -54,7 +54,6 @@ export async function sendNextDayBookingReminders(
           });
         } catch (err) {
           logger.error('Failed to enqueue booking reminder email', err);
-          await alertOps('sendNextDayBookingReminders', err);
           errors.push(err);
         }
       });

@@ -11,6 +11,7 @@ jest.doMock('../src/utils/emailQueue', () => ({
   enqueueEmail: jest.fn(),
 }));
 jest.mock('../src/utils/opsAlert');
+import logger from '../src/utils/logger';
 
 jest.doMock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
@@ -95,7 +96,7 @@ describe('sendNextDayBookingReminders', () => {
     );
   });
 
-  it('alerts ops for failures and continues sending others', async () => {
+  it('logs failures and alerts ops once while continuing other sends', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -111,6 +112,9 @@ describe('sendNextDayBookingReminders', () => {
     (enqueueEmail as jest.Mock)
       .mockRejectedValueOnce(new Error('fail'))
       .mockResolvedValueOnce(undefined);
+    const errorSpy = jest
+      .spyOn(logger, 'error')
+      .mockImplementation(() => {});
 
     await expect(sendNextDayBookingReminders()).rejects.toThrow(
       'Failed to enqueue booking reminder emails',
@@ -120,17 +124,22 @@ describe('sendNextDayBookingReminders', () => {
       2,
       expect.objectContaining({ to: 'user2@example.com' }),
     );
-    expect(alertOps).toHaveBeenCalledTimes(2);
-    expect(alertOps).toHaveBeenNthCalledWith(
+    expect(alertOps).toHaveBeenCalledTimes(1);
+    expect(alertOps).toHaveBeenCalledWith(
+      'sendNextDayBookingReminders',
+      expect.any(Error),
+    );
+    expect(errorSpy).toHaveBeenNthCalledWith(
       1,
-      'sendNextDayBookingReminders',
+      'Failed to enqueue booking reminder email',
       expect.any(Error),
     );
-    expect(alertOps).toHaveBeenNthCalledWith(
+    expect(errorSpy).toHaveBeenNthCalledWith(
       2,
-      'sendNextDayBookingReminders',
+      'Failed to send booking reminders',
       expect.any(Error),
     );
+    errorSpy.mockRestore();
   });
 
   it('marks reminders as sent so bookings are queued only once', async () => {
