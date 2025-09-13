@@ -1,6 +1,12 @@
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
 import { ReadableStream, WritableStream } from 'stream/web';
+import {
+  setTimeout as nodeSetTimeout,
+  clearTimeout as nodeClearTimeout,
+  setInterval as nodeSetInterval,
+  clearInterval as nodeClearInterval,
+} from 'timers';
 
 // Polyfill TextEncoder/Decoder for testing environment
 (global as any).TextEncoder = TextEncoder;
@@ -12,6 +18,12 @@ import { ReadableStream, WritableStream } from 'stream/web';
 (global as any).performance = (global as any).performance || ({} as any);
 (global as any).performance.markResourceTiming =
   (global as any).performance.markResourceTiming || (() => {});
+
+// Use Node's timer implementations so undici's fast timers have refresh()
+(global as any).setTimeout = nodeSetTimeout;
+(global as any).clearTimeout = nodeClearTimeout;
+(global as any).setInterval = nodeSetInterval;
+(global as any).clearInterval = nodeClearInterval;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fetch, Headers, Request, Response, FormData, File } = require('undici');

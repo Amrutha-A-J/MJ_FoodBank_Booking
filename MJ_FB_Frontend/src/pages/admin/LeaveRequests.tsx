@@ -74,7 +74,7 @@ export default function AdminLeaveRequests() {
               >
                 <Button
                   variant="contained"
-                  
+
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() =>
                     approve.mutate(
@@ -92,7 +92,7 @@ export default function AdminLeaveRequests() {
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() => setRejecting(r)}
                 >
-                  Reject Leave
+                  Reject
                 </Button>
               </Box>
             </CardContent>
