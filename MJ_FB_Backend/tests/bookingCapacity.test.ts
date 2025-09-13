@@ -43,15 +43,10 @@ beforeEach(() => {
     release: jest.fn(),
   };
   (pool.connect as jest.Mock).mockResolvedValue(mockClient);
-  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }], rowCount: 0 });
   (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(0);
   (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
   (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
-  (pool.connect as jest.Mock).mockResolvedValue({
-    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
-    release: jest.fn(),
-  });
-  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }], rowCount: 0 });
 });
 
 describe('POST /bookings capacity check', () => {
