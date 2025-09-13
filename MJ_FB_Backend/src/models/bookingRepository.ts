@@ -45,14 +45,43 @@ export async function checkSlotCapacity(
        WHERE s.id = $1`;
   const lockQuery = `${baseQuery} FOR UPDATE`;
   let res;
+  let useSavepoint = true;
+  try {
+    await (client as any).query('SAVEPOINT check_slot_capacity');
+  } catch {
+    useSavepoint = false;
+  }
   try {
     res = await client.query(lockQuery, params);
+    if (useSavepoint) {
+      await (client as any).query('RELEASE SAVEPOINT check_slot_capacity');
+    }
   } catch (err: any) {
+    if (useSavepoint) {
+      try {
+        await (client as any).query('ROLLBACK TO SAVEPOINT check_slot_capacity');
+      } catch {}
+    }
     if (err.code === '0A000') {
       res = await client.query(baseQuery, params);
+      if (useSavepoint) {
+        try {
+          await (client as any).query('RELEASE SAVEPOINT check_slot_capacity');
+        } catch {}
+      }
     } else if (err.code === '25P02') {
+      if (useSavepoint) {
+        try {
+          await (client as any).query('RELEASE SAVEPOINT check_slot_capacity');
+        } catch {}
+      }
       throw new SlotCapacityError('Transaction aborted, please retry', 503);
     } else {
+      if (useSavepoint) {
+        try {
+          await (client as any).query('RELEASE SAVEPOINT check_slot_capacity');
+        } catch {}
+      }
       throw err;
     }
   }

@@ -14,38 +14,45 @@ import { formatReginaDate } from '../src/utils/dateUtils';
 describe('bookingRepository', () => {
   afterEach(() => {
     (mockPool.query as jest.Mock).mockReset();
+    (mockPool.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
   });
 
   describe('checkSlotCapacity', () => {
     it('throws for invalid slot', async () => {
-      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0 });
+      (mockPool.query as jest.Mock)
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({ rowCount: 0, rows: [] });
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toBeInstanceOf(
         SlotCapacityError,
       );
-      expect(mockPool.query).toHaveBeenCalledTimes(1);
+      expect(mockPool.query).toHaveBeenCalledTimes(3);
     });
 
     it('throws when slot full', async () => {
-      (mockPool.query as jest.Mock).mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ max_capacity: 1, approved_count: 1 }],
-      });
+      (mockPool.query as jest.Mock)
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [{ max_capacity: 1, approved_count: 1 }],
+        });
       await expect(checkSlotCapacity(1, '2024-01-01')).rejects.toThrow(
         'Slot full on selected date',
       );
-      const [sql, params] = (mockPool.query as jest.Mock).mock.calls[0];
+      const [sql, params] = (mockPool.query as jest.Mock).mock.calls[1];
       expect(sql).toMatch(/COUNT/);
       expect(sql).toMatch(/FOR UPDATE/);
       expect(params).toEqual([1, '2024-01-01']);
     });
 
     it('resolves when slot has capacity', async () => {
-      (mockPool.query as jest.Mock).mockResolvedValueOnce({
-        rowCount: 1,
-        rows: [{ max_capacity: 2, approved_count: 1 }],
-      });
+      (mockPool.query as jest.Mock)
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({
+          rowCount: 1,
+          rows: [{ max_capacity: 2, approved_count: 1 }],
+        });
       await expect(checkSlotCapacity(1, '2024-01-01')).resolves.toBeUndefined();
-      expect(mockPool.query).toHaveBeenCalledTimes(1);
+      expect(mockPool.query).toHaveBeenCalledTimes(3);
     });
   });
 
