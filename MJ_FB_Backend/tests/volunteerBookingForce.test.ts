@@ -94,8 +94,8 @@ describe('createVolunteerBookingForVolunteer force', () => {
     expect(res.status).toBe(201);
     const updateCall = client.query.mock.calls[3];
     expect(updateCall[0]).toMatch(
-      /UPDATE volunteer_slots SET max_volunteers = \$1 WHERE slot_id = \$2/,
+      /UPDATE volunteer_slots SET max_volunteers = max_volunteers \+ 1 WHERE slot_id = \$1/,
     );
-    expect(updateCall[1]).toEqual([2, 1]);
+    expect(updateCall[1]).toEqual([1]);
   });
 });
