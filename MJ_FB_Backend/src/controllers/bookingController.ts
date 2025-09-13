@@ -156,11 +156,16 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
       );
       await client.query('COMMIT');
       transactionActive = false;
-    } catch (err) {
+    } catch (err: any) {
       if (transactionActive) {
         await client.query('ROLLBACK');
       }
-      if (err instanceof SlotCapacityError) {
+      if (err instanceof SlotCapacityError || err?.code === '25P02') {
+        if (err?.code === '25P02') {
+          return res
+            .status(503)
+            .json({ message: 'Transaction aborted, please retry' });
+        }
         return res.status(err.status).json({ message: err.message });
       }
       throw err;
@@ -933,9 +938,14 @@ export async function createBookingForUser(
         client,
       );
       await client.query('COMMIT');
-    } catch (err) {
+    } catch (err: any) {
       await client.query('ROLLBACK');
-      if (err instanceof SlotCapacityError) {
+      if (err instanceof SlotCapacityError || err?.code === '25P02') {
+        if (err?.code === '25P02') {
+          return res
+            .status(503)
+            .json({ message: 'Transaction aborted, please retry' });
+        }
         return res.status(err.status).json({ message: err.message });
       }
       throw err;
