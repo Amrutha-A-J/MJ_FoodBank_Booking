@@ -48,6 +48,8 @@ import sunshineBagsRoutes from './routes/sunshineBags';
 import webauthnRoutes from './routes/webauthn';
 import pantryAggregationsRoutes from './routes/pantry/aggregations';
 import maintenanceRoutes from './routes/maintenance';
+import { optionalAuthMiddleware } from './middleware/authMiddleware';
+import maintenanceGuard from './middleware/maintenanceGuard';
 
 const app = express();
 
@@ -81,6 +83,10 @@ const api = Router();
 
 // Health FIRST (JSON response so it won't be mistaken for SPA)
 api.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
+
+// Allow middleware to check maintenance mode and optional auth for all requests
+api.use(optionalAuthMiddleware);
+api.use(maintenanceGuard);
 
 // Mount feature routers (all relative to /api/v1)
 api.use('/users', usersRoutes);
