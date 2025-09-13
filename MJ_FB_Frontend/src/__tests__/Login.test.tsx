@@ -35,7 +35,7 @@ describe('Login component', () => {
     await waitFor(() => expect(onLogin).toHaveBeenCalled());
   });
 
-  it('shows friendly message on unauthorized error', async () => {
+  it('shows message on incorrect credentials', async () => {
     const apiErr = Object.assign(new Error('backend'), { status: 401 });
     (login as jest.Mock).mockRejectedValue(apiErr);
     const onLogin = jest.fn().mockResolvedValue('/');
@@ -57,7 +57,7 @@ describe('Login component', () => {
     expect(onLogin).not.toHaveBeenCalled();
   });
 
-  it('opens resend dialog on expired token error', async () => {
+  it('opens resend dialog when password setup link expired', async () => {
     const apiErr = Object.assign(new Error('expired'), { status: 410 });
     (login as jest.Mock).mockRejectedValue(apiErr);
     (resendPasswordSetup as jest.Mock).mockResolvedValue(undefined);
