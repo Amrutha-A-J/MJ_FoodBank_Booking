@@ -79,7 +79,11 @@ async function loginByIdentifier(identifier: string, res: Response) {
         [volunteer.id],
       );
       const access: string[] = [];
-      if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+      if (
+        rolesRes.rows.some(
+          r => r.name && r.name.toLowerCase() === 'donation entry',
+        )
+      ) {
         access.push('donation_entry');
       }
       const payload: AuthPayload = {
@@ -165,7 +169,11 @@ async function loginByIdentifier(identifier: string, res: Response) {
       [volunteer.id],
     );
     const access: string[] = [];
-    if (rolesRes.rows.some(r => r.name === 'Donation Entry')) {
+    if (
+      rolesRes.rows.some(
+        r => r.name && r.name.toLowerCase() === 'donation entry',
+      )
+    ) {
       access.push('donation_entry');
     }
     const payload: AuthPayload = {
