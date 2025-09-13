@@ -6,6 +6,7 @@ import {
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   getVolunteerById,
+  getVolunteerBookingHistory,
 } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => {
@@ -17,6 +18,7 @@ jest.mock('../../../api/volunteers', () => {
     createVolunteerShopperProfile: jest.fn(),
     removeVolunteerShopperProfile: jest.fn(),
     getVolunteerById: jest.fn(),
+    getVolunteerBookingHistory: jest.fn(),
   };
 });
 
@@ -40,6 +42,7 @@ jest.mock('../../../components/EntitySearch', () => (props: any) => (
 describe('EditVolunteer volunteer info display', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
     mockVolunteer.hasPassword = false;
   });
 
@@ -91,6 +94,7 @@ describe('EditVolunteer shopper profile', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
     mockVolunteer.hasPassword = false;
   });
 
@@ -169,6 +173,7 @@ describe('EditVolunteer role selection', () => {
     (createVolunteerShopperProfile as jest.Mock).mockReset();
     (removeVolunteerShopperProfile as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockReset();
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
     mockVolunteer.hasPassword = false;
   });
 
@@ -288,5 +293,37 @@ describe('EditVolunteer role selection', () => {
 
     const grid = chipA.parentElement?.parentElement;
     expect(grid).toHaveClass('MuiGrid-container');
+  });
+});
+
+describe('EditVolunteer history', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        role_id: 1,
+        role_name: 'Role A',
+        date: '2024-01-01',
+        start_time: '09:00:00',
+        end_time: '10:00:00',
+        status: 'approved',
+      },
+    ]);
+  });
+
+  it('loads history when volunteer is selected', async () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    const historyAccordion = await screen.findByText('History');
+    fireEvent.click(historyAccordion);
+
+    expect(await screen.findByText('Role A')).toBeInTheDocument();
+    expect(getVolunteerBookingHistory).toHaveBeenCalledWith(1);
   });
 });

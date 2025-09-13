@@ -6,16 +6,19 @@ import {
   getVolunteerById,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  getVolunteerBookingHistory,
   type VolunteerSearchResult,
 } from '../../../api/volunteers';
 import { getApiErrorMessage } from '../../../api/helpers';
-import type { VolunteerRoleWithShifts } from '../../../types';
+import type { VolunteerRoleWithShifts, VolunteerBooking } from '../../../types';
 import {
-  Box,
-  Button,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Card,
   CardContent,
-  CardHeader,
+  Box,
+  Button,
   Checkbox,
   Chip,
   Container,
@@ -36,9 +39,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
+import BookingHistoryTable from '../../../components/BookingHistoryTable';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
@@ -58,6 +63,7 @@ export default function EditVolunteer() {
   const [shopperEmail, setShopperEmail] = useState('');
   const [shopperPhone, setShopperPhone] = useState('');
   const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
+  const [history, setHistory] = useState<VolunteerBooking[]>([]);
 
   useEffect(() => {
     getVolunteerRoles()
@@ -106,6 +112,9 @@ export default function EditVolunteer() {
       .filter((n): n is string => !!n);
     setSelected(names);
     setInitialSelected(names);
+    getVolunteerBookingHistory(v.id)
+      .then(h => setHistory(Array.isArray(h) ? h : [h]))
+      .catch(() => setHistory([]));
   }
 
   function handleRoleChange(e: SelectChangeEvent<string[]>) {
@@ -243,10 +252,12 @@ export default function EditVolunteer() {
             </CardContent>
           </Card>
           {volunteer && (
-            <>
-              <Card>
-                <CardHeader title="Profile" />
-                <CardContent>
+            <Stack spacing={2}>
+              <Accordion defaultExpanded>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography>Profile</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
                   <Stack spacing={2}>
                     <FormControl component="fieldset">
                       <FormControlLabel
@@ -265,11 +276,13 @@ export default function EditVolunteer() {
                       </FormHelperText>
                     </FormControl>
                   </Stack>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader title="Roles" />
-                <CardContent>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography>Roles</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
                   <FormControl fullWidth>
                     <InputLabel id="role-select-label">Roles</InputLabel>
                     <Select
@@ -317,9 +330,21 @@ export default function EditVolunteer() {
                       </Grid>
                     ))}
                   </Grid>
-                </CardContent>
-              </Card>
-            </>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography>History</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {history.length ? (
+                    <BookingHistoryTable rows={history} showRole />
+                  ) : (
+                    <Typography>No bookings</Typography>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            </Stack>
           )}
         </Stack>
       </Container>
