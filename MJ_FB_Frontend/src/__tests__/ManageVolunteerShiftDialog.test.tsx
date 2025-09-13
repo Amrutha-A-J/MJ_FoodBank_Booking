@@ -18,7 +18,7 @@ const {
   updateVolunteerBookingStatus,
 } = jest.requireMock('../api/volunteers');
 
-const originalMatchMedia = window.matchMedia;
+let originalMatchMedia: typeof window.matchMedia;
 
 describe('ManageVolunteerShiftDialog', () => {
   const booking: VolunteerBookingDetail = {
@@ -36,8 +36,9 @@ describe('ManageVolunteerShiftDialog', () => {
   };
 
   beforeAll(() => {
+    originalMatchMedia = window.matchMedia;
     window.matchMedia =
-      window.matchMedia ||
+      originalMatchMedia ||
       ((query: string): MediaQueryList => ({
         matches: false,
         media: query,
