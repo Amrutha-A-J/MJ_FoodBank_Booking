@@ -1,8 +1,12 @@
 import request from 'supertest';
 import express from 'express';
-import appConfigRouter from '../src/routes/admin/appConfig';
-import pool from '../src/db';
-import { setCartTare } from '../src/utils/configCache';
+
+jest.mock('../src/utils/configCache', () => ({
+  getCartTare: jest.fn().mockResolvedValue(7),
+}));
+
+const appConfigRouter = require('../src/routes/admin/appConfig').default;
+const { getCartTare } = require('../src/utils/configCache');
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: express.Request, _res: express.Response, next: express.NextFunction) => {
@@ -27,15 +31,14 @@ app.use('/app-config', appConfigRouter);
 
 afterEach(() => {
   jest.clearAllMocks();
-  setCartTare(null);
 });
 
 describe('app-config routes', () => {
   it('allows pantry staff to fetch config', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ key: 'cart_tare', value: '7' }] });
     const res = await request(app).get('/app-config');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ cartTare: 7 });
+    expect(getCartTare).toHaveBeenCalled();
   });
 
   it('rejects updates from pantry staff', async () => {
