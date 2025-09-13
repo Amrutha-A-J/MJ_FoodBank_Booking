@@ -5,6 +5,7 @@ import {
   getVolunteerRoles,
   getVolunteerById,
   updateVolunteer,
+  getVolunteerBookingHistory,
 } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => ({
@@ -12,6 +13,7 @@ jest.mock('../../../api/volunteers', () => ({
   updateVolunteerTrainedAreas: jest.fn(),
   getVolunteerById: jest.fn(),
   updateVolunteer: jest.fn(),
+  getVolunteerBookingHistory: jest.fn(),
 }));
 
 const mockVolunteer: any = {
@@ -35,6 +37,7 @@ describe('EditVolunteer save button', () => {
   beforeEach(() => {
     (getVolunteerRoles as jest.Mock).mockReset();
     (getVolunteerById as jest.Mock).mockResolvedValue(mockVolunteer);
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
   });
 
   it('is disabled until roles change', async () => {
@@ -58,7 +61,8 @@ describe('EditVolunteer save button', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     const saveBtn = await screen.findByTestId('save-button');
     expect(saveBtn).toBeDisabled();
 

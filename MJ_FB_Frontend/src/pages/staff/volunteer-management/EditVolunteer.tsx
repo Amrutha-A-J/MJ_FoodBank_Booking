@@ -7,24 +7,20 @@ import {
   updateVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
+  getVolunteerBookingHistory,
   type VolunteerSearchResult,
 } from '../../../api/volunteers';
 import { getApiErrorMessage } from '../../../api/helpers';
-import type { VolunteerRoleWithShifts } from '../../../types';
+import type { VolunteerRoleWithShifts, VolunteerBooking } from '../../../types';
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
   Button,
-  Card,
-  CardContent,
   Checkbox,
   Chip,
   Container,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Dialog,
   DialogActions,
   DialogContent,
@@ -44,9 +40,9 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
+import BookingHistoryTable from '../../../components/BookingHistoryTable';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import DialogCloseButton from '../../../components/DialogCloseButton';
@@ -71,7 +67,9 @@ export default function EditVolunteer() {
   const [shopperEmail, setShopperEmail] = useState('');
   const [shopperPhone, setShopperPhone] = useState('');
   const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
-  const [expanded, setExpanded] = useState<'profile' | 'roles' | false>('profile');
+  const [history, setHistory] = useState<VolunteerBooking[]>([]);
+  const [expanded, setExpanded] =
+    useState<'profile' | 'roles' | 'history' | false>('profile');
 
   useEffect(() => {
     getVolunteerRoles()
@@ -124,6 +122,9 @@ export default function EditVolunteer() {
       .filter((n): n is string => !!n);
     setSelected(names);
     setInitialSelected(names);
+    getVolunteerBookingHistory(v.id)
+      .then(setHistory)
+      .catch(() => setHistory([]));
   }
 
   function handleRoleChange(e: SelectChangeEvent<string[]>) {
@@ -258,43 +259,34 @@ export default function EditVolunteer() {
       <Container maxWidth="md">
         <Stack spacing={3}>
           <Typography variant="h5">Edit Volunteer</Typography>
-          <Card>
-            <CardContent>
-              <Stack spacing={2}>
-                <EntitySearch
-                  type="volunteer"
-                  placeholder="Search volunteer"
-                  onSelect={v => handleSelect(v as VolunteerSearchResult)}
-                />
-                {volunteer ? (
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography
-                      variant="h6"
-                      data-testid="volunteer-name"
-                    >
-                      {volunteer.name}
-                    </Typography>
-                    {volunteer.hasPassword && (
-                      <Chip
-                        icon={<CheckCircleOutline fontSize="small" />}
-                        label="Online account"
-                        color="success"
-                        size="small"
-                        variant="outlined"
-                        data-testid="online-badge"
-                        aria-label="Online account"
-                      />
-                    )}
-                    {hasShopper && (
-                      <Chip label="Shopper profile" size="small" />
-                    )}
-                  </Stack>
-                ) : (
-                  <FormHelperText>Search and select a volunteer</FormHelperText>
+          <Stack spacing={2}>
+            <EntitySearch
+              type="volunteer"
+              placeholder="Search volunteer"
+              onSelect={v => handleSelect(v as VolunteerSearchResult)}
+            />
+            {volunteer ? (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="h6" data-testid="volunteer-name">
+                  {volunteer.name}
+                </Typography>
+                {volunteer.hasPassword && (
+                  <Chip
+                    icon={<CheckCircleOutline fontSize="small" />}
+                    label="Online account"
+                    color="success"
+                    size="small"
+                    variant="outlined"
+                    data-testid="online-badge"
+                    aria-label="Online account"
+                  />
                 )}
+                {hasShopper && <Chip label="Shopper profile" size="small" />}
               </Stack>
-            </CardContent>
-          </Card>
+            ) : (
+              <FormHelperText>Search and select a volunteer</FormHelperText>
+            )}
+          </Stack>
           {volunteer && (
             <>
               <Accordion
@@ -437,6 +429,19 @@ export default function EditVolunteer() {
                       </Grid>
                     ))}
                   </Grid>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion
+                expanded={expanded === 'history'}
+                onChange={(_, isExpanded) =>
+                  setExpanded(isExpanded ? 'history' : false)
+                }
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>History</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <BookingHistoryTable rows={history} showRole />
                 </AccordionDetails>
               </Accordion>
             </>
