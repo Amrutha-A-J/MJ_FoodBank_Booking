@@ -232,7 +232,7 @@ export async function updateTimesheetDay(
       'code' in err &&
       knownCodes.has((err as any).code)
     ) {
-      throw { status: 400, code: (err as any).code };
+      throw { status: 400, code: (err as any).code, message: err.message };
     }
     throw err;
   }

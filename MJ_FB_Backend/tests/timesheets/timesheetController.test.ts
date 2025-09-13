@@ -217,7 +217,7 @@ describe('timesheet controller', () => {
     await updateTimesheetDay(updReq, updRes, nextErr(updReq, updRes));
     expect(updRes.status).toHaveBeenCalledWith(400);
     expect(updRes.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: { code: 'STAT_DAY_LOCKED', message: 'Unknown error' } }),
+      expect.objectContaining({ error: { code: 'STAT_DAY_LOCKED', message: 'Cannot edit stat holiday' } }),
     );
   });
 
@@ -300,7 +300,7 @@ describe('timesheet controller', () => {
     await updateTimesheetDay(req, res, nextErr(req, res));
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: { code: 'DAILY_CAP_EXCEEDED', message: 'Unknown error' } }),
+      expect.objectContaining({ error: { code: 'DAILY_CAP_EXCEEDED', message: 'Daily paid hours cannot exceed 8' } }),
     );
   });
 
