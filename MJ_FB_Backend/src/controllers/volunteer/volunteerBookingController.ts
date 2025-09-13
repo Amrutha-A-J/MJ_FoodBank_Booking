@@ -306,6 +306,19 @@ export async function createVolunteerBookingForVolunteer(
       .status(400)
       .json({ message: 'volunteerId, roleId and date are required' });
   }
+  let bookingDate: Date;
+  try {
+    bookingDate = new Date(reginaStartOfDayISO(date));
+  } catch {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  if (isNaN(bookingDate.getTime())) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  const today = new Date(reginaStartOfDayISO(new Date()));
+  if (bookingDate < today) {
+    return res.status(400).json({ message: 'Date cannot be in the past' });
+  }
 
   try {
     const slotRes = await pool.query(
@@ -329,22 +342,6 @@ export async function createVolunteerBookingForVolunteer(
     if ((trainedRes.rowCount ?? 0) === 0) {
       return res.status(400).json({ message: 'Volunteer not trained for this role' });
     }
-
-    let bookingDate: Date;
-    try {
-      bookingDate = new Date(reginaStartOfDayISO(date));
-    } catch {
-      return res.status(400).json({ message: 'Invalid date' });
-    }
-    if (isNaN(bookingDate.getTime())) {
-      return res.status(400).json({ message: 'Invalid date' });
-    }
-
-    const today = new Date(reginaStartOfDayISO(new Date()));
-    if (bookingDate < today) {
-      return res.status(400).json({ message: 'Date cannot be in the past' });
-    }
-
     const isWeekend = [0, 6].includes(bookingDate.getUTCDay());
     const isHolidayDate = await isHoliday(date);
     const restrictedCategories = ['Pantry', 'Warehouse', 'Administrative'];
