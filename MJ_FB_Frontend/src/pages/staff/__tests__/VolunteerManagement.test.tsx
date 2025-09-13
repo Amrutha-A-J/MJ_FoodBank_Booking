@@ -10,6 +10,8 @@ describe('VolunteerManagement tabs', () => {
         <VolunteerManagement />
       </MemoryRouter>,
     );
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs).toHaveLength(4);
     expect(
       screen.getByRole('tab', { name: /search volunteer/i })
     ).toBeInTheDocument();
