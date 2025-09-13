@@ -20,7 +20,7 @@ Booking and volunteer management for the Moose Jaw Food Bank. This monorepo incl
 - Admin Settings → Donor tab manages test email addresses used for Mail Lists
   testing, and the Mail Lists page provides a Send test emails button to email
   each tier to the configured addresses.
-- Admin Settings → Maintenance lets admins schedule downtime and enable maintenance mode, displaying upcoming or active maintenance notices to clients. Staff can still sign in during maintenance to turn it off.
+- Admin Settings → Maintenance lets admins schedule downtime and enable maintenance mode, displaying upcoming or active maintenance notices to clients. During downtime, visitors see an overlay with the Moose Jaw Food Bank logo. Staff can still sign in during maintenance to turn it off.
 - Public cancel and reschedule pages include the client bottom navigation for quick access
   to other sections.
 - Email templates display times in 12-hour AM/PM format.
