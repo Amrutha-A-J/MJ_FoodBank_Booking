@@ -6,7 +6,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
-import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -14,7 +13,6 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function InstallAppButton() {
-  const { t } = useTranslation();
   const location = useLocation();
   const [promptEvent, setPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -86,7 +84,7 @@ export default function InstallAppButton() {
     <>
       {showOnboarding && (
         <Dialog open onClose={() => setShowOnboarding(false)}>
-          <DialogTitle sx={{ textTransform: 'none' }}>{t('install_app')}</DialogTitle>
+          <DialogTitle sx={{ textTransform: 'none' }}>Install App</DialogTitle>
           <DialogContent>
             <Typography>
               Install this app to access volunteer tools offline.
@@ -109,14 +107,14 @@ export default function InstallAppButton() {
               }}
               sx={{ textTransform: 'none' }}
             >
-              {t('install_app')}
+              Install App
             </Button>
           </DialogActions>
         </Dialog>
       )}
       {showIosInstructions && (
         <Dialog open onClose={() => setShowIosInstructions(false)}>
-          <DialogTitle sx={{ textTransform: 'none' }}>{t('install_app')}</DialogTitle>
+          <DialogTitle sx={{ textTransform: 'none' }}>Install App</DialogTitle>
           <DialogContent>
             <Typography>
               Open Safari&rsquo;s share menu and tap “Add to Home Screen”.
@@ -136,7 +134,7 @@ export default function InstallAppButton() {
           onClick={handleClick}
           sx={{ textTransform: 'none' }}
         >
-          {t('install_app')}
+          Install App
         </Button>
       </Box>
     </>
