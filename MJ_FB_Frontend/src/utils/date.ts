@@ -1,13 +1,15 @@
 
 import dayjs from 'dayjs';
-import type { ConfigType } from 'dayjs';
+import type { ConfigType, Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import objectSupport from 'dayjs/plugin/objectSupport';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(objectSupport);
+dayjs.extend(customParseFormat);
 
 export const REGINA_TIMEZONE = 'America/Regina';
 
@@ -82,3 +84,4 @@ export function normalizeDate(input?: ConfigType | null): string {
 }
 
 export default dayjs;
+export type { Dayjs };
