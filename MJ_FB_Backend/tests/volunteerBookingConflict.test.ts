@@ -34,21 +34,43 @@ describe('volunteer booking conflict', () => {
 
   it('returns 409 with attempted and existing booking', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 2, max_volunteers: 3, start_time: '09:00:00', end_time: '12:00:00', category_name: 'Front', role_name: 'Greeter' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            role_id: 2,
+            max_volunteers: 3,
+            start_time: '09:00:00',
+            end_time: '12:00:00',
+            category_name: 'Front',
+            role_name: 'Greeter',
+          },
+        ],
+      })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 5, role_id: 3, date: '2024-01-02', start_time: '10:00:00', end_time: '13:00:00', role_name: 'Sorter' }] });
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [
+          {
+            id: 5,
+            role_id: 3,
+            date: '2099-01-02',
+            start_time: '10:00:00',
+            end_time: '13:00:00',
+            role_name: 'Sorter',
+          },
+        ],
+      });
 
     const res = await request(app)
       .post('/volunteer-bookings')
-      .send({ roleId: 1, date: '2024-01-02' });
-
+      .send({ roleId: 1, date: '2099-01-02' });
     expect(res.status).toBe(409);
     expect(res.body.attempted).toEqual({
       role_id: 1,
       role_name: 'Greeter',
-      date: '2024-01-02',
+      date: '2099-01-02',
       start_time: '09:00:00',
       end_time: '12:00:00',
     });
@@ -56,7 +78,7 @@ describe('volunteer booking conflict', () => {
       id: 5,
       role_id: 3,
       role_name: 'Sorter',
-      date: '2024-01-02',
+      date: '2099-01-02',
       start_time: '10:00:00',
       end_time: '13:00:00',
     });
@@ -64,22 +86,21 @@ describe('volunteer booking conflict', () => {
 
   it('replaces booking when resolving conflict', async () => {
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 5, role_id: 3, date: '2024-01-02', start_time: '10:00:00', end_time: '13:00:00', role_name: 'Sorter' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 5, role_id: 3, date: '2099-01-02', start_time: '10:00:00', end_time: '13:00:00', role_name: 'Sorter' }] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ role_id: 2, max_volunteers: 3, start_time: '09:00:00', end_time: '12:00:00', category_name: 'Front', role_name: 'Greeter' }] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ count: 0 }] })
       .mockResolvedValueOnce({ rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 9, slot_id: 1, volunteer_id: 1, date: '2024-01-02', status: 'approved', reschedule_token: 'tok' }] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 9, slot_id: 1, volunteer_id: 1, date: '2099-01-02', status: 'approved', reschedule_token: 'tok' }] });
 
     const res = await request(app)
       .post('/volunteer-bookings/resolve-conflict')
-      .send({ existingBookingId: 5, roleId: 1, date: '2024-01-02', keep: 'new' });
+      .send({ existingBookingId: 5, roleId: 1, date: '2099-01-02', keep: 'new' });
 
     expect(res.status).toBe(201);
-    expect(res.body.booking).toMatchObject({ id: 9, role_id: 1, date: '2024-01-02' });
+    expect(res.body.booking).toMatchObject({ id: 9, role_id: 1, date: '2099-01-02' });
     expect(pool.query).toHaveBeenCalledWith(
       'UPDATE volunteer_bookings SET status=$1, reason=$2 WHERE id=$3',
       ['cancelled', 'conflict', 5],
@@ -93,7 +114,7 @@ describe('volunteer booking conflict', () => {
         {
           id: 5,
           role_id: 3,
-          date: '2024-01-02',
+          date: '2099-01-02',
           start_time: '10:00:00',
           end_time: '13:00:00',
           role_name: 'Sorter',
@@ -111,7 +132,7 @@ describe('volunteer booking conflict', () => {
       id: 5,
       role_id: 3,
       role_name: 'Sorter',
-      date: '2024-01-02',
+      date: '2099-01-02',
       start_time: '10:00:00',
       end_time: '13:00:00',
     });
