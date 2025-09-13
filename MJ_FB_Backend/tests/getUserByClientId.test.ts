@@ -46,7 +46,7 @@ describe('GET /users/id/:clientId', () => {
       hasPassword: true,
     });
     expect(pool.query).toHaveBeenCalledWith(
-      `SELECT client_id, first_name, last_name, email, phone, online_access, password\n       FROM clients WHERE client_id = $1`,
+      `SELECT client_id, first_name, last_name, email, phone, online_access, password, consent\n       FROM clients WHERE client_id = $1`,
       ['5'],
     );
   });
