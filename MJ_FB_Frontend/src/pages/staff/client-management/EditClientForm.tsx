@@ -31,6 +31,7 @@ interface Props {
   initialData: EditClientFormData;
   onSave: (data: EditClientFormData) => Promise<boolean> | boolean;
   onSendReset?: (data: EditClientFormData) => void | Promise<void>;
+  showOnlineAccessToggle?: boolean;
 }
 
 export default function EditClientForm({
@@ -38,6 +39,7 @@ export default function EditClientForm({
   initialData,
   onSave,
   onSendReset,
+  showOnlineAccessToggle = true,
 }: Props) {
   const [form, setForm] = useState<EditClientFormData>(initialData);
 
@@ -74,31 +76,33 @@ export default function EditClientForm({
 
           <Stack spacing={2}>
             <Typography variant="subtitle1">Account</Typography>
-            <Tooltip
-              title="Client already has a password"
-              disableHoverListener={!form.hasPassword}
-            >
-              <span>
-                <FormControl>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={form.onlineAccess}
-                        onChange={e =>
-                          updateForm('onlineAccess', e.target.checked)
-                        }
-                        disabled={form.hasPassword}
-                        data-testid="online-access-toggle"
-                      />
-                    }
-                    label="Online Access"
-                  />
-                  <FormHelperText>
-                    Allow the client to sign in online.
-                  </FormHelperText>
-                </FormControl>
-              </span>
-            </Tooltip>
+            {showOnlineAccessToggle && (
+              <Tooltip
+                title="Client already has a password"
+                disableHoverListener={!form.hasPassword}
+              >
+                <span>
+                  <FormControl>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={form.onlineAccess}
+                          onChange={e =>
+                            updateForm('onlineAccess', e.target.checked)
+                          }
+                          disabled={form.hasPassword}
+                          data-testid="online-access-toggle"
+                        />
+                      }
+                      label="Online Access"
+                    />
+                    <FormHelperText>
+                      Allow the client to sign in online.
+                    </FormHelperText>
+                  </FormControl>
+                </span>
+              </Tooltip>
+            )}
             {form.onlineAccess && !form.hasPassword && (
               <PasswordField
                 fullWidth

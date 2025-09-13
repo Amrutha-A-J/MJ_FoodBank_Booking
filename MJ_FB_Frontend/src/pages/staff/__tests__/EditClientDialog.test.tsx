@@ -66,9 +66,7 @@ describe('EditClientDialog', () => {
       />,
     );
 
-    const toggle = (
-      await screen.findAllByRole('switch', { name: /online access/i })
-    )[0];
+    const toggle = await screen.findByLabelText(/online access/i);
     expect(toggle).not.toBeChecked();
     fireEvent.click(toggle);
     expect(toggle).toBeChecked();
