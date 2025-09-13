@@ -51,7 +51,7 @@ beforeEach(() => {
 });
 
 describe('booking controller transaction aborted handling', () => {
-  it('returns 503 and rolls back on 25P02 errors', async () => {
+  it('returns 503 and suppresses logger on retriable 25P02 errors', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValueOnce({
       rowCount: 1,
@@ -67,6 +67,12 @@ describe('booking controller transaction aborted handling', () => {
       ],
     });
     (bookingRepository.insertBooking as jest.Mock).mockRejectedValue({ code: '25P02' });
+    mockClient.query.mockImplementation((sql: string) => {
+      if (sql === 'ROLLBACK') {
+        return Promise.reject({ code: '25P02' });
+      }
+      return Promise.resolve({ rows: [] });
+    });
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
     const today = new Date().toLocaleDateString('en-CA');

@@ -93,10 +93,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         logger.info('Locking client row', { userId, slotId: slotIdNum, date });
         await lockClientRow(userId, client);
       } catch (err) {
-        logger.error(
-          `Failed to lock client row for user ${userId}, slot ${slotIdNum} on ${date}`,
-          err,
-        );
+        if ((err as any)?.code !== '25P02') {
+          logger.error(
+            `Failed to lock client row for user ${userId}, slot ${slotIdNum} on ${date}`,
+            err,
+          );
+        }
         throw err;
       }
       let upcoming;
@@ -104,7 +106,9 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         logger.info('Checking upcoming booking', { userId });
         upcoming = await findUpcomingBooking(userId, client);
       } catch (err) {
-        logger.error(`Failed to check upcoming booking for user ${userId}`, err);
+        if ((err as any)?.code !== '25P02') {
+          logger.error(`Failed to check upcoming booking for user ${userId}`, err);
+        }
         throw err;
       }
       if (upcoming) {
@@ -131,10 +135,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           true,
         );
       } catch (err) {
-        logger.error(
-          `Failed to count visits and bookings for user ${userId} on ${date} (slot ${slotIdNum})`,
-          err,
-        );
+        if ((err as any)?.code !== '25P02') {
+          logger.error(
+            `Failed to count visits and bookings for user ${userId} on ${date} (slot ${slotIdNum})`,
+            err,
+          );
+        }
         throw err;
       }
       if (monthlyUsage === false) {
@@ -152,10 +158,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         logger.info('Checking holiday', { userId, slotId: slotIdNum, date });
         holiday = await isHoliday(date, client);
       } catch (err) {
-        logger.error(
-          `Failed to check holiday for ${date} (user ${userId}, slot ${slotIdNum})`,
-          err,
-        );
+        if ((err as any)?.code !== '25P02') {
+          logger.error(
+            `Failed to check holiday for ${date} (user ${userId}, slot ${slotIdNum})`,
+            err,
+          );
+        }
         throw err;
       }
       if (holiday) {
@@ -169,10 +177,12 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         logger.info('Checking slot capacity', { userId, slotId: slotIdNum, date });
         await checkSlotCapacity(slotIdNum, date, client);
       } catch (err) {
-        logger.error(
-          `Failed to check slot capacity for user ${userId}, slot ${slotIdNum} on ${date}`,
-          err,
-        );
+        if ((err as any)?.code !== '25P02') {
+          logger.error(
+            `Failed to check slot capacity for user ${userId}, slot ${slotIdNum} on ${date}`,
+            err,
+          );
+        }
         throw err;
       }
       token = randomUUID();
@@ -191,17 +201,25 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
           client,
         );
       } catch (err) {
-        logger.error(
-          `Failed to insert booking for user ${userId}, slot ${slotIdNum} on ${date}`,
-          err,
-        );
+        if ((err as any)?.code !== '25P02') {
+          logger.error(
+            `Failed to insert booking for user ${userId}, slot ${slotIdNum} on ${date}`,
+            err,
+          );
+        }
         throw err;
       }
       await client.query('COMMIT');
       transactionActive = false;
     } catch (err: any) {
       if (transactionActive) {
-        await client.query('ROLLBACK');
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackErr: any) {
+          if (rollbackErr?.code !== '25P02') {
+            logger.error('Failed to rollback transaction', rollbackErr);
+          }
+        }
       }
       if (err instanceof SlotCapacityError || err?.code === '25P02') {
         if (err?.code === '25P02') {
