@@ -6,6 +6,15 @@ jest.mock('../src/utils/opsAlert', () => ({
   alertOps: jest.fn(),
   notifyOps: jest.fn(),
 }));
+jest.mock('../src/utils/logger', () => ({
+  __esModule: true,
+  default: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 jest.mock('../src/utils/configCache', () => ({
   getCartTare: jest.fn().mockResolvedValue(0),
   refreshCartTare: jest.fn(),
