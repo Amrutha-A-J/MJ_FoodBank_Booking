@@ -4,7 +4,6 @@ import { resendPasswordSetup } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import DialogCloseButton from './DialogCloseButton';
-import { useTranslation } from 'react-i18next';
 
 export default function ResendPasswordSetupDialog({
   open,
@@ -16,7 +15,6 @@ export default function ResendPasswordSetupDialog({
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { t } = useTranslation();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +24,7 @@ export default function ResendPasswordSetupDialog({
         ? { clientId: value }
         : { email: value };
       await resendPasswordSetup(body);
-      setMessage(t('setup_link_sent'));
+      setMessage('Password setup link sent');
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -38,22 +36,22 @@ export default function ResendPasswordSetupDialog({
       <Dialog open={open} onClose={onClose} aria-labelledby="resend-setup-dialog-title">
         <DialogCloseButton onClose={onClose} />
         <DialogTitle id="resend-setup-dialog-title" sx={{ display: 'none' }}>
-          {t('resend_password_setup_link')}
+          Resend password setup link
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <FormCard
-            title={t('resend_password_setup_link')}
+            title="Resend password setup link"
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
+            actions={<Button type="submit" variant="contained">Submit</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <Typography variant="body2">
-              {t('setup_link_explanation')}
+              Enter your email or client ID and we'll send you a new setup link.
             </Typography>
             <TextField
               autoFocus
               margin="dense"
-              label={t('email_or_client_id')}
+              label="Email or client ID"
               name="email"
               autoComplete="email"
               fullWidth
