@@ -14,13 +14,3 @@ The "visits with notes only" filter appears only on staff booking history pages 
 
 This feature does not require any additional environment variables.
 
-## Localization
-
-Add the following translation strings to locale files:
-
-- `dashboard`
-- `client_note_label`
- 
-Translations are maintained only for client-visible text.
-
-Document any new translation keys here when extending note functionality.

@@ -18,14 +18,12 @@
 - Client and volunteer dashboards show an onboarding modal with tips on first visit; a localStorage flag prevents repeat displays.
 - A privacy notice modal prompts for consent after login and stores acknowledgement in the `users` table and localStorage to avoid repeat prompts.
 - Update this `AGENTS.md` file and the repository `README.md` to reflect any new instructions or user-facing changes.
-- Provide translations only for client-visible pages (e.g., client dashboard, navbar and submenus, profile, booking, booking history). Internal or staff-only features should remain untranslated unless explicitly requested. Document these translation strings in `docs/` and update `MJ_FB_Frontend/public/locales` when client-visible text is added.
-- Maintenance notices use translation keys `maintenance_mode_title`, `maintenance_mode_message`, `upcoming_maintenance_title`, and `upcoming_maintenance_notice`; document them in `docs/maintenance.md` and update locales.
 - Pantry visits track daily sunshine bag weights and client counts via the `sunshine_bag_log` table. Sunshine bag recipients are recorded separately and excluded from total client counts.
 - Sunshine bag, surplus, pig pound, and outgoing donation logs roll up into monthly aggregates and raw log entries older than one year are purged every Jan 31.
 - Anonymous pantry visits display "(ANONYMOUS)" after the client ID and their family size is excluded from the summary counts.
 - Client visits enforce a unique client/date combination; attempts to record a second visit for the same client and day return a 409 error.
 - Booking notes consist of **client notes** (entered when booking) and **staff notes** (recorded during visits). Staff users automatically receive staff notes in booking history responses, while agency users can include them with `includeStaffNotes=true`.
-- Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, UI screenshots, and translation keys whenever the timesheet feature changes.
+- Keep `docs/timesheets.md` current with setup steps, API usage, payroll CSV export details, and UI screenshots whenever the timesheet feature changes.
 - A cron job seeds pay periods for the upcoming year every **Nov 30** using `seedPayPeriods`.
 - Expired password setup and email verification tokens are purged nightly once they are more than 10 days past `expires_at`.
 - Expired password setup links show an error instead of the password form and prompt the user to request a new link.

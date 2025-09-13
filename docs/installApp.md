@@ -14,8 +14,3 @@ event fires or on iOS devices.
 
 Selecting the button shows instructions for using Safari's **Add to Home Screen** option.
 
-## Localization
-
-Add the following translation strings to locale files:
-
-- `install_app` – label for the Install App button.
