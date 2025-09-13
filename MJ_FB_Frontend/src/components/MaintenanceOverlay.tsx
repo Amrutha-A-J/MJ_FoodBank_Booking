@@ -17,8 +17,15 @@ export default function MaintenanceOverlay() {
         justifyContent: 'center',
         textAlign: 'center',
         p: 2,
+        flexDirection: 'column',
       }}
     >
+      <Box
+        component="img"
+        src="/images/mjfoodbank_logo.png"
+        alt="Food Bank logo"
+        sx={{ mb: 2, width: { xs: 160, sm: 200 } }}
+      />
       <Typography variant="h5">
         We are under maintenance. Please check back later.
       </Typography>
