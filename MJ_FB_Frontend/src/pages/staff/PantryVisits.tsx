@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Button,
@@ -54,7 +53,6 @@ function format(date: Date) {
 }
 
 export default function PantryVisits() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const paramDate = searchParams.get('date');
@@ -306,7 +304,7 @@ export default function PantryVisits() {
       field: 'clientId',
       header: 'Client ID',
       render: (v: ClientVisit & { index: number }) =>
-        `${v.clientId ?? t('not_applicable')}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
+        `${v.clientId ?? 'N/A'}${v.anonymous ? ' (ANONYMOUS)' : ''}`,
     },
     {
       field: 'clientName',
@@ -323,22 +321,22 @@ export default function PantryVisits() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {t('open_profile')}
+            Open Profile
           </a>
         ) : (
-          t('not_applicable')
+          'N/A'
         ),
     },
     { field: 'weightWithCart', header: 'Weight With Cart' },
     { field: 'weightWithoutCart', header: 'Weight Without Cart' },
     {
       field: 'adults',
-      header: t('adults_label'),
+      header: 'Adults',
       render: (v: ClientVisit & { index: number }) => v.adults,
     },
     {
       field: 'children',
-      header: t('children_label'),
+      header: 'Children',
       render: (v: ClientVisit & { index: number }) => v.children,
     },
     {
@@ -463,22 +461,22 @@ export default function PantryVisits() {
         </Typography>
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <Typography variant="body2">
-            {`${t('pantry_visits.summary.clients')}: ${summary.clients}`}
+            {`Clients: ${summary.clients}`}
           </Typography>
           <Typography variant="body2">
-            {`${t('pantry_visits.summary.total_weight')}: ${summary.totalWeight}`}
+            {`Total Weight: ${summary.totalWeight}`}
           </Typography>
           <Typography variant="body2">
-            {`${t('pantry_visits.summary.adults')}: ${summary.adults}`}
+            {`Adults: ${summary.adults}`}
           </Typography>
           <Typography variant="body2">
-            {`${t('pantry_visits.summary.children')}: ${summary.children}`}
+            {`Children: ${summary.children}`}
           </Typography>
           <Typography variant="body2">
             {`Sunshine Bag Clients: ${sunshineBagClients}`}
           </Typography>
           <Typography variant="body2">
-            {`${t('pantry_visits.summary.sunshine_bag_weight')}: ${sunshineBagWeight}`}
+            {`Sunshine Bag Weight: ${sunshineBagWeight}`}
           </Typography>
         </Stack>
         {table}
@@ -576,18 +574,18 @@ export default function PantryVisits() {
             >
               <FormControlLabel value="regular" control={<Radio />} label="Regular visit" />
               <FormControlLabel value="anonymous" control={<Radio />} label="Anonymous visit" />
-              <FormControlLabel value="sunshine" control={<Radio />} label={t('sunshine_bag_label')} />
+              <FormControlLabel value="sunshine" control={<Radio />} label="Sunshine Bag" />
             </RadioGroup>
             {form.sunshineBag ? (
               <>
                 <TextField
-                  label={t('sunshine_bag_weight_label')}
+                  label="Sunshine Bag Weight"
                   type="number"
                   value={form.sunshineWeight}
                   onChange={e => setForm({ ...form, sunshineWeight: e.target.value })}
                 />
                 <TextField
-                  label={t('sunshine_bag_clients_label')}
+                  label="Sunshine Bag Clients"
                   type="number"
                   value={form.sunshineClients}
                   onChange={e => setForm({ ...form, sunshineClients: e.target.value })}
@@ -636,13 +634,13 @@ export default function PantryVisits() {
                   }}
                 />
                 <TextField
-                  label={t('adults_label')}
+                  label="Adults"
                   type="number"
                   value={form.adults}
                   onChange={e => setForm({ ...form, adults: e.target.value })}
                 />
                 <TextField
-                  label={t('children_label')}
+                  label="Children"
                   type="number"
                   value={form.children}
                   onChange={e => setForm({ ...form, children: e.target.value })}
@@ -654,7 +652,7 @@ export default function PantryVisits() {
                   onChange={e => setForm({ ...form, petItem: e.target.value })}
                 />
                 <TextField
-                  label={t('staff_note_label')}
+                  label="Staff Note"
                   value={form.note}
                   onChange={e => setForm({ ...form, note: e.target.value })}
                   multiline
