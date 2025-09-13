@@ -1,9 +1,16 @@
 import {
   renderWithProviders,
   screen,
-  fireEvent,
   waitFor,
 } from '../../../../testUtils/renderWithProviders';
+import userEvent from '@testing-library/user-event';
+import { setTimeout as nodeSetTimeout, clearTimeout as nodeClearTimeout } from 'node:timers';
+
+beforeAll(() => {
+  // Use real Node timers so undici fetch and userEvent work together
+  (global as any).setTimeout = nodeSetTimeout;
+  (global as any).clearTimeout = nodeClearTimeout;
+});
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerDailyBookings from '../VolunteerDailyBookings';
 import {
@@ -74,7 +81,7 @@ describe('VolunteerDailyBookings', () => {
 
     expect(await screen.findByText('Pantry')).toBeInTheDocument();
     expect(screen.getByText('Stocking')).toBeInTheDocument();
-    expect(screen.getByText('9:00 AM - 10:00 AM')).toBeInTheDocument();
+    expect(screen.getAllByText('9:00 AM – 10:00 AM')[0]).toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
     expect(screen.getByText('Warehouse')).toBeInTheDocument();
@@ -89,8 +96,11 @@ describe('VolunteerDailyBookings', () => {
       </MemoryRouter>,
     );
 
+    const user = userEvent.setup();
     const select = await screen.findByLabelText('Status');
-    fireEvent.change(select, { target: { value: 'completed' } });
+    await user.click(select);
+    const option = await screen.findByRole('option', { name: 'Completed' });
+    await user.click(option);
 
     await waitFor(() =>
       expect(updateVolunteerBookingStatus).toHaveBeenCalledWith(1, 'completed'),

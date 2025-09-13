@@ -150,7 +150,7 @@ export default function VolunteerDailyBookings() {
                     <Card key={shiftKey} sx={{ mt: 1 }}>
                       <CardContent>
                         <Typography gutterBottom>
-                          {formatTime(start)} - {formatTime(end)}
+                          {formatTime(start)} – {formatTime(end)}
                         </Typography>
                         <Stack spacing={1}>
                           {list.map(b => (
@@ -176,6 +176,9 @@ export default function VolunteerDailyBookings() {
                                     )
                                   }
                                 >
+                                  <MenuItem value="approved" disabled>
+                                    Approved
+                                  </MenuItem>
                                   <MenuItem value="completed">Completed</MenuItem>
                                   <MenuItem value="no_show">No Show</MenuItem>
                                   <MenuItem value="cancelled">Cancelled</MenuItem>
