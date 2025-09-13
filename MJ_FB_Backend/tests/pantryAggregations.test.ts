@@ -126,7 +126,7 @@ describe('pantry aggregation routes', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     expect(res.headers['content-disposition']).toBe(
-      `attachment; filename=${year}_05_${year}-05-06_to_${year}-05-10_week_1_agggregation.xlsx`,
+      `attachment; filename=${year}_05_${year}-05-05_to_${year}-05-09_week_1_agggregation.xlsx`,
     );
     expect(res.body).toEqual(Buffer.from('test'));
   });
