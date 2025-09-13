@@ -26,7 +26,7 @@ describe('UserHistory search add shortcut', () => {
   });
 
   afterAll(() => {
-    (global as any).fetch = originalFetch;
+    global.fetch = originalFetch;
   });
 
   it('shows add button and navigates with id prefilled', async () => {
