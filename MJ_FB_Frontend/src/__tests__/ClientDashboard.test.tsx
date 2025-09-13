@@ -17,7 +17,7 @@ describe('ClientDashboard', () => {
   beforeEach(() => {
     localStorage.setItem('clientOnboarding', 'true');
   });
-  it('shows events in News & Events section', async () => {
+  it('shows events in News and Events section', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
     (getSlots as jest.Mock).mockResolvedValue([]);
     (getHolidays as jest.Mock).mockResolvedValue([]);
@@ -146,7 +146,7 @@ describe('ClientDashboard', () => {
     );
 
     const quick = await screen.findByText(/quick actions/i);
-    const news = await screen.findByText(/news & events/i);
+    const news = await screen.findByText(/news and events/i);
     const next = await screen.findByText(/next available slots/i);
 
     expect(quick.compareDocumentPosition(news) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
