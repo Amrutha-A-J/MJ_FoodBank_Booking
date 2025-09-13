@@ -17,7 +17,9 @@ app.use(express.json());
 app.use('/volunteer-roles', volunteerRolesRouter);
 
 describe('GET /volunteer-roles/mine', () => {
-  beforeEach(() => setHolidays(null));
+  beforeEach(() => {
+    setHolidays(null);
+  });
 
   it('excludes restricted categories on weekends', async () => {
     (pool.query as jest.Mock)
@@ -98,6 +100,7 @@ describe('GET /volunteer-roles/mine', () => {
   });
 
   it('excludes restricted categories on holidays', async () => {
+    setHolidays(new Map([[ '2025-01-01', '' ]]));
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ exists: true }], rowCount: 1 })
