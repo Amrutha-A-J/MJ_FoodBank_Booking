@@ -108,4 +108,15 @@ describe('Login component', () => {
     (mui.useMediaQuery as jest.Mock).mockReturnValue(false);
   });
 
+  it('links to the privacy policy', () => {
+    const onLogin = jest.fn().mockResolvedValue('/');
+    render(
+      <MemoryRouter>
+        <Login onLogin={onLogin} />
+      </MemoryRouter>
+    );
+    const link = screen.getByRole('link', { name: /privacy policy/i });
+    expect(link).toHaveAttribute('href', '/privacy');
+  });
+
 });

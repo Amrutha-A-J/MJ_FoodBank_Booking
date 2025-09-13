@@ -79,6 +79,20 @@ describe('App authentication persistence', () => {
     expect(await screen.findByText(/login/i)).toBeInTheDocument();
   });
 
+  it('allows access to privacy policy without login', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+      headers: new Headers(),
+    });
+    window.history.pushState({}, '', '/privacy');
+    renderWithProviders(<App />);
+    expect(
+      await screen.findByRole('heading', { name: /privacy policy/i })
+    ).toBeInTheDocument();
+  });
+
   it('keeps user logged in when role exists', () => {
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
