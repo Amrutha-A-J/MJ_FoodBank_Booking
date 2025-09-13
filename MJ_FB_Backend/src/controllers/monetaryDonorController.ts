@@ -258,8 +258,9 @@ export async function sendMailLists(req: Request, res: Response, next: NextFunct
       '1001-10000': config.donorTemplateId1001To10000,
       '10001-30000': config.donorTemplateId10001To30000,
     };
-    const monthName = new Date(Date.UTC(year, month - 1)).toLocaleString('en-CA', {
+    const monthName = new Date(Date.UTC(year, month - 1, 1)).toLocaleString('en-CA', {
       month: 'long',
+      timeZone: 'UTC',
     });
     let sent = 0;
     for (const [range, donors] of Object.entries(groups)) {
@@ -394,8 +395,9 @@ export async function sendTestMailLists(req: Request, res: Response, next: NextF
       '10001-30000': { min: 10001, max: 30000, templateId: config.donorTemplateId10001To30000 },
     };
 
-    const monthName = new Date(Date.UTC(year, month - 1)).toLocaleString('en-CA', {
+    const monthName = new Date(Date.UTC(year, month - 1, 1)).toLocaleString('en-CA', {
       month: 'long',
+      timeZone: 'UTC',
     });
     let sent = 0;
     for (const [range, info] of Object.entries(ranges)) {
