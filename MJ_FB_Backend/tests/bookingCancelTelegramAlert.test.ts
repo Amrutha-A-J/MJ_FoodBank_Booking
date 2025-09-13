@@ -17,6 +17,7 @@ describe('booking cancel telegram alert', () => {
         updateBooking: jest.fn().mockResolvedValue(undefined),
       }));
       jest.doMock('../src/db', () => ({ __esModule: true, default: { query: jest.fn() } }));
+      jest.doMock('../src/utils/opsAlert', () => ({ notifyOps: jest.fn() }));
       cancelBooking = require('../src/controllers/bookingController').cancelBooking;
       fetchBookingById = require('../src/models/bookingRepository').fetchBookingById;
       updateBooking = require('../src/models/bookingRepository').updateBooking;
