@@ -138,19 +138,18 @@ export async function createVolunteerBooking(
       }
     }
 
-    const overlapRes = await pool.query(
+    const sameDayRes = await pool.query(
       `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
        FROM volunteer_bookings vb
        JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
        JOIN volunteer_roles vr ON vs.role_id = vr.id
-       WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved'
-         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
-      [user.id, date, slot.start_time, slot.end_time]
+       WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved'`,
+      [user.id, date]
     );
-    if ((overlapRes.rowCount ?? 0) > 0) {
-      const existing = overlapRes.rows[0];
+    if ((sameDayRes.rowCount ?? 0) > 0) {
+      const existing = sameDayRes.rows[0];
       return res.status(409).json({
-        message: 'Booking overlaps an existing shift',
+        message: 'Already booked for this date',
         attempted: {
           role_id: roleId,
           role_name: slot.role_name,
@@ -369,39 +368,38 @@ export async function createVolunteerBookingForVolunteer(
       }
     }
 
-    const overlapRes = await pool.query(
-      `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
-       FROM volunteer_bookings vb
-       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       JOIN volunteer_roles vr ON vs.role_id = vr.id
-       WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'
-         AND NOT (vs.end_time <= $3 OR vs.start_time >= $4)`,
-      [volunteerId, date, slot.start_time, slot.end_time]
-    );
-    if ((overlapRes.rowCount ?? 0) > 0) {
-      const existing = overlapRes.rows[0];
-      return res.status(409).json({
-        message: 'Booking overlaps an existing shift',
-        attempted: {
-          role_id: roleId,
-          role_name: slot.role_name,
-          date,
-          start_time: slot.start_time,
-          end_time: slot.end_time,
-        },
-        existing: {
-          id: existing.id,
-          role_id: existing.role_id,
-          role_name: existing.role_name,
-          date:
-            existing.date instanceof Date
-              ? formatReginaDate(existing.date)
-              : existing.date,
-          start_time: existing.start_time,
-          end_time: existing.end_time,
-        },
-      });
-    }
+      const sameDayRes = await pool.query(
+        `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         JOIN volunteer_roles vr ON vs.role_id = vr.id
+         WHERE vb.volunteer_id=$1 AND vb.date=$2 AND vb.status='approved'`,
+        [volunteerId, date]
+      );
+      if ((sameDayRes.rowCount ?? 0) > 0) {
+        const existing = sameDayRes.rows[0];
+        return res.status(409).json({
+          message: 'Volunteer already has a booking on this date',
+          attempted: {
+            role_id: roleId,
+            role_name: slot.role_name,
+            date,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+          },
+          existing: {
+            id: existing.id,
+            role_id: existing.role_id,
+            role_name: existing.role_name,
+            date:
+              existing.date instanceof Date
+                ? formatReginaDate(existing.date)
+                : existing.date,
+            start_time: existing.start_time,
+            end_time: existing.end_time,
+          },
+        });
+      }
 
     const client = await pool.connect();
     try {
@@ -599,22 +597,38 @@ export async function resolveVolunteerBookingConflict(
       return res.status(400).json({ message: 'Already booked for this shift' });
     }
 
-    const overlapRes = await pool.query(
-      `SELECT 1
-       FROM volunteer_bookings vb
-       JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
-       WHERE vb.volunteer_id = $1
-         AND vb.date = $2
-         AND vb.status='approved'
-         AND vb.id <> $3
-         AND NOT (vs.end_time <= $4 OR vs.start_time >= $5)`,
-      [user.id, date!, existingBookingId, slot.start_time, slot.end_time]
-    );
-    if ((overlapRes.rowCount ?? 0) > 0) {
-      return res
-        .status(409)
-        .json({ message: 'Booking overlaps an existing shift' });
-    }
+      const sameDayRes = await pool.query(
+        `SELECT vb.id, vb.slot_id AS role_id, vb.date, vs.start_time, vs.end_time, vr.name AS role_name
+         FROM volunteer_bookings vb
+         JOIN volunteer_slots vs ON vb.slot_id = vs.slot_id
+         JOIN volunteer_roles vr ON vs.role_id = vr.id
+         WHERE vb.volunteer_id = $1 AND vb.date = $2 AND vb.status='approved' AND vb.id <> $3`,
+        [user.id, date!, existingBookingId]
+      );
+      if ((sameDayRes.rowCount ?? 0) > 0) {
+        const conflict = sameDayRes.rows[0];
+        return res.status(409).json({
+          message: 'Already booked for this date',
+          attempted: {
+            role_id: roleId,
+            role_name: slot.role_name,
+            date,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+          },
+          existing: {
+            id: conflict.id,
+            role_id: conflict.role_id,
+            role_name: conflict.role_name,
+            date:
+              conflict.date instanceof Date
+                ? formatReginaDate(conflict.date)
+                : conflict.date,
+            start_time: conflict.start_time,
+            end_time: conflict.end_time,
+          },
+        });
+      }
 
     const countRes = await pool.query(
       `SELECT COUNT(*) FROM volunteer_bookings
