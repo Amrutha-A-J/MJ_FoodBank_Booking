@@ -35,7 +35,6 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 
 interface NextSlot {
   date: string;
@@ -81,7 +80,6 @@ export default function AgencyDashboard() {
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-  const { t } = useTranslation();
 
   useEffect(() => {
     getMyAgencyClients()
@@ -202,7 +200,7 @@ export default function AgencyDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
+            <SectionCard title="News & Events" icon={<Announcement color="primary" />}>
               <Stack spacing={2}>
                 <EventList events={[...events.today, ...events.upcoming]} limit={5} />
                 <List>
@@ -260,7 +258,7 @@ export default function AgencyDashboard() {
                   sx={{ textTransform: 'none' }}
                   onClick={() => navigate('/agency/book')}
                 >
-                  {t('book_appointment')}
+                  Book appointment
                 </Button>
                 <Button
                   
@@ -312,9 +310,9 @@ export default function AgencyDashboard() {
       </Grid>
       <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
         <DialogCloseButton onClose={() => setCancelId(null)} />
-        <DialogTitle>{t('cancel_booking')}</DialogTitle>
+        <DialogTitle>Cancel booking</DialogTitle>
         <DialogContent>
-          <Typography>{t('cancel_booking_question')}</Typography>
+          <Typography>Cancel this booking?</Typography>
         </DialogContent>
         <DialogActions>
           <Button
@@ -324,7 +322,7 @@ export default function AgencyDashboard() {
             sx={{ textTransform: 'none' }}
             onClick={confirmCancel}
           >
-            {t('cancel_booking')}
+            Cancel booking
           </Button>
         </DialogActions>
       </Dialog>
