@@ -40,8 +40,20 @@ export default function VolunteerGroupStatsCard() {
       {stats && (
         <SectionCard title="Community Impact">
           <Stack spacing={2} alignItems="center">
-            <Typography>{`Volunteers distributed ${stats.monthLbs} lbs this month`}</Typography>
-            <Typography>{`Served ${stats.monthFamilies} families this month`}</Typography>
+            <Typography>
+              Volunteers distributed{' '}
+              <Box component="span" fontWeight="bold">
+                {stats.monthLbs}
+              </Box>{' '}
+              lbs this month
+            </Typography>
+            <Typography>
+              Served{' '}
+              <Box component="span" fontWeight="bold">
+                {stats.monthFamilies}
+              </Box>{' '}
+              families this month
+            </Typography>
             <Box
               display="flex"
               flexDirection="column"
@@ -67,7 +79,16 @@ export default function VolunteerGroupStatsCard() {
                   fill={theme.palette.primary.main}
                 />
               </RadialBarChart>
-              <Typography variant="body2" mt={1}>{`${stats.monthHours} / ${stats.monthHoursGoal} hrs`}</Typography>
+              <Typography variant="body2" mt={1}>
+                <Box component="span" fontWeight="bold">
+                  {stats.monthHours}
+                </Box>{' '}
+                /{' '}
+                <Box component="span" fontWeight="bold">
+                  {stats.monthHoursGoal}
+                </Box>{' '}
+                hrs
+              </Typography>
             </Box>
             {quote && <Typography variant="body2">{quote}</Typography>}
           </Stack>
