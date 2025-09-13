@@ -221,12 +221,18 @@ export async function updateTimesheetDay(
       ],
     );
   } catch (err: any) {
-    const knownCodes = new Set(['STAT_DAY_LOCKED', 'DAILY_CAP_EXCEEDED']);
-    if (err && typeof err === 'object' && 'code' in err && knownCodes.has((err as any).code)) {
-      const mapped: any = new Error((err as any).message);
-      mapped.status = 400;
-      mapped.code = (err as any).code;
-      throw mapped;
+    const knownCodes = new Set([
+      'STAT_DAY_LOCKED',
+      'DAILY_CAP_EXCEEDED',
+      'TIMESHEET_LOCKED',
+    ]);
+    if (
+      err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      knownCodes.has((err as any).code)
+    ) {
+      throw { status: 400, code: (err as any).code };
     }
     throw err;
   }
