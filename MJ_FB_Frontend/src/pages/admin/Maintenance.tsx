@@ -18,7 +18,7 @@ export default function Maintenance() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    async function load() {
+    (async () => {
       try {
         const data = await getMaintenanceSettings();
         setMaintenanceMode(data.maintenanceMode);
@@ -26,8 +26,7 @@ export default function Maintenance() {
       } catch (err: any) {
         setError(err.message || String(err));
       }
-    }
-    load();
+    })();
   }, []);
 
   async function handleSave() {
