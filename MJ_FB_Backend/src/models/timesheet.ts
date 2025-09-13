@@ -197,27 +197,39 @@ export async function updateTimesheetDay(
     err.code = 'TIMESHEET_LOCKED';
     throw err;
   }
-  const res = await pool.query(
-    `UPDATE timesheet_days
-        SET reg_hours = $3,
-            ot_hours = $4,
-            stat_hours = $5,
-            sick_hours = $6,
-            vac_hours = $7,
-            note = $8
-      WHERE timesheet_id = $1 AND work_date = $2
-      RETURNING id`,
-    [
-      timesheetId,
-      workDate,
-      data.regHours,
-      data.otHours,
-      data.statHours,
-      data.sickHours,
-      data.vacHours,
-      data.note ?? null,
-    ],
-  );
+  let res;
+  try {
+    res = await pool.query(
+      `UPDATE timesheet_days
+          SET reg_hours = $3,
+              ot_hours = $4,
+              stat_hours = $5,
+              sick_hours = $6,
+              vac_hours = $7,
+              note = $8
+        WHERE timesheet_id = $1 AND work_date = $2
+        RETURNING id`,
+      [
+        timesheetId,
+        workDate,
+        data.regHours,
+        data.otHours,
+        data.statHours,
+        data.sickHours,
+        data.vacHours,
+        data.note ?? null,
+      ],
+    );
+  } catch (err: any) {
+    const knownCodes = new Set(['STAT_DAY_LOCKED', 'DAILY_CAP_EXCEEDED']);
+    if (err && typeof err === 'object' && 'code' in err && knownCodes.has((err as any).code)) {
+      const mapped: any = new Error((err as any).message);
+      mapped.status = 400;
+      mapped.code = (err as any).code;
+      throw mapped;
+    }
+    throw err;
+  }
   if ((res.rowCount ?? 0) === 0) {
     const err: any = new Error('Day not found');
     err.status = 404;

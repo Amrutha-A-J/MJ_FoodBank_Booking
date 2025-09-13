@@ -162,7 +162,6 @@ describe('timesheet controller', () => {
 
   it('auto-fills stat holiday and locks editing', async () => {
     const lockErr: any = new Error('Cannot edit stat holiday');
-    lockErr.status = 400;
     lockErr.code = 'STAT_DAY_LOCKED';
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
@@ -287,7 +286,6 @@ describe('timesheet controller', () => {
 
   it('enforces daily paid hour cap', async () => {
     const capErr: any = new Error('Daily paid hours cannot exceed 8');
-    capErr.status = 400;
     capErr.code = 'DAILY_CAP_EXCEEDED';
     (mockPool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ staff_id: 1 }], rowCount: 1 })
