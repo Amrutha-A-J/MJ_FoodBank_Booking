@@ -420,11 +420,11 @@ export async function createVolunteerBookingForVolunteer(
       );
       if (Number(countRes.rows[0].count) >= maxVolunteers) {
         if (force) {
-          maxVolunteers = Number(countRes.rows[0].count) + 1;
           await client.query(
-            'UPDATE volunteer_slots SET max_volunteers = $1 WHERE slot_id = $2',
-            [maxVolunteers, roleId],
+            'UPDATE volunteer_slots SET max_volunteers = max_volunteers + 1 WHERE slot_id = $1',
+            [roleId],
           );
+          maxVolunteers += 1;
         } else {
           await client.query('ROLLBACK');
           return res.status(400).json({ message: 'Role is full' });
