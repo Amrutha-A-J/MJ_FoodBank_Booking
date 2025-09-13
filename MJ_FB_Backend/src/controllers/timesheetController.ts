@@ -23,7 +23,7 @@ export async function listMyTimesheets(
     const rows = await getTimesheetsForStaff(Number(req.user.id));
     res.json(rows);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 }
 
@@ -43,7 +43,7 @@ export async function listTimesheets(
     const rows = await getTimesheets(staffId, year, month);
     res.json(rows);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 }
 
@@ -109,7 +109,7 @@ export async function updateTimesheetDay(req: Request, res: Response, next: Next
     });
     res.json({ message: 'Updated' });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 }
 
