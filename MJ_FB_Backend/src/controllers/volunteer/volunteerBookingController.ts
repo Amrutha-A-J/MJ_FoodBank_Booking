@@ -422,15 +422,19 @@ export async function createVolunteerBookingForVolunteer(
       await client.query('COMMIT');
 
       const booking = insertRes.rows[0];
-      const nameRes = await pool.query(
-        'SELECT first_name, last_name FROM volunteers WHERE id=$1',
-        [volunteerId],
-      );
-      const row = nameRes.rows[0];
-      const name =
-        row?.first_name && row?.last_name
-          ? `${row.first_name} ${row.last_name}`
-          : 'Volunteer';
+      let name = 'Volunteer';
+      try {
+        const nameRes = await pool.query(
+          'SELECT first_name, last_name FROM volunteers WHERE id=$1',
+          [volunteerId],
+        );
+        const row = nameRes.rows[0];
+        if (row?.first_name && row?.last_name) {
+          name = `${row.first_name} ${row.last_name}`;
+        }
+      } catch (e) {
+        logger.warn('Volunteer name lookup failed for %s', volunteerId);
+      }
       await notifyOps(
         `${name} (volunteer) booked ${formatReginaDateWithDay(date)} at ${formatTimeToAmPm(slot.start_time)}`,
       );
