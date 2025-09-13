@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle } from '@mui/material';
+import {
+  Dialog,
+  DialogTitle,
+  FormControlLabel,
+  Switch,
+  Stack,
+  FormHelperText,
+  FormControl,
+} from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import { getUserByClientId, updateUserInfo, requestPasswordReset } from '../../../api/users';
@@ -102,6 +110,26 @@ export default function EditClientDialog({
     <Dialog open={open} onClose={onClose}>
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Client</DialogTitle>
+      <Stack spacing={2} sx={{ px: 3, pt: 1 }}>
+        <FormControl>
+          <FormControlLabel
+            control={
+              <Switch
+                name="online access"
+                checked={form.onlineAccess}
+                onChange={e =>
+                  setForm(prev => ({
+                    ...prev,
+                    onlineAccess: e.target.checked,
+                  }))
+                }
+              />
+            }
+            label="Online Access"
+          />
+          <FormHelperText>Allow the client to sign in online.</FormHelperText>
+        </FormControl>
+      </Stack>
       <EditClientForm
         open={open}
         initialData={form}
