@@ -151,9 +151,20 @@ describe('SlotRow', () => {
   });
 });
 
-describe.skip('Booking confirmation', () => {
+describe('Booking confirmation', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2023-12-31T10:30:00'));
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.setSystemTime(new Date('2023-12-31T10:30:00'));
+  });
+
+  afterAll(() => {
+    jest.setSystemTime(new Date());
+    jest.useRealTimers();
   });
 
   async function renderUI(
@@ -171,6 +182,10 @@ describe.skip('Booking confirmation', () => {
         </QueryClientProvider>
       </MemoryRouter>,
     );
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
   }
 
   it('opens confirmation dialog before booking', async () => {
@@ -185,6 +200,7 @@ describe.skip('Booking confirmation', () => {
     });
     fireEvent.click(bookButton);
 
+    await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
     await screen.findByText(/confirm booking/i);
   });
 
@@ -201,6 +217,7 @@ describe.skip('Booking confirmation', () => {
     });
     fireEvent.click(bookButton);
 
+    await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
     await screen.findByText(/confirm booking/i);
     fireEvent.change(screen.getByLabelText(/client note/i), {
       target: { value: 'bring ID' },
@@ -229,10 +246,11 @@ describe.skip('Booking confirmation', () => {
     });
     fireEvent.click(bookButton);
 
+    await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
     await screen.findByText(/confirm booking/i);
-    screen.getByText(/^Date:/i);
-    screen.getByText(/^Time:/i);
-    screen.getByText(/^Visits this month:/i);
+    await screen.findByText(/^Date:/i);
+    await screen.findByText(/^Time:/i);
+    await screen.findByText(/^Visits this month:/i);
   });
 
   it('shows calendar links after booking', async () => {
@@ -251,6 +269,7 @@ describe.skip('Booking confirmation', () => {
     });
     fireEvent.click(bookButton);
 
+    await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
     await screen.findByText(/confirm booking/i);
     fireEvent.click(screen.getByText(/confirm$/i));
 
