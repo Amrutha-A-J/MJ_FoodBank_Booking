@@ -49,6 +49,8 @@ export async function checkSlotCapacity(
   } catch (err: any) {
     if (err.code === '0A000') {
       res = await client.query(baseQuery, params);
+    } else if (err.code === '25P02') {
+      throw new SlotCapacityError('Transaction aborted, please retry', 503);
     } else {
       throw err;
     }
