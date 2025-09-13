@@ -1,12 +1,5 @@
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
-jest.mock('../src/utils/scheduleDailyJob', () => {
-  const actual = jest.requireActual('../src/utils/scheduleDailyJob');
-  return {
-    __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
-  };
-});
-const job = require('../src/utils/blockedSlotCleanupJob');
+const job = require('../src/jobs/blockedSlotCleanupJob');
 const {
   cleanupPastBlockedSlots,
   startBlockedSlotCleanupJob,

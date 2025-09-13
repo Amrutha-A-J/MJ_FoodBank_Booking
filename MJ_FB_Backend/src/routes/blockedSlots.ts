@@ -7,7 +7,7 @@ import {
   deleteBlockedSlotParamsSchema,
 } from '../schemas/blockedSlotSchemas';
 import { formatReginaDate, reginaStartOfDayISO } from '../utils/dateUtils';
-import { cleanupPastBlockedSlots } from '../utils/blockedSlotCleanupJob';
+import { cleanupPastBlockedSlots } from '../jobs/blockedSlotCleanupJob';
 
 const router = express.Router();
 

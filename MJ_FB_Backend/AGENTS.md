@@ -39,7 +39,7 @@
 - A daily password token cleanup job (`src/utils/passwordTokenCleanupJob.ts`) runs at server startup and uses `node-cron` with `0 1 * * *` Regina time to delete used or expired password setup tokens. It exposes `startPasswordTokenCleanupJob`/`stopPasswordTokenCleanupJob`.
 - A nightly email queue cleanup job (`src/utils/emailQueueCleanupJob.ts`) runs at 3:00 AM Regina time to remove `email_queue` rows with `next_attempt` older than `EMAIL_QUEUE_MAX_AGE_DAYS` days. It logs the remaining queue size and warns when it exceeds `EMAIL_QUEUE_WARNING_SIZE`.
 - A yearly log cleanup job (`src/utils/logCleanupJob.ts`) runs every Jan 31 to aggregate the previous year's warehouse and sunshine bag logs then purge those old records from the live tables.
-- A nightly blocked slot cleanup job (`src/utils/blockedSlotCleanupJob.ts`) runs at 2:00 AM Regina time to delete past non-recurring blocked slots. It exposes `startBlockedSlotCleanupJob`/`stopBlockedSlotCleanupJob` and can be triggered manually via `POST /blocked-slots/cleanup`.
+- A nightly blocked slot cleanup job (`src/jobs/blockedSlotCleanupJob.ts`) runs at 2:00 AM Regina time to delete past non-recurring blocked slots. It exposes `startBlockedSlotCleanupJob`/`stopBlockedSlotCleanupJob` and can be triggered manually via `POST /blocked-slots/cleanup`.
 
 ## Project Layout
 
