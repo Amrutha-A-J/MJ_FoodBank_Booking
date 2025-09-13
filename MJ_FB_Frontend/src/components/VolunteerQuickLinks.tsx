@@ -2,7 +2,7 @@ import { Stack, Button } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 export default function VolunteerQuickLinks() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   const buttonSx = {
     textTransform: 'none',
@@ -32,7 +32,8 @@ export default function VolunteerQuickLinks() {
           component={RouterLink}
           to={link.to}
           onClick={() => {
-            if (pathname === link.to) navigate(0);
+            const current = `${pathname}${search}${hash}`;
+            if (current === link.to) navigate(0);
           }}
           fullWidth
         >
