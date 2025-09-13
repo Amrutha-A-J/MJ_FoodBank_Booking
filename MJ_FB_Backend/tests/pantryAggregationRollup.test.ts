@@ -1,6 +1,10 @@
-import pool from '../src/db';
 import './utils/mockDb';
+import pool from '../src/db';
 
+// Use the real implementations for the pantry aggregation helpers. They are
+// globally mocked in `tests/setupTests.ts`, so undo the mock here to exercise
+// their actual logic.
+jest.unmock('../src/controllers/pantry/pantryAggregationController');
 const {
   refreshPantryWeekly,
   refreshPantryMonthly,
@@ -22,12 +26,13 @@ describe('pantry aggregation roll-ups', () => {
       .mockResolvedValueOnce({ rows: [{ visits: 2, adults: 3, children: 4, weight: 20 }] })
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 3, adults: 5, children: 7, weight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      // Monthly aggregation query and insert
+      .mockResolvedValueOnce({ rows: [{ orders: 3, adults: 5, children: 7, people: 12, weight: 30 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 3, adults: 5, children: 7, weight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      // Yearly aggregation query and insert
+      .mockResolvedValueOnce({ rows: [{ orders: 3, adults: 5, children: 7, people: 12, weight: 30 }] })
       .mockResolvedValueOnce({})
+      // Final selects for assertions
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
       .mockResolvedValueOnce({ rows: [{ year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] });
 
@@ -52,29 +57,31 @@ describe('pantry aggregation roll-ups', () => {
 
   it('updates an existing week and keeps roll-ups consistent', async () => {
     (pool.query as jest.Mock)
+      // Initial weekly data for weeks 1 and 2
       .mockResolvedValueOnce({ rows: [{ visits: 1, adults: 2, children: 3, weight: 10 }] })
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ visits: 2, adults: 3, children: 4, weight: 20 }] })
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 3, adults: 5, children: 7, weight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      // Monthly/yearly roll-ups for initial data
+      .mockResolvedValueOnce({ rows: [{ orders: 3, adults: 5, children: 7, people: 12, weight: 30 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 3, adults: 5, children: 7, weight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      .mockResolvedValueOnce({ rows: [{ orders: 3, adults: 5, children: 7, people: 12, weight: 30 }] })
       .mockResolvedValueOnce({})
+      // Selects for assertions
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
       .mockResolvedValueOnce({ rows: [{ year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
+      // Updated week 1 data
       .mockResolvedValueOnce({ rows: [{ visits: 5, adults: 6, children: 7, weight: 40 }] })
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 7, adults: 9, children: 11, weight: 60 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      // Monthly/yearly roll-ups after update
+      .mockResolvedValueOnce({ rows: [{ orders: 7, adults: 9, children: 11, people: 20, weight: 60 }] })
       .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ visits: 7, adults: 9, children: 11, weight: 60 }] })
-      .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
+      .mockResolvedValueOnce({ rows: [{ orders: 7, adults: 9, children: 11, people: 20, weight: 60 }] })
       .mockResolvedValueOnce({})
+      // Final selects for assertions
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 }] })
       .mockResolvedValueOnce({ rows: [{ year, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 }] });
 
