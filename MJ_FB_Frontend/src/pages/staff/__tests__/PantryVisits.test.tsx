@@ -43,6 +43,8 @@ const { getClientVisits, toggleClientVisitVerification } =
 const { getAppConfig } = jest.requireMock('../../../api/appConfig');
 const { getSunshineBag } = jest.requireMock('../../../api/sunshineBags');
 
+const originalMatchMedia = window.matchMedia;
+
 function renderVisits() {
   return renderWithProviders(
     <MemoryRouter>
@@ -62,6 +64,10 @@ describe('PantryVisits', () => {
         addEventListener: () => {},
         removeEventListener: () => {},
       })) as any);
+  });
+
+  afterAll(() => {
+    window.matchMedia = originalMatchMedia;
   });
 
   beforeEach(() => {
