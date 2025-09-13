@@ -33,6 +33,18 @@ function hexToRgb(color: string) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+function tint(color: string, ratios: [number, number, number]) {
+  const [r, g, b] = hexToRgb(color)
+    .replace(/rgb\(|\)/g, '')
+    .split(',')
+    .map((n) => parseInt(n.trim(), 10));
+  const [rr, gg, bb] = ratios;
+  const nr = Math.round(r + (255 - r) * rr);
+  const ng = Math.round(g + (255 - g) * gg);
+  const nb = Math.round(b + (255 - b) * bb);
+  return `rgb(${nr}, ${ng}, ${nb})`;
+}
+
 describe('PantrySchedule status colors', () => {
   beforeAll(() => {
     jest.useFakeTimers();
@@ -82,9 +94,31 @@ describe('PantrySchedule status colors', () => {
     const slots = screen.getAllByText(/Slot \d/);
     expect(slots).toHaveLength(3);
 
-    expect(getComputedStyle(approved).backgroundColor).toBe('rgb(228, 241, 228)');
-    expect(getComputedStyle(noShow).backgroundColor).toBe('rgb(255, 200, 200)');
-    expect(getComputedStyle(visited).backgroundColor).toBe('rgb(111, 146, 113)');
+    const approvedCell = approved.closest('td') as HTMLElement;
+    const noShowCell = noShow.closest('td') as HTMLElement;
+    const visitedCell = visited.closest('td') as HTMLElement;
+
+    const approvedColor = tint(theme.palette.success.light, [
+      0.8393,
+      0.8654,
+      0.835,
+    ]);
+    const noShowColor = tint(theme.palette.error.light, [1, 0.7027, 0.7027]);
+    const visitedColor = tint(theme.palette.success.main, [
+      0.311,
+      0.1615,
+      0.3073,
+    ]);
+
+    expect(getComputedStyle(approvedCell).backgroundColor).toBe(
+      approvedColor,
+    );
+    expect(getComputedStyle(noShowCell).backgroundColor).toBe(
+      noShowColor,
+    );
+    expect(getComputedStyle(visitedCell).backgroundColor).toBe(
+      visitedColor,
+    );
   });
 
   it('shows warning styling when capacity is exceeded', async () => {
