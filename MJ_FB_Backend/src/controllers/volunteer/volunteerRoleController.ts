@@ -352,14 +352,16 @@ export async function listVolunteerRolesForVolunteer(
          WHERE status='approved' AND date = $1
          GROUP BY slot_id
        ) b ON vs.slot_id = b.slot_id
-       WHERE vs.role_id = ANY($2::int[])
-        AND vs.is_active
-        AND (vs.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
-       ORDER BY vs.start_time`,
+      WHERE vs.role_id = ANY($2::int[])
+       AND vs.is_active
+       AND (vs.is_wednesday_slot = false OR EXTRACT(DOW FROM $1::date) = 3)
+      ORDER BY vs.start_time`,
       [reginaDate, roleIds]
     );
 
-    const roles = result.rows
+    const rows = result?.rows ?? [];
+
+    const roles = rows
       .filter(
         (row: any) =>
           !(isWeekend || isHolidayDate) ||

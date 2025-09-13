@@ -2,6 +2,7 @@ import request from 'supertest';
 import express from 'express';
 import volunteerRolesRouter from '../src/routes/volunteer/volunteerRoles';
 import pool from '../src/db';
+import { setHolidays } from '../src/utils/holidayCache';
 
 jest.mock('../src/middleware/authMiddleware', () => ({
   authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
@@ -16,10 +17,13 @@ app.use(express.json());
 app.use('/volunteer-roles', volunteerRolesRouter);
 
 describe('GET /volunteer-roles/mine', () => {
+  beforeEach(() => {
+    setHolidays(null);
+  });
   it('excludes restricted categories on weekends', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 0 })
+      .mockResolvedValueOnce({ rows: [{ exists: false }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -49,7 +53,7 @@ describe('GET /volunteer-roles/mine', () => {
   it('allows gardening roles on weekends', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 0 })
+      .mockResolvedValueOnce({ rows: [{ exists: false }], rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
           {
@@ -95,9 +99,9 @@ describe('GET /volunteer-roles/mine', () => {
   });
 
   it('excludes restricted categories on holidays', async () => {
+    setHolidays(new Map([[ '2025-01-01', '' ]]));
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
-      .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({
         rows: [
           {
