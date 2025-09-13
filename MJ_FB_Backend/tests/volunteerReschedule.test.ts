@@ -1,3 +1,5 @@
+jest.mock('../src/utils/opsAlert', () => ({ notifyOps: jest.fn() }));
+
 import request from 'supertest';
 import express from 'express';
 import volunteerBookingsRouter from '../src/routes/volunteer/volunteerBookings';
