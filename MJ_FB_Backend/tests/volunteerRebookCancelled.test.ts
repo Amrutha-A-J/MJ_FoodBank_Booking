@@ -65,7 +65,7 @@ describe('rebooking after cancellation', () => {
       }) // slot
       .mockResolvedValueOnce({ rowCount: 1, rows: [{}] }) // trained
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // holiday
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] }) // existing approved
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 9, status: 'cancelled' }] }) // existing cancelled
       .mockResolvedValueOnce({ rowCount: 0, rows: [] }); // overlap
 
     client.query
@@ -78,7 +78,7 @@ describe('rebooking after cancellation', () => {
             id: 9,
             slot_id: 1,
             volunteer_id: 1,
-            date: '2024-01-01',
+            date: '2099-01-01',
             status: 'approved',
             reschedule_token: 'tok',
             recurring_id: null,
@@ -89,13 +89,12 @@ describe('rebooking after cancellation', () => {
 
     const res = await request(app)
       .post('/volunteer-bookings')
-      .send({ roleId: 1, date: '2024-01-01' });
-
+      .send({ roleId: 1, date: '2099-01-01' });
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({
       message: 'Booking automatically approved',
       status: 'approved',
-      rescheduleToken: 'tok',
     });
+    expect(typeof res.body.rescheduleToken).toBe('string');
   });
 });

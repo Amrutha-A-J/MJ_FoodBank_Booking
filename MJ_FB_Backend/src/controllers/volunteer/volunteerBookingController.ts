@@ -124,12 +124,18 @@ export async function createVolunteerBooking(
     }
 
     const existingRes = await pool.query(
-      `SELECT 1 FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
+      `SELECT id, status FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3`,
       [roleId, date!, user.id]
     );
+    let existingCancelledId: number | undefined;
     if ((existingRes.rowCount ?? 0) > 0) {
-      return res.status(400).json({ message: 'Already booked for this shift' });
+      const existing = existingRes.rows[0];
+      if (existing.status === 'cancelled') {
+        existingCancelledId = existing.id;
+      } else {
+        return res.status(400).json({ message: 'Already booked for this shift' });
+      }
     }
 
     const overlapRes = await pool.query(
@@ -187,12 +193,20 @@ export async function createVolunteerBooking(
       }
 
       const token = randomUUID();
-      const insertRes = await client.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
-         VALUES ($1, $2, $3, 'approved', $4, $5)
-         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id, note`,
-        [roleId, user.id, date, token, note ?? null],
-      );
+      const insertRes = existingCancelledId
+        ? await client.query(
+            `UPDATE volunteer_bookings
+             SET status='approved', reschedule_token=$1, note=$2, reason=NULL
+             WHERE id=$3
+             RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id, note`,
+            [token, note ?? null, existingCancelledId],
+          )
+        : await client.query(
+            `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token, note)
+             VALUES ($1, $2, $3, 'approved', $4, $5)
+             RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id, note`,
+            [roleId, user.id, date, token, note ?? null],
+          );
 
       await client.query('COMMIT');
 
@@ -341,12 +355,18 @@ export async function createVolunteerBookingForVolunteer(
     }
 
     const existingRes = await pool.query(
-      `SELECT 1 FROM volunteer_bookings
-       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3 AND status='approved'`,
+      `SELECT id, status FROM volunteer_bookings
+       WHERE slot_id = $1 AND date = $2 AND volunteer_id = $3`,
       [roleId, date, volunteerId]
     );
+    let existingCancelledId: number | undefined;
     if ((existingRes.rowCount ?? 0) > 0) {
-      return res.status(400).json({ message: 'Already booked for this shift' });
+      const existing = existingRes.rows[0];
+      if (existing.status === 'cancelled') {
+        existingCancelledId = existing.id;
+      } else {
+        return res.status(400).json({ message: 'Already booked for this shift' });
+      }
     }
 
     const overlapRes = await pool.query(
@@ -411,13 +431,21 @@ export async function createVolunteerBookingForVolunteer(
         }
       }
 
-      const token = randomUUID();
-      const insertRes = await client.query(
-        `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
-         VALUES ($1, $2, $3, 'approved', $4)
-         RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
-        [roleId, volunteerId, date, token],
-      );
+        const token = randomUUID();
+        const insertRes = existingCancelledId
+          ? await client.query(
+              `UPDATE volunteer_bookings
+               SET status='approved', reschedule_token=$1, reason=NULL
+               WHERE id=$2
+               RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
+              [token, existingCancelledId],
+            )
+          : await client.query(
+              `INSERT INTO volunteer_bookings (slot_id, volunteer_id, date, status, reschedule_token)
+               VALUES ($1, $2, $3, 'approved', $4)
+               RETURNING id, slot_id, volunteer_id, date, status, reschedule_token, recurring_id`,
+              [roleId, volunteerId, date, token],
+            );
 
       await client.query('COMMIT');
 
