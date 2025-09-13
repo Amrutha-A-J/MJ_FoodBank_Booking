@@ -7,6 +7,7 @@ import {
   Stack,
   FormHelperText,
   FormControl,
+  Tooltip,
 } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from '../../../components/DialogCloseButton';
@@ -111,30 +112,39 @@ export default function EditClientDialog({
       <DialogCloseButton onClose={onClose} />
       <DialogTitle>Edit Client</DialogTitle>
       <Stack spacing={2} sx={{ px: 3, pt: 1 }}>
-        <FormControl>
-          <FormControlLabel
-            control={
-              <Switch
-                name="online access"
-                checked={form.onlineAccess}
-                onChange={e =>
-                  setForm(prev => ({
-                    ...prev,
-                    onlineAccess: e.target.checked,
-                  }))
+        <Tooltip
+          title="Client already has a password"
+          disableHoverListener={!form.hasPassword}
+        >
+          <span>
+            <FormControl>
+              <FormControlLabel
+                control={
+                  <Switch
+                    name="online access"
+                    checked={form.onlineAccess}
+                    onChange={e =>
+                      setForm(prev => ({
+                        ...prev,
+                        onlineAccess: e.target.checked,
+                      }))
+                    }
+                    disabled={form.hasPassword}
+                  />
                 }
+                label="Online Access"
               />
-            }
-            label="Online Access"
-          />
-          <FormHelperText>Allow the client to sign in online.</FormHelperText>
-        </FormControl>
+              <FormHelperText>Allow the client to sign in online.</FormHelperText>
+            </FormControl>
+          </span>
+        </Tooltip>
       </Stack>
       <EditClientForm
         open={open}
         initialData={form}
         onSave={data => handleSave(clientId, data, onClientUpdated, onUpdated, onClose)}
         onSendReset={data => handleSendReset(clientId, data, onClientUpdated, onUpdated, onClose)}
+        showOnlineAccessToggle={false}
       />
     </Dialog>
   );
