@@ -12,6 +12,10 @@ export default function VolunteerQuickLinks() {
     { to: '/volunteer-management/volunteers', label: 'Search Volunteer' },
     { to: '/volunteer-management/schedule', label: 'Volunteer Schedule' },
     { to: '/volunteer-management/daily', label: 'Daily Bookings' },
+    {
+      to: '/volunteer-management/volunteers?tab=ranking',
+      label: 'Ranking',
+    },
   ];
 
   return (
