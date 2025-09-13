@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
-import i18n from '../i18n';
 
 interface OnboardingModalProps {
   storageKey: string;
@@ -30,7 +29,7 @@ export default function OnboardingModal({ storageKey, title, body }: OnboardingM
         <Typography>{body}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>{i18n.t('onboarding.close')}</Button>
+        <Button onClick={handleClose}>{"Got it"}</Button>
       </DialogActions>
     </Dialog>
   );

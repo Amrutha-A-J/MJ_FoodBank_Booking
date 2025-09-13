@@ -5,7 +5,6 @@ import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import type { AlertColor } from '@mui/material';
 import DialogCloseButton from './DialogCloseButton';
-import { useTranslation } from 'react-i18next';
 
 export default function PasswordResetDialog({
   open,
@@ -18,9 +17,8 @@ export default function PasswordResetDialog({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-  const { t } = useTranslation();
-
-  const formTitle = t('reset_password');
+  
+  const formTitle = "Reset Password";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +29,7 @@ export default function PasswordResetDialog({
           : { clientId: identifier };
       await requestPasswordReset(body);
       setSnackbarSeverity('success');
-      setMessage(t('reset_link_sent'));
+      setMessage("If the account exists, a reset link has been sent.");
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -49,16 +47,16 @@ export default function PasswordResetDialog({
           <FormCard
             title={formTitle}
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
+            actions={<Button type="submit" variant="contained">{"Submit"}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <Typography variant="body2">
-              {t('password_reset_instructions')}
+              {"Enter your email or client ID and select submit. You'll get an email with a link to reset your password."}
             </Typography>
             <TextField
               autoFocus
               margin="dense"
-              label={t('email_or_client_id')}
+              label={"Email or Client ID"}
               type="text"
               name="identifier"
               autoComplete="email"

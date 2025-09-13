@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
@@ -14,8 +13,7 @@ import Page from '../../components/Page';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
 
 export default function DonorProfile() {
-  const { t } = useTranslation();
-  const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{ id: string }>();
   const [donor, setDonor] = useState<DonorDetail | null>(null);
   const [donations, setDonations] = useState<DonorDonation[]>([]);
   const [error, setError] = useState('');
@@ -59,7 +57,7 @@ export default function DonorProfile() {
               Last Donation:{' '}
               {donor.lastDonationISO
                 ? formatLocaleDate(donor.lastDonationISO)
-                : t('not_applicable')}
+                : "N/A"}
             </Typography>
           </CardContent>
         </Card>

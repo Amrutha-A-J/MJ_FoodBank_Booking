@@ -35,7 +35,7 @@ describe('ClientBottomNav', () => {
         <ClientBottomNav />
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByLabelText('profile'));
+    fireEvent.click(screen.getByLabelTex"Profile");
     expect(mockNavigate).toHaveBeenCalledWith('/profile');
   });
 
@@ -46,7 +46,7 @@ describe('ClientBottomNav', () => {
         <ClientBottomNav />
       </MemoryRouter>,
     );
-    expect(queryByLabelText('dashboard')).not.toBeInTheDocument();
+    expect(queryByLabelTex"Dashboard").not.toBeInTheDocument();
   });
 
   it('uses a larger tap target', () => {

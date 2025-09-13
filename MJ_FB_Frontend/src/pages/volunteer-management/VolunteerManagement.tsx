@@ -56,7 +56,6 @@ import { formatDate, addDays } from '../../utils/date';
 import dayjs from '../../utils/date';
 import Page from '../../components/Page';
 import VolunteerQuickLinks from '../../components/VolunteerQuickLinks';
-import { useTranslation } from 'react-i18next';
 import EditVolunteerDialog from './EditVolunteerDialog';
 
 
@@ -87,8 +86,7 @@ interface VolunteerManagementProps {
 export default function VolunteerManagement({ initialTab }: VolunteerManagementProps = {}) {
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useTranslation();
-  const tab: 'dashboard' | 'schedule' | 'search' | 'create' =
+    const tab: 'dashboard' | 'schedule' | 'search' | 'create' =
     initialTab ??
     (tabParam === 'schedule' ||
     tabParam === 'search' ||
@@ -96,7 +94,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
       ? (tabParam as 'schedule' | 'search' | 'create')
       : 'dashboard');
   const tabTitles: Record<typeof tab, string> = {
-    dashboard: t('dashboard'),
+    dashboard: "Dashboard",
     schedule: 'Schedule',
     search: 'Search Volunteer',
     create: 'Create Volunteer',
@@ -994,7 +992,7 @@ export default function VolunteerManagement({ initialTab }: VolunteerManagementP
               <Box sx={{ width: { xs: 1, md: '67%' } }}>
                 <PageCard sx={{ width: 1 }}>
                   <Typography variant="h6" gutterBottom>
-                    {t('booking_history')}
+                    {"Booking History"}
                   </Typography>
                   {selectedVolunteer && (
                     <BookingManagementBase

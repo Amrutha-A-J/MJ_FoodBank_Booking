@@ -42,12 +42,12 @@ describe('AuthProvider cardUrl cleanup', () => {
 
     renderWithProviders(<TestComponent />);
 
-    fireEvent.click(screen.getByText('login'));
+    fireEvent.click(screen.getByTex"Login");
     await waitFor(() =>
       expect(screen.getByTestId('card')).toHaveTextContent('/card.pdf'),
     );
 
-    fireEvent.click(screen.getByText('logout'));
+    fireEvent.click(screen.getByTex"Logout");
     await waitFor(() =>
       expect(screen.getByTestId('card')).toHaveTextContent(''),
     );
@@ -61,7 +61,7 @@ describe('AuthProvider cardUrl cleanup', () => {
 
     renderWithProviders(<TestComponent />);
 
-    fireEvent.click(screen.getByText('login'));
+    fireEvent.click(screen.getByTex"Login");
     await waitFor(() =>
       expect(screen.getByTestId('card')).toHaveTextContent('/card.pdf'),
     );

@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
-import i18n from '../i18n';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 
 describe('Language selector visibility', () => {
@@ -32,7 +31,7 @@ describe('Language selector visibility', () => {
     });
     window.history.pushState({}, '', '/login');
     renderWithProviders(<App />);
-    expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
   });
 
   it('shows language selector on client dashboard', () => {
@@ -40,7 +39,7 @@ describe('Language selector visibility', () => {
     localStorage.setItem('name', 'Test User');
     window.history.pushState({}, '', '/');
     renderWithProviders(<App />);
-    expect(screen.getByText(i18n.t('english'))).toBeInTheDocument();
+    expect(screen.getByText("English")).toBeInTheDocument();
   });
 
   it('hides language selector on staff dashboard', () => {
@@ -49,6 +48,6 @@ describe('Language selector visibility', () => {
     localStorage.setItem('access', JSON.stringify(['pantry']));
     window.history.pushState({}, '', '/pantry');
     renderWithProviders(<App />);
-    expect(screen.queryByText(i18n.t('english'))).not.toBeInTheDocument();
+    expect(screen.queryByText("English")).not.toBeInTheDocument();
   });
 });

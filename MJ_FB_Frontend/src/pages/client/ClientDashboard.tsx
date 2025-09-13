@@ -29,7 +29,6 @@ import SectionCard from '../../components/dashboard/SectionCard';
 import EventList from '../../components/EventList';
 import { toDate } from '../../utils/date';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 import OnboardingModal from '../../components/OnboardingModal';
 
 interface NextSlot {
@@ -76,8 +75,14 @@ export default function ClientDashboard() {
   const [cancelId, setCancelId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
-  const { t } = useTranslation();
-
+  const statusLabels: Record<string, string> = {
+    approved: 'Approved',
+    visited: 'Visited',
+    cancelled: 'Cancelled',
+    no_show: 'No show',
+    pending: 'Pending',
+  };
+  
   useEffect(() => {
     getBookingHistory({ includeVisits: true })
       .then(b => setBookings(Array.isArray(b) ? b : [b]))
@@ -127,11 +132,11 @@ export default function ClientDashboard() {
     if (cancelId === null) return;
     try {
       await cancelBooking(String(cancelId));
-      setMessage(t('booking_cancelled'));
+      setMessage("Booking cancelled");
       setSnackbarSeverity('success');
       setBookings(prev => prev.filter(b => b.id !== cancelId));
     } catch (err) {
-      setMessage(t('cancel_booking_failed'));
+      setMessage("Failed to cancel booking");
       setSnackbarSeverity('error');
     } finally {
       setCancelId(null);
@@ -139,11 +144,11 @@ export default function ClientDashboard() {
   }
 
   return (
-    <Page title={t('client_dashboard')}>
+    <Page title={"Client Dashboard"}>
       <OnboardingModal
         storageKey="clientOnboarding"
-        title={t('onboarding.client.title')}
-        body={t('onboarding.client.body')}
+        title={"Welcome"}
+        body={"Use Book Appointment to schedule visits. Your dashboard shows upcoming bookings."}
       />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -151,7 +156,7 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>{t('my_upcoming_appointment')}</span>
+                  <span>{"My Upcoming Appointment"}</span>
                 </Stack>
               }
               icon={<EventAvailable color="primary" />}
@@ -178,7 +183,7 @@ export default function ClientDashboard() {
                           sx={{ textTransform: 'none' }}
                           onClick={() => setCancelId(next.id)}
                         >
-                          {t('cancel')}
+                          {"Cancel"}
                         </Button>
                         <Button
 
@@ -190,7 +195,7 @@ export default function ClientDashboard() {
                           }
                           disabled={!next.reschedule_token}
                         >
-                          {t('reschedule')}
+                          {"Reschedule"}
                         </Button>
                       </Stack>
                     </Stack>
@@ -198,14 +203,14 @@ export default function ClientDashboard() {
                 </List>
               ) : (
                 <Stack spacing={1} alignItems="flex-start">
-                  <Typography>{t('no_appointment_booked')}</Typography>
+                  <Typography>{"No appointment booked —"}</Typography>
                   <Button
 
                     variant="contained"
                     sx={{ textTransform: 'none' }}
                     onClick={() => navigate('/book-appointment')}
                   >
-                    {t('book_now')}
+                    {"Book now"}
                   </Button>
                 </Stack>
               )}
@@ -213,7 +218,7 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>{t('booking_history')}</span>
+                  <span>{"Booking History"}</span>
                 </Stack>
               }
               icon={<History color="primary" />}
@@ -238,7 +243,7 @@ export default function ClientDashboard() {
                           }
                         />
                         <Chip
-                          label={t(b.status)}
+                          label={statusLabels[b.status] ?? b.status}
                           color={statusColor(b.status)}
                         />
                       </Stack>
@@ -252,7 +257,7 @@ export default function ClientDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title={t('quick_actions')}>
+            <SectionCard title={"Quick Actions"}>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={1}
@@ -267,7 +272,7 @@ export default function ClientDashboard() {
                   }}
                   onClick={() => navigate('/book-appointment')}
                 >
-                  {t('book_shopping_appointment')}
+                  {"Book Shopping Appointment"}
                 </Button>
                 <Button
 
@@ -282,7 +287,7 @@ export default function ClientDashboard() {
                   }
                   disabled={!next?.reschedule_token}
                 >
-                  {t('reschedule')}
+                  {"Reschedule"}
                 </Button>
                 <Button
                   
@@ -293,7 +298,7 @@ export default function ClientDashboard() {
                   }}
                   onClick={() => navigate('/booking-history')}
                 >
-                  {t('cancel')}
+                  {"Cancel"}
                 </Button>
               </Stack>
             </SectionCard>
@@ -301,7 +306,7 @@ export default function ClientDashboard() {
             <SectionCard
               title={
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <span>{t('news_and_events')}</span>
+                  <span>{"News & Events"}</span>
                 </Stack>
               }
               icon={<Announcement color="primary" />}
@@ -321,7 +326,7 @@ export default function ClientDashboard() {
             </SectionCard>
 
             <SectionCard
-              title={t('next_available_slots')}
+              title={"Next Available Slots"}
               icon={<EventAvailable color="primary" />}
             >
               <List sx={{ '& .MuiListItem-root:not(:last-child)': { mb: 1 } }}>
@@ -349,14 +354,14 @@ export default function ClientDashboard() {
                           }}
                           onClick={() => navigate('/book-appointment')}
                         >
-                          {t('book')}
+                          {"Book"}
                         </Button>
                       </Stack>
                     </ListItem>
                   ))
                 ) : (
                   <ListItem>
-                    <ListItemText primary={t('no_slots_available')} />
+                    <ListItemText primary={"No slots available. Please choose another date."} />
                   </ListItem>
                 )}
               </List>
@@ -366,9 +371,9 @@ export default function ClientDashboard() {
       </Grid>
         <Dialog open={cancelId !== null} onClose={() => setCancelId(null)}>
           <DialogCloseButton onClose={() => setCancelId(null)} />
-          <DialogTitle>{t('cancel_booking')}</DialogTitle>
+          <DialogTitle>{"Cancel booking"}</DialogTitle>
           <DialogContent>
-            <Typography>{t('cancel_booking_question')}</Typography>
+            <Typography>{"Are you sure you want to cancel this booking?"}</Typography>
           </DialogContent>
           <DialogActions>
             <Button
@@ -378,7 +383,7 @@ export default function ClientDashboard() {
               sx={{ textTransform: 'none' }}
               onClick={confirmCancel}
             >
-              {t('cancel_booking')}
+              {"Cancel booking"}
             </Button>
           </DialogActions>
         </Dialog>

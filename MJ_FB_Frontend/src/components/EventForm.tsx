@@ -14,7 +14,6 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { formatReginaDate } from '../utils/date';
 import type { Dayjs } from 'dayjs';
-import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import { createEvent, updateEvent, type Event } from '../api/events';
 import DialogCloseButton from './DialogCloseButton';
@@ -35,8 +34,7 @@ const categories = [
 ];
 
 export default function EventForm({ open, onClose, onSaved, event }: EventFormProps) {
-  const { t } = useTranslation();
-  const [title, setTitle] = useState('');
+    const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [category, setCategory] = useState('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
@@ -144,13 +142,13 @@ export default function EventForm({ open, onClose, onSaved, event }: EventFormPr
           </TextField>
           <LocalizationProvider dateAdapter={AdapterDayjs} dateLibInstance={dayjs}>
             <DatePicker
-              label={t('start_date')}
+              label="Start Date"
               value={startDate}
               onChange={value => setStartDate(value as Dayjs | null)}
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}
             />
             <DatePicker
-              label={t('end_date')}
+              label="End Date"
               value={endDate}
               onChange={value => setEndDate(value as Dayjs | null)}
               slotProps={{ textField: { fullWidth: true, margin: 'normal' } }}

@@ -59,7 +59,6 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "../../utils/date";
 import VolunteerBottomNav from "../../components/VolunteerBottomNav";
-import i18n from "../../i18n";
 import { useAuth } from "../../hooks/useAuth";
 
 const reginaTimeZone = "America/Regina";
@@ -193,7 +192,7 @@ export default function VolunteerSchedule() {
     try {
       await requestVolunteerBooking(role.id, formatDate(currentDate));
       setSnackbarSeverity('success');
-      setMessage(i18n.t('slot_booked_success'));
+      setMessage("Slot booked successfully");
       await loadData();
     } catch (err: unknown) {
       const e = err as { conflict?: VolunteerBookingConflict };
@@ -201,7 +200,7 @@ export default function VolunteerSchedule() {
         setConflict(e.conflict);
       } else {
         setSnackbarSeverity('error');
-        setMessage(i18n.t('booking_failed'));
+        setMessage("Booking failed");
       }
     }
   }

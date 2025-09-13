@@ -49,7 +49,6 @@ import Page from '../components/Page';
 import ClientBottomNav from '../components/ClientBottomNav';
 import VolunteerBottomNav from '../components/VolunteerBottomNav';
 import type { ApiError } from '../api/client';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
 function useSlots<T>(
@@ -118,8 +117,7 @@ export function SlotRow({
   booking,
   loadingConfirm,
 }: SlotRowProps) {
-  const { t } = useTranslation();
-  const theme = useTheme();
+    const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
   const bookWidth = 140;
   const start = dayjs(slot.startTime, 'HH:mm:ss');
@@ -144,10 +142,7 @@ export function SlotRow({
         disabled={isFull}
         selected={selected}
         onClick={onSelect}
-        aria-label={t('select_time_slot', {
-          start: start.format('h:mm a'),
-          end: end.format('h:mm a'),
-        })}
+        aria-label={`Select ${start.format('h} to ${end.format('h} time slot`}
         sx={{
           pl: 2,
           flexGrow: { md: 1 },
@@ -170,14 +165,14 @@ export function SlotRow({
         <ListItemText
           primary={label}
           secondary={
-            isFull ? slot.reason || t('fully_booked') : t('choose_this_time')
+            isFull ? slot.reason || "Fully booked" : "Choose this time"
           }
         />
         <Chip
           label={
             isFull
-              ? t('full')
-              : t('available_count', { count: available })
+              ? "Full"
+              : `Available: ${available}`
           }
           color={isFull ? 'default' : 'success'}
         />
@@ -189,7 +184,7 @@ export function SlotRow({
         sx={isMdUp ? undefined : { width: '100%' }}
       >
         {(() => {
-          const label = t('book_selected_slot');
+          const label = "Book selected slot";
           const words = label.split(' ');
           const multiline =
             words.length > 1 ? `${words[0]}\n${words.slice(1).join(' ')}` : label;
@@ -232,15 +227,14 @@ export default function BookingUI<T = Slot>({
   groupSlots,
   showUsageNotes = true,
 }: BookingUIProps<T>) {
-  const { t } = useTranslation();
-  const location = useLocation();
+    const location = useLocation();
   const { role, name: authName, userRole } = useAuth();
   const pageTitle =
     location.pathname.startsWith('/book-appointment') && userRole === 'shopper'
-      ? t('book_shopping_appointment')
+      ? "Book Shopping Appointment"
       : role === 'volunteer'
-        ? t('book_volunteer_shift')
-        : t('book_appointment');
+        ? "Book Volunteer Shift"
+        : "Book Appointment";
   const displayName = shopperName ?? authName ?? 'John Shopper';
 
   const [date, setDate] = useState<Dayjs>(() => {
@@ -322,8 +316,8 @@ export default function BookingUI<T = Slot>({
       dayjs(s.startTime, 'HH:mm:ss').hour() >= 12,
     );
     const res: Record<string, Slot[]> = {};
-    if (morning.length) res[t('morning')] = morning;
-    if (afternoon.length) res[t('afternoon')] = afternoon;
+    if (morning.length) res["Morning"] = morning;
+    if (afternoon.length) res["Afternoon"] = afternoon;
     return res;
   }, [visibleSlots, groupSlots, t]);
   useEffect(() => {
@@ -341,7 +335,7 @@ export default function BookingUI<T = Slot>({
       setSnackbar({
         open: true,
         message:
-          error instanceof Error ? error.message : t('error_loading_slots'),
+          error instanceof Error ? error.message : "Error loading slots",
         severity: 'error',
       });
     }
@@ -374,7 +368,7 @@ export default function BookingUI<T = Slot>({
       });
       setSnackbar({
         open: true,
-        message: t('slot_booked_success'),
+        message: "Slot booked successfully",
         severity: 'success',
         action:
           res?.googleCalendarUrl || res?.icsUrl ? (
@@ -389,7 +383,7 @@ export default function BookingUI<T = Slot>({
                   size="medium"
                   sx={{ minHeight: 48 }}
                 >
-                  {t('add_to_google_calendar')}
+                  {"Add to Google Calendar"}
                 </Button>
               )}
               {res?.icsUrl && (
@@ -400,7 +394,7 @@ export default function BookingUI<T = Slot>({
                   size="medium"
                   sx={{ minHeight: 48 }}
                 >
-                  {t('add_to_apple_calendar')}
+                  {"Add to Apple Calendar"}
                 </Button>
               )}
             </Stack>
@@ -455,14 +449,14 @@ export default function BookingUI<T = Slot>({
             message:
               typeof apiErr.message === 'string'
                 ? apiErr.message
-                : t('booking_failed'),
+                : "Booking failed",
             severity: 'error',
           });
         }
       } else {
         setSnackbar({
           open: true,
-          message: t('booking_failed'),
+          message: "Booking failed",
           severity: 'error',
         });
       }
@@ -498,14 +492,14 @@ export default function BookingUI<T = Slot>({
       <Container maxWidth="lg" sx={{ pb: 9 }}>
       <Toolbar />
       <Typography variant="h5" gutterBottom>
-        {t('booking_for', { name: displayName })}
+        {`Booking for: ${displayName}`}
       </Typography>
       <Typography
         variant="subtitle1"
         sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}
       >
         <AccessTime fontSize="small" />
-        {t('available_slots_for', { date: date.format('ddd, MMM D, YYYY') })}
+        {`Available Slots for ${date.format('ddd}`}
       </Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 'auto' }}>
@@ -576,7 +570,7 @@ export default function BookingUI<T = Slot>({
                 }}
               >
                 <Typography>
-                  {error instanceof Error ? error.message : t('error_loading_slots')}
+                  {error instanceof Error ? error.message : "Error loading slots"}
                 </Typography>
               </Box>
             ) : visibleSlots.length === 0 ? (
@@ -588,7 +582,7 @@ export default function BookingUI<T = Slot>({
                   justifyContent: 'center',
                 }}
               >
-                <Typography>{t('no_slots_available')}</Typography>
+                <Typography>{"No slots available. Please choose another date."}</Typography>
               </Box>
             ) : (
               <List disablePadding>
@@ -606,24 +600,24 @@ export default function BookingUI<T = Slot>({
       </Grid>
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogCloseButton onClose={() => setConfirmOpen(false)} />
-        <DialogTitle>{t('confirm_booking')}</DialogTitle>
+        <DialogTitle>{"Confirm booking"}</DialogTitle>
         <DialogContent>
           <Typography>
-            {t('date')}: {date.format('ddd, MMM D, YYYY')}
+            {"Date"}: {date.format('ddd, MMM D, YYYY')}
           </Typography>
           <Typography>
-            {t('time')}: {selectedLabel}
+            {"Time"}: {selectedLabel}
           </Typography>
           {showUsageNotes && (
             <>
               <Typography>
-                {t('visits_this_month')} {usage ?? 0}
+                {"Visits this month:"} {usage ?? 0}
               </Typography>
               <TextField
                 fullWidth
                 multiline
                 margin="normal"
-                label={t('client_note_label')}
+                label={"Client note (optional)"}
                 value={note}
                 onChange={e => setNote(e.target.value)}
                 size="medium"
@@ -633,10 +627,10 @@ export default function BookingUI<T = Slot>({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)} size="medium" sx={{ minHeight: 48 }}>
-            {t('cancel')}
+            {"Cancel"}
           </Button>
           <Button onClick={handleBook} variant="contained" disabled={booking} size="medium" sx={{ minHeight: 48 }}>
-            {t('confirm')}
+            {"Confirm"}
           </Button>
         </DialogActions>
       </Dialog>

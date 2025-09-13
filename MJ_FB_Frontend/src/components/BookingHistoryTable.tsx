@@ -3,7 +3,6 @@ import ResponsiveTable, { type Column } from './ResponsiveTable';
 import { formatTime } from '../utils/time';
 import { formatDate, toDate } from '../utils/date';
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 
 export interface BookingHistoryItem {
   id: number;
@@ -43,19 +42,24 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
   renderExtraActions,
   getRowKey,
 }: Props<T>) {
-  const { t } = useTranslation();
-  const theme = useTheme();
+    const theme = useTheme();
   const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const columns: Column<T>[] = [];
+  const statusLabels: Record<string, string> = {
+    approved: 'Approved',
+    cancelled: 'Cancelled',
+    visited: 'Visited',
+    no_show: 'No show',
+  };
 
   if (showRole) {
-    columns.push({ field: 'role_name' as keyof T & string, header: t('role') });
+    columns.push({ field: 'role_name' as keyof T & string, header: "Role" });
   }
 
   columns.push({
     field: 'date',
-    header: t('date'),
+    header: "Date",
     render: b =>
       b.date && !isNaN(toDate(b.date).getTime())
         ? formatDate(b.date, 'MMM D, YYYY')
@@ -64,11 +68,11 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
 
   columns.push({
     field: 'time' as keyof T & string,
-    header: t('time'),
+    header: "Time",
     render: b => {
       const start = b.start_time ?? b.startTime;
       const end = b.end_time ?? b.endTime;
-      const na = t('not_applicable');
+      const na = "N/A";
       const startTime = start ? formatTime(start) : na;
       const endTime = end ? formatTime(end) : na;
       return start && end ? `${startTime} - ${endTime}` : na;
@@ -77,14 +81,14 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
 
   columns.push({
     field: 'status',
-    header: t('status'),
-    render: b => t(b.status),
+    header: "Status",
+    render: b => statusLabels[b.status] ?? b.status,
   } as Column<T>);
 
   if (showReason) {
     columns.push({
       field: 'reason' as keyof T & string,
-      header: t('reason'),
+      header: "Reason",
       render: b => b.reason || '',
     });
   }
@@ -92,7 +96,7 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
   if (showStaffNotes) {
     columns.push({
       field: 'staff_note' as keyof T & string,
-      header: t('staff_note_label'),
+      header: "Staff note",
       render: b =>
         b.staff_note ? (
           <Typography variant="body2">{b.staff_note}</Typography>
@@ -105,7 +109,7 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
   if (onCancel || onReschedule || onCancelSeries || renderExtraActions) {
     columns.push({
       field: 'actions' as keyof T & string,
-      header: t('actions'),
+      header: "Actions",
       render: b => {
         const items: ReactNode[] = [];
         const approved = b.status?.toLowerCase() === 'approved';
@@ -118,7 +122,7 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
               color="primary"
               fullWidth={isSmall}
             >
-              {t('cancel')}
+              {"Cancel"}
             </Button>,
           );
         }
@@ -131,7 +135,7 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
               color="primary"
               fullWidth={isSmall}
             >
-              {t('reschedule')}
+              {"Reschedule"}
             </Button>,
           );
         }
@@ -144,7 +148,7 @@ export default function BookingHistoryTable<T extends BookingHistoryItem>({
               color="primary"
               fullWidth={isSmall}
             >
-              {t('cancel_all_upcoming_short')}
+              {"Cancel all upcoming"}
             </Button>,
           );
         }

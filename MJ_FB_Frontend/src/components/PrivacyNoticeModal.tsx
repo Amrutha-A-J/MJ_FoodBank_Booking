@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Link } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 
 const STORAGE_KEY = 'privacy_consent';
 
 export default function PrivacyNoticeModal() {
   if (process.env.NODE_ENV === 'test') return null;
   const [open, setOpen] = useState(false);
-  const { t } = useTranslation();
-
+  
   useEffect(() => {
     if (process.env.NODE_ENV === 'test') return;
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -46,16 +44,16 @@ export default function PrivacyNoticeModal() {
       }}
       disableEscapeKeyDown
     >
-      <DialogTitle>{t('login_notice_title')}</DialogTitle>
+      <DialogTitle>{"Notice"}</DialogTitle>
       <DialogContent>
         <Typography>
-          {t('privacy_notice.message')}{' '}
-          <Link href="/privacy">{t('privacy_notice.link_label')}</Link>.
+          {"This app uses basic analytics to improve the service. Read our"}{' '}
+          <Link href="/privacy">{"privacy policy"}</Link>.
         </Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleAgree} sx={{ textTransform: 'none' }}>
-          {t('privacy_notice.agree')}
+          {"Agree"}
         </Button>
       </DialogActions>
     </Dialog>

@@ -11,7 +11,6 @@ import {
   Select,
   TextField,
 } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import Page from '../../components/Page';
 import { useTimesheets } from '../../api/timesheets';
 import {
@@ -24,8 +23,17 @@ import { formatLocaleDate } from '../../utils/date';
 import { useState } from 'react';
 
 export default function LeaveManagement() {
-  const { t } = useTranslation();
   const { timesheets } = useTimesheets();
+  const typeLabels: Record<string, string> = {
+    paid: 'Paid',
+    personal: 'Personal',
+    sick: 'Sick',
+  };
+  const statusLabels: Record<string, string> = {
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+  };
   const current =
     timesheets.find(p => !p.approved_at) || timesheets[timesheets.length - 1];
   const leaveMutation = useCreateLeaveRequest(current?.id);
@@ -35,31 +43,30 @@ export default function LeaveManagement() {
   const columns: Column<LeaveRequest>[] = [
     {
       field: 'start_date',
-      header: t('leave.start_date'),
+      header: "Start Date",
       render: (r: LeaveRequest) =>
         formatLocaleDate(r.start_date ?? r.work_date),
     },
     {
       field: 'end_date',
-      header: t('leave.end_date'),
+      header: "End Date",
       render: (r: LeaveRequest) =>
         formatLocaleDate(r.end_date ?? r.work_date),
     },
     {
       field: 'type',
-      header: t('leave.type_label'),
-      render: (r: LeaveRequest) =>
-        r.type ? t(`leave.type.${r.type}`) : '',
+      header: "Type",
+      render: (r: LeaveRequest) => (r.type ? typeLabels[r.type] ?? '' : ''),
     },
     {
       field: 'status',
-      header: t('leave.status_label'),
-      render: (r: LeaveRequest) => t(`leave.status.${r.status}`),
+      header: "Status",
+      render: (r: LeaveRequest) => statusLabels[r.status] ?? r.status,
     },
   ];
 
   return (
-    <Page title={t('leave.title')}>
+    <Page title={"Leave Requests"}>
       {current && (
         <Box sx={{ mt: 2 }}>
           <Button
@@ -68,7 +75,7 @@ export default function LeaveManagement() {
             onClick={() => setOpen(true)}
             sx={{ mb: 3 }}
           >
-            {t('leave.request_vacation')}
+            {"Request Vacation"}
           </Button>
           <Dialog open={open} onClose={() => setOpen(false)}>
             <Box
@@ -90,39 +97,39 @@ export default function LeaveManagement() {
                 );
               }}
             >
-              <DialogTitle>{t('leave.request_vacation')}</DialogTitle>
+              <DialogTitle>{"Request Vacation"}</DialogTitle>
               <DialogContent
                 sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
               >
                 <FormControl>
                   <InputLabel id="leave-type-label">
-                    {t('leave.type_label')}
+                    {"Type"}
                   </InputLabel>
                   <Select
                     labelId="leave-type-label"
                     name="type"
-                    label={t('leave.type_label')}
+                    label={"Type"}
                     defaultValue="paid"
                   >
-                    <MenuItem value="paid">{t('leave.type.paid')}</MenuItem>
+                    <MenuItem value="paid">{"Paid"}</MenuItem>
                     <MenuItem value="personal">
-                      {t('leave.type.personal')}
+                      {"Personal"}
                     </MenuItem>
-                    <MenuItem value="sick">{t('leave.type.sick')}</MenuItem>
+                    <MenuItem value="sick">{"Sick"}</MenuItem>
                   </Select>
                 </FormControl>
                 <TextField
                   name="start"
                   type="date"
                   
-                  label={t('leave.start_date')}
+                  label={"Start Date"}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   name="end"
                   type="date"
                   
-                  label={t('leave.end_date')}
+                  label={"End Date"}
                   InputLabelProps={{ shrink: true }}
                 />
               </DialogContent>
@@ -132,10 +139,10 @@ export default function LeaveManagement() {
                   onClick={() => setOpen(false)}
                   color="inherit"
                 >
-                  {t('cancel')}
+                  {"Cancel"}
                 </Button>
                 <Button type="submit" variant="contained">
-                  {t('submit')}
+                  {"Submit"}
                 </Button>
               </DialogActions>
             </Box>

@@ -32,7 +32,6 @@ import StyledTabs from '../../components/StyledTabs';
 import { toDate } from '../../utils/date';
 import { exportTableToExcel } from '../../utils/exportTableToExcel';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
-import { useTranslation } from 'react-i18next';
 
 export default function Aggregations() {
   const [overallRows, setOverallRows] = useState<WarehouseOverall[]>([]);
@@ -61,8 +60,7 @@ export default function Aggregations() {
   const [donorInsertEmail, setDonorInsertEmail] = useState('');
   const [donorInsertTotal, setDonorInsertTotal] = useState('');
   const [donorInsertLoading, setDonorInsertLoading] = useState(false);
-  const { t } = useTranslation();
-
+  
   useEffect(() => {
     async function loadYears() {
       try {
@@ -221,7 +219,7 @@ export default function Aggregations() {
             setDonorInsertOpen(true);
           }}
         >
-          {t('insert_aggregate')}
+          {"Insert Aggregate"}
         </Button>
       </Stack>
       <TableContainer sx={{ overflow: 'auto', maxHeight: 400 }}>
@@ -319,7 +317,7 @@ export default function Aggregations() {
             setInsertOpen(true);
           }}
         >
-          {t('insert_aggregate')}
+          {"Insert Aggregate"}
         </Button>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>
@@ -373,7 +371,7 @@ export default function Aggregations() {
     <Page title="Warehouse Aggregations">
       <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} />
       <Dialog open={donorInsertOpen} onClose={() => setDonorInsertOpen(false)}>
-        <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+        <DialogTitle>{"Insert Aggregate"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -442,7 +440,7 @@ export default function Aggregations() {
         </DialogActions>
       </Dialog>
       <Dialog open={insertOpen} onClose={() => setInsertOpen(false)}>
-        <DialogTitle>{t('insert_aggregate')}</DialogTitle>
+        <DialogTitle>{"Insert Aggregate"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField

@@ -20,7 +20,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LockIcon from '@mui/icons-material/Lock';
 import Page from '../../components/Page';
 import StyledTabs, { type TabItem } from '../../components/StyledTabs';
-import { useTranslation } from 'react-i18next';
 import { formatLocaleDate } from '../../utils/date';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import ResponsiveTable, { type Column } from '../../components/ResponsiveTable';
@@ -61,8 +60,7 @@ interface DayRow extends Day {
 }
 
 export default function Timesheets() {
-  const { t } = useTranslation();
-  const inAdmin = useMatch('/admin/timesheet') !== null;
+    const inAdmin = useMatch('/admin/timesheet') !== null;
   const [staffInput, setStaffInput] = useState('');
   const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
   const [staff, setStaff] = useState<StaffOption | null>(null);
@@ -196,12 +194,12 @@ export default function Timesheets() {
     const columns: Column<DayRow>[] = [
       {
         field: 'date',
-        header: t('timesheets.date'),
+        header: "Date",
         render: (row: DayRow) => (
           <>
             {formatLocaleDate(row.date)}
             {row.lockedLeave && (
-              <Tooltip title={t('timesheets.lock_leave_tooltip')}>
+              <Tooltip title={"Leave day is locked"}>
                 <LockIcon sx={{ ml: 1, fontSize: 16 }} />
               </Tooltip>
             )}
@@ -210,7 +208,7 @@ export default function Timesheets() {
       },
       {
         field: 'reg',
-        header: t('timesheets.reg'),
+        header: "Reg",
         render: (row: DayRow) => (
           <TextField
             type="number"
@@ -226,7 +224,7 @@ export default function Timesheets() {
       },
       {
         field: 'ot',
-        header: t('timesheets.ot'),
+        header: "OT",
         render: (row: DayRow) => (
           <TextField
             type="number"
@@ -242,7 +240,7 @@ export default function Timesheets() {
       },
       {
         field: 'stat',
-        header: t('timesheets.stat'),
+        header: "Stat",
         render: (row: DayRow) => (
           <TextField
             type="number"
@@ -258,7 +256,7 @@ export default function Timesheets() {
       },
       {
         field: 'sick',
-        header: t('timesheets.sick'),
+        header: "Sick",
         render: (row: DayRow) => (
           <TextField
             type="number"
@@ -274,7 +272,7 @@ export default function Timesheets() {
       },
       {
         field: 'vac',
-        header: t('timesheets.vac'),
+        header: "Vac",
         render: (row: DayRow) => (
           <TextField
             type="number"
@@ -290,7 +288,7 @@ export default function Timesheets() {
       },
       {
         field: 'note',
-        header: t('timesheets.note'),
+        header: "Note",
         render: (row: DayRow) => (
           <TextField
             value={row.note}
@@ -304,7 +302,7 @@ export default function Timesheets() {
       },
       {
         field: 'paid',
-        header: t('timesheets.paid_total'),
+        header: "Paid Total",
         render: (row: DayRow) => (
           <Typography sx={{ color: row.paid > 8 ? 'error.main' : undefined }}>
             {row.paid}
@@ -319,7 +317,7 @@ export default function Timesheets() {
         <Table size="small" >
           <TableFooter>
             <TableRow>
-              <TableCell>{t('timesheets.summary.totals')}</TableCell>
+              <TableCell>{"Totals"}</TableCell>
               <TableCell>{totals.reg}</TableCell>
               <TableCell>{totals.ot}</TableCell>
               <TableCell>{totals.stat}</TableCell>
@@ -331,9 +329,9 @@ export default function Timesheets() {
             <TableRow>
               <TableCell colSpan={8}>
                 <Typography variant="body2">
-                  {t('timesheets.summary.expected')}: {totals.expected} •{' '}
-                  {t('timesheets.summary.shortfall')}: {shortfall} •{' '}
-                  {t('timesheets.summary.ot_bank_remaining')}: {otBankRemaining}
+                  {"Expected Hours"}: {totals.expected} •{' '}
+                  {"Shortfall"}: {shortfall} •{' '}
+                  {"OT Bank Remaining"}: {otBankRemaining}
                 </Typography>
               </TableCell>
             </TableRow>
@@ -373,7 +371,7 @@ export default function Timesheets() {
 
   return (
     <ErrorBoundary>
-      <Page title={t('timesheets.title')}>
+      <Page title={"Timesheets"}>
       {inAdmin && (
         <>
           <Autocomplete
@@ -383,13 +381,13 @@ export default function Timesheets() {
             onChange={(_, val) => setStaff(val)}
             onInputChange={(_, val) => setStaffInput(val)}
             renderInput={params => (
-              <TextField {...params} label={t('timesheets.staff')} margin="normal" />
+              <TextField {...params} label={"Staff"} margin="normal" />
             )}
             sx={{ mb: 2, maxWidth: 400 }}
           />
           <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
             <TextField
-              label={t('timesheets.year')}
+              label={"Year"}
               type="number"
               value={year}
               onChange={e => setYear(Number(e.target.value))}
@@ -397,7 +395,7 @@ export default function Timesheets() {
             />
             <TextField
               select
-              label={t('timesheets.month')}
+              label={"Month"}
               value={month}
               onChange={e => setMonth(Number(e.target.value))}
               sx={{ maxWidth: 160 }}
@@ -437,7 +435,7 @@ export default function Timesheets() {
                           disabled={submitMutation.isPending}
                           onClick={handleSubmitTimesheet}
                         >
-                          {t('timesheets.submit')}
+                          {"Submit"}
                         </Button>
                       )}
                       {current?.submitted_at && !current?.approved_at && (
@@ -446,13 +444,13 @@ export default function Timesheets() {
                             variant="contained"
                             onClick={() => rejectMutation.mutate(current.id)}
                           >
-                            {t('timesheets.reject')}
+                            {"Reject"}
                           </Button>
                           <Button
                             variant="contained"
                             onClick={() => processMutation.mutate(current.id)}
                           >
-                            {t('timesheets.process')}
+                            {"Process"}
                           </Button>
                         </>
                       )}
@@ -466,7 +464,7 @@ export default function Timesheets() {
           <StyledTabs tabs={tabs} value={tab} onChange={(_, v) => setTab(v)} />
         )
       ) : (
-        <Typography sx={{ mt: 2 }}>{t('timesheets.select_staff')}</Typography>
+        <Typography sx={{ mt: 2 }}>{"Select Staff"}</Typography>
       )}
       {current && !inAdmin && (
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
@@ -476,7 +474,7 @@ export default function Timesheets() {
               disabled={submitMutation.isPending}
               onClick={handleSubmitTimesheet}
             >
-              {t('timesheets.submit')}
+              {"Submit"}
             </Button>
           )}
         </Box>

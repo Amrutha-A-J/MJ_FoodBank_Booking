@@ -39,10 +39,6 @@ jest.mock('../hooks/useAuth', () => ({
   useAuth: () => ({ userRole: 'shopper' }),
 }));
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (s: string) => s }),
-}));
-
 describe('Profile bottom nav', () => {
   it('shows schedule option for volunteers', async () => {
     render(

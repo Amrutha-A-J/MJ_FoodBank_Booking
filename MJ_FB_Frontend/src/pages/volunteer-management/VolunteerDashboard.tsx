@@ -21,7 +21,6 @@ import {
 import Announcement from '@mui/icons-material/Announcement';
 import Add from '@mui/icons-material/Add';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import {
   getMyVolunteerBookings,
   getVolunteerRolesForVolunteer,
@@ -87,8 +86,7 @@ export default function VolunteerDashboard() {
   const stopLoading = () => setLoadingCount(c => Math.max(c - 1, 0));
   const loading = loadingCount > 0;
   const navigate = useNavigate();
-  const { t } = useTranslation();
-
+  
   useEffect(() => {
     startLoading();
     getMyVolunteerBookings()
@@ -331,8 +329,8 @@ export default function VolunteerDashboard() {
     <Page title="Volunteer Dashboard" sx={{ pb: 7 }}>
       <OnboardingModal
         storageKey="volunteerOnboarding"
-        title={t('onboarding.volunteer.title')}
-        body={t('onboarding.volunteer.body')}
+        title={"Welcome"}
+        body={"Tap Schedule to sign up for shifts. Install the app for faster access."}
       />
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -462,7 +460,7 @@ export default function VolunteerDashboard() {
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Stack spacing={2}>
-            <SectionCard title={t('news_and_events')} icon={<Announcement color="primary" />}>
+            <SectionCard title={"News & Events"} icon={<Announcement color="primary" />}>
               <EventList events={[...events.today, ...events.upcoming]} limit={5} />
             </SectionCard>
 

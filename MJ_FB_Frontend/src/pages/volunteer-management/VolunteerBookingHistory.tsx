@@ -12,7 +12,6 @@ import DialogCloseButton from '../../components/DialogCloseButton';
 import RescheduleDialog from '../../components/RescheduleDialog';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import BookingHistoryTable from '../../components/BookingHistoryTable';
-import { useTranslation } from 'react-i18next';
 import {
   Button,
   Dialog,
@@ -34,8 +33,7 @@ export default function VolunteerBookingHistory() {
     useState<VolunteerBooking | null>(null);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<AlertColor>('success');
-  const { t } = useTranslation();
-
+  
   const loadHistory = useCallback(() => {
     getMyVolunteerBookings()
       .then(setHistory)
@@ -64,11 +62,11 @@ export default function VolunteerBookingHistory() {
     try {
       await cancelVolunteerBooking(cancelBooking.id);
       setSeverity('success');
-      setMessage(t('booking_cancelled'));
+      setMessage("Booking cancelled");
       loadHistory();
     } catch {
       setSeverity('error');
-      setMessage(t('cancel_booking_failed'));
+      setMessage("Failed to cancel booking");
     } finally {
       setCancelBooking(null);
     }
@@ -79,11 +77,11 @@ export default function VolunteerBookingHistory() {
     try {
       await cancelRecurringVolunteerBooking(cancelSeriesId);
       setSeverity('success');
-      setMessage(t('series_cancelled'));
+      setMessage("Series cancelled");
       loadHistory();
     } catch {
       setSeverity('error');
-      setMessage(t('cancel_series_failed'));
+      setMessage("Failed to cancel series");
     } finally {
       setCancelSeriesId(null);
     }
@@ -125,9 +123,9 @@ export default function VolunteerBookingHistory() {
   }
 
   return (
-    <Page title={t('volunteer_booking_history')}>
+    <Page title={"Booking History"}>
       {rows.length === 0 ? (
-        <Typography align="center">{t('no_bookings')}</Typography>
+        <Typography align="center">{"No bookings."}</Typography>
       ) : (
         <BookingHistoryTable
           rows={rows}
@@ -141,26 +139,26 @@ export default function VolunteerBookingHistory() {
 
       <Dialog open={!!cancelBooking} onClose={() => setCancelBooking(null)}>
         <DialogCloseButton onClose={() => setCancelBooking(null)} />
-        <DialogTitle>{t('cancel_booking')}</DialogTitle>
+        <DialogTitle>{"Cancel booking"}</DialogTitle>
         <DialogContent dividers>
-          {t('cancel_booking_for', { role: cancelBooking?.role_name, date: cancelBooking?.date })}
+          {`Cancel booking for ${cancelBooking?.role_name} on ${cancelBooking?.date}?`}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancel} variant="outlined" color="primary">
-            {t('confirm')}
+            {"Confirm"}
           </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={cancelSeriesId != null} onClose={() => setCancelSeriesId(null)}>
         <DialogCloseButton onClose={() => setCancelSeriesId(null)} />
-        <DialogTitle>{t('cancel_series')}</DialogTitle>
+        <DialogTitle>{"Cancel Series"}</DialogTitle>
         <DialogContent dividers>
-          {t('cancel_all_upcoming')}
+          {"Cancel all upcoming bookings in this series?"}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelSeries} variant="outlined" color="primary">
-            {t('confirm')}
+            {"Confirm"}
           </Button>
         </DialogActions>
       </Dialog>

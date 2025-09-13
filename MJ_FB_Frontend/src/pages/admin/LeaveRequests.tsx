@@ -12,14 +12,17 @@ import {
   useRejectLeaveRequest,
 } from '../../api/leaveRequests';
 import { formatLocaleDate } from '../../utils/date';
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import type { LeaveRequest } from '../../api/leaveRequests';
 
 export default function AdminLeaveRequests() {
-  const { t } = useTranslation();
   const { requests: fetched } = useAllLeaveRequests();
+  const typeLabels: Record<string, string> = {
+    paid: 'Paid',
+    personal: 'Personal',
+    sick: 'Sick',
+  };
   const [requests, setRequests] = useState(fetched);
   const approve = useApproveLeaveRequest();
   const reject = useRejectLeaveRequest();
@@ -31,7 +34,7 @@ export default function AdminLeaveRequests() {
     setRequests(prev => prev.filter(r => r.id !== id));
 
   return (
-    <Page title={t('leave.title')}>
+    <Page title={"Leave Requests"}>
       {requests.map(r => {
         const days =
           Math.round(
@@ -55,7 +58,7 @@ export default function AdminLeaveRequests() {
                   {formatLocaleDate(r.start_date!)} – {formatLocaleDate(r.end_date!)} ({
                     days
                   }{' '}
-                  days) • {r.type ? t(`leave.type.${r.type}`) : ''}
+                  days) • {r.type ? typeLabels[r.type] ?? '' : ''}
                 </Typography>
               </Box>
               <Box
@@ -77,7 +80,7 @@ export default function AdminLeaveRequests() {
                     )
                   }
                 >
-                  {t('timesheets.approve_leave')}
+                  {"Approve"}
                 </Button>
                 <Button
                   variant="contained"
@@ -86,7 +89,7 @@ export default function AdminLeaveRequests() {
                   sx={{ width: { xs: '100%', sm: 'auto' } }}
                   onClick={() => setRejecting(r)}
                 >
-                  {t('timesheets.reject_leave')}
+                  {"Reject"}
                 </Button>
               </Box>
             </CardContent>

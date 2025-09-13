@@ -3,31 +3,29 @@ import Page from '../../components/Page';
 import ClientBottomNav from '../../components/ClientBottomNav';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import { useAuth } from '../../hooks/useAuth';
-import { useTranslation } from 'react-i18next';
 
 export default function PrivacyPolicy() {
   const { role } = useAuth();
-  const { t } = useTranslation();
-  return (
-    <Page title={t('privacy_policy')}>
+    return (
+    <Page title={"Privacy Policy"}>
       <Stack spacing={2}>
-        <Typography>{t('privacy_policy_page.intro')}</Typography>
-        <Typography>{t('privacy_policy_page.data_collected')}</Typography>
-        <Typography>{t('privacy_policy_page.pipeda')}</Typography>
-        <Typography>{t('privacy_policy_page.complaint_right')}</Typography>
+        <Typography>{"Moose Jaw Food Bank collects personal information only to manage accounts and appointments."}</Typography>
+        <Typography>{"We collect your name, contact information, family size, appointment and volunteer history, and any notes you provide. This information lets us manage bookings, coordinate services, communicate with you, and meet reporting requirements. Basic analytics help us improve the service."}</Typography>
+        <Typography>{"We are committed to protecting your personal information in accordance with the Personal Information Protection and Electronic Documents Act (PIPEDA)."}</Typography>
+        <Typography>{"If you believe that your personal information has been collected, used, or disclosed in a way that is inconsistent with this Privacy Policy or with PIPEDA requirements, you have the right to file a complaint."}</Typography>
         <Typography variant="h6">
-          {t('privacy_policy_page.complaint_how')}
+          {"How to Submit a Complaint:"}
         </Typography>
-        <Typography>{t('privacy_policy_page.complaint_contact')}</Typography>
-        <Typography>{t('privacy_policy_page.complaint_ack')}</Typography>
-        <Typography>{t('privacy_policy_page.complaint_measures')}</Typography>
+        <Typography>{"You may contact our Privacy Officer in writing with details of your concern."}</Typography>
+        <Typography>{"We will acknowledge receipt of your complaint within a reasonable timeframe and investigate promptly."}</Typography>
+        <Typography>{"If the complaint is found to be justified, we will take appropriate corrective measures."}</Typography>
         <Typography>
-          {t('privacy_policy_page.contact_heading')}
+          {"Contact Information:"}
           <br />
-          {t('privacy_policy_page.contact_name')}
+          {"Amrutha Adiyath"}
           <br />
-          <Link href={`mailto:${t('privacy_policy_page.contact_email')}`}>
-            {t('privacy_policy_page.contact_email')}
+          <Link href={`mailto:${"amrutha.laxman@mjfoodbank.org"}`}>
+            {"amrutha.laxman@mjfoodbank.org"}
           </Link>
         </Typography>
       </Stack>

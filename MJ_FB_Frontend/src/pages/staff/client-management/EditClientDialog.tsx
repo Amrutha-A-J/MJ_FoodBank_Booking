@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogTitle } from '@mui/material';
 import type { AlertColor } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import DialogCloseButton from '../../../components/DialogCloseButton';
 import { getUserByClientId, updateUserInfo, requestPasswordReset } from '../../../api/users';
 import getApiErrorMessage from '../../../utils/getApiErrorMessage';
@@ -35,7 +34,7 @@ export async function handleSave(
       ...(data.onlineAccess && data.password ? { password: data.password } : {}),
     });
     onClientUpdated(`${data.firstName} ${data.lastName}`);
-    onUpdated(t('client_updated'), 'success');
+    onUpdated("Client updated", 'success');
     onClose();
     return true;
   } catch (err: unknown) {
@@ -72,8 +71,7 @@ export default function EditClientDialog({
   onUpdated,
   onClientUpdated,
 }: Props) {
-  const { t } = useTranslation();
-  const [form, setForm] = useState<EditClientFormData>({
+    const [form, setForm] = useState<EditClientFormData>({
     firstName: '',
     lastName: '',
     email: '',

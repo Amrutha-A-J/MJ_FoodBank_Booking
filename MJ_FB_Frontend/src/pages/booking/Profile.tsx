@@ -25,7 +25,6 @@ import { getVolunteerProfile } from '../../api/volunteers';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import PageContainer from '../../components/layout/PageContainer';
 import PageCard from '../../components/layout/PageCard';
-import { useTranslation } from 'react-i18next';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import ClientBottomNav from '../../components/ClientBottomNav';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
@@ -46,10 +45,9 @@ export default function Profile({ role }: { role: Role }) {
     message: string;
     severity: 'success' | 'error';
   }>({ open: false, message: '', severity: 'success' });
-  const { t } = useTranslation();
-
+  
   useEffect(() => {
-    document.title = t('profile_page.title');
+    document.title = "MJ Foodbank - User Profile";
   }, [t]);
 
   useEffect(() => {
@@ -86,7 +84,7 @@ export default function Profile({ role }: { role: Role }) {
           ? { clientId: String(profile.clientId) }
           : { email: profile.email ?? '' };
       await requestPasswordReset(body);
-      setToast({ open: true, message: t('reset_link_sent'), severity: 'success' });
+      setToast({ open: true, message: "If the account exists, a reset link has been sent.", severity: 'success' });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setToast({ open: true, message: msg, severity: 'error' });
@@ -99,7 +97,7 @@ export default function Profile({ role }: { role: Role }) {
     if (!profile) return;
     if (editing) {
       if (profile.role !== 'agency' && phone && phoneError) {
-        setToast({ open: true, message: t('profile_page.phone_invalid'), severity: 'error' });
+        setToast({ open: true, message: "Please enter a valid phone number.", severity: 'error' });
         return;
       }
       setSaving(true);
@@ -108,7 +106,7 @@ export default function Profile({ role }: { role: Role }) {
         setProfile(updated);
         setEmail(updated.email ?? '');
         setPhone(updated.phone ?? '');
-        setToast({ open: true, message: t('profile_page.profile_updated'), severity: 'success' });
+        setToast({ open: true, message: "Profile updated.", severity: 'success' });
         setEditing(false);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -125,7 +123,7 @@ export default function Profile({ role }: { role: Role }) {
     try {
       const updated = await updateUserPreferences(prefs);
       setPrefs(updated);
-      setToast({ open: true, message: t('profile_page.preferences_saved'), severity: 'success' });
+      setToast({ open: true, message: "Preferences saved.", severity: 'success' });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setToast({ open: true, message: msg, severity: 'error' });
@@ -153,40 +151,40 @@ export default function Profile({ role }: { role: Role }) {
             </Avatar>
             <Stack>
               <Typography variant="h4" fontWeight={700}>
-                {t('profile_page.user_profile')}
+                {"User Profile"}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {t('profile_page.breadcrumb')}
+                {"Home / Profile"}
               </Typography>
             </Stack>
           </Stack>
 
           {/* Profile info */}
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          {!profile && !error && <Typography>{t('profile_page.loading')}</Typography>}
+          {!profile && !error && <Typography>{"Loading..."}</Typography>}
           {profile && (
             <Stack spacing={1}>
               <Typography>
-                <strong>{t('profile_page.name')}</strong> {profile.firstName} {profile.lastName}
+                <strong>{"Name:"}</strong> {profile.firstName} {profile.lastName}
               </Typography>
               {profile.clientId !== undefined && (
                 <Typography>
-                  <strong>{t('profile_page.client_id')}</strong> {profile.clientId}
+                  <strong>{"Client ID:"}</strong> {profile.clientId}
                 </Typography>
               )}
               {profile.roles && profile.roles.length > 0 && (
                 <Typography>
-                  <strong>{t('profile_page.roles')}</strong> {profile.roles.join(', ')}
+                  <strong>{"Roles:"}</strong> {profile.roles.join(', ')}
                 </Typography>
               )}
               {profile.trainedAreas && profile.trainedAreas.length > 0 && (
                 <Typography>
-                  <strong>{t('profile_page.trained_areas')}</strong> {profile.trainedAreas.join(', ')}
+                  <strong>{"Trained Areas:"}</strong> {profile.trainedAreas.join(', ')}
                 </Typography>
               )}
               <Divider sx={{ my: 1 }} />
               <TextField
-                label={t('email')}
+                label={"Email"}
                 type="email"
                 
                 value={email}
@@ -195,7 +193,7 @@ export default function Profile({ role }: { role: Role }) {
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
-                label={profile.role === 'agency' ? t('profile_page.contact_info') : t('profile_page.phone')}
+                label={profile.role === 'agency' ? "Contact Info" : "Phone"}
                 type={profile.role === 'agency' ? 'text' : 'tel'}
                 
                 value={phone}
@@ -204,7 +202,7 @@ export default function Profile({ role }: { role: Role }) {
                   setPhone(val);
                   if (profile.role !== 'agency') {
                     if (val && !phoneRegex.test(val)) {
-                      setPhoneError(t('profile_page.phone_chars'));
+                      setPhoneError("Use only numbers, spaces, or dashes.");
                     } else {
                       setPhoneError('');
                     }
@@ -216,12 +214,12 @@ export default function Profile({ role }: { role: Role }) {
                 helperText={
                   profile.role === 'agency'
                     ? undefined
-                    : phoneError || t('profile_page.phone_hint')
+                    : phoneError || "Format: 123-456-7890"
                 }
               />
               {profile.bookingsThisMonth !== undefined && (
                 <Typography>
-                  <strong>{t('visits_this_month')}</strong> {profile.bookingsThisMonth}
+                  <strong>{"Visits this month:"}</strong> {profile.bookingsThisMonth}
                 </Typography>
               )}
             </Stack>
@@ -234,13 +232,13 @@ export default function Profile({ role }: { role: Role }) {
             disabled={saving || !profile}
             onClick={handleEdit}
           >
-            {editing ? t('profile_page.save') : t('profile_page.edit_profile')}
+            {editing ? "Save" : "Edit Profile"}
           </Button>
 
           {(role === 'volunteer' || profile?.role === 'shopper' || profile?.role === 'delivery') && (
             <>
               <Divider sx={{ my: 1 }} />
-              <Typography variant="h6">{t('profile_page.notifications')}</Typography>
+              <Typography variant="h6">{"Notifications"}</Typography>
               <FormControlLabel
                 control={
                   <Switch
@@ -248,7 +246,7 @@ export default function Profile({ role }: { role: Role }) {
                     onChange={e => setPrefs(p => ({ ...p, emailReminders: e.target.checked }))}
                   />
                 }
-                label={t('profile_page.email_reminders')}
+                label={"Email reminders"}
               />
               <Button
                 variant="outlined"
@@ -256,7 +254,7 @@ export default function Profile({ role }: { role: Role }) {
                 disabled={prefsSaving}
                 onClick={handleSavePreferences}
               >
-                {t('profile_page.save')}
+                {"Save"}
               </Button>
             </>
           )}
@@ -266,7 +264,7 @@ export default function Profile({ role }: { role: Role }) {
           <Stack spacing={2}>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Lock fontSize="small" />
-              <Typography variant="h6">{t('reset_password')}</Typography>
+              <Typography variant="h6">{"Reset Password"}</Typography>
             </Stack>
 
             <Button
@@ -278,7 +276,7 @@ export default function Profile({ role }: { role: Role }) {
               startIcon={submitting ? <CircularProgress size={20} /> : null}
               onClick={handleReset}
             >
-              {t('reset_password')}
+              {"Reset Password"}
             </Button>
           </Stack>
         </Stack>

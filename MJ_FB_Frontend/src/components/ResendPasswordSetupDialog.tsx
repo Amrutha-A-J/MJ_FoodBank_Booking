@@ -4,7 +4,6 @@ import { resendPasswordSetup } from '../api/users';
 import FeedbackSnackbar from './FeedbackSnackbar';
 import FormCard from './FormCard';
 import DialogCloseButton from './DialogCloseButton';
-import { useTranslation } from 'react-i18next';
 
 export default function ResendPasswordSetupDialog({
   open,
@@ -16,8 +15,7 @@ export default function ResendPasswordSetupDialog({
   const [identifier, setIdentifier] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const { t } = useTranslation();
-
+  
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -26,7 +24,7 @@ export default function ResendPasswordSetupDialog({
         ? { clientId: value }
         : { email: value };
       await resendPasswordSetup(body);
-      setMessage(t('setup_link_sent'));
+      setMessage("If the account exists, a setup link has been sent.");
       setIdentifier('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
@@ -38,22 +36,22 @@ export default function ResendPasswordSetupDialog({
       <Dialog open={open} onClose={onClose} aria-labelledby="resend-setup-dialog-title">
         <DialogCloseButton onClose={onClose} />
         <DialogTitle id="resend-setup-dialog-title" sx={{ display: 'none' }}>
-          {t('resend_password_setup_link')}
+          {"Resend Password Setup Link"}
         </DialogTitle>
         <DialogContent sx={{ p: 0 }}>
           <FormCard
-            title={t('resend_password_setup_link')}
+            title={"Resend Password Setup Link"}
             onSubmit={handleSubmit}
-            actions={<Button type="submit" variant="contained">{t('submit')}</Button>}
+            actions={<Button type="submit" variant="contained">{"Submit"}</Button>}
             boxProps={{ minHeight: 'auto', p: 0 }}
           >
             <Typography variant="body2">
-              {t('setup_link_explanation')}
+              {"We couldn't find a password for this account. You may not have completed setup or the link expired. Enter your email or client ID to receive a new setup link."}
             </Typography>
             <TextField
               autoFocus
               margin="dense"
-              label={t('email_or_client_id')}
+              label={"Email or Client ID"}
               name="email"
               autoComplete="email"
               fullWidth
