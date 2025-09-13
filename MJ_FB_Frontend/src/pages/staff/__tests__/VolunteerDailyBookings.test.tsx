@@ -97,10 +97,10 @@ describe('VolunteerDailyBookings', () => {
     );
 
     const user = userEvent.setup();
-    const select = await screen.findByLabelText('Status');
-    await user.click(select);
-    const option = await screen.findByRole('option', { name: 'Completed' });
-    await user.click(option);
+    await user.click(await screen.findByLabelText('Status'));
+    await user.click(
+      await screen.findByRole('option', { name: 'Completed' }),
+    );
 
     await waitFor(() =>
       expect(updateVolunteerBookingStatus).toHaveBeenCalledWith(1, 'completed'),
