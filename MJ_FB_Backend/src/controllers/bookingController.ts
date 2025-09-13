@@ -91,21 +91,31 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
 
     const client = await pool.connect();
     let token: string | undefined;
+    let transactionActive = false;
     try {
       await client.query('BEGIN');
+      transactionActive = true;
       await lockClientRow(userId, client);
-      const monthlyUsage = await countVisitsAndBookingsForMonth(userId, date, client, true);
+      const monthlyUsage = await countVisitsAndBookingsForMonth(
+        userId,
+        date,
+        client,
+        true,
+      );
       if (monthlyUsage === false) {
         await client.query('ROLLBACK');
+        transactionActive = false;
         return res.status(400).json({ message: 'Please choose a valid date' });
       }
       if (monthlyUsage >= 2) {
         await client.query('ROLLBACK');
+        transactionActive = false;
         return res.status(400).json({ message: LIMIT_MESSAGE });
       }
       const holiday = await isHoliday(date, client);
       if (holiday) {
         await client.query('ROLLBACK');
+        transactionActive = false;
         return res
           .status(400)
           .json({ message: 'Pantry is closed on the selected date.' });
@@ -125,8 +135,11 @@ export async function createBooking(req: Request, res: Response, next: NextFunct
         client,
       );
       await client.query('COMMIT');
+      transactionActive = false;
     } catch (err) {
-      await client.query('ROLLBACK');
+      if (transactionActive) {
+        await client.query('ROLLBACK');
+      }
       if (err instanceof SlotCapacityError) {
         return res.status(err.status).json({ message: err.message });
       }

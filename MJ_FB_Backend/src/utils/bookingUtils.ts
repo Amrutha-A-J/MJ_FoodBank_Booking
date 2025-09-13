@@ -64,27 +64,32 @@ export async function countVisitsAndBookingsForMonth(
   client: Queryable = pool,
   lock = false,
 ): Promise<number | false> {
+  let start: string;
+  let end: string;
   try {
     const formatted = formatReginaDate(targetDate);
     const range = getMonthRange(formatted);
     if (!range) return false;
-    const { start, end } = range;
+    ({ start, end } = range);
+  } catch {
+    return false;
+  }
 
-    if (lock) {
-      await client.query(
-        `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
-        [userId, start, end],
-      );
-      await client.query(
-        `SELECT cv.id FROM client_visits cv
+  if (lock) {
+    await client.query(
+      `SELECT id FROM bookings WHERE user_id=$1 AND date BETWEEN $2 AND $3 FOR UPDATE`,
+      [userId, start, end],
+    );
+    await client.query(
+      `SELECT cv.id FROM client_visits cv
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3 FOR UPDATE`,
-        [userId, start, end],
-      );
-    }
+      [userId, start, end],
+    );
+  }
 
-    const res = await client.query(
-      `SELECT (
+  const res = await client.query(
+    `SELECT (
         SELECT COUNT(*) FROM bookings
         WHERE user_id=$1 AND status='approved' AND date BETWEEN $2 AND $3 AND date >= CURRENT_DATE
       ) + (
@@ -92,12 +97,9 @@ export async function countVisitsAndBookingsForMonth(
         INNER JOIN clients c ON cv.client_id = c.client_id
         WHERE c.client_id=$1 AND cv.date BETWEEN $2 AND $3
       ) AS total`,
-      [userId, start, end],
-    );
-    return Number(res.rows[0].total);
-  } catch {
-    return false;
-  }
+    [userId, start, end],
+  );
+  return Number(res.rows[0].total);
 }
 
 export async function findUpcomingBooking(

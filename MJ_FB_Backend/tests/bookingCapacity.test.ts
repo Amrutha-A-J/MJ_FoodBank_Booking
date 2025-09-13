@@ -4,6 +4,7 @@ import bookingsRouter from '../src/routes/bookings';
 import pool from '../src/db';
 import jwt from 'jsonwebtoken';
 import * as bookingRepository from '../src/models/bookingRepository';
+import * as bookingUtils from '../src/utils/bookingUtils';
 
 jest.mock('../src/models/bookingRepository', () => ({
   __esModule: true,
@@ -33,8 +34,19 @@ beforeAll(() => {
   process.env.JWT_REFRESH_SECRET = 'testrefreshsecret';
 });
 
+let mockClient: { query: jest.Mock; release: jest.Mock };
+
 beforeEach(() => {
   jest.clearAllMocks();
+  mockClient = {
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    release: jest.fn(),
+  };
+  (pool.connect as jest.Mock).mockResolvedValue(mockClient);
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
+  (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockResolvedValue(0);
+  (bookingUtils.findUpcomingBooking as jest.Mock).mockResolvedValue(null);
+  (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(true);
   (pool.connect as jest.Mock).mockResolvedValue({
     query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     release: jest.fn(),
@@ -58,10 +70,45 @@ describe('POST /bookings capacity check', () => {
       .post('/bookings')
       .set('Authorization', 'Bearer token')
       .send({ slotId: 1, date: today });
-
     expect(res.status).toBe(409);
     expect(res.body).toHaveProperty('message', 'Slot full on selected date');
     expect(bookingRepository.insertBooking).not.toHaveBeenCalled();
+  });
+
+  it('returns a controlled error when visit count query fails', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'shopper',
+      type: 'user',
+    });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          client_id: 1,
+          first_name: 'Test',
+          last_name: 'User',
+          email: 'test@example.com',
+          role: 'shopper',
+          phone: '123',
+        },
+      ],
+    });
+    (bookingUtils.countVisitsAndBookingsForMonth as jest.Mock).mockRejectedValueOnce(
+      new Error('db fail'),
+    );
+
+    const today = new Date().toLocaleDateString('en-CA');
+    const res = await request(app)
+      .post('/bookings')
+      .set('Authorization', 'Bearer token')
+      .send({ slotId: 1, date: today });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toHaveProperty('message', 'db fail');
+    expect(res.body.message).not.toContain('current transaction is aborted');
+    expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+    expect(bookingRepository.checkSlotCapacity).not.toHaveBeenCalled();
   });
 });
 
