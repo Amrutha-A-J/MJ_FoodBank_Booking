@@ -463,6 +463,7 @@ export default function BookingUI<T = Slot>({
     const selected = selectedSlotId === slot.id;
     return (
       <SlotRow
+        key={slot.id}
         slot={slot}
         selected={selected}
         onSelect={() => setSelectedSlotId(slot.id)}
@@ -604,7 +605,7 @@ export default function BookingUI<T = Slot>({
           {showUsageNotes && (
             <>
               <Typography>
-                {`Visits this month ${usage ?? 0}`}
+                {`Visits this month: ${usage ?? 0}`}
               </Typography>
               <TextField
                 fullWidth
