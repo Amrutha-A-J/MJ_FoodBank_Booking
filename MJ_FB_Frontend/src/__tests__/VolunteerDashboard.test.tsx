@@ -70,6 +70,7 @@ describe('VolunteerDashboard', () => {
       monthLbs: 0,
       monthFamilies: 0,
     });
+    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     localStorage.clear();
     localStorage.setItem('volunteerOnboarding', 'true');
   });
@@ -80,7 +81,6 @@ describe('VolunteerDashboard', () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -105,7 +105,6 @@ describe('VolunteerDashboard', () => {
       upcoming: [],
       past: [],
     });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -117,7 +116,6 @@ describe('VolunteerDashboard', () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockRejectedValue(new Error('fail'));
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -159,7 +157,6 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -222,7 +219,6 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -268,7 +264,6 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -316,7 +311,6 @@ describe('VolunteerDashboard', () => {
     (requestVolunteerBooking as jest.Mock).mockRejectedValue(
       new Error('Already booked for this shift'),
     );
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -354,7 +348,6 @@ describe('VolunteerDashboard', () => {
     ]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -412,7 +405,6 @@ describe('VolunteerDashboard', () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 3, percentile: 75 });
 
     await renderDashboard();
@@ -481,7 +473,6 @@ describe('VolunteerDashboard', () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
     (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
       totalHours: 10,
       monthHours: 4,
@@ -552,7 +543,6 @@ describe('VolunteerDashboard', () => {
       },
     ]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
@@ -601,7 +591,6 @@ describe('VolunteerDashboard', () => {
     });
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
-    (getVolunteerStats as jest.Mock).mockResolvedValue(makeStats());
 
     await renderDashboard();
 
