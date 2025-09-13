@@ -22,7 +22,6 @@ import EntitySearch from '../../components/EntitySearch';
 import { toDate, formatReginaDate, toDayjs } from '../../utils/date';
 import { formatTime } from '../../utils/time';
 import Page from '../../components/Page';
-import { useTranslation } from 'react-i18next';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import BookingHistoryTable from '../../components/BookingHistoryTable';
 import type { Booking } from '../../types';
@@ -48,8 +47,6 @@ export default function ClientHistory() {
   const [snackbar, setSnackbar] = useState<
     { message: string; severity: 'success' | 'error' } | null
   >(null);
-  const { t } = useTranslation();
-
   const pageSize = 10;
 
   useEffect(() => {
@@ -126,12 +123,12 @@ export default function ClientHistory() {
     if (!cancelBookingItem) return;
     try {
       await cancelBooking(String(cancelBookingItem.id));
-      setSnackbar({ message: t('booking_cancelled'), severity: 'success' });
+      setSnackbar({ message: 'Booking cancelled', severity: 'success' });
       loadBookings();
     } catch (err: unknown) {
       const e = err as ApiError | undefined;
       setSnackbar({
-        message: e?.message || t('cancel_booking_failed'),
+        message: e?.message || 'Failed to cancel booking',
         severity: 'error',
       });
     }
@@ -186,33 +183,33 @@ export default function ClientHistory() {
   }
 
   return (
-    <Page title={t('client_history')}>
+    <Page title="Client History">
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
         <EntitySearch
           type="user"
-          placeholder={t('search_by_name_or_client_id')}
+          placeholder="Search by name or client ID"
           onSelect={u => setSelected(u as User)}
           searchFn={searchAgencyClients}
         />
         {selected && (
           <div>
-            {selected.name && <h3>{t('history_for', { name: selected.name })}</h3>}
+            {selected.name && <h3>{`History for ${selected.name}`}</h3>}
             <FormControl sx={{ minWidth: 160, mb: 1 }}>
-              <InputLabel id="filter-label">{t('filter')}</InputLabel>
+              <InputLabel id="filter-label">Filter</InputLabel>
               <Select
                 labelId="filter-label"
                 value={filter}
-                label={t('filter')}
+                label="Filter"
                 onChange={e => setFilter(e.target.value)}
               >
-                <MenuItem value="all">{t('all')}</MenuItem>
-                <MenuItem value="approved">{t('approved')}</MenuItem>
-                <MenuItem value="past">{t('past')}</MenuItem>
+                <MenuItem value="all">All</MenuItem>
+                <MenuItem value="approved">Approved</MenuItem>
+                <MenuItem value="past">Past</MenuItem>
               </Select>
             </FormControl>
             {paginated.length === 0 ? (
-              <Typography align="center">{t('no_bookings')}</Typography>
+              <Typography align="center">No bookings</Typography>
             ) : (
               <TableContainer sx={{ overflowX: 'auto' }}>
                 <BookingHistoryTable
@@ -241,10 +238,10 @@ export default function ClientHistory() {
                   variant="outlined"
                   color="primary"
                 >
-                  {t('previous')}
+                  Previous
                 </Button>
                 <span>
-                  {t('page_of_total', { page, total: totalPages })}
+                  {`Page ${page} of ${totalPages}`}
                 </span>
                 <Button
                   disabled={page === totalPages}
@@ -252,7 +249,7 @@ export default function ClientHistory() {
                   variant="outlined"
                   color="primary"
                 >
-                  {t('next')}
+                  Next
                 </Button>
               </Box>
             )}
@@ -270,7 +267,7 @@ export default function ClientHistory() {
         )}
         {cancelBookingItem && (
           <ConfirmDialog
-            message={t('cancel_booking_question')}
+            message="Cancel this booking?"
             onConfirm={handleCancel}
             onCancel={() => setCancelBookingItem(null)}
           />
