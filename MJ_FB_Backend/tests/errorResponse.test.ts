@@ -7,16 +7,15 @@ describe('buildErrorResponse', () => {
       status: 500,
       code: 'E_TEST',
     });
-
-    const spy = jest.spyOn(logger, 'error').mockImplementation(() => undefined);
-
     const { status, body } = buildErrorResponse(err);
 
     expect(status).toBe(500);
     expect(body.message).toBe('Internal Server Error');
     expect(body.message).not.toContain('Sensitive internal details');
-    expect(spy).toHaveBeenCalledWith('Unhandled error:', 'Sensitive internal details', err);
-
-    spy.mockRestore();
+    expect(logger.error).toHaveBeenCalledWith(
+      'Unhandled error:',
+      'Sensitive internal details',
+      err,
+    );
   });
 });

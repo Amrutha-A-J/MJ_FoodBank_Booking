@@ -21,12 +21,26 @@ jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
   manualPantryAggregate: jest.fn(),
   firstMondayOfMonth: jest.fn(),
 }));
+jest.mock('../src/utils/logger', () => ({
+  __esModule: true,
+  default: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 import { notifyOps } from '../src/utils/opsAlert';
+import logger from '../src/utils/logger';
 
 beforeEach(() => {
   (mockPool.query as jest.Mock).mockReset();
   setQueryResults({ rows: [], rowCount: 0 });
   (notifyOps as jest.Mock).mockReset();
+  (logger.info as jest.Mock).mockReset();
+  (logger.warn as jest.Mock).mockReset();
+  (logger.error as jest.Mock).mockReset();
+  (logger.debug as jest.Mock).mockReset();
 });
 
 export {};
