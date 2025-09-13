@@ -4,6 +4,7 @@ import {
   getVolunteerRoles,
   updateVolunteerTrainedAreas,
   getVolunteerById,
+  updateVolunteer,
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   type VolunteerSearchResult,
@@ -19,6 +20,9 @@ import {
   Checkbox,
   Chip,
   Container,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   Dialog,
   DialogActions,
   DialogContent,
@@ -37,6 +41,7 @@ import {
   Typography,
 } from '@mui/material';
 import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import FeedbackSnackbar from '../../../components/FeedbackSnackbar';
@@ -49,7 +54,12 @@ export default function EditVolunteer() {
   const [roles, setRoles] = useState<VolunteerRoleWithShifts[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [initialSelected, setInitialSelected] = useState<string[]>([]);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState<'success' | 'error'>('success');
   const [hasShopper, setHasShopper] = useState(false);
@@ -101,6 +111,10 @@ export default function EditVolunteer() {
   function handleSelect(v: VolunteerSearchResult) {
     setVolunteer(v);
     setHasShopper(v.hasShopper);
+    setFirstName(v.firstName);
+    setLastName(v.lastName);
+    setEmail(v.email || '');
+    setPhone(v.phone || '');
     const names = v.trainedAreas
       .map(id => idToName.get(id))
       .filter((n): n is string => !!n);
@@ -124,6 +138,16 @@ export default function EditVolunteer() {
     return a.some((v, i) => v !== b[i]);
   }, [selected, initialSelected]);
 
+  const profileChanged = useMemo(() => {
+    if (!volunteer) return false;
+    return (
+      firstName !== volunteer.firstName ||
+      lastName !== volunteer.lastName ||
+      email !== (volunteer.email || '') ||
+      phone !== (volunteer.phone || '')
+    );
+  }, [volunteer, firstName, lastName, email, phone]);
+
   async function handleSave() {
     if (!volunteer || !hasChanges) return;
     setSaving(true);
@@ -141,10 +165,35 @@ export default function EditVolunteer() {
     }
   }
 
+  async function handleProfileSave() {
+    if (!volunteer || !profileChanged) return;
+    setProfileSaving(true);
+    try {
+      await updateVolunteer(volunteer.id, {
+        firstName,
+        lastName,
+        email: email || undefined,
+        phone: phone || undefined,
+      });
+      setMessage('Volunteer updated');
+      setSeverity('success');
+      await refreshVolunteer(volunteer.id);
+    } catch (err: unknown) {
+      setMessage(getApiErrorMessage(err, 'Unable to update volunteer'));
+      setSeverity('error');
+    } finally {
+      setProfileSaving(false);
+    }
+  }
+
   async function refreshVolunteer(id: number) {
     try {
       const v = await getVolunteerById(id);
       setVolunteer(v);
+      setFirstName(v.firstName);
+      setLastName(v.lastName);
+      setEmail(v.email || '');
+      setPhone(v.phone || '');
       const names = v.trainedAreas
         .map(rid => idToName.get(rid))
         .filter((n): n is string => !!n);
@@ -264,6 +313,59 @@ export default function EditVolunteer() {
                         Enable if this volunteer also shops at the pantry.
                       </FormHelperText>
                     </FormControl>
+                    <Accordion>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls="edit-profile-content"
+                        id="edit-profile-header"
+                      >
+                        <Typography>Edit Profile</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Stack spacing={2}>
+                          <TextField
+                            label="First Name"
+                            value={firstName}
+                            onChange={e => setFirstName(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                          />
+                          <TextField
+                            label="Last Name"
+                            value={lastName}
+                            onChange={e => setLastName(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                          />
+                          <TextField
+                            label="Email"
+                            type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                          />
+                          <TextField
+                            label="Phone"
+                            type="tel"
+                            value={phone}
+                            onChange={e => setPhone(e.target.value)}
+                            fullWidth
+                            margin="normal"
+                          />
+                          <Button
+                            variant="contained"
+                            onClick={handleProfileSave}
+                            disabled={profileSaving || !profileChanged}
+                            aria-label="Save profile changes"
+                            data-testid="save-profile-button"
+                            sx={{ alignSelf: { sm: 'flex-start' } }}
+                          >
+                            Save
+                          </Button>
+                        </Stack>
+                      </AccordionDetails>
+                    </Accordion>
                   </Stack>
                 </CardContent>
               </Card>
