@@ -12,7 +12,6 @@ import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
 import PasswordResetDialog from '../../components/PasswordResetDialog';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
-import { useTranslation } from 'react-i18next';
 
 export default function Login({
   onLogin,
@@ -26,7 +25,6 @@ export default function Login({
   const [resendOpen, setResendOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const identifierRef = useRef<HTMLInputElement>(null);
 
@@ -48,12 +46,12 @@ export default function Login({
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.status === 401) {
-        setError(t('incorrect_id_password'));
+        setError('Incorrect ID or password');
       } else if (apiErr?.status === 410) {
-        setError(t('password_setup_expired'));
+        setError('Your password setup link has expired.');
         setResendOpen(true);
       } else if (apiErr?.status === 404) {
-        setError(t('account_not_found'));
+        setError('Don’t have an account? Ask staff for help.');
       } else {
         setError(err instanceof Error ? err.message : String(err));
       }
@@ -100,11 +98,11 @@ export default function Login({
   }, [navigate, onLogin]);
 
   return (
-    <Page title={t('login')}>
+    <Page title="Login">
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="80vh" px={2}>
         <FormCard
           onSubmit={handleSubmit}
-          title={t('login')}
+          title="Login"
           actions={
             <Stack spacing={2}>
               <LoadingButton
@@ -117,7 +115,7 @@ export default function Login({
                 loading={loading}
                 disabled={loading}
               >
-                {t('login')}
+                Login
               </LoadingButton>
             </Stack>
           }
@@ -127,31 +125,31 @@ export default function Login({
           <TextField
             value={identifier}
             onChange={e => setIdentifier(e.target.value)}
-            label={t('client_id_or_email')}
+            label="Client ID or Email"
             name="identifier"
             autoComplete="username webauthn"
             fullWidth
             size="medium"
             required
             error={identifierError}
-            helperText={identifierError ? t('client_id_required') : ''}
+            helperText={identifierError ? 'Client ID is required' : ''}
             autoFocus
             inputRef={identifierRef}
           />
           <PasswordField
             value={password}
             onChange={e => setPassword(e.target.value)}
-            label={t('password')}
+            label="Password"
             name="password"
             autoComplete="current-password"
             fullWidth
             size="medium"
             required
             error={passwordError}
-            helperText={passwordError ? t('password_required') : ''}
+            helperText={passwordError ? 'Password is required' : ''}
           />
           <Link component="button" type="button" onClick={() => setResetOpen(true)} underline="hover">
-            {t('forgot_password')}
+            Forgot password?
           </Link>
         </FormCard>
       </Box>
