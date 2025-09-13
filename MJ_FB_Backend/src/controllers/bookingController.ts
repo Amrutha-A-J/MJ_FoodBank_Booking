@@ -909,7 +909,7 @@ export async function createBookingForUser(
   }
 
   const slotIdNum = Number(slotId);
-  if (Number.isNaN(slotIdNum)) {
+  if (!Number.isInteger(slotIdNum)) {
     return res.status(400).json({ message: 'Please select a valid time slot' });
   }
 

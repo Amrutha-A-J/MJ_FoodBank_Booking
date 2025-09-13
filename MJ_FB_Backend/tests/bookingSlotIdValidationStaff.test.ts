@@ -1,0 +1,47 @@
+import request from 'supertest';
+import express from 'express';
+import bookingsRouter from '../src/routes/bookings';
+import pool from '../src/db';
+import { formatReginaDate } from '../src/utils/dateUtils';
+
+jest.mock('../src/utils/bookingUtils', () => ({
+  isDateWithinCurrentOrNextMonth: jest.fn(),
+  countVisitsAndBookingsForMonth: jest.fn(),
+  LIMIT_MESSAGE: 'limit',
+  findUpcomingBooking: jest.fn(),
+}));
+
+jest.mock('../src/middleware/authMiddleware', () => ({
+  authMiddleware: (req: any, _res: express.Response, next: express.NextFunction) => {
+    req.user = { id: 1, role: 'staff', email: 'staff@example.com' };
+    next();
+  },
+  authorizeRoles: () => (_req: express.Request, _res: express.Response, next: express.NextFunction) => next(),
+  optionalAuthMiddleware: (
+    _req: any,
+    _res: express.Response,
+    next: express.NextFunction,
+  ) => next(),
+}));
+
+const app = express();
+app.use(express.json());
+app.use('/bookings', bookingsRouter);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe('POST /bookings/staff slotId validation', () => {
+  it('returns 400 for non-integer slotId without querying the DB', async () => {
+    const today = formatReginaDate(new Date());
+    const res = await request(app)
+      .post('/bookings/staff')
+      .send({ userId: 1, slotId: '1.5', date: today });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Please select a valid time slot');
+    expect(pool.query).not.toHaveBeenCalled();
+    expect(pool.connect).not.toHaveBeenCalled();
+  });
+});
+
