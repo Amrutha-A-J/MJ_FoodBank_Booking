@@ -22,7 +22,6 @@
 - Volunteer Settings provides separate dialogs for creating sub-roles (with an initial shift) and for adding or editing shifts.
 - Deleting sub-roles and shifts prompts confirmation dialogs to prevent accidental removal.
 - Users complete initial password creation at `/set-password` using a token from the setup email.
-- A language selector is available on the login, forgot password, set password, client dashboard, book appointment, booking history, and profile pages; avoid adding page-specific selectors elsewhere.
 - After setting a password, users are redirected to `/login`.
 - The password setup page shows a role-specific login reminder and a button linking to the login page.
 - Volunteer role start and end times use a native time picker; `saveRole` expects `HH:MM:SS` strings.
