@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogTitle,
@@ -37,7 +36,6 @@ interface ManageBookingDialogProps {
 }
 
 export default function ManageBookingDialog({ open, booking, onClose, onUpdated }: ManageBookingDialogProps) {
-  const { t } = useTranslation();
   const [status, setStatus] = useState('');
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -266,13 +264,13 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                 }}
               />
               <TextField
-                label={t('adults_label')}
+                label="Adults"
                 type="number"
                 value={adults}
                 onChange={e => setAdults(e.target.value)}
               />
               <TextField
-                label={t('children_label')}
+                label="Children"
                 type="number"
                 value={children}
                 onChange={e => setChildren(e.target.value)}
@@ -284,7 +282,7 @@ export default function ManageBookingDialog({ open, booking, onClose, onUpdated 
                 onChange={e => setPetItem(e.target.value)}
               />
               <TextField
-                label={t('staff_note_label')}
+                label="Staff Note"
                 value={note}
                 onChange={e => setNote(e.target.value)}
                 multiline
