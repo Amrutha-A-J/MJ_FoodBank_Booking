@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 (global as any).clearImmediate = (global as any).clearImmediate || ((id: number) => clearTimeout(id));
 (global as any).performance = (global as any).performance || ({} as any);
 (global as any).performance.markResourceTiming = (global as any).performance.markResourceTiming || (() => {});
+const originalFetch = global.fetch;
 (global as any).fetch = jest.fn();
 
 jest.mock('../../../api/users', () => ({
@@ -22,6 +23,10 @@ describe('UserHistory search add shortcut', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  afterAll(() => {
+    (global as any).fetch = originalFetch;
   });
 
   it('shows add button and navigates with id prefilled', async () => {
