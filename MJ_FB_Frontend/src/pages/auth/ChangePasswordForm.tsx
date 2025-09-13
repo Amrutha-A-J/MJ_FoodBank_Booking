@@ -5,15 +5,12 @@ import Page from '../../components/Page';
 import { changePassword } from '../../api/users';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import FormCard from '../../components/FormCard';
-import { useTranslation } from 'react-i18next';
 
 export default function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const { t } = useTranslation();
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -27,25 +24,25 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <Page title={t('change_password')}>
+    <Page title="Change Password">
       <FormCard
         onSubmit={handleSubmit}
-        title={t('change_password')}
+        title="Change Password"
         centered={false}
         actions={
           <Button type="submit" variant="contained" color="primary" fullWidth>
-            {t('reset_password')}
+            Reset Password
           </Button>
         }
       >
         <PasswordField
-          label={t('current_password')}
+          label="Current Password"
           value={currentPassword}
           onChange={e => setCurrentPassword(e.target.value)}
           fullWidth
         />
         <PasswordField
-          label={t('new_password')}
+          label="New Password"
           value={newPassword}
           onChange={e => setNewPassword(e.target.value)}
           fullWidth
