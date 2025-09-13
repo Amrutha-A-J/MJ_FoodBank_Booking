@@ -105,7 +105,14 @@ describe('sendNextDayBookingReminders', () => {
     (enqueueEmail as jest.Mock).mockRejectedValue(new Error('fail'));
 
     await expect(sendNextDayBookingReminders()).rejects.toThrow('fail');
-    expect(alertOps).toHaveBeenCalledWith(
+    expect(alertOps).toHaveBeenCalledTimes(2);
+    expect(alertOps).toHaveBeenNthCalledWith(
+      1,
+      'sendNextDayBookingReminders',
+      expect.any(Error),
+    );
+    expect(alertOps).toHaveBeenNthCalledWith(
+      2,
       'sendNextDayBookingReminders',
       expect.any(Error),
     );

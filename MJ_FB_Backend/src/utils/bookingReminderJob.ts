@@ -39,9 +39,9 @@ export async function sendNextDayBookingReminders(
         b.reschedule_token,
       );
       const body = `Date: ${formattedDate}${time}`;
-      tasks.push(() =>
-        Promise.resolve(
-          enqueueEmail({
+      tasks.push(async () => {
+        try {
+          await enqueueEmail({
             to: b.user_email!,
             templateId: config.bookingReminderTemplateId,
             params: {
@@ -50,9 +50,13 @@ export async function sendNextDayBookingReminders(
               rescheduleLink,
               type: 'Shopping Appointment',
             },
-          }),
-        ),
-      );
+          });
+        } catch (err) {
+          logger.error('Failed to enqueue booking reminder email', err);
+          await alertOps('sendNextDayBookingReminders', err);
+          throw err;
+        }
+      });
       ids.push(b.id);
       recipients.push(b.user_email);
     }
