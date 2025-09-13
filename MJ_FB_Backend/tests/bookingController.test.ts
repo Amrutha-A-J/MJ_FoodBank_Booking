@@ -8,6 +8,7 @@ describe('createBookingForUser', () => {
   let checkSlotCapacity: jest.Mock;
   let insertBooking: jest.Mock;
   let bookingUtils: any;
+  let holidayCache: any;
 
   beforeEach(() => {
     jest.resetModules();
@@ -39,6 +40,10 @@ describe('createBookingForUser', () => {
         __esModule: true,
         hasTable: jest.fn().mockResolvedValue(true),
       }));
+      jest.doMock('../src/utils/holidayCache', () => ({
+        __esModule: true,
+        isHoliday: jest.fn().mockResolvedValue(false),
+      }));
       jest.doMock('../src/db', () => ({
         __esModule: true,
         default: { query: jest.fn(), connect: jest.fn() },
@@ -49,6 +54,7 @@ describe('createBookingForUser', () => {
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
       insertBooking = require('../src/models/bookingRepository').insertBooking;
       bookingUtils = require('../src/utils/bookingUtils');
+      holidayCache = require('../src/utils/holidayCache');
     });
   });
 
@@ -82,14 +88,20 @@ describe('createBookingForUser', () => {
   });
 
   it('returns 400 if booking date is a holiday', async () => {
-    const query = jest
-      .fn()
-      .mockResolvedValueOnce({}) // BEGIN
-      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // select client for update
-      .mockResolvedValueOnce({ rowCount: 1 }) // holiday
-      .mockResolvedValue({}); // ROLLBACK
+    const query = jest.fn().mockImplementation((sql: string) => {
+      if (sql.includes('SELECT date, reason FROM holidays'))
+        return Promise.resolve({
+          rows: [{ date: '2024-12-25', reason: 'X' }],
+          rowCount: 1,
+        });
+      if (sql.includes('holidays')) return Promise.resolve({ rowCount: 1 });
+      if (sql.includes('AS total'))
+        return Promise.resolve({ rows: [{ total: 0 }], rowCount: 1 });
+      return Promise.resolve({ rows: [], rowCount: 0 });
+    });
     const client = { query, release: jest.fn() };
     (pool.connect as jest.Mock).mockResolvedValue(client);
+    holidayCache.isHoliday.mockResolvedValue(true);
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-12-25' },
@@ -180,6 +192,7 @@ describe('createBooking', () => {
   let createBooking: any;
   let pool: any;
   let checkSlotCapacity: jest.Mock;
+  let holidayCache: any;
 
   beforeEach(() => {
     jest.resetModules();
@@ -203,6 +216,15 @@ describe('createBooking', () => {
         __esModule: true,
         insertBooking: jest.fn(),
         checkSlotCapacity: jest.fn(),
+        lockClientRow: jest.fn().mockResolvedValue(undefined),
+      }));
+      jest.doMock('../src/utils/dbUtils', () => ({
+        __esModule: true,
+        hasTable: jest.fn().mockResolvedValue(true),
+      }));
+      jest.doMock('../src/utils/holidayCache', () => ({
+        __esModule: true,
+        isHoliday: jest.fn().mockResolvedValue(false),
       }));
       jest.doMock('../src/db', () => ({
         __esModule: true,
@@ -211,6 +233,7 @@ describe('createBooking', () => {
       createBooking = require('../src/controllers/bookingController').createBooking;
       pool = require('../src/db').default;
       checkSlotCapacity = require('../src/models/bookingRepository').checkSlotCapacity;
+      holidayCache = require('../src/utils/holidayCache');
     });
   });
 
@@ -218,9 +241,14 @@ describe('createBooking', () => {
     const client = { query: jest.fn(), release: jest.fn() };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (client.query as jest.Mock).mockImplementation((sql: string) => {
+      if (sql.includes('SELECT date, reason FROM holidays'))
+        return Promise.resolve({ rows: [{ date: '2024-12-25', reason: 'X' }], rowCount: 1 });
       if (sql.includes('holidays')) return Promise.resolve({ rowCount: 1 });
+      if (sql.includes('AS total'))
+        return Promise.resolve({ rows: [{ total: 0 }], rowCount: 1 });
       return Promise.resolve({ rows: [] });
     });
+    holidayCache.isHoliday.mockResolvedValue(true);
     const req = {
       user: { id: 1, userId: 1, email: 'user@example.com' },
       body: { slotId: 1, date: '2024-12-25' },

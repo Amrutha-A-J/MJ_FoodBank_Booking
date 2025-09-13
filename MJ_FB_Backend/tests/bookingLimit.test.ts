@@ -85,7 +85,10 @@ describe('booking monthly limits', () => {
         },
       );
     });
-    (pool.connect as jest.Mock).mockResolvedValue({ query: jest.fn(), release: jest.fn() });
+    (pool.connect as jest.Mock).mockResolvedValue({
+      query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: jest.fn(),
+    });
     (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
