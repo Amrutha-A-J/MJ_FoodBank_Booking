@@ -35,7 +35,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import AccessTime from '@mui/icons-material/AccessTime';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from '../utils/date';
 import { useQuery } from '@tanstack/react-query';
 import type { Slot, Holiday, BookingActionResponse } from '../types';
 import { getSlots, createBooking } from '../api/bookings';
