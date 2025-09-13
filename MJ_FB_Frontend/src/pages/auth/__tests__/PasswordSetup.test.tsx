@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import PasswordSetup from '../PasswordSetup';
 import { setPassword, getPasswordSetupInfo } from '../../../api/users';
@@ -15,19 +21,21 @@ describe('PasswordSetup checklist', () => {
     (setPassword as jest.Mock).mockResolvedValue('/login');
   });
 
-  function setup() {
-    render(
-      <MemoryRouter initialEntries={["/set-password?token=tok"]}>
-        <Routes>
-          <Route path="/set-password" element={<PasswordSetup />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+  async function setup() {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/set-password?token=tok"]}>
+          <Routes>
+            <Route path="/set-password" element={<PasswordSetup />} />
+          </Routes>
+        </MemoryRouter>,
+      );
+    });
     return screen.getByLabelText(/password/i, { selector: 'input' });
   }
 
-  it('updates checklist as user types', () => {
-    const input = setup();
+  it('updates checklist as user types', async () => {
+    const input = await setup();
     expect(screen.getByTestId('min_length-close')).toBeInTheDocument();
     expect(screen.getByTestId('uppercase-close')).toBeInTheDocument();
     expect(screen.getByTestId('lowercase-close')).toBeInTheDocument();
@@ -45,7 +53,7 @@ describe('PasswordSetup checklist', () => {
   });
 
   it('shows validation errors', async () => {
-    const input = setup();
+    const input = await setup();
     fireEvent.change(input, { target: { value: 'Abcdefgh' } });
     fireEvent.click(screen.getByRole('button', { name: /set password/i }));
 
