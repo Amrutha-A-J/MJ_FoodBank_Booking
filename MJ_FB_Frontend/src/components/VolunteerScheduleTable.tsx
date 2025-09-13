@@ -11,7 +11,6 @@ import {
   ButtonBase,
 } from '@mui/material';
 import type { ReactNode } from 'react';
-import i18n from '../i18n';
 
 interface Cell {
   content: ReactNode;
@@ -105,7 +104,7 @@ export default function VolunteerScheduleTable({ maxSlots, rows }: Props) {
                           display: 'block',
                         }}
                       >
-                        {cell.content ?? i18n.t('sign_up')}
+                        {cell.content ?? 'Sign up'}
                       </ButtonBase>
                     ) : (
                       cell.content
