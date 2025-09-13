@@ -36,10 +36,10 @@ beforeAll(() => {
 beforeEach(() => {
   jest.clearAllMocks();
   (pool.connect as jest.Mock).mockResolvedValue({
-    query: jest.fn(),
+    query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
     release: jest.fn(),
   });
-  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }], rowCount: 0 });
 });
 
 describe('POST /bookings capacity check', () => {
@@ -62,5 +62,18 @@ describe('POST /bookings capacity check', () => {
     expect(res.status).toBe(409);
     expect(res.body).toHaveProperty('message', 'Slot full on selected date');
     expect(bookingRepository.insertBooking).not.toHaveBeenCalled();
+  });
+});
+
+describe('checkSlotCapacity', () => {
+  it('throws SlotCapacityError when transaction is aborted', async () => {
+    const { checkSlotCapacity: actualCheckSlotCapacity } = jest.requireActual('../src/models/bookingRepository');
+    const mockClient = { query: jest.fn().mockRejectedValue({ code: '25P02' }) };
+    await expect(
+      actualCheckSlotCapacity(1, '2024-01-01', mockClient as any),
+    ).rejects.toMatchObject({
+      message: 'Transaction aborted, please retry',
+      status: 503,
+    });
   });
 });
