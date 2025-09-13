@@ -391,7 +391,7 @@ export default function VolunteerSchedule() {
               });
             } else {
               cells.push({
-                content: "",
+                content: null,
                 onClick: () => {
                   if (!isClosed) {
                     quickBook(slot);

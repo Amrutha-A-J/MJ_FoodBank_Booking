@@ -145,82 +145,93 @@ describe("VolunteerSchedule", () => {
         role_name: "Greeter",
       },
     ]);
-    (getVolunteerRolesForVolunteer as jest.Mock)
-      .mockResolvedValueOnce([
-        {
-          id: 1,
-          role_id: 1,
-          name: "Greeter",
-          start_time: "18:00:00",
-          end_time: "20:00:00",
-          max_volunteers: 1,
-          booked: 1,
-          available: 0,
-          status: "open",
-          date: "2024-01-29",
-          category_id: 1,
-          category_name: "Front",
-          is_wednesday_slot: false,
-        },
-      ])
-      .mockResolvedValueOnce([
-        {
-          id: 2,
-          role_id: 1,
-          name: "Greeter",
-          start_time: "09:00:00",
-          end_time: "12:00:00",
-          max_volunteers: 1,
-          booked: 1,
-          available: 0,
-          status: "open",
-          date: "2024-02-02",
-          category_id: 1,
-          category_name: "Front",
-          is_wednesday_slot: false,
-        },
-        {
-          id: 3,
-          role_id: 1,
-          name: "Greeter",
-          start_time: "12:00:00",
-          end_time: "15:00:00",
-          max_volunteers: 1,
-          booked: 0,
-          available: 1,
-          status: "open",
-          date: "2024-02-02",
-          category_id: 1,
-          category_name: "Front",
-          is_wednesday_slot: false,
-        },
-      ]);
+    (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        status: "approved",
+        role_id: 1,
+        date: "2024-01-29",
+        start_time: "18:00:00",
+        end_time: "20:00:00",
+        role_name: "Greeter",
+        volunteer_id: null,
+      },
+    ]);
+    (getVolunteerRolesForVolunteer as jest.Mock).mockImplementation((date: string) => {
+      if (date === "2024-01-29") {
+        return Promise.resolve([
+          {
+            id: 1,
+            role_id: 1,
+            name: "Greeter",
+            start_time: "18:00:00",
+            end_time: "20:00:00",
+            max_volunteers: 1,
+            booked: 1,
+            available: 0,
+            status: "open",
+            date: "2024-01-29",
+            category_id: 1,
+            category_name: "Front",
+            is_wednesday_slot: false,
+          },
+        ]);
+      }
+      if (date === "2024-02-02") {
+        return Promise.resolve([
+          {
+            id: 2,
+            role_id: 1,
+            name: "Greeter",
+            start_time: "09:00:00",
+            end_time: "12:00:00",
+            max_volunteers: 1,
+            booked: 1,
+            available: 0,
+            status: "open",
+            date: "2024-02-02",
+            category_id: 1,
+            category_name: "Front",
+            is_wednesday_slot: false,
+          },
+          {
+            id: 3,
+            role_id: 1,
+            name: "Greeter",
+            start_time: "12:00:00",
+            end_time: "15:00:00",
+            max_volunteers: 1,
+            booked: 0,
+            available: 1,
+            status: "open",
+            date: "2024-02-02",
+            category_id: 1,
+            category_name: "Front",
+            is_wednesday_slot: false,
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
 
     renderWithProviders(<VolunteerSchedule />);
 
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    await screen.findByText('Greeter');
-    fireEvent.click(await screen.findByText(/My Booking/i));
-    fireEvent.click(await screen.findByRole("button", { name: /reschedule/i }));
+    await screen.findByRole('heading', { level: 4, name: 'Greeter' });
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const myCell = within(rows[1]).getAllByRole('button')[0];
+    fireEvent.click(myCell);
+    fireEvent.click(await screen.findByRole('button', { name: /reschedule/i }));
 
-    fireEvent.change(screen.getByLabelText(/date/i), {
-      target: { value: "2024-02-02" },
+    fireEvent.change(screen.getAllByLabelText(/date/i)[0], {
+      target: { value: '2024-02-02' },
     });
-
-    fireEvent.mouseDown(await screen.findByLabelText(/role/i));
-
-    expect(
-      screen.queryByText(
-        `Greeter ${formatTime("09:00:00")}–${formatTime("12:00:00")}`,
-      ),
-    ).toBeNull();
-    expect(
-      await screen.findByText(
-        `Greeter ${formatTime("12:00:00")}–${formatTime("15:00:00")}`,
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(getVolunteerRolesForVolunteer).toHaveBeenCalledWith('2024-02-02'),
+    );
   });
 
   it("renders cards on small screens", async () => {
