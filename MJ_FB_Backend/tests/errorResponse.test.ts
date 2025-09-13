@@ -8,15 +8,50 @@ describe('buildErrorResponse', () => {
       code: 'E_TEST',
     });
 
-    const spy = jest.spyOn(logger, 'error').mockImplementation(() => undefined);
+    const errorSpy = jest
+      .spyOn(logger, 'error')
+      .mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(logger, 'warn')
+      .mockImplementation(() => undefined);
 
     const { status, body } = buildErrorResponse(err);
 
     expect(status).toBe(500);
     expect(body.message).toBe('Internal Server Error');
     expect(body.message).not.toContain('Sensitive internal details');
-    expect(spy).toHaveBeenCalledWith('Unhandled error:', 'Sensitive internal details', err);
+    expect(errorSpy).toHaveBeenCalledWith(
+      'Unhandled error:',
+      'Sensitive internal details',
+      err,
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
 
-    spy.mockRestore();
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  it('logs 4xx errors with warn instead of error', () => {
+    const err = Object.assign(new Error('Bad request'), {
+      status: 400,
+      code: 'E_TEST',
+    });
+
+    const errorSpy = jest
+      .spyOn(logger, 'error')
+      .mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(logger, 'warn')
+      .mockImplementation(() => undefined);
+
+    const { status, body } = buildErrorResponse(err);
+
+    expect(status).toBe(400);
+    expect(body.message).toBe('Bad request');
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith('Bad request', err);
+
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 });

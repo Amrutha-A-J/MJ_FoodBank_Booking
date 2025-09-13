@@ -39,7 +39,11 @@ export function buildErrorResponse(err: unknown): ErrorResponse {
       ? (err as any).code
       : 'UNKNOWN';
 
-  logger.error('Unhandled error:', originalMessage, err);
+  if (status >= 500) {
+    logger.error('Unhandled error:', originalMessage, err);
+  } else if (status >= 400) {
+    logger.warn(originalMessage, err);
+  }
 
   const safeMessage = status === 500 ? 'Internal Server Error' : originalMessage;
 
