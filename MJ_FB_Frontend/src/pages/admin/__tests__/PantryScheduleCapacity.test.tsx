@@ -21,6 +21,8 @@ jest.mock('../../../components/RescheduleDialog', () => () => null);
 
 const { getSlots, getBookings, getHolidays } = jest.requireMock('../../../api/bookings');
 
+const originalMatchMedia = window.matchMedia;
+
 function hexToRgb(color: string) {
   if (color.startsWith('rgb')) return color;
   const sanitized = color.replace('#', '');
@@ -48,6 +50,7 @@ describe('PantrySchedule status colors', () => {
 
   afterAll(() => {
     jest.useRealTimers();
+    window.matchMedia = originalMatchMedia;
   });
 
   it('renders cells with colors for each status', async () => {
