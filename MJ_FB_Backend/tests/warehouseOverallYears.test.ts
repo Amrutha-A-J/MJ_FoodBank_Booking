@@ -9,6 +9,7 @@ jest.mock('jsonwebtoken');
 
 const app = express();
 app.use('/warehouse-overall', warehouseOverallRoutes);
+const year = new Date().getFullYear();
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -33,7 +34,7 @@ describe('GET /warehouse-overall/years', () => {
         rows: [{ id: 1, first_name: 'Test', last_name: 'User', email: 't@example.com', role: 'staff' }],
       })
       .mockResolvedValueOnce({
-        rows: [{ year: 2024 }, { year: 2023 }],
+        rows: [{ year }, { year: year - 1 }],
       });
 
     const res = await request(app)
@@ -41,7 +42,7 @@ describe('GET /warehouse-overall/years', () => {
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([2024, 2023]);
+    expect(res.body).toEqual([year, year - 1]);
     expect(pool.query).toHaveBeenCalledWith(
       'SELECT DISTINCT year FROM warehouse_overall ORDER BY year DESC',
     );

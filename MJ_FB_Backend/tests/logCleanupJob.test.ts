@@ -14,14 +14,16 @@ describe('cleanupOldLogs', () => {
   });
 
   it('aggregates previous year and deletes old rows', async () => {
-    await cleanupOldLogs(new Date('2025-01-31T00:00:00Z'));
+    const nextYear = new Date().getFullYear() + 1;
+    await cleanupOldLogs(new Date(`${nextYear}-01-31T00:00:00Z`));
 
+    const previousYear = nextYear - 1;
     for (let month = 1; month <= 12; month++) {
-      expect(refreshWarehouseOverall).toHaveBeenCalledWith(2024, month);
-      expect(refreshSunshineBagOverall).toHaveBeenCalledWith(2024, month);
+      expect(refreshWarehouseOverall).toHaveBeenCalledWith(previousYear, month);
+      expect(refreshSunshineBagOverall).toHaveBeenCalledWith(previousYear, month);
     }
 
-    const cutoff = '2025-01-01';
+    const cutoff = `${nextYear}-01-01`;
     expect(mockPool.query).toHaveBeenCalledWith(
       'DELETE FROM sunshine_bag_log WHERE date < $1',
       [cutoff],

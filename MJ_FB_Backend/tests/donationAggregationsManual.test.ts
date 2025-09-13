@@ -34,7 +34,8 @@ describe('POST /donations/aggregations/manual', () => {
       })
       .mockResolvedValueOnce({});
 
-    const body = { year: 2024, month: 5, donorEmail: 'alice@example.com', total: 100 };
+    const year = new Date().getFullYear();
+    const body = { year, month: 5, donorEmail: 'alice@example.com', total: 100 };
     const res = await request(app)
       .post('/donations/aggregations/manual')
       .set('Authorization', 'Bearer token')
@@ -44,7 +45,7 @@ describe('POST /donations/aggregations/manual', () => {
     expect(res.body).toEqual({ message: 'Saved' });
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO donor_aggregations'),
-      [2024, 5, 'alice@example.com', 100],
+      [year, 5, 'alice@example.com', 100],
     );
   });
 });
