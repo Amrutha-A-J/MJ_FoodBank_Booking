@@ -9,7 +9,8 @@ describe('refreshPantryWeekly', () => {
   });
 
   it('skips weeks starting outside the month', async () => {
-    await refreshPantryWeekly(2024, 4, 6); // April 2024 has only 5 weeks
+    const year = new Date().getFullYear();
+    await refreshPantryWeekly(year, 4, 6); // April has only 5 weeks
     expect(pool.query).not.toHaveBeenCalled();
   });
 });

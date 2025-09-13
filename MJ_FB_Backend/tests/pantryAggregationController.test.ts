@@ -8,6 +8,8 @@ import {
   refreshPantryYearly,
 } from '../src/controllers/pantry/pantryAggregationController';
 
+const year = new Date().getFullYear();
+
 describe('pantryAggregationController totals', () => {
   beforeEach(() => {
     (mockPool.query as jest.Mock).mockReset();
@@ -20,17 +22,17 @@ describe('pantryAggregationController totals', () => {
       })
       .mockResolvedValue({} as any);
 
-    await refreshPantryMonthly(2024, 5);
+    await refreshPantryMonthly(year, 5);
 
     expect(mockPool.query).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining('FROM pantry_weekly_overall'),
-      [2024, 5],
+      [year, 5],
     );
     expect(mockPool.query).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining('INSERT INTO pantry_monthly_overall'),
-      [2024, 5, 3, 5, 2, 7, 40],
+      [year, 5, 3, 5, 2, 7, 40],
     );
   });
 
@@ -41,17 +43,17 @@ describe('pantryAggregationController totals', () => {
       })
       .mockResolvedValue({} as any);
 
-    await refreshPantryYearly(2024);
+    await refreshPantryYearly(year);
 
     expect(mockPool.query).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining('FROM pantry_weekly_overall'),
-      [2024],
+      [year],
     );
     expect(mockPool.query).toHaveBeenNthCalledWith(
       2,
       expect.stringContaining('INSERT INTO pantry_yearly_overall'),
-      [2024, 10, 20, 5, 25, 100],
+      [year, 10, 20, 5, 25, 100],
     );
   });
 });

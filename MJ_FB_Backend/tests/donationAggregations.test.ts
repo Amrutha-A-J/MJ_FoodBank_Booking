@@ -8,6 +8,7 @@ jest.mock('jsonwebtoken');
 
 const app = express();
 app.use('/donations', donationsRoutes);
+const year = new Date().getFullYear();
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -45,7 +46,7 @@ describe('GET /donations/aggregations', () => {
       .mockResolvedValueOnce({ rows });
 
     const res = await request(app)
-      .get('/donations/aggregations?year=2024')
+      .get(`/donations/aggregations?year=${year}`)
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);

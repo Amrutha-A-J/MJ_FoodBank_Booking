@@ -7,6 +7,8 @@ const {
   refreshPantryYearly,
 } = require('../src/controllers/pantry/pantryAggregationController');
 
+const year = new Date().getFullYear();
+
 describe('pantry aggregation roll-ups', () => {
   beforeEach(() => {
     (pool.query as jest.Mock).mockReset();
@@ -27,15 +29,15 @@ describe('pantry aggregation roll-ups', () => {
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ year: 2024, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] });
+      .mockResolvedValueOnce({ rows: [{ year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] });
 
-    await refreshPantryWeekly(2024, 5, 1);
-    await refreshPantryWeekly(2024, 5, 2);
-    await refreshPantryMonthly(2024, 5);
-    await refreshPantryYearly(2024);
+    await refreshPantryWeekly(year, 5, 1);
+    await refreshPantryWeekly(year, 5, 2);
+    await refreshPantryMonthly(year, 5);
+    await refreshPantryYearly(year);
     const monthlyRes = await pool.query(
       'SELECT month, orders, adults, children, people, weight AS "foodWeight" FROM pantry_monthly_overall WHERE year = $1 ORDER BY month',
-      [2024],
+      [year],
     );
     const yearlyRes = await pool.query(
       'SELECT year, orders, adults, children, people, weight AS "foodWeight" FROM pantry_yearly_overall ORDER BY year',
@@ -44,7 +46,7 @@ describe('pantry aggregation roll-ups', () => {
       { month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
     ]);
     expect(yearlyRes.rows).toEqual([
-      { year: 2024, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
+      { year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
     ]);
   });
 
@@ -63,7 +65,7 @@ describe('pantry aggregation roll-ups', () => {
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
-      .mockResolvedValueOnce({ rows: [{ year: 2024, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
+      .mockResolvedValueOnce({ rows: [{ year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 }] })
       .mockResolvedValueOnce({ rows: [{ visits: 5, adults: 6, children: 7, weight: 40 }] })
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
@@ -74,15 +76,15 @@ describe('pantry aggregation roll-ups', () => {
       .mockResolvedValueOnce({ rows: [{ orders: 0, weight: 0 }] })
       .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ month: 5, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 }] })
-      .mockResolvedValueOnce({ rows: [{ year: 2024, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 }] });
+      .mockResolvedValueOnce({ rows: [{ year, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 }] });
 
-    await refreshPantryWeekly(2024, 5, 1);
-    await refreshPantryWeekly(2024, 5, 2);
-    await refreshPantryMonthly(2024, 5);
-    await refreshPantryYearly(2024);
+    await refreshPantryWeekly(year, 5, 1);
+    await refreshPantryWeekly(year, 5, 2);
+    await refreshPantryMonthly(year, 5);
+    await refreshPantryYearly(year);
     let res = await pool.query(
       'SELECT month, orders, adults, children, people, weight AS "foodWeight" FROM pantry_monthly_overall WHERE year = $1 ORDER BY month',
-      [2024],
+      [year],
     );
     expect(res.rows).toEqual([
       { month: 5, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
@@ -91,14 +93,14 @@ describe('pantry aggregation roll-ups', () => {
       'SELECT year, orders, adults, children, people, weight AS "foodWeight" FROM pantry_yearly_overall ORDER BY year',
     );
     expect(res.rows).toEqual([
-      { year: 2024, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
+      { year, orders: 3, adults: 5, children: 7, people: 12, foodWeight: 30 },
     ]);
-    await refreshPantryWeekly(2024, 5, 1);
-    await refreshPantryMonthly(2024, 5);
-    await refreshPantryYearly(2024);
+    await refreshPantryWeekly(year, 5, 1);
+    await refreshPantryMonthly(year, 5);
+    await refreshPantryYearly(year);
     res = await pool.query(
       'SELECT month, orders, adults, children, people, weight AS "foodWeight" FROM pantry_monthly_overall WHERE year = $1 ORDER BY month',
-      [2024],
+      [year],
     );
     expect(res.rows).toEqual([
       { month: 5, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 },
@@ -107,7 +109,7 @@ describe('pantry aggregation roll-ups', () => {
       'SELECT year, orders, adults, children, people, weight AS "foodWeight" FROM pantry_yearly_overall ORDER BY year',
     );
     expect(res.rows).toEqual([
-      { year: 2024, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 },
+      { year, orders: 7, adults: 9, children: 11, people: 20, foodWeight: 60 },
     ]);
   });
 });

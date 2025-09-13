@@ -31,6 +31,7 @@ const {
 const app = express();
 app.use(express.json());
 app.use('/pantry-aggregations', pantryAggregationsRoutes);
+const year = new Date().getFullYear();
 
 describe('pantry aggregation routes', () => {
   beforeEach(() => {
@@ -40,7 +41,7 @@ describe('pantry aggregation routes', () => {
   it('lists weekly aggregations', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ week: 1 }] });
 
-    const res = await request(app).get('/pantry-aggregations/weekly?year=2024&month=5');
+    const res = await request(app).get(`/pantry-aggregations/weekly?year=${year}&month=5`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([{ week: 1 }]);
   });
@@ -65,7 +66,7 @@ describe('pantry aggregation routes', () => {
       ],
     });
 
-    const res = await request(app).get('/pantry-aggregations/months?year=2024');
+    const res = await request(app).get(`/pantry-aggregations/months?year=${year}`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([5]);
   });
@@ -90,13 +91,13 @@ describe('pantry aggregation routes', () => {
       ],
     });
 
-    const res = await request(app).get('/pantry-aggregations/weeks?year=2024&month=5');
+    const res = await request(app).get(`/pantry-aggregations/weeks?year=${year}&month=5`);
     expect(res.status).toBe(200);
     expect(res.body).toEqual([2]);
   });
 
   it('rebuilds aggregations', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ min_year: 2024, max_year: 2024 }] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [{ min_year: year, max_year: year }] });
 
     const res = await request(app).post('/pantry-aggregations/rebuild');
     expect(res.status).toBe(200);
@@ -107,12 +108,12 @@ describe('pantry aggregation routes', () => {
       ([, , w]) => w === 6,
     );
     expect(week6Calls.length).toBe(0);
-    expect(refreshPantryYearly).toHaveBeenCalledWith(2024);
+    expect(refreshPantryYearly).toHaveBeenCalledWith(year);
   });
 
   it('exports aggregations', async () => {
     const res = await request(app)
-      .get('/pantry-aggregations/export?period=weekly&year=2024&month=5&week=1')
+      .get(`/pantry-aggregations/export?period=weekly&year=${year}&month=5&week=1`)
       .buffer()
       .parse((res, cb) => {
         const data: Buffer[] = [];
@@ -125,14 +126,14 @@ describe('pantry aggregation routes', () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     expect(res.headers['content-disposition']).toBe(
-      'attachment; filename=2024_05_2024-05-06_to_2024-05-10_week_1_agggregation.xlsx',
+      `attachment; filename=${year}_05_${year}-05-06_to_${year}-05-10_week_1_agggregation.xlsx`,
     );
     expect(res.body).toEqual(Buffer.from('test'));
   });
 
   it('inserts manual aggregation', async () => {
     const body = {
-      year: 2024,
+      year,
       month: 5,
       orders: 1,
       adults: 2,
@@ -146,13 +147,13 @@ describe('pantry aggregation routes', () => {
     expect(res.body).toEqual({ message: 'Saved' });
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO pantry_monthly_overall'),
-      [2024, 5, 1, 2, 3, 5, 10],
+      [year, 5, 1, 2, 3, 5, 10],
     );
   });
 
   it('updates manual aggregation', async () => {
     const body1 = {
-      year: 2024,
+      year,
       month: 5,
       orders: 1,
       adults: 2,
@@ -164,7 +165,7 @@ describe('pantry aggregation routes', () => {
     await request(app).post('/pantry-aggregations/manual').send(body1);
 
     const body2 = {
-      year: 2024,
+      year,
       month: 5,
       orders: 2,
       adults: 3,
@@ -177,13 +178,13 @@ describe('pantry aggregation routes', () => {
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenLastCalledWith(
       expect.any(String),
-      [2024, 5, 2, 3, 4, 7, 20],
+      [year, 5, 2, 3, 4, 7, 20],
     );
   });
 
   it('inserts manual weekly aggregation and refreshes totals', async () => {
     const body = {
-      year: 2024,
+      year,
       month: 5,
       week: 1,
       orders: 1,
@@ -201,7 +202,7 @@ describe('pantry aggregation routes', () => {
     expect(pool.query).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining('INSERT INTO pantry_weekly_overall'),
-      [2024, 5, 1, '2024-05-06', '2024-05-10', 1, 2, 3, 5, 10],
+      [year, 5, 1, `${year}-05-06`, `${year}-05-10`, 1, 2, 3, 5, 10],
     );
     expect(pool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO pantry_monthly_overall'),

@@ -34,13 +34,16 @@ describe('GET /donations?month=', () => {
       type: 'staff',
       access: ['warehouse', 'donation_entry'],
     });
+    const year = new Date().getFullYear();
+    const month = '02';
+    const nextMonth = '03';
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
       .mockResolvedValueOnce({
         rows: [
           {
             id: 1,
-            date: '2024-02-01',
+            date: `${year}-${month}-01`,
             weight: 10,
             donorId: 2,
             firstName: 'Alice',
@@ -49,7 +52,7 @@ describe('GET /donations?month=', () => {
           },
           {
             id: 2,
-            date: '2024-02-10',
+            date: `${year}-${month}-10`,
             weight: 20,
             donorId: 3,
             firstName: 'Bob',
@@ -60,7 +63,7 @@ describe('GET /donations?month=', () => {
       });
 
     const res = await request(app)
-      .get('/donations?month=2024-02')
+      .get(`/donations?month=${year}-${month}`)
       .set('Authorization', 'Bearer token');
 
     expect(res.status).toBe(200);
@@ -75,12 +78,12 @@ describe('GET /donations?month=', () => {
               o.first_name as "firstName", o.last_name as "lastName", o.email
          FROM donations d JOIN donors o ON d.donor_id = o.id
          WHERE d.date >= $1 AND d.date < $2 ORDER BY d.date, d.id`,
-      ['2024-02-01', '2024-03-01'],
+      [`${year}-${month}-01`, `${year}-${nextMonth}-01`],
     );
     expect(res.body).toEqual([
       {
         id: 1,
-        date: '2024-02-01',
+        date: `${year}-${month}-01`,
         weight: 10,
         donorId: 2,
         firstName: 'Alice',
@@ -89,7 +92,7 @@ describe('GET /donations?month=', () => {
       },
       {
         id: 2,
-        date: '2024-02-10',
+        date: `${year}-${month}-10`,
         weight: 20,
         donorId: 3,
         firstName: 'Bob',

@@ -14,20 +14,22 @@ describe('cleanupOldPantryData', () => {
   });
 
   it('refreshes previous year and deletes old records', async () => {
-    jest.useFakeTimers().setSystemTime(new Date('2025-08-15'));
+    const nextYear = new Date().getFullYear() + 1;
+    jest.useFakeTimers().setSystemTime(new Date(`${nextYear}-08-15`));
 
     const mockClient = { query: jest.fn().mockResolvedValue({}), release: jest.fn() };
     (mockPool.connect as jest.Mock).mockResolvedValueOnce(mockClient);
 
     await cleanupOldPantryData();
 
+    const previousYear = nextYear - 1;
     for (let month = 1; month <= 12; month++) {
-      expect(refreshPantryMonthly).toHaveBeenCalledWith(2024, month);
+      expect(refreshPantryMonthly).toHaveBeenCalledWith(previousYear, month);
     }
     expect(refreshPantryMonthly).toHaveBeenCalledTimes(12);
-    expect(refreshPantryYearly).toHaveBeenCalledWith(2024);
+    expect(refreshPantryYearly).toHaveBeenCalledWith(previousYear);
 
-    const cutoff = '2025-01-01';
+    const cutoff = `${nextYear}-01-01`;
     expect(mockClient.query).toHaveBeenNthCalledWith(1, 'BEGIN');
     expect(mockClient.query).toHaveBeenNthCalledWith(
       2,

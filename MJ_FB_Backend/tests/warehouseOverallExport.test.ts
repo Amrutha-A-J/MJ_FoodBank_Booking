@@ -10,6 +10,7 @@ jest.mock('jsonwebtoken');
 
 const app = express();
 app.use('/warehouse-overall', warehouseOverallRoutes);
+const year = new Date().getFullYear();
 
 beforeAll(() => {
   process.env.JWT_SECRET = 'testsecret';
@@ -44,7 +45,7 @@ describe('GET /warehouse-overall/export', () => {
     (writeXlsxFile as jest.Mock).mockResolvedValueOnce(buffer);
 
     const res = await request(app)
-      .get('/warehouse-overall/export?year=2024')
+      .get(`/warehouse-overall/export?year=${year}`)
       .set('Authorization', 'Bearer token')
       .buffer()
       .parse((res, cb) => {
