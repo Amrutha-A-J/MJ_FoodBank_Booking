@@ -8,9 +8,15 @@ import {
 } from '../../api/volunteerBookings';
 import type { VolunteerBookingDetail } from '../../types';
 import { formatTime } from '../../utils/time';
-import { useTranslation } from 'react-i18next';
 import type { AlertColor } from '@mui/material';
 import { Button, Typography } from '@mui/material';
+
+const statusLabels: Record<string, string> = {
+  approved: 'Approved',
+  cancelled: 'Cancelled',
+  no_show: 'No show',
+  completed: 'Completed',
+};
 
 interface Props {
   volunteerId: number;
@@ -18,7 +24,6 @@ interface Props {
 }
 
 export default function BookingManagementBase({ volunteerId, onUpdated }: Props) {
-  const { t } = useTranslation();
   const [history, setHistory] = useState<VolunteerBookingDetail[]>([]);
   const [manageShift, setManageShift] = useState<VolunteerBookingDetail | null>(null);
   const [cancelRecurring, setCancelRecurring] =
@@ -39,31 +44,31 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
   async function handleCancelRecurring(id: number) {
     try {
       await cancelRecurringVolunteerBooking(id);
-      onUpdated?.(t('series_cancelled'), 'success');
+      onUpdated?.('Series cancelled', 'success');
       const data = await getVolunteerBookingHistory(volunteerId);
       setHistory(data);
     } catch {
-      onUpdated?.(t('cancel_series_failed'), 'error');
+      onUpdated?.('Failed to cancel series', 'error');
     }
   }
 
   const columns: Column<VolunteerBookingDetail & { actions?: string }>[] = useMemo(
     () => [
-      { field: 'role_name', header: t('role') },
-      { field: 'date', header: t('date') },
-        {
-          field: 'start_time',
-          header: t('time'),
-          render: (row: VolunteerBookingDetail) => (
-            <>
-              {formatTime(row.start_time ?? '')} - {formatTime(row.end_time ?? '')}
-            </>
-          ),
-        },
+      { field: 'role_name', header: 'Role' },
+      { field: 'date', header: 'Date' },
+      {
+        field: 'start_time',
+        header: 'Time',
+        render: (row: VolunteerBookingDetail) => (
+          <>
+            {formatTime(row.start_time ?? '')} - {formatTime(row.end_time ?? '')}
+          </>
+        ),
+      },
       {
         field: 'status',
-        header: t('status'),
-        render: row => t(row.status ?? ''),
+        header: 'Status',
+        render: row => statusLabels[row.status ?? ''] ?? row.status ?? '',
       },
       {
         field: 'actions',
@@ -77,7 +82,7 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
                 color="primary"
                 sx={{ mr: 1 }}
               >
-                {t('manage')}
+                Manage
               </Button>
               {row.recurring_id && (
                 <Button
@@ -85,20 +90,20 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
                   variant="outlined"
                   color="primary"
                 >
-                  {t('cancel_all_upcoming_short')}
+                  Cancel All Upcoming
                 </Button>
               )}
             </>
           ) : null,
       },
     ],
-    [t],
+    [],
   );
 
   return (
     <>
       {history.length === 0 ? (
-        <Typography align="center">{t('no_bookings')}</Typography>
+        <Typography align="center">No bookings</Typography>
       ) : (
         <ResponsiveTable
           rows={history}
@@ -121,7 +126,7 @@ export default function BookingManagementBase({ volunteerId, onUpdated }: Props)
       />
       {cancelRecurring && (
         <ConfirmDialog
-          message={t('cancel_all_upcoming')}
+          message="Cancel all upcoming shifts?"
           onConfirm={() => {
             if (cancelRecurring.recurring_id) {
               handleCancelRecurring(cancelRecurring.recurring_id);
