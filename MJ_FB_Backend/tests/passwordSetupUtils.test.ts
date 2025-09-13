@@ -56,10 +56,7 @@ describe('passwordSetupUtils', () => {
   });
 
   afterAll(() => {
-    if (originalTTL === undefined) {
-      delete process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS;
-    } else {
-      process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = originalTTL;
-    }
+    if (originalTTL === undefined) delete process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS;
+    else process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = originalTTL;
   });
 });
