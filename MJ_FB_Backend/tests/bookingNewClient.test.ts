@@ -79,6 +79,7 @@ describe('POST /bookings/new-client', () => {
       false,
       expect.any(String),
       1,
+      null,
       expect.any(Object),
     );
   });
@@ -104,6 +105,7 @@ describe('POST /bookings/new-client', () => {
       false,
       expect.any(String),
       1,
+      null,
       expect.any(Object),
     );
   });
