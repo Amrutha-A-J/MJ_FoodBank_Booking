@@ -1,7 +1,6 @@
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import * as mui from "@mui/material";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
-import i18n from "../i18n";
 import { renderWithProviders } from "../../testUtils/renderWithProviders";
 import {
   getVolunteerRolesForVolunteer,
@@ -117,11 +116,11 @@ describe("VolunteerSchedule", () => {
     expect(await screen.findByText('Greeter')).toBeInTheDocument();
 
     const prev = await screen.findByRole("button", {
-      name: i18n.t("previous"),
+      name: "Previous",
     });
     expect(prev).toBeDisabled();
 
-    expect(await screen.findByText(i18n.t("no_bookings"))).toBeInTheDocument();
+    expect(await screen.findByText("No bookings")).toBeInTheDocument();
   });
 
   it("shows only available slots in reschedule dialog", async () => {
@@ -241,7 +240,7 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    expect(await screen.findByText(i18n.t("no_bookings"))).toBeInTheDocument();
+    expect(await screen.findByText("No bookings")).toBeInTheDocument();
     expect(screen.queryByRole("table")).toBeNull();
     mq.mockRestore();
   });
