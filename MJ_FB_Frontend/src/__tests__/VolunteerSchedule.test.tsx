@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { screen, fireEvent, waitFor, within } from "@testing-library/react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
 import { renderWithProviders } from "../../testUtils/renderWithProviders";
@@ -201,7 +201,7 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    await screen.findByText("Greeter");
+    await screen.findByText('Greeter');
     fireEvent.click(await screen.findByText(/My Booking/i));
     fireEvent.click(await screen.findByRole("button", { name: /reschedule/i }));
 
@@ -255,7 +255,7 @@ describe("VolunteerSchedule", () => {
     useMediaQueryMock.mockImplementation(actualUseMediaQuery);
   });
 
-  it('books a slot via Sign Up button', async () => {
+  it('books a slot via cell click', async () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -282,7 +282,11 @@ describe("VolunteerSchedule", () => {
     fireEvent.mouseDown(screen.getByLabelText('Department'));
     fireEvent.click(await screen.findByText('Front'));
 
-    fireEvent.click(await screen.findByRole('button', { name: /sign up/i }));
+    const table = screen.getByRole('table');
+    const rows = within(table).getAllByRole('row');
+    const firstRow = rows[1];
+    const firstSlotCell = within(firstRow).getAllByRole('cell')[1];
+    fireEvent.click(within(firstSlotCell).getAllByRole('button')[0]);
 
     await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   });
