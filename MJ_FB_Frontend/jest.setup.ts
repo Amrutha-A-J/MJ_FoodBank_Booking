@@ -22,6 +22,7 @@ if (!process.env.VITE_API_BASE) {
 (globalThis as any).VITE_API_BASE = process.env.VITE_API_BASE;
 
 // Polyfill matchMedia for testing environment with modern and legacy listeners
+const originalMatchMedia = window.matchMedia;
 if (!window.matchMedia) {
   (window as any).matchMedia = (query: string) => ({
     matches: false,
@@ -34,6 +35,9 @@ if (!window.matchMedia) {
     dispatchEvent: jest.fn(),
   });
 }
+afterAll(() => {
+  window.matchMedia = originalMatchMedia;
+});
 
 beforeAll(() => {
   (global as any).fetch = fetch;
