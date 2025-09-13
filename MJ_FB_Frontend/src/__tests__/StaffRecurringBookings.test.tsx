@@ -103,7 +103,8 @@ describe('StaffRecurringBookings', () => {
     ]);
     render(<StaffRecurringBookings />);
     fireEvent.click(screen.getByText('Select Volunteer'));
-    const cancelOccur = await screen.findByRole('button', { name: 'Cancel' });
+    fireEvent.click(screen.getByRole('tab', { name: /manage recurring shifts/i }));
+    const cancelOccur = await screen.findByRole('button', { name: /cancel occurrence/i });
     fireEvent.click(cancelOccur);
     await waitFor(() => expect(cancelVolunteerBooking).toHaveBeenCalledWith(1));
     fireEvent.click(screen.getByRole('button', { name: /cancel series/i }));
