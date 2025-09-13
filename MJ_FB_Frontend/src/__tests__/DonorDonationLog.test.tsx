@@ -119,37 +119,27 @@ describe('Donor Donation Log', () => {
     const searchField = screen.getByLabelText('Search');
 
     fireEvent.change(searchField, { target: { value: '2' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('2'),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('2'));
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'john' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('john'),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('john'));
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'Smith' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('Smith'),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('Smith'));
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'));
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: '' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined));
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
   });
@@ -182,9 +172,7 @@ describe('Donor Donation Log', () => {
     expect(screen.getByText('No')).toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
-    await waitFor(() =>
-      expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'),
-    );
+    await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'));
     expect(screen.getByText('jane@example.com')).toBeInTheDocument();
     expect(screen.queryByText('No')).not.toBeInTheDocument();
   });

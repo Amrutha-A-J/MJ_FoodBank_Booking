@@ -20,6 +20,7 @@ describe('GET /volunteer-roles/mine', () => {
   beforeEach(() => {
     setHolidays(null);
   });
+
   it('excludes restricted categories on weekends', async () => {
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
@@ -102,6 +103,10 @@ describe('GET /volunteer-roles/mine', () => {
     setHolidays(new Map([[ '2025-01-01', '' ]]));
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ role_id: 1 }], rowCount: 1 })
+      .mockResolvedValueOnce({ rows: [{ exists: true }], rowCount: 1 })
+      .mockResolvedValueOnce({
+        rows: [{ date: '2025-01-01', reason: 'Holiday' }],
+      })
       .mockResolvedValueOnce({
         rows: [
           {

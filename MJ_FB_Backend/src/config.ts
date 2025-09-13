@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import logger from './utils/logger';
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'test') dotenv.config();
 
 const envSchema = z.object({
   PG_USER: z.string(),
