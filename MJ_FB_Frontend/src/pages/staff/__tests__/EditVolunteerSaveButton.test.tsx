@@ -1,17 +1,26 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import EditVolunteer from '../volunteer-management/EditVolunteer';
-import { getVolunteerRoles, getVolunteerById } from '../../../api/volunteers';
+import {
+  getVolunteerRoles,
+  getVolunteerById,
+  updateVolunteer,
+} from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => ({
   getVolunteerRoles: jest.fn(),
   updateVolunteerTrainedAreas: jest.fn(),
   getVolunteerById: jest.fn(),
+  updateVolunteer: jest.fn(),
 }));
 
 const mockVolunteer: any = {
   id: 1,
   name: 'John Doe',
+  firstName: 'John',
+  lastName: 'Doe',
+  email: undefined,
+  phone: undefined,
   trainedAreas: [],
   hasShopper: false,
   hasPassword: false,
@@ -46,12 +55,16 @@ describe('EditVolunteer save button', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
     const saveBtn = await screen.findByTestId('save-button');
     expect(saveBtn).toBeDisabled();
 
-    fireEvent.mouseDown(screen.getByLabelText(/roles/i));
+    fireEvent.mouseDown(
+      screen.getByTestId('roles-select').querySelector('[role="combobox"]')!,
+    );
     const listbox = await screen.findByRole('listbox');
     fireEvent.click(within(listbox).getByText('Role A'));
     fireEvent.keyDown(listbox, { key: 'Escape' });

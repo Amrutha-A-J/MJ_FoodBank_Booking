@@ -6,6 +6,7 @@ import {
   createVolunteerShopperProfile,
   removeVolunteerShopperProfile,
   getVolunteerById,
+  updateVolunteer,
 } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => {
@@ -17,6 +18,7 @@ jest.mock('../../../api/volunteers', () => {
     createVolunteerShopperProfile: jest.fn(),
     removeVolunteerShopperProfile: jest.fn(),
     getVolunteerById: jest.fn(),
+    updateVolunteer: jest.fn(),
   };
 });
 
@@ -43,12 +45,14 @@ describe('EditVolunteer volunteer info display', () => {
     mockVolunteer.hasPassword = false;
   });
 
-  it('shows helper text when no volunteer is selected', () => {
+  it('shows helper text when no volunteer is selected', async () => {
     render(
       <MemoryRouter>
         <EditVolunteer />
       </MemoryRouter>,
     );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     expect(
       screen.getByText('Search and select a volunteer'),
@@ -65,6 +69,8 @@ describe('EditVolunteer volunteer info display', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
     fireEvent.click(screen.getByText('Select Volunteer'));
 
     expect(await screen.findByTestId('volunteer-name')).toHaveTextContent(
@@ -79,6 +85,8 @@ describe('EditVolunteer volunteer info display', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
@@ -114,13 +122,25 @@ describe('EditVolunteer shopper profile', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
     const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
-    fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/phone/i), { target: { value: '555-1234' } });
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(
+      within(dialog).getByLabelText(/client id/i),
+      { target: { value: '123' } },
+    );
+    fireEvent.change(
+      within(dialog).getByLabelText(/email/i),
+      { target: { value: 'test@example.com' } },
+    );
+    fireEvent.change(
+      within(dialog).getByLabelText(/phone/i),
+      { target: { value: '555-1234' } },
+    );
     fireEvent.click(screen.getByRole('button', { name: /create/i }));
 
     await waitFor(() =>
@@ -152,6 +172,8 @@ describe('EditVolunteer shopper profile', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
@@ -202,6 +224,8 @@ describe('EditVolunteer role selection', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
     expect(screen.getByTestId('roles-select')).toBeInTheDocument();
@@ -237,6 +261,8 @@ describe('EditVolunteer role selection', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
@@ -283,7 +309,6 @@ describe('EditVolunteer role selection', () => {
         <EditVolunteer />
       </MemoryRouter>,
     );
-
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByText('Roles'));
@@ -294,5 +319,48 @@ describe('EditVolunteer role selection', () => {
 
     const grid = chipA.parentElement?.parentElement;
     expect(grid).toHaveClass('MuiGrid-container');
+  });
+});
+
+describe('EditVolunteer profile editing', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+    (updateVolunteer as jest.Mock).mockReset();
+    (getVolunteerById as jest.Mock).mockReset();
+    (updateVolunteer as jest.Mock).mockResolvedValue(undefined);
+    (getVolunteerById as jest.Mock).mockResolvedValue({
+      ...mockVolunteer,
+      email: 'new@example.com',
+    });
+    mockVolunteer.id = 1;
+  });
+
+  it('saves updated email', async () => {
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Edit Profile'));
+
+    const emailInput = screen.getByLabelText(/email/i);
+    fireEvent.change(emailInput, { target: { value: 'new@example.com' } });
+
+    fireEvent.click(screen.getByTestId('save-profile-button'));
+
+    await waitFor(() =>
+      expect(updateVolunteer).toHaveBeenCalledWith(1, {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'new@example.com',
+        phone: undefined,
+      }),
+    );
+    expect(getVolunteerById).toHaveBeenCalledWith(1);
+    expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com');
   });
 });
