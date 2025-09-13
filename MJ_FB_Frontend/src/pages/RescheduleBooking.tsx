@@ -15,12 +15,10 @@ import { getSlots, rescheduleBookingByToken, validateRescheduleToken } from '../
 import { formatTime } from '../utils/time';
 import { formatReginaDate, toDayjs } from '../utils/date';
 import type { Slot } from '../types';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
 export default function RescheduleBooking() {
   const { token } = useParams();
-  const { t } = useTranslation();
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotId, setSlotId] = useState('');
@@ -32,7 +30,7 @@ export default function RescheduleBooking() {
 
   useEffect(() => {
     if (!token) {
-      setError(t('invalid_or_expired_token'));
+      setError('Invalid or expired token');
       setTokenValid(false);
       return;
     }
@@ -40,7 +38,7 @@ export default function RescheduleBooking() {
       setError(err.message);
       setTokenValid(false);
     });
-  }, [token, t]);
+  }, [token]);
 
   useEffect(() => {
     if (date) {
@@ -70,38 +68,38 @@ export default function RescheduleBooking() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!token) {
-      setError(t('invalid_or_expired_token'));
+      setError('Invalid or expired token');
       return;
     }
     if (!date || !slotId) {
-      setError(t('select_date_time'));
+      setError('Select a date and time');
       return;
     }
     try {
       await rescheduleBookingByToken(token, slotId, date);
-      setMessage(t('booking_rescheduled'));
+      setMessage('Booking rescheduled');
     } catch (err: any) {
-      setError(err.message || t('reschedule_failed'));
+      setError(err.message || 'Rescheduling failed');
     }
   }
 
   return (
-    <Page title={t('reschedule')}>
+    <Page title="Reschedule">
       <Grid container spacing={2} justifyContent="center">
         <Grid size={{ xs: 12, sm: 8, md: 6 }}>
           {tokenValid && (
             <FormCard
-              title={t('reschedule')}
+              title="Reschedule"
               onSubmit={handleSubmit}
               actions={
                 <Button type="submit" variant="contained">
-                  {t('reschedule')}
+                  Reschedule
                 </Button>
               }
             >
               <TextField
                 type="date"
-                label={t('date')}
+                label="Date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
                 fullWidth
@@ -111,7 +109,7 @@ export default function RescheduleBooking() {
               />
               <TextField
                 select
-                label={t('time')}
+                label="Time"
                 value={slotId}
                 onChange={e => setSlotId(e.target.value)}
                 fullWidth
