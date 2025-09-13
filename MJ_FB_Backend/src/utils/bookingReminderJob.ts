@@ -28,6 +28,7 @@ export async function sendNextDayBookingReminders(
     const bookings = await fetchBookingsForReminder(nextDate);
     const recipients: string[] = [];
     const ids: number[] = [];
+    const errors: unknown[] = [];
     const tasks: Array<() => Promise<void>> = [];
     for (const b of bookings) {
       if (!b.user_email) continue;
@@ -54,7 +55,7 @@ export async function sendNextDayBookingReminders(
         } catch (err) {
           logger.error('Failed to enqueue booking reminder email', err);
           await alertOps('sendNextDayBookingReminders', err);
-          throw err;
+          errors.push(err);
         }
       });
       ids.push(b.id);
@@ -62,6 +63,11 @@ export async function sendNextDayBookingReminders(
     }
     for (let i = 0; i < tasks.length; i += maxConcurrency) {
       await Promise.all(tasks.slice(i, i + maxConcurrency).map((fn) => fn()));
+    }
+    if (errors.length) {
+      const aggregateError = new Error('Failed to enqueue booking reminder emails');
+      (aggregateError as any).errors = errors;
+      throw aggregateError;
     }
     if (ids.length) {
       await pool.query(
