@@ -35,7 +35,7 @@ describe('AdminLeaveRequests', () => {
     const user = userEvent.setup();
     renderWithProviders(<LeaveRequests />);
     expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
-    const rejectBtn = screen.getByRole('button', { name: 'Reject' });
+    const rejectBtn = screen.getByRole('button', { name: 'Reject', exact: true });
     await user.click(rejectBtn);
     expect(
       screen.getByText('Reject leave request for Jane Doe?'),
@@ -53,7 +53,7 @@ describe('AdminLeaveRequests', () => {
   it('closes dialog without rejecting when cancelled', async () => {
     const user = userEvent.setup();
     renderWithProviders(<LeaveRequests />);
-    await user.click(screen.getByRole('button', { name: 'Reject' }));
+    await user.click(screen.getByRole('button', { name: 'Reject', exact: true }));
     await user.click(screen.getByLabelText('close'));
     expect(mockReject).not.toHaveBeenCalled();
     expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
