@@ -3,21 +3,31 @@ import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('apiFetch refresh handling', () => {
   let fetchMock: jest.Mock;
-  let originalLocation: Location;
+  let locationDescriptor: PropertyDescriptor;
+  let locationHref: string;
+  let locationOrigin: string;
 
   beforeEach(() => {
-    originalLocation = window.location;
+    locationDescriptor = Object.getOwnPropertyDescriptor(window, 'location')!;
+    locationHref = window.location.href;
+    locationOrigin = window.location.origin;
     __resetCsrfTokenForTests();
     localStorage.setItem('role', 'test');
     Object.defineProperty(window, 'location', {
-      value: { assign: jest.fn(), pathname: '/' },
+      value: {
+        assign: jest.fn(),
+        pathname: '/',
+        href: locationHref,
+        origin: locationOrigin,
+      },
       writable: true,
+      configurable: true,
     });
     fetchMock = mockFetch();
   });
 
   afterEach(() => {
-    Object.defineProperty(window, 'location', { value: originalLocation });
+    Object.defineProperty(window, 'location', locationDescriptor);
     restoreFetch();
     jest.resetAllMocks();
     __resetCsrfTokenForTests();
@@ -32,7 +42,7 @@ describe('apiFetch refresh handling', () => {
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(new Response(null, { status: 500 }));
 
-    await apiFetch('/test');
+    await apiFetch('http://localhost/test');
     expect(window.location.assign).toHaveBeenCalledWith('/login');
   });
 
@@ -45,7 +55,7 @@ describe('apiFetch refresh handling', () => {
       .mockRejectedValueOnce(new Error('network'))
       .mockRejectedValueOnce(new Error('network'));
 
-    await apiFetch('/test');
+    await apiFetch('http://localhost/test');
     expect(window.location.assign).toHaveBeenCalledWith('/login');
   });
 });
