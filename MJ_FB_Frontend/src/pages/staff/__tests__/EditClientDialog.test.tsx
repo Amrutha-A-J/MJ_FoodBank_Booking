@@ -1,7 +1,14 @@
 import { screen, fireEvent } from '@testing-library/react';
+import { setTimeout as nodeSetTimeout, clearTimeout as nodeClearTimeout } from 'timers';
 import EditClientDialog from '../client-management/EditClientDialog';
 import { getUserByClientId } from '../../../api/users';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
+
+beforeAll(() => {
+  // Ensure undici timers receive Node timeout objects with a refresh method
+  global.setTimeout = nodeSetTimeout as any;
+  global.clearTimeout = nodeClearTimeout as any;
+});
 
 jest.mock('../../../api/users', () => ({
   ...jest.requireActual('../../../api/users'),
@@ -59,7 +66,9 @@ describe('EditClientDialog', () => {
       />,
     );
 
-    const toggle = await screen.findByRole('checkbox', { name: /online access/i });
+    const toggle = (
+      await screen.findAllByRole('switch', { name: /online access/i })
+    )[0];
     expect(toggle).not.toBeChecked();
     fireEvent.click(toggle);
     expect(toggle).toBeChecked();
