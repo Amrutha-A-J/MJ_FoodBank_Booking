@@ -7,6 +7,7 @@ import {
   removeVolunteerShopperProfile,
   getVolunteerById,
   updateVolunteer,
+  getVolunteerBookingHistory,
 } from '../../../api/volunteers';
 
 jest.mock('../../../api/volunteers', () => {
@@ -19,6 +20,7 @@ jest.mock('../../../api/volunteers', () => {
     removeVolunteerShopperProfile: jest.fn(),
     getVolunteerById: jest.fn(),
     updateVolunteer: jest.fn(),
+    getVolunteerBookingHistory: jest.fn(),
   };
 });
 
@@ -38,6 +40,10 @@ const mockVolunteer: any = {
 jest.mock('../../../components/EntitySearch', () => (props: any) => (
   <button onClick={() => props.onSelect(mockVolunteer)}>Select Volunteer</button>
 ));
+
+beforeEach(() => {
+  (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([]);
+});
 
 describe('EditVolunteer volunteer info display', () => {
   beforeEach(() => {
@@ -89,7 +95,8 @@ describe('EditVolunteer volunteer info display', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
   });
 });
@@ -125,7 +132,8 @@ describe('EditVolunteer shopper profile', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     const dialog = screen.getByRole('dialog');
@@ -176,7 +184,8 @@ describe('EditVolunteer shopper profile', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
@@ -227,7 +236,8 @@ describe('EditVolunteer role selection', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     expect(screen.getByTestId('roles-select')).toBeInTheDocument();
     expect(screen.getByTestId('save-button')).toBeDisabled();
     expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
@@ -265,7 +275,8 @@ describe('EditVolunteer role selection', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     fireEvent.mouseDown(
       screen.getByTestId('roles-select').querySelector('[role="combobox"]')!
     );
@@ -311,7 +322,8 @@ describe('EditVolunteer role selection', () => {
     );
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
-    fireEvent.click(screen.getByText('Roles'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Roles' }));
     const chipA = await screen.findByTestId('role-chip-role-a');
     const chipB = await screen.findByTestId('role-chip-role-b');
     expect(chipA).toBeInTheDocument();
@@ -345,6 +357,7 @@ describe('EditVolunteer profile editing', () => {
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    await waitFor(() => expect(getVolunteerBookingHistory).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Edit Profile'));
 
     const emailInput = screen.getByLabelText(/email/i);
@@ -362,5 +375,39 @@ describe('EditVolunteer profile editing', () => {
     );
     expect(getVolunteerById).toHaveBeenCalledWith(1);
     expect(screen.getByLabelText(/email/i)).toHaveValue('new@example.com');
+  });
+});
+
+describe('EditVolunteer booking history', () => {
+  beforeEach(() => {
+    (getVolunteerRoles as jest.Mock).mockResolvedValue([]);
+  });
+
+  it('loads history when a volunteer is selected', async () => {
+    (getVolunteerBookingHistory as jest.Mock).mockResolvedValue([
+      {
+        id: 1,
+        date: '2024-01-01',
+        start_time: '09:00',
+        end_time: '10:00',
+        status: 'approved',
+        role_name: 'Greeter',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <EditVolunteer />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByText('Select Volunteer'));
+    await waitFor(() =>
+      expect(getVolunteerBookingHistory).toHaveBeenCalledWith(1),
+    );
+    fireEvent.click(screen.getByText('History'));
+    expect(await screen.findByText('approved')).toBeInTheDocument();
   });
 });
