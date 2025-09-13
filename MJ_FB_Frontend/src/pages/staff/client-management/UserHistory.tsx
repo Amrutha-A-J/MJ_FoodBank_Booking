@@ -12,7 +12,6 @@ import BookingManagementBase from '../../../components/BookingManagementBase';
 import EditClientDialog from './EditClientDialog';
 import ConfirmDialog from '../../../components/ConfirmDialog';
 import { useAuth } from '../../../hooks/useAuth';
-import { useTranslation } from 'react-i18next';
 import { Box, Button, Typography } from '@mui/material';
 
 interface User {
@@ -29,7 +28,6 @@ export default function UserHistory({
   const navigate = useNavigate();
   const [selected, setSelected] = useState<User | null>(initialUser || null);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const { t } = useTranslation();
   const { role } = useAuth();
   const showNotes = role === 'staff' || role === 'agency';
 
@@ -45,14 +43,14 @@ export default function UserHistory({
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
-        {initialUser ? t('client_booking_history') : t('client_history')}
+        {initialUser ? 'Client booking history' : 'Client history'}
       </Typography>
       <Box display="flex" justifyContent="center" alignItems="flex-start" minHeight="100vh">
         <Box width="100%" maxWidth={800} mt={4}>
           {!initialUser && (
             <EntitySearch
               type="user"
-              placeholder={t('search_by_name_or_client_id')}
+              placeholder="Search by name or client ID"
               onSelect={u => setSelected(u as User)}
               onNotFound={id => {
                 (document.activeElement as HTMLElement | null)?.blur();
