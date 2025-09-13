@@ -103,7 +103,7 @@ describe('pantry aggregation routes', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: 'Rebuilt' });
     expect(refreshPantryMonthly).toHaveBeenCalledTimes(12);
-    expect(refreshPantryWeekly).toHaveBeenCalledTimes(53);
+    expect(refreshPantryWeekly).toHaveBeenCalledTimes(52);
     const week6Calls = (refreshPantryWeekly as jest.Mock).mock.calls.filter(
       ([, , w]) => w === 6,
     );
