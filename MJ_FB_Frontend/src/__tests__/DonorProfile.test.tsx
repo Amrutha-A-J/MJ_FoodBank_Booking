@@ -1,4 +1,3 @@
-import en from '../public/locales/en/translation.json';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -48,7 +47,7 @@ describe('DonorProfile', () => {
     expect(await screen.findByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('john@example.com')).toBeInTheDocument();
     expect(await screen.findByText('$100.00')).toBeInTheDocument();
-    expect(screen.getByText('Last Donation: ' + en.not_applicable)).toBeInTheDocument();
+    expect(screen.getByText('Last Donation: N/A')).toBeInTheDocument();
   });
 
   it('edits donor info', async () => {

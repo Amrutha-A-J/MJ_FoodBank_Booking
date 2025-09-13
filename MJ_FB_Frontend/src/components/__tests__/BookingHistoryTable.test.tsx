@@ -1,4 +1,3 @@
-import en from '../../../public/locales/en/translation.json';
 import BookingHistoryTable, { type BookingHistoryItem } from '../BookingHistoryTable';
 import { renderWithProviders, screen, fireEvent } from '../../../testUtils/renderWithProviders';
 
@@ -40,7 +39,7 @@ describe('BookingHistoryTable', () => {
 
   it('shows N/A when time missing', () => {
     renderWithProviders(<BookingHistoryTable rows={[{ id: 2, date: '2024-01-01', status: 'approved' }]} />);
-    expect(screen.getByText(en.not_applicable)).toBeInTheDocument();
+    expect(screen.getByText('N/A')).toBeInTheDocument();
   });
 });
 
