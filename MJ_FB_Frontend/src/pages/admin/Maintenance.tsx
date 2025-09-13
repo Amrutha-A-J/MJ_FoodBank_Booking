@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Box, Grid, FormControlLabel, Switch, TextField, Button } from '@mui/material';
+import { Box, FormControlLabel, Switch, TextField, Button } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
 import Page from '../../components/Page';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import FeedbackSnackbar from '../../components/FeedbackSnackbar';
 import {
-  getMaintenanceSettings,
-  updateMaintenanceSettings,
-  clearMaintenanceStats,
-  type MaintenanceSettings,
+  getMaintenance,
+  updateMaintenance,
+  clearMaintenance,
+  type Maintenance,
 } from '../../api/maintenance';
 
 export default function Maintenance() {
@@ -19,9 +20,9 @@ export default function Maintenance() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await getMaintenanceSettings();
+        const data = await getMaintenance();
         setMaintenanceMode(data.maintenanceMode);
-        setUpcomingNotice(data.upcomingNotice);
+        setUpcomingNotice(data.notice ?? '');
       } catch (err: any) {
         setError(err.message || String(err));
       }
@@ -31,11 +32,11 @@ export default function Maintenance() {
 
   async function handleSave() {
     try {
-      const settings: MaintenanceSettings = {
+      const settings: Maintenance = {
         maintenanceMode,
-        upcomingNotice,
+        notice: upcomingNotice,
       };
-      await updateMaintenanceSettings(settings);
+      await updateMaintenance(settings);
       setMessage('Settings saved');
     } catch (err: any) {
       setError(err.message || String(err));
@@ -44,7 +45,7 @@ export default function Maintenance() {
 
   async function handleClearStats() {
     try {
-      await clearMaintenanceStats();
+      await clearMaintenance();
       setMessage('Maintenance stats cleared');
     } catch (err: any) {
       setError(err.message || String(err));
