@@ -67,15 +67,21 @@ export default function UserHistory({
               getSlots={getSlots}
               onDeleteVisit={deleteClientVisit}
               showNotes={showNotes}
-              renderEditDialog={({ open, onClose, onUpdated }) => (
-                <EditClientDialog
-                  open={open}
-                  clientId={selected.client_id}
-                  onClose={onClose}
-                  onUpdated={onUpdated}
-                  onClientUpdated={name => setSelected({ ...selected, name })}
-                />
-              )}
+              renderEditDialog={
+                role === 'staff'
+                  ? ({ open, onClose, onUpdated }) => (
+                      <EditClientDialog
+                        open={open}
+                        clientId={selected.client_id}
+                        onClose={onClose}
+                        onUpdated={onUpdated}
+                        onClientUpdated={name =>
+                          setSelected({ ...selected, name })
+                        }
+                      />
+                    )
+                  : undefined
+              }
               renderDeleteVisitButton={(b, isSmall, open) =>
                 role === 'staff' && b.status === 'visited' && !b.slot_id ? (
                   <Button
