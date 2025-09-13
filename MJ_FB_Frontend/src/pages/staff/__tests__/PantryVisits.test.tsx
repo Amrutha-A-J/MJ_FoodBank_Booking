@@ -1,4 +1,3 @@
-import en from '../../../../public/locales/en/translation.json';
 import {
   renderWithProviders,
   screen,
@@ -262,7 +261,7 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
     renderVisits();
-    expect(await screen.findAllByText(en.not_applicable)).toHaveLength(2);
+    expect(await screen.findAllByText('N/A')).toHaveLength(2);
   });
   it('toggles verification and hides actions', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([
