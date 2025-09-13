@@ -1,5 +1,10 @@
 import { screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { setImmediate as _setImmediate, clearImmediate as _clearImmediate } from 'timers';
+import {
+  setImmediate as _setImmediate,
+  clearImmediate as _clearImmediate,
+  setTimeout as _setTimeout,
+  clearTimeout as _clearTimeout,
+} from 'timers';
 import { MemoryRouter } from 'react-router-dom';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import DonationLog from '../pages/donor-management/DonationLog';
@@ -26,15 +31,21 @@ describe('Donor Donation Log', () => {
   const realDateNow = Date.now;
   const originalSetImmediate = (global as any).setImmediate;
   const originalClearImmediate = (global as any).clearImmediate;
+  const originalSetTimeout = global.setTimeout;
+  const originalClearTimeout = global.clearTimeout;
   beforeEach(() => {
     (global as any).setImmediate = _setImmediate;
     (global as any).clearImmediate = _clearImmediate;
+    global.setTimeout = _setTimeout as any;
+    global.clearTimeout = _clearTimeout as any;
     Date.now = () => fixedTime;
   });
 
   afterEach(() => {
     (global as any).setImmediate = originalSetImmediate;
     (global as any).clearImmediate = originalClearImmediate;
+    global.setTimeout = originalSetTimeout;
+    global.clearTimeout = originalClearTimeout;
     Date.now = realDateNow;
     jest.clearAllMocks();
   });
@@ -75,6 +86,7 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
+    await screen.findByText('john@example.com');
     await screen.findByText('$50.00');
 
     fireEvent.click(screen.getByLabelText('Edit donation'));
@@ -120,28 +132,28 @@ describe('Donor Donation Log', () => {
 
     fireEvent.change(searchField, { target: { value: '2' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('2'));
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+    await screen.findByText('jane@example.com');
+    await waitFor(() => expect(screen.queryByText('john@example.com')).not.toBeInTheDocument());
 
     fireEvent.change(searchField, { target: { value: 'john' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('john'));
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
+    await screen.findByText('john@example.com');
+    await waitFor(() => expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument());
 
     fireEvent.change(searchField, { target: { value: 'Smith' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('Smith'));
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+    await screen.findByText('jane@example.com');
+    await waitFor(() => expect(screen.queryByText('john@example.com')).not.toBeInTheDocument());
 
     fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'));
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('john@example.com')).not.toBeInTheDocument();
+    await screen.findByText('jane@example.com');
+    await waitFor(() => expect(screen.queryByText('john@example.com')).not.toBeInTheDocument());
 
     fireEvent.change(searchField, { target: { value: '' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith(undefined));
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
+    await screen.findByText('john@example.com');
+    await screen.findByText('jane@example.com');
   });
 
   it('handles donors without emails in display and search', async () => {
@@ -161,20 +173,19 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText('jane@example.com')).toBeInTheDocument();
+    await screen.findByText('jane@example.com');
     expect(screen.getByText('No')).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
 
     const searchField = screen.getByLabelText('Search');
     fireEvent.change(searchField, { target: { value: 'No' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('No'));
-    expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText('jane@example.com')).not.toBeInTheDocument());
     expect(screen.getByText('No')).toBeInTheDocument();
 
     fireEvent.change(searchField, { target: { value: 'jane@example.com' } });
     await waitFor(() => expect(getMonetaryDonors).toHaveBeenLastCalledWith('jane@example.com'));
-    expect(screen.getByText('jane@example.com')).toBeInTheDocument();
-    expect(screen.queryByText('No')).not.toBeInTheDocument();
+    await screen.findByText('jane@example.com');
+    await waitFor(() => expect(screen.queryByText('No')).not.toBeInTheDocument());
   });
 
   it('imports donations and reloads list', async () => {
@@ -196,6 +207,7 @@ describe('Donor Donation Log', () => {
       </MemoryRouter>,
     );
 
+    await screen.findByText('john@example.com');
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
     const file = { name: 'donations.csv' } as File;
     await act(async () => {

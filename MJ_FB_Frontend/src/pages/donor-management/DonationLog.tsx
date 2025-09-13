@@ -31,7 +31,8 @@ import {
 } from '../../api/monetaryDonors';
 import { formatLocaleDate } from '../../utils/date';
 
-function formatMonth(date = new Date()) {
+function formatMonth(dateMs = Date.now()) {
+  const date = new Date(dateMs);
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
@@ -84,7 +85,7 @@ export default function DonationLog() {
         ),
       );
       setDonors(sorted);
-      loadDonations(sorted);
+      await loadDonations(sorted);
       setSnackbar({ open: true, message: 'Donations imported' });
     } catch {
       setSnackbar({ open: true, message: 'Failed to import donations' });
@@ -106,64 +107,66 @@ export default function DonationLog() {
           d.firstName.toLowerCase().includes(s) ||
           d.lastName.toLowerCase().includes(s) ||
           (d.email ?? '').toLowerCase().includes(s) ||
-          d.amount.toString().includes(s),
+          d.amount.toString().includes(s) ||
+          String(d.donorId).includes(s),
       );
     },
     [donations, search],
   );
 
-  useEffect(() => {
-    const donorSearch = search && isNaN(Number(search)) ? search : undefined;
-    getMonetaryDonors(donorSearch)
-      .then(d =>
-        setDonors(
-          d.sort((a, b) =>
-            `${a.lastName} ${a.firstName}`.localeCompare(
-              `${b.lastName} ${b.firstName}`,
-            ),
-          ),
-        ),
-      )
-      .catch(() => setDonors([]));
-  }, [search]);
-
   const loadDonations = useCallback(
-    (list: MonetaryDonor[] = donors) => {
+    async (list: MonetaryDonor[] = donors) => {
       if (list.length === 0) {
         setDonations([]);
         return;
       }
-      Promise.all(
-        list.map(d =>
-          getMonetaryDonations(d.id)
-            .then(list =>
-              list
-                .filter(n => n.date.startsWith(`${month}-`))
-                .map(n => ({
-                  ...n,
-                  firstName: d.firstName,
-                  lastName: d.lastName,
-                  email: d.email,
-                })),
-            )
-            .catch(() => []),
-        ),
-      )
-        .then(res =>
-          setDonations(
-            res
-              .flat()
-              .sort((a, b) => a.date.localeCompare(b.date)),
+      try {
+        const res = await Promise.all(
+          list.map(d =>
+            getMonetaryDonations(d.id)
+              .then(list =>
+                list
+                  .filter(n => n.date.startsWith(`${month}-`))
+                  .map(n => ({
+                    ...n,
+                    firstName: d.firstName,
+                    lastName: d.lastName,
+                    email: d.email,
+                  })),
+              )
+              .catch(() => []),
           ),
-        )
-        .catch(() => setDonations([]));
+        );
+        setDonations(
+          res
+            .flat()
+            .sort((a, b) => a.date.localeCompare(b.date)),
+        );
+      } catch {
+        setDonations([]);
+      }
     },
     [donors, month],
   );
 
   useEffect(() => {
+    const donorSearch = search || undefined;
+    getMonetaryDonors(donorSearch)
+      .then(d => {
+        const sorted = d.sort((a, b) =>
+          `${a.lastName} ${a.firstName}`.localeCompare(
+            `${b.lastName} ${b.firstName}`,
+          ),
+        );
+        setDonors(sorted);
+        loadDonations(sorted);
+      })
+      .catch(() => setDonors([]));
+  }, [search]);
+
+  useEffect(() => {
     loadDonations();
-  }, [loadDonations]);
+  }, [month]);
 
   function handleSaveDonation() {
     if (!form.donorId || !form.amount) return;
