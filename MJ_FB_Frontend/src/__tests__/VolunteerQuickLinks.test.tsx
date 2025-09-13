@@ -21,6 +21,10 @@ describe('VolunteerQuickLinks', () => {
       'href',
       '/volunteer-management/daily',
     );
+    expect(screen.getByRole('link', { name: /Ranking/i })).toHaveAttribute(
+      'href',
+      '/volunteer-management/volunteers?tab=ranking',
+    );
   });
 
   it('keeps links enabled on the current page', () => {

@@ -30,7 +30,7 @@
 - Agency navigation provides Dashboard, Book Appointment, and Booking History pages, all protected by `AgencyGuard`.
 - Agencies can view pantry slot availability and manage bookings—including creating, cancelling, and rescheduling—for their linked clients.
 - Volunteer navigation includes a **Recurring Bookings** submenu for managing repeating shifts; keep related documentation up to date.
-- Volunteer management pages include quick links for Search Volunteer, Volunteer Schedule, and Daily Bookings.
+- Volunteer management pages include quick links for Search Volunteer, Volunteer Schedule, Daily Bookings, and Ranking.
 - Staff access timesheets and leave requests from the profile menu; admins review them under Admin → Timesheets and Admin → Leave Requests.
 - The pantry schedule's **Assign User** modal lets staff add an existing client to the app when search returns no match. Click **Add existing client to the app** to create a shopper by client ID with online access disabled and assign the slot. Bookings for unregistered individuals still appear as `[NEW CLIENT] Name`.
 
