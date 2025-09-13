@@ -77,10 +77,11 @@ describe('recurring volunteer bookings', () => {
       })
       .mockResolvedValueOnce({ rowCount: 1 }) // trained
       .mockResolvedValueOnce({ rows: [{ id: 10 }] }) // insert recurring
-      .mockResolvedValueOnce({ rows: [] }) // holidays
+      .mockResolvedValueOnce({ rows: [{ exists: true }] }) // holidays table check
       .mockResolvedValueOnce({ rows: [] }) // capacity counts
       .mockResolvedValueOnce({ rows: [] }) // existing
-      .mockResolvedValueOnce({ rows: [] }); // overlaps
+      .mockResolvedValueOnce({ rows: [] }) // overlaps
+      .mockResolvedValueOnce({ rows: [] }); // holidays
     client.query.mockResolvedValue({});
 
     const start = getNextMonday();
@@ -102,7 +103,7 @@ describe('recurring volunteer bookings', () => {
       formatDate(end),
     ]);
     expect(res.body.skipped).toEqual([]);
-    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(8);
     expect(client.query).toHaveBeenCalledTimes(3);
   });
 
@@ -122,6 +123,7 @@ describe('recurring volunteer bookings', () => {
       })
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 20 }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] })
@@ -152,7 +154,7 @@ describe('recurring volunteer bookings', () => {
         reason: 'Role not bookable on holidays or weekends',
       },
     ]);
-    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(8);
     expect(client.query).toHaveBeenCalledTimes(3);
   });
 
@@ -179,10 +181,11 @@ describe('recurring volunteer bookings', () => {
       })
       .mockResolvedValueOnce({ rowCount: 1 })
       .mockResolvedValueOnce({ rows: [{ id: 40 }] })
-      .mockResolvedValueOnce({ rows: [{ date: formatDate(holiday) }] })
+      .mockResolvedValueOnce({ rows: [{ exists: true }] })
       .mockResolvedValueOnce({ rows: [{ date: formatDate(fullDate), count: '3' }] })
       .mockResolvedValueOnce({ rows: [{ date: formatDate(existing) }] })
-      .mockResolvedValueOnce({ rows: [{ date: formatDate(overlap) }] });
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(overlap) }] })
+      .mockResolvedValueOnce({ rows: [{ date: formatDate(holiday) }] });
     client.query.mockResolvedValue({});
 
     const res = await request(app)
@@ -207,7 +210,7 @@ describe('recurring volunteer bookings', () => {
         { date: formatDate(overlap), reason: 'Overlapping booking' },
       ]),
     );
-    expect((pool.query as jest.Mock).mock.calls.length).toBe(7);
+    expect((pool.query as jest.Mock).mock.calls.length).toBe(8);
     expect(client.query).toHaveBeenCalledTimes(3);
   });
 
