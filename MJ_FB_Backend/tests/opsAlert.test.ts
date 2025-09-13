@@ -4,7 +4,8 @@ import { describe, it, afterEach, expect, jest } from '@jest/globals';
 
 describe('alertOps telegram', () => {
   const originalToken = process.env.TELEGRAM_BOT_TOKEN;
-  const originalChat = process.env.TELEGRAM_ALERT_CHAT_ID;
+  const originalChat = process.env.TELEGRAM_CHAT_ID;
+  const originalAlertChat = process.env.TELEGRAM_ALERT_CHAT_ID;
 
   afterEach(() => {
     if (originalToken === undefined) {
@@ -13,23 +14,30 @@ describe('alertOps telegram', () => {
       process.env.TELEGRAM_BOT_TOKEN = originalToken;
     }
     if (originalChat === undefined) {
+      delete process.env.TELEGRAM_CHAT_ID;
+    } else {
+      process.env.TELEGRAM_CHAT_ID = originalChat;
+    }
+    if (originalAlertChat === undefined) {
       delete process.env.TELEGRAM_ALERT_CHAT_ID;
     } else {
-      process.env.TELEGRAM_ALERT_CHAT_ID = originalChat;
+      process.env.TELEGRAM_ALERT_CHAT_ID = originalAlertChat;
     }
     jest.resetModules();
   });
 
   it('sends message when telegram env vars set', async () => {
     process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+    process.env.TELEGRAM_CHAT_ID = '123';
     process.env.TELEGRAM_ALERT_CHAT_ID = '123';
     jest.resetModules();
+    jest.unmock('../src/utils/opsAlert');
     const { alertOps } = await import('../src/utils/opsAlert');
     const fetchMock = jest
       .spyOn(global, 'fetch' as any)
       .mockResolvedValue({ ok: true } as any);
     await alertOps('job', new Error('oops'));
-    expect(fetchMock).toHaveBeenCalled();
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(0);
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.text).toContain('[MJFB] job failed');
     expect(body.text).toContain('Time:');
@@ -39,8 +47,10 @@ describe('alertOps telegram', () => {
 
   it('skips telegram when vars missing', async () => {
     delete process.env.TELEGRAM_BOT_TOKEN;
+    delete process.env.TELEGRAM_CHAT_ID;
     delete process.env.TELEGRAM_ALERT_CHAT_ID;
     jest.resetModules();
+    jest.unmock('../src/utils/opsAlert');
     const { alertOps } = await import('../src/utils/opsAlert');
     const fetchMock = jest.spyOn(global, 'fetch' as any).mockResolvedValue({ ok: true } as any);
     await alertOps('job', new Error('oops'));
