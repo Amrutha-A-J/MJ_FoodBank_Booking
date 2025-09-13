@@ -34,36 +34,10 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
   return (
     <List>
       {items.map(ev => (
-        <ListItem
-          key={ev.id}
-          sx={{ pl: 0 }}
-          secondaryAction={
-              <Box>
-                {onEdit && (
-                  <IconButton aria-label="edit" onClick={() => onEdit(ev)}>
-                    <EditIcon />
-                  </IconButton>
-                )}
-                {onChange && (
-                  <>
-                    <IconButton aria-label="move up" onClick={() => changePriority(ev, 1)}>
-                      <ArrowUpwardIcon />
-                    </IconButton>
-                    <IconButton aria-label="move down" onClick={() => changePriority(ev, -1)}>
-                      <ArrowDownwardIcon />
-                    </IconButton>
-                  </>
-                )}
-                {onDelete && (
-                  <IconButton edge="end" aria-label="delete" onClick={() => onDelete(ev.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                )}
-              </Box>
-            }
-          >
-            <ListItemText
-            primary={`${formatDateRange(ev.startDate, ev.endDate)} - ${ev.title}`}
+        <ListItem key={ev.id} sx={{ pl: 0 }}>
+          <ListItemText
+            disableTypography
+            primary={<Typography>{`${formatDateRange(ev.startDate, ev.endDate)} - ${ev.title}`}</Typography>}
             secondary={
               <>
                 {ev.details && (
@@ -71,9 +45,33 @@ export default function EventList({ events, limit, onDelete, onChange, onEdit }:
                     {ev.details}
                   </Typography>
                 )}
-                <Typography variant="caption" component="span" display="block">
-                  Created by {ev.createdByName}
-                </Typography>
+                <Box display="flex" alignItems="center" mt={0.5}>
+                  <Typography variant="caption" component="span">
+                    Created by {ev.createdByName}
+                  </Typography>
+                  <Box ml="auto">
+                    {onEdit && (
+                      <IconButton aria-label="edit" onClick={() => onEdit(ev)}>
+                        <EditIcon />
+                      </IconButton>
+                    )}
+                    {onChange && (
+                      <>
+                        <IconButton aria-label="move up" onClick={() => changePriority(ev, 1)}>
+                          <ArrowUpwardIcon />
+                        </IconButton>
+                        <IconButton aria-label="move down" onClick={() => changePriority(ev, -1)}>
+                          <ArrowDownwardIcon />
+                        </IconButton>
+                      </>
+                    )}
+                    {onDelete && (
+                      <IconButton aria-label="delete" onClick={() => onDelete(ev.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+                </Box>
               </>
             }
           />
