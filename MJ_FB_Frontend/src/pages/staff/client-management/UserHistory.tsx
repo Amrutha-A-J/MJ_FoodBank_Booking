@@ -67,6 +67,8 @@ export default function UserHistory({
               getSlots={getSlots}
               onDeleteVisit={deleteClientVisit}
               showNotes={showNotes}
+              showFilter={!initialUser}
+              showUserHeading={!initialUser}
               renderEditDialog={
                 role === 'staff'
                   ? ({ open, onClose, onUpdated }) => (

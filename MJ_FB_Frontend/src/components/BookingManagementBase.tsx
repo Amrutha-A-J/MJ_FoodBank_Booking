@@ -58,6 +58,8 @@ interface BookingManagementBaseProps {
     open: () => void,
   ) => React.ReactNode;
   showNotes?: boolean;
+  showFilter?: boolean;
+  showUserHeading?: boolean;
 }
 
 export default function BookingManagementBase({
@@ -70,6 +72,8 @@ export default function BookingManagementBase({
   renderEditDialog,
   renderDeleteVisitButton,
   showNotes,
+  showFilter = true,
+  showUserHeading = true,
 }: BookingManagementBaseProps) {
   const [filter, setFilter] = useState('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -214,32 +218,38 @@ export default function BookingManagementBase({
   return (
     <div>
       <Box>
-        <Stack direction="row" spacing={1} alignItems="center" mb={1}>
-          {user.name && <h3>{`History for ${user.name}`}</h3>}
-          {renderEditDialog && (
-            <Button
-              variant="contained"
-              onClick={() => setEditOpen(true)}
+        {((showUserHeading && user.name) || renderEditDialog) && (
+          <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+            {showUserHeading && user.name && (
+              <h3>{`History for ${user.name}`}</h3>
+            )}
+            {renderEditDialog && (
+              <Button
+                variant="contained"
+                onClick={() => setEditOpen(true)}
+              >
+                Edit Client
+              </Button>
+            )}
+          </Stack>
+        )}
+        {showFilter && (
+          <FormControl sx={{ minWidth: 160, mb: 1 }}>
+            <InputLabel id="filter-label">Filter</InputLabel>
+            <Select
+              labelId="filter-label"
+              value={filter}
+              label="Filter"
+              onChange={e => setFilter(e.target.value)}
             >
-              Edit Client
-            </Button>
-          )}
-        </Stack>
-        <FormControl sx={{ minWidth: 160, mb: 1 }}>
-          <InputLabel id="filter-label">Filter</InputLabel>
-          <Select
-            labelId="filter-label"
-            value={filter}
-            label="Filter"
-            onChange={e => setFilter(e.target.value)}
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="approved">Approved</MenuItem>
-            <MenuItem value="visited">Visited</MenuItem>
-            <MenuItem value="no_show">No show</MenuItem>
-            <MenuItem value="past">Past</MenuItem>
-          </Select>
-        </FormControl>
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="approved">Approved</MenuItem>
+              <MenuItem value="visited">Visited</MenuItem>
+              <MenuItem value="no_show">No show</MenuItem>
+              <MenuItem value="past">Past</MenuItem>
+            </Select>
+          </FormControl>
+        )}
         {showNotes && (
           <FormControlLabel
             control={

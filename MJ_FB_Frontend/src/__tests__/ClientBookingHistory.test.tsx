@@ -28,7 +28,7 @@ describe('Client booking history', () => {
     jest.clearAllMocks();
   });
 
-  it('does not show Edit Client button for clients', async () => {
+  it('hides staff-only controls for clients', async () => {
     renderWithProviders(
       <MemoryRouter>
         <UserHistory initialUser={{ name: 'Test Client', client_id: 1 }} />
@@ -37,5 +37,7 @@ describe('Client booking history', () => {
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.queryByRole('button', { name: /Edit Client/i })).toBeNull();
+    expect(screen.queryByLabelText(/Filter/i)).toBeNull();
+    expect(screen.queryByText(/History for/i)).toBeNull();
   });
 });
