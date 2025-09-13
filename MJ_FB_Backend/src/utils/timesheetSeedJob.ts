@@ -1,16 +1,26 @@
-import scheduleDailyJob from './scheduleDailyJob';
+import cron from 'node-cron';
 import seedTimesheets from './timesheetSeeder';
 
 /**
  * Ensure timesheets exist for active staff each day.
  */
-const timesheetSeedJob = scheduleDailyJob(
-  () => seedTimesheets(),
-  '5 0 * * *',
-  false,
-  true,
-);
+let task: cron.ScheduledTask | undefined;
 
-export const startTimesheetSeedJob = timesheetSeedJob.start;
-export const stopTimesheetSeedJob = timesheetSeedJob.stop;
+export const startTimesheetSeedJob = (): void => {
+  if (task) return;
+  task = cron.schedule(
+    '5 0 * * *',
+    () => {
+      void seedTimesheets();
+    },
+    { timezone: 'America/Regina' },
+  );
+};
+
+export const stopTimesheetSeedJob = (): void => {
+  if (task) {
+    task.stop();
+    task = undefined;
+  }
+};
 
