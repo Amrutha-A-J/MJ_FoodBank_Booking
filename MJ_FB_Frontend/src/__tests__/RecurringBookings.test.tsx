@@ -16,6 +16,7 @@ import {
   getRecurringVolunteerBookings,
   requestVolunteerBooking,
   createRecurringVolunteerBooking,
+  getVolunteerBookingsByRoles,
   cancelVolunteerBooking,
   cancelRecurringVolunteerBooking,
   resolveVolunteerBookingConflict,
@@ -29,6 +30,7 @@ jest.mock('../api/volunteers', () => ({
   getMyVolunteerBookings: jest.fn(),
   requestVolunteerBooking: jest.fn(),
   createRecurringVolunteerBooking: jest.fn(),
+  getVolunteerBookingsByRoles: jest.fn(),
   cancelVolunteerBooking: jest.fn(),
   cancelRecurringVolunteerBooking: jest.fn(),
   resolveVolunteerBookingConflict: jest.fn(),
@@ -65,6 +67,7 @@ beforeEach(() => {
   (getHolidays as jest.Mock).mockResolvedValue([]);
   (requestVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (createRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
+  (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
   (cancelVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (cancelRecurringVolunteerBooking as jest.Mock).mockResolvedValue(undefined);
   (rescheduleVolunteerBookingByToken as jest.Mock).mockResolvedValue(undefined);
@@ -73,7 +76,11 @@ beforeEach(() => {
 
 afterEach(async () => {
   await act(async () => {
-    jest.runOnlyPendingTimers();
+    try {
+      jest.runOnlyPendingTimers();
+    } catch {
+      // ignore timers not handled by Jest
+    }
   });
   jest.useRealTimers();
   jest.clearAllMocks();
@@ -82,30 +89,22 @@ afterEach(async () => {
 test('submits weekly recurring booking', async () => {
   renderWithProviders(
     <MemoryRouter>
-      <VolunteerSchedule />
+      <VolunteerRecurringBookings />
     </MemoryRouter>,
   );
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
-  const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
-  const frequency = screen.getByLabelText(/frequency/i);
-  fireEvent.mouseDown(frequency);
-  let freqList: HTMLElement;
-  try {
-    freqList = within(screen.getByLabelText(/frequency/i)).getByRole('listbox');
-  } catch {
-    freqList = document.getElementById(
-      frequency.getAttribute('aria-controls')!,
-    ) as HTMLElement;
-  }
-  fireEvent.click(within(freqList).getByText('Weekly'));
+  let listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Test Role (9:00 AM–10:00 AM)'));
+  const frequencySelect = screen.getByLabelText(/frequency/i);
+  fireEvent.mouseDown(frequencySelect);
+  listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Weekly'));
   fireEvent.click(screen.getByLabelText('Mon'));
   fireEvent.click(screen.getByLabelText('Wed'));
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  fireEvent.submit(document.querySelector('form')!);
   await waitFor(() =>
     expect(createRecurringVolunteerBooking).toHaveBeenCalled(),
   );
@@ -118,28 +117,16 @@ test('submits weekly recurring booking', async () => {
 test('submits daily recurring booking with end date', async () => {
   renderWithProviders(
     <MemoryRouter>
-      <VolunteerSchedule />
+      <VolunteerRecurringBookings />
     </MemoryRouter>,
   );
   fireEvent.mouseDown(await screen.findByLabelText(/role/i));
-  const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
-  const frequency = screen.getByLabelText(/frequency/i);
-  fireEvent.mouseDown(frequency);
-  let freqList: HTMLElement;
-  try {
-    freqList = within(screen.getByLabelText(/frequency/i)).getByRole('listbox');
-  } catch {
-    freqList = document.getElementById(
-      frequency.getAttribute('aria-controls')!,
-    ) as HTMLElement;
-  }
-  fireEvent.click(within(freqList).getByText('Daily'));
+  let listbox = await screen.findByRole('listbox');
+  fireEvent.click(within(listbox).getByText('Test Role (9:00 AM–10:00 AM)'));
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  fireEvent.submit(document.querySelector('form')!);
   await waitFor(() => expect(createRecurringVolunteerBooking).toHaveBeenCalled());
   const args = (createRecurringVolunteerBooking as jest.Mock).mock.calls[0];
   expect(args[2]).toBe('daily');
@@ -153,11 +140,14 @@ test('submits one-time booking', async () => {
       <VolunteerSchedule />
     </MemoryRouter>,
   );
-  fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+  fireEvent.mouseDown(await screen.findByLabelText(/department/i));
   const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Test Role'));
-  fireEvent.click(await screen.findByText('Volunteer Needed', { exact: false }));
-  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  fireEvent.click(within(listbox).getByText('Cat'));
+  const table = await screen.findByRole('table');
+  const slot = within(table)
+    .getAllByRole('button')
+    .find((b) => !b.textContent?.trim())!;
+  fireEvent.click(slot);
   await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
 });
@@ -238,9 +228,11 @@ test('reschedules booking', async () => {
   fireEvent.change(await screen.findByLabelText(/date/i), {
     target: { value: '2024-05-02' },
   });
-  fireEvent.mouseDown(screen.getByLabelText(/role/i));
+  const roleField = await screen.findByRole('combobox', { name: /role/i });
+  await waitFor(() => expect(roleField).not.toHaveAttribute('aria-disabled'));
+  fireEvent.mouseDown(roleField);
   const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText('Role1 (Cat)'));
+  fireEvent.click(within(listbox).getByText(/Test Role 9:00 AM–10:00 AM/));
   fireEvent.click(screen.getByRole('button', { name: /submit/i }));
   await waitFor(() =>
     expect(rescheduleVolunteerBookingByToken).toHaveBeenCalledWith(
