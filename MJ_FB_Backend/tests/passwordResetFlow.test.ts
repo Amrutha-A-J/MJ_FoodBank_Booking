@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import authRouter from '../src/routes/auth';
+import authRouter, { authLimiter } from '../src/routes/auth';
 import usersRouter from '../src/routes/users';
 import pool from '../src/db';
 import bcrypt from 'bcrypt';
@@ -158,6 +158,10 @@ describe('resendPasswordSetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resendLimit.clear();
+    authLimiter.resetKey('::ffff:127.0.0.1');
+    authLimiter.resetKey('127.0.0.1');
+    authLimiter.resetKey('::1');
+    authLimiter.resetKey('::/56');
     jest.useFakeTimers();
   });
 
