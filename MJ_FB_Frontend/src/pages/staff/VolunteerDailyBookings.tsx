@@ -116,7 +116,7 @@ export default function VolunteerDailyBookings() {
         .filter(r => r.available > 0)
         .map(r => ({
           id: r.id.toString(),
-          label: `${r.name} ${formatTime(r.start_time)}–${formatTime(
+          label: `${r.name} ${formatTime(r.start_time)} – ${formatTime(
             r.end_time,
           )}`,
         }));
