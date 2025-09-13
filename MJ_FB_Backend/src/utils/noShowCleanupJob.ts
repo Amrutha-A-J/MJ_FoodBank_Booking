@@ -1,6 +1,6 @@
+import cron from 'node-cron';
 import pool from '../db';
 import logger from './logger';
-import scheduleDailyJob from './scheduleDailyJob';
 import { alertOps, notifyOps } from './opsAlert';
 
 /**
@@ -18,16 +18,28 @@ export async function cleanupNoShows(): Promise<void> {
   }
 }
 
+let job: cron.ScheduledTask | undefined;
+
 /**
  * Schedule the cleanup job to run nightly at 7:00 PM Regina time.
  */
-const noShowCleanupJob = scheduleDailyJob(
-  cleanupNoShows,
-  '0 19 * * *',
-  false,
-  true,
-);
+export function startNoShowCleanupJob(): void {
+  job = cron.schedule(
+    '0 19 * * *',
+    () => {
+      void cleanupNoShows();
+    },
+    { timezone: 'America/Regina' },
+  );
+}
 
-export const startNoShowCleanupJob = noShowCleanupJob.start;
-export const stopNoShowCleanupJob = noShowCleanupJob.stop;
+/**
+ * Stop the scheduled cleanup job.
+ */
+export function stopNoShowCleanupJob(): void {
+  if (job) {
+    job.stop();
+    job = undefined;
+  }
+}
 
