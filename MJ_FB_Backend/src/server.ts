@@ -14,7 +14,7 @@ import { startNoShowCleanupJob, stopNoShowCleanupJob } from './utils/noShowClean
 import {
   startVolunteerNoShowCleanupJob,
   stopVolunteerNoShowCleanupJob,
-} from './utils/volunteerNoShowCleanupJob';
+} from './jobs/volunteerNoShowCleanupJob';
 import {
   startExpiredTokenCleanupJob,
   stopExpiredTokenCleanupJob,

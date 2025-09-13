@@ -1,8 +1,8 @@
+import cron from 'node-cron';
 import pool from '../db';
-import logger from './logger';
-import scheduleDailyJob from './scheduleDailyJob';
+import logger from '../utils/logger';
 import config from '../config';
-import { alertOps, notifyOps } from './opsAlert';
+import { alertOps, notifyOps } from '../utils/opsAlert';
 
 /**
  * Mark past approved volunteer bookings as no-show.
@@ -33,15 +33,28 @@ export async function cleanupVolunteerNoShows(): Promise<void> {
   }
 }
 
+let job: cron.ScheduledTask | undefined;
+
 /**
  * Schedule the volunteer no-show cleanup job to run nightly at 7:00 PM Regina time.
  */
-const volunteerNoShowCleanupJob = scheduleDailyJob(
-  cleanupVolunteerNoShows,
-  '0 19 * * *',
-  false,
-  true,
-);
+export function startVolunteerNoShowCleanupJob(): void {
+  job = cron.schedule(
+    '0 19 * * *',
+    () => {
+      void cleanupVolunteerNoShows();
+    },
+    { timezone: 'America/Regina' },
+  );
+}
 
-export const startVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.start;
-export const stopVolunteerNoShowCleanupJob = volunteerNoShowCleanupJob.stop;
+/**
+ * Stop the scheduled volunteer no-show cleanup job.
+ */
+export function stopVolunteerNoShowCleanupJob(): void {
+  if (job) {
+    job.stop();
+    job = undefined;
+  }
+}
+
