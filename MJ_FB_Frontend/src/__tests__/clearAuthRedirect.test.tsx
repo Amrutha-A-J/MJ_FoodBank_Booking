@@ -2,10 +2,13 @@ import { apiFetch } from '../api/client';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 
 describe('clearAuthAndRedirect', () => {
-  const originalLocation = window.location;
+  const originalLocationDescriptor = Object.getOwnPropertyDescriptor(
+    window,
+    'location'
+  )!;
 
   afterEach(() => {
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', originalLocationDescriptor);
     restoreFetch();
     jest.restoreAllMocks();
     localStorage.clear();
@@ -13,9 +16,13 @@ describe('clearAuthAndRedirect', () => {
 
   it('redirects to /login by default', async () => {
     const assign = jest.fn();
+    const locationMock = Object.assign(new URL('http://localhost/some'), {
+      assign,
+    });
     Object.defineProperty(window, 'location', {
-      value: { pathname: '/some', assign },
+      value: locationMock,
       writable: true,
+      configurable: true,
     });
 
     mockFetch().mockResolvedValue({
@@ -24,16 +31,23 @@ describe('clearAuthAndRedirect', () => {
       headers: new Headers(),
     } as Response);
 
-    await apiFetch('/auth/refresh');
+    await apiFetch(`${window.location.origin}/auth/refresh`);
 
     expect(assign).toHaveBeenCalledWith('/login');
   });
 
   it('does not redirect from set-password path', async () => {
     const assign = jest.fn();
+    const locationMock = Object.assign(
+      new URL('http://localhost/set-password'),
+      {
+        assign,
+      },
+    );
     Object.defineProperty(window, 'location', {
-      value: { pathname: '/set-password', assign },
+      value: locationMock,
       writable: true,
+      configurable: true,
     });
 
     mockFetch().mockResolvedValue({
@@ -42,7 +56,7 @@ describe('clearAuthAndRedirect', () => {
       headers: new Headers(),
     } as Response);
 
-    await apiFetch('/auth/refresh');
+    await apiFetch(`${window.location.origin}/auth/refresh`);
 
     expect(assign).not.toHaveBeenCalled();
   });
