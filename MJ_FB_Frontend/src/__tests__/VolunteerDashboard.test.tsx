@@ -46,8 +46,6 @@ function makeStats(overrides: Partial<VolunteerStats> = {}): VolunteerStats {
   return { ...baseStats, ...overrides };
 }
 
-const base = toDayjs().set('month', 0).set('date', 29).startOf('day');
-
 async function renderDashboard() {
   await act(async () => {
     render(
@@ -59,7 +57,10 @@ async function renderDashboard() {
 }
 
 describe('VolunteerDashboard', () => {
+  let usesFakeTimers = false;
+
   beforeEach(() => {
+    usesFakeTimers = false;
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
     (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
       totalHours: 0,
@@ -74,7 +75,12 @@ describe('VolunteerDashboard', () => {
     localStorage.setItem('volunteerOnboarding', 'true');
   });
 
-  afterEach(() => jest.useRealTimers());
+  afterEach(() => {
+    if (usesFakeTimers) {
+      jest.setSystemTime(undefined);
+      jest.useRealTimers();
+    }
+  });
 
   it('does not show update trained roles button', async () => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -126,9 +132,9 @@ describe('VolunteerDashboard', () => {
   });
 
   it('hides slots already booked by volunteer', async () => {
-    jest
-      .useFakeTimers()
-      .setSystemTime(base.toDate());
+    const base = toDayjs('2030-01-29T00:00', 'America/Regina');
+    usesFakeTimers = true;
+    jest.useFakeTimers().setSystemTime(base.toDate());
     const today = formatReginaDate(base);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
@@ -164,14 +170,14 @@ describe('VolunteerDashboard', () => {
     await renderDashboard();
 
     await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
-    expect(
-      await screen.findByText('No available shifts'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('No available shifts')).toBeInTheDocument();
   });
 
   it('excludes past shifts from available slots', async () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(base.set('hour', 13).toDate());
+    const base = toDayjs('2030-01-29T00:00', 'America/Regina');
+    usesFakeTimers = true;
+    jest.useFakeTimers();
+    jest.setSystemTime(base.set('hour', 13).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -195,13 +201,15 @@ describe('VolunteerDashboard', () => {
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
+    await waitFor(() => expect(getVolunteerRolesForVolunteer).toHaveBeenCalled());
     expect(await screen.findByText('No available shifts')).toBeInTheDocument();
   });
 
   it('lists upcoming available shifts', async () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(base.set('hour', 8).toDate());
+    const base = toDayjs('2030-01-29T00:00', 'America/Regina');
+    usesFakeTimers = true;
+    jest.useFakeTimers();
+    jest.setSystemTime(base.set('hour', 8).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -226,13 +234,17 @@ describe('VolunteerDashboard', () => {
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
-    expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
+    await waitFor(() => expect(getVolunteerRolesForVolunteer).toHaveBeenCalled());
+    const cardTitle = await screen.findByText('Available in My Roles');
+    const card = cardTitle.closest('.MuiCard-root') as HTMLElement;
+    expect(within(card).queryByText('No available shifts')).not.toBeInTheDocument();
   });
 
   it('filters available shifts by role', async () => {
-      jest.useFakeTimers();
-      jest.setSystemTime(base.set('hour', 8).toDate());
+    const base = toDayjs('2030-01-29T00:00', 'America/Regina');
+    usesFakeTimers = true;
+    jest.useFakeTimers();
+    jest.setSystemTime(base.set('hour', 8).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([
@@ -272,8 +284,9 @@ describe('VolunteerDashboard', () => {
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
-    expect(await screen.findByText(/Greeter •/)).toBeInTheDocument();
+    await waitFor(() => expect(getVolunteerRolesForVolunteer).toHaveBeenCalled());
+    const cardTitle = await screen.findByText('Available in My Roles');
+    const card = cardTitle.closest('.MuiCard-root') as HTMLElement;
     await act(async () => {
       fireEvent.mouseDown(screen.getByLabelText('Role'));
     });
@@ -281,11 +294,13 @@ describe('VolunteerDashboard', () => {
       fireEvent.click(screen.getByRole('option', { name: 'Warehouse' }));
     });
 
-    expect(screen.queryByText(/Greeter •/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Warehouse •/)).toBeInTheDocument();
+    expect(within(card).queryByText(/Greeter/)).not.toBeInTheDocument();
+    const list = within(card).getByRole('list');
+    expect(within(list).getByText(/Warehouse/)).toBeInTheDocument();
   });
 
   it('shows server error when shift request fails', async () => {
+    usesFakeTimers = true;
     jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
@@ -334,6 +349,7 @@ describe('VolunteerDashboard', () => {
   });
 
   it('shows upcoming approved shift in My Next Shift', async () => {
+    usesFakeTimers = true;
     jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-02-06T12:00', 'America/Regina').toDate(),
@@ -495,13 +511,11 @@ describe('VolunteerDashboard', () => {
 
     await renderDashboard();
 
-    await waitFor(() => expect(getVolunteerStats).toHaveBeenCalled());
-    expect(
-      await screen.findByText(/Volunteers distributed 25 lbs this month/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/4 \/ 8 hrs/),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(getVolunteerGroupStats).toHaveBeenCalled());
+    const impact = await screen.findByText(/Volunteers distributed/);
+    const card = impact.closest('.MuiCard-root') as HTMLElement;
+    expect(impact).toHaveTextContent(/25\s+lbs this month/);
+    expect(within(card).getByText(/hrs/)).toHaveTextContent('4 / 8 hrs');
     const gauge = screen.getByTestId('group-progress-gauge');
     expect(gauge.querySelector('svg')).toBeInTheDocument();
     expect(
@@ -514,6 +528,7 @@ describe('VolunteerDashboard', () => {
   });
 
   it('displays year in date labels', async () => {
+    usesFakeTimers = true;
     jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
