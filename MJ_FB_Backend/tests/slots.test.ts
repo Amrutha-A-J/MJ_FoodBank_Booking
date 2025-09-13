@@ -18,10 +18,14 @@ jest.mock('../src/routes/pantry/aggregations', () => {
 });
 
 let app: express.Express;
+let setHolidaysFn: (value: Map<string, string> | null) => void;
 
 beforeEach(async () => {
   (pool.query as jest.Mock).mockReset();
   await jest.isolateModulesAsync(async () => {
+    const holidays = await import('../src/utils/holidayCache');
+    setHolidaysFn = holidays.setHolidays;
+    holidays.setHolidays(new Map());
     app = (await import('../src/app')).default;
   });
 });
@@ -231,17 +235,32 @@ describe('GET /api/v1/slots applies slot rules', () => {
 describe('GET /api/v1/slots closed days', () => {
 
   it('returns empty array on weekends', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 0, rows: [] });
-    const res = await request(app).get('/api/v1/slots').query({ date: '2024-06-16' });
+    const res = await request(app)
+      .get('/api/v1/slots')
+      .query({ date: '2024-06-16' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+    expect(pool.query).not.toHaveBeenCalled();
   });
 
   it('returns empty array on holidays', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [{ reason: 'Holiday' }] });
-    const res = await request(app).get('/api/v1/slots').query({ date: '2024-06-18' });
+    setHolidaysFn(new Map([[ '2024-06-18', 'Holiday' ]]));
+    const res = await request(app)
+      .get('/api/v1/slots')
+      .query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/v1/slots/range start date validation', () => {
+  it('returns 400 for invalid start date', async () => {
+    const res = await request(app)
+      .get('/api/v1/slots/range')
+      .query({ start: 'not-a-date', days: 1 });
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message', 'Invalid date');
   });
 });
 
@@ -307,7 +326,7 @@ describe('GET /api/v1/slots/range bulk queries', () => {
       .get('/api/v1/slots/range')
       .query({ start: '2024-06-17', days: 2, includePast: 'true' });
 
-    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(7);
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(5);
     const blockedCall = (pool.query as jest.Mock).mock.calls.find((c: any[]) =>
       c[0].includes('FROM blocked_slots WHERE date = ANY($1)'),
     );

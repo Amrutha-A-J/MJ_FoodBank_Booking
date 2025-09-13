@@ -140,6 +140,7 @@ async function getSlotsForDate(
   date: string,
   includePast = false,
   rangeData?: SlotRangeData,
+  slotCache?: Map<string, SlotRow[]>,
 ): Promise<Slot[]> {
   const reginaDate = formatReginaDate(date);
   const dateObj = new Date(reginaStartOfDayISO(reginaDate));
@@ -151,45 +152,52 @@ async function getSlotsForDate(
 
   // Closed on weekends
   if (day === 0 || day === 6) return [];
-  const slotsQuery =
-    day === 3
-      ? `SELECT id, start_time, end_time, max_capacity
+  if (await isHoliday(reginaDate)) return [];
+
+  const cacheKey = day === 3 ? 'wed' : 'weekday';
+  let rows = slotCache?.get(cacheKey);
+  if (!rows) {
+    const slotsQuery =
+      day === 3
+        ? `SELECT id, start_time, end_time, max_capacity
            FROM slots
            WHERE start_time >= '09:30:00'
              AND start_time <= '18:30:00'
              AND start_time NOT IN ('12:00:00','12:30:00','15:30:00')
            ORDER BY start_time`
-      : `SELECT id, start_time, end_time, max_capacity
+        : `SELECT id, start_time, end_time, max_capacity
            FROM slots
            WHERE start_time >= '09:30:00'
              AND start_time <= '14:30:00'
              AND start_time NOT IN ('12:00:00','12:30:00')
            ORDER BY start_time`;
-  const { rows } = await pool.query<SlotRow>(slotsQuery);
-  // Filter again in code to ensure correct behaviour when the DB layer is mocked
-  let slots = rows.filter(s => {
-    const time = s.start_time;
-    if (day === 3) {
+    const result = await pool.query<SlotRow>(slotsQuery);
+    // Filter again in code to ensure correct behaviour when the DB layer is mocked
+    rows = result.rows.filter(s => {
+      const time = s.start_time;
+      if (day === 3) {
+        return (
+          time >= '09:30:00' &&
+          time <= '18:30:00' &&
+          !['12:00:00', '12:30:00', '15:30:00'].includes(time)
+        );
+      }
       return (
         time >= '09:30:00' &&
-        time <= '18:30:00' &&
-        !['12:00:00', '12:30:00', '15:30:00'].includes(time)
+        time <= '14:30:00' &&
+        !['12:00:00', '12:30:00'].includes(time)
       );
-    }
-    return (
-      time >= '09:30:00' &&
-      time <= '14:30:00' &&
-      !['12:00:00', '12:30:00'].includes(time)
-    );
-  });
+    });
+    slotCache?.set(cacheKey, rows);
+  }
 
+  let slots = rows;
   if (!includePast && reginaDate === formatReginaDate(new Date())) {
     const nowTime = currentReginaTime();
     slots = slots.filter(s => s.start_time >= nowTime);
   }
 
-  const data =
-    rangeData ?? (await fetchSlotRangeData([reginaDate]));
+  const data = rangeData ?? (await fetchSlotRangeData([reginaDate]));
   const blockedMap = new Map<number, string>([
     ...(data.recurring.get(`${day}-${weekOfMonth}`)?.entries() || []),
     ...(data.blocked.get(reginaDate)?.entries() || []),
@@ -254,7 +262,11 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
       : slotsWithAvailability;
     res.json(sanitized);
   } catch (error: any) {
-    if (error.message === 'Invalid date' || error instanceof RangeError) {
+    if (
+      error.message === 'Invalid date' ||
+      error.message === 'Invalid time value' ||
+      error instanceof RangeError
+    ) {
       return res.status(400).json({ message: 'Invalid date' });
     }
     logger.error('Error listing slots:', error);
@@ -281,7 +293,7 @@ export async function listSlotsRange(
     const reginaStart = formatReginaDate(start);
     const startDate = new Date(reginaStartOfDayISO(reginaStart));
     if (isNaN(startDate.getTime())) {
-      return res.status(400).json({ message: 'Invalid start date' });
+      return res.status(400).json({ message: 'Invalid date' });
     }
 
     const dates = Array.from({ length: days }, (_, i) => {
@@ -293,8 +305,9 @@ export async function listSlotsRange(
     const role = req.user?.role;
     const hideReason = role !== 'staff' && role !== 'admin';
     const rangeData = await fetchSlotRangeData(dates);
+    const slotCache = new Map<string, SlotRow[]>();
     const slotsForDates = await Promise.all(
-      dates.map(date => getSlotsForDate(date, includePast, rangeData)),
+      dates.map(date => getSlotsForDate(date, includePast, rangeData, slotCache)),
     );
 
     const today = formatReginaDate(new Date());
@@ -318,7 +331,11 @@ export async function listSlotsRange(
 
     res.json(results);
   } catch (error: any) {
-    if (error.message === 'Invalid date' || error instanceof RangeError) {
+    if (
+      error.message === 'Invalid date' ||
+      error.message === 'Invalid time value' ||
+      error instanceof RangeError
+    ) {
       return res.status(400).json({ message: 'Invalid date' });
     }
     logger.error('Error listing slot range:', error);
