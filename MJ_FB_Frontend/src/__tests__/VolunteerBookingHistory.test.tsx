@@ -29,6 +29,10 @@ afterEach(() => {
   window.matchMedia = originalMatchMedia;
 });
 
+afterAll(() => {
+  window.matchMedia = originalMatchMedia;
+});
+
 describe('VolunteerBookingHistory', () => {
   beforeEach(() => {
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([

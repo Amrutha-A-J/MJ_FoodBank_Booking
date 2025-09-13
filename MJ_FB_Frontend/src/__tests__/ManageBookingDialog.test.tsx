@@ -18,6 +18,8 @@ jest.mock('../api/clientVisits', () => ({
 const { createClientVisit } = jest.requireMock('../api/clientVisits');
 const { getSlots } = jest.requireMock('../api/bookings');
 
+const originalMatchMedia = window.matchMedia;
+
 describe('ManageBookingDialog', () => {
   beforeAll(() => {
     window.matchMedia =
@@ -27,6 +29,10 @@ describe('ManageBookingDialog', () => {
         addListener: () => {},
         removeListener: () => {},
       })) as any);
+  });
+
+  afterAll(() => {
+    window.matchMedia = originalMatchMedia;
   });
 
   beforeEach(() => {

@@ -18,6 +18,8 @@ const {
   updateVolunteerBookingStatus,
 } = jest.requireMock('../api/volunteers');
 
+const originalMatchMedia = window.matchMedia;
+
 describe('ManageVolunteerShiftDialog', () => {
   const booking: VolunteerBookingDetail = {
     id: 1,
@@ -46,6 +48,10 @@ describe('ManageVolunteerShiftDialog', () => {
         removeEventListener: () => {},
         dispatchEvent: () => false,
       }));
+  });
+
+  afterAll(() => {
+    window.matchMedia = originalMatchMedia;
   });
 
   beforeEach(() => {

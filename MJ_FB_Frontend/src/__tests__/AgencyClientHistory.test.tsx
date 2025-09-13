@@ -39,6 +39,10 @@ afterEach(() => {
   window.matchMedia = originalMatchMedia;
 });
 
+afterAll(() => {
+  window.matchMedia = originalMatchMedia;
+});
+
 describe('Agency ClientHistory', () => {
   it('cancels a booking', async () => {
     const { getMyAgencyClients } = require('../api/agencies');
