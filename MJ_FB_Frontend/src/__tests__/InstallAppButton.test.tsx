@@ -55,14 +55,32 @@ describe('InstallAppButton', () => {
         <InstallAppButton />
       </MemoryRouter>,
     );
+    const originalSendBeacon = navigator.sendBeacon;
+    const originalDescriptor = Object.getOwnPropertyDescriptor(
+      navigator,
+      'sendBeacon',
+    );
     const sendBeacon = jest.fn();
     Object.defineProperty(navigator, 'sendBeacon', {
+      configurable: true,
       writable: true,
       value: sendBeacon,
     });
 
-    fireEvent(window, new Event('appinstalled'));
-    expect(sendBeacon).toHaveBeenCalledWith('/api/v1/pwa-install');
+    try {
+      fireEvent(window, new Event('appinstalled'));
+      expect(sendBeacon).toHaveBeenCalledWith('/api/v1/pwa-install');
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(navigator, 'sendBeacon', originalDescriptor);
+      } else {
+        Object.defineProperty(navigator, 'sendBeacon', {
+          configurable: true,
+          writable: true,
+          value: originalSendBeacon,
+        });
+      }
+    }
   });
 
   it('hides button when app already installed', () => {
