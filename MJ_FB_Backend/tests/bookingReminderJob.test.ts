@@ -95,16 +95,31 @@ describe('sendNextDayBookingReminders', () => {
     );
   });
 
-  it('alerts ops and surfaces failures from enqueueEmail', async () => {
+  it('alerts ops for failures and continues sending others', async () => {
     (fetchBookingsForReminder as jest.Mock).mockResolvedValue([
       {
+        id: 1,
         user_email: 'user@example.com',
         reschedule_token: 'tok',
       },
+      {
+        id: 2,
+        user_email: 'user2@example.com',
+        reschedule_token: 'tok2',
+      },
     ]);
-    (enqueueEmail as jest.Mock).mockRejectedValue(new Error('fail'));
+    (enqueueEmail as jest.Mock)
+      .mockRejectedValueOnce(new Error('fail'))
+      .mockResolvedValueOnce(undefined);
 
-    await expect(sendNextDayBookingReminders()).rejects.toThrow('fail');
+    await expect(sendNextDayBookingReminders()).rejects.toThrow(
+      'Failed to enqueue booking reminder emails',
+    );
+    expect(enqueueEmail).toHaveBeenCalledTimes(2);
+    expect(enqueueEmail).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ to: 'user2@example.com' }),
+    );
     expect(alertOps).toHaveBeenCalledTimes(2);
     expect(alertOps).toHaveBeenNthCalledWith(
       1,
