@@ -1,4 +1,4 @@
-import { getWeekForDate } from '../src/utils/dateUtils';
+import { getWeekForDate, formatReginaDateWithDay } from '../src/utils/dateUtils';
 
 describe('getWeekForDate', () => {
   it('returns week-of-month with Monday start', () => {
@@ -19,5 +19,12 @@ describe('getWeekForDate', () => {
       startDate: '2024-09-09',
       endDate: '2024-09-15',
     });
+  });
+});
+
+describe('formatReginaDateWithDay', () => {
+  it('formats month names in Regina timezone', () => {
+    expect(formatReginaDateWithDay('2024-03-31')).toBe('Sun, Mar 31, 2024');
+    expect(formatReginaDateWithDay('2024-04-01')).toBe('Mon, Apr 1, 2024');
   });
 });
