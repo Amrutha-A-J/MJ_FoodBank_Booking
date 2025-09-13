@@ -1,7 +1,24 @@
 import '@testing-library/jest-dom';
 import { TextEncoder, TextDecoder } from 'util';
 import { ReadableStream, WritableStream } from 'stream/web';
-import './src/i18n';
+import en from './public/locales/en/translation.json' assert { type: 'json' };
+
+jest.mock('react-i18next', () => ({
+  Trans: ({ children }: any) => children,
+  useTranslation: () => ({
+    t: (key: string) => (en as Record<string, string>)[key] ?? key,
+    i18n: { changeLanguage: jest.fn(), language: 'en' },
+  }),
+}));
+
+jest.mock('./src/i18n', () => ({
+  __esModule: true,
+  default: {
+    t: (key: string) => (en as Record<string, string>)[key] ?? key,
+    changeLanguage: jest.fn(),
+    language: 'en',
+  },
+}));
 
 // Polyfill TextEncoder/Decoder for testing environment
 (global as any).TextEncoder = TextEncoder;
