@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 
+const originalTTL = process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS;
 
 let pool: any;
 
@@ -52,5 +53,13 @@ describe('passwordSetupUtils', () => {
     });
     const row = await verifyPasswordSetupToken(token);
     expect(row).toMatchObject({ id: 2, user_type: 'staff', user_id: 5 });
+  });
+
+  afterAll(() => {
+    if (originalTTL === undefined) {
+      delete process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS;
+    } else {
+      process.env.PASSWORD_SETUP_TOKEN_TTL_HOURS = originalTTL;
+    }
   });
 });
