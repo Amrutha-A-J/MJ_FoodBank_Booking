@@ -75,15 +75,14 @@ describe('PantrySchedule add existing client workflow', () => {
       </MemoryRouter>,
     );
 
-    const rows = await screen.findAllByRole('row');
-    const cells = within(rows[1]).getAllByRole('cell');
-    fireEvent.click(cells[1]);
-
-    fireEvent.change(
-      screen.getByLabelText('Search users by name/email/phone/client ID'),
-      { target: { value: 'Tes' } },
+    const [signUpBtn] = await screen.findAllByRole('button', { name: '' });
+    fireEvent.click(signUpBtn);
+    await screen.findByRole('dialog');
+    const searchInput = await screen.findByLabelText(
+      /Search users by name\/email\/phone\/client ID/,
     );
-
+    fireEvent.change(searchInput, { target: { value: 'Tes' } });
+    jest.runOnlyPendingTimers();
     expect(await screen.findByText('Test User (123)')).toBeInTheDocument();
   });
 
@@ -108,14 +107,14 @@ describe('PantrySchedule add existing client workflow', () => {
       </MemoryRouter>,
     );
 
-    const rows = await screen.findAllByRole('row');
-    const cells = within(rows[1]).getAllByRole('cell');
-    fireEvent.click(cells[1]);
-
-    fireEvent.change(
-      screen.getByLabelText('Search users by name/email/phone/client ID'),
-      { target: { value: '123' } },
+    const [signUpBtn] = await screen.findAllByRole('button', { name: '' });
+    fireEvent.click(signUpBtn);
+    await screen.findByRole('dialog');
+    const searchInput = await screen.findByLabelText(
+      /Search users by name\/email\/phone\/client ID/,
     );
+    fireEvent.change(searchInput, { target: { value: '123' } });
+    jest.runOnlyPendingTimers();
 
     const addBtn = await screen.findByRole('button', {
       name: 'Add existing client to the app',
@@ -144,10 +143,9 @@ describe('PantrySchedule add existing client workflow', () => {
       </MemoryRouter>,
     );
 
-    const rows = await screen.findAllByRole('row');
-    const cells = within(rows[1]).getAllByRole('cell');
-    fireEvent.click(cells[1]);
-
+    const [signUpBtn] = await screen.findAllByRole('button', { name: '' });
+    fireEvent.click(signUpBtn);
+    await screen.findByLabelText(/Search users by name\/email\/phone\/client ID/);
     const newClientBox = await screen.findByRole('checkbox', {
       name: /new client/i,
     });
