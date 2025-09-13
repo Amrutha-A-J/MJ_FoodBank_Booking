@@ -47,6 +47,7 @@ describe('EditVolunteer save button', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     const saveBtn = await screen.findByTestId('save-button');
     expect(saveBtn).toBeDisabled();
 

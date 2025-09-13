@@ -81,6 +81,7 @@ describe('EditVolunteer volunteer info display', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     expect(await screen.findByText('No roles assigned yet')).toBeInTheDocument();
   });
 });
@@ -114,6 +115,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.change(screen.getByLabelText(/client id/i), { target: { value: '123' } });
@@ -152,6 +154,7 @@ describe('EditVolunteer shopper profile', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     const toggle = screen.getByTestId('shopper-toggle');
     fireEvent.click(toggle);
     fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
@@ -200,6 +203,7 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     expect(screen.getByTestId('roles-select')).toBeInTheDocument();
     expect(screen.getByTestId('save-button')).toBeDisabled();
     expect(screen.getByText('No roles assigned yet')).toBeInTheDocument();
@@ -235,6 +239,7 @@ describe('EditVolunteer role selection', () => {
     );
 
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     fireEvent.mouseDown(
       screen.getByTestId('roles-select').querySelector('[role="combobox"]')!
     );
@@ -281,6 +286,7 @@ describe('EditVolunteer role selection', () => {
 
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     fireEvent.click(screen.getByText('Select Volunteer'));
+    fireEvent.click(screen.getByText('Roles'));
     const chipA = await screen.findByTestId('role-chip-role-a');
     const chipB = await screen.findByTestId('role-chip-role-b');
     expect(chipA).toBeInTheDocument();

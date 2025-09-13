@@ -11,11 +11,13 @@ import {
 import { getApiErrorMessage } from '../../../api/helpers';
 import type { VolunteerRoleWithShifts } from '../../../types';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
   Card,
   CardContent,
-  CardHeader,
   Checkbox,
   Chip,
   Container,
@@ -36,6 +38,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleOutline from '@mui/icons-material/CheckCircleOutline';
 import slugify from '../../../utils/slugify';
 import type { SelectChangeEvent } from '@mui/material/Select';
@@ -58,6 +61,7 @@ export default function EditVolunteer() {
   const [shopperEmail, setShopperEmail] = useState('');
   const [shopperPhone, setShopperPhone] = useState('');
   const [removeShopperOpen, setRemoveShopperOpen] = useState(false);
+  const [expanded, setExpanded] = useState<'profile' | 'roles' | false>('profile');
 
   useEffect(() => {
     getVolunteerRoles()
@@ -244,9 +248,16 @@ export default function EditVolunteer() {
           </Card>
           {volunteer && (
             <>
-              <Card>
-                <CardHeader title="Profile" />
-                <CardContent>
+              <Accordion
+                expanded={expanded === 'profile'}
+                onChange={(_, isExpanded) =>
+                  setExpanded(isExpanded ? 'profile' : false)
+                }
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>Profile</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
                   <Stack spacing={2}>
                     <FormControl component="fieldset">
                       <FormControlLabel
@@ -265,11 +276,18 @@ export default function EditVolunteer() {
                       </FormHelperText>
                     </FormControl>
                   </Stack>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader title="Roles" />
-                <CardContent>
+                </AccordionDetails>
+              </Accordion>
+              <Accordion
+                expanded={expanded === 'roles'}
+                onChange={(_, isExpanded) =>
+                  setExpanded(isExpanded ? 'roles' : false)
+                }
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>Roles</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
                   <FormControl fullWidth>
                     <InputLabel id="role-select-label">Roles</InputLabel>
                     <Select
@@ -317,8 +335,8 @@ export default function EditVolunteer() {
                       </Grid>
                     ))}
                   </Grid>
-                </CardContent>
-              </Card>
+                </AccordionDetails>
+              </Accordion>
             </>
           )}
         </Stack>
