@@ -1,5 +1,12 @@
 import request from 'supertest';
 import express from 'express';
+jest.mock('express-rate-limit', () => ({
+  rateLimit: () => {
+    const fn: any = (_req: any, _res: any, next: any) => next();
+    fn.resetKey = jest.fn();
+    return fn;
+  },
+}));
 import usersRouter from '../src/routes/users';
 import authRouter, { authLimiter } from '../src/routes/auth';
 import pool from '../src/db';
@@ -48,6 +55,7 @@ describe('POST /api/v1/auth/login', () => {
 
   it('logs in staff with valid credentials', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
       .mockResolvedValueOnce({ rowCount: 0, rows: [] })
       .mockResolvedValueOnce({
         rowCount: 1,
@@ -73,14 +81,13 @@ describe('POST /api/v1/auth/login', () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('role', 'staff');
-    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/WHERE email = \$1/);
   });
 
   it('logs in volunteer with shopper profile and returns both roles', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [volunteerWithShopper],
-    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [volunteerWithShopper] });
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
@@ -97,7 +104,7 @@ describe('POST /api/v1/auth/login', () => {
       id: 1,
       consent: false,
     });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE v.email = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE v.email = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
       id: 1,
       role: 'volunteer',
@@ -109,6 +116,7 @@ describe('POST /api/v1/auth/login', () => {
 
   it('logs in volunteer via client ID and returns both roles', async () => {
     (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
       .mockResolvedValueOnce({
         rowCount: 1,
         rows: [
@@ -142,8 +150,8 @@ describe('POST /api/v1/auth/login', () => {
       id: 1,
       consent: false,
     });
-    expect((pool.query as jest.Mock).mock.calls[0][0]).toMatch(/WHERE client_id = \$1/);
-    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/FROM volunteers WHERE user_id = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[1][0]).toMatch(/WHERE client_id = \$1/);
+    expect((pool.query as jest.Mock).mock.calls[2][0]).toMatch(/FROM volunteers WHERE user_id = \$1/);
     expect((jwt.sign as jest.Mock).mock.calls[0][0]).toMatchObject({
       id: 1,
       role: 'volunteer',
@@ -154,10 +162,12 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   it('returns 401 with invalid credentials', async () => {
-    (pool.query as jest.Mock).mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [{ email: 'john@example.com', password: 'hashed', consent: false }],
-    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'false' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [{ email: 'john@example.com', password: 'hashed', consent: false }],
+      });
     (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
     const res = await request(app)
@@ -171,11 +181,32 @@ describe('POST /api/v1/auth/login', () => {
     authLimiter.resetKey('::ffff:127.0.0.1');
     authLimiter.resetKey('127.0.0.1');
     authLimiter.resetKey('::1');
+    authLimiter.resetKey('1.1.1.1');
+    authLimiter.resetKey('::ffff:1.1.1.1');
     const res = await request(app)
       .post('/api/v1/auth/login')
       .set('X-Forwarded-For', '1.1.1.1')
       .send({ email: 'missing@example.com', password: 'secret' });
     expect(res.status).toBe(404);
+  });
+
+  it('blocks non-staff login during maintenance', async () => {
+    authLimiter.resetKey('::ffff:127.0.0.1');
+    authLimiter.resetKey('127.0.0.1');
+    authLimiter.resetKey('::1');
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ value: 'true' }] })
+      .mockResolvedValueOnce({
+        rowCount: 1,
+        rows: [volunteerWithShopper],
+      });
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: volunteerWithShopper.email, password: 'secret' });
+
+    expect(res.status).toBe(503);
   });
 });
 

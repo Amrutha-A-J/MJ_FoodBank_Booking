@@ -19,6 +19,10 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
   }
 
   try {
+    const maintenanceRes = await pool.query(
+      "SELECT value FROM app_config WHERE key = 'maintenance_mode'",
+    );
+    const maintenanceMode = maintenanceRes.rows[0]?.value === 'true';
     if (email) {
       const volunteerQuery = await pool.query(
         `SELECT v.id, v.first_name, v.last_name, v.password, v.consent, v.user_id, u.role AS user_role
@@ -35,6 +39,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const match = await bcrypt.compare(password, volunteer.password);
         if (!match) {
           return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (maintenanceMode) {
+          return res
+            .status(503)
+            .json({ message: 'Service unavailable due to maintenance' });
         }
         const rolesRes = await pool.query(
           `SELECT vr.name
@@ -113,6 +122,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         if (!match) {
           return res.status(401).json({ message: 'Invalid credentials' });
         }
+        if (maintenanceMode) {
+          return res
+            .status(503)
+            .json({ message: 'Service unavailable due to maintenance' });
+        }
         const payload: AuthPayload = {
           id: agency.id,
           role: 'agency',
@@ -140,6 +154,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
         const match = await bcrypt.compare(password, userRow.password);
         if (!match) {
           return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (maintenanceMode) {
+          return res
+            .status(503)
+            .json({ message: 'Service unavailable due to maintenance' });
         }
         const payload: AuthPayload = {
           id: userRow.client_id,
@@ -172,6 +191,11 @@ export async function loginUser(req: Request, res: Response, next: NextFunction)
       const match = await bcrypt.compare(password, userRow.password);
       if (!match) {
         return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      if (maintenanceMode) {
+        return res
+          .status(503)
+          .json({ message: 'Service unavailable due to maintenance' });
       }
 
       const volunteerQuery = await pool.query(
