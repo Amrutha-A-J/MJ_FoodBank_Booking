@@ -129,7 +129,7 @@ describe('SlotRow', () => {
         loadingConfirm={false}
       />,
     );
-    const listButton = screen.getByLabelText(/select .* time slot/i);
+    const listButton = screen.getByLabelText(/select time slot from/i);
     expect(listButton).toHaveStyle({ marginBottom: '0px' });
     expect(
       screen.queryByRole('button', { name: /book selected slot/i }),
@@ -193,7 +193,7 @@ describe('Booking confirmation', () => {
 
     await renderUI();
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
-    const slot = await screen.findByLabelText(/select .* time slot/i);
+    const slot = await screen.findByLabelText(/select time slot from/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
@@ -210,7 +210,7 @@ describe('Booking confirmation', () => {
 
     await renderUI();
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
-    const slot = await screen.findByLabelText(/select .* time slot/i);
+    const slot = await screen.findByLabelText(/select time slot from/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
@@ -239,7 +239,7 @@ describe('Booking confirmation', () => {
 
     await renderUI();
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
-    const slot = await screen.findByLabelText(/select .* time slot/i);
+    const slot = await screen.findByLabelText(/select time slot from/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
@@ -262,7 +262,7 @@ describe('Booking confirmation', () => {
 
     await renderUI();
     await waitFor(() => expect(getSlots).toHaveBeenCalled());
-    const slot = await screen.findByLabelText(/select .* time slot/i);
+    const slot = await screen.findByLabelText(/select time slot from/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
