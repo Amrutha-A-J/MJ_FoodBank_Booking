@@ -106,7 +106,7 @@ describe('BookingUI visible slots', () => {
       jest.runOnlyPendingTimers();
       jest.runOnlyPendingTimers();
     });
-    await screen.findByText(/Booking for: Test/);
+    await screen.findByText(/Booking for Test/);
     expect(screen.queryByText('Book Shopping Appointment')).toBeNull();
   });
 });
