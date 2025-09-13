@@ -24,7 +24,7 @@ describe('Maintenance', () => {
       </ThemeProvider>
     );
 
-    const switchEl = await screen.findByRole('checkbox', { name: /maintenance mode/i });
+    const switchEl = await screen.findByRole('switch', { name: /maintenance mode/i });
     expect(getMaintenanceSettings).toHaveBeenCalled();
     fireEvent.click(switchEl);
     fireEvent.change(screen.getByLabelText(/upcoming notice/i), { target: { value: 'Soon' } });

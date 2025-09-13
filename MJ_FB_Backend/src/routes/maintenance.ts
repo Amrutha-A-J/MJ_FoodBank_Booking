@@ -4,6 +4,7 @@ import {
   setMaintenanceMode,
   setMaintenanceNotice,
   clearMaintenance,
+  clearMaintenanceStats,
 } from '../controllers/maintenanceController';
 import { authMiddleware, authorizeAccess } from '../middleware/authMiddleware';
 import { validate } from '../middleware/validate';
@@ -24,5 +25,11 @@ router.put(
 );
 
 router.delete('/', authMiddleware, authorizeAccess('admin'), clearMaintenance);
+router.delete(
+  '/stats',
+  authMiddleware,
+  authorizeAccess('admin'),
+  clearMaintenanceStats,
+);
 
 export default router;

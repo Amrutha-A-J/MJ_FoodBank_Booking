@@ -64,4 +64,11 @@ describe('maintenance routes', () => {
     expect(res.body).toEqual({ maintenanceMode: false, notice: null });
     expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('DELETE FROM app_config');
   });
+
+  it('clears maintenance stats', async () => {
+    (pool.query as jest.Mock).mockResolvedValueOnce({});
+    const res = await request(app).delete('/maintenance/stats');
+    expect(res.status).toBe(204);
+    expect((pool.query as jest.Mock).mock.calls[0][0]).toContain('DELETE FROM stats');
+  });
 });
