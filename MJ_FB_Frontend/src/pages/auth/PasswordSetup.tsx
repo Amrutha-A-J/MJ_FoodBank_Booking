@@ -12,7 +12,6 @@ import {
   type PasswordSetupInfo,
 } from '../../api/users';
 import ResendPasswordSetupDialog from '../../components/ResendPasswordSetupDialog';
-import { useTranslation } from 'react-i18next';
 
 export default function PasswordSetup() {
   const [searchParams] = useSearchParams();
@@ -23,7 +22,6 @@ export default function PasswordSetup() {
   const [info, setInfo] = useState<PasswordSetupInfo | null>(null);
   const [tokenInvalid, setTokenInvalid] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const loginPathMap: Record<string, string> = {
     client: '/login',
@@ -34,7 +32,7 @@ export default function PasswordSetup() {
 
   useEffect(() => {
     if (!token) {
-      setError(t('invalid_or_expired_token'));
+      setError('Invalid or expired token.');
       setTokenInvalid(true);
       return;
     }
@@ -45,24 +43,24 @@ export default function PasswordSetup() {
         setError(msg);
         setTokenInvalid(true);
       });
-  }, [token, t]);
+  }, [token]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token || tokenInvalid) {
-      setError(t('invalid_or_expired_token'));
+      setError('Invalid or expired token.');
       return;
     }
     if (password.length < 8) {
-      setError(t('profile_page.password_min_length'));
+      setError('Password must be at least 8 characters long.');
       return;
     }
     if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
-      setError(t('profile_page.password_number'));
+      setError('Password must include uppercase and lowercase letters.');
       return;
     }
     if (!/[^A-Za-z0-9]/.test(password)) {
-      setError(t('profile_page.password_symbol'));
+      setError('Password must include a symbol.');
       return;
     }
     try {
@@ -78,50 +76,50 @@ export default function PasswordSetup() {
   }
 
   return (
-    <Page title={t('set_password')}>
+    <Page title="Set Password">
       <FormCard
         onSubmit={handleSubmit}
-        title={t('set_password')}
+        title="Set Password"
         actions={
           !tokenInvalid && (
             <Button type="submit" variant="contained" color="primary" fullWidth>
-              {t('set_password')}
+              Set Password
             </Button>
           )
         }
       >
         {info?.clientId && (
           <p>
-            {t('client_id')}: {info.clientId}
+            Client ID: {info.clientId}
           </p>
         )}
         {info?.email && (
           <p>
-            {t('email')}: {info.email}
+            Email: {info.email}
           </p>
         )}
         {tokenInvalid ? (
           <>
-            <p>{t('invalid_or_expired_token')}</p>
+            <p>Invalid or expired token.</p>
             <Link
               component="button"
               onClick={() => setResendOpen(true)}
               underline="hover"
             >
-              {t('resend_link')}
+              Resend link
             </Link>
           </>
         ) : (
           <>
             <PasswordField
-              label={t('password')}
+              label="Password"
               name="password"
               autoComplete="new-password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               fullWidth
               required
-              helperText={t('profile_page.password_requirements')}
+              helperText="Must be at least 8 characters and include uppercase, lowercase, and special characters."
             />
             <PasswordChecklist password={password} />
             <Button
@@ -129,7 +127,7 @@ export default function PasswordSetup() {
               to={info ? loginPathMap[info.userType] : '/login'}
               variant="outlined"
             >
-              {t('back_to_login')}
+              Back to login
             </Button>
           </>
         )}
