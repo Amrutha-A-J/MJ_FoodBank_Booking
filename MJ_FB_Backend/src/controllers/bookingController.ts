@@ -985,7 +985,29 @@ export async function createBookingForUser(
           .status(400)
           .json({ message: 'Pantry is closed on the selected date.' });
       }
-      await checkSlotCapacity(slotIdNum, date, client);
+      const reginaDate = formatReginaDate(date);
+      const slotLock = await client.query(
+        'SELECT max_capacity FROM slots WHERE id=$1 FOR UPDATE',
+        [slotIdNum],
+      );
+      if (slotLock.rowCount === 0) {
+        await client.query('ROLLBACK');
+        return res
+          .status(400)
+          .json({ message: 'Please select a valid time slot' });
+      }
+      const capacity = slotLock.rows[0].max_capacity;
+      const existing = await client.query(
+        `SELECT COUNT(id) AS count FROM bookings
+         WHERE slot_id=$1 AND date=$2 AND status='approved'`,
+        [slotIdNum, reginaDate],
+      );
+      if (Number(existing.rows[0].count) >= capacity) {
+        await client.query('ROLLBACK');
+        return res
+          .status(409)
+          .json({ message: 'Slot full on selected date' });
+      }
       token = randomUUID();
       bookingId = await insertBooking(
         userId,
