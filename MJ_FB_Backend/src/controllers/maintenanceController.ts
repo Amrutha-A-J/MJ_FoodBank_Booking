@@ -85,3 +85,17 @@ export async function clearMaintenance(
   }
 }
 
+export async function clearMaintenanceStats(
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    await pool.query('DELETE FROM stats');
+    res.sendStatus(204);
+  } catch (error) {
+    logger.error('Error clearing maintenance stats:', error);
+    next(error);
+  }
+}
+
