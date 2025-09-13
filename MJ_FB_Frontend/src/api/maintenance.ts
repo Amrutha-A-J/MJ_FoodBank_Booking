@@ -1,16 +1,16 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
 
-export interface MaintenanceSettings {
+export interface Maintenance {
   maintenanceMode: boolean;
-  upcomingNotice: string;
+  notice?: string;
 }
 
-export async function getMaintenanceSettings(): Promise<MaintenanceSettings> {
+export async function getMaintenance(): Promise<Maintenance> {
   const res = await apiFetch(`${API_BASE}/maintenance`);
   return handleResponse(res);
 }
 
-export async function updateMaintenanceSettings(settings: MaintenanceSettings): Promise<MaintenanceSettings> {
+export async function updateMaintenance(settings: Maintenance): Promise<Maintenance> {
   const res = await apiFetch(`${API_BASE}/maintenance`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -19,7 +19,7 @@ export async function updateMaintenanceSettings(settings: MaintenanceSettings): 
   return handleResponse(res);
 }
 
-export async function clearMaintenanceStats(): Promise<void> {
+export async function clearMaintenance(): Promise<void> {
   const res = await apiFetch(`${API_BASE}/maintenance/stats`, { method: 'DELETE' });
   await handleResponse(res);
 }
