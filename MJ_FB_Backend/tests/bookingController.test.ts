@@ -62,9 +62,18 @@ describe('createBookingForUser', () => {
     const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
-      .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-      .mockResolvedValueOnce({ rows: [{ email: 'client@example.com' }] })
-      .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            email: 'client@example.com',
+            first_name: 'First',
+            last_name: 'Last',
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        rows: [{ start_time: '09:00:00', end_time: '09:30:00' }],
+      });
     const req = {
       user: { role: 'staff', id: 99 },
       body: { userId: 1, slotId: 2, date: '2024-01-15' },
