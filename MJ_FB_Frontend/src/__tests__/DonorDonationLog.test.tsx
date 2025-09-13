@@ -24,6 +24,8 @@ jest.mock('../api/monetaryDonors', () => ({
 describe('Donor Donation Log', () => {
   const fixedTime = new Date('2024-01-01T12:00:00Z').getTime();
   const realDateNow = Date.now;
+  const originalSetImmediate = (global as any).setImmediate;
+  const originalClearImmediate = (global as any).clearImmediate;
   beforeEach(() => {
     (global as any).setImmediate = _setImmediate;
     (global as any).clearImmediate = _clearImmediate;
@@ -31,6 +33,8 @@ describe('Donor Donation Log', () => {
   });
 
   afterEach(() => {
+    (global as any).setImmediate = originalSetImmediate;
+    (global as any).clearImmediate = originalClearImmediate;
     Date.now = realDateNow;
     jest.clearAllMocks();
   });
