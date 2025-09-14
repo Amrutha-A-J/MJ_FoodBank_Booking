@@ -1,4 +1,4 @@
-import { schedule as cronSchedule, ScheduledTask } from 'node-cron';
+import { schedule, ScheduledTask } from 'node-cron';
 import pool from '../db';
 import logger from '../utils/logger';
 
@@ -13,7 +13,8 @@ export async function cleanupPastBlockedSlots(): Promise<void> {
   }
 }
 
-export const schedule = cronSchedule;
+// Re-export the scheduler so tests can replace it with a mock implementation.
+export { schedule };
 
 let task: ScheduledTask | undefined;
 
@@ -37,4 +38,3 @@ export function stopBlockedSlotCleanupJob(): void {
   task?.stop();
   task = undefined;
 }
-
