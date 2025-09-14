@@ -1,41 +1,48 @@
 import { screen } from '@testing-library/react';
 import App from '../App';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
-import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import type { ReactNode } from 'react';
 
-let fetchMock: jest.Mock;
+jest.mock('../hooks/useAuth', () => {
+  const actual = jest.requireActual('../hooks/useAuth');
+  return {
+    ...actual,
+    AuthProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+    useAuth: () => ({
+      isAuthenticated: true,
+      role: 'volunteer',
+      access: ['donation_entry'],
+      name: 'Donation User',
+      userRole: '',
+      id: 1,
+      login: jest.fn(),
+      logout: jest.fn(),
+      cardUrl: '',
+      ready: true,
+    }),
+  };
+});
+
+jest.mock('../hooks/useMaintenance', () => ({
+  __esModule: true,
+  default: () => ({ maintenanceMode: false, notice: undefined, isLoading: false }),
+}));
+
+jest.mock('../api/donors', () => ({
+  getDonors: jest.fn().mockResolvedValue([]),
+  createDonor: jest.fn(),
+}));
+
+jest.mock('../api/donations', () => ({
+  getDonationsByMonth: jest.fn().mockResolvedValue([]),
+  createDonation: jest.fn(),
+  updateDonation: jest.fn(),
+  deleteDonation: jest.fn(),
+}));
 
 describe('donation entry volunteer access', () => {
   beforeEach(() => {
-    fetchMock = mockFetch();
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 204,
-        json: async () => ({}),
-        headers: new Headers(),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => [],
-        headers: new Headers(),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => [],
-        headers: new Headers(),
-      });
-    localStorage.setItem('role', 'volunteer');
-    localStorage.setItem('name', 'Donation User');
-    localStorage.setItem('access', JSON.stringify(['donation_entry']));
     window.history.pushState({}, '', '/');
-  });
-
-  afterEach(() => {
-    restoreFetch();
-    localStorage.clear();
   });
 
   it('redirects to donation log', async () => {
