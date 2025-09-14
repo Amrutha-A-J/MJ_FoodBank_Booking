@@ -150,9 +150,10 @@ async function getSlotsForDate(
     throw new Error('Invalid date');
   }
   const day = dateObj.getDay(); // Sunday=0, Monday=1, etc.
+  const isWeekend = day === 0 || day === 6;
 
-  // Closed on weekends/holidays
-  if (day === 0 || day === 6) return [];
+  // Closed on weekends/holidays before any DB access
+  if (isWeekend) return [];
   if (!skipHolidayCheck && (await isHoliday(reginaDate))) return [];
 
   const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
@@ -287,10 +288,21 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
     if (isNaN(dateObj.getTime())) {
       return res.status(400).json({ message: 'Invalid date' });
     }
+    const day = dateObj.getDay();
+    if (day === 0 || day === 6) {
+      return res.json([]);
+    }
+    if (await isHoliday(reginaDate)) {
+      return res.json([]);
+    }
+
     const includePast = req.query.includePast === 'true';
     const slotsWithAvailability = await getSlotsForDate(
       reginaDate,
       includePast,
+      undefined,
+      undefined,
+      true,
     );
     if (slotsWithAvailability.length === 0) {
       return res.json([]);
