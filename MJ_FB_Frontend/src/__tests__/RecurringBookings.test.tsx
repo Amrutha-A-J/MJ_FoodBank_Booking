@@ -104,7 +104,9 @@ test('submits weekly recurring booking', async () => {
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.submit(document.querySelector('form')!);
+  await act(async () => {
+    fireEvent.submit(document.querySelector('form')!);
+  });
   await waitFor(() =>
     expect(createRecurringVolunteerBooking).toHaveBeenCalled(),
   );
@@ -126,7 +128,9 @@ test('submits daily recurring booking with end date', async () => {
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.submit(document.querySelector('form')!);
+  await act(async () => {
+    fireEvent.submit(document.querySelector('form')!);
+  });
   await waitFor(() => expect(createRecurringVolunteerBooking).toHaveBeenCalled());
   const args = (createRecurringVolunteerBooking as jest.Mock).mock.calls[0];
   expect(args[2]).toBe('daily');
@@ -145,7 +149,9 @@ test('submits one-time booking', async () => {
   fireEvent.click(within(listbox).getByText('Cat'));
   const table = await screen.findByRole('table');
   const slot = within(table).getByRole('button', { name: /sign up/i });
-  fireEvent.click(slot);
+  await act(async () => {
+    fireEvent.click(slot);
+  });
   await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
 });
@@ -188,14 +194,24 @@ test('cancels single and recurring bookings', async () => {
     </MemoryRouter>,
   );
   const cancelButtons = await screen.findAllByText('Cancel');
-  fireEvent.click(cancelButtons[2]);
-  fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
+  await act(async () => {
+    fireEvent.click(cancelButtons[2]);
+  });
+  const confirmButton = await screen.findByRole('button', { name: /confirm/i });
+  await act(async () => {
+    fireEvent.click(confirmButton);
+  });
   await waitFor(() =>
     expect(cancelVolunteerBooking).toHaveBeenCalledWith(3),
   );
   const cancelAllButtons = await screen.findAllByText('Cancel all upcoming');
-  fireEvent.click(cancelAllButtons[0]);
-  fireEvent.click(await screen.findByRole('button', { name: /confirm/i }));
+  await act(async () => {
+    fireEvent.click(cancelAllButtons[0]);
+  });
+  const confirmAllButton = await screen.findByRole('button', { name: /confirm/i });
+  await act(async () => {
+    fireEvent.click(confirmAllButton);
+  });
   await waitFor(() =>
     expect(cancelRecurringVolunteerBooking).toHaveBeenCalledWith(5),
   );
@@ -222,16 +238,29 @@ test('reschedules booking', async () => {
       <VolunteerBookingHistory />
     </MemoryRouter>,
   );
-  fireEvent.click(await screen.findByText('Reschedule'));
-  fireEvent.change(await screen.findByLabelText(/date/i), {
-    target: { value: '2024-05-02' },
+  const rescheduleButton = await screen.findByText('Reschedule');
+  await act(async () => {
+    fireEvent.click(rescheduleButton);
+  });
+  const dateField = await screen.findByLabelText(/date/i);
+  await act(async () => {
+    fireEvent.change(dateField, {
+      target: { value: '2024-05-02' },
+    });
   });
   const roleField = await screen.findByRole('combobox', { name: /role/i });
   await waitFor(() => expect(roleField).not.toHaveAttribute('aria-disabled'));
-  fireEvent.mouseDown(roleField);
+  await act(async () => {
+    fireEvent.mouseDown(roleField);
+  });
   const listbox = await screen.findByRole('listbox');
-  fireEvent.click(within(listbox).getByText(/Test Role 9:00 AM–10:00 AM/));
-  fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+  await act(async () => {
+    fireEvent.click(within(listbox).getByText(/Test Role 9:00 AM–10:00 AM/));
+  });
+  const submitButton = screen.getByRole('button', { name: /submit/i });
+  await act(async () => {
+    fireEvent.click(submitButton);
+  });
   await waitFor(() =>
     expect(rescheduleVolunteerBookingByToken).toHaveBeenCalledWith(
       'abc',
@@ -324,9 +353,11 @@ test('formats recurring booking dates', async () => {
       <VolunteerRecurringBookings />
     </MemoryRouter>,
   );
-  fireEvent.click(
-    screen.getByRole('tab', { name: /manage recurring shifts/i }),
-  );
+  await act(async () => {
+    fireEvent.click(
+      screen.getByRole('tab', { name: /manage recurring shifts/i }),
+    );
+  });
   expect(
     await screen.findByText('Test Role (9:00 AM–10:00 AM)'),
   ).toBeInTheDocument();
@@ -344,9 +375,11 @@ test('shows message when no recurring shifts', async () => {
       <VolunteerRecurringBookings />
     </MemoryRouter>,
   );
-  fireEvent.click(
-    screen.getByRole('tab', { name: /manage recurring shifts/i }),
-  );
+  await act(async () => {
+    fireEvent.click(
+      screen.getByRole('tab', { name: /manage recurring shifts/i }),
+    );
+  });
   expect(
     await screen.findByText(/no recurring shift/i),
   ).toBeInTheDocument();
