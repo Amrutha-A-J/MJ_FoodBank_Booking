@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { act } from 'react';
 import VolunteerCoverageCard from '../components/dashboard/VolunteerCoverageCard';
 import { getVolunteerRoles, getVolunteerBookingsByRole } from '../api/volunteers';
 
@@ -52,20 +53,21 @@ describe('VolunteerCoverageCard', () => {
       { status: 'approved', date: '2024-01-15', volunteer_name: 'Bob' },
     ]);
 
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     render(<VolunteerCoverageCard />);
 
     await screen.findByText('Greeter 8:00 AM–12:00 PM (Front)');
 
-    await userEvent.click(
-      screen.getByText('Greeter 8:00 AM–12:00 PM (Front)'),
-    );
-
-    expect(
-      await screen.findByText('Volunteers – Greeter 8:00 AM–12:00 PM'),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
-  });
+    await act(async () => {
+      await user.click(screen.getByText('Greeter 8:00 AM–12:00 PM (Front)'));
+      jest.runOnlyPendingTimers();
+      expect(
+        await screen.findByText('Volunteers – Greeter 8:00 AM–12:00 PM'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('Alice')).toBeInTheDocument();
+      expect(screen.getByText('Bob')).toBeInTheDocument();
+    });
+  }, 10000);
 
   it('shows coverage per shift', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
