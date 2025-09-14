@@ -104,7 +104,9 @@ test('submits weekly recurring booking', async () => {
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.submit(document.querySelector('form')!);
+  await act(async () => {
+    fireEvent.submit(document.querySelector('form')!);
+  });
   await waitFor(() =>
     expect(createRecurringVolunteerBooking).toHaveBeenCalled(),
   );
@@ -126,7 +128,9 @@ test('submits daily recurring booking with end date', async () => {
   fireEvent.change(screen.getByLabelText(/end date/i), {
     target: { value: '2024-12-31' },
   });
-  fireEvent.submit(document.querySelector('form')!);
+  await act(async () => {
+    fireEvent.submit(document.querySelector('form')!);
+  });
   await waitFor(() => expect(createRecurringVolunteerBooking).toHaveBeenCalled());
   const args = (createRecurringVolunteerBooking as jest.Mock).mock.calls[0];
   expect(args[2]).toBe('daily');
@@ -144,10 +148,10 @@ test('submits one-time booking', async () => {
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Cat'));
   const table = await screen.findByRole('table');
-  const slot = within(table)
-    .getAllByRole('button')
-    .find((b) => !b.textContent?.trim())!;
-  fireEvent.click(slot);
+  const slot = await within(table).findByRole('button', { name: /sign up/i });
+  await act(async () => {
+    fireEvent.click(slot);
+  });
   await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
 });
