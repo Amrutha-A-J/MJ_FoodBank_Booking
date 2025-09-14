@@ -6,6 +6,30 @@ import LeaveManagement from '../LeaveManagement';
 
 const mockMutate = jest.fn();
 
+beforeEach(() => {
+  class TestFormData {
+    private data = new Map<string, string>();
+    constructor(form?: HTMLFormElement) {
+      if (form) {
+        Array.from(form.elements).forEach(el => {
+          const input = el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+          if (input.name) {
+            this.data.set(input.name, input.value);
+          }
+        });
+      }
+    }
+    append(name: string, value: string) {
+      this.data.set(name, value);
+    }
+    get(name: string) {
+      return this.data.get(name) ?? null;
+    }
+  }
+  (global as any).FormData = TestFormData as any;
+  (window as any).FormData = TestFormData as any;
+});
+
 jest.mock('../../../api/timesheets', () => ({
   useTimesheets: () => ({
     timesheets: [
