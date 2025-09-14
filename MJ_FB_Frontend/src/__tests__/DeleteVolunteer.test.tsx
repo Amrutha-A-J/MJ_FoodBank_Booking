@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import DeleteVolunteer from '../pages/volunteer-management/DeleteVolunteer';
 import { deleteVolunteer } from '../api/volunteers';
@@ -31,7 +31,10 @@ describe('DeleteVolunteer', () => {
     );
     fireEvent.click(screen.getByText('Select Volunteer'));
     fireEvent.click(screen.getByRole('button', { name: /delete/i }));
-    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+    const confirmButton = screen.getByRole('button', { name: /confirm/i });
+    await act(async () => {
+      fireEvent.click(confirmButton);
+    });
     expect(deleteVolunteer).toHaveBeenCalledWith(2);
   });
 });
