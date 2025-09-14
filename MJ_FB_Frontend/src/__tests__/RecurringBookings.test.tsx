@@ -144,9 +144,7 @@ test('submits one-time booking', async () => {
   const listbox = await screen.findByRole('listbox');
   fireEvent.click(within(listbox).getByText('Cat'));
   const table = await screen.findByRole('table');
-  const slot = within(table)
-    .getAllByRole('button')
-    .find((b) => !b.textContent?.trim())!;
+  const slot = within(table).getByRole('button', { name: /sign up/i });
   fireEvent.click(slot);
   await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   expect(createRecurringVolunteerBooking).not.toHaveBeenCalled();
