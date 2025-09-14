@@ -119,6 +119,9 @@ describe('VolunteerDashboard', () => {
   });
 
   it('shows an error message if events cannot be fetched', async () => {
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
     (getVolunteerRolesForVolunteer as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockRejectedValue(new Error('fail'));
@@ -127,6 +130,8 @@ describe('VolunteerDashboard', () => {
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText('Failed to load events')).toBeInTheDocument();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
   });
 
   it('hides slots already booked by volunteer', async () => {
