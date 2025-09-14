@@ -4,6 +4,7 @@ import MailLists from '../pages/donor-management/MailLists';
 import { getMailLists, sendMailListEmails } from '../api/monetaryDonors';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../api/monetaryDonors', () => ({
   getMailLists: jest.fn(),
@@ -37,7 +38,11 @@ describe('MailLists', () => {
     now.setUTCMonth(now.getUTCMonth() - 1);
     const monthName = now.toLocaleString('en-CA', { month: 'long' });
 
-    renderWithProviders(<MailLists />);
+    renderWithProviders(
+      <MemoryRouter>
+        <MailLists />
+      </MemoryRouter>
+    );
 
     const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeEnabled());
@@ -66,7 +71,11 @@ describe('MailLists', () => {
     now.setUTCMonth(now.getUTCMonth() - 1);
     const monthName = now.toLocaleString('en-CA', { month: 'long' });
 
-    renderWithProviders(<MailLists />);
+    renderWithProviders(
+      <MemoryRouter>
+        <MailLists />
+      </MemoryRouter>
+    );
 
     const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeEnabled());
@@ -88,7 +97,11 @@ describe('MailLists', () => {
     now.setUTCMonth(now.getUTCMonth() - 1);
     const monthName = now.toLocaleString('en-CA', { month: 'long' });
 
-    renderWithProviders(<MailLists />);
+    renderWithProviders(
+      <MemoryRouter>
+        <MailLists />
+      </MemoryRouter>
+    );
 
     const btn = await screen.findByRole('button', { name: /send emails for/i });
     await waitFor(() => expect(btn).toBeDisabled());
