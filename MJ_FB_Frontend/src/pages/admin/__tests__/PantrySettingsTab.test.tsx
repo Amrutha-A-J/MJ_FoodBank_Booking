@@ -2,6 +2,8 @@ import {
   renderWithProviders,
   screen,
   fireEvent,
+  act,
+  waitFor,
 } from '../../../../testUtils/renderWithProviders';
 import '@testing-library/jest-dom';
 import PantrySettingsTab from '../settings/PantrySettingsTab';
@@ -37,11 +39,16 @@ describe('PantrySettingsTab', () => {
 
     fireEvent.change(tareField, { target: { value: '15' } });
     const [saveCapacity, saveTare] = screen.getAllByText('Save');
-    fireEvent.click(saveTare);
+    await act(async () => {
+      fireEvent.click(saveTare);
+    });
+    await waitFor(() => expect(updateAppConfig).toHaveBeenCalled());
     expect(updateAppConfig).toHaveBeenCalledWith({ cartTare: 15 });
 
     fireEvent.change(capacityField, { target: { value: '7' } });
-    fireEvent.click(saveCapacity);
+    await act(async () => {
+      fireEvent.click(saveCapacity);
+    });
     expect(updateSlotCapacity).toHaveBeenCalledWith(7);
   });
 });
