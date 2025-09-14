@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor, within } from "@testing-library/react";
+import { screen, fireEvent, waitFor, within, act } from "@testing-library/react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import VolunteerSchedule from "../pages/volunteer-management/VolunteerSchedule";
 import { renderWithProviders } from "../../testUtils/renderWithProviders";
@@ -223,11 +223,21 @@ describe("VolunteerSchedule", () => {
     const table = screen.getByRole('table');
     const rows = within(table).getAllByRole('row');
     const myCell = within(rows[1]).getAllByRole('button')[0];
-    fireEvent.click(myCell);
-    fireEvent.click(await screen.findByRole('button', { name: /reschedule/i }));
+    await act(async () => {
+      fireEvent.click(myCell);
+    });
+    const rescheduleBtn = await screen.findByRole('button', {
+      name: /reschedule/i,
+    });
+    await act(async () => {
+      fireEvent.click(rescheduleBtn);
+    });
 
-    fireEvent.change(screen.getAllByLabelText(/date/i)[0], {
-      target: { value: '2024-02-02' },
+    const dateInputs = await screen.findAllByLabelText(/date/i);
+    await act(async () => {
+      fireEvent.change(dateInputs[0], {
+        target: { value: '2024-02-02' },
+      });
     });
     await waitFor(() =>
       expect(getVolunteerRolesForVolunteer).toHaveBeenCalledWith('2024-02-02'),
@@ -297,7 +307,9 @@ describe("VolunteerSchedule", () => {
     const rows = within(table).getAllByRole('row');
     const firstRow = rows[1];
     const firstSlotCell = within(firstRow).getAllByRole('cell')[1];
-    fireEvent.click(within(firstSlotCell).getAllByRole('button')[0]);
+    await act(async () => {
+      fireEvent.click(within(firstSlotCell).getAllByRole('button')[0]);
+    });
 
     await waitFor(() => expect(requestVolunteerBooking).toHaveBeenCalled());
   });
