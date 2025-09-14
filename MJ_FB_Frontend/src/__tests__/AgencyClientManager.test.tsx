@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import AgencyClientManager from '../pages/staff/AgencyClientManager';
 
 jest.mock('../api/agencies', () => ({
@@ -31,9 +32,11 @@ describe('AgencyClientManager', () => {
       details: { agencyName: 'Other Agency' },
     });
 
+    const user = userEvent.setup();
     render(<AgencyClientManager />);
-    fireEvent.click(screen.getByText('select agency'));
-    fireEvent.click(screen.getByRole('button', { name: /add/i }));
+    await user.click(screen.getByText('select agency'));
+    await waitFor(() => screen.getByRole('button', { name: /add/i }));
+    await user.click(screen.getByRole('button', { name: /add/i }));
 
     await waitFor(() =>
       expect(
@@ -54,10 +57,11 @@ describe('AgencyClientManager', () => {
         email: 'c@example.com',
       },
     ]);
+    const user = userEvent.setup();
     render(<AgencyClientManager />);
-    fireEvent.click(screen.getByText('select agency'));
+    await user.click(screen.getByText('select agency'));
     await screen.findByText('Clients for Agency A');
-    fireEvent.click(screen.getByText('Book'));
+    await user.click(screen.getByText('Book'));
     expect(await screen.findByText('BookingUI Client One')).toBeInTheDocument();
     expect(mockBookingUI).toHaveBeenCalledWith(
       expect.objectContaining({ shopperName: 'Client One', userId: 5 }),
