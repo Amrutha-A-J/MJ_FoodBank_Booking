@@ -345,11 +345,10 @@ export async function listSlotsRange(
       .json({ message: 'days must be an integer between 1 and 120' });
   }
   const startQuery = req.query.start;
-  if (
-    startQuery !== undefined &&
-    (typeof startQuery !== 'string' || !DATE_REGEX.test(startQuery))
-  ) {
-    return res.status(400).json({ message: 'Invalid date' });
+  if (startQuery !== undefined) {
+    if (typeof startQuery !== 'string' || !DATE_REGEX.test(startQuery)) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
   }
   const includePast = req.query.includePast === 'true';
 
