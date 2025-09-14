@@ -1,3 +1,4 @@
+process.env.EMAIL_ENABLED = 'false';
 import request from 'supertest';
 import express from 'express';
 import { formatReginaDate } from '../src/utils/dateUtils';
@@ -85,13 +86,20 @@ describe('booking monthly limits', () => {
         },
       );
     });
+    const defaultQuery = jest
+      .fn()
+      .mockResolvedValue({ rows: [], rowCount: 0 });
     (pool.connect as jest.Mock).mockResolvedValue({
-      query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      query: defaultQuery,
       release: jest.fn(),
     });
-    (pool.query as jest.Mock).mockResolvedValue({ rows: [{ bookings_this_month: 0 }] });
-    (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
-    (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
+    (pool.query as jest.Mock).mockImplementation(defaultQuery);
+    (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   it('rejects third visit in current month', async () => {
