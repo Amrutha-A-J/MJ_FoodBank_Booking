@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import DeleteClient from '../client-management/DeleteClient';
 import { deleteUser } from '../../../api/users';
@@ -19,7 +19,11 @@ describe('DeleteClient', () => {
 
     fireEvent.click(screen.getByText('Select Client'));
     fireEvent.click(screen.getByRole('button', { name: /delete/i }));
-    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+    const confirmButton = screen.getByRole('button', { name: /confirm/i });
+    await act(async () => {
+      fireEvent.click(confirmButton);
+    });
+    await waitFor(() => expect(deleteUser).toHaveBeenCalled());
     expect(deleteUser).toHaveBeenCalledWith(1);
   });
 });
