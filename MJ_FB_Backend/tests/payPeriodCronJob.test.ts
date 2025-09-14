@@ -1,34 +1,20 @@
 jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 
-jest.doMock('../src/utils/scheduleDailyJob', () => {
-  const actual = jest.requireActual('../src/utils/scheduleDailyJob');
-  return {
-    __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
-  };
-});
-
 jest.mock('../src/utils/payPeriodSeeder', () => ({ seedPayPeriods: jest.fn() }));
-
-let startPayPeriodCronJob: () => void;
-let stopPayPeriodCronJob: () => void;
-let seedPayPeriods: any;
+import { startPayPeriodCronJob, stopPayPeriodCronJob } from '../src/utils/payPeriodCronJob';
+import { seedPayPeriods } from '../src/utils/payPeriodSeeder';
 
 describe('startPayPeriodCronJob/stopPayPeriodCronJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
+
   beforeEach(() => {
-    jest.resetModules();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-06-01T00:00:00Z'));
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     jest.clearAllMocks();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
-    seedPayPeriods = require('../src/utils/payPeriodSeeder').seedPayPeriods;
-    const payPeriodJob = require('../src/utils/payPeriodCronJob');
-    startPayPeriodCronJob = payPeriodJob.startPayPeriodCronJob;
-    stopPayPeriodCronJob = payPeriodJob.stopPayPeriodCronJob;
   });
 
   afterEach(() => {
