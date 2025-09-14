@@ -3,7 +3,8 @@ jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
     __esModule: true,
-    default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
+    default: (cb: any, schedule: string, _runOnStart?: boolean, skipInTest?: boolean) =>
+      actual.default(cb, schedule, false, skipInTest),
   };
 });
 jest.mock('../src/utils/opsAlert');
