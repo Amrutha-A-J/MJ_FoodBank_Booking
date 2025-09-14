@@ -45,6 +45,7 @@ interface SlotRangeData {
 }
 
 const REGINA_TZ = 'America/Regina';
+const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 function currentReginaTime(): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -327,7 +328,15 @@ export async function listSlotsRange(
       .status(400)
       .json({ message: 'days must be an integer between 1 and 120' });
   }
-  const start = (req.query.start as string) || formatReginaDate(new Date());
+  const startProvided = Object.prototype.hasOwnProperty.call(
+    req.query,
+    'start',
+  );
+  const startParam = req.query.start as string | undefined;
+  if (startProvided && (!startParam || !DATE_REGEX.test(startParam))) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  const start = startParam || formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
   try {
