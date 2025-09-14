@@ -22,6 +22,7 @@ describe('appreciation message on login', () => {
   beforeEach(() => {
     (apiFetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({ ok: true, status: 200 })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ cardUrl: '/card.pdf' }) });
   });
 
@@ -32,8 +33,10 @@ describe('appreciation message on login', () => {
 
   it('shows appreciation message and card link for volunteers', async () => {
     renderWithProviders(<Trigger role="volunteer" />);
-    fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalled());
+    (apiFetch as jest.Mock).mockClear();
+    fireEvent.click(screen.getByText('Login'));
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
     expect(
       await screen.findByText(content => APPRECIATION_MESSAGES.includes(content))
     ).toBeInTheDocument();
@@ -43,8 +46,10 @@ describe('appreciation message on login', () => {
 
   it('does not show appreciation message for staff', async () => {
     renderWithProviders(<Trigger role="staff" />);
-    fireEvent.click(screen.getByText('Login'));
     await waitFor(() => expect(apiFetch).toHaveBeenCalled());
+    (apiFetch as jest.Mock).mockClear();
+    fireEvent.click(screen.getByText('Login'));
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledTimes(2));
     expect(
       screen.queryByText(content => APPRECIATION_MESSAGES.includes(content))
     ).toBeNull();
