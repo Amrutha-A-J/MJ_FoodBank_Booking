@@ -38,6 +38,10 @@ describe('Profile password reset', () => {
           </Routes>
         </MemoryRouter>
       );
+      await waitFor(() => expect(getUserProfile).toHaveBeenCalled());
+      if (role !== 'staff' && role !== 'agency') {
+        await waitFor(() => expect(getUserPreferences).toHaveBeenCalled());
+      }
       const btn = await screen.findByRole('button', { name: /Reset Password/i });
       await waitFor(() => expect(btn).toBeEnabled());
       fireEvent.click(btn);
@@ -59,6 +63,8 @@ describe('Profile password reset', () => {
           </Routes>
         </MemoryRouter>
       );
+      await waitFor(() => expect(getVolunteerProfile).toHaveBeenCalled());
+      await waitFor(() => expect(getUserPreferences).toHaveBeenCalled());
       const btn = await screen.findByRole('button', { name: /Reset Password/i });
       await waitFor(() => expect(btn).toBeEnabled());
       fireEvent.click(btn);
