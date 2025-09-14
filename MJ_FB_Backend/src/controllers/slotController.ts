@@ -335,10 +335,10 @@ export async function listSlotsRange(
   if (startParam !== undefined && !DATE_REGEX.test(startParam)) {
     return res.status(400).json({ message: 'Invalid date' });
   }
-  const start = startParam ?? formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
   try {
+    const start = startParam ?? formatReginaDate(new Date());
     const reginaStart = formatReginaDate(start);
     const startDate = new Date(reginaStartOfDayISO(reginaStart));
     if (isNaN(startDate.getTime())) {
