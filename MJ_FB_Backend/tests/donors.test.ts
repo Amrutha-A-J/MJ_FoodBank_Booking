@@ -111,4 +111,53 @@ describe('donor routes', () => {
     );
     expect(res.body).toEqual({ message: 'Donor already exists' });
   });
+
+  it('rejects invalid donor payload', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [authRow] });
+    const res = await request(app)
+      .post('/donors')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: '', lastName: '', email: 'bad' });
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 500 when db fails on list', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db failure'));
+    const res = await request(app)
+      .get('/donors')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('returns 500 when db fails on add', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({
+      id: 1,
+      role: 'staff',
+      type: 'staff',
+      access: ['warehouse', 'donation_entry'],
+    });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db failure'));
+    const res = await request(app)
+      .post('/donors')
+      .set('Authorization', 'Bearer token')
+      .send({ firstName: 'X', lastName: 'Y', email: 'x@y.com' });
+    expect(res.status).toBe(500);
+  });
 });
