@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import VolunteerManagement from '../VolunteerManagement';
@@ -23,14 +23,19 @@ describe('VolunteerManagement force booking', () => {
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
-        role_id: 1,
         category_id: 1,
         category_name: 'Front',
         name: 'Greeter',
-        start_time: '09:00:00',
-        end_time: '10:00:00',
         max_volunteers: 1,
-        has_shifts: true,
+        shifts: [
+          {
+            id: 1,
+            start_time: '09:00:00',
+            end_time: '10:00:00',
+            is_wednesday_slot: false,
+            is_active: true,
+          },
+        ],
       },
     ]);
     (getVolunteerBookingsByRoles as jest.Mock).mockResolvedValue([]);
@@ -55,8 +60,13 @@ describe('VolunteerManagement force booking', () => {
       </MemoryRouter>,
     );
 
+    await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
+    await act(async () => {});
+
     fireEvent.mouseDown(screen.getByLabelText('Role'));
-    fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('option', { name: 'Greeter' }));
+    });
 
     fireEvent.click(await screen.findByText('Available'));
 
