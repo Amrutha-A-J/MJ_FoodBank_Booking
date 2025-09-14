@@ -1,6 +1,11 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import Profile from '../pages/booking/Profile';
-import { requestPasswordReset, getUserProfile } from '../api/users';
+import {
+  requestPasswordReset,
+  getUserProfile,
+  getUserPreferences,
+} from '../api/users';
 import { getVolunteerProfile } from '../api/volunteers';
 import type { Role, UserProfile } from '../types';
 
@@ -10,10 +15,13 @@ jest.mock('../api/volunteers');
 describe('Profile password reset', () => {
   beforeEach(() => {
     (requestPasswordReset as jest.Mock).mockResolvedValue(undefined);
+    (getUserPreferences as jest.Mock).mockResolvedValue({ emailReminders: true });
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     jest.resetAllMocks();
+    (console.error as jest.Mock).mockRestore();
   });
 
   it.each([
@@ -23,8 +31,15 @@ describe('Profile password reset', () => {
     ['delivery', { firstName: 'D', lastName: 'Livery', email: null, phone: null, role: 'delivery', clientId: 84 } as UserProfile, { clientId: '84' }],
     ])('sends reset link for %s', async (role, profile, payload) => {
       (getUserProfile as jest.Mock).mockResolvedValue(profile);
-      render(<Profile role={role as Role} />);
+      render(
+        <MemoryRouter initialEntries={["/"]}>
+          <Routes>
+            <Route path="/" element={<Profile role={role as Role} />} />
+          </Routes>
+        </MemoryRouter>
+      );
       const btn = await screen.findByRole('button', { name: /Reset Password/i });
+      await waitFor(() => expect(btn).toBeEnabled());
       fireEvent.click(btn);
       expect(requestPasswordReset).toHaveBeenCalledWith(payload);
     });
@@ -37,8 +52,15 @@ describe('Profile password reset', () => {
         phone: null,
         role: 'volunteer',
       } as UserProfile);
-      render(<Profile role="volunteer" />);
+      render(
+        <MemoryRouter initialEntries={["/"]}>
+          <Routes>
+            <Route path="/" element={<Profile role="volunteer" />} />
+          </Routes>
+        </MemoryRouter>
+      );
       const btn = await screen.findByRole('button', { name: /Reset Password/i });
+      await waitFor(() => expect(btn).toBeEnabled());
       fireEvent.click(btn);
       expect(requestPasswordReset).toHaveBeenCalledWith({ email: 'v@example.com' });
     });
