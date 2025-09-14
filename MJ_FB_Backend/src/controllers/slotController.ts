@@ -149,11 +149,12 @@ async function getSlotsForDate(
     throw new Error('Invalid date');
   }
   const day = dateObj.getDay(); // Sunday=0, Monday=1, etc.
-  const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
 
-  // Closed on weekends
+  // Closed on weekends/holidays
   if (day === 0 || day === 6) return [];
   if (!skipHolidayCheck && (await isHoliday(reginaDate))) return [];
+
+  const weekOfMonth = Math.ceil(dateObj.getDate() / 7);
 
   const cacheKey = day === 3 ? 'wed' : 'weekday';
   let rows: SlotRow[];
@@ -282,13 +283,15 @@ export async function listSlots(req: Request, res: Response, next: NextFunction)
       return res.status(400).json({ message: 'Invalid date' });
     }
     const includePast = req.query.includePast === 'true';
-    if (await isHoliday(reginaDate)) {
-      // Closed for a holiday – return an empty slot list rather than an error
+    const slotsWithAvailability = await getSlotsForDate(
+      reginaDate,
+      includePast,
+    );
+    if (slotsWithAvailability.length === 0) {
       return res.json([]);
     }
     const role = req.user?.role;
     const hideReason = role !== 'staff' && role !== 'admin';
-    const slotsWithAvailability = await getSlotsForDate(reginaDate, includePast);
     const sanitized = hideReason
       ? slotsWithAvailability.map(s => {
           if (s.status === 'blocked') {

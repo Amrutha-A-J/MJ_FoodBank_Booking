@@ -115,8 +115,10 @@ export function shutdownQueue(): void {
 }
 
 // Kick off the queue on module load so any pending jobs are scheduled
-if (process.env.EMAIL_ENABLED === 'true') {
-  scheduleNextRun().catch((err) => logger.error('Email scheduling error (non-fatal):', err));
+if (process.env.EMAIL_ENABLED === 'true' && process.env.NODE_ENV !== 'test') {
+  scheduleNextRun().catch((err) =>
+    logger.error('Email scheduling error (non-fatal):', err),
+  );
 } else {
   logger.info('Email sending disabled via EMAIL_ENABLED=false');
 }
