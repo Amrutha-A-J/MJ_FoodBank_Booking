@@ -37,9 +37,13 @@ let job: cron.ScheduledTask | undefined;
 
 /**
  * Schedule the volunteer no-show cleanup job to run nightly at 7:00 PM Regina time.
+ *
+ * @param cronFn Optional scheduling function for tests; defaults to `cron.schedule`.
  */
-export function startVolunteerNoShowCleanupJob(): void {
-  job = cron.schedule(
+export function startVolunteerNoShowCleanupJob(
+  cronFn: typeof cron.schedule = cron.schedule,
+): void {
+  job = cronFn(
     '0 19 * * *',
     () => {
       void cleanupVolunteerNoShows();
