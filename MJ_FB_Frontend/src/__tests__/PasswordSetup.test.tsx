@@ -34,6 +34,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'Passw0rd!' },
     });
@@ -42,7 +43,7 @@ describe('PasswordSetup', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/login'));
   });
 
-  it('toggles password visibility', () => {
+  it('toggles password visibility', async () => {
     render(
       <MemoryRouter initialEntries={["/set-password?token=abc123"]}>
         <Routes>
@@ -50,6 +51,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>,
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     const input = screen.getByLabelText(/password/i, { selector: 'input' });
     expect(input).toHaveAttribute('type', 'password');
     fireEvent.click(screen.getByLabelText(/show password/i));
@@ -68,6 +70,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), {
       target: { value: 'Passw0rd!' },
     });
@@ -95,6 +98,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     expect(
       await screen.findByText(/invalid or expired token/i),
     ).toBeInTheDocument();
@@ -120,6 +124,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     expect(await screen.findByText(/client id/i)).toBeInTheDocument();
     expect(screen.getByText(/123/)).toBeInTheDocument();
   });
@@ -136,6 +141,7 @@ describe('PasswordSetup', () => {
         </Routes>
       </MemoryRouter>
     );
+    await waitFor(() => expect(getPasswordSetupInfo).toHaveBeenCalled());
     expect(await screen.findByText(/email/i)).toBeInTheDocument();
     expect(await screen.findByText(/staff@example.com/)).toBeInTheDocument();
   });
