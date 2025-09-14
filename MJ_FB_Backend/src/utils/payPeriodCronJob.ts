@@ -15,7 +15,7 @@ export async function seedNextYear(): Promise<void> {
 /**
  * Schedule the job to run annually on Nov 30.
  */
-const payPeriodCronJob = scheduleDailyJob(seedNextYear, '0 0 30 11 *', false);
+const payPeriodCronJob = scheduleDailyJob(seedNextYear, '0 0 30 11 *', false, false);
 
 export const startPayPeriodCronJob = payPeriodCronJob.start;
 export const stopPayPeriodCronJob = payPeriodCronJob.stop;
