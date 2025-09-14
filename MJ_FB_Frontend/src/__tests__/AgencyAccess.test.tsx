@@ -3,6 +3,7 @@ import App from '../App';
 import { login } from '../api/users';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
+import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../api/users', () => ({
   login: jest.fn(),
@@ -62,9 +63,16 @@ describe('Agency UI access', () => {
   });
 
   it('redirects unauthenticated users away from agency routes', async () => {
-    window.history.pushState({}, '', '/agency/book');
-    renderWithProviders(<App />);
+    const assignSpy = jest
+      .spyOn(window.location, 'assign')
+      .mockImplementation(jest.fn());
+    renderWithProviders(
+      <MemoryRouter initialEntries={['/agency/book']}>
+        <App />
+      </MemoryRouter>,
+    );
     await waitFor(() => expect(window.location.pathname).toBe('/login'));
     expect(screen.getByText(/login/i)).toBeInTheDocument();
+    assignSpy.mockRestore();
   });
 });
