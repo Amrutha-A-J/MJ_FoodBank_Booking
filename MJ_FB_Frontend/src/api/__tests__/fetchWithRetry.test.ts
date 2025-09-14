@@ -1,5 +1,6 @@
 import { fetchWithRetry } from '../fetchWithRetry';
 import { mockFetch, restoreFetch } from '../../../testUtils/mockFetch';
+import { act } from 'react';
 
 let fetchMock: jest.Mock;
 
@@ -38,13 +39,15 @@ describe('fetchWithRetry', () => {
 
     await Promise.resolve();
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    jest.runOnlyPendingTimers();
-    await Promise.resolve();
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    await Promise.resolve();
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 200);
-    jest.runOnlyPendingTimers();
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
     const res = await promise;
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(3);
@@ -70,8 +73,9 @@ describe('fetchWithRetry', () => {
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    jest.runOnlyPendingTimers();
-    await Promise.resolve();
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
 
     await expect(promise).rejects.toThrow(
       'Failed to fetch /test (last status 0) after 2 attempts',
@@ -94,8 +98,9 @@ describe('fetchWithRetry', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     await Promise.resolve();
     expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), 100);
-    jest.runOnlyPendingTimers();
-    await Promise.resolve();
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+    });
     const res = await promise;
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
