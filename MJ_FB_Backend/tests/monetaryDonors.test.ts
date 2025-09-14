@@ -127,6 +127,220 @@ describe('Monetary donor CRUD', () => {
     expect(res.status).toBe(204);
     expect(pool.query).toHaveBeenNthCalledWith(2, 'DELETE FROM monetary_donors WHERE id = $1', ['3']);
   });
+
+  it('rejects invalid donor data', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [authRow] });
+    const res = await request(app)
+      .post('/monetary-donors')
+      .send({ firstName: '', lastName: '', email: 'bad' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects invalid donor update', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [authRow] });
+    const res = await request(app)
+      .put('/monetary-donors/2')
+      .send({ firstName: '', lastName: '', email: 'bad' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles db error on list donors', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .get('/monetary-donors')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('handles db error on add donor', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .post('/monetary-donors')
+      .send({ firstName: 'A', lastName: 'B', email: 'a@b.com' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('handles db error on update donor', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .put('/monetary-donors/2')
+      .send({ firstName: 'A', lastName: 'B', email: 'a@b.com' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('handles db error on delete donor', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .delete('/monetary-donors/3')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+});
+
+describe('Monetary donation CRUD', () => {
+  it('lists donations', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rows: [{ id: 1, date: '2024-01-01', amount: 100 }] });
+    const res = await request(app)
+      .get('/monetary-donors/2/donations')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      'SELECT id, date, amount FROM monetary_donations WHERE donor_id = $1 ORDER BY date DESC, id DESC',
+      ['2'],
+    );
+  });
+
+  it('handles db error on list donations', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .get('/monetary-donors/2/donations')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('adds donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({
+        rows: [{ id: 1, donorId: 2, date: '2024-01-01', amount: 100 }],
+      });
+    const res = await request(app)
+      .post('/monetary-donors/2/donations')
+      .send({ date: '2024-01-01', amount: 100 })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(201);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('INSERT INTO monetary_donations'),
+      [2, '2024-01-01', 100],
+    );
+  });
+
+  it('rejects invalid donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [authRow] });
+    const res = await request(app)
+      .post('/monetary-donors/2/donations')
+      .send({ date: '', amount: 'bad' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles db error on add donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .post('/monetary-donors/2/donations')
+      .send({ date: '2024-01-01', amount: 100 })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('updates donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: 5, donorId: 2, date: '2024-01-02', amount: 200 }] });
+    const res = await request(app)
+      .put('/monetary-donors/donations/5')
+      .send({ donorId: 2, date: '2024-01-02', amount: 200 })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(200);
+    expect(pool.query).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('UPDATE monetary_donations'),
+      [2, '2024-01-02', 200, '5'],
+    );
+  });
+
+  it('returns 404 when donation not found', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+    const res = await request(app)
+      .put('/monetary-donors/donations/5')
+      .send({ donorId: 2, date: '2024-01-02', amount: 200 })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects invalid donation update', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1, rows: [authRow] });
+    const res = await request(app)
+      .put('/monetary-donors/donations/5')
+      .send({ donorId: 'x', date: '', amount: 'bad' })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(400);
+    expect(pool.query).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles db error on update donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .put('/monetary-donors/donations/5')
+      .send({ donorId: 2, date: '2024-01-02', amount: 200 })
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
+
+  it('deletes donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockResolvedValueOnce({});
+    const res = await request(app)
+      .delete('/monetary-donors/donations/5')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(204);
+    expect(pool.query).toHaveBeenNthCalledWith(2, 'DELETE FROM monetary_donations WHERE id = $1', ['5']);
+  });
+
+  it('handles db error on delete donation', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'staff', type: 'staff', access: ['donor_management'] });
+    (pool.query as jest.Mock)
+      .mockResolvedValueOnce({ rowCount: 1, rows: [authRow] })
+      .mockRejectedValueOnce(new Error('db'));
+    const res = await request(app)
+      .delete('/monetary-donors/donations/5')
+      .set('Authorization', 'Bearer token');
+    expect(res.status).toBe(500);
+  });
 });
 
 describe('Import Zeffy donations', () => {
