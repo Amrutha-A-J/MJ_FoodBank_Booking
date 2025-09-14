@@ -93,7 +93,7 @@ const bookingReminderJob = scheduleDailyJob(
   sendNextDayBookingReminders,
   '0 19 * * *',
   false,
-  true,
+  false,
 );
 
 export const startBookingReminderJob = bookingReminderJob.start;
