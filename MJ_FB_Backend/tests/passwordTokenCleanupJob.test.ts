@@ -46,6 +46,7 @@ describe('startPasswordTokenCleanupJob/stopPasswordTokenCleanupJob', () => {
 
   it('schedules and stops the cron job', () => {
     startPasswordTokenCleanupJob();
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 1 * * *',
       expect.any(Function),
