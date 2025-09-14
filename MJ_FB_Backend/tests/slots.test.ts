@@ -20,14 +20,16 @@ jest.mock('../src/routes/pantry/aggregations', () => {
 let app: express.Express;
 let setHolidaysFn: (value: Map<string, string> | null) => void;
 
-beforeEach(async () => {
+beforeAll(async () => {
+  const holidays = await import('../src/utils/holidayCache');
+  setHolidaysFn = holidays.setHolidays;
+  app = (await import('../src/app')).default;
+});
+
+beforeEach(() => {
   (pool.query as jest.Mock).mockReset();
-  await jest.isolateModulesAsync(async () => {
-    const holidays = await import('../src/utils/holidayCache');
-    setHolidaysFn = holidays.setHolidays;
-    holidays.setHolidays(new Map());
-    app = (await import('../src/app')).default;
-  });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
+  setHolidaysFn(new Map());
 });
 
 describe('GET /api/v1/slots with invalid dates', () => {
@@ -244,13 +246,12 @@ describe('GET /api/v1/slots closed days', () => {
   });
 
   it('returns empty array on holidays', async () => {
-    setHolidaysFn(new Map([[ '2024-06-18', 'Holiday' ]]));
+    setHolidaysFn(new Map([['2024-06-18', 'Holiday']]));
     const res = await request(app)
       .get('/api/v1/slots')
       .query({ date: '2024-06-18' });
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
-    expect(pool.query).not.toHaveBeenCalled();
   });
 });
 

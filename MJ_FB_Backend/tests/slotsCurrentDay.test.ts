@@ -17,14 +17,18 @@ jest.mock('../src/routes/pantry/aggregations', () => {
   return express.Router();
 });
 let app: express.Express;
+let setHolidays: (value: Map<string, string> | null) => void;
 
-beforeEach(async () => {
+beforeAll(async () => {
+  const holidays = await import('../src/utils/holidayCache');
+  setHolidays = holidays.setHolidays;
+  app = (await import('../src/app')).default;
+});
+
+beforeEach(() => {
   (pool.query as jest.Mock).mockReset();
-  await jest.isolateModulesAsync(async () => {
-    const holidays = await import('../src/utils/holidayCache');
-    holidays.setHolidays(new Map());
-    app = (await import('../src/app')).default;
-  });
+  (pool.query as jest.Mock).mockResolvedValue({ rows: [], rowCount: 0 });
+  setHolidays(new Map());
 });
 
 describe('Past slot filtering', () => {
