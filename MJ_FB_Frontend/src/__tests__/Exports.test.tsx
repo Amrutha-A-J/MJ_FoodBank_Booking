@@ -1,4 +1,5 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import Exports from '../pages/warehouse-management/Exports';
 import { getWarehouseOverallYears } from '../api/warehouseOverall';
@@ -27,7 +28,7 @@ describe('Exports page', () => {
 
     await waitFor(() => expect(getWarehouseOverallYears).toHaveBeenCalled());
 
-    fireEvent.mouseDown(screen.getByLabelText(/Year/i));
+    await userEvent.click(screen.getByRole('combobox'));
     const options = await screen.findAllByRole('option');
     expect(options).toHaveLength(2);
     expect(options[0]).toHaveTextContent('2022');
@@ -44,7 +45,7 @@ describe('Exports page', () => {
 
     await waitFor(() => expect(getWarehouseOverallYears).toHaveBeenCalled());
 
-    expect(screen.getByLabelText(/Year/i)).toBeDisabled();
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('button', { name: /Export Donor Aggregations/i })).toBeDisabled();
     expect(
       screen.getByRole('button', { name: /Export Warehouse Overall Stats/i })
