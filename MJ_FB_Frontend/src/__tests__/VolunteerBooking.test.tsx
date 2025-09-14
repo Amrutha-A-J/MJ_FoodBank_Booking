@@ -59,7 +59,12 @@ describe('VolunteerBooking', () => {
       </MemoryRouter>,
     );
 
-    const slot = await screen.findByText(/9:00 AM/);
+    await waitFor(() =>
+      expect(
+        screen.getByText(/9:00 am – 12:00 pm/i),
+      ).toBeInTheDocument(),
+    );
+    const slot = screen.getByText(/9:00 am – 12:00 pm/i);
     fireEvent.click(slot);
     const bookButton = within(slot.closest('li')!).getByRole('button', {
       name: /book selected slot/i,
