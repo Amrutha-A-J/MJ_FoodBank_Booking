@@ -6,12 +6,6 @@ jest.mock('../src/utils/scheduleDailyJob', () => {
     default: (cb: any, schedule: string) => actual.default(cb, schedule, false, false),
   };
 });
-const job = require('../src/utils/expiredTokenCleanupJob');
-const {
-  cleanupExpiredTokens,
-  startExpiredTokenCleanupJob,
-  stopExpiredTokenCleanupJob,
-} = job;
 import pool from '../src/db';
 
 describe('cleanupExpiredTokens', () => {
@@ -20,6 +14,7 @@ describe('cleanupExpiredTokens', () => {
   });
 
   it('removes expired password setup and email verification tokens', async () => {
+    const { cleanupExpiredTokens } = require('../src/utils/expiredTokenCleanupJob');
     (pool.query as jest.Mock).mockResolvedValueOnce({ rowCount: 1 }).mockResolvedValueOnce({ rowCount: 1 });
     await cleanupExpiredTokens();
     expect(pool.query).toHaveBeenNthCalledWith(
@@ -36,21 +31,26 @@ describe('cleanupExpiredTokens', () => {
 describe('startExpiredTokenCleanupJob/stopExpiredTokenCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
+  let startExpiredTokenCleanupJob: () => void;
+  let stopExpiredTokenCleanupJob: () => void;
+
   beforeEach(() => {
+    jest.resetModules();
     jest.useFakeTimers();
     scheduleMock = require('node-cron').schedule as jest.Mock;
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
+    ({ startExpiredTokenCleanupJob, stopExpiredTokenCleanupJob } = require('../src/utils/expiredTokenCleanupJob'));
   });
 
   afterEach(() => {
-    stopExpiredTokenCleanupJob();
     jest.useRealTimers();
     scheduleMock.mockReset();
   });
 
   it('schedules and stops the cron job', () => {
     startExpiredTokenCleanupJob();
+    expect(scheduleMock).toHaveBeenCalledTimes(1);
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 3 * * *',
       expect.any(Function),
