@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import ClientHistory from '../pages/agency/ClientHistory';
 
 jest.mock('../api/agencies', () => ({
@@ -65,7 +66,11 @@ describe('Agency ClientHistory', () => {
     ]);
     (cancelBooking as jest.Mock).mockResolvedValue(undefined);
 
-    render(<ClientHistory />);
+    render(
+      <MemoryRouter>
+        <ClientHistory />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByText('select client'));
     await screen.findByText(/Client One/);
@@ -99,7 +104,11 @@ describe('Agency ClientHistory', () => {
       },
     ]);
 
-    render(<ClientHistory />);
+    render(
+      <MemoryRouter>
+        <ClientHistory />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByText('select client'));
 
@@ -134,7 +143,11 @@ describe('Agency ClientHistory', () => {
         reschedule_token: 'tok',
       },
     ]);
-    render(<ClientHistory />);
+    render(
+      <MemoryRouter>
+        <ClientHistory />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByText('select client'));
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.getByRole('table')).toBeInTheDocument();
@@ -160,7 +173,11 @@ describe('Agency ClientHistory', () => {
         reschedule_token: 'tok',
       },
     ]);
-    render(<ClientHistory />);
+    render(
+      <MemoryRouter>
+        <ClientHistory />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByText('select client'));
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
