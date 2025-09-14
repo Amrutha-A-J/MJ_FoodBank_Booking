@@ -15,7 +15,9 @@ describe('CancelBooking page', () => {
         </Routes>
       </MemoryRouter>,
     );
-    expect(await screen.findByText('Booking cancelled')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Booking cancelled', { selector: 'p' }),
+    ).toBeInTheDocument();
     expect(bookingsApi.cancelBookingByToken).toHaveBeenCalledWith('tok123');
   });
 });
