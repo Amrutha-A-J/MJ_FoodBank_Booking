@@ -36,13 +36,13 @@ describe('VolunteerRankings', () => {
 
     await waitFor(() => expect(getVolunteerRoles).toHaveBeenCalled());
     await waitFor(() => expect(getVolunteerRankings).toHaveBeenCalledWith(undefined));
-    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(await screen.findByText(/Alice/)).toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getByLabelText('Ranking'));
     fireEvent.click(screen.getByText('No Shows'));
 
     await waitFor(() => expect(getVolunteerNoShowRanking).toHaveBeenCalled());
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(await screen.findByText(/Bob/)).toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getByLabelText('Ranking'));
     fireEvent.click(screen.getByText('Sorter (Warehouse)'));
