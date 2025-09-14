@@ -6,7 +6,6 @@ export default async function maintenanceGuard(
   res: Response,
   next: NextFunction,
 ) {
-  if (process.env.NODE_ENV === 'test') return next();
   if (req.method === 'OPTIONS') return next();
   try {
     const result = await pool.query(
