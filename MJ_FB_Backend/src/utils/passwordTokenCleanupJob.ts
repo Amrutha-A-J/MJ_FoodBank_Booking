@@ -22,7 +22,7 @@ const passwordTokenCleanupJob = scheduleDailyJob(
   cleanupPasswordTokens,
   '0 1 * * *',
   true,
-  true,
+  false,
 );
 
 export const startPasswordTokenCleanupJob = passwordTokenCleanupJob.start;
