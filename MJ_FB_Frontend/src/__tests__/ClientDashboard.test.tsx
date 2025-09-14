@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ClientDashboard from '../pages/client/ClientDashboard';
 import { getBookingHistory, getSlots, getHolidays, cancelBooking } from '../api/bookings';
@@ -13,9 +13,21 @@ jest.mock('../api/bookings', () => ({
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
+async function renderClientDashboard() {
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <ClientDashboard />
+      </MemoryRouter>,
+    );
+  });
+  await waitFor(() => expect(getSlots).toHaveBeenCalledTimes(7));
+}
+
 describe('ClientDashboard', () => {
   beforeEach(() => {
     localStorage.setItem('clientOnboarding', 'true');
+    jest.clearAllMocks();
   });
   it('shows events in News and Events section', async () => {
     (getBookingHistory as jest.Mock).mockResolvedValue([]);
@@ -37,11 +49,7 @@ describe('ClientDashboard', () => {
       past: [],
     });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/Client Event/)).toBeInTheDocument();
@@ -53,11 +61,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue(undefined);
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     await waitFor(() => expect(getEvents).toHaveBeenCalled());
     expect(await screen.findByText(/No events/i)).toBeInTheDocument();
@@ -75,11 +79,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     const chipLabel = await screen.findByText(/visited/i);
     expect(chipLabel.closest('.MuiChip-colorSuccess')).toBeTruthy();
@@ -98,11 +98,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(await screen.findByText('Mon, Jan 15, 2024')).toBeInTheDocument();
@@ -123,11 +119,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     await waitFor(() => expect(getBookingHistory).toHaveBeenCalled());
     expect(screen.queryByText('bring bag')).not.toBeInTheDocument();
@@ -139,11 +131,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     const quick = await screen.findByText(/quick actions/i);
     const news = await screen.findByText(/news and events/i);
@@ -167,11 +155,7 @@ describe('ClientDashboard', () => {
     (getHolidays as jest.Mock).mockResolvedValue([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <ClientDashboard />
-      </MemoryRouter>,
-    );
+    await renderClientDashboard();
 
     await waitFor(() => {
       const buttons = screen.getAllByRole('button', { name: /reschedule/i });
