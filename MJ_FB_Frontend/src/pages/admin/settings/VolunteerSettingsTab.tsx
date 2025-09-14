@@ -396,6 +396,7 @@ export default function VolunteerSettingsTab() {
                 <Typography sx={{ flexGrow: 1 }}>{master.name}</Typography>
                 <Stack direction="row" spacing={1}>
                   <IconButton
+                    component="span"
                     aria-label="edit"
                     onClick={e => {
                       e.stopPropagation();
@@ -405,6 +406,7 @@ export default function VolunteerSettingsTab() {
                     <EditIcon />
                   </IconButton>
                   <IconButton
+                    component="span"
                     aria-label="delete"
                     onClick={e => {
                       e.stopPropagation();
