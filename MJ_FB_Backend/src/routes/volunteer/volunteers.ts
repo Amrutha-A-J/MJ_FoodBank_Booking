@@ -9,6 +9,7 @@ import {
   removeVolunteerShopperProfile,
   getVolunteerStats,
   awardVolunteerBadge,
+  removeVolunteerBadge,
   deleteVolunteer,
 } from '../../controllers/volunteer/volunteerController';
 import { authMiddleware, authorizeRoles } from '../../middleware/authMiddleware';
@@ -22,6 +23,7 @@ router.get('/me', authMiddleware, getVolunteerProfile);
 router.get('/me/stats', authMiddleware, getVolunteerStats);
 
 router.post('/me/badges', authMiddleware, awardVolunteerBadge);
+router.delete('/me/badges/:badgeCode', authMiddleware, removeVolunteerBadge);
 
 router.post(
   '/',
