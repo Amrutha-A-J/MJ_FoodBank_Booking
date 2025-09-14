@@ -24,7 +24,7 @@ export async function cleanupExpiredTokens(): Promise<void> {
 const expiredTokenCleanupJob = scheduleDailyJob(
   cleanupExpiredTokens,
   '0 3 * * *',
-  true,
+  false,
   false,
 );
 
