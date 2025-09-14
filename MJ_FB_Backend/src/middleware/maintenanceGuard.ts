@@ -8,7 +8,8 @@ export default async function maintenanceGuard(
 ) {
   if (req.method === 'OPTIONS') return next();
   // Tests run without an authenticated user; skip DB calls
-  if (process.env.NODE_ENV === 'test') return next();
+  // Use bracket notation so tests can override NODE_ENV at runtime
+  if (process.env['NODE_ENV'] === 'test') return next();
   const role = req.user?.role;
   // Staff and admin users bypass maintenance checks without a DB hit
   if (role === 'staff' || role === 'admin') return next();

@@ -13,9 +13,10 @@ describe('buildCancelRescheduleLinks', () => {
   it('returns cancel and reschedule links', () => {
     const token = 'tok';
     const links = buildCancelRescheduleLinks(token);
+    const base = config.frontendOrigins[0];
     expect(links).toEqual({
-      cancelLink: `http://localhost:5173/cancel/${token}`,
-      rescheduleLink: `http://localhost:5173/reschedule/${token}`,
+      cancelLink: `${base}/cancel/${token}`,
+      rescheduleLink: `${base}/reschedule/${token}`,
     });
   });
 
