@@ -20,6 +20,16 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
+const originalEnv = process.env.NODE_ENV;
+
+beforeAll(() => {
+  process.env.NODE_ENV = 'production';
+});
+
+afterAll(() => {
+  process.env.NODE_ENV = originalEnv;
+});
+
 describe('maintenanceGuard', () => {
   it('blocks anonymous access during maintenance', async () => {
     (pool.query as jest.Mock).mockResolvedValueOnce({
