@@ -33,11 +33,22 @@ jest.mock('../api/pantryAggregations', () => ({
 }));
 
 describe('PantryAggregations page', () => {
+  let anchorClick: jest.SpyInstance;
   beforeAll(() => {
     // @ts-ignore
     global.URL.createObjectURL = jest.fn();
     // @ts-ignore
     global.URL.revokeObjectURL = jest.fn();
+    anchorClick = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(function () {
+        const event = new MouseEvent('click', { cancelable: true });
+        event.preventDefault();
+      });
+  });
+
+  afterAll(() => {
+    anchorClick.mockRestore();
   });
 
   beforeEach(() => {
