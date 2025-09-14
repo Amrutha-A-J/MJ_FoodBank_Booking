@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useEffect } from 'react';
 import AgencyBookAppointment from '../pages/agency/AgencyBookAppointment';
 
@@ -31,7 +31,9 @@ describe('AgencyBookAppointment', () => {
     await screen.findByText('Alice');
     fireEvent.click(screen.getByText('Alice'));
 
-    expect(await screen.findByText(/Loading availability/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/Loading availability/i)).toBeInTheDocument(),
+    );
   });
 
   it('renders BookingUI when a client is selected', async () => {
@@ -54,7 +56,11 @@ describe('AgencyBookAppointment', () => {
     await screen.findByText('Alice');
     fireEvent.click(screen.getByText('Alice'));
 
-    await screen.findByText(/BookingUI Alice 1/);
-    expect(screen.queryByText(/Loading availability/i)).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByText(/BookingUI Alice 1/)).toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText(/Loading availability/i)).toBeNull(),
+    );
   });
 });
