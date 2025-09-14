@@ -1,14 +1,25 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as Router from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import VolunteerQuickLinks from '../components/VolunteerQuickLinks';
 
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
 describe('VolunteerQuickLinks', () => {
+  afterEach(() => {
+    mockNavigate.mockReset();
+  });
+
   it('renders volunteer management links', () => {
     render(
-      <Router.MemoryRouter>
+      <MemoryRouter>
         <VolunteerQuickLinks />
-      </Router.MemoryRouter>
+      </MemoryRouter>
     );
     expect(screen.getByRole('link', { name: /Search Volunteer/i })).toHaveAttribute(
       'href',
@@ -30,9 +41,9 @@ describe('VolunteerQuickLinks', () => {
 
   it('keeps links enabled on the current page', () => {
     render(
-      <Router.MemoryRouter initialEntries={['/volunteer-management/volunteers']}>
+      <MemoryRouter initialEntries={['/volunteer-management/volunteers']}>
         <VolunteerQuickLinks />
-      </Router.MemoryRouter>,
+      </MemoryRouter>,
     );
     expect(
       screen.getByRole('link', { name: /Search Volunteer/i }),
@@ -41,20 +52,14 @@ describe('VolunteerQuickLinks', () => {
 
   it('does not reload when switching tabs', async () => {
     const user = userEvent.setup();
-    const navigate = jest.fn();
-    const spy = jest
-      .spyOn(Router, 'useNavigate')
-      .mockReturnValue(navigate);
 
     render(
-      <Router.MemoryRouter initialEntries={['/volunteer-management/volunteers?tab=ranking']}>
+      <MemoryRouter initialEntries={['/volunteer-management/volunteers?tab=ranking']}>
         <VolunteerQuickLinks />
-      </Router.MemoryRouter>,
+      </MemoryRouter>,
     );
 
     await user.click(screen.getByRole('link', { name: /Search Volunteer/i }));
-    expect(navigate).not.toHaveBeenCalled();
-
-    spy.mockRestore();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
