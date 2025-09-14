@@ -12,4 +12,8 @@ module.exports = {
       },
     ],
   },
+  collectCoverage: true,
+  coverageProvider: 'v8',
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
 };
