@@ -129,4 +129,14 @@ describe('GET /volunteer-roles/mine', () => {
     expect(pool.query).toHaveBeenCalledTimes(2);
     expect(res.body).toEqual([]);
   });
+
+  it('returns 400 for malformed date', async () => {
+    const res = await request(app)
+      .get('/volunteer-roles/mine')
+      .query({ date: '20250101' });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('message', 'Invalid date');
+    expect(pool.query).not.toHaveBeenCalled();
+  });
 });
