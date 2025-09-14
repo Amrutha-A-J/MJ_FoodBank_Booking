@@ -13,6 +13,7 @@ const {
   stopExpiredTokenCleanupJob,
 } = job;
 import pool from '../src/db';
+import logger from '../src/utils/logger';
 
 describe('cleanupExpiredTokens', () => {
   beforeEach(() => {
@@ -30,6 +31,13 @@ describe('cleanupExpiredTokens', () => {
       2,
       "DELETE FROM client_email_verifications WHERE expires_at < (CURRENT_DATE - INTERVAL '10 days')",
     );
+  });
+
+  it('logs an error when the cleanup fails', async () => {
+    const err = new Error('query failed');
+    (pool.query as jest.Mock).mockRejectedValue(err);
+    await cleanupExpiredTokens();
+    expect(logger.error).toHaveBeenCalledWith('Failed to clean up expired tokens', err);
   });
 });
 
