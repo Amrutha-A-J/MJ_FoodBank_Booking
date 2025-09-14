@@ -276,6 +276,9 @@ async function getSlotsForDate(
 export async function listSlots(req: Request, res: Response, next: NextFunction) {
   const date = req.query.date as string;
   if (!date) return res.status(400).json({ message: 'Date query parameter required' });
+  if (!DATE_REGEX.test(date)) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
 
   try {
     const reginaDate = formatReginaDate(date);
@@ -328,15 +331,11 @@ export async function listSlotsRange(
       .status(400)
       .json({ message: 'days must be an integer between 1 and 120' });
   }
-  const startProvided = Object.prototype.hasOwnProperty.call(
-    req.query,
-    'start',
-  );
   const startParam = req.query.start as string | undefined;
-  if (startProvided && (!startParam || !DATE_REGEX.test(startParam))) {
+  if (startParam !== undefined && !DATE_REGEX.test(startParam)) {
     return res.status(400).json({ message: 'Invalid date' });
   }
-  const start = startParam || formatReginaDate(new Date());
+  const start = startParam ?? formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
   try {
