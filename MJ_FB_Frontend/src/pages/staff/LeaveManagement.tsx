@@ -84,16 +84,12 @@ export default function LeaveManagement() {
               component="form"
               onSubmit={e => {
                 e.preventDefault();
-                const form = e.currentTarget as typeof e.currentTarget & {
-                  type: { value: string };
-                  start: { value: string };
-                  end: { value: string };
-                };
+                const data = new FormData(e.currentTarget);
                 leaveMutation.mutate(
                   {
-                    type: form.type.value,
-                    startDate: form.start.value,
-                    endDate: form.end.value,
+                    type: data.get('type')?.toString() ?? '',
+                    startDate: data.get('start')?.toString() ?? '',
+                    endDate: data.get('end')?.toString() ?? '',
                   },
                   { onSuccess: () => setOpen(false) },
                 );
