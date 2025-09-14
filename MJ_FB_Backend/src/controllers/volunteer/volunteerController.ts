@@ -597,6 +597,32 @@ export async function awardVolunteerBadge(
   }
 }
 
+export async function removeVolunteerBadge(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const user = req.user;
+  const { badgeCode } = req.params as { badgeCode?: string };
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  if (!badgeCode) {
+    return res.status(400).json({ message: 'badgeCode is required' });
+  }
+  try {
+    const result = await pool.query(
+      'DELETE FROM volunteer_badges WHERE volunteer_id = $1 AND badge_code = $2',
+      [user.id, badgeCode],
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Badge not found' });
+    }
+    res.json({ badgeCode });
+  } catch (error) {
+    logger.error('Error removing volunteer badge:', error);
+    next(error);
+  }
+}
+
 export async function deleteVolunteer(
   req: Request,
   res: Response,
