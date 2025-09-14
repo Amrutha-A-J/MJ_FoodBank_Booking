@@ -1,4 +1,10 @@
-import { renderWithProviders, screen, fireEvent } from '../../testUtils/renderWithProviders';
+import {
+  renderWithProviders,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '../../testUtils/renderWithProviders';
 import { MemoryRouter } from 'react-router-dom';
 import VolunteerBookingHistory from '../pages/volunteer-management/VolunteerBookingHistory';
 import { getMyVolunteerBookings, getVolunteerRolesForVolunteer } from '../api/volunteers';
@@ -110,22 +116,26 @@ describe('VolunteerBookingHistory', () => {
     );
 
     fireEvent.click(await screen.findByRole('button', { name: /reschedule/i }));
+    await screen.findByRole('dialog');
 
-    fireEvent.change(screen.getByLabelText(/date/i), {
+    fireEvent.change(await screen.findByLabelText(/date/i), {
       target: { value: '2024-02-02' },
     });
 
-    fireEvent.mouseDown(await screen.findByLabelText(/role/i));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/role/i)).not.toHaveAttribute('aria-disabled'),
+    );
+    fireEvent.mouseDown(screen.getByLabelText(/role/i));
+
+    const listbox = await screen.findByRole('listbox');
 
     expect(
-      screen.queryByText(
+      within(listbox).queryByText(
         `Pantry ${formatTime('09:00:00')}–${formatTime('12:00:00')}`,
       ),
     ).toBeNull();
     expect(
-      await screen.findByText(
-        `Pantry ${formatTime('12:00:00')}–${formatTime('15:00:00')}`,
-      ),
+      await within(listbox).findByText(/Pantry\s+12:00\s?PM–3:00\s?PM/),
     ).toBeInTheDocument();
   });
 });
