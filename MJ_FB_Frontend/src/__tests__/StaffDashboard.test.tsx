@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Dashboard from '../components/dashboard/Dashboard';
 import { getBookings } from '../api/bookings';
@@ -46,15 +46,21 @@ describe('StaffDashboard', () => {
       .mockResolvedValueOnce([]);
     (getEvents as jest.Mock).mockResolvedValue({ today: [], upcoming: [], past: [] });
 
-    render(
-      <MemoryRouter>
-        <Dashboard role="staff" />
-      </MemoryRouter>,
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" />
+        </MemoryRouter>,
+      );
+    });
 
-    await screen.findByText('Total Clients');
-    expect(getPantryMonthly).toHaveBeenCalled();
-    expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByText('Total Clients')).toBeInTheDocument();
+    });
+    await waitFor(() => expect(getPantryMonthly).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(screen.queryByText('Pantry Schedule (This Week)')).toBeNull();
+    });
   });
 
   it('shows events returned by the API', async () => {
@@ -78,23 +84,31 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    render(
-      <MemoryRouter>
-        <Dashboard role="staff" />
-      </MemoryRouter>,
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" />
+        </MemoryRouter>,
+      );
+    });
 
-    expect(await screen.findByText(/Staff Meeting/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Staff Meeting/)).toBeInTheDocument();
+    });
   });
 
-  it('hides pantry quick links when disabled', () => {
-    render(
-      <MemoryRouter>
-        <Dashboard role="staff" showPantryQuickLinks={false} />
-      </MemoryRouter>,
-    );
+  it('hides pantry quick links when disabled', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" showPantryQuickLinks={false} />
+        </MemoryRouter>,
+      );
+    });
 
-    expect(mockUseBreadcrumbActions).toHaveBeenCalledWith(null);
+    await waitFor(() => {
+      expect(mockUseBreadcrumbActions).toHaveBeenCalledWith(null);
+    });
   });
 
   it('shows only today\'s cancellations', async () => {
@@ -127,14 +141,18 @@ describe('StaffDashboard', () => {
       past: [],
     });
 
-    render(
-      <MemoryRouter>
-        <Dashboard role="staff" />
-      </MemoryRouter>,
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Dashboard role="staff" />
+        </MemoryRouter>,
+      );
+    });
 
-    expect(await screen.findByText('Recent Cancellations')).toBeInTheDocument();
-    expect(screen.getByText(/Alice/)).toBeInTheDocument();
-    expect(screen.queryByText(/Bob/)).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByText('Recent Cancellations')).toBeInTheDocument();
+      expect(screen.getByText(/Alice/)).toBeInTheDocument();
+      expect(screen.queryByText(/Bob/)).toBeNull();
+    });
   });
 });
