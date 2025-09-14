@@ -117,12 +117,23 @@ beforeEach(() => {
 });
 
 describe('Agency booking creation', () => {
-  const today = formatReginaDate(new Date());
+  const today = formatReginaDate(new Date(Date.now() + 24 * 60 * 60 * 1000));
 
   it('creates booking for associated client', async () => {
     (isAgencyClient as jest.Mock).mockResolvedValue(true);
     (bookingRepository.checkSlotCapacity as jest.Mock).mockResolvedValue(undefined);
     (bookingRepository.insertBooking as jest.Mock).mockResolvedValue(undefined);
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
+    (pool.connect as jest.Mock).mockResolvedValue(client);
 
     const res = await request(app)
       .post('/api/v1/bookings')

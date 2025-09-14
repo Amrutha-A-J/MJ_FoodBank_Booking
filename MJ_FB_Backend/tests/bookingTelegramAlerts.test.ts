@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { formatReginaDate, formatReginaDateWithDay } from '../src/utils/dateUtils';
 
 describe('booking telegram alerts', () => {
   let createBookingForUser: any;
@@ -39,7 +40,16 @@ describe('booking telegram alerts', () => {
   });
 
   it('notifies via telegram when booking is created', async () => {
-    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
@@ -48,9 +58,12 @@ describe('booking telegram alerts', () => {
       .mockResolvedValueOnce({
         rows: [{ start_time: '09:00:00', end_time: '09:30:00' }],
       });
+    const tomorrowDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const date = formatReginaDate(tomorrowDate);
+    const dateWithDay = formatReginaDateWithDay(tomorrowDate);
     const req = {
       user: { role: 'staff', id: 99 },
-      body: { userId: 1, slotId: 2, date: '2024-01-15' },
+      body: { userId: 1, slotId: 2, date },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -60,7 +73,7 @@ describe('booking telegram alerts', () => {
     await createBookingForUser(req, res, next);
     expect(notifyOps.mock.calls).toHaveLength(1);
     expect(notifyOps.mock.calls[0][0]).toContain(
-      'booked Mon, Jan 15, 2024 at 9:00 AM',
+      `booked ${dateWithDay} at 9:00 AM`,
     );
   });
 });

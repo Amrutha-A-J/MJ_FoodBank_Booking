@@ -1,5 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { formatReginaDate } from '../src/utils/dateUtils';
+import { formatReginaDate, formatReginaDateWithDay } from '../src/utils/dateUtils';
+
+const tomorrowDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+const tomorrow = formatReginaDate(tomorrowDate);
+const tomorrowWithDay = formatReginaDateWithDay(tomorrowDate);
+const holidayDate = formatReginaDate(new Date(Date.now() + 48 * 60 * 60 * 1000));
 
 describe('createBookingForUser', () => {
   let createBookingForUser: any;
@@ -59,7 +64,16 @@ describe('createBookingForUser', () => {
   });
 
   it('enqueues confirmation email after booking creation', async () => {
-    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({
@@ -76,7 +90,7 @@ describe('createBookingForUser', () => {
       });
     const req = {
       user: { role: 'staff', id: 99 },
-      body: { userId: 1, slotId: 2, date: '2024-01-15' },
+      body: { userId: 1, slotId: 2, date: tomorrow },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -88,7 +102,7 @@ describe('createBookingForUser', () => {
         to: 'client@example.com',
         templateId: expect.any(Number),
         params: expect.objectContaining({
-            body: expect.stringContaining('Mon, Jan 15, 2024 from 9:00 AM to 9:30 AM'),
+            body: expect.stringContaining(`${tomorrowWithDay} from 9:00 AM to 9:30 AM`),
           googleCalendarLink: expect.any(String),
           appleCalendarLink: expect.any(String),
         }),
@@ -100,7 +114,7 @@ describe('createBookingForUser', () => {
     const query = jest.fn().mockImplementation((sql: string) => {
       if (sql.includes('SELECT date, reason FROM holidays'))
         return Promise.resolve({
-          rows: [{ date: '2024-12-25', reason: 'X' }],
+          rows: [{ date: holidayDate, reason: 'X' }],
           rowCount: 1,
         });
       if (sql.includes('holidays')) return Promise.resolve({ rowCount: 1 });
@@ -113,7 +127,7 @@ describe('createBookingForUser', () => {
     holidayCache.isHoliday.mockResolvedValue(true);
     const req = {
       user: { role: 'staff', id: 99 },
-      body: { userId: 1, slotId: 2, date: '2024-12-25' },
+      body: { userId: 1, slotId: 2, date: holidayDate },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -128,7 +142,16 @@ describe('createBookingForUser', () => {
   });
 
   it('passes note to insertBooking', async () => {
-    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
@@ -136,7 +159,7 @@ describe('createBookingForUser', () => {
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },
-      body: { userId: 1, slotId: 2, date: '2024-01-15', note: 'bring ID' },
+      body: { userId: 1, slotId: 2, date: tomorrow, note: 'bring ID' },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -148,7 +171,7 @@ describe('createBookingForUser', () => {
       2,
       'approved',
       '',
-      '2024-01-15',
+      tomorrow,
       false,
       expect.any(String),
       null,
@@ -159,7 +182,16 @@ describe('createBookingForUser', () => {
 
   it('allows staff to book outside allowed months', async () => {
     (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
-    const client = { query: jest.fn().mockResolvedValue({ rows: [], rowCount: 0 }), release: jest.fn() };
+    const client = {
+      query: jest.fn().mockImplementation((sql: string) => {
+        if (sql.includes('SELECT max_capacity FROM slots'))
+          return Promise.resolve({ rows: [{ max_capacity: 5 }], rowCount: 1 });
+        if (sql.includes('SELECT COUNT(id) AS count FROM bookings'))
+          return Promise.resolve({ rows: [{ count: 0 }], rowCount: 1 });
+        return Promise.resolve({ rows: [], rowCount: 0 });
+      }),
+      release: jest.fn(),
+    };
     (pool.connect as jest.Mock).mockResolvedValue(client);
     (pool.query as jest.Mock)
       .mockResolvedValueOnce({ rows: [{ id: 1 }] })
@@ -169,7 +201,7 @@ describe('createBookingForUser', () => {
       .mockResolvedValueOnce({ rows: [{ start_time: '09:00:00', end_time: '09:30:00' }] });
     const req = {
       user: { role: 'staff', id: 99 },
-      body: { userId: 1, slotId: 2, date: '2030-01-15' },
+      body: { userId: 1, slotId: 2, date: tomorrow },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;
@@ -184,7 +216,7 @@ describe('createBookingForUser', () => {
     (bookingUtils.isDateWithinCurrentOrNextMonth as jest.Mock).mockReturnValue(false);
     const req = {
       user: { role: 'agency', id: 77 },
-      body: { userId: 1, slotId: 2, date: '2030-01-15' },
+      body: { userId: 1, slotId: 2, date: tomorrow },
     } as unknown as Request;
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as unknown as Response;
     const next = jest.fn() as NextFunction;

@@ -7,6 +7,7 @@ import {
   formatReginaDate,
   formatReginaDateWithDay,
   formatTimeToAmPm,
+  reginaStartOfDayISO,
 } from '../utils/dateUtils';
 import {
   isDateWithinCurrentOrNextMonth,
@@ -50,6 +51,17 @@ function isValidDateString(date: string): boolean {
   if (!DATE_REGEX.test(date)) return false;
   const parsed = new Date(date);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+}
+
+function isFutureDate(date: string): boolean {
+  if (!isValidDateString(date)) return false;
+  try {
+    const today = new Date(reginaStartOfDayISO(new Date()));
+    const bookingDate = new Date(reginaStartOfDayISO(date));
+    return bookingDate > today;
+  } catch {
+    return false;
+  }
 }
 
 // --- Create booking for logged-in shopper ---
@@ -946,8 +958,8 @@ export async function createBookingForUser(
       .status(400)
       .json({ message: 'Please select a valid time slot' });
   }
-  if (!isValidDateString(date)) {
-    return res.status(400).json({ message: 'Please choose a valid date' });
+  if (!isFutureDate(date)) {
+    return res.status(400).json({ message: 'Invalid date' });
   }
 
   try {

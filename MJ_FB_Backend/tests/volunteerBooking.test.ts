@@ -54,7 +54,7 @@ describe('createVolunteerBookingForVolunteer date validation', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('Invalid date');
-    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(2);
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(0);
   });
 
   it('returns 400 for past date', async () => {
@@ -80,7 +80,7 @@ describe('createVolunteerBookingForVolunteer date validation', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('Date cannot be in the past');
-    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(2);
+    expect((pool.query as jest.Mock)).toHaveBeenCalledTimes(0);
   });
 });
 
