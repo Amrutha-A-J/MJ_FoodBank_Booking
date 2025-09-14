@@ -1,4 +1,3 @@
-jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 jest.mock('../src/utils/scheduleDailyJob', () => {
   const actual = jest.requireActual('../src/utils/scheduleDailyJob');
   return {
@@ -41,20 +40,18 @@ describe('startNoShowCleanupJob/stopNoShowCleanupJob', () => {
   let scheduleMock: jest.Mock;
   let stopMock: jest.Mock;
   beforeEach(() => {
-    jest.useFakeTimers();
-    scheduleMock = require('node-cron').schedule as jest.Mock;
+    scheduleMock = jest.fn();
     stopMock = jest.fn();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
   });
 
   afterEach(() => {
     stopNoShowCleanupJob();
-    jest.useRealTimers();
     scheduleMock.mockReset();
   });
 
   it('schedules and stops the cron job', () => {
-    startNoShowCleanupJob();
+    startNoShowCleanupJob(scheduleMock);
     expect(scheduleMock).toHaveBeenCalledWith(
       '0 19 * * *',
       expect.any(Function),
