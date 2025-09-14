@@ -1,4 +1,3 @@
-jest.mock('node-cron', () => ({ schedule: jest.fn() }), { virtual: true });
 jest.mock('../src/utils/opsAlert');
 const job = require('../src/jobs/volunteerNoShowCleanupJob');
 const {
@@ -41,24 +40,24 @@ describe('cleanupVolunteerNoShows', () => {
 });
 
 describe('startVolunteerNoShowCleanupJob/stopVolunteerNoShowCleanupJob', () => {
-  let scheduleMock: jest.Mock;
+  let cronMock: jest.Mock;
   let stopMock: jest.Mock;
   beforeEach(() => {
     jest.useFakeTimers();
-    scheduleMock = require('node-cron').schedule as jest.Mock;
+    cronMock = jest.fn();
     stopMock = jest.fn();
-    scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
+    cronMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
   });
 
   afterEach(() => {
     stopVolunteerNoShowCleanupJob();
     jest.useRealTimers();
-    scheduleMock.mockReset();
+    jest.clearAllMocks();
   });
 
   it('schedules and stops the cron job', () => {
-    startVolunteerNoShowCleanupJob();
-    expect(scheduleMock).toHaveBeenCalledWith(
+    startVolunteerNoShowCleanupJob(cronMock);
+    expect(cronMock).toHaveBeenCalledWith(
       '0 19 * * *',
       expect.any(Function),
       { timezone: 'America/Regina' },
