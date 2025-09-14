@@ -29,7 +29,7 @@ const emailQueueCleanupJob = scheduleDailyJob(
   cleanupEmailQueue,
   '0 3 * * *',
   true,
-  true,
+  false,
 );
 
 export const startEmailQueueCleanupJob = emailQueueCleanupJob.start;
