@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react';
 import App from '../App';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
@@ -69,34 +69,28 @@ describe('App authentication persistence', () => {
   });
 
   it('shows login when not authenticated', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({}),
-      headers: new Headers(),
+    await act(async () => {
+      renderWithProviders(<App />);
     });
-    renderWithProviders(<App />);
     expect(await screen.findByText(/login/i)).toBeInTheDocument();
   });
 
   it('allows access to privacy policy without login', async () => {
-    fetchMock.mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({}),
-      headers: new Headers(),
-    });
     window.history.pushState({}, '', '/privacy');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     expect(
       await screen.findByRole('heading', { name: /privacy policy/i })
     ).toBeInTheDocument();
   });
 
-  it('keeps user logged in when role exists', () => {
+  it('keeps user logged in when role exists', async () => {
     localStorage.setItem('role', 'shopper');
     localStorage.setItem('name', 'Test User');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     expect(screen.queryByText(/user login/i)).not.toBeInTheDocument();
   });
 
@@ -104,7 +98,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     window.history.pushState({}, '', '/set-password?token=abc');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     const els = await screen.findAllByText(/set password/i);
     expect(els.length).toBeGreaterThan(0);
   });
@@ -125,7 +121,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     fireEvent.click(await screen.findByText('Donor Management'));
     expect(await screen.findByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
@@ -136,7 +134,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['admin']));
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     fireEvent.click(await screen.findByText('Donor Management'));
     expect(await screen.findByText('Donation Log')).toBeInTheDocument();
     expect(screen.getByText('Mail Lists')).toBeInTheDocument();
@@ -147,7 +147,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['aggregations']));
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     fireEvent.click(await screen.findByText('Aggregations'));
     expect(await screen.findByText('Pantry Aggregations')).toBeInTheDocument();
     expect(screen.getByText('Warehouse Aggregations')).toBeInTheDocument();
@@ -157,7 +159,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('role', 'staff');
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     fireEvent.click(await screen.findByText('Aggregations'));
     expect(await screen.findByText('Pantry Aggregations')).toBeInTheDocument();
     expect(screen.getByText('Warehouse Aggregations')).toBeInTheDocument();
@@ -168,7 +172,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
     window.history.pushState({}, '', '/donor-management/donation-log');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     expect(await screen.findByText('DonationLogPage')).toBeInTheDocument();
   });
 
@@ -177,7 +183,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['donor_management']));
     window.history.pushState({}, '', '/donor-management');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     expect(await screen.findByText('MailLists')).toBeInTheDocument();
   });
 
@@ -186,7 +194,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['admin']));
     window.history.pushState({}, '', '/donor-management/donation-log');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     expect(await screen.findByText('DonationLogPage')).toBeInTheDocument();
   });
 
@@ -195,7 +205,9 @@ describe('App authentication persistence', () => {
     localStorage.setItem('name', 'Test Staff');
     localStorage.setItem('access', JSON.stringify(['pantry']));
     window.history.pushState({}, '', '/donor-management/donation-log');
-    renderWithProviders(<App />);
+    await act(async () => {
+      renderWithProviders(<App />);
+    });
     await waitFor(() => expect(window.location.pathname).toBe('/'));
     expect(screen.queryByText('DonationLogPage')).not.toBeInTheDocument();
   });
