@@ -28,6 +28,9 @@ const expiredTokenCleanupJob = scheduleDailyJob(
   false,
 );
 
-export const startExpiredTokenCleanupJob = expiredTokenCleanupJob.start;
+export function startExpiredTokenCleanupJob(): void {
+  expiredTokenCleanupJob.start();
+}
+
 export const stopExpiredTokenCleanupJob = expiredTokenCleanupJob.stop;
 
