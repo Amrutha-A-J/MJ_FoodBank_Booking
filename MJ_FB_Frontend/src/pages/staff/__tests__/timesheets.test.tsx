@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, within, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../testUtils/renderWithProviders';
 import Timesheets from '../timesheets';
@@ -120,16 +120,16 @@ function render(path = '/timesheet') {
 }
 
 describe('Timesheets', () => {
-  it('renders table headers', () => {
-    render();
-    expect(screen.getByText('Date')).toBeInTheDocument();
-    expect(screen.getByText('Reg')).toBeInTheDocument();
-    expect(screen.getByText('OT')).toBeInTheDocument();
+  it('renders table headers', async () => {
+    await act(async () => render());
+    expect(await screen.findByText('Date')).toBeInTheDocument();
+    expect(await screen.findByText('Reg')).toBeInTheDocument();
+    expect(await screen.findByText('OT')).toBeInTheDocument();
   });
 
-  it('prefills stat day and allows editing', () => {
-    render();
-    const rows = screen.getAllByRole('row');
+  it('prefills stat day and allows editing', async () => {
+    await act(async () => render());
+    const rows = await screen.findAllByRole('row');
     const statRow = rows[1];
     const statInput = within(statRow).getAllByRole('spinbutton')[2];
     expect(statInput).toHaveValue(8);
@@ -138,8 +138,8 @@ describe('Timesheets', () => {
 
   it('shows hint when day total exceeds cap', async () => {
     const user = userEvent.setup();
-    render();
-    const rows = screen.getAllByRole('row');
+    await act(async () => render());
+    const rows = await screen.findAllByRole('row');
     const dayRow = rows[2];
     const regInput = within(dayRow).getAllByRole('spinbutton')[0];
     await user.clear(regInput);
@@ -150,28 +150,28 @@ describe('Timesheets', () => {
     expect(paidCell.style.color).toBe('rgb(211, 47, 47)');
   });
 
-  it('calculates footer summaries', () => {
-    render();
-    const totalsRow = screen.getByText('Totals').closest('tr')!;
+  it('calculates footer summaries', async () => {
+    await act(async () => render());
+    const totalsRow = (await screen.findByText('Totals')).closest('tr')!;
     const cells = within(totalsRow).getAllByRole('cell');
     expect(cells[1]).toHaveTextContent('16');
     expect(cells[2]).toHaveTextContent('1');
     expect(cells[3]).toHaveTextContent('8');
     expect(cells[7]).toHaveTextContent('25');
-    expect(screen.getByText(/Expected Hours: 24/)).toBeInTheDocument();
-    expect(screen.getByText(/Shortfall: -1/)).toBeInTheDocument();
-    expect(screen.getByText(/OT Bank Remaining: 39/)).toBeInTheDocument();
+    expect(await screen.findByText(/Expected Hours: 24/)).toBeInTheDocument();
+    expect(await screen.findByText(/Shortfall: -1/)).toBeInTheDocument();
+    expect(await screen.findByText(/OT Bank Remaining: 39/)).toBeInTheDocument();
   });
 
   it('submits timesheet', async () => {
     const user = userEvent.setup();
-    render();
-    await user.click(screen.getByRole('button', { name: /submit/i }));
+    await act(async () => render());
+    await user.click(await screen.findByRole('button', { name: /submit/i }));
     expect(mockUpdate).toHaveBeenCalledTimes(3);
     expect(mockSubmit).toHaveBeenCalledWith(1);
   });
 
-  it('shows current and next four timesheet tabs with up to five previous', () => {
+  it('shows current and next four timesheet tabs with up to five previous', async () => {
     const timesheets = Array.from({ length: 12 }).map((_, i) => ({
       id: i + 1,
       staff_id: 1,
@@ -189,14 +189,14 @@ describe('Timesheets', () => {
       isLoading: false,
       error: null,
     });
-    render();
-    const tabs = screen.getAllByRole('tab');
+    await act(async () => render());
+    const tabs = await screen.findAllByRole('tab');
     expect(tabs).toHaveLength(10);
     expect(tabs[0]).toHaveTextContent('2024-03-01 - 2024-03-07');
     expect(tabs[9]).toHaveTextContent('2024-12-01 - 2024-12-07');
   });
 
-  it('locks day when leave approved', () => {
+  it('locks day when leave approved', async () => {
     mockUseTimesheetDays.mockReturnValueOnce({
       days: [
         {
@@ -217,27 +217,28 @@ describe('Timesheets', () => {
       isLoading: false,
       error: null,
     });
-    render();
-    const rows = screen.getAllByRole('row');
+    await act(async () => render());
+    const rows = await screen.findAllByRole('row');
     const leaveRow = rows[1];
     expect(within(leaveRow).getByTestId('LockIcon')).toBeInTheDocument();
     const inputs = within(leaveRow).getAllByRole('spinbutton');
     const vacInput = inputs[4];
     expect(vacInput).toBeDisabled();
-    expect(screen.getByText('Leave day is locked')).toBeInTheDocument();
+    expect(await screen.findByText('Leave day is locked')).toBeInTheDocument();
   });
 
-  it('shows select staff message for admin', () => {
+  it('shows select staff message for admin', async () => {
     mockUseAllTimesheets.mockReturnValue({
       timesheets: [],
       isLoading: false,
       error: null,
     });
-    render('/admin/timesheet');
-    expect(screen.getByText('Select Staff')).toBeInTheDocument();
+    await act(async () => render('/admin/timesheet'));
+    expect(await screen.findByText('Select Staff')).toBeInTheDocument();
   });
 
   it('loads timesheets after selecting staff in admin', async () => {
+    jest.useFakeTimers({ legacyFakeTimers: true });
     mockAdminSearchStaff.mockResolvedValueOnce([
       { id: 2, firstName: 'Alice', lastName: 'Smith', email: '', access: [] },
     ]);
@@ -263,14 +264,18 @@ describe('Timesheets', () => {
           }
         : { timesheets: [], isLoading: false, error: null },
     );
-    const user = userEvent.setup();
-    render('/admin/timesheet');
-    const input = screen.getByLabelText('Staff');
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    await act(async () => render('/admin/timesheet'));
+    const input = await screen.findByLabelText('Staff');
     await user.type(input, 'Ali');
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
     const option = await screen.findByText('Alice Smith');
     await user.click(option);
     expect(mockUseAllTimesheets).toHaveBeenLastCalledWith(2);
     await screen.findByText('Reject');
+    jest.useRealTimers();
   });
 });
 
