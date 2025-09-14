@@ -236,6 +236,9 @@ async function getSlotsForDate(
 export async function listSlots(req: Request, res: Response, next: NextFunction) {
   const date = req.query.date as string;
   if (!date) return res.status(400).json({ message: 'Date query parameter required' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
 
   try {
     const reginaDate = formatReginaDate(date);
@@ -286,7 +289,11 @@ export async function listSlotsRange(
       .status(400)
       .json({ message: 'days must be an integer between 1 and 120' });
   }
-  const start = (req.query.start as string) || formatReginaDate(new Date());
+  const startParam = req.query.start as string | undefined;
+  if (startParam !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(startParam)) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
+  const start = startParam ?? formatReginaDate(new Date());
   const includePast = req.query.includePast === 'true';
 
   try {
@@ -306,9 +313,12 @@ export async function listSlotsRange(
     const hideReason = role !== 'staff' && role !== 'admin';
     const rangeData = await fetchSlotRangeData(dates);
     const slotCache = new Map<string, SlotRow[]>();
-    const slotsForDates = await Promise.all(
-      dates.map(date => getSlotsForDate(date, includePast, rangeData, slotCache)),
-    );
+    const slotsForDates: Slot[][] = [];
+    for (const d of dates) {
+      slotsForDates.push(
+        await getSlotsForDate(d, includePast, rangeData, slotCache),
+      );
+    }
 
     const today = formatReginaDate(new Date());
     const results = dates.map((date, idx) => {
