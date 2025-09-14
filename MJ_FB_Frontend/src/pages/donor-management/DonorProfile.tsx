@@ -185,6 +185,12 @@ export default function DonorProfile() {
             <Typography>
               Total Donated: {currency.format(donor.amount)}
             </Typography>
+            <Typography>
+              Last Donation:{' '}
+              {donor.lastDonationISO
+                ? formatLocaleDate(donor.lastDonationISO)
+                : 'N/A'}
+            </Typography>
           </Stack>
         )}
 
