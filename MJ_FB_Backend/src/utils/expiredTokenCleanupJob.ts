@@ -25,7 +25,7 @@ const expiredTokenCleanupJob = scheduleDailyJob(
   cleanupExpiredTokens,
   '0 3 * * *',
   true,
-  true,
+  false,
 );
 
 export const startExpiredTokenCleanupJob = expiredTokenCleanupJob.start;
