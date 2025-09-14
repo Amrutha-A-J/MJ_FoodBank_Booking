@@ -331,14 +331,17 @@ export async function listSlotsRange(
       .status(400)
       .json({ message: 'days must be an integer between 1 and 120' });
   }
-  const startParam = req.query.start as string | undefined;
-  if (startParam !== undefined && !DATE_REGEX.test(startParam)) {
-    return res.status(400).json({ message: 'Invalid date' });
+  const startParam = req.query.start;
+  if (startParam !== undefined) {
+    if (typeof startParam !== 'string' || !DATE_REGEX.test(startParam)) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
   }
   const includePast = req.query.includePast === 'true';
 
   try {
-    const start = startParam ?? formatReginaDate(new Date());
+    const start =
+      typeof startParam === 'string' ? startParam : formatReginaDate(new Date());
     const reginaStart = formatReginaDate(start);
     const startDate = new Date(reginaStartOfDayISO(reginaStart));
     if (isNaN(startDate.getTime())) {
