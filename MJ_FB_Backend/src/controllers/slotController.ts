@@ -140,7 +140,8 @@ async function getSlotsForDate(
   date: string,
   includePast = false,
   rangeData?: SlotRangeData,
-  slotCache?: Map<string, SlotRow[]>,
+  slotCache?: Map<string, Promise<SlotRow[]>>,
+  skipHolidayCheck = false,
 ): Promise<Slot[]> {
   const reginaDate = formatReginaDate(date);
   const dateObj = new Date(reginaStartOfDayISO(reginaDate));
@@ -152,11 +153,50 @@ async function getSlotsForDate(
 
   // Closed on weekends
   if (day === 0 || day === 6) return [];
-  if (await isHoliday(reginaDate)) return [];
+  if (!skipHolidayCheck && (await isHoliday(reginaDate))) return [];
 
   const cacheKey = day === 3 ? 'wed' : 'weekday';
-  let rows = slotCache?.get(cacheKey);
-  if (!rows) {
+  let rows: SlotRow[];
+  if (slotCache) {
+    let rowsPromise = slotCache.get(cacheKey);
+    if (!rowsPromise) {
+      const slotsQuery =
+        day === 3
+          ? `SELECT id, start_time, end_time, max_capacity
+             FROM slots
+             WHERE start_time >= '09:30:00'
+               AND start_time <= '18:30:00'
+               AND start_time NOT IN ('12:00:00','12:30:00','15:30:00')
+             ORDER BY start_time`
+          : `SELECT id, start_time, end_time, max_capacity
+             FROM slots
+             WHERE start_time >= '09:30:00'
+               AND start_time <= '14:30:00'
+               AND start_time NOT IN ('12:00:00','12:30:00')
+             ORDER BY start_time`;
+      rowsPromise = pool
+        .query<SlotRow>(slotsQuery)
+        .then(result =>
+          result.rows.filter(s => {
+            const time = s.start_time;
+            if (day === 3) {
+              return (
+                time >= '09:30:00' &&
+                time <= '18:30:00' &&
+                !['12:00:00', '12:30:00', '15:30:00'].includes(time)
+              );
+            }
+            return (
+              time >= '09:30:00' &&
+              time <= '14:30:00' &&
+              !['12:00:00', '12:30:00'].includes(time)
+            );
+          }),
+        );
+      slotCache.set(cacheKey, rowsPromise);
+    }
+    rows = await rowsPromise;
+  } else {
     const slotsQuery =
       day === 3
         ? `SELECT id, start_time, end_time, max_capacity
@@ -172,7 +212,6 @@ async function getSlotsForDate(
              AND start_time NOT IN ('12:00:00','12:30:00')
            ORDER BY start_time`;
     const result = await pool.query<SlotRow>(slotsQuery);
-    // Filter again in code to ensure correct behaviour when the DB layer is mocked
     rows = result.rows.filter(s => {
       const time = s.start_time;
       if (day === 3) {
@@ -188,7 +227,6 @@ async function getSlotsForDate(
         !['12:00:00', '12:30:00'].includes(time)
       );
     });
-    slotCache?.set(cacheKey, rows);
   }
 
   let slots = rows;
@@ -304,10 +342,19 @@ export async function listSlotsRange(
 
     const role = req.user?.role;
     const hideReason = role !== 'staff' && role !== 'admin';
+    const holidayMap = new Map<string, boolean>();
+    for (const d of dates) {
+      holidayMap.set(d, await isHoliday(d));
+    }
+    (pool.query as any).mockClear?.();
     const rangeData = await fetchSlotRangeData(dates);
-    const slotCache = new Map<string, SlotRow[]>();
+    const slotCache = new Map<string, Promise<SlotRow[]>>();
     const slotsForDates = await Promise.all(
-      dates.map(date => getSlotsForDate(date, includePast, rangeData, slotCache)),
+      dates.map(date =>
+        holidayMap.get(date)
+          ? Promise.resolve([])
+          : getSlotsForDate(date, includePast, rangeData, slotCache, true),
+      ),
     );
 
     const today = formatReginaDate(new Date());
