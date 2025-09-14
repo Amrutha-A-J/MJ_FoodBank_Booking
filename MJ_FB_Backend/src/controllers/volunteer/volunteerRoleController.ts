@@ -322,6 +322,9 @@ export async function listVolunteerRolesForVolunteer(
   if (!date) {
     return res.status(400).json({ message: 'date query parameter is required' });
   }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ message: 'Invalid date' });
+  }
   try {
     const volunteerRes = await pool.query(
       'SELECT role_id FROM volunteer_trained_roles WHERE volunteer_id=$1',
