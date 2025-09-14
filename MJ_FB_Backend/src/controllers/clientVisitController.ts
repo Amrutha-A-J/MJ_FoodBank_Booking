@@ -123,6 +123,9 @@ export async function listVisits(req: Request, res: Response, next: NextFunction
   try {
     const date = req.query.date as string;
     if (!date) return res.status(400).json({ message: 'Date required' });
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ message: 'Invalid date' });
+    }
     const result = await pool.query(
       `SELECT v.id,
               to_char(v.date, 'YYYY-MM-DD') as date,

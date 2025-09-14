@@ -11,6 +11,7 @@ import {
   deleteVisit,
   toggleVisitVerification,
   getVisitStats,
+  listVisits,
 } from '../src/controllers/clientVisitController';
 
 jest.mock('../src/controllers/pantry/pantryAggregationController', () => ({
@@ -36,6 +37,16 @@ describe('clientVisitController', () => {
     (refreshPantryWeekly as jest.Mock).mockReset();
     (refreshPantryMonthly as jest.Mock).mockReset();
     (refreshPantryYearly as jest.Mock).mockReset();
+  });
+
+  it('returns 400 for invalid date format', async () => {
+    const req = { query: { date: '2024/05/20' } } as any;
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
+    const next = jest.fn();
+    await listVisits(req, res, next);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid date' });
+    expect(mockDb.query).not.toHaveBeenCalled();
   });
 
   it('deleteVisit triggers pantry refresh', async () => {
