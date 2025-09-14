@@ -1,4 +1,4 @@
-import { schedule, ScheduledTask } from 'node-cron';
+import { schedule as cronSchedule, ScheduledTask } from 'node-cron';
 import pool from '../db';
 import logger from '../utils/logger';
 
@@ -13,13 +13,17 @@ export async function cleanupPastBlockedSlots(): Promise<void> {
   }
 }
 
+export const schedule = cronSchedule;
+
 let task: ScheduledTask | undefined;
 
 /**
  * Schedule the cleanup job to run nightly at 2:00 AM Regina time.
  */
-export function startBlockedSlotCleanupJob(): void {
-  task = schedule(
+export function startBlockedSlotCleanupJob(
+  cronFn: typeof schedule = schedule,
+): void {
+  task = cronFn(
     '0 2 * * *',
     () => {
       void cleanupPastBlockedSlots();
