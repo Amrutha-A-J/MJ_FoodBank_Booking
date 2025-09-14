@@ -1,4 +1,11 @@
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import PantrySchedule from '../PantrySchedule';
 import * as bookingApi from '../../../api/bookings';
 import * as usersApi from '../../../api/users';
@@ -82,7 +89,9 @@ describe('PantrySchedule add existing client workflow', () => {
       /Search users by name\/email\/phone\/client ID/,
     );
     fireEvent.change(searchInput, { target: { value: 'Tes' } });
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     expect(await screen.findByText('Test User (123)')).toBeInTheDocument();
   });
 
@@ -114,12 +123,16 @@ describe('PantrySchedule add existing client workflow', () => {
       /Search users by name\/email\/phone\/client ID/,
     );
     fireEvent.change(searchInput, { target: { value: '123' } });
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
 
     const addBtn = await screen.findByRole('button', {
       name: 'Add existing client to the app',
     });
-    fireEvent.click(addBtn);
+    await act(async () => {
+      fireEvent.click(addBtn);
+    });
 
     await waitFor(() => {
       expect(usersApi.addClientById).toHaveBeenCalledWith('123');
@@ -155,7 +168,9 @@ describe('PantrySchedule add existing client workflow', () => {
       target: { value: 'Someone New' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Assign new client' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Assign new client' }));
+    });
 
     await waitFor(() => {
       expect(bookingApi.createBookingForNewClient).toHaveBeenCalledWith(
@@ -164,6 +179,8 @@ describe('PantrySchedule add existing client workflow', () => {
         expect.any(String),
       );
     });
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });
 
