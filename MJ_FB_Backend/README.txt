@@ -5,6 +5,13 @@ Backend: https://github.com/Amrutha-A-J/MJ_FB_Backend
 Run `npm run migrate` to apply TypeScript database migrations from `src/migrations`.
 
 
+## Delivery Data Seeder
+
+Run `npm run seed:delivery` to insert the default delivery categories and items using the database
+credentials from your `.env` file. The script is idempotent—rerun it any time to sync category
+limits and add missing items without creating duplicates.
+
+
 ## Requirements
 
 - Node.js 22 or later is required for native `fetch` support; earlier versions are not supported.
