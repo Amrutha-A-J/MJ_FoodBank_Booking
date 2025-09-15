@@ -135,6 +135,9 @@ const BookDelivery = React.lazy(() => import('./pages/delivery/BookDelivery'));
 const DeliveryHistory = React.lazy(
   () => import('./pages/delivery/DeliveryHistory')
 );
+const DeliveryDashboard = React.lazy(
+  () => import('./pages/delivery/DeliveryDashboard')
+);
 
 const Spinner = () => <CircularProgress />;
 
@@ -350,6 +353,8 @@ export default function App() {
                             <Dashboard role="staff" masterRoleFilter={['Pantry']} />
                           </Suspense>
                         )
+                      ) : role === 'delivery' ? (
+                        <DeliveryDashboard />
                       ) : (
                         <ClientDashboard />
                       )

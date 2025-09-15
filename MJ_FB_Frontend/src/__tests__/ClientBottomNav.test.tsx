@@ -49,6 +49,28 @@ describe('ClientBottomNav', () => {
     expect(queryByLabelText('dashboard')).not.toBeInTheDocument();
   });
 
+  it('shows delivery navigation for delivery clients', () => {
+    mockUseAuth.mockReturnValue({ role: 'delivery' });
+    render(
+      <MemoryRouter initialEntries={['/delivery/history']}>
+        <ClientBottomNav />
+      </MemoryRouter>,
+    );
+    expect(screen.getByLabelText('delivery')).toHaveClass('Mui-selected');
+    expect(screen.queryByLabelText('bookings')).not.toBeInTheDocument();
+  });
+
+  it('navigates delivery clients to the delivery booking page', () => {
+    mockUseAuth.mockReturnValue({ role: 'delivery' });
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <ClientBottomNav />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByLabelText('delivery'));
+    expect(mockNavigate).toHaveBeenCalledWith('/delivery/book');
+  });
+
   it('uses a larger tap target', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/']}>
