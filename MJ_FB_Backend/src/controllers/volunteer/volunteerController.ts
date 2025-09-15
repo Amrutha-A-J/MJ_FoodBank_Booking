@@ -6,6 +6,7 @@ import config from '../../config';
 import { generatePasswordSetupToken, buildPasswordSetupEmailParams } from '../../utils/passwordSetupUtils';
 import { sendTemplatedEmail } from '../../utils/emailUtils';
 import { reginaStartOfDayISO } from '../../utils/dateUtils';
+import type { PoolClient } from 'pg';
 
 export async function updateTrainedArea(
   req: Request,
@@ -370,10 +371,27 @@ export async function removeVolunteerShopperProfile(
     );
     const profileLink = clientRes.rows[0]?.profile_link;
     const expectedLink = `https://portal.link2feed.ca/org/1605/intake/${userId}`;
-    if (profileLink === expectedLink) {
-      await pool.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+    let client: PoolClient | undefined;
+    try {
+      client = await pool.connect();
+      await client.query('BEGIN');
+      await client.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
+      if (profileLink === expectedLink) {
+        await client.query(`DELETE FROM clients WHERE client_id = $1`, [userId]);
+      }
+      await client.query('COMMIT');
+    } catch (transactionError) {
+      if (client) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackError) {
+          logger.error('Error rolling back volunteer shopper removal:', rollbackError);
+        }
+      }
+      throw transactionError;
+    } finally {
+      client?.release();
     }
-    await pool.query(`UPDATE volunteers SET user_id = NULL WHERE id = $1`, [id]);
     res.json({ message: 'Shopper profile removed' });
   } catch (error) {
     logger.error('Error removing volunteer shopper profile:', error);
