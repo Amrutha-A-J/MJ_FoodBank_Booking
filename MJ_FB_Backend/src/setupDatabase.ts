@@ -529,19 +529,24 @@ INSERT INTO slots (start_time, end_time, max_capacity) VALUES
 ('18:30:00', '19:00:00', 4)
 ON CONFLICT (start_time, end_time) DO NOTHING;
 
-INSERT INTO breaks (day_of_week, slot_id, reason) VALUES
-(1, 6, 'Lunch Break'),
-(2, 6, 'Lunch Break'),
-(3, 6, 'Lunch Break'),
-(4, 6, 'Lunch Break'),
-(5, 6, 'Lunch Break'),
-(1, 7, 'Lunch Break'),
-(2, 7, 'Lunch Break'),
-(3, 7, 'Lunch Break'),
-(4, 7, 'Lunch Break'),
-(5, 7, 'Lunch Break'),
-(3, 12, 'Evening Break'),
-(3, 13, 'Evening Break')
+INSERT INTO breaks (day_of_week, slot_id, reason)
+SELECT b.day_of_week, s.id, b.reason
+FROM (
+  VALUES
+    (1, '12:00:00'::time, '12:30:00'::time, 'Lunch Break'),
+    (2, '12:00:00'::time, '12:30:00'::time, 'Lunch Break'),
+    (3, '12:00:00'::time, '12:30:00'::time, 'Lunch Break'),
+    (4, '12:00:00'::time, '12:30:00'::time, 'Lunch Break'),
+    (5, '12:00:00'::time, '12:30:00'::time, 'Lunch Break'),
+    (1, '12:30:00'::time, '13:00:00'::time, 'Lunch Break'),
+    (2, '12:30:00'::time, '13:00:00'::time, 'Lunch Break'),
+    (3, '12:30:00'::time, '13:00:00'::time, 'Lunch Break'),
+    (4, '12:30:00'::time, '13:00:00'::time, 'Lunch Break'),
+    (5, '12:30:00'::time, '13:00:00'::time, 'Lunch Break'),
+    (3, '15:00:00'::time, '15:30:00'::time, 'Evening Break'),
+    (3, '15:30:00'::time, '16:00:00'::time, 'Evening Break')
+) AS b(day_of_week, start_time, end_time, reason)
+JOIN slots s ON s.start_time = b.start_time AND s.end_time = b.end_time
 ON CONFLICT (day_of_week, slot_id) DO NOTHING;
 
 INSERT INTO volunteer_master_roles (id, name) VALUES
