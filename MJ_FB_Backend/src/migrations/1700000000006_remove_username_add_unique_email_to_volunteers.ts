@@ -1,7 +1,7 @@
 import type { MigrationBuilder } from 'node-pg-migrate';
 
 export async function up(pgm: MigrationBuilder): Promise<void> {
-  pgm.dropColumn('volunteers', 'username');
+  pgm.dropColumn('volunteers', 'username', { ifExists: true });
   pgm.addConstraint('volunteers', 'volunteers_email_unique', { unique: ['email'] });
 }
 
