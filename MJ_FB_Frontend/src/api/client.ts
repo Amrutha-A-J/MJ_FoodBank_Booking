@@ -108,9 +108,40 @@ export function __resetCsrfTokenForTests() {
   csrfToken = null;
 }
 
+export interface ApiErrorDetails {
+  errors?: { message: string }[];
+  [key: string]: unknown;
+}
+
 export interface ApiError extends Error {
-  details?: unknown;
+  details?: ApiErrorDetails;
   status?: number;
+}
+
+function getMessage(value: unknown, fallback: string): string {
+  if (typeof value === 'string' && value) return value;
+  if (value instanceof Error && value.message) return value.message;
+  if (
+    value &&
+    typeof value === 'object' &&
+    'message' in value &&
+    typeof (value as { message?: unknown }).message === 'string'
+  ) {
+    return (value as { message: string }).message;
+  }
+  return fallback;
+}
+
+function toDetails(value: unknown, fallback: string): ApiErrorDetails {
+  if (value && typeof value === 'object') {
+    const obj: ApiErrorDetails = { ...(value as Record<string, unknown>) };
+    const rawErrors = (value as { errors?: unknown }).errors;
+    obj.errors = Array.isArray(rawErrors)
+      ? rawErrors.map(e => ({ message: getMessage(e, fallback) }))
+      : [{ message: getMessage(value, fallback) }];
+    return obj;
+  }
+  return { errors: [{ message: getMessage(value, fallback) }] };
 }
 
 export async function handleResponse<T = any>(res: Response): Promise<T> {
@@ -129,14 +160,14 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
       } catch (e) {
         const err: ApiError = new Error('Failed to parse error response JSON');
         err.status = res.status;
-        err.details = e;
+        err.details = toDetails(e, 'Failed to parse error response JSON');
         throw err;
       }
     } else {
       message = await res.text();
     }
     const err: ApiError = new Error(message);
-    if (data) err.details = data;
+    err.details = toDetails(data, message);
     err.status = res.status;
     throw err;
   }
@@ -150,7 +181,7 @@ export async function handleResponse<T = any>(res: Response): Promise<T> {
     } catch (e) {
       const err: ApiError = new Error('Failed to parse response JSON');
       err.status = res.status;
-      err.details = e;
+      err.details = toDetails(e, 'Failed to parse response JSON');
       throw err;
     }
   }
