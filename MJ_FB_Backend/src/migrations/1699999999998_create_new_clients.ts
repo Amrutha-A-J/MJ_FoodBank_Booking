@@ -7,7 +7,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
     email: { type: 'text' },
     phone: { type: 'text' },
     created_at: { type: 'timestamp', notNull: true, default: pgm.func('current_timestamp') },
-  });
+  }, { ifNotExists: true });
 
   pgm.addColumn('bookings', {
     new_client_id: {
@@ -15,7 +15,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
       references: 'new_clients',
       onDelete: 'set null',
     },
-  });
+  }, { ifNotExists: true });
 }
 
 export async function down(pgm: MigrationBuilder): Promise<void> {
