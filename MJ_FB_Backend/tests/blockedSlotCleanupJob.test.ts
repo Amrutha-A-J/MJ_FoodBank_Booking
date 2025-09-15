@@ -1,6 +1,8 @@
+jest.mock('../src/utils/opsAlert');
 const job = require('../src/jobs/blockedSlotCleanupJob');
 const { cleanupPastBlockedSlots, startBlockedSlotCleanupJob, stopBlockedSlotCleanupJob } = job;
 import pool from '../src/db';
+import { alertOps } from '../src/utils/opsAlert';
 
 describe('cleanupPastBlockedSlots', () => {
   beforeEach(() => {
@@ -13,6 +15,12 @@ describe('cleanupPastBlockedSlots', () => {
     expect(pool.query).toHaveBeenCalledWith(
       'DELETE FROM blocked_slots WHERE date < CURRENT_DATE',
     );
+  });
+
+  it('alerts ops on failure', async () => {
+    (pool.query as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+    await cleanupPastBlockedSlots();
+    expect(alertOps).toHaveBeenCalled();
   });
 });
 
