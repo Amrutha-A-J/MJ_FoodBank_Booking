@@ -37,7 +37,11 @@ const { getAllSlots } = jest.requireMock('../../../api/slots');
 const {
   getDeliveryCategories,
   createDeliveryCategory,
+  updateDeliveryCategory,
+  deleteDeliveryCategory,
   createDeliveryCategoryItem,
+  updateDeliveryCategoryItem,
+  deleteDeliveryCategoryItem,
 } = jest.requireMock('../../../api/deliveryCategories');
 
 function renderComponent() {
@@ -135,5 +139,166 @@ describe('PantrySettingsTab delivery categories', () => {
     });
 
     expect(await screen.findByText('Pasta')).toBeInTheDocument();
+  });
+
+  it('updates an existing delivery category', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([
+        { id: 2, name: 'Dry goods', maxItems: 2, items: [] },
+      ])
+      .mockResolvedValue([
+        { id: 2, name: 'Pantry', maxItems: 5, items: [] },
+      ]);
+    (updateDeliveryCategory as jest.Mock).mockResolvedValue({
+      id: 2,
+      name: 'Pantry',
+      maxItems: 5,
+    });
+
+    renderComponent();
+
+    await screen.findByText('Dry goods');
+
+    fireEvent.click(screen.getByLabelText(/edit dry goods/i));
+
+    const dialog = await screen.findByRole('dialog', { name: /edit category/i });
+    const nameField = within(dialog).getByLabelText(/name/i);
+    fireEvent.change(nameField, { target: { value: 'Pantry' } });
+    const maxField = within(dialog).getByLabelText(/max items per delivery/i);
+    fireEvent.change(maxField, { target: { value: '5' } });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(updateDeliveryCategory).toHaveBeenCalledWith(2, {
+        name: 'Pantry',
+        maxItems: 5,
+      });
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(await screen.findByText('Pantry')).toBeInTheDocument();
+    expect(screen.getByText('Max items per delivery: 5')).toBeInTheDocument();
+  });
+
+  it('updates an existing item inside a category', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([
+        {
+          id: 3,
+          name: 'Dry goods',
+          maxItems: 3,
+          items: [{ id: 4, name: 'Rice' }],
+        },
+      ])
+      .mockResolvedValue([
+        {
+          id: 3,
+          name: 'Dry goods',
+          maxItems: 3,
+          items: [{ id: 4, name: 'Brown rice' }],
+        },
+      ]);
+    (updateDeliveryCategoryItem as jest.Mock).mockResolvedValue({
+      id: 4,
+      name: 'Brown rice',
+    });
+
+    renderComponent();
+
+    await screen.findByText('Rice');
+
+    fireEvent.click(screen.getByLabelText(/edit rice/i));
+
+    const dialog = await screen.findByRole('dialog', { name: /edit item/i });
+    const nameField = within(dialog).getByLabelText(/item name/i);
+    fireEvent.change(nameField, { target: { value: 'Brown rice' } });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(updateDeliveryCategoryItem).toHaveBeenCalledWith(3, 4, {
+        name: 'Brown rice',
+      });
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(await screen.findByText('Brown rice')).toBeInTheDocument();
+  });
+
+  it('deletes a delivery category after confirmation', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([
+        { id: 5, name: 'Frozen', maxItems: 1, items: [] },
+      ])
+      .mockResolvedValue([]);
+    (deleteDeliveryCategory as jest.Mock).mockResolvedValue(undefined);
+
+    renderComponent();
+
+    await screen.findByText('Frozen');
+
+    fireEvent.click(screen.getByLabelText(/delete frozen/i));
+
+    const dialog = await screen.findByRole('dialog', { name: /delete category/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /delete category/i }));
+
+    await waitFor(() => {
+      expect(deleteDeliveryCategory).toHaveBeenCalledWith(5);
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(
+      await screen.findByText(/no delivery categories yet\. add one to get started\./i),
+    ).toBeInTheDocument();
+  });
+
+  it('deletes a category item after confirmation', async () => {
+    (getDeliveryCategories as jest.Mock)
+      .mockResolvedValueOnce([
+        {
+          id: 6,
+          name: 'Pantry',
+          maxItems: 2,
+          items: [{ id: 9, name: 'Beans' }],
+        },
+      ])
+      .mockResolvedValue([
+        {
+          id: 6,
+          name: 'Pantry',
+          maxItems: 2,
+          items: [],
+        },
+      ]);
+    (deleteDeliveryCategoryItem as jest.Mock).mockResolvedValue(undefined);
+
+    renderComponent();
+
+    await screen.findByText('Beans');
+
+    fireEvent.click(screen.getByLabelText(/delete beans/i));
+
+    const dialog = await screen.findByRole('dialog', { name: /delete item/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /delete item/i }));
+
+    await waitFor(() => {
+      expect(deleteDeliveryCategoryItem).toHaveBeenCalledWith(6, 9);
+    });
+
+    await waitFor(() => {
+      expect(getDeliveryCategories).toHaveBeenCalledTimes(2);
+    });
+
+    expect(await screen.findByText(/no items yet\./i)).toBeInTheDocument();
   });
 });

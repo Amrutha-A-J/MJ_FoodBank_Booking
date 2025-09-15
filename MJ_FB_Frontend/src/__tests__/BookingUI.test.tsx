@@ -109,6 +109,28 @@ describe('BookingUI visible slots', () => {
     await screen.findByText(/Booking for Test/);
     expect(screen.queryByText('Book Shopping Appointment')).toBeNull();
   });
+
+  it('shows an empty state when no slots are available', async () => {
+    (getSlots as jest.Mock).mockResolvedValue([]);
+    (getHolidays as jest.Mock).mockResolvedValue([]);
+
+    const queryClient = new QueryClient();
+    render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <BookingUI shopperName="Test" initialDate={dayjs('2024-01-02')} />
+        </QueryClientProvider>
+      </MemoryRouter>,
+    );
+
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      jest.runOnlyPendingTimers();
+    });
+
+    await waitFor(() => expect(getSlots).toHaveBeenCalled());
+    expect(await screen.findByText(/no slots available/i)).toBeInTheDocument();
+  });
 });
 
 describe('SlotRow', () => {
