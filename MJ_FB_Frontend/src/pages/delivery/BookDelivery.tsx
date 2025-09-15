@@ -86,7 +86,7 @@ export default function BookDelivery() {
         if (active) {
           const message = getApiErrorMessage(
             err,
-            'Unable to load delivery items',
+            "We couldn't load your delivery options. Please try again.",
           );
           setError(message);
           setSnackbar({ open: true, message, severity: 'error' });
@@ -244,7 +244,7 @@ export default function BookDelivery() {
     } catch (err) {
       const message = getApiErrorMessage(
         err,
-        'Unable to submit delivery request',
+        "We couldn't submit your delivery request. Please try again.",
       );
       setSnackbar({ open: true, message, severity: 'error' });
     } finally {

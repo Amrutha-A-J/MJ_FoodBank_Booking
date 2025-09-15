@@ -93,7 +93,7 @@ export default function DeliveryHistory() {
         if (active) {
           const message = getApiErrorMessage(
             err,
-            'Unable to load delivery history',
+            "We couldn't load your delivery history. Please try again.",
           );
           setError(message);
           setSnackbar({ open: true, message, severity: 'error' });

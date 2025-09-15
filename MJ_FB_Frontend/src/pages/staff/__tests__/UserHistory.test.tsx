@@ -31,7 +31,7 @@ describe('UserHistory search add shortcut', () => {
 
   it('shows add button and navigates with id prefilled', async () => {
     renderWithProviders(
-      <MemoryRouter initialEntries={['/staff/client-management']}>
+      <MemoryRouter initialEntries={['/pantry/client-management']}>
         <ClientManagement />
       </MemoryRouter>,
     );

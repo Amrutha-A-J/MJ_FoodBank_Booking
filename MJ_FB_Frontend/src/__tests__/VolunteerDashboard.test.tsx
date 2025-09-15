@@ -98,18 +98,17 @@ async function renderDashboard() {
       </MemoryRouter>,
     );
   });
-  if ((setTimeout as unknown as { mock?: unknown }).mock) {
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
-  }
+
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
 }
 
 describe('VolunteerDashboard', () => {
-  let usesFakeTimers = false;
-
   beforeEach(() => {
-    usesFakeTimers = false;
+    const now = Date.now();
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
     (getVolunteerLeaderboard as jest.Mock).mockResolvedValue({ rank: 1, percentile: 100 });
     (getVolunteerGroupStats as jest.Mock).mockResolvedValue({
       totalHours: 0,
@@ -126,10 +125,11 @@ describe('VolunteerDashboard', () => {
   });
 
   afterEach(() => {
-    if (usesFakeTimers) {
-      jest.setSystemTime(undefined);
-      jest.useRealTimers();
-    }
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    jest.setSystemTime(undefined);
+    jest.useRealTimers();
   });
 
   it('does not show update trained roles button', async () => {
@@ -185,8 +185,7 @@ describe('VolunteerDashboard', () => {
 
   it('hides slots already booked by volunteer', async () => {
     const base = toDayjs('2030-01-29T00:00', 'America/Regina');
-    usesFakeTimers = true;
-    jest.useFakeTimers().setSystemTime(base.toDate());
+    jest.setSystemTime(base.toDate());
     const today = formatReginaDate(base);
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([
       {
@@ -226,8 +225,6 @@ describe('VolunteerDashboard', () => {
 
   it('excludes past shifts from available slots', async () => {
     const base = toDayjs('2030-01-29T00:00', 'America/Regina');
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(base.set('hour', 13).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -258,8 +255,6 @@ describe('VolunteerDashboard', () => {
 
   it('lists upcoming available shifts', async () => {
     const base = toDayjs('2030-01-29T00:00', 'America/Regina');
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(base.set('hour', 8).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -292,8 +287,6 @@ describe('VolunteerDashboard', () => {
 
   it('filters available shifts by role', async () => {
     const base = toDayjs('2030-01-29T00:00', 'America/Regina');
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(base.set('hour', 8).toDate());
 
     (getMyVolunteerBookings as jest.Mock).mockResolvedValue([]);
@@ -349,8 +342,6 @@ describe('VolunteerDashboard', () => {
   });
 
   it('shows server error when shift request fails', async () => {
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
     );
@@ -397,8 +388,6 @@ describe('VolunteerDashboard', () => {
   });
 
   it('shows upcoming approved shift in My Next Shift', async () => {
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-02-06T12:00', 'America/Regina').toDate(),
     );
@@ -553,8 +542,6 @@ describe('VolunteerDashboard', () => {
   });
 
   it('displays year in date labels', async () => {
-    usesFakeTimers = true;
-    jest.useFakeTimers();
     jest.setSystemTime(
       toDayjs('2024-01-10T06:00', 'America/Regina').toDate(),
     );
