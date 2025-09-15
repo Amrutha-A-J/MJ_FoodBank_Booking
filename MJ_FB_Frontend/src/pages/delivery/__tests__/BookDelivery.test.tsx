@@ -17,10 +17,11 @@ const mockCategories: DeliveryCategory[] = [
   {
     id: 1,
     name: 'Pantry Staples',
-    limit: 3,
+    limit: 2,
     items: [
-      { id: 10, categoryId: 1, name: 'Cereal', maxQuantity: 3 },
-      { id: 11, categoryId: 1, name: 'Pasta', maxQuantity: 3 },
+      { id: 10, categoryId: 1, name: 'Cereal' },
+      { id: 11, categoryId: 1, name: 'Pasta' },
+      { id: 12, categoryId: 1, name: 'Rice' },
     ],
   },
 ];
@@ -34,7 +35,7 @@ describe('BookDelivery', () => {
     );
   });
 
-  test('caps selection when category limit reached', async () => {
+  test('disables unchecked items when category limit reached', async () => {
     (handleResponse as jest.Mock).mockResolvedValueOnce(mockCategories);
 
     render(
@@ -43,14 +44,15 @@ describe('BookDelivery', () => {
       </MemoryRouter>,
     );
 
-    const cerealInput = await screen.findByLabelText(/cereal quantity/i);
-    fireEvent.change(cerealInput, { target: { value: '2' } });
+    const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
+    const pasta = screen.getByRole('checkbox', { name: /pasta/i });
+    const rice = screen.getByRole('checkbox', { name: /rice/i });
 
-    const pastaInput = screen.getByLabelText(/pasta quantity/i);
-    fireEvent.change(pastaInput, { target: { value: '2' } });
-
-    await waitFor(() => expect(pastaInput).toHaveValue(1));
-    expect(screen.getByText(/remaining selections: 0 of 3/i)).toBeInTheDocument();
+    fireEvent.click(cereal);
+    fireEvent.click(pasta);
+    expect(rice).toBeDisabled();
+    fireEvent.click(cereal);
+    expect(rice).not.toBeDisabled();
   });
 
   test('submits selections with contact information', async () => {
@@ -64,8 +66,8 @@ describe('BookDelivery', () => {
       </MemoryRouter>,
     );
 
-    const cerealInput = await screen.findByLabelText(/cereal quantity/i);
-    fireEvent.change(cerealInput, { target: { value: '1' } });
+    const cereal = await screen.findByRole('checkbox', { name: /cereal/i });
+    fireEvent.click(cereal);
 
     fireEvent.change(screen.getByLabelText(/delivery address/i), {
       target: { value: '123 Main Street' },

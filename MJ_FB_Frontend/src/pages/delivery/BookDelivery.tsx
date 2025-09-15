@@ -5,10 +5,15 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Checkbox,
   CircularProgress,
   Container,
   Divider,
+  FormControlLabel,
+  FormGroup,
   Grid,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Typography,
@@ -22,7 +27,7 @@ import {
 } from '../../api/client';
 import type { DeliveryCategory, DeliveryItem } from '../../types';
 
-type QuantityState = Record<number, number>;
+type SelectionState = Record<number, boolean>;
 
 type SnackbarState = {
   open: boolean;
@@ -50,21 +55,9 @@ function resolveCategoryLimit(category: DeliveryCategory): number {
   return rawLimit && rawLimit > 0 ? rawLimit : Number.POSITIVE_INFINITY;
 }
 
-function resolveItemLimit(item: DeliveryItem): number | null {
-  const rawLimit = item.maxQuantity ?? item.maxPerOrder ?? null;
-  return rawLimit && rawLimit > 0 ? rawLimit : null;
-}
-
-function sanitizeQuantity(value: string): number {
-  if (!value) return 0;
-  const parsed = Number(value);
-  if (Number.isNaN(parsed)) return 0;
-  return Math.max(0, Math.floor(parsed));
-}
-
 export default function BookDelivery() {
   const [categories, setCategories] = useState<DeliveryCategory[]>([]);
-  const [selectedQuantities, setSelectedQuantities] = useState<QuantityState>({});
+  const [selectedItems, setSelectedItems] = useState<SelectionState>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [address, setAddress] = useState('');
@@ -110,12 +103,12 @@ export default function BookDelivery() {
     categories.forEach(category => {
       category.items.forEach(item => validIds.add(item.id));
     });
-    setSelectedQuantities(prev => {
-      const next: QuantityState = {};
-      Object.entries(prev).forEach(([id, quantity]) => {
+    setSelectedItems(prev => {
+      const next: SelectionState = {};
+      Object.entries(prev).forEach(([id, selected]) => {
         const itemId = Number(id);
-        if (validIds.has(itemId) && quantity > 0) {
-          next[itemId] = quantity;
+        if (validIds.has(itemId) && selected) {
+          next[itemId] = true;
         }
       });
       return next;
@@ -126,16 +119,16 @@ export default function BookDelivery() {
     const totals: Record<number, number> = {};
     categories.forEach(category => {
       totals[category.id] = category.items.reduce(
-        (sum, item) => sum + (selectedQuantities[item.id] ?? 0),
+        (sum, item) => sum + (selectedItems[item.id] ? 1 : 0),
         0,
       );
     });
     return totals;
-  }, [categories, selectedQuantities]);
+  }, [categories, selectedItems]);
 
   const hasSelections = useMemo(
-    () => Object.values(selectedQuantities).some(quantity => quantity > 0),
-    [selectedQuantities],
+    () => Object.values(selectedItems).some(Boolean),
+    [selectedItems],
   );
 
   useEffect(() => {
@@ -144,34 +137,30 @@ export default function BookDelivery() {
     }
   }, [hasSelections]);
 
-  const handleQuantityChange = (
+  const handleCheckboxChange = (item: DeliveryItem) => {
+    setSelectedItems(prev => {
+      const next = { ...prev };
+      if (next[item.id]) {
+        delete next[item.id];
+      } else {
+        next[item.id] = true;
+      }
+      return next;
+    });
+  };
+
+  const handleRadioChange = (
     category: DeliveryCategory,
-    item: DeliveryItem,
     value: string,
   ) => {
-    const quantity = sanitizeQuantity(value);
-    const categoryLimit = resolveCategoryLimit(category);
-    const itemLimit = resolveItemLimit(item);
-
-    setSelectedQuantities(prev => {
-      const otherSelected = category.items.reduce((sum, categoryItem) => {
-        if (categoryItem.id === item.id) return sum;
-        return sum + (prev[categoryItem.id] ?? 0);
-      }, 0);
-
-      let allowed = quantity;
-      if (Number.isFinite(categoryLimit)) {
-        allowed = Math.min(allowed, Math.max(0, categoryLimit - otherSelected));
-      }
-      if (itemLimit !== null) {
-        allowed = Math.min(allowed, itemLimit);
-      }
-
-      const next = { ...prev };
-      if (allowed > 0) {
-        next[item.id] = allowed;
-      } else {
+    const itemId = Number(value);
+    setSelectedItems(prev => {
+      const next: SelectionState = { ...prev };
+      category.items.forEach(item => {
         delete next[item.id];
+      });
+      if (!Number.isNaN(itemId)) {
+        next[itemId] = true;
       }
       return next;
     });
@@ -223,11 +212,11 @@ export default function BookDelivery() {
       address: address.trim(),
       phone: phone.trim(),
       email: email.trim(),
-      items: Object.entries(selectedQuantities)
-        .filter(([, quantity]) => quantity > 0)
-        .map(([itemId, quantity]) => ({
+      items: Object.entries(selectedItems)
+        .filter(([, selected]) => selected)
+        .map(([itemId]) => ({
           itemId: Number(itemId),
-          quantity,
+          quantity: 1,
         })),
     };
 
@@ -247,7 +236,7 @@ export default function BookDelivery() {
       setAddress('');
       setPhone('');
       setEmail('');
-      setSelectedQuantities({});
+      setSelectedItems({});
       setFormErrors({});
     } catch (err) {
       const message = getApiErrorMessage(err);
@@ -294,15 +283,11 @@ export default function BookDelivery() {
             {categories.map(category => {
               const limit = resolveCategoryLimit(category);
               const remaining = remainingSelections(category);
+              const selectedId = category.items.find(item => selectedItems[item.id])?.id;
               return (
                 <Card key={category.id}>
                   <CardHeader
-                    title={category.name}
-                    subheader={
-                      Number.isFinite(limit)
-                        ? `Select up to ${limit} items`
-                        : 'No item limit'
-                    }
+                    title={`${category.name}$${Number.isFinite(limit) ? ` (Select ${limit})` : ''}`.replace('$', '')}
                   />
                   <CardContent>
                     {category.description && (
@@ -310,55 +295,47 @@ export default function BookDelivery() {
                         {category.description}
                       </Typography>
                     )}
-                    <Grid container spacing={2}>
-                      {category.items.map(item => {
-                        const quantity = selectedQuantities[item.id] ?? 0;
-                        const itemLimit = resolveItemLimit(item);
-                        return (
-                          <Grid key={item.id} size={{ xs: 12, sm: 6 }}>
-                            <TextField
-                              fullWidth
-                              type="number"
-                              label={`${item.name} quantity`}
-                              value={quantity}
-                              onChange={event =>
-                                handleQuantityChange(
-                                  category,
-                                  item,
-                                  event.target.value,
-                                )
-                              }
-                              inputProps={{
-                                min: 0,
-                                ...(itemLimit ? { max: itemLimit } : {}),
-                              }}
-                            />
-                            {item.description && (
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 1 }}
-                              >
-                                {item.description}
-                              </Typography>
-                            )}
-                            {itemLimit && (
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ mt: 1 }}
-                              >
-                                {`Maximum ${itemLimit} per order`}
-                              </Typography>
-                            )}
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
                     {Number.isFinite(limit) && (
-                      <Typography variant="body2" sx={{ mt: 2 }}>
-                        Remaining selections: {remaining ?? 0} of {limit}
+                      <Typography color="error" sx={{ mb: 2 }}>
+                        {`Select exactly ${limit} ${limit === 1 ? 'choice' : 'choices'}.`}
                       </Typography>
+                    )}
+                    {limit === 1 ? (
+                      <RadioGroup
+                        value={selectedId ? String(selectedId) : ''}
+                        onChange={event =>
+                          handleRadioChange(category, event.target.value)
+                        }
+                      >
+                        {category.items.map(item => (
+                          <FormControlLabel
+                            key={item.id}
+                            value={item.id}
+                            control={<Radio />}
+                            label={item.name}
+                          />
+                        ))}
+                      </RadioGroup>
+                    ) : (
+                      <FormGroup>
+                        {category.items.map(item => {
+                          const checked = !!selectedItems[item.id];
+                          const disable = !checked && remaining === 0;
+                          return (
+                            <FormControlLabel
+                              key={item.id}
+                              control={
+                                <Checkbox
+                                  checked={checked}
+                                  onChange={() => handleCheckboxChange(item)}
+                                />
+                              }
+                              label={item.name}
+                              disabled={disable}
+                            />
+                          );
+                        })}
+                      </FormGroup>
                     )}
                   </CardContent>
                 </Card>
