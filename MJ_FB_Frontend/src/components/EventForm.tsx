@@ -135,7 +135,7 @@ export default function EventForm({ open, onClose, onSaved, event }: EventFormPr
             margin="normal"
           >
             {categories.map(c => (
-              <MenuItem key={c} value={c}>
+              <MenuItem key={c} value={c} aria-label={c}>
                 {c}
               </MenuItem>
             ))}

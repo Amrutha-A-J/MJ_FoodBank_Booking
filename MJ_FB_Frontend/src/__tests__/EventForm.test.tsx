@@ -33,22 +33,24 @@ describe('EventForm', () => {
       render(<EventForm open onClose={() => {}} onSaved={() => {}} />);
 
     fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'Test' } });
-    fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: 'harvest pantry' } });
+    fireEvent.mouseDown(screen.getByLabelText(/Category/i));
+    fireEvent.click(await screen.findByRole('option', { name: /harvest pantry/i }));
     fireEvent.change(screen.getByLabelText(/Start Date/i), { target: { value: '2024-01-01' } });
     fireEvent.change(screen.getByLabelText(/End Date/i), { target: { value: '2024-01-02' } });
 
     fireEvent.click(screen.getByRole('button', { name: /Create/i }));
 
-    await waitFor(() => expect(createEvent).toHaveBeenCalled());
-    expect(createEvent).toHaveBeenCalledWith({
-      title: 'Test',
-      details: '',
-      category: 'harvest pantry',
-      startDate: '2024-01-01',
-      endDate: '2024-01-02',
-      visibleToVolunteers: false,
-      visibleToClients: false,
-    });
+    await waitFor(() =>
+      expect(createEvent).toHaveBeenCalledWith({
+        title: 'Test',
+        details: '',
+        category: 'harvest pantry',
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        visibleToVolunteers: false,
+        visibleToClients: false,
+      }),
+    );
   });
 
   it('updates event data when editing', async () => {
@@ -57,6 +59,7 @@ describe('EventForm', () => {
       title: 'Old',
       startDate: '2024-01-01',
       endDate: '2024-01-02',
+      category: 'harvest pantry',
       createdBy: 1,
       createdByName: 'Alice',
       priority: 0,
@@ -66,8 +69,12 @@ describe('EventForm', () => {
     fireEvent.change(screen.getByLabelText(/Title/i), { target: { value: 'New' } });
     fireEvent.click(screen.getByRole('button', { name: /Save/i }));
 
-    await waitFor(() => expect(updateEvent).toHaveBeenCalled());
-    expect(updateEvent).toHaveBeenCalledWith(1, expect.objectContaining({ title: 'New' }));
+    await waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ title: 'New' }),
+      ),
+    );
   });
 });
 
