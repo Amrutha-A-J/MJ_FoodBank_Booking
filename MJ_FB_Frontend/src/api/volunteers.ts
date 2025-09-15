@@ -10,18 +10,21 @@ import type {
   UserProfile,
   RecurringVolunteerBooking,
   BookingActionResponse,
+  RawVolunteerBooking,
+  VolunteerBookingRequest,
+  ResolveVolunteerBookingConflictRequest,
 } from '../types';
 import type { LoginResponse } from './users';
 
-function normalizeVolunteerBooking(b: any): VolunteerBooking {
+function normalizeVolunteerBooking(b: RawVolunteerBooking): VolunteerBooking {
   return {
     ...b,
     note: b.note ?? null,
     date: b.date?.split('T')[0] ?? b.date,
-    start_time: b.start_time ?? b.startTime,
-    end_time: b.end_time ?? b.endTime,
-    startTime: b.startTime ?? b.start_time,
-    endTime: b.endTime ?? b.end_time,
+    start_time: (b.start_time ?? b.startTime) as string,
+    end_time: (b.end_time ?? b.endTime) as string,
+    startTime: (b.startTime ?? b.start_time) as string,
+    endTime: (b.endTime ?? b.end_time) as string,
   };
 }
 
@@ -106,8 +109,8 @@ export async function getVolunteerRolesForVolunteer(
   date: string,
 ): Promise<VolunteerRole[]> {
   const res = await apiFetch(`${API_BASE}/volunteer-roles/mine?date=${date}`);
-  const data = await handleResponse(res);
-  return data.map((r: any) => ({
+  const data = await handleResponse<VolunteerRole[]>(res);
+  return data.map(r => ({
     ...r,
     date: r.date?.split('T')[0] ?? r.date,
   }));
@@ -118,7 +121,7 @@ export async function requestVolunteerBooking(
   date: string,
   note?: string,
 ): Promise<BookingActionResponse> {
-  const body: any = { roleId, date, type: 'volunteer shift' };
+  const body: VolunteerBookingRequest = { roleId, date, type: 'volunteer shift' };
   if (note && note.trim()) body.note = note;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings`, {
     method: 'POST',
@@ -136,7 +139,11 @@ export async function resolveVolunteerBookingConflict(
   date: string,
   keep: 'existing' | 'new'
 ): Promise<VolunteerBooking> {
-  const body: any = { existingBookingId, keep, type: 'volunteer shift' };
+  const body: ResolveVolunteerBookingConflictRequest = {
+    existingBookingId,
+    keep,
+    type: 'volunteer shift',
+  };
   if (roleId !== undefined) body.roleId = roleId;
   if (date !== undefined) body.date = date;
   const res = await apiFetch(`${API_BASE}/volunteer-bookings/resolve-conflict`, {
@@ -144,7 +151,7 @@ export async function resolveVolunteerBookingConflict(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const data = await handleResponse(res);
+  const data = await handleResponse<{ booking: RawVolunteerBooking }>(res);
   return normalizeVolunteerBooking(data.booking);
 }
 

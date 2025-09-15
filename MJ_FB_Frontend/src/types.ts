@@ -121,6 +121,25 @@ export type VolunteerBookingStatus =
   | 'no_show'
   | 'completed';
 
+export interface RawVolunteerBooking {
+  id: number;
+  status: VolunteerBookingStatus;
+  role_id: number;
+  date: string;
+  start_time?: string;
+  end_time?: string;
+  startTime?: string;
+  endTime?: string;
+  role_name: string;
+  category_name?: string;
+  volunteer_id?: number;
+  volunteer_name?: string;
+  status_color?: string;
+  reschedule_token?: string;
+  recurring_id?: number;
+  note?: string | null;
+}
+
 export interface VolunteerBooking {
   id: number;
   status: VolunteerBookingStatus;
@@ -128,6 +147,8 @@ export interface VolunteerBooking {
   date: string;
   start_time: string;
   end_time: string;
+  startTime?: string;
+  endTime?: string;
   role_name: string;
   category_name?: string;
   volunteer_id?: number;
@@ -267,6 +288,21 @@ export interface BookingActionResponse {
   rescheduleToken?: string;
   googleCalendarUrl?: string;
   icsUrl?: string;
+}
+
+export interface VolunteerBookingRequest {
+  roleId: number;
+  date: string;
+  type: 'volunteer shift';
+  note?: string;
+}
+
+export interface ResolveVolunteerBookingConflictRequest {
+  existingBookingId: number;
+  roleId?: number;
+  date?: string;
+  keep: 'existing' | 'new';
+  type: 'volunteer shift';
 }
 
 export interface VolunteerBookingInfo {
