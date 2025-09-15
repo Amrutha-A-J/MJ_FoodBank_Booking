@@ -38,7 +38,8 @@ describe('VolunteerCoverageCard', () => {
   });
 
   it('shows volunteers when a coverage entry is clicked', async () => {
-    jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-15T12:00:00Z'));
     (getVolunteerRoles as jest.Mock).mockResolvedValue([
       {
         id: 1,
@@ -58,16 +59,18 @@ describe('VolunteerCoverageCard', () => {
 
     await screen.findByText('Greeter 8:00 AM–12:00 PM (Front)');
 
-    await act(async () => {
-      await user.click(screen.getByText('Greeter 8:00 AM–12:00 PM (Front)'));
+    await user.click(screen.getByText('Greeter 8:00 AM–12:00 PM (Front)'));
+
+    act(() => {
       jest.runOnlyPendingTimers();
-      expect(
-        await screen.findByText('Volunteers – Greeter 8:00 AM–12:00 PM'),
-      ).toBeInTheDocument();
-      expect(screen.getByText('Alice')).toBeInTheDocument();
-      expect(screen.getByText('Bob')).toBeInTheDocument();
     });
-  }, 10000);
+
+    expect(
+      await screen.findByText('Volunteers – Greeter 8:00 AM–12:00 PM'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('Bob')).toBeInTheDocument();
+  });
 
   it('shows coverage per shift', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
