@@ -33,6 +33,7 @@ describe('cleanupExpiredTokens', () => {
   it('logs an error when the cleanup fails', async () => {
     const err = new Error('query failed');
     (pool.query as jest.Mock).mockRejectedValue(err);
+    const { cleanupExpiredTokens } = require('../src/utils/expiredTokenCleanupJob');
     await cleanupExpiredTokens();
     expect(logger.error).toHaveBeenCalledWith('Failed to clean up expired tokens', err);
   });
