@@ -8,10 +8,10 @@ import issueAuthTokens from '../src/utils/authUtils';
 
 jest.mock('../src/db');
 jest.mock('bcrypt');
+// Targeted mock for issueAuthTokens to avoid overriding other exports
 jest.mock('../src/utils/authUtils', () => ({
   __esModule: true,
   default: jest.fn(),
-  cookieOptions: {},
 }));
 
 describe('userController', () => {

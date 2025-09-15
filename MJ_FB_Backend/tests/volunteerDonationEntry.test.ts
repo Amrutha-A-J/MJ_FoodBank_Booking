@@ -13,6 +13,7 @@ jest.mock('express-rate-limit', () => ({
 }));
 jest.mock('../src/db');
 jest.mock('bcrypt');
+// Targeted mock for issueAuthTokens
 jest.mock('../src/utils/authUtils', () => ({
   __esModule: true,
   default: jest.fn().mockResolvedValue({ token: 'tok', refreshToken: 'ref' }),

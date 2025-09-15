@@ -4,7 +4,11 @@ import webauthnRoutes from '../src/routes/webauthn';
 import pool from '../src/db';
 
 jest.mock('../src/db');
-jest.mock('../src/utils/authUtils', () => ({ __esModule: true, default: jest.fn(() => Promise.resolve()) }));
+// Targeted mock for issueAuthTokens
+jest.mock('../src/utils/authUtils', () => ({
+  __esModule: true,
+  default: jest.fn(() => Promise.resolve()),
+}));
 
 const app = express();
 app.use(express.json());
