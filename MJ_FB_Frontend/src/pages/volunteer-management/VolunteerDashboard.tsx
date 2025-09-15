@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import Announcement from '@mui/icons-material/Announcement';
 import Add from '@mui/icons-material/Add';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   getMyVolunteerBookings,
   getVolunteerRolesForVolunteer,
@@ -56,6 +56,7 @@ import type { ApiError } from '../../api/client';
 import type { VolunteerBookingConflict } from '../../types';
 import VolunteerBottomNav from '../../components/VolunteerBottomNav';
 import OnboardingModal from '../../components/OnboardingModal';
+import { useAuth } from '../../hooks/useAuth';
 
 function formatDateLabel(dateStr: string) {
   const d = toDate(dateStr);
@@ -86,6 +87,7 @@ export default function VolunteerDashboard() {
   const stopLoading = () => setLoadingCount(c => Math.max(c - 1, 0));
   const loading = loadingCount > 0;
   const navigate = useNavigate();
+  const { userRole } = useAuth();
 
   useEffect(() => {
     startLoading();
@@ -492,6 +494,17 @@ export default function VolunteerDashboard() {
                 >
                   Reschedule
                 </Button>
+                {userRole === 'shopper' && (
+                  <Button
+                    size="large"
+                    variant="outlined"
+                    sx={{ textTransform: 'none' }}
+                    component={RouterLink}
+                    to="/book-appointment"
+                  >
+                    Book Shopping Appointment
+                  </Button>
+                )}
               </Stack>
             </SectionCard>
 

@@ -28,6 +28,10 @@ jest.mock('../api/volunteers', () => ({
 
 jest.mock('../api/events', () => ({ getEvents: jest.fn() }));
 
+jest.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({ role: 'volunteer', userRole: '' }),
+}));
+
 jest.mock('../components/VolunteerBottomNav', () => ({
   __esModule: true,
   default: () => <div data-testid="volunteer-bottom-nav" />,
