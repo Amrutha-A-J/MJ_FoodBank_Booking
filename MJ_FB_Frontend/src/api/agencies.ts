@@ -1,4 +1,5 @@
 import { API_BASE, apiFetch, handleResponse } from './client';
+import type { AgencyClient } from '../types';
 
 export async function searchAgencies(query: string) {
   const res = await apiFetch(
@@ -7,28 +8,38 @@ export async function searchAgencies(query: string) {
   return handleResponse(res);
 }
 
-let searchTimer: ReturnType<typeof setTimeout> | undefined;
-let lastReject: ((reason?: any) => void) | undefined;
+let controller: AbortController | null = null;
 
-export function searchAgencyClients(term: string) {
-  if (searchTimer) {
-    clearTimeout(searchTimer);
-    lastReject?.(new Error('canceled'));
-  }
+export async function searchAgencyClients(
+  term: string,
+): Promise<AgencyClient[]> {
+  controller?.abort();
+  controller = new AbortController();
+  const { signal } = controller;
 
-  return new Promise<any[]>((resolve, reject) => {
-    lastReject = reject;
-    searchTimer = setTimeout(async () => {
-      try {
-        const res = await apiFetch(
-          `${API_BASE}/agencies/me/clients?search=${encodeURIComponent(term)}`,
-        );
-        resolve(await handleResponse(res));
-      } catch (err) {
-        reject(err);
-      }
-    }, 300);
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(resolve, 300);
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer);
+      reject(new DOMException('Aborted', 'AbortError'));
+    });
   });
+
+  const res = await apiFetch(
+    `${API_BASE}/agencies/me/clients?search=${encodeURIComponent(term)}`,
+    { signal },
+  );
+  const data = await handleResponse<any[]>(res);
+  return Array.isArray(data)
+    ? data.map(c => ({
+        id: c.id ?? c.client_id!,
+        name:
+          c.name ??
+          c.client_name ??
+          `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(),
+        email: c.email,
+      }))
+    : [];
 }
 
 export async function getAgencyClients(agencyId: number | 'me') {

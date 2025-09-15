@@ -4,12 +4,7 @@ import Page from '../../components/Page';
 import { getMyAgencyClients } from '../../api/agencies';
 import { Stack, Typography } from '@mui/material';
 import type { UserSearchResult } from '../../api/users';
-
-interface AgencyClient {
-  id: number;
-  name: string;
-  email?: string;
-}
+import type { AgencyClient } from '../../types';
 
 export default function AgencySchedule() {
   const [clients, setClients] = useState<AgencyClient[]>([]);

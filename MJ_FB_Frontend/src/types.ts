@@ -19,6 +19,12 @@ export interface Staff {
   access: StaffAccess[];
 }
 
+export interface AgencyClient {
+  id: number;
+  name: string;
+  email?: string;
+}
+
 export interface LoginResponse {
   role: Role;
   name: string;

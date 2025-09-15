@@ -27,12 +27,7 @@ import {
   getAgencyClients,
 } from '../../api/agencies';
 import BookingUI from '../BookingUI';
-
-interface AgencyClient {
-  clientId: number;
-  name: string;
-  email?: string;
-}
+import type { AgencyClient } from '../../types';
 
 export default function AgencyClientManager() {
   const [agency, setAgency] = useState<{ id: number; name: string } | null>(null);
@@ -54,7 +49,7 @@ export default function AgencyClientManager() {
         ? (data as any).clients
         : [];
       const mapped = list.map((c: any) => ({
-        clientId: typeof c === 'object' ? c.client_id : Number(c),
+        id: typeof c === 'object' ? c.client_id : Number(c),
         name:
           typeof c === 'object'
             ? c.name ??
@@ -106,7 +101,7 @@ export default function AgencyClientManager() {
   const confirmRemove = async () => {
     if (!agency || !removeClient) return;
     try {
-      await removeAgencyClient(agency.id, removeClient.clientId);
+      await removeAgencyClient(agency.id, removeClient.id);
       setSnackbar({ message: 'Client removed', severity: 'success' });
       load(agency.id);
     } catch (err: any) {
@@ -176,7 +171,7 @@ export default function AgencyClientManager() {
                 <List dense>
                   {clients.map(c => (
                     <ListItem
-                      key={c.clientId}
+                      key={c.id}
                       secondaryAction={
                         <Stack direction="row" spacing={1} alignItems="center">
                           <Button
@@ -196,7 +191,7 @@ export default function AgencyClientManager() {
                         </Stack>
                       }
                     >
-                      <ListItemText primary={c.name} secondary={`ID: ${c.clientId}`} />
+                      <ListItemText primary={c.name} secondary={`ID: ${c.id}`} />
                     </ListItem>
                   ))}
                   {clients.length === 0 && <Typography>No clients assigned.</Typography>}
@@ -259,7 +254,7 @@ export default function AgencyClientManager() {
             <Box sx={{ display: bookingLoading ? 'none' : 'block' }}>
               <BookingUI
                 shopperName={bookingClient.name}
-                userId={bookingClient.clientId}
+                userId={bookingClient.id}
                 embedded
                 onLoadingChange={setBookingLoading}
               />

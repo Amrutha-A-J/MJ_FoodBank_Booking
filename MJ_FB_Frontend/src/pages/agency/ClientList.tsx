@@ -21,12 +21,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import Page from '../../components/Page';
 import type { ApiError } from '../../api/client';
-
-interface AgencyClient {
-  id: number;
-  name: string;
-  email?: string;
-}
+import type { AgencyClient } from '../../types';
 
 export default function ClientList() {
   const [clients, setClients] = useState<AgencyClient[]>([]);
