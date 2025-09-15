@@ -95,4 +95,39 @@ describe('Navbar component', () => {
       window.matchMedia = originalMatchMedia;
     }
   });
+
+  describe.each([
+    {
+      label: 'Donor Management',
+      links: [
+        { label: 'Donation Log', to: '/donor-management/donation-log' },
+        { label: 'Mail Lists', to: '/donor-management' },
+        { label: 'Donors', to: '/donor-management/donors' },
+      ],
+    },
+    {
+      label: 'Aggregations',
+      links: [
+        { label: 'Pantry Aggregations', to: '/aggregations/pantry' },
+        { label: 'Warehouse Aggregations', to: '/aggregations/warehouse' },
+      ],
+    },
+  ])('navigation groups', ({ label, links }) => {
+    it(`renders ${label} submenu links`, () => {
+      render(
+        <MemoryRouter>
+          <Navbar
+            groups={[{ label, links }]}
+            onLogout={() => {}}
+            name="Tester"
+          />
+        </MemoryRouter>
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: label }));
+      links.forEach(({ label: linkLabel }) => {
+        expect(screen.getByText(linkLabel)).toBeInTheDocument();
+      });
+    });
+  });
 });
