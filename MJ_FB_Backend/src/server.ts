@@ -24,6 +24,7 @@ import { initEmailQueue, shutdownQueue } from './utils/emailQueue';
 import { startEmailQueueCleanupJob, stopEmailQueueCleanupJob } from './utils/emailQueueCleanupJob';
 import seedPayPeriods from './utils/payPeriodSeeder';
 import seedTimesheets from './utils/timesheetSeeder';
+import seedDeliveryData from './utils/deliverySeeder';
 import {
   startTimesheetSeedJob,
   stopTimesheetSeedJob,
@@ -72,6 +73,7 @@ async function init() {
       const end = `${now.getFullYear() + 1}-12-31`;
       await seedPayPeriods(start, end);
       await seedTimesheets();
+      await seedDeliveryData();
     }
     startTimesheetSeedJob();
     startRetentionJob();

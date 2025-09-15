@@ -14,6 +14,14 @@
 3. Within each category, add the individual items that should be available on the delivery request form.
 4. Edit or delete categories and items as offerings change; the Book Delivery page reloads the latest definitions each time it opens.
 
+### Development defaults
+
+- Running the backend with `NODE_ENV=development` automatically seeds sample delivery categories and items via
+  [`seedDeliveryData`](../MJ_FB_Backend/src/utils/deliverySeeder.ts). The script checks for existing rows before inserting so it
+  can run repeatedly without creating duplicates.
+- The sample data covers pantry staples, proteins, produce, dairy, frozen meals, household and hygiene supplies, baby and
+  toddler needs, plus snack options to mirror a typical delivery request.
+
 ## Handling new requests
 
 - Every submission to `/api/v1/delivery/orders` sends a Brevo email using `DELIVERY_REQUEST_TEMPLATE_ID`. Update the template when wording changes so the notification still matches the operation team’s process.
