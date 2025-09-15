@@ -15,7 +15,7 @@ describe('deliveryOrderController', () => {
   });
 
   describe('createDeliveryOrder', () => {
-    it('rejects selections exceeding category limits', async () => {
+    it('rejects selections exceeding category limits after normalizing duplicates', async () => {
       (mockDb.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           {
@@ -23,7 +23,7 @@ describe('deliveryOrderController', () => {
             categoryId: 5,
             itemName: 'Canned Soup',
             categoryName: 'Pantry',
-            maxItems: 1,
+            maxItems: 3,
           },
         ],
         rowCount: 1,
@@ -38,6 +38,7 @@ describe('deliveryOrderController', () => {
           email: 'client@example.com',
           selections: [
             { itemId: 11, quantity: 2 },
+            { itemId: 11, quantity: 2 },
           ],
         },
       } as any;
@@ -51,9 +52,13 @@ describe('deliveryOrderController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Too many items selected for Pantry. Limit is 1.',
+        message: 'Too many items selected for Pantry. Limit is 3.',
       });
       expect(mockDb.query).toHaveBeenCalledTimes(1);
+      expect(mockDb.query).toHaveBeenCalledWith(
+        expect.stringContaining('FROM delivery_items'),
+        [[11]],
+      );
       expect(sendTemplatedEmail).not.toHaveBeenCalled();
     });
 
