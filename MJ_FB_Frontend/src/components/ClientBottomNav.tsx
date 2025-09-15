@@ -16,9 +16,16 @@ export default function ClientBottomNav() {
     ({ role } = useAuth());
   } catch {}
   if (role === 'staff') return null;
-  let value: 'dashboard' | 'bookings' | 'profile' = 'dashboard';
-  if (pathname.startsWith('/book-appointment') || pathname.startsWith('/booking-history')) value = 'bookings';
-  else if (pathname.startsWith('/profile')) value = 'profile';
+  const isDelivery = role === 'delivery';
+  let value: 'dashboard' | 'bookings' | 'delivery' | 'profile' = 'dashboard';
+  if (pathname.startsWith('/profile')) value = 'profile';
+  else if (isDelivery) {
+    if (pathname.startsWith('/delivery')) value = 'delivery';
+  } else if (
+    pathname.startsWith('/book-appointment') ||
+    pathname.startsWith('/booking-history')
+  )
+    value = 'bookings';
 
   return (
     <Paper
@@ -39,11 +46,17 @@ export default function ClientBottomNav() {
         onChange={(_, newValue) => {
           if (newValue === 'dashboard') navigate('/');
           if (newValue === 'bookings') navigate('/book-appointment');
+          if (newValue === 'delivery') navigate('/delivery/book');
           if (newValue === 'profile') navigate('/profile');
         }}
       >
         <BottomNavigationAction label="Dashboard" value="dashboard" icon={<Dashboard />} aria-label="dashboard" />
-        <BottomNavigationAction label="Bookings" value="bookings" icon={<CalendarToday />} aria-label="bookings" />
+        <BottomNavigationAction
+          label={isDelivery ? 'Delivery' : 'Bookings'}
+          value={isDelivery ? 'delivery' : 'bookings'}
+          icon={<CalendarToday />}
+          aria-label={isDelivery ? 'delivery' : 'bookings'}
+        />
         <BottomNavigationAction label="Profile" value="profile" icon={<AccountCircle />} aria-label="profile" />
       </BottomNavigation>
     </Paper>
