@@ -27,12 +27,7 @@ import {
   getAgencyClients,
 } from '../../api/agencies';
 import BookingUI from '../BookingUI';
-
-interface AgencyClient {
-  clientId: number;
-  name: string;
-  email?: string;
-}
+import type { AgencyClient } from '../../types';
 
 export default function AgencyClientManager() {
   const [agency, setAgency] = useState<{ id: number; name: string } | null>(null);
@@ -47,22 +42,33 @@ export default function AgencyClientManager() {
 
   const load = async (id: number) => {
     try {
-      const data = await getAgencyClients(id);
-      const list = Array.isArray(data)
+      const data = (await getAgencyClients(id)) as unknown;
+      const list: unknown[] = Array.isArray(data)
         ? data
-        : Array.isArray((data as any)?.clients)
-        ? (data as any).clients
+        : Array.isArray((data as { clients?: unknown[] }).clients)
+        ? (data as { clients: unknown[] }).clients
         : [];
-      const mapped = list.map((c: any) => ({
-        clientId: typeof c === 'object' ? c.client_id : Number(c),
-        name:
-          typeof c === 'object'
-            ? c.name ??
-              c.client_name ??
-              `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim()
-            : `ID: ${c}`,
-        email: typeof c === 'object' ? c.email : undefined,
-      }));
+      const mapped: AgencyClient[] = list.map(c => {
+        if (typeof c === 'object' && c !== null) {
+          const obj = c as Record<string, unknown>;
+          const clientId =
+            typeof obj.client_id === 'number'
+              ? obj.client_id
+              : Number(obj.id);
+          const name =
+            typeof obj.name === 'string'
+              ? obj.name
+              : typeof obj.client_name === 'string'
+              ? obj.client_name
+              : `${(obj.first_name as string | undefined) ?? ''} ${
+                  (obj.last_name as string | undefined) ?? ''
+                }`.trim();
+          const email =
+            typeof obj.email === 'string' ? obj.email : undefined;
+          return { clientId, name, email };
+        }
+        return { clientId: Number(c), name: `ID: ${c}` };
+      });
       setClients(mapped);
     } catch {
       setClients([]);
@@ -77,22 +83,23 @@ export default function AgencyClientManager() {
     load(agency.id);
   }, [agency]);
 
-  const handleAdd = async (user: any) => {
+  const handleAdd = async (user: AgencyClient) => {
     if (!agency) {
       setSnackbar({ message: 'Select an agency first', severity: 'error' });
       return;
     }
-    if (!user.client_id) return;
+    if (!user.clientId) return;
     try {
-      await addAgencyClient(agency.id, user.client_id);
+      await addAgencyClient(agency.id, user.clientId);
       setSnackbar({ message: 'Client added', severity: 'success' });
       load(agency.id);
-    } catch (err: any) {
-      if (err.details?.agencyName) {
-        setConflictAgency(err.details.agencyName as string);
+    } catch (err: unknown) {
+      const e = err as { details?: { agencyName?: unknown }; message?: string };
+      if (e.details?.agencyName) {
+        setConflictAgency(String(e.details.agencyName));
       } else {
         setSnackbar({
-          message: err.message || 'Failed to add client',
+          message: e.message || 'Failed to add client',
           severity: 'error',
         });
       }
@@ -155,7 +162,17 @@ export default function AgencyClientManager() {
                         
                         variant="contained"
                         onClick={() => {
-                          handleAdd(u);
+                          const result = u as {
+                            client_id?: number | string;
+                            id?: number | string;
+                            name: string;
+                            email?: string;
+                          };
+                          handleAdd({
+                            clientId: Number(result.client_id ?? result.id),
+                            name: result.name,
+                            email: result.email,
+                          });
                           select();
                         }}
                       >
