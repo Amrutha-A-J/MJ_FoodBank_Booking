@@ -20,9 +20,10 @@ import {
 const router = Router();
 
 router.use(authMiddleware);
-router.use(authorizeRoles('staff'));
 
-router.get('/', listDeliveryCategories);
+router.get('/', authorizeRoles('delivery', 'staff'), listDeliveryCategories);
+
+router.use(authorizeRoles('staff'));
 router.post('/', validate(createDeliveryCategorySchema), createDeliveryCategory);
 router.put('/:id', validate(updateDeliveryCategorySchema), updateDeliveryCategory);
 router.delete('/:id', deleteDeliveryCategory);
