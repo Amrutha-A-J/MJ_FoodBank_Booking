@@ -156,14 +156,28 @@ export default function VolunteerDailyBookings() {
                           {list.map(b => (
                             <Stack
                               key={b.id}
-                              direction="row"
+                              direction={{ xs: 'column', sm: 'row' }}
                               spacing={2}
-                              alignItems="center"
+                              alignItems={{ xs: 'flex-start', sm: 'center' }}
+                              sx={{ width: '100%' }}
                             >
-                              <Typography sx={{ flexGrow: 1 }}>
+                              <Typography
+                                sx={{
+                                  flexGrow: 1,
+                                  flexBasis: { xs: '100%', sm: 0 },
+                                  minWidth: { sm: 200 },
+                                  wordBreak: 'break-word',
+                                }}
+                              >
                                 {b.volunteer_name}
                               </Typography>
-                              <FormControl sx={{ minWidth: 150 }} size="medium">
+                              <FormControl
+                                sx={{
+                                  width: { xs: '100%', sm: 180 },
+                                  flexShrink: 0,
+                                }}
+                                size="medium"
+                              >
                                 <InputLabel id={`status-${b.id}`}>Status</InputLabel>
                                 <Select
                                   labelId={`status-${b.id}`}
@@ -188,6 +202,10 @@ export default function VolunteerDailyBookings() {
                                 <Button
                                   variant="outlined"
                                   onClick={() => setReschedule(b)}
+                                  sx={{
+                                    flexShrink: 0,
+                                    whiteSpace: 'nowrap',
+                                  }}
                                 >
                                   Reschedule
                                 </Button>
