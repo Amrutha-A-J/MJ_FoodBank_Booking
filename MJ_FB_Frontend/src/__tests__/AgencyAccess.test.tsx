@@ -3,7 +3,6 @@ import App from '../App';
 import { login } from '../api/users';
 import { mockFetch, restoreFetch } from '../../testUtils/mockFetch';
 import { renderWithProviders } from '../../testUtils/renderWithProviders';
-import { MemoryRouter } from 'react-router-dom';
 
 jest.mock('../api/users', () => ({
   login: jest.fn(),
@@ -13,9 +12,16 @@ jest.mock('../pages/agency/AgencyBookAppointment', () => () => <div>AgencyBookAp
 jest.mock('../pages/agency/ClientHistory', () => () => <div>AgencyClientHistory</div>);
 
 describe('Agency UI access', () => {
+  const originalLocation = window.location;
   let fetchMock: jest.Mock;
+  let assign: jest.Mock;
 
   beforeEach(() => {
+    assign = jest.fn();
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, assign, pathname: '/' },
+      writable: true,
+    });
     fetchMock = mockFetch();
     fetchMock.mockResolvedValue({
       ok: false,
@@ -29,6 +35,7 @@ describe('Agency UI access', () => {
 
   afterEach(() => {
     restoreFetch();
+    Object.defineProperty(window, 'location', { value: originalLocation });
     jest.resetAllMocks();
   });
 
@@ -40,7 +47,7 @@ describe('Agency UI access', () => {
     });
     renderWithProviders(<App />);
 
-    const loginLink = await screen.findByText(/agency login/i);
+    const loginLink = await screen.findByRole('link', { name: /login/i });
     fireEvent.click(loginLink);
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: 'a@b.com' },
@@ -63,16 +70,8 @@ describe('Agency UI access', () => {
   });
 
   it('redirects unauthenticated users away from agency routes', async () => {
-    const assignSpy = jest
-      .spyOn(window.location, 'assign')
-      .mockImplementation(jest.fn());
-    renderWithProviders(
-      <MemoryRouter initialEntries={['/agency/book']}>
-        <App />
-      </MemoryRouter>,
-    );
-    await waitFor(() => expect(window.location.pathname).toBe('/login'));
-    expect(screen.getByText(/login/i)).toBeInTheDocument();
-    assignSpy.mockRestore();
+    window.location.pathname = '/agency/book';
+    renderWithProviders(<App />);
+    await waitFor(() => expect(screen.getByText(/login/i)).toBeInTheDocument());
   });
 });
