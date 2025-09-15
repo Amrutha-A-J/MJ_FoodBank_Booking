@@ -146,3 +146,112 @@ export async function findUpcomingBooking(
 
 export const LIMIT_MESSAGE =
   "You’ve already visited the Moose Jaw Food Bank twice this month. Please return at the end of the month to book your appointment for next month. You can only book for next month during the last week of this month.";
+
+export interface SimpleSlot {
+  startTime: string;
+  endTime: string;
+}
+
+const TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+export function splitSlots(
+  startTime: string,
+  endTime: string,
+  intervalMinutes: number,
+): SimpleSlot[] {
+  if (
+    !TIME_REGEX.test(startTime) ||
+    !TIME_REGEX.test(endTime) ||
+    intervalMinutes <= 0
+  ) {
+    throw new Error('Invalid parameters');
+  }
+
+  const start = toMinutes(startTime);
+  const end = toMinutes(endTime);
+  if (end <= start) throw new Error('Invalid time range');
+  if ((end - start) % intervalMinutes !== 0) {
+    throw new Error('Range not divisible by interval');
+  }
+
+  const slots: SimpleSlot[] = [];
+  for (let m = start; m < end; m += intervalMinutes) {
+    const slotEnd = m + intervalMinutes;
+    slots.push({ startTime: minutesToTime(m), endTime: minutesToTime(slotEnd) });
+  }
+  return slots;
+}
+
+export function combineSlots(slots: SimpleSlot[]): SimpleSlot[] {
+  if (slots.length === 0) return [];
+
+  const sorted = [...slots].sort(
+    (a, b) => toMinutes(a.startTime) - toMinutes(b.startTime),
+  );
+
+  for (const s of sorted) {
+    if (
+      !TIME_REGEX.test(s.startTime) ||
+      !TIME_REGEX.test(s.endTime) ||
+      toMinutes(s.endTime) <= toMinutes(s.startTime)
+    ) {
+      throw new Error('Invalid slot');
+    }
+  }
+
+  const combined: SimpleSlot[] = [];
+  let current = { ...sorted[0] };
+
+  for (let i = 1; i < sorted.length; i++) {
+    const next = sorted[i];
+    if (toMinutes(current.endTime) === toMinutes(next.startTime)) {
+      current.endTime = next.endTime;
+    } else {
+      combined.push(current);
+      current = { ...next };
+    }
+  }
+  combined.push(current);
+  return combined;
+}
+
+export function getSlotDates(start: string | Date, end: string | Date): string[] {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (
+    isNaN(startDate.getTime()) ||
+    isNaN(endDate.getTime()) ||
+    startDate > endDate
+  ) {
+    throw new Error('Invalid date range');
+  }
+
+  const current = new Date(
+    Date.UTC(
+      startDate.getUTCFullYear(),
+      startDate.getUTCMonth(),
+      startDate.getUTCDate(),
+    ),
+  );
+  const last = new Date(
+    Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate()),
+  );
+
+  const dates: string[] = [];
+  while (current <= last) {
+    dates.push(current.toISOString().slice(0, 10));
+    current.setUTCDate(current.getUTCDate() + 1);
+  }
+  return dates;
+}
