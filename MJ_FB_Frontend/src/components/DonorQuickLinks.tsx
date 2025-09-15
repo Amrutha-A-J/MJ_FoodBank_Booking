@@ -23,11 +23,10 @@ export default function DonorQuickLinks() {
         <Button
           key={link.to}
           variant="outlined"
-          sx={buttonSx}
+          sx={{ ...buttonSx, flex: 1 }}
           component={RouterLink}
           to={link.to}
           disabled={pathname === link.to}
-          fullWidth
         >
           {link.label}
         </Button>
