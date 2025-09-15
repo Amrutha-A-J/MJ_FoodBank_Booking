@@ -45,6 +45,10 @@ interface DeliveryOrderItemDetail {
 
 type NormalizedSelection = { itemId: number; quantity: number };
 
+interface CountRow {
+  count: string;
+}
+
 function normalizeSelections(selections: DeliveryOrderSelectionInput[]): NormalizedSelection[] {
   const orderMap = new Map<number, { quantity: number; index: number }>();
   let order = 0;
@@ -106,6 +110,19 @@ export const createDeliveryOrder = asyncHandler(async (req: Request, res: Respon
     if (!requesterId || requesterId !== clientId) {
       return res.status(403).json({ message: 'Cannot create orders for other clients' });
     }
+  }
+
+  const monthlyOrderCountResult = await pool.query<CountRow>(
+    `SELECT COUNT(*)::int AS count
+       FROM delivery_orders
+      WHERE client_id = $1
+        AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)`,
+    [clientId],
+  );
+
+  const monthlyOrderCount = Number(monthlyOrderCountResult.rows[0]?.count ?? 0);
+  if (monthlyOrderCount >= 2) {
+    return res.status(400).json({ message: "You've reached the monthly delivery limit" });
   }
 
   let itemDetails: DeliveryOrderItemDetail[] = [];
