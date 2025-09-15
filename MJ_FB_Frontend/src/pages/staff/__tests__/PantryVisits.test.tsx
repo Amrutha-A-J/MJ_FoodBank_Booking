@@ -76,6 +76,8 @@ describe('PantryVisits', () => {
     mockNavigate.mockReset();
   });
 
+  const getActivePanel = () => screen.getByRole('tabpanel', { hidden: false });
+
   it('shows date in weekday tabs', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2024-05-13T12:00:00Z'));
     (getClientVisits as jest.Mock).mockResolvedValue([]);
@@ -182,17 +184,18 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    await screen.findByText('Alice');
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    const panel = getActivePanel();
+    await within(panel).findByText('Alice');
+    expect(within(panel).getByText('Bob')).toBeInTheDocument();
 
     const search = screen.getByTestId('entity-search-input');
     fireEvent.change(search, { target: { value: 'Bob' } });
-    expect(screen.queryByText('Alice')).not.toBeInTheDocument();
-    expect(screen.getByText('Bob')).toBeInTheDocument();
+    expect(within(panel).queryByText('Alice')).not.toBeInTheDocument();
+    expect(within(panel).getByText('Bob')).toBeInTheDocument();
 
     fireEvent.change(search, { target: { value: '111' } });
-    expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+    expect(within(panel).getByText('Alice')).toBeInTheDocument();
+    expect(within(panel).queryByText('Bob')).not.toBeInTheDocument();
   });
 
   it('renders profile link with descriptive text', async () => {
@@ -216,7 +219,8 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    const link = await screen.findByRole('link', { name: /open profile/i });
+    const panel = getActivePanel();
+    const link = await within(panel).findByRole('link', { name: /open profile/i });
     expect(link).toHaveAttribute(
       'href',
       'https://portal.link2feed.ca/org/1605/intake/111',
@@ -257,14 +261,15 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    expect(await screen.findByText('111')).toBeInTheDocument();
-    expect(screen.getByText('222 (ANONYMOUS)')).toBeInTheDocument();
-    expect(screen.getByText('Clients: 1')).toBeInTheDocument();
-    expect(screen.getByText('Sunshine Bag Clients: 2')).toBeInTheDocument();
-    expect(screen.getByText('Total Weight: 32')).toBeInTheDocument();
-    expect(screen.getByText('Adults: 1')).toBeInTheDocument();
-    expect(screen.getByText('Children: 2')).toBeInTheDocument();
-    expect(screen.getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
+    const panel = getActivePanel();
+    expect(await within(panel).findByText('111')).toBeInTheDocument();
+    expect(within(panel).getByText('222 (ANONYMOUS)')).toBeInTheDocument();
+    expect(within(panel).getByText('Clients: 1')).toBeInTheDocument();
+    expect(within(panel).getByText('Sunshine Bag Clients: 2')).toBeInTheDocument();
+    expect(within(panel).getByText('Total Weight: 32')).toBeInTheDocument();
+    expect(within(panel).getByText('Adults: 1')).toBeInTheDocument();
+    expect(within(panel).getByText('Children: 2')).toBeInTheDocument();
+    expect(within(panel).getByText('Sunshine Bag Weight: 12')).toBeInTheDocument();
   });
 
   it('shows N/A for missing client info', async () => {
@@ -272,7 +277,8 @@ describe('PantryVisits', () => {
     (getAppConfig as jest.Mock).mockResolvedValue({ cartTare: 0 });
     (getSunshineBag as jest.Mock).mockResolvedValue(null);
     renderVisits();
-    expect(await screen.findAllByText('N/A')).toHaveLength(2);
+    const panel = getActivePanel();
+    expect(await within(panel).findAllByText('N/A')).toHaveLength(2);
   });
   it('toggles verification and hides actions', async () => {
     (getClientVisits as jest.Mock).mockResolvedValue([
@@ -322,21 +328,22 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    await screen.findByText('Alice');
-    const checkbox = screen.getByRole('checkbox', { name: /verify visit/i });
-    expect(screen.getByLabelText('Edit visit')).toBeInTheDocument();
-    expect(screen.getByLabelText('Delete visit')).toBeInTheDocument();
+    const panel = getActivePanel();
+    await within(panel).findByText('Alice');
+    const checkbox = within(panel).getByRole('checkbox', { name: /verify visit/i });
+    expect(within(panel).getByLabelText('Edit visit')).toBeInTheDocument();
+    expect(within(panel).getByLabelText('Delete visit')).toBeInTheDocument();
 
     fireEvent.click(checkbox);
     await waitFor(() =>
       expect(toggleClientVisitVerification).toHaveBeenCalledTimes(1),
     );
-    await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument());
+    await waitFor(() => expect(within(panel).getByText('Alice')).toBeInTheDocument());
     await waitFor(() =>
-      expect(screen.queryByLabelText('Edit visit')).not.toBeInTheDocument(),
+      expect(within(panel).queryByLabelText('Edit visit')).not.toBeInTheDocument(),
     );
     await waitFor(() =>
-      expect(screen.queryByLabelText('Delete visit')).not.toBeInTheDocument(),
+      expect(within(panel).queryByLabelText('Delete visit')).not.toBeInTheDocument(),
     );
 
     fireEvent.click(checkbox);
@@ -344,10 +351,10 @@ describe('PantryVisits', () => {
       expect(toggleClientVisitVerification).toHaveBeenCalledTimes(2),
     );
     await waitFor(() =>
-      expect(screen.getByLabelText('Edit visit')).toBeInTheDocument(),
+      expect(within(panel).getByLabelText('Edit visit')).toBeInTheDocument(),
     );
     await waitFor(() =>
-      expect(screen.getByLabelText('Delete visit')).toBeInTheDocument(),
+      expect(within(panel).getByLabelText('Delete visit')).toBeInTheDocument(),
     );
   });
 
@@ -373,7 +380,8 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    await screen.findByText('Alice');
+    const panel = getActivePanel();
+    await within(panel).findByText('Alice');
 
     const expectedDate = formatLocaleDate('2024-05-13', {
       weekday: 'short',
@@ -382,7 +390,7 @@ describe('PantryVisits', () => {
       year: 'numeric',
     });
     expect(
-      screen.getByRole('heading', { name: `Summary of ${expectedDate},` }),
+      within(panel).getByRole('heading', { name: `Summary of ${expectedDate},` }),
     ).toBeInTheDocument();
 
     jest.useRealTimers();
@@ -422,9 +430,10 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    await screen.findByText('Bob');
+    const panel = getActivePanel();
+    await within(panel).findByText('Bob');
 
-    const rows = screen.getAllByRole('row');
+    const rows = within(panel).getAllByRole('row');
     expect(within(rows[1]).getAllByRole('cell')[0]).toHaveTextContent('1');
     expect(within(rows[2]).getAllByRole('cell')[0]).toHaveTextContent('2');
   });
@@ -436,7 +445,8 @@ describe('PantryVisits', () => {
 
     renderVisits();
 
-    expect(await screen.findByText('No records')).toBeInTheDocument();
+    const panel = getActivePanel();
+    expect(await within(panel).findByText('No records')).toBeInTheDocument();
   });
 
   it('navigates to selected date', async () => {

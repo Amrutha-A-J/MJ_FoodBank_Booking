@@ -146,7 +146,8 @@ describe('PantryAggregations page', () => {
     );
 
     await waitFor(() => expect(mockGetPantryWeeks).toHaveBeenCalled());
-    expect(screen.getByText('May')).toBeInTheDocument();
+    const weeklyPanel = screen.getByRole('tabpanel', { name: 'Weekly' });
+    expect(within(weeklyPanel).getByText('May')).toBeInTheDocument();
     const exportBtn = await screen.findByRole('button', { name: /export table/i });
     await waitFor(() => expect(exportBtn).not.toBeDisabled());
   });

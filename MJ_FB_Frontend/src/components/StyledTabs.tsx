@@ -52,7 +52,7 @@ export default function StyledTabs({ tabs, value: valueProp, onChange, sx }: Sty
           id={`tabpanel-${i}`}
           aria-labelledby={`tab-${i}`}
         >
-          {value === i && <Box sx={{ pt: 2 }}>{t.content}</Box>}
+          <Box sx={{ pt: 2, display: value === i ? 'block' : 'none' }}>{t.content}</Box>
         </div>
       ))}
     </Paper>
