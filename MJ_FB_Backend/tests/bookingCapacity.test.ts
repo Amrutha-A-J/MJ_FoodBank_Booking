@@ -50,6 +50,33 @@ beforeEach(() => {
 });
 
 describe('POST /bookings capacity check', () => {
+  it('returns 403 when delivery user posts to bookings', async () => {
+    (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'delivery', type: 'user' });
+    (pool.query as jest.Mock).mockResolvedValueOnce({
+      rowCount: 1,
+      rows: [
+        {
+          client_id: 1,
+          first_name: 'Delivery',
+          last_name: 'User',
+          email: 'delivery@example.com',
+          role: 'delivery',
+          phone: '123',
+        },
+      ],
+    });
+
+    const today = new Date().toLocaleDateString('en-CA');
+    const res = await request(app)
+      .post('/bookings')
+      .set('Authorization', 'Bearer token')
+      .send({ slotId: 1, date: today });
+
+    expect(res.status).toBe(403);
+    expect(res.body).toEqual({ message: 'Forbidden' });
+    expect(pool.connect).not.toHaveBeenCalled();
+  });
+
   it('returns 409 when slot is full', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1, role: 'shopper', type: 'user' });
     (pool.query as jest.Mock).mockResolvedValueOnce({

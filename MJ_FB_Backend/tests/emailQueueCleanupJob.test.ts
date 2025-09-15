@@ -73,8 +73,9 @@ describe('startEmailQueueCleanupJob/stopEmailQueueCleanupJob', () => {
   let stopMock: jest.Mock;
   beforeEach(() => {
     jest.useFakeTimers();
-    scheduleMock = require('node-cron').schedule as jest.Mock;
+    scheduleMock = require('node-cron').default.schedule as jest.Mock;
     stopMock = jest.fn();
+    scheduleMock.mockClear();
     scheduleMock.mockReturnValue({ stop: stopMock, start: jest.fn() });
   });
 
