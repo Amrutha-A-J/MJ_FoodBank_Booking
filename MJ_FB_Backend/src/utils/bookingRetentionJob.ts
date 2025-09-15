@@ -56,7 +56,7 @@ export async function cleanupOldRecords(): Promise<void> {
   }
 }
 
-const retentionJob = scheduleDailyJob(cleanupOldRecords, '0 3 31 1 *', true, true);
+const retentionJob = scheduleDailyJob(cleanupOldRecords, '0 3 * * *', true, true);
 
 export const startRetentionJob = retentionJob.start;
 export const stopRetentionJob = retentionJob.stop;
