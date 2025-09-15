@@ -49,7 +49,7 @@ export const topDonors = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await pool.query(
     `SELECT o.first_name || ' ' || o.last_name AS name, SUM(d.weight)::int AS "totalLbs", TO_CHAR(MAX(d.date), 'YYYY-MM-DD') AS "lastDonationISO"
-       FROM donations d JOIN donors o ON d.donor_id = o.id
+       FROM donations d JOIN donors o ON d.donor_email = o.email
        WHERE EXTRACT(YEAR FROM d.date) = $1
        GROUP BY o.id, o.first_name, o.last_name
        ORDER BY "totalLbs" DESC, MAX(d.date) DESC
@@ -66,7 +66,7 @@ export const getDonor = asyncHandler(async (req: Request, res: Response) => {
             COALESCE(SUM(n.weight), 0)::int AS "totalLbs",
             TO_CHAR(MAX(n.date), 'YYYY-MM-DD') AS "lastDonationISO"
        FROM donors d
-       LEFT JOIN donations n ON n.donor_id = d.id
+       LEFT JOIN donations n ON n.donor_email = d.email
        WHERE d.id = $1
        GROUP BY d.id, d.first_name, d.last_name, d.email`,
     [id],
@@ -79,7 +79,11 @@ export const getDonor = asyncHandler(async (req: Request, res: Response) => {
 export const donorDonations = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await pool.query(
-    'SELECT id, date, weight FROM donations WHERE donor_id = $1 ORDER BY date DESC, id DESC',
+    `SELECT n.id, n.date, n.weight
+       FROM donations n
+       JOIN donors d ON n.donor_email = d.email
+       WHERE d.id = $1
+       ORDER BY n.date DESC, n.id DESC`,
     [id],
   );
   res.json(result.rows);
