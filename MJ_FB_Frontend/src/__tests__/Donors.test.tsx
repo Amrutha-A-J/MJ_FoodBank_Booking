@@ -49,11 +49,11 @@ describe('Donors page', () => {
         expect(getMonetaryDonors).toHaveBeenLastCalledWith(term),
       );
 
-      const link = await screen.findByText('jane@example.com');
-      const anchor = link.closest('a');
-      expect(anchor).toHaveAttribute('href', '/donor-management/donors/1');
+      const emailCell = await screen.findByText('jane@example.com');
+      const row = emailCell.closest('tr');
+      expect(row).toBeInTheDocument();
 
-      fireEvent.click(anchor!);
+      fireEvent.click(row!);
       expect(await screen.findByText('Donor Profile')).toBeInTheDocument();
     },
   );

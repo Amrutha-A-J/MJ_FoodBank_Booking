@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Stack,
   TextField,
@@ -19,6 +19,7 @@ export default function Donors() {
   const [term, setTerm] = useState('');
   const [debounced, setDebounced] = useState('');
   const [donors, setDonors] = useState<MonetaryDonor[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handle = setTimeout(() => setDebounced(term), 300);
@@ -62,10 +63,9 @@ export default function Donors() {
                 {donors.map(d => (
                   <TableRow
                     key={d.id}
-                    component={RouterLink}
-                    to={`/donor-management/donors/${d.id}`}
                     hover
-                    sx={{ textDecoration: 'none', color: 'inherit' }}
+                    sx={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
+                    onClick={() => navigate(`/donor-management/donors/${d.id}`)}
                   >
                     <TableCell>{d.firstName}</TableCell>
                     <TableCell>{d.lastName}</TableCell>
