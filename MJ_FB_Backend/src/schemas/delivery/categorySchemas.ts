@@ -5,7 +5,8 @@ const nameSchema = z.string().trim().min(1, 'Name is required');
 export const createDeliveryCategorySchema = z.object({
   name: nameSchema,
   maxItems: z.coerce
-    .number({ invalid_type_error: 'maxItems must be a number' })
+    .number()
+    .finite('maxItems must be a number')
     .int('maxItems must be an integer')
     .min(0, 'maxItems must be 0 or greater'),
 });
