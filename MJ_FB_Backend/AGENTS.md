@@ -23,6 +23,7 @@
 - Email queue retries failed sends with exponential backoff and persists jobs in the `email_queue` table so retries survive restarts. Configure `EMAIL_QUEUE_MAX_RETRIES` and `EMAIL_QUEUE_BACKOFF_MS` to adjust retry behavior.
 - Password setup token expiry is configurable via `PASSWORD_SETUP_TOKEN_TTL_HOURS` (default 24 hours).
 - Use the `sendTemplatedEmail` utility to send Brevo template emails by providing a `templateId` and `params` object.
+- Delivery requests notify the operations inbox via `sendTemplatedEmail` using the Brevo template configured by `DELIVERY_REQUEST_TEMPLATE_ID`.
 - `POST /auth/resend-password-setup` regenerates password setup links using `generatePasswordSetupToken`; requests are rate limited per email or client ID.
 - Profile pages send a password reset link without requiring current or new password fields.
 - Coordinator notification addresses for volunteer booking updates live in `src/config/coordinatorEmails.json`.
@@ -40,6 +41,13 @@
 - A nightly email queue cleanup job (`src/utils/emailQueueCleanupJob.ts`) runs at 3:00 AM Regina time to remove `email_queue` rows with `next_attempt` older than `EMAIL_QUEUE_MAX_AGE_DAYS` days. It logs the remaining queue size and warns when it exceeds `EMAIL_QUEUE_WARNING_SIZE`.
 - A yearly log cleanup job (`src/utils/logCleanupJob.ts`) runs every Jan 31 to aggregate the previous year's warehouse and sunshine bag logs then purge those old records from the live tables.
 - A nightly blocked slot cleanup job (`src/jobs/blockedSlotCleanupJob.ts`) runs at 2:00 AM Regina time to delete past non-recurring blocked slots. It exposes `startBlockedSlotCleanupJob`/`stopBlockedSlotCleanupJob` and can be triggered manually via `POST /blocked-slots/cleanup`.
+
+## Delivery
+
+- Delivery categories and items live under `/delivery/categories`. Admin users can create, edit, or delete categories and the associated items; each category's `max_items` limit is enforced when orders are created.
+- `POST /delivery/orders` accepts requests from delivery clients and staff, normalizes duplicate selections, validates category limits, and records the address, phone, and optional email for the order.
+- After persisting an order, the controller sends a Brevo email (see `DELIVERY_REQUEST_TEMPLATE_ID`) summarizing the request so staff can schedule the delivery.
+- `GET /delivery/orders/history` returns a client's orders. Delivery users retrieve their own history, while staff must pass a `clientId` query parameter to fetch on behalf of a client.
 
 ## Project Layout
 
