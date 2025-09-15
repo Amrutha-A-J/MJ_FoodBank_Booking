@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import PantryAggregations from '../pages/staff/PantryAggregations';
 import { getWeekForDate, getWeekRanges } from '../utils/pantryWeek';
 import dayjs, { formatDate } from '../utils/date';
+import '../../tests/mockUrl';
 
 const currentYear = new Date().getFullYear();
 const currentMonth = new Date().getMonth() + 1;
@@ -35,10 +36,6 @@ jest.mock('../api/pantryAggregations', () => ({
 describe('PantryAggregations page', () => {
   let anchorClick: jest.SpyInstance;
   beforeAll(() => {
-    // @ts-ignore
-    global.URL.createObjectURL = jest.fn();
-    // @ts-ignore
-    global.URL.revokeObjectURL = jest.fn();
     anchorClick = jest
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(function () {

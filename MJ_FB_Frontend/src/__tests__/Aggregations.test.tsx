@@ -1,5 +1,6 @@
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import Aggregations from '../pages/warehouse-management/Aggregations';
+import '../../tests/mockUrl';
 
 const mockGetWarehouseOverall = jest.fn().mockResolvedValue([]);
 const mockGetWarehouseOverallYears = jest
@@ -28,10 +29,6 @@ jest.mock('../api/donations', () => ({
 describe('Aggregations page', () => {
   let anchorClick: jest.SpyInstance;
   beforeAll(() => {
-    // @ts-ignore
-    global.URL.createObjectURL = jest.fn();
-    // @ts-ignore
-    global.URL.revokeObjectURL = jest.fn();
     anchorClick = jest
       .spyOn(HTMLAnchorElement.prototype, 'click')
       .mockImplementation(function () {
