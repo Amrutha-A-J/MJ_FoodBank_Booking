@@ -105,7 +105,7 @@ export default function UserHistory({
         <ConfirmDialog
           message={`Add client ${pendingId}?`}
           onConfirm={() => {
-            navigate(`/staff/client-management?tab=add&clientId=${pendingId}`);
+            navigate(`/pantry/client-management?tab=add&clientId=${pendingId}`);
             setPendingId(null);
           }}
           onCancel={() => setPendingId(null)}
