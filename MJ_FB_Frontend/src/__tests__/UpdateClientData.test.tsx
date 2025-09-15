@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import UpdateClientData from '../pages/staff/client-management/UpdateClientData';
 import {
   getIncompleteUsers,
@@ -41,17 +41,22 @@ describe('UpdateClientData', () => {
   it('shows server error message when update fails', async () => {
     (updateUserInfo as jest.Mock).mockRejectedValueOnce({
       message: 'Unable to update client',
-      details: { errors: [{ message: 'Email already exists' }] },
+      details: { errors: [{ message: 'Email already exists.' }] },
     });
     render(<UpdateClientData />);
 
-    await screen.findByRole('button', { name: 'Edit' });
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    const editBtn = await screen.findByRole('button', { name: 'Edit' });
+    await act(async () => {
+      fireEvent.click(editBtn);
+    });
+    await screen.findByRole('button', { name: 'Save' });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    });
 
     await waitFor(() =>
       expect(
-        screen.getByText('Email already exists')
+        screen.getByText('Email already exists.')
       ).toBeInTheDocument()
     );
   });
@@ -59,16 +64,23 @@ describe('UpdateClientData', () => {
   it('enables online access without password and sends reset link', async () => {
     render(<UpdateClientData />);
 
-    await screen.findByRole('button', { name: 'Edit' });
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
-    fireEvent.click(screen.getByLabelText('Online Access'));
+    const editBtn = await screen.findByRole('button', { name: 'Edit' });
+    await act(async () => {
+      fireEvent.click(editBtn);
+    });
+    const toggle = await screen.findByLabelText('Online Access');
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
 
     const saveBtn = screen.getByRole('button', { name: /^save$/i });
     expect(saveBtn).not.toBeDisabled();
 
-    fireEvent.click(
-      screen.getByRole('button', { name: /send password reset link/i }),
-    );
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: /send password reset link/i }),
+      );
+    });
 
     await waitFor(() =>
       expect(updateUserInfo).toHaveBeenCalledWith(
@@ -91,8 +103,10 @@ describe('UpdateClientData', () => {
 
     render(<UpdateClientData />);
 
-    await screen.findByRole('button', { name: 'Edit' });
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    const editBtn = await screen.findByRole('button', { name: 'Edit' });
+    await act(async () => {
+      fireEvent.click(editBtn);
+    });
 
     const checkbox = await screen.findByLabelText('Online Access');
     expect(checkbox).toBeDisabled();
