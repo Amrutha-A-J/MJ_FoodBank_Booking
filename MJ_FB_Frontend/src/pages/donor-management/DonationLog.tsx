@@ -11,7 +11,6 @@ import {
   Stack,
   Autocomplete,
   IconButton,
-  Box,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import Page from '../../components/Page';
@@ -284,53 +283,73 @@ export default function DonationLog() {
     <>
       <DonorQuickLinks />
       <Page title="Donation Log">
-        <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setEditing(null);
-              setForm({ date: `${month}-01`, donorId: null, amount: '' });
-              setRecordOpen(true);
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1, alignItems: 'center' }}
+        >
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ flexWrap: 'wrap', rowGap: 1, alignItems: 'center' }}
+          >
+            <Button
+              variant="contained"
+              onClick={e => {
+                (e.currentTarget as HTMLButtonElement).blur();
+                setEditing(null);
+                setForm({ date: `${month}-01`, donorId: null, amount: '' });
+                setRecordOpen(true);
+              }}
+            >
+              Record Donation
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={e => {
+                (e.currentTarget as HTMLButtonElement).blur();
+                setNewDonorOpen(true);
+              }}
+            >
+              Add Donor
+            </Button>
+            <input
+              type="file"
+              accept=".csv"
+              ref={fileInputRef}
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Import Zeffy CSV
+            </Button>
+          </Stack>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              flexWrap: 'wrap',
+              rowGap: 1,
+              alignItems: 'center',
+              ml: { xs: 0, md: 'auto' },
             }}
           >
-            Record Donation
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={e => {
-              (e.currentTarget as HTMLButtonElement).blur();
-              setNewDonorOpen(true);
-            }}
-          >
-            Add Donor
-          </Button>
-          <input
-            type="file"
-            accept=".csv"
-            ref={fileInputRef}
-            onChange={handleImport}
-            style={{ display: 'none' }}
-          />
-          <Box sx={{ flexBasis: '100%', height: 0 }} />
-          <Button
-            variant="outlined"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Import Zeffy CSV
-          </Button>
-          <TextField
-            label="Month"
-            type="month"
-            value={month}
-            onChange={e => setMonth(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+            <TextField
+              label="Month"
+              type="month"
+              value={month}
+              onChange={e => setMonth(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </Stack>
         </Stack>
 
         {table}
