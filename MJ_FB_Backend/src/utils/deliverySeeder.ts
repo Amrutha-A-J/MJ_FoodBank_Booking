@@ -12,18 +12,120 @@ export interface DeliveryCategorySeedDefinition {
 export const DELIVERY_CATEGORY_SEEDS: DeliveryCategorySeedDefinition[] = [
   {
     name: 'PROTEIN',
-    maxItems: 4,
-    items: ['Canned Tuna', 'Canned Chicken', 'Canned Beans', 'Peanut Butter'],
+    maxItems: 1,
+    items: ['BEEF', 'POULTRY', 'PORK', 'FISH', 'HALAL', 'EGGS'],
   },
   {
     name: 'FRESH VEGETABLE',
-    maxItems: 6,
-    items: ['Carrots', 'Potatoes', 'Onions', 'Bell Peppers', 'Broccoli'],
+    maxItems: 2,
+    items: ['POTATOES', 'CARROTS', 'LEAFY GREENS', 'EXTRA IF AVAILABLE'],
+  },
+  {
+    name: 'FRESH FRUIT',
+    maxItems: 1,
+    items: ['ORANGES', 'APPLES', 'EXTRA FRESH IF AVAILABLE'],
+  },
+  {
+    name: 'GRAINS',
+    maxItems: 1,
+    items: ['PASTA', 'RICE', 'LENTILS', 'CHICKPEAS'],
+  },
+  {
+    name: 'SAUCE',
+    maxItems: 1,
+    items: ['PASTA SAUCE', 'CANNED TOMATOES'],
+  },
+  {
+    name: 'SIDE DISHES',
+    maxItems: 1,
+    items: ['MAC & CHEESE', 'SIDEKICKS', 'BOXED POTAOTES', 'STOVE TOP', 'RAMAN NOODLES'],
+  },
+  {
+    name: 'SOUP',
+    maxItems: 1,
+    items: ['TOMATO', 'CHICKEN NOODLE', 'CREAM OF MUSHROOM', 'VEGETABLE SOUP', 'HEARTY SOUP'],
+  },
+  {
+    name: 'CANNED FRUIT',
+    maxItems: 1,
+    items: ['PEACHES', 'PINEAPPLE', 'APPLE SAUCE'],
+  },
+  {
+    name: 'CANNED VEGETABLES',
+    maxItems: 1,
+    items: ['GREEN BEANS', 'CORN', 'PEAS', 'PEAS AND CARROTS'],
+  },
+  {
+    name: 'CANNED PROTEIN',
+    maxItems: 1,
+    items: ['TUNA', 'SALMON', 'BROWN BEANS', 'KIDNEY BEANS', 'CHICKPEAS', 'LENTILS'],
+  },
+  {
+    name: 'COOKIES/CRACKERS',
+    maxItems: 1,
+    items: ['COOKIES', 'CRACKERS'],
+  },
+  {
+    name: 'SNACKS',
+    maxItems: 1,
+    items: ['SALTY', 'SWEET'],
+  },
+  {
+    name: 'CONDIMENTS',
+    maxItems: 1,
+    items: [
+      'KETCHUP',
+      'MUSTARD',
+      'MAYO',
+      'BBQ SAUCE',
+      'CREAMY SALAD DRESSING',
+      'VINEGRETTE SALAD DRESSING',
+    ],
+  },
+  {
+    name: 'PET FOOD',
+    maxItems: 2,
+    items: ['CAT', 'DOG'],
+  },
+  {
+    name: 'BAKERY',
+    maxItems: 2,
+    items: ['BREAD - WHITE', 'BREAD - BROWN', 'BUNS - WHITE', 'BUNS - BROWN', 'DESSERTS'],
+  },
+  {
+    name: 'DAIRY',
+    maxItems: 1,
+    items: [
+      'MILK FOR CHILDREN',
+      'MILK SUBSTITUTE (IF AVAILABLE)',
+      'YOGURT (IF AVAILABLE)',
+      'CHEESE (IF AVAILABLE)',
+    ],
+  },
+  {
+    name: 'SPECIAL DIETARY NEEDS',
+    maxItems: 5,
+    items: ['DIABETIC', 'VEGETARIAN', 'VEGAN', 'GLUTTEN FREE', 'LACTOSE FREE'],
+  },
+  {
+    name: "WOMEN'S SANITARY",
+    maxItems: 1,
+    items: ['TAMPONS', 'FEMININE NAPKINS (PADS)'],
+  },
+  {
+    name: 'PERSONAL CARE',
+    maxItems: 2,
+    items: ['DEODERANT', 'TOOTHPASTE', 'TOOTHBRUSH', 'SHAMPOO', 'CONDITIONER'],
+  },
+  {
+    name: 'HOUSEHOLD ITEMS',
+    maxItems: 2,
+    items: ['TOILET PAPER', 'GARBAGE BAGS', 'LAUNDRY SOAP', 'DRYER SHEETS', 'DISH SOAP'],
   },
   {
     name: 'BEVERAGES',
-    maxItems: 3,
-    items: ['Coffee', 'Tea', 'Juice Boxes', 'Shelf-Stable Milk'],
+    maxItems: 1,
+    items: ['COFFEE', 'TEA', 'JUICE'],
   },
 ];
 
