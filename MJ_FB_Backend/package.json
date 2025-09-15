@@ -61,6 +61,7 @@
     "test": "jest",
     "migrate": "tsx src/runMigrations.ts",
     "migration:create": "node-pg-migrate create -m src/migrations -j ts",
+    "seed:delivery": "tsx --env-file=.env src/utils/deliverySeeder.ts",
     "lint:deps": "npx npm-check-updates",
     "lint:deps:update": "npx npm-check-updates -u && npm install",
     "lint": "eslint --config .eslintrc.cjs ."
