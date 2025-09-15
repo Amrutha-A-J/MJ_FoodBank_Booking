@@ -29,6 +29,8 @@ export interface LoginResponse {
   consent?: boolean;
 }
 
+export type PasswordResetBody = { email: string } | { clientId: string };
+
 export interface Slot {
   id: string;
   startTime: string;

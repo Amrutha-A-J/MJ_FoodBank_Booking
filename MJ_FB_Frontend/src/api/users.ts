@@ -4,6 +4,7 @@ import type {
   StaffAccess,
   LoginResponse,
   UserPreferences,
+  PasswordResetBody,
 } from "../types";
 import { API_BASE, apiFetch, handleResponse } from "./client";
 export type { LoginResponse } from "../types";
@@ -31,10 +32,7 @@ export async function logout(): Promise<void> {
   await handleResponse(res);
 }
 
-export async function requestPasswordReset(data: {
-  email?: string;
-  clientId?: string;
-}): Promise<void> {
+export async function requestPasswordReset(data: PasswordResetBody): Promise<void> {
   const res = await apiFetch(`${API_BASE}/auth/request-password-reset`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
