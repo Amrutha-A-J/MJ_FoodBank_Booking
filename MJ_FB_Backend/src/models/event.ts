@@ -27,7 +27,7 @@ export interface InsertEventParams {
   priority?: number;
 }
 
-export async function insertEvent({
+export async function createEvent({
   title,
   details = null,
   category = null,
@@ -66,6 +66,8 @@ export async function insertEvent({
   );
   return res.rows[0];
 }
+
+export { createEvent as insertEvent };
 
 export interface UpdateEventParams {
   title?: string;
@@ -127,4 +129,11 @@ export async function updateEvent(
   const query = `UPDATE events SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`;
   const res = await pool.query(query, [...values, id]);
   return res.rows[0] ?? null;
+}
+
+export async function listEvents(): Promise<Event[]> {
+  const res = await pool.query(
+    'SELECT * FROM events ORDER BY start_date',
+  );
+  return res.rows;
 }
